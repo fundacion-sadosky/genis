@@ -1,0 +1,98 @@
+<style>
+	.popover {
+		width: 600px;
+		max-width: 600px;
+	}
+</style>
+
+
+<div class="row padding-0 breadcrumb_column">
+    <div class="col-md-12 padding-0">
+        <div class="row padding-0">
+            <div class="breadcrumb_content">
+                <ol class="breadcrumb">
+                        <li>
+                            <div class="btn volver" onclick="history.back()">
+                                <span  class="icon-atras" title="Volver"></span>
+                            </div>
+                        </li>
+                        <li class="active">Roles</li>
+                        
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+<div class="container-top">
+    <div class="row content">
+        <div class="col-md-3">
+            <ul class="list-group" style="margin-bottom: 0px">
+                <li ng-repeat="r in roles"
+                    ng-click="updateRole(r)"
+                    ng-class="{'list-group-menu-item-selected': r == current }"
+                    class="list-group-item list-group-menu-item">
+                    <span>{{r.roleName}}</span>
+                    <i class="pull-right glyphicon glyphicon-pencil" ng-click="editRole(r)"></i>
+                </li>
+            </ul>
+            <button style="margin-top: 20px;"
+                    type="button"
+                    class="btn btn-block btn-secondary-action"
+                    ng-click="addRole()"
+            >Agregar rol </button>
+        </div>
+
+        <div class="col-md-9" ng-if="current">
+            <section class="extended-section">
+                <div class="content-wrap">
+                    <label>{{current.roleName}}</label>
+
+                    <input id="searchtext" name="searchtext" type="text" class="form-control form-select search-main" ng-model="search"
+                           placeholder="Busque permiso por nombre o descripción">
+
+                    <table class="table table-striped">
+                        <thead>
+                        <tr>
+                            <th class="col-md-1"></th>
+                            <th class="col-md-4"></th>
+                            <th class="col-md-6"></th>
+                            <th class="col-md-1"></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr data-ng-repeat="p in permissions | filter:search:premissionComparator | orderBy: translatePermission">
+                            <td>
+                                <input type="checkbox" checklist-model="current.permissions" checklist-value="p.id" ng-change="verificarCheckbox()"/>
+                            </td>
+                            <td class="text-left" style="width:40%">{{translatePermission(p)}}</td>
+                            <td class="text-left">{{'permission.' + p.id + '.description' | i18next}}</td>
+                            <td>
+                                <button class="btn btn-default btn-link-action btn-link-border" pdg-operations-popover operations="p.operations">
+                                    <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                                </button>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            
+        </div>
+    </div>
+</div>
+                        <footer class="rol-footer">
+                            <div class="desk-align-right inside-right">
+                                <div class="btn btn-link-action" ng-click="cancel()">
+                                    <span title="Limpiar pantalla">
+                                        <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+                                    </span>
+                                    <span class="btn-link-action">Limpiar</span>
+                                </div>
+            
+                                <button type="button"
+                                        class="btn btn-primary-action"
+                                        data-ng-click="save()"  data-ng-disabled="!verificaPermisos(current) == true">Guardar</button>
+                            </div>
+                        </footer>
+

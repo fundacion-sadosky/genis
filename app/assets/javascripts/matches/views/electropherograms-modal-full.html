@@ -1,0 +1,21 @@
+<div class="modal-header">
+    <h5>Electroferogramas {{profileIdEpg}}</h5>
+    <button id="closeEpg" style="float:right;" class="btn btn-success" data-ng-click="closeModalEpg()"><b>X</b></button>
+</div>
+<div class="modal-body">
+    <div id="electropherogramsdiv">
+        <carousel interval="3000">
+            <slide ng-repeat="slide in epg">
+                <img ng-src="{{slide.path}}" style="margin:auto; height: 200px;" modal-img>
+            </slide>
+        </carousel>
+    </div>
+    <div class="form-group">
+        <div ng-repeat="file in epg" style="font-size: 1.1em;">
+            <a href="{{file.path}}" download="{{file.name}}">
+                <i class="glyphicon glyphicon-download" ></i>
+                {{file.name}}
+            </a>
+        </div>
+    </div>
+</div>

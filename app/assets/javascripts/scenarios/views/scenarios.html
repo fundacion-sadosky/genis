@@ -1,0 +1,144 @@
+
+
+
+<div class="row padding-0 breadcrumb_column">
+    <div class="col-md-12 padding-0">
+        <div class="row padding-0">
+            <div class="breadcrumb_content">
+                <ol class="breadcrumb">
+                        <li>
+                            <div class="btn volver" onclick="history.back()">
+                                <span  class="icon-atras" title="Volver"></span>
+                            </div>
+                        </li>
+                        <li class="active">Escenarios: <span ng-bind="profile"></span></li>
+                            
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+<div class="container-top">
+    
+    <div class="match-group-search">
+            <div class="content">
+    <div class="options-header">
+        <form class="navbar-form" role="search" name="searchScenariosForm" novalidate data-ng-submit="searchWithParameters()">
+            <div class="row padding-0">
+                
+                <div class="col-md-4 vertical-align padding-0">
+                     <!-- fecha -->
+                     <div class="col-md-2 vertical-align padding-left-0">
+                        <label for="hourFrom">Fecha</label>
+                    </div>
+                    <div class="form-group col-md-5 padding-left-0">
+                            <input type="text" name="hourFrom" id="hourFrom" class="form-control form-select"
+                             placeholder="Desde" data-datepicker-popup="dd/MM/yyyy"
+                             data-ng-model="filters.hourFrom"
+                             data-is-open="datepickers.hourFrom"
+                             data-datepicker-options="dateOptions" data-close-text="Close" data-ng-click="toggleDatePicker($event,'hourFrom')"/>
+                     
+                     </div>
+                     <!-- fecha hasta -->
+                     <div class="form-group col-md-5 padding-left-0">
+                         
+                            <input type="text" name="hourUntil" id="hourUntil" class="form-control form-select"
+                             placeholder="Hasta" data-datepicker-popup="dd/MM/yyyy"
+                             data-ng-model="filters.hourUntil"
+                             data-is-open="datepickers.hourUntil"
+                             data-datepicker-options="dateOptions" data-close-text="Close" data-ng-click="toggleDatePicker($event,'hourUntil')"/>
+                     
+                     </div>
+                </div>
+                <div class="col-md-3 vertical-align">
+                     <!-- name -->
+                     <div class="col-md-3">
+                         <label for="search-name">Nombre</label>
+                      </div>
+                     <div class="col-md-9">
+                         <input  id="search-name" ng-model="filters.name" class="form-control form-select">
+                     </div>
+
+                </div>
+                <div class="col-md-3 vertical-align">
+                    <!-- state -->
+                    <div class="col-md-3">
+                        <label for="search-state">Estado</label>
+                    </div>
+                    <div class="col-md-9">
+                        <select id="search-state" data-ng-model="filters.state" data-ng-options="item.value as item.label for item in states" class="form-control form-select col-md-12"></select>
+                    </div>
+                </div>
+                <div class="col-md-2 padding-right-0">
+                        <div class="text-right">
+                                <button id="search-button" type="submit" class="btn btn-default">Buscar</button>
+                                <button type="reset" class="btn btn-default" ng-click="listScenarios()">
+                                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                                </button>
+                                <span id="processingSpan" class="icon-refresh" ng-class="{'spinner': isProcessing}" data-ng-show="isProcessing"></span>
+                            </div>
+                </div>
+                
+                
+               
+
+
+
+
+
+               
+
+
+                
+
+
+
+
+                
+            </div>
+        </form>
+    </div>
+</div>
+</div>
+<div class="content">
+    <table class="table table-bordered" data-ng-init="listScenarios()">
+        <thead>
+        <tr>
+            <th class="text-center">
+                <a href="" ng-click="sortBy('date')">Fecha
+                    <span ng-show="sortField == 'date'" class="caret" ng-class="{'caret-reversed': !ascending}"></span></a>
+            </th>
+            <th class="text-center">
+                <a href="" ng-click="sortBy('name')">Nombre
+                    <span ng-show="sortField == 'name'" class="caret" ng-class="{'caret-reversed': !ascending}"></span></a>
+            </th>
+            <th class="text-center">
+                <a href="" ng-click="sortBy('state')">Estado
+                    <span ng-show="sortField == 'state'" class="caret" ng-class="{'caret-reversed': !ascending}"></span></a>
+            </th>
+            <th class="text-center col-md-6">Descripción</th>
+            <th class="text-center col-md-2">Acciones</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr data-ng-repeat="scenario in scenarios">
+            <td>{{scenario.date.$date | date:'yyyy-MM-dd HH:mm:ss'}}</td>
+            <td>{{scenario.name}}</td>
+            <td>{{ "scenario.state." + scenario.state | i18next }}</td>
+            <td class="text-left">{{scenario.description}}</td>
+            <td class="text-center">
+                <button class="btn" title="Editar" ng-click="edit(scenario._id)">
+                    <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+                </button>
+                <button ng-if="scenario.state.toString() !== 'Validated'"
+                        class="btn" title="Eliminar" ng-click="delete(scenario._id)">
+                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                </button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</div>

@@ -1,0 +1,112 @@
+<div class="options-header scenarios-section">
+
+    <div class="panel-body padding-left-0 padding-right-0">
+        <div class="col-md-12">
+            <div id="divLRResult" class="col-md-6">
+                Resultados del <span class="bold">LR TOTAL</span> =
+                <input type="text" class="form-control form-select" style="width: auto; display: inline"
+                   value="{{result.total | likelihoodratio: true: result.detailed}}" disabled="disabled" />
+            </div>
+
+            <div class="col-md-6 text-right" ng-show="showNCorrection()">
+                <div class="row">
+                    <span class="m-r-10">Cantidad de individuos en la población de interés:</span>
+                    <input id="bigN-input" type="number" class="form-control form-select m-r-10" style="width:115px; display: inline"
+                       data-ng-model="bigN" data-ng-required="true" required />
+                    <button type="button" class="btn btn-secondary-action" ng-disabled="!bigN"
+                            data-ng-click="getNCorrection(bigN)">Corrección por N</button>
+                    <span id="processingSpan" class="icon-refresh" ng-class="{'spinner': isProcessing}" data-ng-show="isProcessing"></span>
+                </div>
+                <div id="divNCorrection" class="row m-t-10" ng-if="nCorrection">
+                    <span id="spanN" class="m-r-10"><span class="bold">Cantidad de perfiles evaluados: </span>{{nCorrection.n}}</span>
+                    <span class="m-r-10"><span class="bold">DMP: </span>{{nCorrection.dmp | likelihoodratio: true: result.detailed}}</span>
+                    <span><span class="bold">Donnelly-Baldwin: </span>{{nCorrection.donnellyBaldwin | likelihoodratio: true: result.detailed}}</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+<div class="row m-l-10 m-r-10">
+    <div class="col-md-4 padding-left-0 scenarios-section" style="padding-bottom: 25px;">
+        <div id="divPartialResult">
+            <h3 class="m-b-10 m-t-10">Resultados del Cálculo</h3>
+            <div class="m-b-10" style="font-size: 17px">Resultado de LR por Sistema</div>
+            <table class="table-bordered">
+                <thead>
+                <tr>
+                    <th class="col-md-1 column">Sistema</th>
+                    <th class="text-center col-md-4 column">LR</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng:repeat="item in comparison">
+                    <td>{{item.locus}}</td>
+                    <td class="text-center">
+                        <span class="text-center">
+                            {{result.detailed[item.locus] | likelihoodratioComp: true: true }}
+                        </span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="col-md-8 padding-right-0 scenarios-section">
+        <div id="divScenario">
+            <h3 class="m-b-10">Hipótesis contrastada</h3>
+            <div class="form-group row" style="margin-bottom: 0px; padding-left: 30px;">
+                <label>Parámetros poblacionales:</label>
+                <ul>
+                    <li><span class="underline">Base de datos de frecuencias alélicas:</span> {{scenario.stats.frequencyTable}}</li>
+                    <li><span class="underline">Coeficiente de co-ancestralidad (&Theta;):</span> {{scenario.stats.theta}}</li>
+                    <li><span class="underline">Probabilidad de Drop-in:</span> {{scenario.stats.dropIn}}</li>
+                </ul>
+            </div>
+            <div class="form-group hypothesis m-b-10">
+                <label>Hipótesis 1:</label>
+                <ul>
+                    <li><span class="underline">Aportantes:</span> {{printHypothesis('prosecutor')}}</li>
+                    <li><span class="underline">Probabilidad de Drop-out de la Hipótesis:</span> {{scenario.prosecutor.dropOut}}</li>
+                </ul>
+            </div>
+            <div class="form-group hypothesis m-b-10">
+                <label>Hipótesis 2:</label>
+                <ul>
+                    <li><span class="underline">Aportantes:</span> {{printHypothesis('defense')}}</li>
+                    <li><span class="underline">Probabilidad de Drop-out de la Hipótesis:</span> {{scenario.defense.dropOut}}</li>
+                </ul>
+            </div>
+            <div class="form-group row" style="padding-left: 30px;">
+                <label>Fecha:</label> {{lastDate | date:'yyyy-MM-dd HH:mm'}}
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="lrmix-footer">
+    <button type="button"
+            class="btn btn-secondary-action"
+            data-ng-click="printReport()">Imprimir</button>
+    <div class="desk-align-right inside-right">
+
+
+
+        <button ng-if="scenarioData.state.toString() !== 'Validated'"
+                help-tip="scenario.save" help-tip-placement="top"
+                type="button"
+                class="btn btn-secondary-action"
+                data-ng-click="save()">Guardar</button>
+
+        <button id="validateAndSave"
+                ng-if="scenarioData.state.toString() !== 'Validated'"
+                type="button"
+                class="btn btn-primary-action"
+                hide-pop-up="!scenarioId"
+                pdg-confirm pdg-confirm-title="Validar Escenario"
+                pdg-confirm-content="Al validar el escenario se confirmaran las coincidencias entre los perfiles genéticos bajo las hipótesis planteadas en el cálculo correspondiente. ¿Está seguro que quiere validar?"
+                pdg-on-confirm="validate">Validar y Guardar</button>
+
+    </div>
+</footer>

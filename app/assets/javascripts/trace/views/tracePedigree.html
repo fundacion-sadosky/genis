@@ -1,0 +1,79 @@
+
+
+<div class="row padding-0 breadcrumb_column">
+        <div class="col-md-12 padding-0">
+            <div class="row padding-0">
+                <div class="breadcrumb_content">
+                    <ol class="breadcrumb">
+                            <li>
+                                <div class="btn volver" onclick="history.back()">
+                                    <span  class="icon-atras" title="Volver"></span>
+                                </div>
+                            </li>
+                            <li class="active">Trazabilidad de Pedigrí</li>
+                            
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+<div class="container-top">
+        <div class="row ">
+                <div class="content padding-0">
+    <div class="row m-b-10 vertical-align">
+        <h4 class="badge trace-badge m-t-0"> {{pedigreeMetadata.pedigreeMetadata.courtCaseName}} / {{pedigreeMetadata.pedigreeMetadata.name}}</h4>
+        <!--<div class="col-md-6 vertical-align">-->
+            <!--<h5 class="m-l-10 m-t-0" style="vertical-align:super">Caso: {{pedigreeMetadata.pedigreeMetadata.courtCaseName}}</h5>-->
+        <!--</div>-->
+        <!--<div class="col-md-6 vertical-align">-->
+            <!--<h5 class="m-l-10 m-t-0" style="vertical-align:super">Pedigrí: {{pedigreeMetadata.pedigreeMetadata.name}}</h5>-->
+        <!--</div>-->
+        <div class="col-md-6 text-right">
+            <h5>Usuario responsable</h5>
+            <p class="m-l-10">{{pedigreeMetadata.pedigreeMetadata.assignee}}</p>
+        </div>
+    </div>
+    <hr class="m-t-0"/>
+</div>
+</div>
+<div class="row ">
+        <div class="content padding-0">
+    <div data-ng-show="noResult">No se encontraron datos según su busqueda</div>
+
+    <div data-ng-show="!noResult" name="trace_grid">
+        <table class="table table-bordered trace-table">
+            <thead>
+            <th class="text-center" style="width: 15%;">Fecha</th>
+            <th class="text-center" style="width: 15%;">Tipo</th>
+            <th class="text-center" style="width: 15%;">Usuario</th>
+            <th class="text-center">
+                <div class="col-md-11 text-left">
+                    Descripción
+                </div>
+            </th>
+            </thead>
+            <tbody>
+            <tr data-ng-repeat="t in traces">
+                <td class="text-center">{{t.date | date:'yyyy-MM-dd HH:mm:ss'}}</td>
+                <td class="text-center">{{'trace.type.' + t.kind | i18next}}</td>
+                <td class="text-center">{{t.user}}</td>
+                <td class="text-left">
+                    <div class="row">
+                        <div class="col-md-11 text-left">
+                            {{t.description}}
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</div>
+</div>
+<footer class="trace-footer">
+    <div style="width: 100%;">
+        <pagination boundary-links="true" ng-change="searchTrace()" items-per-page="{{pageSize}}" max-size="10" total-items="totalItems" ng-model="currentPage" class="pagination-sm" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;"  rotate="false"></pagination>
+    </div>
+</footer>

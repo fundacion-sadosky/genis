@@ -1,0 +1,241 @@
+<div class="panel panel-default" ng-show="other.totalItems !== '0'"> 
+    
+    <div class="row tabla-referencia">
+        <div class="col-md-12 title">
+            <h4 class="title">
+                <span class="bold panel-title">{{other.title}}</span>
+                <span class="icon-refresh" ng-class="{'spinner': other.isProcessing}" data-ng-show="other.isProcessing"></span>
+            </h4>
+            <div class="text-right buttons-group-escenarios col-md-6" >
+                
+                <a id="goto-scenarios-button" class="btn btn-round" href="" pdg-confirm pdg-confirm-title="Descartar Coincidencias"
+                   pdg-confirm-content="Al confirmar esta acción se descartarán todas las coincidencias del grupo. ¿Está seguro?"
+                   pdg-on-confirm="descarteMasivo" param="{{other}}" >Descartar todo</a>
+            </div>
+            <a data-toggle="collapse" href="#others" class="a-icon-arrow-down" ><span class="icon-arrow-down" ></span></a>
+        </div>
+    </div>
+    <div id="others" class="panel-collapse collapse">
+        <div class="row tabla-referencia-content">
+            <div class="col-md-12 padding-0"> 
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>
+                                &nbsp;
+                                
+                            </th>
+                            <th class="text-center head-column">
+                                <pdg-sortable name="Código Laboratorio" predicate="other.predicate" reverse="other.reverse"
+                                sort-action="sortBy(other, 'globalCode')" sort-field="globalCode"></pdg-sortable>
+                            </th>
+                            <th class="text-center head-column">
+                                Categoría
+                            </th>
+                            <th class="text-center head-column">
+                                    <pdg-sortable name="Sistemas comp." predicate="other.predicate" reverse="other.reverse"
+                                    sort-action="sortBy(other, 'totalAlleles')" sort-field="totalAlleles" numeric="true"></pdg-sortable>
+                            </th>
+                            <th class="text-center head-column">
+                                    <pdg-sortable name="Alelos comp." predicate="other.predicate" reverse="other.reverse"
+                                    sort-action="sortBy(other, 'sharedAllelePonderation')" sort-field="sharedAllelePonderation" numeric="true"></pdg-sortable>
+                            </th>
+                            
+                            <th class="text-center head-column">
+                                LR
+                                <!-- <a href="" class="btn" ng-if="other.matches !== undefined && other.matches.length > 0"  title="Calcular todos los LR" ng-click="getAllLR(other)">
+                                    <span class="glyphicon glyphicon-play-circle btn-icon-action" aria-hidden="true"></span>
+                                </a> -->
+                            </th>
+                            <th class="text-center head-column">
+                                <pdg-sortable name="No coincid." predicate="other.predicate" reverse="other.reverse"
+                                sort-action="sortBy(other, 'type')" sort-field="type"></pdg-sortable> <!-- VARIALBE SIN DEFINIR -->
+                            </th>
+                            <th class="text-center head-column">
+                                    <pdg-sortable name="E. agrupador" predicate="other.predicate" reverse="other.reverse"
+                                    sort-action="sortBy(other, 'ownerStatus')" sort-field="ownerStatus"
+                                    help-tip="matches.groupStatus" help-tip-placement="left"></pdg-sortable>
+                            </th>
+                            <th class="text-center head-column">
+                                    <pdg-sortable name="E. coincidente" predicate="other.predicate" reverse="other.reverse"
+                                    sort-action="sortBy(other, 'otherStatus')" sort-field="otherStatus"
+                                    help-tip="matches.matchStatus" help-tip-placement="top"></pdg-sortable>
+                            </th>
+                            <th class="text-center head-column">
+                                &nbsp;
+                            </th>
+                            <th class="text-center head-column">
+                                &nbsp;
+                            </th>
+                            <th class="text-center head-column">
+                                &nbsp;
+                            </th>
+                            <th class="text-center head-column">
+                                &nbsp;
+                            </th>
+
+                            <th class="head-column">Comparar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng:repeat="d in other.matches" name="{{'det_' + d.globalCode}}">
+                            <td>
+                                
+                            </td>
+                            <td class="text-center">
+                                {{d | showcode}}
+                            </td>
+                            <td class="text-center">{{getSubCatName(d.categoryId)}}</td>
+                            <td class="text-center">
+                                    <span ng-if="!analysisTypes[d.type].mitochondrial">{{d.totalAlleles}} / {{d.totalMarkers}}</span>
+                                    <span ng-if="analysisTypes[d.type].mitochondrial">-</span>
+                            </td>
+                            
+                            <td class="text-center">
+                                    <span> {{d.sharedAllelePonderation | percentage:2}} </span>
+                            </td>
+                            
+                            
+                            <td class="text-center">
+                                <span ng-if="d.lr != 0">{{d.lr | likelihoodratio : true : true}}</span>
+                                <span ng-if="d.lr == 0">-</span>
+                            </td>
+                            <td class="text-center">
+                                {{d.mismatches}}
+                            </td>
+                            
+                            <td class="text-center">{{ matchStatus[d.ownerStatus] }}</td>
+                            
+                            <td class="text-center">{{ matchStatus[d.otherStatus] }}</td>
+
+                            <td show-permissions="SCENARIO_CRUD" class="text-center">
+                                <a class="btn " title="Ver escenarios" href="" ng-click="!d.viewScenarios || getScenarios(d)" ng-disabled="{{!d.viewScenarios}}">
+                                    <span class="icon-ver" aria-hidden="true"></span>
+                                </a>
+                            </td>
+                            
+                            <td show-permissions="SCENARIO_CRUD" class="text-center">
+                                <a class="btn " title="Nuevo escenario" href="" ng-click="addScenario(d)">
+                                    <span class="icon-agregar-escenario" aria-hidden="true"></span>
+                                </a>
+                            </td>
+                            <td class="text-center">
+                                    <a id="doDescardDisabled" ng-show="(d.ownerStatus==='hit' && d.otherStatus==='hit')" disabled="disabled"
+                                       data-ng-disabled="{{d.ownerStatus==='discarded' || d.ownerStatus==='hit'}}"
+                                       class="btn">
+                                    <span class="icon-descartar" aria-hidden="true"></span>
+                                </a>
+                                    <a href="" class="btn" title="Descartar" id="doDescard"  ng-show="!(d.ownerStatus==='hit' && d.otherStatus==='hit')"
+                                       prueba="{{ d.ownerStatus === 'pending'}}"
+                                       pdg-confirm pdg-confirm-title="Descartar Coincidencia" pdg-confirm-content="Al confirmar esta acción se descartará la coincidencia. ¿Está seguro?" param="{{d}}"
+                                       data-ng-disabled="closedMatch || {{d.ownerStatus !== 'pending'}} " class="btn" pdg-on-confirm="discardMatch" ><span class="icon-descartar"></span></a>
+                                </td>
+
+                            <td class="text-center">
+                                <a href="" class="btn" title="Actualizar estado de la coincidencia en instancia superior" id="doUpload" pdg-confirm pdg-confirm-title="Subir estado de la coincidencia a la instancia superior" pdg-confirm-content="Al confirmar esta acción se subira el estado de la coincidencia a la instancia superior. ¿Está seguro?"
+                                   param="{{d}}"  class="btn" pdg-on-confirm="uploadMatch" ng-if="d.isInterconnectionMatch" ><span class="icon-arrow-up"></span></a>
+                            </td>
+
+                            <td title="Ver alelos">
+                                        <a id="go_evidencia_{{$index}}" href="{{getHref(profile, d)}}" class="btn">
+                                        <span class="icon-arrow-right"></span>
+                                        
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="1000000" class="table-in-pagination">
+                                    <pagination style="position: initial; transform: translate(0, 0);" boundary-links="true" ng-change="getMatches(other)" items-per-page="{{pageSize}}" max-size="10" total-items="other.totalItems" ng-model="other.currentPage" class="pagination-sm" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;"  rotate="false"></pagination>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+
+
+<!-- Oldie -->
+
+
+<!-- <div class="panel panel-default" ng-show="other.totalItems !== '0'"> 
+        
+    <a data-toggle="collapse" href="#other" style="text-decoration: none;">
+        <div class="panel-heading btn-icon-action" style="background-color: #f5f5f5; border-color:#dddddd;">
+            <span class="bold panel-title">{{other.title}}</span>
+            <span class="icon-refresh" ng-class="{'spinner': other.isProcessing}" data-ng-show="other.isProcessing"></span>
+            <span class="pull-right">
+                <span class="badge match-badge"><b>{{other.totalItems}} coincidencias</b></span> OTHERS
+            </span>
+        </div>
+    </a>
+    <div id="other" class="panel-collapse collapse">
+        agregar estado agrupador / estado coincidete / comparar & descartar
+        <div class="panel-body">
+            <table class="table table-striped table-matches-details">
+                <thead>
+                <tr>
+                    <th class="text-center">
+                        <pdg-sortable name="Código Laboratorio" predicate="other.predicate" reverse="other.reverse"
+                                      sort-action="sortBy(other, 'globalCode')" sort-field="globalCode"></pdg-sortable>
+                    </th>
+                    <th class="text-center">
+                        <pdg-sortable name="Tipo de análisis" predicate="other.predicate" reverse="other.reverse"
+                                      sort-action="sortBy(other, 'type')" sort-field="type"></pdg-sortable>
+                    </th>
+                    <th class="text-center">
+                        Categoría
+                    </th>
+                    <th class="text-center">
+                        <pdg-sortable name="Sistemas compartidos" predicate="other.predicate" reverse="other.reverse"
+                                      sort-action="sortBy(other, 'totalAlleles')" sort-field="totalAlleles" numeric="true"></pdg-sortable>
+                    </th>
+                    <th class="text-center">
+                        <pdg-sortable name="Porcentaje de alelos compartidos" predicate="other.predicate" reverse="other.reverse"
+                                      sort-action="sortBy(other, 'sharedAllelePonderation')" sort-field="sharedAllelePonderation" numeric="true"></pdg-sortable>
+                    </th>
+                    <th class="text-center" style="width:10%">
+                        Exigencia
+                    </th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng:repeat="d in other.matches" name="{{'det_' + d.globalCode}}">
+                    <td class="text-center">
+                        {{d | showcode}}
+                    </td>
+                    <td class="text-center">
+                        {{getAnalysisName(d.type)}}
+                    </td>
+                    <td class="text-center">{{getSubCatName(d.categoryId)}}</td>
+
+                    <td class="text-center">
+                        <span ng-if="!analysisTypes[d.type].mitochondrial">{{d.totalAlleles}} / {{d.totalMarkers}}</span>
+                        <span ng-if="analysisTypes[d.type].mitochondrial">-</span>
+                    </td>
+
+                    <td class="text-center">
+                        <span> {{d.sharedAllelePonderation | percentage:2}} </span>
+                    </td>
+
+                    <td class="text-center">
+                        <span ng-if="d.algorithm!=='ENFSI'">{{"matchingAlgorithm." + d.algorithm | i18next}}</span>
+                        <span class="badge" ng-if="d.algorithm==='ENFSI'"
+                                  ng-class="{'icon-mismatch': d.stringency == stringency.Mismatch.key, 'icon-highstringency': d.stringency == stringency.HighStringency.key, 'icon-moderatestringency': d.stringency == stringency.ModerateStringency.key, 'icon-lowstringency': d.stringency == stringency.LowStringency.key}">
+                            {{"stringency." + d.stringency | i18next}} </span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="1000000" class="table-in-pagination">
+                        <pagination style="position: initial; transform: translate(0, 0);" boundary-links="true" ng-change="getMatches(other)" items-per-page="{{pageSize}}" max-size="10" total-items="other.totalItems" ng-model="other.currentPage" class="pagination-sm" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;"  rotate="false"></pagination>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+-->

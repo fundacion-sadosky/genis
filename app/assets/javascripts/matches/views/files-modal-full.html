@@ -1,0 +1,14 @@
+<div class="modal-header">
+    <h5>Archivos {{profileIdEpg}}</h5>
+    <button id="closeEpg" style="float:right;" class="btn btn-success" data-ng-click="closeModalEpg()"><b>X</b></button>
+</div>
+<div class="modal-body">
+    <div class="form-group">
+        <div ng-repeat="file in files" style="font-size: 1.1em;">
+            <a href="{{file.path}}" download="{{file.name}}">
+                <i class="glyphicon glyphicon-download" ></i>
+                {{file.name}}
+            </a>
+        </div>
+    </div>
+</div>

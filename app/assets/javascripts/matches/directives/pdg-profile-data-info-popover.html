@@ -1,0 +1,35 @@
+<i class="fa fa-info-circle"></i>
+<div id="{{'popoverProfiledataInfo_' + profileid}}" style="display: none">
+	<div class="col-md-11 column">
+		<div class="form-group">
+			<label>Código GENis</label> {{profileData.globalCode}}
+		</div>
+		<div class="form-group">
+			<label>Categoría</label> {{subcatName}}
+		</div>
+		<div class="form-group">
+			<label>Genetista asignado</label> {{profileData.assignee}}
+		</div>
+		<div class="form-group">
+			<label>Genetista responsable de la pericia</label> {{profileData.responsibleGeneticist}}
+		</div>
+		<div class="form-group">
+			<label>Código Laboratorio</label> {{profileData.internalSampleCode}}
+		</div>
+		<div class="form-group">
+			<label>Laboratorio</label> {{profileData.laboratory}}
+		</div>
+		<div class="form-group">
+			<label>Tipo de material biológico</label> {{profileData.bioMaterialType}}
+		</div>
+		<div class="form-group">
+			<label>Fecha de toma de la muestra</label> {{profileData.sampleEntryDate|date:'dd/MM/yyyy'}}
+		</div>
+		<div class="form-group">
+			<label>Fecha de ingreso al laboratorio</label> {{profileData.sampleDate|date:'dd/MM/yyyy'}}
+		</div>
+		<div class="form-group">
+			<label>Fecha de caducidad del perfil</label> {{profileData.profileExpirationDate|date:'dd/MM/yyyy'}}
+		</div>
+	</div>
+</div>	

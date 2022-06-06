@@ -1,0 +1,76 @@
+
+<div class="row padding-0 breadcrumb_column">
+	<div class="col-md-12 padding-0">
+		<div class="row padding-0">
+			<div class="breadcrumb_content">
+				<ol class="breadcrumb">
+						<li>
+							<div class="btn volver" onclick="history.back()">
+								<span  class="icon-atras" title="Volver"></span>
+							</div>
+						</li>
+						<li class="active">Datos del caso {{courtcase.internalSampleCode}}</li>
+                    
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container-top">
+	<div class="row padding-0  match-group-search">
+		<div class="content court-case padding-0">
+			<section class="extended-section">
+				<div class="tabs tabs-style-line col-md-12 padding-top-10 padding-bottom-10 padding-left-0 padding-right-0">
+					<nav class="padding-0"  ng-class="{'col-md-12': true}">
+						<ul>
+							<li ng-class="{'tab-current': activeTab === tabCaseData}">
+								<a href="" ng-click="selectTab(tabCaseData)" ><span>Datos de la causa</span></a>
+							</li>
+							<li ng-class="{'tab-current': activeTab === tabProfiles}">
+								<a href="" ng-click="selectTab(tabProfiles)" ><span>Perfiles de Referencia</span></a>
+							</li>
+							<li ng-class="{'tab-current': activeTab === tabProfilesNN}" ng-if="courtcase.caseType == 'DVI'">
+								<a href="" ng-click="selectTab(tabProfilesNN)" ><span>Perfiles NN Post Mortem</span></a>
+							</li>
+							<li ng-class="{'tab-current': activeTab === tabCollapsing}" ng-if="courtcase.caseType == 'DVI'">
+								<a href="" ng-click="selectTab(tabCollapsing)" ><span>Agrupaciones de Restos</span></a>
+							</li>
+							<li ng-class="{'tab-current': activeTab === tabPedigree}" >
+								<a href="" ng-click="selectTab(tabPedigree)" ><span>Pedigrí</span></a>
+							</li>
+							<li ng-class="{'tab-current': activeTab === tabComparacion}" >
+								<a href="" ng-click="selectTab(tabComparacion)" ><span>Gestor de Coincidencias</span></a>
+							</li>
+						</ul>
+					</nav>
+				</div>
+			</section>
+		</div>
+	</div>
+</div>
+
+<div ng-if="activeTab === tabCaseData" class=" court-case ">
+	<div ng-controller="courtcaseDataController" class="container-top"
+		 ng-include="'/assets/javascripts/pedigree/views/courtcase-data.html'" class="animated fadeIn" />
+</div>
+<div ng-if="activeTab === tabProfiles" class=" court-case ">
+	<div ng-controller="profileCourtcaseController" class="container-top"
+		  ng-include="'/assets/javascripts/pedigree/views/profiles.html'" class="animated fadeIn" />
+</div>
+<div ng-if="activeTab === tabPedigree" class=" court-case ">
+	<div ng-controller="pedigreesDataController" class="container-top"
+		 ng-include="'/assets/javascripts/pedigree/views/pedigrees.html'" class="animated fadeIn" />
+</div>
+<div ng-if="activeTab === tabProfilesNN" class=" court-case ">
+	<div ng-controller="profileCourtcaseController" class="container-top"
+		 ng-include="'/assets/javascripts/pedigree/views/profilesNN.html'" class="animated fadeIn" />
+</div>
+<div ng-if="activeTab === tabCollapsing" class=" court-case ">
+	<div ng-controller="profileCourtcaseController" class="container-top"
+		 ng-include="'/assets/javascripts/pedigree/views/collapsing.html'" class="animated fadeIn" />
+</div>
+
+<div ng-if="activeTab === tabComparacion" class=" court-case ">
+	<div ng-controller="pedigreeMatchesCourtCaseController" class="container-top"
+		 ng-include="'/assets/javascripts/pedigree/views/pedigreeMatchCourtCase.html'" class="animated fadeIn" />
+</div>

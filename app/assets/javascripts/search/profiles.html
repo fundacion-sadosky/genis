@@ -1,0 +1,159 @@
+
+
+<div class="row padding-0 breadcrumb_column">
+    <div class="col-md-12 padding-0">
+        <div class="row padding-0">
+            <div class="breadcrumb_content">
+                <ol class="breadcrumb">
+                    <li>
+                        <div class="btn volver" onclick="history.back()">
+                            <span  class="icon-atras" title="Volver"></span>
+                        </div>
+                    </li>
+                    <li class="active">Búsqueda de Perfiles</li>
+                    
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-top">
+        <div class="row">
+            <div class="bulkupload-search">
+                <div class="content">
+                        <div class="options-header new-load vertical-align" ng-class="{'profile-header-clerk': hasPermission('PROFILE_DATA_CRUD')}">
+                            <div class="form-group col-md-12 padding-0">
+                                <form class="navbar-form  vertical-align padding-0" role="search" name="searchPdForm" novalidate data-ng-submit="getProfiles(search)">
+                                    <div class="col-md-4 padding-left-0 padding-right-0 vertical-align">
+                                        <label class="col-md-4 padding-left-0" for="search-text">Buscar perfiles</label>
+                                        <div class="col-md-8 padding-left-0">
+                                            <input id="search-text" type="text" class="form-control search-main form-select"
+                                            data-ng-model="search.input" placeholder="Código, categoría o laboratorio"/>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group col-md-3 padding-0  vertical-align" >
+                                            <div class="item-input padding-left-0 col-md-1  text-left">
+                                                <input type="checkbox" data-ng-model="search.active" id="active">
+                                            </div>
+                                            <label class="col-md-6 padding-0" for="active">Activos</label>
+                                        </div>
+                                        <div class="form-group col-md-4 padding-0 vertical-align">
+                                            <div class="item-input padding-0 col-md-1  text-left">
+                                                <input type="checkbox" data-ng-model="search.inactive" id="dadodebaja">
+                                            </div>
+                                            <label class="col-md-6 padding-0" for="dadodebaja">Dados de baja</label>
+                                        </div>
+                                        <div class="form-group col-md-5 padding-0 vertical-align">
+                                            <div class="item-input padding-0 col-md-1  text-left">
+                                                <input type="checkbox" data-ng-model="search.notUploaded" id="notUploaded">
+                                            </div>
+                                            <label class="col-md-10 padding-0" for="notUploaded">Pendientes de replicar</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 desk-align-right inside-right padding-0">
+                                        <span id="processingSpan" class="icon-refresh" ng-class="{'spinner': isProcessing}" data-ng-show="isProcessing"></span>
+                                        <a  title="Limpiar filtros" ng-click="clean()" ng-disabled="isProcessing"  class="cancel-link" >Limpiar</a>
+                                        <button id="search-button" type="submit" class="btn btn-secondary-action" data-ng-disabled="searchForm.$invalid">Buscar</button>
+                                    </div>
+
+                                </form>
+                            </div>
+                        </div>
+                </div>
+            </div>
+        </div>
+
+    <div class="row">
+        <div class="content m-t-10 padding-0">
+            <div class="row m-b-10">
+                <div class="padding-0">
+                    <span class="ng-binding ng-scope">
+                        <b>Cantidad de perfiles:</b> {{totalItems}} <span ng-hide="hideFilterLegend">de {{totalDataBaseItem}}</span>
+                    </span>
+                </div>
+                <div show-permissions="PROFILE_DATA_CRUD" class="pull-right padding-right-0">
+                    <button type="button" ng-class="{'btn-primary-action-selected': showAdd}"
+                    class="btn btn-primary-action pull-right"
+                    data-ng-click="goToProfile()">
+                    <!-- <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> -->
+                      <span>Nuevo perfil</span>
+                    </button>
+                </div>
+           
+        </div>
+
+        <div data-ng-show="noResult">
+            No se encontraron datos según su busqueda
+        </div>
+
+
+        <table class="table  table-bordered table-hover" data-ng-show="!noResult" data-ng-init="getProfiles(search)">
+            <thead>
+                <tr>
+                    <th class="head-column">Código GENis</th>
+                    <th class="head-column">Categoría</th>
+                    <th class="head-column">Código Laboratorio</th>
+                    <th class="head-column">Responsable</th>
+                    <th class="head-column">Laboratorio</th>
+                    <th class="head-column">Replicado</th>
+                    <th class="head-column" show-permissions="PROFILE_DATA_CRUD">Datos Muestra</th>
+                    <th class="head-column" show-permissions="DNA_PROFILE_CRUD">Ver Análisis</th>
+                    <th class="head-column" show-permissions="DNA_PROFILE_CRUD">Agregar Análisis</th>
+                    <th class="head-column" show-permissions="PROFILE_DATA_CRUD">Trazabilidad</th>
+                    <th class="head-column" show-permissions="PROFILE_DATA_CRUD">Dar de Baja</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr data-ng-repeat="pd in results" ng-class="{'profile-deleted': pd.deleted}">
+                    <td class="centered">{{pd.globalCode}}</td>
+                    <td class="centered">{{pd.category}}</td>
+                    <td class="centered">{{pd.internalSampleCode}}</td>
+                    <td class="centered">{{pd.assignee}}</td>
+                    <td class="centered">{{pd.laboratory}}</td>
+                    <td class="centered" ng-if="pd.readOnly">Si</td>
+                    <td class="centered" ng-if="!pd.readOnly">No</td>
+                    <td show-permissions="PROFILE_DATA_CRUD" class="col-md-1 centered">
+                        <a id="showupd_{{$index}}" ng-show="!pd.deleted" class="btn btn-default btn-link-action btn-link-border" href="#/profiledata/{{pd.globalCode}}">
+                            <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+                        </a>
+                    </td>
+                    <td show-permissions="DNA_PROFILE_CRUD" class="col-md-1 centered">
+                        <a id="showview_{{$index}}" ng-show="!pd.deleted" class="btn btn-default btn-link-action btn-link-border" href="#/profile/{{pd.globalCode}}?tab=dna">
+                            <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
+                        </a>
+                    </td>
+                    <td show-permissions="DNA_PROFILE_CRUD" class="col-md-1 centered" >
+                        <a id="showplus_{{$index}}" ng-show="!pd.deleted" class="btn btn-default btn-link-action btn-link-border"  ng-disabled="(!allowManualLoading(pd)) || pd.isExternal || pd.readOnly " ng-click="pd.readOnly || !allowManualLoading(pd) || pd.isExternal || goToProfileTab(pd.globalCode)" href=""  >
+                            <span class="glyphicon glyphicon-plus" aria-hidden="true" ng-disabled="pd.isExternal || pd.readOnly"></span>
+                        </a>
+                    </td>
+                    <td show-permissions="PROFILE_DATA_CRUD" class="col-md-1 centered">
+                        <a id="showbook_{{$index}}" class="btn btn-default btn-link-action btn-link-border" href="#/trace/{{pd.globalCode}}">
+                            <span class="glyphicon glyphicon-book" aria-hidden="true"></span>
+                        </a>
+                    </td>
+                    <td show-permissions="PROFILE_DATA_CRUD" class="col-md-1 centered">
+                        <a data-ng-show="pd.deleted" id="delete_s_{{$index}}" class="btn btn-default btn-link-action btn-link-border" data-ng-click="showMotive(pd.globalCode)">
+                            <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
+                        </a>
+                        <a data-ng-show="!pd.deleted" id="delete_n_{{$index}}" class="btn btn-default btn-link-action btn-link-border" data-ng-click="doDelete(pd)">
+                            <span class="glyphicon glyphicon-floppy-remove" aria-hidden="true"></span>
+                        </a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    </div>
+</div>
+
+
+   
+
+<footer class="search-footer">
+	<div>
+		<pagination boundary-links="true" ng-change="changePage()" items-per-page="{{pageSize}}" max-size="10" total-items="totalItems" ng-model="currentPage" class="pagination-sm" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;"  rotate="false"></pagination>
+	</div>
+</footer>

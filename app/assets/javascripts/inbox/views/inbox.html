@@ -1,0 +1,76 @@
+<div ng-controller="inboxController">
+    <div class="container-top">
+           
+        <!-- <div class="row m-b-10">
+            <div class="content">
+                <a ng-repeat="option in showOptions" role="button"
+                class="btn btn-default m-r-5 list-group-menu-item"
+                help-tip="{{option.helptip}}" help-tip-placement="{{option.placement}}"
+                ng-class="{'list-group-menu-item-selected': activeOption === $index}" ng-click="show($index)">{{option.label}}</a>
+                <span id="processingSpan" class="glyphicon glyphicon-refresh" ng-class="{'fa-spin': isProcessing}" data-ng-show="isProcessing"></span>
+            </div>
+        </div> -->
+        <div class="row">
+                <div class="bulkupload-search col-md-12 padding-top-10  padding-bottom-10">
+                    <div class="content ">
+
+           
+            <div ng-include="'/assets/javascripts/inbox/views/advancedSearch.html'"></div>
+            
+            </div>
+            </div>                
+            
+            <div class="row">
+            <div class="content m-t-10 padding-0">
+
+                <div data-ng-show="noResult && !isProcessing">No se encontraron datos según su busqueda</div>
+
+                <div data-ng-show="!noResult"  name="{{'notification_' + m.globalCode}}">
+                    <table class="table inbox-table">
+                        <thead>
+                        <th style="width:1%"></th>
+                        <th></th>
+                        <th style="width: 15%">
+                            <a href="" ng-click="sortBy('date')">Fecha
+                                <span ng-show="sortField == 'date'" class="caret" ng-class="{'caret-reversed': !ascending}"></span></a>
+                        </th>
+                        <th>Tipo</th>
+                        <th>Descripción</th>
+                        <th style="padding: 0px">
+                            <a  title="Borrar seleccionados"  ng-click="deleteSelected()" help-tip="inbox.delete" help-tip-placement="top"  class="cancel-link" >Borrar seleccionados</a>
+
+
+                        </th>
+                        <th class="inbox-checkbox">
+                            <input type="checkbox" ng-model="selectAll" ng-change="changeSelection()"/>
+                        </th>
+                        </thead>
+                        <tbody>
+                        <tr data-ng-repeat="n in notifications" ng-class="{'inbox-pending': n.pending}">
+                            <td></td>
+                            <td><i class="glyphicon glyphicon-flag inbox-clickable"
+                                ng-class="{'inbox-flagged': n.flagged, 'inbox-unflagged': !n.flagged}"
+                                ng-click="changeFlag(n)" help-tip="inbox.mark" help-tip-placement="right"></i></td>
+                            <td class="inbox-clickable" ng-click="goTo(n.url)">{{n.creationDate | date:'yyyy-MM-dd HH:mm:ss'}}</td>
+                            <td class="inbox-clickable" ng-click="goTo(n.url)"><span class="badge inbox-badge noti-kind-{{n.kind}}">{{'inbox.kind.' + n.kind | i18next}}</span></td>
+                            <td class="inbox-clickable" ng-click="goTo(n.url)">{{n.description}}</td>
+                            <td></td>
+                            <td class="inbox-checkbox">
+                                <input type="checkbox" ng-model="n.selected" />
+
+                                <!--<input type="checkbox" ng-model="n.selected" ng-disabled="n.pending"/>-->
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+           </div>
+        </div>
+
+    </div>
+    <footer style="z-index:2">
+        <div style="width: 100%;">
+            <pagination boundary-links="true" ng-change="changePage()" items-per-page="{{pageSize}}" max-size="10" total-items="totalItems" ng-model="currentPage" class="pagination-sm" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;"  rotate="false"></pagination>
+        </div>
+    </footer>
+</div>

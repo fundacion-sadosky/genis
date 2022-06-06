@@ -1,0 +1,172 @@
+<form name="scenarioForm" novalidate>
+
+    <div class="options-header scenarios-section">
+
+        <div class="panel-body padding-left-0 padding-right-0">
+            <!--Base de Frecuencia-->
+            <div class="col-md-5">
+                <div class="vertical-align" >
+                    <div class="col-sm-7 padding-right-0 control-label">Base de datos de frecuencias alélicas:</div>
+                    <div class="col-sm-5 padding-left-0">
+                        <select ng-disabled="scenarioData.state.toString() === 'Validated'" id="statsOptionsStatFreq" ng-init="getFrequencyTables()"
+                                data-ng-model="scenario.stats.frequencyTable" class="form-control form-select" required
+                                ng-options="dbName as db.name for (dbName, db) in freqTables">
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <!-- Theta -->
+            <div class="col-md-4">
+                <div class="theta vertical-align">
+                    <div class="col-sm-8 padding-right-0 control-label">Coeficiente de co-ancestralidad (&Theta;):</div>
+                    <div class="col-sm-4 padding-left-0">
+                        <input ng-disabled="scenarioData.state.toString() === 'Validated'" id="statsOptionsStatTheta" type="number" class="freq-number form-control form-select" step="0.01" min="0" max="1"
+                               data-ng-model="scenario.stats.theta" placeholder="Theta"
+                               data-ng-required="true" required />
+                    </div>
+                </div>
+            </div>
+            <!-- Drop-in -->
+            <div class="col-md-3 padding-left-0 vertical-align">
+                <div class="col-sm-7 padding-right-0 control-label">Probabilidad de Drop-in:</div>
+                <div class="col-sm-5">
+                    <input ng-disabled="scenarioData.state.toString() === 'Validated'" id="statsOptionsStatDropIn" type="number" class="freq-number form-control form-select" step="0.01" min="0" max="1"
+                           data-ng-model="scenario.stats.dropIn" data-ng-required="true" required />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row scenarios-section">
+
+        <div class="col-md-6 padding-left-0" style="padding-right:7px">
+            <div class="hypothesis">
+                <div class="row">
+                    <h4>Hipótesis 1</h4>
+                </div>
+                <div class="row">
+                    <table class="table table-bordered">
+                        <thead>
+                        <tr>
+                            <td>
+                                <input type="checkbox" data-ng-model="selectAll.selectedByP"
+                                       data-ng-change="changeSelection('selectedByP')" ng-disabled="((isRestricted && options.length === 1) || (scenarioData.state.toString() === 'Validated'))">
+                            </td>
+                            <td>Código Laboratorio</td>
+                            <td>Categoría</td>
+                            <td>
+                                <div help-tip="scenario.dropouts" help-tip-placement="right">
+                                    #Drop-outs
+                                </div>
+                            </td>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr data-ng-repeat="item in options" ng-class="{'scenario-mark-hits': getMarks(item).hit}">
+                            <td ng-class="{'scenario-mark-associated': getMarks(item).associated}">
+                                <input type="checkbox" data-ng-model="item.selectedByP" ng-disabled="((isRestricted && options.length === 1) || (scenarioData.state.toString() === 'Validated'))">
+                                <div ng-if="getMarks(item).associated" help-tip="scenario.marks.associated" help-tip-placement="bottom"></div>
+                                <div ng-if="getMarks(item).hit" help-tip="scenario.marks.hit" help-tip-placement="bottom"></div>
+                            </td>
+                            <td>{{item | showcode}}</td>
+                            <td>{{getSubcatName(item.categoryId)}}</td>
+                            <td>{{item.dropOuts}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="row scenario-separator vertical-align">
+                    <div class="col-md-6">Cantidad de individuos desconocidos:</div>
+                    <div class="col-md-3"></div>
+                    <div class="col-md-3">
+                        <input ng-disabled="scenarioData.state.toString() === 'Validated'" type="number" min="0" max="4" class="form-control form-select" step="1"
+                               data-ng-model="scenario.prosecutor.unknowns" required />
+                    </div>
+                </div>
+                <div class="row scenario-separator vertical-align">
+                    <div class="col-md-6">Probabilidad de Drop-out de la Hipótesis:</div>
+                    <div class="col-md-3"></div>
+                    <div class="col-md-3">
+                        <input ng-disabled="scenarioData.state.toString() === 'Validated'" type="number" class="form-control form-select" step="0.1" min="0" max="1"
+                               data-ng-model="scenario.prosecutor.dropOut" data-ng-required="true" required />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 padding-right-0" style="padding-left:7px">
+            <div class="hypothesis">
+                <div class="row">
+                    <h4>Hipótesis 2</h4>
+                </div>
+                <div class="row">
+                    <table class="table table-bordered">
+                        <thead>
+                        <tr>
+                            <td>
+                                <input type="checkbox" data-ng-model="selectAll.selectedByD"
+                                       data-ng-change="changeSelection('selectedByD')" ng-disabled="((isRestricted && options.length === 1) || (scenarioData.state.toString() === 'Validated'))">
+                            </td>
+                            <td>Código Laboratorio</td>
+                            <td>Categoría</td>
+                            <td>#Drop-outs</td>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr data-ng-repeat="item in options" ng-class="{'scenario-mark-hits': getMarks(item).hit}">
+                            <td ng-class="{'scenario-mark-associated': getMarks(item).associated}">
+                                <input type="checkbox" data-ng-model="item.selectedByD" ng-disabled="((isRestricted && options.length === 1) || (scenarioData.state.toString() === 'Validated'))">
+                                <div ng-if="getMarks(item).associated" help-tip="scenario.marks.associated" help-tip-placement="bottom"></div>
+                                <div ng-if="getMarks(item).hit" help-tip="scenario.marks.hit" help-tip-placement="bottom"></div>
+                            </td>
+                            <td>{{item | showcode}}</td>
+                            <td>{{getSubcatName(item.categoryId)}}</td>
+                            <td>{{item.dropOuts}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="row scenario-separator vertical-align">
+                    <div class="col-md-6">Cantidad de individuos desconocidos:</div>
+                    <div class="col-md-3"></div>
+                    <div class="col-md-3">
+                        <input ng-disabled="scenarioData.state.toString() === 'Validated'" type="number" min="0" max="4" step="1" class="form-control form-select"
+                               data-ng-model="scenario.defense.unknowns" required />
+                    </div>
+                </div>
+                <div class="row scenario-separator vertical-align">
+                    <div class="col-md-6">Probabilidad de Drop-out de la Hipótesis:</div>
+                    <div class="col-md-3"></div>
+                    <div class="col-md-3">
+                        <input ng-disabled="scenarioData.state.toString() === 'Validated'" type="number" class="form-control form-select" step="0.1" min="0" max="1"
+                               data-ng-model="scenario.defense.dropOut" data-ng-required="true" required />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</form>
+
+<footer class="lrmix-footer">
+    <div class="col-md-6">
+        <span class="badge mixes-button-1" ng-if="anyMarks('associated')" style="display: inline;">{{'scenario.marks.associated' | i18next}}</span>
+        <span class="badge mixes-button-2" ng-if="anyMarks('hit')" style="display: inline;">{{'scenario.marks.hit' | i18next}}</span>
+    </div>
+    <div class="col-md-6 desk-align-right inside-right">
+        <span id="calculationWarning"
+              data-ng-if="isProcessing && (scenario.prosecutor.unknowns > 2 || scenario.defense.unknowns > 2)">
+            Esta operación puede tardar unos minutos...</span>
+        <span id="processingSpan" class="icon-refresh"
+              data-ng-class="{'spinner': isProcessing}" data-ng-show="isProcessing"></span>
+
+
+
+        <button ng-if="options.length !== 0 && scenarioData.state.toString() !== 'Validated'" help-tip="scenario.calculate" help-tip-placement="left"
+                type="button"
+                class="btn btn-primary-action"
+                data-ng-click="calculate()"
+                data-ng-disabled="scenarioForm.$invalid || isProcessing">Calcular</button>
+
+    </div>
+</footer>

@@ -1,0 +1,56 @@
+<div class="col-md-12" >
+<div class="text-center pdg-locus-mt " >
+	<span  id="{{locus.id}}-popover-container" tabIndex="-1" ></span>
+	<span ng-repeat="n in [] | range: (locus.alleleQty)" class="text-center" data-ng-show="!(status === 'dblCheck' && !enableLabelsStatus && (index >= chkAnalysis[indexCh]))">
+			<input pdg-allele-label-picker 
+				id="{{'i'+ locus.id + index + '_' + $index}}"
+				name="{{'i' + index + '_' + $index}}"
+				type="{{status == 'dblCheck' && index >= chkAnalysis[indexCh] && !enableLabelsStatus ? 'password' : 'text'}}"
+				class="form-control form-select input-sm td-repeat pdg-locus-mt2"
+				ng-model="allelesList[$index]"
+				ng-pattern="regexPattern"
+				help-tip="{{(isRange) ? (isEven($index)?'mt.rangeFrom':'mt.rangeTo'):'mt.mutation'}}"
+                help-tip-placement="{{(isEven($index)?'bottom':'top')}}"
+				size="9"
+				ng-disabled="status == 'dblCheck' && (!enableLabelsStatus || enableLabelsStatus===false)"
+				ng-readonly="enableLabelsStatus && enableLabelsStatus===true"
+				ng-change="allelesList[$index] = allelesList[$index].toUpperCase()">
+		</span>
+						
+		<button data-ng-show="status == 'fill' && locus.alleleQty < locus.maximumAllelesQty && !locus.id.endsWith('_RANGE')" type="button" class="btn btn-link-action btn-link-border" rel="tooltip" data-toggle="tooltip" title="Agregar mutación" ng-click="addAllele()" tabIndex="-1">
+			<span class="glyphicon glyphicon-plus btn-link-action"></span>
+		</button>
+
+		<button data-ng-show="status == 'fill' && locus.alleleQty > locus.minimumAllelesQty" type="button" class="btn btn-link-action btn-link-border" rel="tooltip" data-toggle="tooltip" title="Eliminar variación" ng-click="removeAllele()" tabIndex="-1">
+			<span class="glyphicon glyphicon-minus btn-link-action"></span>
+		</button>
+
+		<span data-ng-repeat="n in [] | range:(locus.alleleQty)" data-ng-show="status === 'dblCheck' && !enableLabelsStatus && (index >= chkAnalysis[indexCh])">
+			<input
+				id="{{'iver_' + index + '_' + $index + locus.id }}"
+				name="{{'iver_' + index + '_' + $index}}"
+				type="text"
+				class="form-control form-select input-sm td-repeat pdg-locus-mt2"
+				ng-model="chkAnalysis.genotypification[locus.id][$index]"
+				ng-disabled="index != chkAnalysis[indexCh]"
+				ng-pattern="regexPattern"
+				alleleCheck
+                help-tip="{{(isRange) ? (isEven($index)?'mt.rangeFrom':'mt.rangeTo'):'mt.mutation'}}"
+                help-tip-placement="{{(isEven($index)?'bottom':'top')}}"
+				size="9"
+				ng-change="validateLocus(locus.id)">
+		</span>
+		<span ng-show="status === 'dblCheck'" class="pdg-locus-mt-icon"
+			  ng-class="{
+				'glyphicon': true,
+				'glyphicon-pencil': index == chkAnalysis[indexCh],
+				'glyphicon-ok': index < chkAnalysis[indexCh],
+				'glyphicon-lock': index > chkAnalysis[indexCh],
+				'icon-validated': index < chkAnalysis[indexCh],
+				'icon-validating': index == chkAnalysis[indexCh]
+			}"
+			  tabIndex="-1">
+		</span>
+	</div>
+</div>
+

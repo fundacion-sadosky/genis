@@ -1,0 +1,5 @@
+psql -U pdg -d pdgdb -c 'DELETE FROM "APP"."COURT_CASE"'
+mongo pdgdb --eval 'db.pedigreeMatches.remove({})'
+mongo pdgdb --eval 'db.pedigrees.remove({})'
+mongo pdgdb --eval 'db.pedigreeGenotypification.remove({})'
+mongo pdgdb --eval 'db.pedigreeScenarios.remove({})'

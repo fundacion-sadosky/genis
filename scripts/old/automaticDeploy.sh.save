@@ -1,0 +1,185 @@
+#!/bin/bash
+
+USAGE="$(basename "$0") -F -w [-U] [-p] [-d] [-l] [-u] -- executes the automatic deploy
+where:
+	-p	genis path by default is /usr/share/genis
+	-d	default postgresql database name by default is pdgdb
+	-l	log postgresql database name by default is pdglogdb
+	-u	postgresql database user by default is genissqladmin
+	-w 	postgresql database password (required)
+	-F	new version zip file path (required)
+	-U	mongoUpdate.sh file path"
+
+while getopts 'p:d:l:u:w:F:U:' option; do
+	case "$option" in
+		p) genisPath=${OPTARG};;
+		d) postgresqlDb=${OPTARG};;
+		l) postgresqlLogDb=${OPTARG};;
+		u) postgresqlUser=${OPTARG};;
+		w) postgresqlPassword=${OPTARG};;
+		F) newVersion=${OPTARG};;
+		U) updateMongoDB=${OPTARG};;
+		\?) echo "$USAGE"
+		   exit 0;
+		   ;;
+	esac
+done
+
+if [ -z ${newVersion+x} ]; then
+        echo "$USAGE"
+	exit 0;
+fi
+
+if [ -z ${postgresqlPassword+x} ]; then
+        echo "$USAGE"
+        exit 0;
+fi
+
+if [ -z ${genisPath+x} ]; then
+	genisPath="/usr/share/genis/"
+fi
+
+if [ -z ${postgresqlDb+x} ]; then
+        postgresqlDb="pdgdb" 
+fi
+
+if [ -z ${postgresqlLogDb+x} ]; then
+        postgresqlLogDb="pdglogdb" 
+fi
+
+if [ -z ${postgresqlUser+x} ]; then
+        postgresqlUser="genissqladmin" 
+fi
+
+export PGPASSWORD="$postgresqlPassword"
+
+date=`date +%Y%m%d`
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m'
+
+if [ "$EUID" -ne 0 ]; then
+	printf "${RED}Please run as root${NC}\n"
+	exit
+fi
+
+#1.0 Unzip de la nueva versión
+
+cd
+if [ -e newVersion ]; then
+	echo "newVersion directory already exists"
+else
+	mkdir newVersion
+	echo "newVersion directory was created"
+fi
+cd newVersion
+unzip $newVersion -d ./newGenis
+if [ $? != 0 ]; then
+	printf "${RED}A problem occured when the file was zipping${NC}\n"
+	exit 1;
+fi
+printf "${GREEN}New GENis version has been zipped successfully${NC}\n"
+
+#2.1 Matar el proceso
+pidFile='RUNNING_PID'
+runningPIDPath=$genisPath$pidFile
+if [ -e $runningPIDPath ]; then
+        pid=$(head -n 1 $runningPIDPath)
+        kill -9 $pid
+        rm $runningPIDPath
+	printf "${GREEN}GENis has been stopped${NC}\n"
+else
+	printf "${RED}GENis is not runnning${NC}\n"
+fi
+
+#2.2 Backup de bases de datos
+
+#PostgreSQL
+
+cd
+
+if [ -e backupPostgreSQL ]; then
+	printf "backupPostgreSQL directory already exists\n"
+else
+	mkdir backupPostgreSQL
+	printf "backupPostgreSQL directory was successfully created\n"
+fi
+
+cd backupPostgreSQL
+
+pg_dump -U $postgresqlUser -h 127.0.0.1 -d $postgresqlDb > pdgdb_$date.sql
+if [ $? != 0 ]; then
+	printf "${RED}There was a problem making pdgdb backup${NC}\n"
+	exit 1;
+fi
+printf "${GREEN}pdgdb backup was successfully created${NC}\n"
+
+pg_dump -U $postgresqlUser -h 127.0.0.1 -d $postgresqlLogDb >  pdglogdb_$date.sql
+if [ $? != 0 ]; then
+	printf "${RED}There was a problem making pdglogdb backup${NC}\n"
+	exit 1;
+fi
+printf "${GREEN}pdglogdb backup was successfully created${NC}\n"
+
+#MongoDB
+
+cd 
+
+mongodump -d pdgdb -o backupMongoDB
+if [ $? != 0 ]; then
+        printf "${RED}There was a problem making mongoDB backup${NC}\n"
+        exit 1;
+fi
+printf "${GREEN}mongo backup was successfully created${NC}\n"
+
+#2.3 Actualizar las bases de datos
+
+#PostgreSQL
+
+cd
+evolutions='conf/evolutions/default'
+rm newGenis/*/$evolutions/1.sql
+cp $genisPath$evolutions/1.sql newGenis/*/$evolutions/
+
+#MongoDB
+
+if [ -z ${updateMongoDB+x} ]; then
+	echo "No hay archivo de mongo para actualizar"
+else
+	cd
+	chmod +x $updateMongoDB
+	$updateMongoDB
+	if [ -z ${newVersion+x} ]; then
+        echo "$USAGE"
+        exit 0;
+fi
+
+fi
+cd
+chmod +x ./mongoUpdate.sh
+./mongoUpdate.sh
+
+
+#2.5 Archivo de configuración
+
+cd
+conf='conf'
+cp $genisPath$conf/application.conf newGenis/*/$conf/
+
+#2.6 Levantar la app
+
+cd
+
+rm $genisPath  -rf
+mv newGenis/* $genisPath
+
+cd $genisPath
+
+./bin/genis -v -DapplyEvolutions.default=true -DapplyDownEvolutions.default=true -DapplyEvolutions.logDb=true -DapplyDownEvolutions.logDb=true -Dhttp.port=9000 -Dhttps.port=9443 -Dconfig.file=/usr/share/genis/conf/application.conf &
+
+#2.7 Validar la consistencia de los datos
+
+cd
+chmod +x ./checkDatabases.sh
+./checkDatabases.sh

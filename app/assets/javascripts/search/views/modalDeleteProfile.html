@@ -1,0 +1,34 @@
+<div class="modal-header">
+	<h2>
+		Perfil: <b>{{pdToDeleted.globalCode}}</b>
+	</h2>
+	<button class="btn btn-close-modal" data-ng-click="closeModal()">x</button>
+</div>
+<div class="modal-body">
+	<form name="genDelForm">
+	<fieldset data-ng-disabled="editMode">
+
+		<div class="form-group col-xs-10">
+			<label>Solicitante de la Baja</label> <input class="form-control" id="solicitor" type="text"
+				data-ng-model="deleted.solicitor" required/>
+		</div>
+
+		<div class="form-group col-lg-12">
+		<label>Motivo</label>
+			<select class="form-control form-select" name="repeatSelect" id="repeatSelect" ng-model="deleted.selectedMotive" ng-change="onChangeMotive(deleted.selectedMotive)" required>
+				<option ng-repeat="motive in motives" value="{{motive.id}}">{{motive.description}}</option>
+			</select>
+			<textarea rows="4" class="form-control col-lg-12" id="motive" data-ng-model="deleted.motive" ng-show="showMotiveTextArea" ng-required="showMotiveTextArea"></textarea>
+		</div>
+
+	</fieldset>
+	</form>
+	<div class="clearfix">&nbsp;</div>
+			<div class="desk-align-right">
+				<button id="del" type="button" class="btn btn-success"
+					data-ng-disabled="editMode || genDelForm.$invalid || !deleted.selectedMotive"
+					data-ng-click="deleteProfile(deleted)">Dar de Baja</button>
+			</div>
+	
+</div>
+

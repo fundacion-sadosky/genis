@@ -1,0 +1,61 @@
+
+<div class="row padding-0 breadcrumb_column">
+    <div class="col-md-12 padding-0">
+        <div class="row padding-0">
+            <div class="breadcrumb_content">
+                <ol class="breadcrumb">
+                        <li>
+                            <div class="btn volver" onclick="history.back()">
+                                <span  class="icon-atras" title="Volver"></span>
+                            </div>
+                        </li>
+                    <li class="active">Configuración de instancias inferiores</li>
+                        
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container-top" >
+    <section class="extended-section">
+        <button class="btn btn-secondary-action boton" data-ng-click="init()"><i class="icon-refresh fa-1x" aria-hidden="true"></i> Actualizar lista</button>
+        <br/>
+        <div class="content-wrap-small">
+            <table class="table table-bordered table-category-mapping" style="table-layout:fixed;">
+                <thead>
+                    <tr>
+                        <th class="text-center">Laboratorio</th>
+                        <th class="text-center">URL</th>
+                        <th class="text-center">Conectividad</th>
+                        <th class="text-center">Estado</th>
+                        <th class="text-center"></th>
+                        <th class="text-center"></th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                <tr ng-repeat="x in inferiorInstances">
+                    <td class="text-center">{{x.laboratory}}</td>
+                    <td class="text-center">{{x.url}}</td>
+                    <td class="text-center">{{x.connectivity}}</td>
+                    <td class="text-center inf-ins-stat-{{x.idStatus}}"> {{getStatusDescription(x.idStatus)}}
+                    </td>
+                    <td class="text-center">
+                        <button id="aprobar-{{x.id}}" type="button" class="btn btn-secondary-action" data-ng-click="aprobar(x.id)" ng-show="x.idStatus!==2">
+                            Aprobar
+                        </button>
+                        <button id="desaprobar-{{x.id}}" type="button" class="btn btn-secondary-action" data-ng-click="desaprobar(x.id)" ng-show="x.idStatus!==3">
+                            Desaprobar
+                        </button>
+                    </td>
+                    <td>
+                        <button id="check" type="button"  class="btn btn-secondary-action" data-ng-click="checkConnection(x.url,true)" >Chequear conectividad</button>
+                    </td>
+                </tr>
+
+                </tbody>
+            </table>
+
+        </div>
+    </section>
+</div>

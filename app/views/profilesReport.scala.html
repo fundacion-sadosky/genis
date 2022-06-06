@@ -1,0 +1,49 @@
+@(title : String, cantPerfilesCreados : Integer, cantPerfilesBorrados : Integer, cantMatches : Integer, cantHits : Integer, cantDescartes : Integer,
+        cantPendientes : Integer, fechaDesde: String, fechaHasta: String)
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="@routes.Assets.versioned("stylesheets/reporting.css")">
+        <link rel="stylesheet" type="text/css" href="@routes.Assets.versioned("stylesheets/main.css")">
+        <!--<link rel="stylesheet" type="text/css" href="@routes.Assets.versioned("stylesheets/mainTest.css")">-->
+        <title>@title</title>
+        @headerReporting()
+    </head>
+    <body>
+        <div class="report-title" >
+            Resumen de perfiles entre @fechaDesde y @fechaHasta:
+        </div>
+        <br/><br/>
+        <div class="report-heading" >
+            <table class="table table-bordered" style="table-layout:fixed;">
+                    <!--<tr class="report-heading" >
+                        <td> </td>
+                        <td> Ultimos 30 dias </td>
+                    </tr>-->
+                <tr>
+                    <td class="report-heading"> Altas </td>
+                    <td class="report-body">@cantPerfilesCreados</td>
+                </tr>
+                <tr>
+                    <td class="report-heading" > Coincidencias </td>
+                    <td class="report-body"> @cantMatches </td>
+                </tr>
+                <tr>
+                    <td class="report-heading" > Coincidencias Confirmadas </td>
+                    <td class="report-body"> @cantHits </td>
+                </tr>
+                <tr>
+                    <td class="report-heading" > Coincidencias Descartadas </td>
+                    <td class="report-body"> @cantDescartes </td>
+                </tr>
+                <tr>
+                    <td class="report-heading" > Coincidencias Pendientes </td>
+                    <td class="report-body"> @cantPendientes </td>
+                </tr>
+                <tr>
+                    <td class="report-heading"> Bajas Totales </td>
+                    <td class="report-body">@cantPerfilesBorrados</td>
+                </tr>
+            </table>
+        </div>
+    </body>
+</html>

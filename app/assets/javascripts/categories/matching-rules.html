@@ -1,0 +1,83 @@
+<div ng-controller="matchingRulesController">
+<form name="newMatchingRuleForm">
+<table class="table  table-striped">
+	<thead>
+		<tr>
+			<th class="text-center" style="width: 25%">Categoría</th>
+			<th class="text-center" ng-show="!isMT()">Exigencia</th>
+			<th class="text-center" ng-show="!isMT()">Cant. mínima de coincidencias</th>
+			<th class="text-center">Cant. máxima de marcadores no coincidentes</th>
+			<th class="text-center" ng-show="!isMT()">Considerar para corrección por N</th>
+			<th class="text-center">Notificar Coincidencias</th>
+			<th>#</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr ng-repeat="conf in categories[currCatId].matchingRules | filter: {type: activeAnalysis}">
+			<td>{{groups[categories[conf.categoryRelated].group].name}} / {{categories[conf.categoryRelated].name}}</td>
+			<td ng-show="!isMT()">
+				<select ng-init="findStringencyOption(conf)" ng-disabled="categories[currCatId].pedigreeAssociation"
+                        ng-model="conf.stringencyOption" class="form-control form-select"
+                        ng-change="changeStringency(conf, conf.stringencyOption)"
+                        ng-options="stringencyOptions.indexOf(opt) as printStringency(opt) for opt in stringencyOptions | filter: filterByAnalysisType">
+				</select>
+			</td>
+			<td ng-show="!isMT()">
+				<input type="number" min="0" class="form-control form-select" data-ng-model="conf.minLocusMatch" ng-blur="validateMatchingRule(conf, 'minLocusMatch')"  />
+			</td>
+			<td>
+				<input type="number" min="0" class="form-control form-select" data-ng-model="conf.mismatchsAllowed" ng-blur="validateMatchingRule(conf, 'mismatchsAllowed')"  />
+			</td>
+			<td ng-show="!isMT()">
+				<input type="checkbox" class="boxed-checkbox" style="width:34px; text-align:center;" data-ng-model="conf.considerForN" />
+			</td>
+			<td>
+				<input type="checkbox" class="boxed-checkbox" style="width:34px; text-align:center;" data-ng-model="conf.forwardToUpper">
+			</td>
+			<td>
+				<button class="btn" title="Eliminar" ng-show="canRemoveMatchingRule(conf.categoryRelated)" ng-click="removeAssociation($index)">
+					<span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+				</button>
+			</td>
+		</tr>
+		<tr ng-if="!categories[currCatId].pedigreeAssociation ">
+            <td>
+                <select
+                    ng-model="newMatchingRules.categoryRelated"
+                    class="form-control form-select" required >
+                  <optgroup ng-repeat="(grpId, group) in forense" label="{{group.name}}">
+                    <option ng-repeat="catId in group.categories" value="{{catId}}">{{categories[catId].name}}</option>
+                  </optgroup>
+                </select>
+            </td>
+            <td ng-show="!isMT()">
+                <select ng-model="newMatchingRules.stringencyOption" class="form-control form-select"
+                        ng-change="changeStringency(newMatchingRules, newMatchingRules.stringencyOption)"
+                        ng-options="stringencyOptions.indexOf(opt) as printStringency(opt) for opt in stringencyOptions | filter: filterByAnalysisType"
+                        required >
+                </select>
+            </td>
+            <td ng-show="!isMT()">
+                <input type="number" min="0" class="form-control form-select" data-ng-model="newMatchingRules.minLocusMatch" required />
+            </td>
+            <td>
+                <input type="number" min="0" class="form-control form-select" data-ng-model="newMatchingRules.mismatchsAllowed" required />
+            </td>
+            <td ng-show="!isMT()">
+                <input type="checkbox" class="boxed-checkbox" style="width:34px; text-align:center;" data-ng-model="newMatchingRules.considerForN" />
+            </td>
+            <td>
+                <input type="checkbox" class="boxed-checkbox" data-ng-model="newMatchingRules.forwardToUpper" />
+            </td>
+            <td>
+                <button class="btn" title="Agregar" ng-click="addAssociation()"
+                    ng-disabled="!canAddAssociation()"
+                    help-tip="category.general.add" help-tip-placement="left">
+                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+                </button>
+            </td>
+		</tr>
+	</tbody>
+</table>
+</form>
+</div>

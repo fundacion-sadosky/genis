@@ -1,0 +1,26 @@
+<div class="row">
+	<h4 class="noscreen">Datos {{profileId}}</h4>
+	<div class="col-md-8 column">
+		<div class="form-group">
+			<label for="inputTipoMatBio">Tipo de material biológico</label> {{profileData.bioMaterialType}}
+		</div>
+		<div class="form-group">
+			<label for="inputFechaTomaMuestra">Fecha de toma de la muestra</label> {{profileData.sampleEntryDate|date:'dd/MM/yyyy'}}
+		</div>
+		<div class="form-group">
+			<label for="inputFechaIngresoLab">Fecha de ingreso al laboratorio</label> {{profileData.sampleDate|date:'dd/MM/yyyy'}}
+		</div>
+		<div class="form-group">
+			<label for="inputFechaCaducidadPerfil">Fecha de caducidad del perfil</label> {{profileData.profileExpirationDate|date:'dd/MM/yyyy'}}
+		</div>
+		<div class="form-group">
+			<label for="inputGenetistaResponsable">Genetista responsable de la pericia</label> {{profileData.responsibleGeneticist}}
+		</div>
+		<div class="form-group">
+			<label for="inputCodIntMuestra">Código Laboratorio</label> {{profileData.internalSampleCode}}
+		</div>
+		<div class="form-group">
+			<label for="inputLaboratorio">Laboratorio</label> {{profileData.laboratory}}
+		</div>
+	</div>
+</div>

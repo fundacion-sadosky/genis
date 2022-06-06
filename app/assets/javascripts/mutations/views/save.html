@@ -1,0 +1,56 @@
+<div class="col-md-12 laboratories-section-big">
+    <div class="laboratories-section">
+        <div class="m-t-10">
+            <label for="name">Nombre<span class="field-obligated">*</span></label>
+            <input name="name" id="name" class="form-control form-select" type="text" data-ng-model="selectedMutationModel.name" required />
+        </div>
+        <div class="m-t-10">
+            <label for="repeatSelect">Tipo<span class="field-obligated">*</span></label>
+            <select class="form-control form-select" name="repeatSelect" id="repeatSelect" ng-model="selectedMutationModel.mutationType" required
+              data-ng-change="selectMutationType()">
+                <option ng-repeat="mtype in mutationModelsTypes" value="{{mtype.id}}">{{mtype.description}}</option>
+            </select>
+        </div>
+        <div class="m-t-10">
+            <label for="ignoreSex">Diferenciar por sexo<span class="field-obligated">*</span></label>
+            <select class="form-control form-select" name="ignoreSex" id="ignoreSex" ng-model="selectedMutationModel.ignoreSex" required >
+                <option ng-repeat="ignore in ignoreSexList" value="{{ignore.id}}">{{ignore.description}}</option>
+            </select>
+        </div>
+        <div class="m-t-10">
+            <label for="cantSaltos">Cant. de saltos a considerar<span class="field-obligated">*</span></label>
+            <select class="form-control form-select" name="cantSaltos" id="cantSaltos" ng-model="selectedMutationModel.cantSaltos" required >
+                <option ng-repeat="salto in cantSaltosList" value="{{salto.id}}">{{salto.description}}</option>
+            </select>
+        </div>
+    </div>
+</div>
+<table class="table table-bordered" ng-show="showParameters">
+    <thead>
+    <tr>
+        <th>Marcador</th>
+        <th>Sexo</th>
+        <th ng-show="showR">Tasa de mutación<span class="field-obligated">*</span></th>
+        <th ng-show="showr">Rango de mutación<span class="field-obligated">*</span></th>
+        <!--<th ng-show="showR2">R2<span class="field-obligated">*</span></th>-->
+    </tr>
+    </thead>
+    <tbody>
+    <tr data-ng-repeat="parameter in parameters">
+        <td>{{parameter.locus}}</td>
+        <td>{{parameter.sex}}</td>
+        <td ng-show="showR">
+            <input type="number" ng-required="showR" data-ng-model="parameter.mutationRate" class="form-control form-select"
+                   min="0" />
+        </td>
+        <td ng-show="showr">
+            <input type="number" ng-required="showr" data-ng-model="parameter.mutationRange" class="form-control form-select"
+                   min="0" />
+        </td>
+        <!--<td ng-show="showR2">-->
+            <!--<input type="number" ng-required="showR2" data-ng-model="parameter.mutationRateMicrovariant" class="form-control form-select"-->
+                   <!--min="0" />-->
+        <!--</td>-->
+    </tr>
+    </tbody>
+</table>

@@ -1,0 +1,21 @@
+// AngularJS validation module add mark DOM with certain classes on validation 
+// https://docs.angularjs.org/guide/forms
+
+input.ng-dirty.ng-invalid {
+	border-color: @red-primary !important;
+	outline: 0;
+	-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px @red-primary;
+	box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px @red-primary !important;
+}
+
+.ng-pristine.ng-invalid-required {
+    box-shadow: none;
+}
+
+.icon-validated{
+	color: @brand-success;
+}
+
+.icon-validating{
+	color: @brand-success;
+}

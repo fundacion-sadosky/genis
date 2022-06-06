@@ -1,0 +1,26 @@
+<form name="labForm">
+	<div ng-controller="laboratoriesSaveController">
+		<div class="modal-header">
+			<h2>Laboratorio: <b>{{laboratory.name}}</b></h2>
+		</div>
+		<div class="modal-body">
+			<div id="tab-1" class="tab-pane active tab-format">
+				<fieldset>
+					<div class="form-group">
+						<div data-ng-include="'/assets/javascripts/laboratories/save.html'" ></div>
+					</div>
+
+				</fieldset>
+			</div>
+		</div>
+		<div class="modal-footer">
+			<div class="btn btn-link-action" ng-click="closeModal()">
+			   	<span title="Cerrar">
+			   		<span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+			   	</span>
+				<span class="btn-link-action">Cerrar</span>
+			</div>
+			<button id="saveUpd" type="button" class="btn btn-primary-action" data-ng-click="saveLaboratory(false)" ng-disabled="labForm.$invalid">Guardar</button>
+		</div>
+	</div>
+</form>

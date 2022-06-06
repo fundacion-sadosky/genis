@@ -1,0 +1,62 @@
+
+
+
+<div class="row padding-0 breadcrumb_column">
+	<div class="col-md-12 padding-0">
+		<div class="row padding-0">
+			<div class="breadcrumb_content">
+				<ol class="breadcrumb">
+						<li><div class="btn volver" onclick="history.back()">
+								<span  class="icon-atras" title="Volver"></span>
+										
+								</span>
+								
+							</div>
+						</li>
+					<li class="active">Usuarios</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+		</div>
+		
+
+
+
+<div class="container-top">
+	<div class=" content"> <!-- content-wrap-small -->
+		<table class="table  table-bordered">
+			<thead>
+				<tr>
+					<th>Nombre de usuario</th>
+					<th>Nombre</th>
+					<th>Apellido</th>
+					<th>Email</th>
+					<th>Estado</th>
+					<th>Edición</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr data-ng-repeat="user in users">
+					<td>{{user.userName}}</td>
+					<td>{{user.firstName}}</td>
+					<td>{{user.lastName}}</td>
+					<td>{{user.email}}</td>
+					<td>
+						<select 
+							class="form-control form-select"
+							data-ng-model="user.status" 
+							data-ng-options="status as ('userStatus.' + status | i18next) for status in statusList"
+							data-ng-change="updateUserStatus(user.userName,user.status)">
+						</select>
+					</td>
+					<td>
+						<button class="btn btn-default btn-link-action btn-link-border" title="Modificar datos del usuario" data-ng-click="updateUser(user)">
+							<span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+						</button>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</div>

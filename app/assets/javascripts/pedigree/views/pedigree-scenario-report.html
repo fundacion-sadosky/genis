@@ -1,0 +1,88 @@
+<div>
+
+    <!-- Genotipificación -->
+    <div class="scenarios-section" style="page-break-after:always;">
+
+        <h3 class="m-b-10">Comparación de perfiles</h3>
+
+        <div class="m-b-10" ng-repeat="chunk in profileChunks track by $index">
+            <div class="row" style="page-break-inside:avoid;">
+                <div id="td-comp-gen-1" class="col-xs-2 col-sm-2 col-md-2 col-lg-2"></div>
+                <div ng-repeat="p in chunk track by $index" class="text-center col-xs-2 col-sm-2 col-md-2 col-lg-2">
+                    <div class="comparison-profileID m-b-10">
+                        <span style="display:block">{{p.alias | prittyLimitTo:10:false}}</span>
+                        <span>{{'(' + p.globalCode + ')' | prittyLimitTo:20:false}}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div ng-repeat="item in comparison track by $index" class="row">
+                <div class="col-xs-2 col-sm-2 col-md-2 col-lg-2">
+                    {{item.locus}}
+                </div>
+                <div ng-repeat="p in chunk track by $index" class="text-center col-xs-2 col-sm-2 col-md-2 col-lg-2">
+                    <span ng-repeat="allele in item.g[p.globalCode] track by $index" class="text-center comparision-allele">
+                        {{allele}}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pedigree -->
+    <div class="scenarios-section" style="page-break-after:always;">
+
+        <h3 class="m-b-10">Pedigrí</h3>
+
+        <div class="m-l-10 m-r-10">
+            <h4 class="row">Individuos</h4>
+
+            <div class="row bold">
+                <div class="text-center col-xs-2 col-sm-2 col-md-2 col-lg-2 border-black">Incógnita</div>
+                <div class="text-center col-xs-2 col-sm-2 col-md-2 col-lg-2 border-black">Alias</div>
+                <div class="text-center col-xs-1 col-sm-1 col-md-1 col-lg-1 border-black">Sexo</div>
+                <div class="text-center col-xs-2 col-sm-2 col-md-2 col-lg-2 border-black">Padre</div>
+                <div class="text-center col-xs-2 col-sm-2 col-md-2 col-lg-2 border-black">Madre</div>
+                <div class="text-center col-xs-3 col-sm-3 col-md-3 col-lg-3 border-black">Perfil</div>
+            </div>
+
+            <div ng-repeat="individual in scenario.genogram track by $index" class="row">
+                <div class="text-center col-xs-2 col-sm-2 col-md-2 col-lg-2 border-black">{{individual.unknown?'SI':'NO'}}</div>
+                <div class="col-xs-2 col-sm-2 col-md-2 col-lg-2 border-black">{{individual.alias}}</div>
+                <div class="text-center col-xs-1 col-sm-1 col-md-1 col-lg-1 border-black">{{'sexPedigree.' + individual.sex | i18next}}</div>
+                <div class="col-xs-2 col-sm-2 col-md-2 col-lg-2 border-black">{{individual.idFather || '-'}}</div>
+                <div class="col-xs-2 col-sm-2 col-md-2 col-lg-2 border-black">{{individual.idMother || '-'}}</div>
+                <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3 border-black">{{individual.globalCode || '-'}}</div>
+            </div>
+
+            <h4 class="row">Genograma</h4>
+            <div class="genogram">
+                <img ng-src="{{canvasURL}}">
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Resultados -->
+    <div class="scenarios-section" style="page-break-after:always;" ng-if="scenario.lr">
+
+        <h3 class="m-b-10">Resultados</h3>
+
+        <div class="m-l-10 m-r-10">
+            <div>
+                <span class="bold">Base de frecuencias alélicas:</span>
+                <span>{{scenario.frequencyTable}}</span>
+            </div>
+
+            <div class="pedigree-scenario-lr m-b-10 m-t-10" ng-if="scenario.lr">
+                Resultados del <span class="bold">LR TOTAL</span> =
+                <input type="text" class="form-control form-select" style="width: auto; display: inline"
+                       value="{{scenario.lr | likelihoodratioComp: true: true}}" disabled="disabled" />
+            </div>
+        </div>
+
+
+    </div>
+
+</div>

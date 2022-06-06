@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<style>
+    .modal-content{
+        width: 500px !important;
+    }
+    .modal-header{
+        width: 100%!important;;
+    }
+    .modal-body{
+        width: 100%!important;;
+    }
+    .modal-footer{
+        width: 100%!important;;
+    }
+
+
+</style>
+
+<div class="modal-header">
+    <h4>Activar Pedigrí {{pedigreeName}}</h4>
+</div>
+<div class="modal-body">
+    <div class="row">
+        <div class="col-md-12" ng-hide="isDVI">
+            <div class="col-md-1  padding-left-0">
+                <input id="mitocondrial" type="checkbox" ng-disabled="isActive()" ng-model="mito" ng-change="changeSelection(mito.selected)"  />
+            </div>
+            <span class="col-md-11 padding-left-0">Correr screening mitocondrial</span>
+            </br>
+            </br>
+        </div>
+
+        <div class="item-input col-md-12" ng-hide="isDVI">
+            <span class="col-md-8 padding-left-0">Cantidad de no coincidencias para mitocondrial: </span>
+            <div class="col-md-2 padding-left-0 ">
+                <input ng-model="mismatchMito" ng-disabled="!mito || isActive()" id="mismatchMito" class="form-control form-select" type="text"/>
+            </div>
+        </div>
+        </br>
+
+        <div class="item-input col-md-12" help-tip="pedigree.boundary" help-tip-placement="right">
+                <span class="col-md-1 padding-left-0">LR:</span>
+            <div class="col-md-3 padding-left-0">
+                <input name="boundary" id="boundary" class="form-control form-select text-right"
+                       ng-disabled="isActive()"
+                       type="number" min="0" step="1" data-ng-model="boundary" />
+
+            </div>
+        </div>
+
+        <div class="item-input col-md-12" help-tip="pedigree.frequencyBase" help-tip-placement="right">
+            <span class="col-md-5 padding-left-0">Base de Frecuencia</span>
+            <div class="col-md-7 padding-left-0">
+                <select id="frequencyTable"
+                        data-ng-model="freqTable" class="form-control form-select" required
+                        ng-disabled="isActive()"
+                        ng-change="onChange(freqTable)"
+                        ng-options="dbName as db.name for (dbName, db) in freqTables">
+                </select>
+            </div>
+        </div>
+        <div class="item-input col-md-12">
+            <span class="col-md-5 padding-left-0">Modelo de mutaciones</span>
+            <div class="col-md-7 padding-left-0">
+                <select id="mutationModel"
+                        ng-model="mutationModelId" class="form-control form-select"
+                        ng-disabled="status === 'Active'">
+                    <option value="{{undefined}}">Sin Mutaciones</option>
+                    <option ng-repeat="model in activeModels" value="{{model.id}}" ng-selected="mutationModelId === model.id">{{model.name}}</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-footer ">
+    <div class="col-md-12">
+    <div class="btn btn-secondary-action" ng-click="$dismiss()">
+        <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+        <span class="btn-secondary-action">Cancelar</span>
+    </div>
+    <button type="button" class="btn btn-primary-action"
+            ng-if="!isActive()"
+            data-ng-click="close()">Activar</button>
+    </div>
+
+
+</div>
+

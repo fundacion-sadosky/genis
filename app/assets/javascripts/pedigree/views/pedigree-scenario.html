@@ -1,0 +1,131 @@
+<div class="row padding-top-10">
+    <div class="col-md-5 padding-right-0">
+
+        <div class="pedigree-scenario-lr m-b-10 m-t-10" ng-if="hasLR()">
+            Resultados del <span class="bold">LR TOTAL</span> =
+            <input type="text" class="form-control form-select" style="width: auto; display: inline"
+                   value="{{scenario.lr | likelihoodratioCompScenario: true: true}}" disabled="disabled" />
+        </div>
+
+        <div class="m-b-10">
+            <a data-toggle="collapse" href="#description_{{$index}}" style="text-decoration: none; height: 50px;" >
+                <div class="panel-heading btn-icon-action m-t-10 scenario-description-title" style="background-color: #f5f5f5; border-color:#dddddd;">
+                    <span class="bold panel-title">Descripción del escenario</span>
+                </div>
+            </a>
+            <div id="description_{{$index}}" class="panel-collapse collapse scenario-description-box">
+                {{scenario.description}}
+            </div>
+        </div>
+        <table class="table table-condensed table-genogram">
+            <thead>
+            <tr>
+                <th>Alias</th>
+                <th>Padre</th>
+                <th>Madre</th>
+                <th widht="10%">Sexo</th>
+                <th>?</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr data-ng-repeat="node in scenario.genogram">
+                <td>
+                    <input
+                            type="text"
+                            class="form-control text-center form-select padding-0" ng-disabled="true"
+                            ng-pattern="rAlias"
+                            ng-model="node.alias">
+                </td>
+                <td>
+                    <select
+                            class="form-control form-select padding-0" ng-disabled="true"
+                            ng-options="nodeg.alias as nodeg.alias for nodeg in scenario.genogram | isMale: node"
+                            ng-model="node.idFather">
+                        <option value="">-</option>
+                    </select>
+                </td>
+                <td>
+                    <select
+                            class="form-control form-select"
+                            style="padding: 0px; padding-left: 3px;" ng-disabled="true"
+                            ng-options="node.alias as node.alias for node in scenario.genogram | isFemale: node"
+                            ng-model="node.idMother">
+                        <option value="">-</option>
+                    </select>
+                </td>
+                <td>
+                    <select
+                            class="form-control form-select padding-0" ng-disabled="true"
+                            ng-options="s as ('sexPedigree.' + s | i18next) for s in sex"
+                            ng-model="node.sex">
+                    </select>
+                </td>
+                <td>
+                    <input type="checkbox" ng-model="node.unknown" ng-disabled="true"
+                           ng-true-value="true" ng-false-value="false"/>
+                </td>
+                <td>
+
+                    <button
+                            ng-if="!node.globalCode && node.unknown && scenario.status !== 'Validated' && !isClosed()"
+                            ng-click="addProfile(node)"
+                            type="button"
+                            class="btn btn-default btn-link-action btn-link-border">
+                        <span class="glyphicon glyphicon-link" aria-hidden="true"></span>
+                    </button>
+                    <button
+                            ng-if="node.globalCode && node.unknown && scenario.status !== 'Validated' && !isClosed()"
+                            ng-disabled=" canValidate()"
+                            ng-click="disassociateProfile(node)"
+                            type="button" title="{{node.globalCode}}"
+                            class="btn btn-default btn-link-action btn-link-border">
+                        <span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>
+                    </button>
+
+                    <div ng-if="node.globalCode && (!node.unknown || scenario.status === 'Validated')" class="pedigree-tooltip">
+                        <a href="" class="info-item" ng-class="{'info-item-selected': p.showCode}" ng-click="p.showCode = !p.showCode"
+                           tooltip-placement="right" tooltip-html-unsafe="{{node.globalCode}}" tooltip-trigger="click">
+                            <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="col-md-7 ">
+        <div id="genogram_{{$index}}" class="genogram"></div>
+    </div>
+</div>
+
+<div id="report_{{$index}}" ng-show="false" ng-controller="pedigreeScenarioReportController" data-ng-include="'/assets/javascripts/pedigree/views/pedigree-scenario-report.html'"></div>
+
+<footer class="pedigree-genogram-footer">
+    <div class="col-md-2">
+        <select id="frequencyTable" ng-init="defaultFrequencyTable(scenario)"
+                data-ng-model="scenario.frequencyTable" class="form-control form-select" required
+                ng-options="dbName as db.name for (dbName, db) in freqTables"
+                ng-change="scenario.lr=undefined;" ng-disabled="scenario.status === 'Validated'">
+        </select>
+    </div>
+
+    <button type="button" class="btn btn-secondary-action" ng-if="scenario.status !== 'Validated'"
+            ng-click="getLR()" ng-disabled="disableCalculate()">Calcular LR</button>
+    <button type="button" class="btn btn-secondary-action" ng-click="printReport()">Imprimir</button>
+    <span id="processingSpan" class="icon-refresh" data-ng-class="{'spinner': processing()}" data-ng-show="processing()"></span>
+    <span id="calculationWarning" data-ng-if="processing()">Este escenario tiene un cálculo en proceso...</span>
+
+    <div class="desk-align-right inside-right">
+
+        <button type="button" class="btn btn-secondary-action" ng-if="scenario.status === 'Pending'"
+                ng-disabled="processing() || isClosed()" data-ng-click="delete()">Borrar</button>
+        <button type="button" class="btn"
+                ng-class="{'btn-primary-action': !scenario.status, 'btn-secondary-action': scenario.status}"
+                ng-if="(!scenario.status || scenario.status === 'Pending') && !isClosed()"
+                data-ng-click="save()" ng-disabled="!scenario.frequencyTable || processing()">Guardar</button>
+
+        <button type="button" class="btn btn-primary-action" ng-if="scenario.status === 'Pending' && canValidate() && !isClosed()"
+                data-ng-click="validate()" ng-disabled="processing()">Validar</button>
+    </div>
+</footer>

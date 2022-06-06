@@ -1,0 +1,136 @@
+
+<div class="row padding-0 breadcrumb_column">
+    <div class="col-md-12 padding-0">
+        <div class="row padding-0">
+            <div class="breadcrumb_content">
+                <ol class="breadcrumb">
+                    <li>
+                        <div class="btn volver" onclick="history.back()">
+                            <span  class="icon-atras" title="Volver"></span>
+                        </div>
+                    </li>
+                    <li class="active">Listado de Casos</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-top">
+<div class="row">
+    <div class="col-md-12  match-group-search">
+        <div class="row padding-0 ">
+            <div class="content m-t-10 padding-0">
+
+                    <div class="options-header padding-bottom-20">
+                            <div class="form-group">
+                                <form class="navbar-form padding-0" role="search" name="searchForm" novalidate data-ng-submit="search()">
+                                    <div class="col-md-3 vertical-align padding-left-0">
+                                        <label class="col-md-3" for="search-code">Código</label>
+                                        <div class="col-md-9">
+                                            <input id="search-code" type="text" class="form-control form-select" data-ng-model="filters.code"/>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 vertical-align">
+                                        <label class="col-md-4" for="search-status">Estado</label>
+                                        <div class="col-md-8 padding-0">
+                                            <select id="search-status" data-ng-model="filters.status" class="form-control form-select"
+                                            data-ng-options="item.value as item.label for item in status">
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 vertical-align">
+                                    <label class="col-md-5" for="case_type">Tipo de caso</label>
+                                    <div class="col-md-7 padding-0">
+                                        <select class="form-control form-select" data-ng-model="filters.caseType"
+                                        data-ng-options="item.id as item.name for item in caseTypes" id="case_type">
+                                    </select>
+                                </div>
+                            </div>
+                            <div class=" col-md-3 desk-align-right inside-right vertical-align padding-right-0">
+                                
+                                
+                                
+                                
+                                <div class="col-md-6">
+                                    <a  title="Limpiar filtros" ng-click="cleanFilters()" ng-disabled="isProcessing"  class="cancel-link" >Limpiar</a>
+                                </div>
+                                
+                                
+                                <div class="col-md-6 padding-right-0"> 
+                                    <span id="processingSpan" class="icon-refresh" ng-class="{'spinner': isProcessing}" data-ng-show="isProcessing"></span>
+                                    <button title="Buscar"  id="search-button" type="submit" class="btn btn-secondary-action" data-ng-disabled="searchForm.$invalid">Buscar</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+    <div class="row">
+        <div class="content m-t-10 padding-0">
+            <div class="row m-b-10">
+                <div class="pull-right padding-right-0">
+                    <button type="button" ng-class="{'btn-primary-action-selected': showAdd}"
+                    class="btn btn-primary-action pull-right"
+                    data-ng-click="goToCourtCase()">
+                        <!-- <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> -->
+                        <span>Nuevo caso</span>
+                    </button>
+                </div>
+            </div>
+
+            <div data-ng-show="noResult">
+                No se encontraron datos según su busqueda
+            </div>
+
+            <table class="table  table-bordered" data-ng-show="!noResult">
+                <thead>
+                    <tr>
+                        <th class="col-md-4"><pdg-sortable name="Código del Caso" predicate="sortField" reverse="!ascending"
+                            sort-action="sortBy('code')" sort-field="code"></pdg-sortable></th>
+                            <th class="col-md-1">Tipo de Caso</th>
+                            <th class="col-md-2">Responsable</th>
+                            <th class="col-md-1">Estado</th>
+                            <th class="col-md-1">Coincidencias Pendientes</th>
+                            <th class="col-md-1">Ver Caso</th>
+                            <th class="col-md-1">Cerrar</th>
+                            <th class="col-md-1">Dar de Baja</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr data-ng-repeat="c in courtCases" ng-class="{'profile-deleted': isDeleted(c)}">
+                            <td class="centered">{{c.internalSampleCode}}</td>
+                            <td class="centered">{{c.caseType}}</td>
+                            <td class="centered">{{c.assignee}}</td>
+                            <td>{{ "pedigree.status." + c.status | i18next }}</td>
+                            <td>{{c.numberOfPendingMatches}}</td>
+                            <td class="col-md-1 centered">
+                                <a id="showpedigree_{{$index}}" ng-disabled="isDeleted(c)"  href=""
+                                class="btn btn-default btn-link-action btn-link-border" ng-click="isDeleted(c) || goToCaseDetail(c)">
+                                <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span></a>
+                            </td>
+                            <td class="col-md-1 centered">
+                                <a id="showclosed_{{$index}}" ng-disabled="isDeleted(c)||isClosed(c)" href=""
+                                class="btn btn-default btn-link-action btn-link-border" ng-click="isDeleted(c) || isClosed(c) || closeCourCase(c)">
+                                <span class="glyphicon glyphicon-floppy-remove" aria-hidden="true"></span></a>
+                            </td>
+                            <td class="col-md-1 centered">
+                                <a id="showdeleted_{{$index}}" ng-disabled="isDeleted(c)||isClosed(c)" href=""
+                                class="btn btn-default btn-link-action btn-link-border" ng-click="isDeleted(c) || isClosed(c) || deleteCourtCase(c)"><span class="glyphicon glyphicon-floppy-remove" aria-hidden="true"></span>
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<footer class="pedigree-footer">
+	<div>
+		<pagination boundary-links="true" ng-change="changePage()" items-per-page="{{pageSize}}" max-size="10" total-items="totalItems" ng-model="currentPage" class="pagination-sm" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;"  rotate="false"></pagination>
+	</div>
+</footer>

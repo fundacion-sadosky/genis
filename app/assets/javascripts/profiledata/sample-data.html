@@ -1,0 +1,95 @@
+<div ng-controller="sampleDataController">
+	<h5>Datos Muestra</h5>
+
+	<div class="item-input">
+		<label for="bioMaterialType">Tipo de material biológico</label> <select id="bioMaterialType" data-ng-disabled="mode == 'readonly'"
+			data-ng-model="$parent.profileData.bioMaterialType" class="form-control form-select"
+			data-ng-options="item.id as item.name for item in bioMaterialTypes"></select>
+	</div>
+
+	<div class="item-input inNameOf">
+
+		<input id="on-behalf-of" type="checkbox" data-ng-model="$parent.inNameOf" data-ng-disabled="mode == 'readonly'" />
+		En nombre de:
+
+		<fieldset data-ng-disabled="!$parent.inNameOf || mode == 'readonly'">
+
+			<label for="laboratory">Laboratorio</label> <select id="laboratory"
+				data-ng-model="$parent.profileData.laboratory" class="form-control form-select"
+				data-ng-change="giveGeneticist(profileData.laboratory)"
+				data-ng-options="item.code as item.name for item in laboratories">
+			</select> <label for="responsibleGeneticist">Responsable de la pericia</label> <select
+				data-ng-model="$parent.profileData.responsibleGeneticist"
+				id="responsibleGeneticist" class="form-control form-select"
+				data-ng-options="gene.id as (gene.name + ' ' + gene.lastname) for gene in $parent.geneticists">
+			</select>
+
+		</fieldset>
+
+	</div>
+
+	<div class="item-input-column">
+		<label for="sampleEntryDate">Fecha de ingreso al laboratorio</label>
+		<p class="input-group">
+			<input type="text" name="sampleEntryDate" id="sampleEntryDate" data-ng-disabled="mode == 'readonly'"
+				ng-blur="checkMax('sampleEntryDate')"
+				placeholder="dd/MM/yyyy" data-datepicker-popup="dd/MM/yyyy"
+				data-ng-model="$parent.profileData.sampleEntryDate"
+				data-is-open="datepickers.sampleEntryDate" class="form-control form-select"
+				max-date="maxDate"
+				data-datepicker-options="dateOptions" data-close-text="Close"/>
+				<span class="input-group-btn">
+				<button type="button" class="btn btn-link-action btn-link-border btn-calendar" data-ng-disabled="mode == 'readonly'"
+					data-ng-click="toggleDatePicker($event,'sampleEntryDate')">
+					<i class="glyphicon glyphicon-genis-calendar glyphicon-calendar vertical-align"></i>
+				</button>
+			</span>
+		</p>
+
+	</div>
+
+
+
+	<div class="item-input-column">
+		<label for="sampleDate">Fecha de toma de la muestra</label>
+		<p class="input-group">
+			<input id="sampleDate" type="text" name="sampleDate" data-ng-disabled="mode == 'readonly'"
+				   ng-blur="checkMax('sampleDate')"
+				   placeholder="dd/MM/yyyy" data-datepicker-popup="dd/MM/yyyy"
+				data-ng-model="$parent.profileData.sampleDate"
+				data-is-open="datepickers.sampleDate" class="form-control form-select"
+				max-date="maxDate"
+				data-datepicker-options="dateOptions" data-close-text="Close"/>
+			<span class="input-group-btn">
+			<button data-ng-disabled="mode == 'readonly'"
+				type="button" class="btn btn-link-action btn-link-border btn-calendar"
+				data-ng-click="toggleDatePicker($event, 'sampleDate')">
+				<i class="glyphicon glyphicon-genis-calendar glyphicon-calendar vertical-align"></i>
+			</button>
+			</span>
+		</p>
+
+	</div>
+
+	<div class="item-input-column">
+		<label for="profileExpirationDate">Fecha de caducidad del perfil</label>
+		<p class="input-group">
+			<input id="profileExpirationDate" type="text" data-ng-disabled="mode == 'readonly'"
+				name="profileExpirationDate"
+				ng-blur="checkMin('profileExpirationDate')"
+				placeholder="dd/MM/yyyy"
+				data-datepicker-popup="dd/MM/yyyy" class="form-control form-select"
+				data-ng-model="$parent.profileData.profileExpirationDate"
+				data-is-open="datepickers.profileExpirationDate"
+				min-date="minDate"
+				data-datepicker-options="dateOptions" data-close-text="Close"/> 
+			<span class="input-group-btn">
+			<button data-ng-disabled="mode == 'readonly'"
+				type="button" class="btn btn-link-action btn-link-border btn-calendar"
+				data-ng-click="toggleDatePicker($event, 'profileExpirationDate')">
+				<i class="glyphicon glyphicon-genis-calendar glyphicon-calendar vertical-align"></i>
+			</button>
+			</span>
+		</p>
+	</div>
+</div>

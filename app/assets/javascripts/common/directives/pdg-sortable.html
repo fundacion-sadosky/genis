@@ -1,0 +1,13 @@
+<div>
+    <span>{{name}}</span>
+    <a href="" ng-click="eventHandler()" ng-show="predicate !== sortField">
+        <span class="icon-filtro_desordenado"></span>
+    </a>
+    <a href="" ng-click="eventHandler()" ng-show="predicate === sortField">
+        <span class="" 
+              ng-class="{'icon-filtro_descendente': !reverse,
+                         'icon-filtro_ascendente': reverse }"></span>
+    </a>
+</div>
+
+<!--<span class=""  btn-icon-action-selected -->

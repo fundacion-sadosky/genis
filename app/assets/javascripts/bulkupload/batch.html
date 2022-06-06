@@ -1,0 +1,65 @@
+
+
+<div class="row padding-0 breadcrumb_column">
+	<div class="col-md-12 padding-0">
+		<div class="row padding-0">
+			<div class="breadcrumb_content">
+				<ol class="breadcrumb">
+						<li>
+							<div class="btn volver" onclick="history.back()">
+								<span  class="icon-atras" title="Volver"></span>
+							</div>
+						</li>
+						<li class="active">Lote {{batchId}} - Detalles</li>
+						
+					</ol>
+				</div>
+			</div>
+		</div>
+	</div>
+<br>
+<br>
+<br>
+
+<div ng-show="fileRows">
+
+<table class="table table-striped">
+	<thead>
+		<tr>
+			<th></th>
+			<th class="text-center">Código Laboratorio</th>
+			<th class="text-center">Genetista asignado</th>
+			<th class="text-center">Subcategoría</th>
+			<th class="text-center">Kit</th>
+			<th></th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr ng:repeat="r in fileRows.details" name="{{'row_' + $index}}">
+			<td>
+				<span ng-show="r.status === 'Valid'" style="color: green;" class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+				<span ng-show="r.status === 'Invalid'" style="color: red;" class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+				
+			</td>
+			<td class="text-center">{{r.sampleName}}</td>
+			<td class="text-center">{{r.user}}</td>
+			<td class="text-center">{{r.subcategory}}</td>
+			<td class="text-center">{{r.kit}}</td>
+			<td class="text-center" ng-show="r.status === 'Valid'">
+				<button class="btn" title="Editar datos antes de guardar" >
+					<span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+				</button>
+
+				<button class="btn" title="Guardar análisis" ng-click="approveByTechnician(r.sampleName)">
+					<span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span>
+				</button>
+			</td>
+			<td class="text-center" ng-show="r.status === 'Invalid'"> {{r.rejectedReason}} </td>
+			
+		</tr>
+	</tbody>
+</table>
+
+<!-- <button ng-click="approveByGeneticist('idsdsd', true)">click</button> -->
+
+</div>

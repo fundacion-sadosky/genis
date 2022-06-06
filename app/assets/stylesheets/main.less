@@ -1,0 +1,67 @@
+
+
+@import "lib/bootstrap/less/bootstrap";
+@import "lib/font-awesome/less/font-awesome";
+// @import "variables.less";
+// @import "mixins.less";
+@import "common.less";
+@import "tabs.less";
+@import "tabstyles.less";
+@import "validation";
+@import "matcher";
+@import "print.less";
+@import "fixed-headers.less";
+@import "alert.less";
+@import "../lib/angular-ui-select/select.css";
+@import "vis.css";
+@import "../lib/animate.css/animate.css";
+@import "icon-genis.css";
+
+@import "crap_main.less";
+
+
+// Settings 
+// used with preprocessors and contain font, 
+// colors definitions, etc.
+@import './settings/_variables';
+@import './settings/_fonts';
+
+
+// Tools 
+// globally used mixins and functions. 
+// It’s important not to output any CSS in the first 2 layers.
+@import './tools/_mixin';
+
+// Generic 
+// reset and/or normalize styles, 
+// box-sizing definition, etc. This is the first 
+// layer which generates actual CSS.
+@import './generic/_reset';
+
+// Elements 
+// styling for bare HTML elements
+// (like H1, A, etc.). These come with default 
+// styling from the browser so we can redefine them here.
+@import './elements/_html-element';
+
+// Objects 
+// class-based selectors which define
+// undecorated design patterns, for example 
+// media object known from OOCSS
+@import './objects/_layout-element';
+@import './objects/_btn';
+
+
+// Components 
+// specific UI components. This is where majority 
+// of our work takes place and our UI components are 
+// often composed of Objects and Components
+// @import './components/_header-search';
+// @import './components/_list-items';
+// @import './components/_detaill-item';
+// @import './components/_breadcrumb-category';
+
+// Utilities 
+// utilities and helper classes with ability to override 
+// anything which goes before in the triangle, eg. hide
+// helper class

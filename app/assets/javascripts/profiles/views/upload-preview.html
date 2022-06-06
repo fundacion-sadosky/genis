@@ -1,0 +1,51 @@
+
+<form name="addForm" novalidate>
+
+
+  
+	<div class="row clearfix" >
+		
+		<div class="col-md-12 column">
+
+			<table class="table table-striped">
+				<thead>
+					<tr>
+						<th>Marcadores</th>
+						<th class="text-center">Alelos</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr ng:repeat="(locus, alleles) in uploadedAnalysis.genotypification" name="{{prof.id}}">
+						<td>{{locus}}</td>
+						<td class="text-center">
+							<span ng:repeat="allele in alleles track by $index" style="padding-left: 10px; padding-right: 10px;">{{allele}}</span>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+
+			<h4>Electroferograma</h4>
+			<div class="form-group">
+				<div class="col-md-12">
+					<carousel interval="3000">
+					  <slide ng-repeat="slide in inprints">
+					    <img ng-src="{{slide}}" style="margin:auto; height: 200px;">
+					  </slide>
+					</carousel>
+					<div class="col-md-2 text-center">
+						<span class="btn btn-default btn-md btn-block btn-file">
+							<span class="glyphicon glyphicon-upload"></span>
+							<input type="file" data-ng-file-select="onFileSelect($files)" multiple accept="image/*">
+						</span>
+					</div>
+				</div>
+			</div>
+
+			<div class="pull-right clearfix">
+				<button id="cancel" type="button" class="btn btn-danger">Cancelar</button>
+				<button id="save" type="button" class="btn btn-success" ng-click="saveUploaded()">Guardar</button>
+			</div>
+				
+		</div>
+	</div>
+</form>

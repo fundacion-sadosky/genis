@@ -1,0 +1,99 @@
+<div class="container login-container" ng-controller="loginController" ng-show="showLogin">
+<div class="row">
+<div class="col-sm-offset-4 col-sm-4">
+
+	<div class="login-header">
+		<div class="login-logo">
+			<img alt="genis-logo" src="/assets/images/genisLogo.png" height="70" width="190">
+		</div>
+	</div>
+
+	<div class="login-body">
+			<form id="loginform" name="loginform" class="form-horizontal" role="form" autocomplete="off">
+				<fieldset data-ng-disabled="requestToken">
+		
+					<div class="input-group">
+						<label for="nombredeusuario">Nombre de Usuario</label>
+						<div ng-controller="HelpTipCtrl as ctrl" class="question_box">
+								<!-- <a href="" data-ng-click="ctrl.toggle()" >
+								  <i class="fa fa-question-circle"></i>
+							  </a> -->
+						  </div>
+							<input name="username"
+								class="form-control login-input login-user" id="nombredeusuario"
+								help-tip="login.input.userName" 
+								type="text" 
+								data-ng-model="credentials.userName" 
+								autocomplete="off"  
+								placeholder="Nombre de Usuario" 
+								required 
+								autofocus />
+							<form-validation input="loginform.username"></form-validation>
+					</div>
+					
+					<div class="input-group">
+						<label for="passwordin">Contraseña</label>
+						<div ng-controller="HelpTipCtrl as ctrl" class="question_box">
+								<!-- <a href="" data-ng-click="ctrl.toggle()" >
+								  <i class="fa fa-question-circle"></i>
+							  </a> -->
+						  </div>
+							<input name="password" id="passwordin"
+								type="password"
+								class="form-control login-input login-password"
+								data-ng-model="credentials.password" 
+								autocomplete="off" 
+								placeholder="Contraseña"  
+								required
+								help-tip="login.input.password" />
+                        <form-validation input="loginform.password"></form-validation>
+					</div>
+		
+					<div class="input-group">
+					<label for="totp">Código token de Google Authenticator</label>
+					<div ng-controller="HelpTipCtrl as ctrl" class="question_box">
+							<!-- <a href="" data-ng-click="ctrl.toggle()" >
+							  <i class="fa fa-question-circle"></i>
+						  </a> -->
+					  </div>
+						<input name="totp"
+								type="text" 
+								id="totp" 
+								class="form-control  login-input login-otp"
+								data-ng-model="credentials.otp" 
+								placeholder="Código token de Google Authenticator" 
+								required autocomplete="off"
+								help-tip="login.input.topt"
+								autofocus />
+                        <form-validation input="loginform.totp"></form-validation>
+					</div>
+
+					<div class="input-group">
+						
+						<b 
+							class="text-center alert-login" 
+							id="unauthorized" 
+							data-is-authorized="{{!unauthorized}}" 
+							data-sever-time="{{serverTime}}" 
+							data-ng-show="unauthorized">
+							Acceso no Autorizado</b>
+
+						<button id="btnAuth" name="btnAuth" class="btn btn-primary-action btn-block" ng-disabled="loginform.$invalid" data-ng-click="login(credentials)">Ingresar</button>
+	
+						<div class="text-center" ng-controller="clearPassController" style="margin-top: 15px">
+							<a style="cursor:pointer;" class="" ng-click="showClearPasswordForm()">Olvidé mi contraseña  </a>
+						</div>
+					</div>
+					
+				</fieldset>
+				
+			</form>
+			
+		</div>
+				<div class="text-center" ng-controller="signupController" style="margin-top: 15px">
+					<a style="cursor:pointer;" class="" ng-click="showSignupForm()">Solicitar una cuenta </a>
+				</div>
+
+</div>
+</div>
+</div>	

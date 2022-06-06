@@ -1,0 +1,361 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+# Home page
+GET      /                                                    @controllers.Application.index
+
+GET      /status                                              @controllers.Status.status
+
+GET      /categoryTree                                        @controllers.Categories.categoryTree
+GET      /categories                                          @controllers.Categories.list
+
+GET      /categoryTreeManualLoading                           @controllers.Categories.categoryTreeManualLoading
+
+POST     /categories                                          @controllers.Categories.addCategory
+PUT      /categories/:catId                                   @controllers.Categories.updateCategory(catId: types.AlphanumericId)
+PUT      /categories/:catId/details                           @controllers.Categories.updateFullCategory(catId: types.AlphanumericId)
+DELETE   /categories/:catId                                   @controllers.Categories.removeCategory(catId: types.AlphanumericId)
+
+GET      /categories-mapping                                  @controllers.Categories.listCategoriesMapping
+PUT      /categories-mapping                                  @controllers.Categories.insertOrUpdateCategoriesMapping
+
+POST     /group                                               @controllers.Categories.addGroup
+PUT      /group/:groupId                                      @controllers.Categories.updateGroup(groupId: types.AlphanumericId)
+DELETE   /group/:groupId                                      @controllers.Categories.removeGroup(groupId: types.AlphanumericId)
+
+GET      /crimeTypes                                          @controllers.CrimeTypes.list
+GET      /bioMaterialTypes                                    @controllers.BioMaterialTypes.list
+POST	 /bioMaterialTypes									  @controllers.BioMaterialTypes.insert
+PUT	     /bioMaterialTypes									  @controllers.BioMaterialTypes.update
+DELETE	 /bioMaterialTypes/:bmtId							  @controllers.BioMaterialTypes.remove(bmtId: String)
+
+# Population Base Frequency
+POST     /populationBaseFreq                                  @controllers.PopulationBaseFreq.uploadPopulationFile
+GET      /populationBaseFreq                                  @controllers.PopulationBaseFreq.getAllBaseNames
+PUT      /populationBaseFreq-fmin/:id                         @controllers.PopulationBaseFreq.insertFmin(id: String)
+GET      /populationBaseFreq/:name                            @controllers.PopulationBaseFreq.getByName(name: String)
+PUT      /populationBaseFreq/:name                            @controllers.PopulationBaseFreq.toggleStateBase(name: String)
+PUT      /populationBaseFreqDefault/:name                     @controllers.PopulationBaseFreq.setBaseAsDefault(name: String)
+GET      /populationBaseFreqCharacteristics                   @controllers.PopulationBaseFreq.getAllBasesCharacteristics
+
+# Operation Logs
+GET      /operationLog                                        @controllers.OperationLogs.getLogLots(page: Int ?= 0, pageSize: Int ?= 50)
+POST     /operationLogSearch                                  @controllers.OperationLogs.searchLogs
+GET      /operationLog/:id/verification                       @controllers.OperationLogs.checkLogLot(id: Long)
+HEAD     /operationLog                                        @controllers.OperationLogs.getTotalLots
+POST     /operationLogLot                                     @controllers.OperationLogs.getTotalLogs
+
+# ProfileData
+GET      /profiledata/:id                                     @controllers.ProfileData.get(id: Long)
+GET      /profiledata                                         @controllers.ProfileData.findByCode(globalCode: types.SampleCode)
+POST     /profiledata                                         @controllers.ProfileData.create
+GET      /profiles-deleted/motive/:id                         @controllers.ProfileData.getDeleteMotive(id: types.SampleCode)
+PUT      /profiledata-deleted/:id                             @controllers.ProfileData.deleteProfile(id: types.SampleCode)
+GET      /profiledataWithAssociations                         @controllers.ProfileData.findByCodeWithAssociations(globalCode: types.SampleCode)
+PUT      /profiledata/:id                                     @controllers.ProfileData.update(id: types.SampleCode)
+GET      /profiledata-complete/:id                            @controllers.ProfileData.getByCode(id: types.SampleCode)
+GET      /profiledata-editable/:id                            @controllers.ProfileData.isEditable(id: types.SampleCode)
+GET      /profilesdata                                        @controllers.ProfileData.findByCodes(globalCode: List[types.SampleCode])
+
+POST     /uploadImage                                         @controllers.Resources.uploadImage
+POST     /uploadFile                                          @controllers.Resources.uploadFile
+GET      /getFilesId                                          @controllers.Resources.getFilesId
+GET      /resources/temporary/:name                           @controllers.Resources.temporary(name: String)
+GET      /resources/static/:type/:id                          @controllers.ProfileData.getResources(type:String, id: Long)
+
+## Search ProfileData
+POST      /search/profileData/search                           @controllers.SearchProfileDatas.search()
+POST      /search/profileData/searchTotal                      @controllers.SearchProfileDatas.searchTotal()
+GET      /search/profileData/:category                        @controllers.SearchProfileDatas.searchProfilesAssociable(input: String, category: String)
+
+# Laboratories
+GET      /laboratory                                          @controllers.Laboratories.list
+GET      /laboratory/descriptive                              @controllers.Laboratories.listDescriptive
+GET      /country                                             @controllers.Laboratories.listCountries
+GET      /provinces/:country                                  @controllers.Laboratories.listProvinces(country: String)
+POST     /laboratory                                          @controllers.Laboratories.addLab
+GET      /laboratory/:code                                    @controllers.Laboratories.getLaboratory(code: String)
+PUT      /laboratory                                          @controllers.Laboratories.updateLab
+
+# Geneticist
+GET      /geneticist/:lab                                     @controllers.Geneticists.allGeneticist(lab: String)
+POST     /geneticist                                          @controllers.Geneticists.addGeneticist
+GET      /geneticist                                          @controllers.Geneticists.getGeneticist(geneticistId: Long)
+GET      /geneticist-users                                    @controllers.Geneticists.getGeneticistUsers()
+PUT      /geneticist                                          @controllers.Geneticists.updateGeneticist
+
+# Profiles
+
+GET		 /profiles/:id			                              @controllers.Profiles.findByCode(id: types.SampleCode)
+GET      /profiles/full/:globalCode                           @controllers.Profiles.getFullProfile(globalCode: types.SampleCode)
+GET      /profiles                                            @controllers.Profiles.findByCodes(globalCodes: List[types.SampleCode])
+POST     /profiles                                            @controllers.Profiles.create
+POST     /profiles-xxx/:id                                    @controllers.Profiles.storeUploadedAnalysis(id: String)
+POST     /profiles-labels                                     @controllers.Profiles.saveLabels
+GET      /profiles/:profileId/epgs                            @controllers.Profiles.getElectropherogramsByCode(profileId: types.SampleCode)
+GET      /profiles/:profileId/analysis/:analysisId/epgs       @controllers.Profiles.getElectropherogramsByAnalysisId(profileId: types.SampleCode, analysisId: String)
+GET      /profiles/:profileId/epg/:epgId                      @controllers.Profiles.getElectropherogramImage(profileId: types.SampleCode, epgId: String)
+POST     /profiles-mixture-verification                       @controllers.Profiles.verifyMixtureAssociation
+GET      /profiles/subcategory-relationships/:subcategoryId   @controllers.Profiles.findSubcategoryRelationships(subcategoryId: types.AlphanumericId)
+POST     /profiles-epg                                        @controllers.Profiles.addElectropherograms(token: String, globalCode: types.SampleCode, idAnalysis: String,name:String)
+GET      /profiles-labels                                     @controllers.Profiles.getLabels(globalCode: types.SampleCode)
+GET      /profiles-labelsets                                  @controllers.Profiles.getLabelsSets()
+GET      /profiles/:profileId/file                            @controllers.Profiles.getFilesByCode(profileId: types.SampleCode)
+GET      /profiles/:profileId/analysis/:analysisId/file       @controllers.Profiles.getFilesByAnalysisId(profileId: types.SampleCode, analysisId: String)
+GET      /profiles/:profileId/file/:fileId                    @controllers.Profiles.getFile(profileId: types.SampleCode, fileId: String)
+POST     /profiles-file                                       @controllers.Profiles.addFiles(token: String, globalCode: types.SampleCode, idAnalysis: String,name:String)
+DELETE   /profiles-file/file/:fileId                          @controllers.Profiles.removeFile(fileId:String)
+DELETE   /profiles-file/epg/:fileId                           @controllers.Profiles.removeEpg(fileId:String)
+GET      /profiles/readOnly                                   @controllers.Profiles.isReadOnly(globalCode: types.SampleCode)
+POST     /profile-export                                      @controllers.Profiles.exporterProfiles
+POST     /profile-exportToLims                                @controllers.Profiles.exporterLimsFiles
+GET      /get-profile-export/:user                            @controllers.Profiles.getExportFile(user: String)
+GET      /get-alta-file-export                                @controllers.Profiles.getLimsAltaFile()
+GET      /get-match-file-export                               @controllers.Profiles.getLimsMatchFile()
+
+# BulkUpload
+POST     /bulkuploader                                        @controllers.BulkUpload.uploadProtoProfiles(label: Option[String], analysisType: String)
+GET      /bulkupload/step1/protoprofiles                      @controllers.BulkUpload.getProtoProfilesStep1(batchId: Long, page: Int, pageSize: Int)
+GET      /bulkupload/step2/protoprofiles                      @controllers.BulkUpload.getProtoProfilesStep2(geneMapperId: String, batchId: Long, page: Int, pageSize: Int)
+GET      /bulkupload/step1/batches                            @controllers.BulkUpload.getBatchesStep1()
+GET      /bulkupload/step2/batches                            @controllers.BulkUpload.getBatchesStep2(geneMapperId : String)
+POST     /protoprofiles/:id/status                            @controllers.BulkUpload.updateProtoProfileStatus(id: Long, status: String,replicate:Boolean)
+POST     /protoprofiles/multiple-status                       @controllers.BulkUpload.updateBatchStatus(idBatch: Long, status: String,replicateAll:Boolean)
+GET      /bulkupload/protoprofiles/:id                        @controllers.BulkUpload.getProtoProfileById(id: Long)
+POST     /protoprofiles/:id/subcategory                       @controllers.BulkUpload.updateProtoProfileData(id: Long, category: types.AlphanumericId)
+POST     /protoprofiles/matchingrules                         @controllers.BulkUpload.updateProtoProfileRulesMismatch
+POST	 /protoprofiles-reject/:id							  @controllers.BulkUpload.rejectProtoProfile(id: Long, motive: String,idMotive:Long)
+DELETE   /bulkupload/:id                                      @controllers.BulkUpload.deleteBatch(id:Long)
+
+GET      /bulkupload/batches                                  @controllers.BulkUpload.searchBatch(filter: String)
+
+# ProtoProfileData
+GET      /protoprofiledata-complete/:id                       @controllers.ProtoProfileData.getByCode(id: types.SampleCode)
+POST     /protoprofiledata                                    @controllers.ProtoProfileData.create
+PUT      /protoprofiledata/:id                                @controllers.ProtoProfileData.update(id: types.SampleCode)
+GET      /protoprofiledata-complete/:id                       @controllers.ProtoProfileData.getByCode(id: types.SampleCode)
+GET      /protoprofiledata-editable/:id                       @controllers.ProtoProfileData.isEditable(id: types.SampleCode)
+GET      /resources/proto/static/:type/:id                    @controllers.ProtoProfileData.getResources(type:String, id: Long)
+
+# Matching
+GET      /matching                                            @controllers.Matching.findMatchesByCode(globalCode: types.SampleCode)
+POST     /user-matches                                        @controllers.Matching.getMatches
+POST     /user-total-matches                                  @controllers.Matching.getTotalMatches
+POST     /user-matches-group                                  @controllers.Matching.getMatchesByGroup
+POST     /user-total-matches-group                            @controllers.Matching.getTotalMatchesByGroup
+GET      /mixture/compare                                     @controllers.Matching.getComparedMixtureGene(globalCodes: List[String],matchId:String,isCollapsing:Option[Boolean],isScreening:Option[Boolean])
+POST     /convertHit                                          @controllers.Matching.convertHit(matchingId: String, firingCode: types.SampleCode)
+POST     /convertDiscard                                      @controllers.Matching.convertDiscard(matchId: String, firingCode: types.SampleCode)
+POST     /uploadStatus                                        @controllers.Matching.uploadStatus(matchId: String, firingCode: types.SampleCode)
+GET     /canUploadMatchStatus                                 @controllers.Matching.canUploadMatchStatus(matchId: String)
+GET      /getByMatchedProfileId                               @controllers.Matching.getByMatchedProfileId(matchingId: String, isPedigreeMatch: Boolean,isCollapsing:Option[Boolean],isScreening:Option[Boolean])
+#GET      /comparedGenotyfications                             @controllers.Matching.getComparedGenotyfications(globalCode: types.SampleCode, matchedGlobalCode: types.SampleCode)
+POST     /lr                                                  @controllers.Matching.getLR
+#POST     /mixture/lr                                          @controllers.Matching.getMixtureLRByLocus
+DELETE   /collapsing/partial                                  @controllers.Matching.deleteByLeftProfile(globalCode: String,courtCaseId:Long)
+POST     /masiveDiscardByGlobalCode                           @controllers.Matching.masiveDiscardByGlobalCode(firingCode: types.SampleCode)
+POST    /masiveDiscardByMatchesList                           @controllers.Matching.masiveDiscardByMatchesList(firingCode: types.SampleCode, matches: List[String])
+GET      /matching-profile                                    @controllers.Matching.searchMatchesProfile(globalCode: String)
+
+# Notifications
+GET		 /match-notifications								  @controllers.Notifications.getMatchNotifications
+GET      /notifications                                       @controllers.Notifications.getNotifications
+POST     /notifications/search                                @controllers.Notifications.search
+POST     /notifications/total                                 @controllers.Notifications.count
+DELETE   /notifications/:id    								  @controllers.Notifications.delete(id: Long)
+POST     /notifications/flag/:id							  @controllers.Notifications.changeFlag(id: Long, flag: Boolean)
+
+# Scenarios
+POST     /default-scenario                                    @controllers.Scenarios.getDefaultScenario(firingProfile: types.SampleCode, matchingProfile: types.SampleCode)
+POST     /lr-mix                                              @controllers.Scenarios.calculateLRMix
+GET      /matchesForScenario                                  @controllers.Scenarios.findMatches(scenarioId: Option[String], firingCode: Option[types.SampleCode], matchingCode: Option[types.SampleCode])
+POST     /scenarios/create                                    @controllers.Scenarios.create
+POST     /scenarios/search                                    @controllers.Scenarios.search
+POST     /scenarios/validate                                  @controllers.Scenarios.validate
+POST     /scenarios/update                                    @controllers.Scenarios.update
+PUT      /scenarios/delete                                    @controllers.Scenarios.delete
+PUT      /scenarios/get                                       @controllers.Scenarios.get
+POST     /scenarios/ncorrection                               @controllers.Scenarios.getNCorrection
+
+# JavaScript routes object
+GET      /jsroutes.js                                         @controllers.Application.jsRoutes()
+
+# Routes used by Angular
+# ~~~~
+
+POST     /login                                               @controllers.Authentication.login()
+#GET    	/sensitive-operations	@controllers.Authentication.getSensitiveOperations()
+
+# Sensitive Operations
+GET      /sensitiveOper.js                                    @controllers.Application.senseOper()
+
+# App params
+GET      /appConf.js                                          @controllers.Application.appParam()
+GET      /disclaimer                                          @controllers.DisclaimerController.getDisclaimer
+
+POST     /signup                                              @controllers.Users.signupRequest
+POST     /clear-password                                      @controllers.Users.clearPassRequest
+PUT      /signup                                              @controllers.Users.signupConfirmation
+PUT      /clear-password                                      @controllers.Users.clearPassConfirmation
+GET      /users                                               @controllers.Users.listUsers()
+PUT      /users/:userId/status                                @controllers.Users.setStatus(userId:String)
+PUT      /users                                               @controllers.Users.updateUser
+
+GET      /roles                                               @controllers.Roles.getRoles()
+GET      /rolesForSU                                          @controllers.Roles.getRolesForSignUp()
+GET      /permissions                                         @controllers.Roles.listPermissions()
+GET      /permissionsfull                                     @controllers.Roles.listFullPermissions()
+GET      /operations                                          @controllers.Roles.listOperations()
+PUT      /roles                                               @controllers.Roles.updateRole()
+POST     /roles                                               @controllers.Roles.addRole()
+DELETE   /roles/:id                                           @controllers.Roles.deleteRole(id: String)
+
+# MPI / DVI
+GET      /pedigree                                            @controllers.Application.pedigree()
+POST     /pedigree/court-cases                                @controllers.Pedigrees.getCourtCases
+POST     /pedigree/total-court-cases                          @controllers.Pedigrees.getTotalCourtCases
+POST     /pedigree/create-court-cases                         @controllers.Pedigrees.createCourtCase
+PUT      /pedigree/court-cases/:courtCaseId                   @controllers.Pedigrees.updateCourtCase(courtCaseId: Long)
+POST     /pedigree/create-genogram                            @controllers.Pedigrees.createGenogram
+GET      /pedigree/genogram/:pedigreeId                       @controllers.Pedigrees.getPedigree(pedigreeId: Long)
+GET      /pedigree/full/:courtCaseId                          @controllers.Pedigrees.getCourtCaseFull(courtCaseId: Long)
+GET      /search/profileDataForPedigree                       @controllers.SearchProfileDatas.searchProfilesForPedigree(input: String)
+GET      /filter/profileDataForPedigree                       @controllers.Pedigrees.filterProfilesForPedigree(input: String,idCase:Long, tab: Boolean, tipo: Int,page:Int,pageSize:Int)
+GET      /filter/profileDataForPedigree/count                 @controllers.Pedigrees.countProfilesForPedigree(input: String,idCase:Long, tab: Boolean, tipo: Int)
+POST     /pedigree/status                                     @controllers.Pedigrees.changePedigreeStatus(id: Long, status: String)
+POST     /pedigree/courtCaseStatus                            @controllers.Pedigrees.changeCourtCaseStatus(id: Long, status: String, closeProfiles: Boolean)
+POST     /pedigreeMatches/search                              @controllers.Pedigrees.findMatches()
+POST     /pedigreeMatches/count                               @controllers.Pedigrees.countMatches()
+POST     /pedigreeMatches/groups/search                       @controllers.Pedigrees.getMatchesByGroup
+POST     /pedigreeMatches/groups/count                        @controllers.Pedigrees.countMatchesByGroup
+POST     /pedigreeMatches/groups/export                       @controllers.Pedigrees.exportMatchesByGroup
+GET      /get-pedigreeMatches-export                          @controllers.Pedigrees.getMatchesExportFile()
+POST     /pedigreeMatches/masiveDiscardByGroup                @controllers.Pedigrees.masiveDiscardByGroup(id: String, group: String)
+GET      /pedigree/editable/:id                               @controllers.Pedigrees.canEdit(id: Long)
+GET      /pedigree/deleteable/:id                             @controllers.Pedigrees.canDelete(id: Long)
+POST     /pedigree/scenario                                   @controllers.Pedigrees.createScenario
+PUT      /pedigree/scenario                                   @controllers.Pedigrees.updateScenario
+GET      /pedigree/scenarios/:pedigreeId                      @controllers.Pedigrees.getScenarios(pedigreeId: Long)
+GET      /pedigree/scenario/:scenarioId                       @controllers.Pedigrees.getScenario(scenarioId: String)
+POST     /pedigree/scenario-status                            @controllers.Pedigrees.changeScenarioStatus(status: String)
+POST     /pedigree/scenario-validate                          @controllers.Pedigrees.confirmEscenarioScenario(status: String, pedrigreeActivo: Boolean)
+POST     /pedigree/discard                                    @controllers.Pedigrees.discard(matchId: String)
+POST     /pedigree/lr                                         @controllers.Pedigrees.getLR
+GET      /pedigree/caseTypes                                  @controllers.Pedigrees.getCaseTypes
+GET      /court-case-profiles                                 @controllers.Pedigrees.getProfiles(id:Long,pageSize:Int,page:Int,input: Option[String], isReference : Boolean,statusProfile: Option[String])
+GET      /court-case-profiles/total                           @controllers.Pedigrees.getTotalProfiles(id:Long,pageSize:Int,page:Int,input: Option[String], isReference : Boolean, statusProfile : Option[String])
+GET      /court-case-profiles-node-association                @controllers.Pedigrees.getProfilesNodeAssociation(id:Long,pageSize:Int,page:Int,input: Option[String], isReference : Boolean, profiles: List[String],statusProfile:Option[String])
+POST     /court-case-profiles                                 @controllers.Pedigrees.addProfiles
+PUT      /court-case-profiles                                 @controllers.Pedigrees.removeProfiles
+GET      /batch-modal                                         @controllers.BulkUpload.getBatchSearchModalViewByIdOrLabel(input:String,idCase:Long)
+POST     /batch-modal-import                                  @controllers.Pedigrees.addBatches
+POST     /court-case-pedigrees                                @controllers.Pedigrees.getCourtCasePedigrees
+GET      /court-case-pedigrees/total                          @controllers.Pedigrees.getTotalCourtCasePedigrees(id:Long,pageSize:Int,page:Int,input: Option[String])
+GET      /court-case/deleteable/:id                           @controllers.Pedigrees.canDeleteCourtCase(id: Long)
+GET      /court-case/closeable/:id                            @controllers.Pedigrees.canCloseCourtCase(id: Long)
+POST     /pedigree/save2                                      @controllers.Pedigrees.createOrUpdatePedigreeMetadata
+POST     /pedigree/save                                       @controllers.Pedigrees.createPedigree
+GET      /pedigree/profiles                                   @controllers.Pedigrees.profileNodo(idCourtCase:Long,codigoGlobal:String)
+POST     /pedigree/delete                                     @controllers.Pedigrees.fisicalDeletePedigree(id: Long)
+POST     /pedigree/metadata                                   @controllers.Pedigrees.createMetadata(idCourtCase: Long)
+PUT      /pedigree/update-metadata                            @controllers.Pedigrees.updateMetadata(idCourtCase: Long, assignee: String)
+PUT      /pedigree/remove-metadata                            @controllers.Pedigrees.removeMetadata(idCourtCase: Long)
+GET      /pedigree/filtrar-alias                              @controllers.Pedigrees.getMetadata(input: String,pageSize: Int,page : Int, idCourtCase: Long)
+GET      /pedigree/total-alias                                @controllers.Pedigrees.getTotalMetadata(idCourtCase: Long, pageSize: Int,page : Int, input: String)
+GET      /pedigrees-profiles/total-association                @controllers.Pedigrees.getTotalProfilesNodeAssociation(id:Long,pageSize:Int,page:Int,input: Option[String], isReference : Boolean, profiles: List[String],statusProfile:Option[String])
+POST     /collapsing                                          @controllers.Pedigrees.collapse
+PUT      /grouped-profiles/disassociate                       @controllers.Pedigrees.disassociateGroupedProfiles
+GET      /grouped-profiles                                    @controllers.Pedigrees.getProfilesInactive(id:Long,pageSize:Int,page:Int,input: Option[String],statusProfile: String, groupedBy: String)
+GET      /grouped-profiles/total-grouped                      @controllers.Pedigrees.getTotalProfilesInactive(id:Long,pageSize:Int,page:Int,input: Option[String], statusProfile : String, groupedBy: String)
+POST     /collapsing/groups                                   @controllers.Pedigrees.confirmSelectedCollapsing
+POST     /collapsing-manual                                   @controllers.Pedigrees.areAssignedToPedigree
+GET      /grouped-profiles/validation                         @controllers.Pedigrees.doesntHaveActivePedigrees(idCourtCase: Long)
+GET      /pedcheck                                            @controllers.Pedigrees.getPedCheck(pedigreeId: Long,idCourtCase:Long)
+POST     /pedcheck                                            @controllers.Pedigrees.generatePedCheck(pedigreeId: Long,idCourtCase:Long)
+GET      /pedigree/pedigree-coincidencia                      @controllers.Pedigrees.getPedigreeCoincidencia(id: Long)
+GET      /pedigree/perfil-coincidencia                        @controllers.Pedigrees.getMatchByProfile(globalCodes: String)
+POST     /pedigree-matches-courtcase/search                   @controllers.Pedigrees.findMatchesPedigree()
+
+# Mutation
+
+GET     /mutation-models                                      @controllers.MutationController.getAllMutationModels()
+GET     /mutation-models/default-params                       @controllers.MutationController.getAllMutationDefaultParameters()
+GET     /mutation-models/active                               @controllers.MutationController.getActiveMutationModels()
+GET     /mutation-model                                       @controllers.MutationController.getMutationModel(id:Long)
+GET     /mutation-model-parameters                            @controllers.MutationController.getMutatitionModelParameters(id:Long)
+GET     /mutation-models-types                                @controllers.MutationController.getMutationModelsTypes()
+DELETE  /mutation-models/:id                                  @controllers.MutationController.deleteMutationModelById(id:Long)
+POST    /mutation-models                                      @controllers.MutationController.insert
+PUT     /mutation-models                                      @controllers.MutationController.update
+PUT     /mutation-models-matrix                               @controllers.MutationController.generateMatrix
+
+# Locus
+GET      /analysistypes                                       @controllers.AnalysisTypes.list
+POST     /locus/create                                        @controllers.Locis.add
+PUT      /locus                                               @controllers.Locis.update
+GET      /locus                                               @controllers.Locis.list
+GET      /locus-full                                          @controllers.Locis.listFull
+DELETE   /locus/delete/:id                                    @controllers.Locis.delete(id: String)
+GET      /locus/ranges                                        @controllers.Locis.ranges
+
+# Kits
+GET      /strkits                                             @controllers.StrKits.list
+GET      /strkits/:kitId/loci                                 @controllers.StrKits.findLociByKit(kitId: String)
+GET      /strkits-full                                        @controllers.StrKits.listFull
+POST     /strkit/create                                       @controllers.StrKits.add
+DELETE   /strkit/delete/:id                                   @controllers.StrKits.delete(id: String)
+
+# Trace
+POST     /trace/search                                        @controllers.Traces.search
+POST     /trace/total                                         @controllers.Traces.count
+POST     /trace/search-pedigree                               @controllers.Traces.searchPedigree
+POST     /trace/total-pedigree                                @controllers.Traces.countPedigree
+GET      /trace/full-description/:id                          @controllers.Traces.getFullDescription(id: Long)
+
+# Superior Instance
+GET      /connections                                         @controllers.Interconnections.getConnections
+GET      /connections/status                                  @controllers.Interconnections.getConnectionStatus(url: String)
+PUT      /connections                                         @controllers.Interconnections.updateConnections
+GET      /superior/category-tree-consumer                     @controllers.Interconnections.getCategoryTreeComboConsumer
+GET      /superior/category-tree-combo                        @controllers.Categories.getCategoryTreeCombo
+POST     /superior/connection                                 @controllers.Interconnections.insertInferiorInstanceConnection
+POST     /connection                                          @controllers.Interconnections.insertConnection
+GET      /instances/inferior                                  @controllers.Interconnections.getInferiorInstances
+GET      /instances/inferior/status                           @controllers.Interconnections.getInferiorInstancesStatus
+PUT      /instances/inferior                                  @controllers.Interconnections.updateInferiorInstance
+POST     /superior/profile                                    @controllers.Interconnections.importProfile
+POST     /inferior/profile                                    @controllers.Interconnections.uploadProfile(globalCode:String)
+POST     /superior/profile/approval                           @controllers.Interconnections.approveProfiles
+GET      /superior/profile/approval                           @controllers.Interconnections.getPendingProfiles(page:Int,pageSize:Int)
+GET      /superior/profile/approval-total                     @controllers.Interconnections.getTotalPendingProfiles
+DELETE   /superior/profile/approval                           @controllers.Interconnections.rejectPendingProfile(id:String,motive:String,idMotive:Long)
+PUT      /inferior/profile/status                             @controllers.Interconnections.updateUploadStatus(globalCode:String,status:Long,motive:Option[String])
+#DELETE   /superior/profile/:id                                @controllers.Interconnections.deleteProfile(id:String)
+POST     /inferior/match/                                     @controllers.Interconnections.receiveMatchFromSuperior()
+POST     /interconection/match/status                         @controllers.Interconnections.receiveMatchStatus()
+POST     /interconnection/file                                @controllers.Interconnections.receiveFile()
+
+
+# Motives
+GET      /motive                                              @controllers.MotiveController.getMotives(id:Long,abm:Boolean)
+GET      /motive-types                                        @controllers.MotiveController.getMotivesTypes
+POST     /motive                                              @controllers.MotiveController.insert
+PUT      /motive                                              @controllers.MotiveController.update
+DELETE   /motive/:id                                          @controllers.MotiveController.deleteMotiveById(id:Long)
+
+# def getMotives(motiveType: Long): Future[List[Motive]]
+#  def getMotivesTypes(): Future[List[MotiveType]]
+#  def deleteMotiveById(id: Long): Future[Either[String, Unit]]
+#  def insert(row: Motive): Future[Either[String, Long]]
+#  def update(row: Motive): Future[Either[String, Unit]]
+
+# Static
+# ~~~~
+
+# Map static resources from the /public folder to the /assets URL path
+GET      /assets/*file                                        controllers.Assets.versioned(path="/public", file: Asset)
+
+# Reporting
+GET     /reportes/primerReporte                                 @controllers.ReportingController.getPrimerReporte
+GET     /reportes/profilesReporting/:fechaDesde/:fechaHasta     @controllers.ReportingController.getProfilesReporting(fechaDesde: String, fechaHasta:String)

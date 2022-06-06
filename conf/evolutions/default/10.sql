@@ -1,0 +1,9 @@
+# --- !Ups
+
+INSERT INTO "APP"."LOCUS_ALIAS" ("ALIAS","MARKER")
+VALUES ('VWA', 'vWA'), ('SE33', 'ACTBP2');
+
+# --- !Downs
+
+DELETE FROM "APP"."LOCUS_ALIAS"
+WHERE "ALIAS" IN ('VWA', 'SE33');

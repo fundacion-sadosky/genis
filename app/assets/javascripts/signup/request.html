@@ -1,0 +1,134 @@
+<div class="modal-header">
+ 	<button type="button" class="close" data-dismiss="modal" aria-label="Close" ng-click="$close()"><span aria-hidden="true">&times;</span></button>
+	<h4>Solicitud de nueva cuenta</h4>
+</div>
+
+<div class="modal-body">
+	<form id="signupRequestForm" name="signupRequestForm" class="form-horizontal" role="form" novalidate>
+        <div class="row">
+            <div class="col-md-12">
+                    <p>Todos los campos con <span class="field-obligated">*</span> son obligatorios.</p> 
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="item-input" style="margin-bottom: 0">
+                    <label for="signupName">Nombre<span class="field-obligated">*</span></label>
+                    <input id="signupName" name="name" placeholder="Nombre"
+                        class="form-control login-input form-select" type="text"
+                        ng-model="solicitude.firstName" autocomplete="off" required />
+                    <form-validation input="signupRequestForm.name"></form-validation>
+                        
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="item-input" style="margin-bottom: 0">
+                    <label for="signupLastname">Apellido<span class="field-obligated">*</span></label>
+                    <input id="signupLastname" name="lastName" placeholder="Apellido"
+                           class="form-control login-input form-select" type="text"
+                           ng-model="solicitude.lastName" autocomplete="off" required />
+                    <form-validation input="signupRequestForm.lastName"></form-validation>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="item-input" style="margin-bottom: 0">
+                    <label for="signupEmail">Email<span class="field-obligated">*</span></label>
+                    <input id="signupEmail" name="mail" placeholder="Email"
+                           class="form-control login-input form-select" type="text"
+                           ng-model="solicitude.email" autocomplete="off"
+                           required ng-pattern="regexEmail" />
+                    <form-validation input="signupRequestForm.mail" pattern="xx@yy.zz"></form-validation>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="item-input" style="margin-bottom: 0">
+                    <label for="signupGeneMapperId">Nombre de Usuario GeneMapper<span class="field-obligated">*</span></label>
+                    <input id="signupGeneMapperId" name="geneMapper" placeholder="Nombre de Usuario GeneMapper"
+                           class="form-control login-input form-select" type="text"
+                           ng-model="solicitude.geneMapperId" autocomplete="off" required />
+                    <form-validation input="signupRequestForm.geneMapper"></form-validation>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="item-input" style="margin-bottom: 0">
+                    <label for="signupPhone1">Teléfono<span class="field-obligated">*</span></label>
+                    <input id="signupPhone1" name="phone" placeholder="Teléfono"
+                           class="form-control login-input form-select" type="text"
+                           ng-model="solicitude.phone1" autocomplete="off" required
+                           ng-pattern="regexTelNum" />
+                    <form-validation input="signupRequestForm.phone" pattern="0-9|-|+ de 7 a 15 dígitos"></form-validation>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="item-input" style="margin-bottom: 0">
+                    <label for="signupPhone2">Teléfono móvil o celular</label>
+                    <input id="signupPhone2" name="cellPhone" placeholder="Teléfono móvil o celular"
+                           class="form-control login-input form-select" type="text"
+                           ng-model="solicitude.phone2" autocomplete="off"
+                           ng-pattern="regexTelNum" />
+                    <form-validation input="signupRequestForm.cellPhone" pattern="0-9|-|+ de 7 a 15 dígitos"></form-validation>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12 item-input">
+                <label for="superusuariocheck">Superusuario</label>
+                <input type="checkbox" ng-model="solicitude.superuser" id="superusuariocheck" style="display:inline; height: 1em; margin-top: 0; vertical-align: middle;" >
+            </div>
+            <div class="col-md-12">
+                <div class="item-input">
+                    <h6>Roles</h6>
+                    <fieldset data-ng-repeat="role in roles">
+                        <label class="checkbox-inline">
+                            <input type="checkbox" ng-model="solicitude.roles[role.id]" class="checkbox-inline-left" data-ng-required="!someSelected(solicitude.roles)" style="display:inline; height: 1em; margin-top: 0; vertical-align: middle;">
+                            {{role.roleName}}
+                        </label>
+                    </fieldset>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="item-input">
+                    <label for="signupPassword">Contraseña<span class="field-obligated">*</span></label>
+                    <input type="password" id="signupPassword" name="password"
+                        class="form-control login-input form-select" ng-model="solicitude.password"
+                        autocomplete="off" placeholder="Contraseña" required>
+                    <form-validation input="signupRequestForm.password"></form-validation>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="item-input">
+                    <label for="signupRepeatPassword">Confirmar contraseña<span class="field-obligated">*</span></label>
+                    <input type="password" name="confirmPassword"
+                        id="signupRepeatPassword" class="form-control login-input form-select"
+                        ng-model="solicitude.repeatPassword" autocomplete="off"
+                        placeholder="Confirmar contraseña" required ng-pattern="solicitude.password">
+                    <form-validation input="signupRequestForm.confirmPassword" pattern="password"></form-validation>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <input type="checkbox" ng-model="disclaimer" id="aceptotyc"/>
+                <label for="aceptotyc">
+                <span class="field-obligated">*</span>Acepto los <a ng-click="showDisclaimer()" >terminos y condiciones</a></label>
+            </div>
+        </div>
+	</form>
+</div>
+
+<div class="modal-footer">
+	<button 
+		id="btnContinueStep1" 
+		class="btn btn-primary-action"
+		ng-click="signupRequest()" 
+		ng-disabled="signupRequestForm.$invalid || !disclaimer">
+		Solicitar alta
+	</button>
+</div>

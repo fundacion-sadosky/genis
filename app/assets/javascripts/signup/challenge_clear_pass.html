@@ -1,0 +1,43 @@
+<div class="modal-header">
+	<button type="button" class="close" data-dismiss="modal" aria-label="Close" ng-click="$close()"><span aria-hidden="true">&times;</span></button>
+	<h4>Solicitud de nueva cuenta</h4>
+</div>
+
+<div class="modal-body">
+<div class="panel-body">
+	<ol>
+
+		<li>
+			<h6>Desde su smartphone, configure Google Authenticator. Para eso, scanee la siguiente imagen</h6>
+			<div class="qr text-center" ng-class="{'signup-no-totp-qr': disableQr}">
+		  		<div id="qrcode"></div>
+		  	</div>
+		  	<h6 style="margin-top: 1em;">o ingrese la siguiente clave brindada:
+		  		<strong ng-class="{'signup-no-totp-text': disableQr}"> {{getSecret()}} </strong></h6>
+		</li>
+		
+		<li>
+			<form id="confirmRequestForm" name="confirmRequestForm" class="form-horizontal" role="form" novalidate>
+				<div class="input-group" style="margin-bottom: 0;">
+					<h6>Ingrese el código token informado por Google Authenticator en su smartphone</h6>
+					<input type="text" name="totp"
+						class="form-control login-input" style="width: 50%;"
+						ng-model="challenge.challengeResponse" autocomplete="off"
+						placeholder="Código OTP (6 dígitos)" required ng-pattern="regexTotp" />
+					<div class="col-md-12 padding-left-0">
+                        <form-validation input="confirmRequestForm.totp" pattern="6 dígitos"></form-validation>
+                    </div>
+				</div>
+			</form>
+		</li>
+	</ol>
+	
+</div>
+</div>
+
+<div class="modal-footer">
+	<button 
+		id="btnContinueStep2" 
+		class="btn btn-primary-action"
+		ng-click="clearPasswordConfirmation()" ng-disabled="confirmRequestForm.$invalid">Confirmar solicitud</button>
+</div>

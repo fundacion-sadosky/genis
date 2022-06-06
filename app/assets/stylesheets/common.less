@@ -1,0 +1,541 @@
+/* Action Buttons (primary, secondary, link) */
+.btn-primary-action,
+.btn-primary-action:focus {
+    color: @white;
+	background-color: @purple-primary;
+	border-color: @purple-primary;
+}
+
+.btn-primary-action:active {
+  color: @white !important;
+  background-color: @primary !important;
+  border-color: @primary-border !important;
+}
+
+.btn-primary-action:hover {
+    color: @white;
+	background-color: @primary-hover;
+	border-color: @primary-border;
+}
+
+.btn-primary-action[disabled],
+.btn-primary-action[disabled]:focus,
+.btn-primary-action[disabled]:active,
+.btn-primary-action[disabled]:hover {
+  color: @white;
+  background-color: @primary-disabled;
+  border-color: @primary-border;
+}
+
+.btn-primary-action-selected,
+.btn-primary-action-selected:hover,
+.btn-primary-action-selected:focus,
+.btn-primary-action-selected:active {
+  color: @white;
+  background-color: @brand-success;
+  cursor: auto;
+}
+
+.btn-secondary-action,
+.btn-secondary-action:focus,
+.btn-secondary-action:active {
+	color: @white;
+	background-color: @secondary;
+	border-color: @secondary-disabled;
+}
+
+.btn-secondary-action:hover {
+	color: @white;
+	background-color: @mainColor;
+	border-color: @secondary-disabled;
+}
+
+.btn-secondary-action[disabled],
+.btn-secondary-action[disabled]:focus,
+.btn-secondary-action[disabled]:active,
+.btn-secondary-action[disabled]:hover  {
+  color: @white;
+  background-color: @secondary-disabled;
+  border-color: @secondary-disabled;
+}
+
+.btn-link-action {
+	font-size: 14px;
+	background-color: transparent;
+}
+
+.btn-link-action:hover {
+	background-color: @secondary;
+	border-color: @secondary-disabled;
+	color: @white;
+}
+
+.btn-link-border,
+.btn-link-border[disabled],
+.btn-link-border[disabled]:hover,
+.btn-link-border[disabled]:active,
+.btn-link-border[disabled]:focus,
+fieldset[disabled] .btn-link-border {
+	border-color: #ccc !important;
+	background-color: #FFFFFF !important;
+    color: #000000 !important;
+}
+
+.btn-link-border:focus {
+  border-color: #ccc !important;
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+}
+
+.btn-link-border:active,
+.btn-link-border:hover {
+  background-color: @secondary !important;
+  border-color: @secondary-disabled !important;
+  color: @white !important;
+}
+
+.boton{
+  margin-bottom: 10px !important;
+}
+
+/* Menu action items */
+
+.list-group-block {
+  display: block;
+}
+
+.list-group-menu-item span {
+	margin-right: 15px;
+}
+
+.item-link-action {
+	padding: 15px;
+	font-weight: bold;
+}
+
+.item-link-action:hover {
+	background-color: @secondary;
+	border-color: @secondary-disabled;
+	color: @white;
+	width: 100%;
+	cursor: pointer;
+}
+
+.list-group-menu-item:hover {
+  background-color: @color-3;
+  color: @white;
+}
+
+.list-group-menu-item:active {
+  background-color: @selected-hover !important;
+  color: @white !important;
+}
+
+.list-group-menu-item-selected:active {
+  background-color: @brand-success !important;
+  color: @white !important;
+}
+
+.list-group-menu-item-selected,
+.list-group-menu-item-selected:hover,
+.list-group-menu-item-selected:focus {
+	background-color: @brand-success !important;
+	color: @white !important;
+    cursor: default !important;
+}
+
+.accordion-item a:hover,
+.accordion-item a:focus {
+	color: #000;
+	text-decoration: none;
+}
+
+.accordion-item label {
+	width: 85%;
+}
+
+/* Info links */
+
+.info-item,
+.info-item:focus {
+  color: #000;
+}
+
+.info-item:hover {
+  color: @selected-hover;
+}
+
+.info-item:active {
+  color: @brand-success;
+}
+
+.info-item-selected,
+.info-item-selected:hover,
+.info-item-selected:focus,
+.info-item-selected:active {
+  color: @brand-success;
+}
+
+/* Tabs */
+.extended-section {
+  padding-top: 10px;
+  padding-bottom: 0px;
+}
+
+.content-wrap div tab div {
+	background-color: @white;
+}
+
+.content-wrap {
+  padding-bottom: 0px !important;
+}
+
+.content-wrap-small {
+  padding-top: 10px;
+  padding-left: 10px;
+  padding-right: 10px;
+  border: 1px solid #ccc;
+  border-radius: .15em;
+  background-color: #f5f5f5;
+}
+
+.tab-section {
+	background-color: @white;
+	padding-top: 10px !important;
+	width: 100%;
+	margin-left: 0;
+}
+
+.tabset-section li a {
+	color: #000;
+	background-color: @white;
+    padding-right: 15px !important;
+}
+
+.tabset-section li.active a,
+.tabset-section li.active a:focus,
+.tabset-section li.active a:hover {
+	color: @white;
+	background-color: @brand-success;
+	border-top: 3px solid @brand-success;
+}
+
+.tabset-section li a:hover {
+	background-color: @selected-hover;
+	color: @white;
+	border-top: 3px solid @selected-hover;
+}
+
+.tab-content {
+  padding-bottom: 15px;
+}
+
+/* Form components */
+
+/*
+.form-select {
+  width: 100% !important;
+}
+*/
+
+.form-select:focus,
+.form-select input:focus,
+.form-select select:focus,
+.form-select textarea:focus {
+	border-color: @brand-success !important;
+	outline: 0;
+	-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px @brand-success;
+	box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px @brand-success !important;
+}
+
+.form-select a:hover {
+  background-color: @selected-hover !important;
+  color: #FFFFFF !important;
+}
+
+.form-select a:active,
+.form-select .active a {
+  background-color: @selected-hover !important;
+  color: #FFFFFF !important;
+}
+
+.form-select {
+  padding-bottom: 0px;
+  padding-top: 0px;
+}
+
+.ui-select-match-text  {
+  &.pull-left {
+    float: none !important;
+  }
+
+  > span {
+    display: block;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+}
+
+/* Category common atributes */ //todo: sacar esto de common
+.category-section {
+	background: #F5F5F5;
+	padding: 1em;
+	float: left;
+}
+
+.category-section table {
+  background-color: white;
+  margin-bottom: 0px;
+}
+
+.text-align-right {
+  text-align: right !important;
+}
+
+/* Tags input */
+.tags-input .div {
+	background-color: @white !important;
+    border: 1px solid #ccc !important;
+    border-radius: 5px;
+    margin-top: 0px;
+    min-height: 34px;
+}
+
+.tags-input .div.focus {
+  border-color: @brand-success !important;
+  outline: 0;
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px @brand-success;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px @brand-success !important;
+}
+
+.tags-input .tag {
+	background-color: #636262 !important;
+    color: @white !important;
+}
+
+.tags-input .remove {
+  color: @white !important;
+}
+
+/* Common styles */
+.padding-bottom-20 {
+  padding-bottom: 20px;
+}
+
+
+
+/* Errors */
+
+.error-text {
+  color: @red-primary;
+  font-style: italic;
+}
+
+/* Sortable */
+
+.btn-icon-action {
+  color: #000000;
+  cursor: pointer
+}
+
+.btn-icon-action[disabled],
+.btn-icon-action[disabled]:focus,
+.btn-icon-action[disabled]:active,
+.btn-icon-action[disabled]:hover {
+  color: #333333;
+  cursor: default;
+}
+
+.btn-icon-action:hover,
+.btn-icon-action:active,
+.btn-icon-action:focus {
+  color: @selected-hover;
+  cursor: pointer
+}
+
+.btn-icon-action-selected,
+.btn-icon-action-selected:hover,
+.btn-icon-action-selected:active,
+.btn-icon-action-selected:focus {
+  color: @brand-success;
+  cursor: pointer
+}
+
+/* Pagination */
+
+.pagination a {
+  color: #000000 !important;
+  cursor: pointer
+}
+
+.pagination a:hover {
+  background-color: @selected-hover !important;
+  border-color: @selected-hover !important;
+  color: #FFFFFF !important;
+  cursor: pointer
+}
+
+.pagination .disabled a,
+.pagination .disabled a:hover {
+  background-color: #FFFFFF !important;
+  color: #ccc !important;
+  border: 1px solid #dddddd !important;
+}
+
+.pagination .active a {
+  background-color: @border-filter !important;
+  border-color: transparent !important;
+  color: #FFFFFF !important;
+  cursor: default
+}
+
+/* Calendar */
+
+.dropdown-menu .btn-info,
+.dropdown-menu .btn-info:focus,
+.dropdown-menu .btn-info:active {
+  color: @white !important;
+  background-color: @secondary !important;
+  border-color: @secondary-disabled !important;
+}
+
+.dropdown-menu .btn-info:hover {
+  color: @white !important;
+  background-color: @mainColor !important;
+  border-color: @secondary-disabled !important;
+}
+
+.dropdown-menu .btn-danger,
+.dropdown-menu .btn-danger:focus,
+.dropdown-menu .btn-danger:active {
+  background-color: transparent !important;
+  border-color: transparent !important;
+  color: #000000 !important;
+}
+
+.dropdown-menu .btn-danger:hover {
+  background-color: @secondary !important;
+  border-color: @secondary-disabled !important;
+  color: @white !important;
+}
+
+.dropdown-menu .btn-success,
+.dropdown-menu .btn-success:focus,
+.dropdown-menu .btn-success:active {
+  color: @white !important;
+  background-color: @secondary !important;
+  border-color: @secondary-disabled !important;
+}
+
+.dropdown-menu .btn-success:hover {
+  color: @white !important;
+  background-color: @mainColor !important;
+  border-color: @secondary-disabled !important;
+}
+
+.dropdown-menu .btn-default:focus {
+  color: #000000 !important;
+  background-color: #FFFFFF !important;
+}
+
+.dropdown-menu .btn-default:hover,
+.dropdown-menu .btn-default:active {
+  background-color: @selected-hover !important;
+  color: @white !important;
+}
+
+.dropdown-menu .btn-default.active {
+  background-color: @brand-success !important;
+  color: @white !important;
+  cursor: default !important;
+}
+
+.text-info {
+  color: #000000 !important;
+}
+
+.active .text-info {
+  color: #FFFFFF !important;
+}
+
+/* input data section */
+.input-data-section-common {
+  background: #F7F7F7;
+  padding: 1em;
+  border: 1px solid @gray-mid;
+  //margin: 0.1em;
+  float: left;
+  margin-right: 8px;
+}
+
+/* Help tip */
+
+.help-tip-selected i {
+  color: @brand-success;
+}
+
+.display-block {
+  display: block;
+}
+
+
+.italic {
+  font-style: italic;
+}
+
+.genogram {
+  width:100%;
+  border: 1px solid black;
+  height: 400px;
+}
+
+.border-black {
+  border: 1px solid black;
+}
+
+/* Properties of common objects */
+
+.text-area-4-lines {
+  height: 100px !important;
+}
+.pdg-locus-mt{
+  display: inline;
+  margin-right: 0px;
+  width:auto !important;
+  padding: 5px;
+}
+.pdg-locus-mt2{
+  display: inline;
+  margin-right: 0px;
+  width:auto !important;
+  padding: 0px;
+}
+.pdg-locus-mt3{
+  display: inline;
+  margin-right: 0px;
+  width:auto !important;
+  padding-top: 5px;
+  padding-bottom: 0px;
+  padding-left: 0px;
+  padding-right: 0px;
+}
+.pdg-locus-mt-icon {
+  display: inline;
+  margin-right: 0px;
+  width: auto !important;
+  padding: 0px;
+  margin-top: 10px;
+}
+.dna-profile-allele {
+  display: inline;
+  margin-right: 10px;
+  cursor: default;
+  font-size: 12px;
+  line-height:3 !important;
+}
+.mt-comparison{
+  //border: solid 2px gray;
+  //border-radius: 3px;
+  //margin-right: 5px;
+  color: #0d9564;
+}

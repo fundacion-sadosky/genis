@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<div class="modal-header">
+	<h4>Nuevo análisis para <b>{{newAnalysis.globalCode}}</b></h4>
+</div>
+<div class="modal-body">
+	La validación ha finalizado correctamente.
+	Desea continuar con el alta del análisis?
+</div>
+<div class="modal-footer">
+   <button id="new_analysis_confirm" class="btn btn-success" data-ng-click="close(true)">Si</button>
+   <button id="close_analysis_confirm" class="btn btn-danger" data-ng-click="close(false)">No</button>
+</div>

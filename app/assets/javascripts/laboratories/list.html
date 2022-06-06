@@ -1,0 +1,32 @@
+<div class="m-t-10">
+    <table class="table table-bordered">
+        <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Código</th>
+            <th>País</th>
+            <th>Provincia</th>
+            <th>Domicilio</th>
+            <th>Telefono</th>
+            <th>Email</th>
+            <th>Modificar</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr data-ng-repeat="item in laboratories">
+            <td>{{item.name}}</td>
+            <td>{{item.code}}</td>
+            <td>{{item.country}}</td>
+            <td>{{item.province}}</td>
+            <td>{{item.address}}</td>
+            <td>{{item.telephone}}</td>
+            <td>{{item.contactEmail}}</td>
+            <td class="col-md-1 centered">
+                <a class="btn btn-default btn-link-action btn-link-border" data-ng-click="doUpdate(item.code)">
+                    <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+                </a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>

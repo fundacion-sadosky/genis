@@ -1,0 +1,47 @@
+<div ng-controller="associationsController">
+<form name="associationForm">
+<table class="table  table-striped" data->
+    <thead>
+        <tr>
+            <th class="text-center">Categoría</th>
+            <th class="text-center">Marcadores No Coincidentes Tolerados</th>
+            <th>#</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr data-ng-repeat="assoc in categories[currCatId].associations | filter: {type: activeAnalysis}">
+            <td>{{groups[categories[assoc.categoryRelated].group].name}} / {{categories[assoc.categoryRelated].name}}</td>
+            <td>
+                <input type="number" min="0" class="form-control form-select" data-ng-model="assoc.mismatches" default-value="0">
+            </td>
+            <td>
+                <button class="btn" title="Eliminar" data-ng-click="removeAssociation(assoc)">
+                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                </button>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <select
+                    data-ng-model="newAssociation.categoryRelated"
+                    class="form-control form-select" required >
+                  <optgroup data-ng-repeat="(grpId, group) in forense" label="{{group.name}}">
+                    <option data-ng-repeat="catId in group.categories  | filter:isNotAssociated " value="{{catId}}">{{categories[catId].name}}</option>
+                  </optgroup>
+                </select>
+            </td>
+            <td>
+                <input type="number" min="0" class="form-control form-select" data-ng-model="newAssociation.mismatches" required />
+            </td>
+            <td>
+                <button class="btn" data-ng-click="addAssociation()"
+                    ng-disabled="newAssociation.mismatches === undefined"
+                    help-tip="category.general.add" help-tip-placement="left">
+                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+                </button>
+            </td>
+        </tr>
+    </tbody>
+</table>
+</form>
+</div>

@@ -1,0 +1,300 @@
+<div class="panel panel-default" ng-show="normal.totalItems !== '0'">
+    <div class="row tabla-referencia">
+        <div class="col-md-12 title">
+            
+            <h4 class="title">
+                <span class="bold panel-title">{{normal.title}}</span>
+                <span class="icon-refresh" ng-class="{'spinner': normal.isProcessing}" data-ng-show="normal.isProcessing"></span>
+            </h4>
+            
+            <div show-permissions="SCENARIO_CRUD" class="text-right buttons-group-escenarios col-md-6" ng-if="!profile.isReference">
+                <a id="goto-scenario-button" class="btn btn-round btn-success selected" href="" ng-click="addScenario()">Agregar nuevo escenario</a>
+                <a id="goto-scenarios-button" class="btn btn-round" href="" ng-click="!normal.viewScenarios || getScenarios()" ng-disabled="{{!normal.viewScenarios}}">Ver escenarios</a>
+                <a id="descarteTodos-button" class="btn btn-round" href="" pdg-confirm pdg-confirm-title="Descartar Coincidencias"
+                   pdg-confirm-content="Al confirmar esta acción se descartarán todas las coincidencias del grupo. ¿Está seguro?"
+                   pdg-on-confirm="descarteMasivo" param="{{normal}}" >Descartar todo</a>
+            </div>
+            
+            
+            <a data-toggle="collapse" href="#normal" class="a-icon-arrow-down" ><span class="icon-arrow-down" ></span></a>
+        </div>
+    </div>
+    <div id="normal" class="panel-collapse collapse in">
+        <div class="row tabla-referencia-content">
+            <div class="col-md-12 padding-0"> <!-- id="normal"-->
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th show-permissions="SCENARIO_CRUD" ng-if="!profile.isReference">
+                                
+                                <!--<label class="container">
+                                    <input type="checkbox" ng-init="selectAll=false" data-ng-model="selectAll" data-ng-change="changeSelection(selectAll)">
+                                    <span class="checkmark"></span>
+                                </label> -->
+                                
+                                
+                                <!-- <input type="checkbox" ng-init="selectAll=false" data-ng-model="selectAll" data-ng-change="changeSelection(selectAll)"> -->
+                            </th>
+                            <th class="text-center head-column">
+                                <pdg-sortable name="Código Laboratorio" predicate="normal.predicate" reverse="normal.reverse"
+                                sort-action="sortBy(normal, 'globalCode')" sort-field="globalCode"
+                                ></pdg-sortable>
+                            </th>
+                            <th class="text-center head-column">
+                                Categoría
+                            </th>
+                            <th class="text-center head-column">
+                                <pdg-sortable name="Sistemas comp." predicate="normal.predicate" reverse="normal.reverse"
+                                sort-action="sortBy(normal, 'totalAlleles')" sort-field="totalAlleles" 
+                                
+                                ></pdg-sortable>
+                            </th>
+                            <th class="text-center head-column">
+                                <pdg-sortable name="Alelos comp." predicate="normal.predicate" reverse="normal.reverse"
+                                sort-action="sortBy(normal, 'sharedAllelePonderation')" sort-field="sharedAllelePonderation" numeric="true"></pdg-sortable>
+                            </th>
+                            
+                            <th class="text-center head-column">
+                                <pdg-sortable name="LR" predicate="normal.predicate" reverse="normal.reverse"
+                                              sort-action="sortBy(normal, 'lr')" sort-field="lr"></pdg-sortable>
+                            </th>
+                            <th class="text-center head-column">
+                                <pdg-sortable name="No coincid." predicate="normal.predicate" reverse="normal.reverse"
+                                sort-action="sortBy(normal, 'type')" sort-field="type"></pdg-sortable> <!-- VARIALBE SIN DEFINIR -->
+                            </th>
+                            <th class="text-center head-column">
+                                <pdg-sortable name="E. agrupador" predicate="normal.predicate" reverse="normal.reverse"
+                                sort-action="sortBy(normal, 'ownerStatus')" sort-field="ownerStatus"
+                                help-tip="matches.groupStatus" help-tip-placement="left"></pdg-sortable>
+                            </th>
+                            <th class="text-center head-column">
+                                <pdg-sortable name="E. coincidente" predicate="normal.predicate" reverse="normal.reverse"
+                                sort-action="sortBy(normal, 'otherStatus')" sort-field="otherStatus"
+                                help-tip="matches.matchStatus" help-tip-placement="top"></pdg-sortable>
+                            </th>
+                            <th class="text-center head-column">
+                                &nbsp;
+                            </th>
+
+                            <th class="text-center head-column">
+                                &nbsp;
+                            </th>
+
+                            <th class="head-column">Comparar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng:repeat="d in normal.matches" name="{{'det_' + d.globalCode}}">
+                            <td show-permissions="SCENARIO_CRUD" ng-if="!profile.isReference">
+                                <!-- <input type="checkbox" ng-init="d.selected = false" data-ng-model="d.selected"
+                                    ng-disabled="!isCalculable(d) || d.ownerStatus === 'discarded' || analysisTypes[d.type].name !== 'Autosomal'"> -->
+                                    <label class="container">
+                                        <input type="checkbox" ng-init="d.selected = false" data-ng-model="d.selected"
+                                        ng-disabled="!isCalculable(d) || d.ownerStatus === 'discarded' || analysisTypes[d.type].name !== 'Autosomal'"
+                                        
+                                        >
+                                        <span class="checkmark"  ng-if="!(!isCalculable(d) || d.ownerStatus === 'discarded' || analysisTypes[d.type].name !== 'Autosomal')"></span>
+                                    </label>
+                                </td>
+                                <td class="text-center" id="globalCode">
+                                    {{d | showcode}}
+                                </td>
+                                <td class="text-center">{{getSubCatName(d.categoryId)}}</td>
+                                <td class="text-center">
+                                    <span ng-if="!analysisTypes[d.type].mitochondrial">{{d.totalAlleles}} / {{d.totalMarkers}}</span>
+                                    <span ng-if="analysisTypes[d.type].mitochondrial">-</span>
+                                </td>
+                                
+                                <td class="text-center">
+                                    <span> {{d.sharedAllelePonderation | percentage:2}} </span>
+                                </td>
+                                
+                                
+                                <td class="text-center">
+                                    <!-- <div ng-if="isCalculable(d)">
+                                        <a href="" class="btn" ng-if="d.lr === undefined && !d.isProcessing" title="LR" ng-click="getLR(d)">
+                                            <span class="glyphicon glyphicon-play-circle btn-icon-action" aria-hidden="true"></span>
+                                        </a>
+                                        <span class="glyphicon glyphicon-refresh fa-spin" data-ng-if="d.lr === undefined && d.isProcessing"></span>
+                                        <span data-ng-if="d.lr !== undefined">{{d.lr.total | likelihoodratio :true :d.lr.detailed}} </span>
+                                    </div>
+                                    <div ng-if="!isCalculable(d)">-</div> -->
+                                    <span ng-if="d.lr != 0">{{d.lr | likelihoodratio : true : true}}</span>
+                                    <span ng-if="d.lr == 0">-</span>
+                                </td>
+                                <td class="text-center">
+                                    {{d.mismatches}}
+                                </td>
+                                
+                                <td class="text-center">{{ matchStatus[d.ownerStatus] }}
+
+                                </td>
+                                
+                                <td class="text-center">{{ matchStatus[d.otherStatus] }}
+
+                                </td>
+                                <td class="text-center">
+                                        <a id="doDescardDisabled" ng-show="(d.ownerStatus==='hit' && d.otherStatus==='hit')" disabled="disabled"
+                                           data-ng-disabled="{{d.ownerStatus==='discarded' || d.ownerStatus==='hit'}}"
+                                           class="btn">
+                                        <span class="icon-descartar" aria-hidden="true"></span>
+                                    </a>
+                                        <a href="" class="btn" title="Descartar" id="doDescard"  ng-show="!(d.ownerStatus==='hit' && d.otherStatus==='hit')"
+                                           prueba="{{ d.ownerStatus === 'pending'}}"
+                                           pdg-confirm pdg-confirm-title="Descartar Coincidencia"
+                                           pdg-confirm-content="Al confirmar esta acción se descartará la coincidencia. ¿Está seguro?" param="{{d}}"
+                                           data-ng-disabled="closedMatch || {{d.ownerStatus !== 'pending'}} "  class="btn" pdg-on-confirm="discardMatch" >
+                                            <span class="icon-descartar"></span></a>
+
+                                </td>
+
+                            <td class="text-center">
+                                <a href="" class="btn" title="Actualizar estado de la coincidencia en instancia superior" id="doUpload" pdg-confirm pdg-confirm-title="Subir estado de la coincidencia a la instancia superior" pdg-confirm-content="Al confirmar esta acción se subira el estado de la coincidencia a la instancia superior. ¿Está seguro?"
+                                   param="{{d}}"  class="btn" pdg-on-confirm="uploadMatch" ng-if="d.isInterconnectionMatch" ><span class="icon-arrow-up"></span></a>
+                            </td>
+
+                            <td title="Ver alelos">
+                                        <a id="go_referencia_{{$index}}" href="{{getHref(profile, d)}}"  class="btn" title="Ver alelo">
+                                            <span class="icon-arrow-right"></span>
+                                            
+                                        </a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="1000000" class="table-in-pagination">
+                                        <pagination style="position: initial; transform: translate(0, 0);" boundary-links="true" ng-change="getMatches(normal)" items-per-page="{{pageSize}}" max-size="10" total-items="normal.totalItems" ng-model="normal.currentPage" class="pagination-sm" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;"  rotate="false"></pagination>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+
+
+        
+        <!-- <div class="panel panel-default" ng-show="normal.totalItems !== '0'">
+            <a data-toggle="collapse" href="#normal" style="text-decoration: none">
+                <div class="panel-heading btn-icon-action" style="background-color: #f5f5f5; border-color:#dddddd;">
+                    <span class="bold panel-title">{{normal.title}}</span>
+                    <span class="icon-refresh" ng-class="{'spinner': normal.isProcessing}" data-ng-show="normal.isProcessing"></span>
+                    <span class="pull-right">
+                        <span class="badge match-badge"><b>{{normal.totalItems}} coincidencias</b></span> NORMAL
+                    </span>
+                </div>
+            </a>
+            <div id="normal" class="panel-collapse collapse in">
+                <div class="panel-body">
+                    <div show-permissions="SCENARIO_CRUD" class="text-right" style="padding-bottom: 2em;" ng-if="!profile.isReference">
+                        <a id="goto-scenarios-button" class="btn btn-secondary-action" href="" ng-click="!normal.viewScenarios || getScenarios()" ng-disabled="!normal.viewScenarios">Ver escenarios</a>
+                        <a id="goto-scenario-button" class="btn btn-primary-action" href="" ng-click="addScenario()">Agregar escenario</a>
+                    </div>
+                    <table class="table table-striped table-matches-details">
+                        <thead>
+                            <tr>
+                                <th show-permissions="SCENARIO_CRUD" ng-if="!profile.isReference">
+                                    <input type="checkbox" ng-init="selectAll=false" data-ng-model="selectAll" data-ng-change="changeSelection(selectAll)">
+                                </th>
+                                <th class="text-center">
+                                    <pdg-sortable name="Código Laboratorio" predicate="normal.predicate" reverse="normal.reverse"
+                                    sort-action="sortBy(normal, 'globalCode')" sort-field="globalCode"></pdg-sortable>
+                                </th>
+                                <th class="text-center">
+                                    <pdg-sortable name="Tipo de análisis" predicate="normal.predicate" reverse="normal.reverse"
+                                    sort-action="sortBy(normal, 'type')" sort-field="type"></pdg-sortable>
+                                </th>
+                                <th class="text-center">
+                                    Categoría
+                                </th>
+                                <th class="text-center">
+                                    <pdg-sortable name="Sistemas compartidos" predicate="normal.predicate" reverse="normal.reverse"
+                                    sort-action="sortBy(normal, 'totalAlleles')" sort-field="totalAlleles" numeric="true"></pdg-sortable>
+                                </th>
+                                <th class="text-center">
+                                    <pdg-sortable name="Porcentaje de alelos compartidos" predicate="normal.predicate" reverse="normal.reverse"
+                                    sort-action="sortBy(normal, 'sharedAllelePonderation')" sort-field="sharedAllelePonderation" numeric="true"></pdg-sortable>
+                                </th>
+                                <th class="text-center">
+                                    <a href="" class="btn" ng-if="normal.matches !== undefined && normal.matches.length > 0" title="Calcular todos los LR" ng-click="getAllLR(normal)">
+                                        <span class="glyphicon glyphicon-play-circle btn-icon-action" aria-hidden="true"></span>
+                                    </a>
+                                </th>
+                                <th class="text-center" style="width:10%">
+                                    Exigencia
+                                </th>
+                                <th class="text-center">
+                                    <pdg-sortable name="Estado agrupador" predicate="normal.predicate" reverse="normal.reverse"
+                                    sort-action="sortBy(normal, 'ownerStatus')" sort-field="ownerStatus"
+                                    help-tip="matches.groupStatus" help-tip-placement="left"></pdg-sortable>
+                                </th>
+                                <th class="text-center">
+                                    <pdg-sortable name="Estado coincidente" predicate="normal.predicate" reverse="normal.reverse"
+                                    sort-action="sortBy(normal, 'otherStatus')" sort-field="otherStatus"
+                                    help-tip="matches.matchStatus" help-tip-placement="top"></pdg-sortable>
+                                </th>
+                                <th style="width: 5%">Comparar</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng:repeat="d in normal.matches" name="{{'det_' + d.globalCode}}">
+                                <td show-permissions="SCENARIO_CRUD" ng-if="!profile.isReference">
+                                    <input type="checkbox" ng-init="d.selected = false" data-ng-model="d.selected"
+                                    ng-disabled="!isCalculable(d) || d.ownerStatus === 'discarded' || analysisTypes[d.type].name !== 'Autosomal'">
+                                </td>
+                                <td class="text-center">
+                                    {{d | showcode}}
+                                </td>
+                                <td class="text-center">
+                                    {{getAnalysisName(d.type)}}
+                                </td>
+                                <td class="text-center">{{getSubCatName(d.categoryId)}}</td>
+                                
+                                <td class="text-center">
+                                    <span ng-if="!analysisTypes[d.type].mitochondrial">{{d.totalAlleles}} / {{d.totalMarkers}}</span>
+                                    <span ng-if="analysisTypes[d.type].mitochondrial">-</span>
+                                </td>
+                                
+                                <td class="text-center">
+                                    <span> {{d.sharedAllelePonderation | percentage:2}} </span>
+                                </td>
+                                
+                                <td class="text-center">
+                                    <div ng-if="isCalculable(d)">
+                                        <a href="" class="btn" ng-if="d.lr === undefined && !d.isProcessing" title="Calcular LR default" ng-click="getLR(d)">
+                                            <span class="glyphicon glyphicon-play-circle btn-icon-action" aria-hidden="true"></span>
+                                        </a>
+                                        <span class="icon-refresh spinner" data-ng-if="d.lr === undefined && d.isProcessing"></span>
+                                        <span data-ng-if="d.lr !== undefined">{{d.lr.total | likelihoodratio :true :d.lr.detailed}} </span>
+                                    </div>
+                                    <div ng-if="!isCalculable(d)">-</div>
+                                </td>
+                                
+                                <td class="text-center">
+                                    <span ng-if="d.algorithm!=='ENFSI'">{{"matchingAlgorithm." + d.algorithm | i18next}}</span>
+                                    <span class="badge" ng-if="d.algorithm==='ENFSI'"
+                                    ng-class="{'icon-mismatch': d.stringency == stringency.Mismatch.key, 'icon-highstringency': d.stringency == stringency.HighStringency.key, 'icon-moderatestringency': d.stringency == stringency.ModerateStringency.key, 'icon-lowstringency': d.stringency == stringency.LowStringency.key}">
+                                    {{"stringency." + d.stringency | i18next}} </span>
+                                </td>
+                                
+                                <td class="text-center">{{ matchStatus[d.ownerStatus] }}</td>
+                                
+                                <td class="text-center">{{ matchStatus[d.otherStatus] }}</td>
+                                
+                                <td title="Ver alelos">
+                                    <a id="go_referencia_{{$index}}" href="{{getHref(profile, d)}}">
+                                        <span class="glyphicon glyphicon-share-alt btn-icon-action"></span>
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="1000000" class="table-in-pagination">
+                                    <pagination style="position: initial; transform: translate(0, 0);" boundary-links="true" ng-change="getMatches(normal)" items-per-page="{{pageSize}}" max-size="10" total-items="normal.totalItems" ng-model="normal.currentPage" class="pagination-sm" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;"  rotate="false"></pagination>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div> -->

@@ -1,0 +1,120 @@
+<style>
+	body .modal-dialog{
+		width: 95%;
+	}
+	.container-top {
+		margin-top: 3.1em;
+	}
+	.modal-body {
+		padding-bottom: 0px;
+	}
+	.modal-footer, .modal-content {
+		margin-top: 0px;
+	}
+	.modal-content {
+		padding: 0 33px;
+	}
+	.modal-content .modal-footer {
+	 padding-top:45px;
+	}
+	.modal-content footer {
+		padding: 0;
+		max-width: 1250px;
+
+	}
+	
+</style>
+
+
+
+
+<div class="row padding-0 breadcrumb_column">
+	<div class="col-md-12 padding-0">
+		<div class="row padding-0">
+			<div class="breadcrumb_content">
+				<ol class="breadcrumb"  ng-if='!isModal'>
+					<li>
+						<div class="btn volver" onclick="history.back()">
+							<span  class="icon-atras" title="Volver"></span>
+						</div>
+					</li>
+					<li class="active">Perfil - Datos muestra {{showFiliationDataSection}}</li>
+				</ol>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+<div class="modal-body">
+	<div class="row padding-0">
+		<div class="content padding-0">
+			<form name="pdform">
+				<div class="container-top">
+					
+					
+					<div class="options-header new-load" style="height: 7em;"
+					data-ng-include="'/assets/javascripts/profiledata/mandatory-data.html'" ></div>
+					
+					<div class="non-obligated-info">
+						<div class="instructions">
+							Para que los campos de Información de la causa, Datos de la muestra y
+							datos filiatorios se habiliten, primero debe completar los campos
+							marcados con <span class="field-obligated">*</span>
+						</div>
+						<div class="clearfix"></div>
+						
+						
+						<fieldset data-ng-disabled="!hasMandatoryData()">
+							<div
+							data-show-permissions="PROFILE_DATA_CRUD, PROTOPROFILE_BULK_UPLOAD"
+							data-ng-include="'/assets/javascripts/profiledata/court-case-data.html'"
+							data-ng-class="{'input-section': showFiliationDataSection(), 'input-section-big': !showFiliationDataSection(), 'courtcasedata': showFiliationDataSection()}" ></div>
+							
+							<div
+							data-show-permissions="PROFILE_DATA_CRUD, PROTOPROFILE_BULK_UPLOAD"
+							data-ng-include="'/assets/javascripts/profiledata/sample-data.html'"
+							data-ng-class="{'input-section': showFiliationDataSection(), 'input-section-big': !showFiliationDataSection(), 'sampledata': showFiliationDataSection()}" ></div>
+							
+							<div
+							data-show-permissions="PROFILE_DATA_CRUD, PROTOPROFILE_BULK_UPLOAD"
+							data-ng-include="'/assets/javascripts/profiledata/filiation-data.html'"
+							class="input-section-filiationdata"
+							data-ng-if="showFiliationDataSection()"
+							help-tip="profileData.section3" id="section3">
+						</div>
+						
+					</fieldset>
+					
+					
+				</div>
+				<div class="clearfix"></div>
+			</div>
+		</form>
+		
+		<div class="clearfix">&nbsp;</div>
+		
+		<input type="hidden" id="sampleCodeId" name="sampleCodeId"
+		value={{sampleCode}}>
+		<div class="clearfix"></div>
+	</div>
+</div>
+</div>
+
+<div ng-class="{'modal-footer': isModal}">
+	<footer class="profile-data-footer" ng-class="{'footer-dialog': isModal}">
+		<div class="desk-align-right inside-right" ng-class="{'modal-footer-profiledata': isModal}">
+			<div class="btn btn-link-action" ng-click="cancel()" ng-show="false">
+				<span title="Limpiar pantalla">
+					<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+				</span>
+				<span class="btn-link-action">Limpiar</span>
+			</div>
+			
+			<button type="button" class="btn btn-primary-action"
+			ng-disabled="pdform.$invalid || mode == 'readonly'"
+			data-ng-click="saveProfile()">Guardar</button>
+		</div>
+	</footer>
+</div>
+

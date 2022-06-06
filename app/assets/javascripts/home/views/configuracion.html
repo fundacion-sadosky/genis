@@ -1,0 +1,130 @@
+
+<div class="row padding-0 breadcrumb_column">
+    <div class="col-md-12 padding-0">
+        <div class="row padding-0">
+            <div class="breadcrumb_content">
+                <ol class="breadcrumb">
+                    <li>
+                        <div class="btn volver" onclick="history.back()">
+                            <span  class="icon-atras" title="Volver"></span>
+                        </div>
+                    </li>
+                    <li class="active">Configuraciones</li>
+                    
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-top" >
+    <section class="extended-section configuracion content">
+        <div class="col-md-12">
+            <div class="col-md-4">
+                
+                
+
+                <div  show-permissions="CATEGORY_CRUD,KIT_CRUD,LOCUS_CRUD" class="panel panel-default">
+                    <!-- Default panel contents -->
+                    <div class="panel-heading vertical-align"><i class="icon-categorias icon-conf" ></i> Categorías</div>
+                    
+                    <!-- List group -->
+                    <ul class="list-group">
+                            <li class="list-group-item" show-permissions="CATEGORY_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/categories">Categorias</a></li>
+                            <li class="list-group-item" show-permissions="KIT_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/kits">Kits</a></li>
+                            <li class="list-group-item" show-permissions="LOCUS_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/locus">Marcadores</a></li>
+                      
+                    </ul>
+                  </div>
+
+
+
+
+
+
+
+
+                  <div show-permissions="SUP_INS_CRUD" class="panel panel-default">
+                        <!-- Default panel contents -->
+                        <div class="panel-heading vertical-align"><i class="icon-instancia-superior  icon-conf"></i> Interconexión de Instancias</div>
+                        
+                        <!-- List group -->
+                        <ul class="list-group">
+                                <li class="list-group-item" show-permissions="SUP_INS_CRUD"><a href="#/superior-instance"> Instancia Superior</a></li>
+                          
+                        </ul>
+                      </div>
+
+
+                 
+            </div>
+            
+            
+            
+            <div class="col-md-4">
+               
+
+                <div show-permissions="ALLELIC_FREQ_DB_VIEW, ALLELIC_FREQ_DB_CRUD" class="panel panel-default">
+                        <!-- Default panel contents -->
+                        <div class="panel-heading vertical-align"><i class="icon-mixer icon-conf"></i> Parámetros estadísticos</div>
+                        
+                        <!-- List group -->
+                        <ul class="list-group">
+                                <li class="list-group-item" show-permissions="ALLELIC_FREQ_DB_VIEW, ALLELIC_FREQ_DB_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/stats">Frecuencias Alélicas</a></li>
+                                <li class="list-group-item" show-permissions="MUTATION_MODELS_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/mutation-models">Modelos Mutacionales</a></li>
+
+
+                        </ul>
+                      </div>
+
+
+                
+
+
+
+
+                      <div show-permissions="USER_CRUD,ROLE_CRUD" class="panel panel-default">
+                            <!-- Default panel contents -->
+                            <div class="panel-heading vertical-align"><i class="icon-seguridad icon-conf "></i> Seguridad</div>
+                            
+                            <!-- List group -->
+                            <ul class="list-group">
+                                    <li class="list-group-item" show-permissions="USER_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/users">Usuarios</a></li>
+                                    <li class="list-group-item" show-permissions="ROLE_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/roles">Roles</a></li>
+    
+    
+                            </ul>
+                          </div>
+
+
+
+
+                
+            </div>
+            
+            
+            <div class="col-md-4">
+
+                    <div show-permissions="LABORATORY_CRUD,GENETICIST_CRUD,BIO_MAT_CRUD,MOTIVE_CRUD" class="panel panel-default">
+                            <!-- Default panel contents -->
+                            <div class="panel-heading vertical-align"><i class="icon-catalogos icon-conf "></i> Catálogos</div>
+                            
+                            <!-- List group -->
+                            <ul class="list-group">
+                                    <li class="list-group-item" show-permissions="LABORATORY_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/laboratories">Laboratorios</a></li>
+                        <li class="list-group-item" show-permissions="GENETICIST_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/geneticist">Genetistas</a></li>
+                        <li class="list-group-item" show-permissions="BIO_MAT_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/biomaterialtype">Tipo de Material Biológico</a></li>
+                        <li class="list-group-item" show-permissions="MOTIVE_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/motives">Motivos</a></li>
+    
+    
+                            </ul>
+                          </div>
+
+
+               
+            </div>
+        </div>
+    </section>
+</div>
+</div>
+</div>

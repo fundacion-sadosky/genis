@@ -1,0 +1,36 @@
+<span>Algunos alelos no están incuídos en la evidencia, por favor, verifique la asociación.</span>
+
+<table class="table table-assoc-comparision ">
+	<thead>
+		<tr>
+			<td id="td-comp-gen-1" rowspan="2" class="col-md-2 column">
+			</td>
+			<td id="td-comp-gen-2" class="text-center col-md-4 column" style="padding-bottom: 0px;">
+				<div class="comparison-profileID">
+					{{profile.globalCode}}
+				</div>
+			</td>
+			<td ng-repeat="(profileId, matchResults) in labels" class="text-center col-md-4 column" style="padding-bottom: 0px;">
+				<div class="comparison-profileID">
+					{{profileId}}
+				</div>
+			</td>
+		</tr>
+	</thead>
+	<tbody>
+		<tr ng:repeat="(locus, lValues) in mergedLoci">
+			<td>{{locus}}</td>
+			<td class="text-center">
+				<span ng-repeat="allele in profile.genotypification[locus] track by $index" class="text-center comparision-allele">
+						{{allele}}
+				</span>
+			</td>
+			<td class="text-center" ng-repeat="(profileId, matchResults) in labels">
+				<span ng-repeat="allele in matchResults.genotypification[locus] track by $index" class="text-center comparision-allele"
+				ng-class="{'allele-matched': (profile.genotypification[locus].indexOf(allele) == -1)}">
+						{{allele}}
+				</span>
+			</td>
+		</tr>
+	</tbody>
+</table>

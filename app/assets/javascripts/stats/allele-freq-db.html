@@ -1,0 +1,54 @@
+
+<div class="row padding-0 breadcrumb_column">
+	<div class="col-md-12 padding-0">
+		<div class="row padding-0">
+			<div class="breadcrumb_content">
+				<ol class="breadcrumb">
+						<li>
+							<div class="btn volver" onclick="history.back()">
+								<span  class="icon-atras" title="Volver"></span>
+							</div>
+						</li>
+						<li class="active">Bases Poblacionales de Frecuencia</li>
+							
+						</ol>
+					</div>
+				</div>
+			</div>
+		</div>
+
+<div data-ng-init="getBase(dest)">
+	<h3>Base Poblacional De Frecuencia: {{dest}}</h3>
+
+<div style="position: fixed; left:5px; right: 5px; bottom: 0px; top: 150px;">
+
+<div class="header-fixed">
+<table class="table  table-bordered table-condensed" style="table-layout: fixed;">
+	<thead>
+		<tr>
+			<th class="centered" style="padding:0px;">Alelo</th>
+			<th colspan="{{populationBase.markers.length}}" class="centered" style="padding:0px;">Marcador</th>
+		</tr>
+		<tr>
+			<th></th>
+			<th data-ng-repeat="marker in populationBase.markers" class="centered" style="word-wrap: break-word;">{{marker}}</th>
+		</tr>
+	</thead>
+</table>
+</div>
+
+<div class="body-scrollable" style="top: 78px; bottom: 25px;">
+<table class="table  table-bordered table-condensed" style="table-layout: fixed;">
+	<tbody>
+		<tr data-ng-repeat="freq in populationBase.frequencys " >
+	 		<td><b>{{populationBase.alleles[$index] | freqdb}}</b></td>
+			<td data-ng-repeat="f in freq track by $index" >{{f}}</td>
+		</tr>
+	</tbody>
+</table>
+</div>
+
+</div>
+
+</div>
+

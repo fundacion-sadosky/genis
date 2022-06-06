@@ -1,0 +1,111 @@
+<div class="modal-header">
+	<h2>Usuario: <b>{{selectedUser.userName}}</b></h2>
+</div>
+<div class="modal-body">
+	<form id="updateUserForm" name="updateUserForm" class="form-horizontal" role="form" novalidate>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="item-input" style="margin-bottom: 0">
+                    <label for="signupName">Nombre<span class="field-obligated">*</span></label>
+                    <input id="signupName" name="name"
+                           class="form-control login-input form-select" type="text"
+                           ng-model="selectedUser.firstName" autocomplete="off" required />
+
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="item-input" style="margin-bottom: 0">
+                    <label for="signupLastname">Apellido<span class="field-obligated">*</span></label>
+                    <input id="signupLastname" name="lastName"
+                           class="form-control login-input form-select" type="text"
+                           ng-model="selectedUser.lastName" autocomplete="off" required />
+                </div>
+            </div>
+            <div class="col-md-12 m-b-10">
+                <div class="col-md-6 padding-left-0">
+                    <form-validation input="updateUserForm.name"></form-validation>
+                </div>
+                <div class="col-md-6">
+                    <form-validation input="updateUserForm.lastName"></form-validation>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="item-input" style="margin-bottom: 0">
+                    <label for="signupEmail">Email<span class="field-obligated">*</span></label>
+                    <input id="signupEmail" name="mail"
+                           class="form-control login-input form-select" type="text"
+                           ng-model="selectedUser.email" autocomplete="off"
+                           required ng-pattern="regexEmail" />
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="item-input" style="margin-bottom: 0">
+                    <label for="signupGeneMapperId">Usuario GeneMapper<span class="field-obligated">*</span></label>
+                    <input id="signupGeneMapperId" name="geneMapper"
+                           class="form-control login-input form-select" type="text"
+                           ng-model="selectedUser.geneMapperId" autocomplete="off" required />
+                </div>
+            </div>
+            <div class="col-md-12 m-b-10">
+                <div class="col-md-6 padding-left-0">
+                    <form-validation input="updateUserForm.mail" pattern="xx@yy.zz"></form-validation>
+                </div>
+                <div class="col-md-6">
+                    <form-validation input="updateUserForm.geneMapper"></form-validation>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="item-input" style="margin-bottom: 0">
+                    <label for="signupPhone1">Teléfono<span class="field-obligated">*</span></label>
+                    <input id="signupPhone1" name="phone"
+                           class="form-control login-input form-select" type="text"
+                           ng-model="selectedUser.phone1" autocomplete="off" required
+                           ng-pattern="regexTelNum" />
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="item-input" style="margin-bottom: 0">
+                    <label for="signupPhone2">Teléfono móvil o celular</label>
+                    <input id="signupPhone2" name="cellPhone"
+                           class="form-control login-input form-select" type="text"
+                           ng-model="selectedUser.phone2" autocomplete="off"
+                           ng-pattern="regexTelNum" />
+                </div>
+            </div>
+            <div class="col-md-12 m-b-10">
+                <div class="col-md-6 padding-left-0">
+                    <form-validation input="updateUserForm.phone" pattern="0-9|-|+ de 7 a 15 dígitos"></form-validation>
+                </div>
+                <div class="col-md-6">
+                    <form-validation input="updateUserForm.cellPhone" pattern="0-9|-|+ de 7 a 15 dígitos"></form-validation>
+                </div>
+            </div>
+            <div class="col-md-12 item-input">
+                <label for="superusuari_ID">Superusuario</label>
+                <input id="superusuari_ID" type="checkbox" ng-model="selectedUser.superuser" style="width:5%;display:inline; height: 1em; margin-top: 0; vertical-align: middle;" >
+            </div>
+            <div class="col-md-12">
+                <div class="item-input">
+                    <label>Roles</h6>
+                        <fieldset data-ng-repeat="role in roles">
+                            <label class="checkbox-inline">
+                                <input type="checkbox" checklist-model="selectedUser.roles"
+                                 checklist-value="role.id"
+                                 class="signup-chk-roles checkbox-inline-left"/>
+                                {{role.roleName}}
+                            </label>
+                        </fieldset>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="modal-footer">
+    <div class="btn btn-link-action" ng-click="closeModal()">
+        <span title="Cerrar">
+            <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+        </span>
+        <span class="btn-link-action">Cerrar</span>
+    </div>
+	<button id="saveUpd" type="button" class="btn btn-primary-action" data-ng-click="updateUser()" ng-disabled="updateUserForm.$invalid">Guardar</button>
+</div>

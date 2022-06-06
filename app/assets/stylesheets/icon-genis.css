@@ -1,0 +1,339 @@
+@font-face {
+    font-family: 'icomoon';
+    src:  url('/assets/fonts/icon-genis/icomoon.eot');
+    src:  url('/assets/fonts/icon-genis/icomoon.eot') format('embedded-opentype'),
+    url('/assets/fonts/icon-genis/icomoon.ttf') format('truetype'),
+    url('/assets/fonts/icon-genis/icomoon.woff') format('woff'),
+    url('/assets/fonts/icon-genis/icomoon.svg') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+[class^="icon-"]{
+    /* use !important to prevent issues with browser extensions that change fonts */
+    font-family: 'icomoon' !important;
+    speak: none;
+    font-style: normal;
+    font-weight: normal;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+
+    /* Better Font Rendering =========== */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+
+
+/* Iconos */
+.icon-filtro_desordenado:before {
+  content: "\e93d";
+  color: #9daec9;
+}
+.icon-filtro_ascendente:before {
+  content: "\e93b";
+  color: #9daec9;
+}
+.icon-filtro_descendente:before {
+  content: "\e93c";
+  color: #9daec9;
+}
+.icon-descartar:before {
+  content: "\e905";
+  color: #d500f9;
+}
+.icon-arrow-down:before {
+  content: "\e906";
+  color: #d500f9;
+}
+.icon-arrow-right:before {
+  content: "\e907";
+  color: #dc2dfb;
+}
+.icon-arrow-up:before {
+  content: "\e909";
+  color: #d500f9;
+}
+.icon-arrow-up-activa .path1:before {
+  content: "\e90a";
+  color: rgb(213, 0, 249);
+}
+.icon-arrow-up-activa .path2:before {
+  content: "\e90b";
+  margin-left: -1em;
+  color: rgb(255, 255, 255);
+}
+.icon-atras:before {
+  content: "\e90c";
+  color: #d500f9;
+}
+.icon-agregar-escenario:before {
+  content: "\e900";
+  color: #d500f9;
+}
+.icon-arrow_doble-der-paginacion:before {
+  content: "\e901";
+}
+.icon-arrow_doble-izq-paginacion:before {
+  content: "\e902";
+}
+.icon-arrow_simple-der-paginacion:before {
+  content: "\e903";
+}
+.icon-arrow_simple-izq-paginacion:before {
+  content: "\e904";
+}
+.icon-arrow-dropdown:before {
+  content: "\e908";
+}
+.icon-ver:before {
+  content: "\e912";
+  color: #d500f9;
+}
+.icon-mixer:before {
+  content: "\e92a";
+}
+.icon-instancia-superior:before {
+  content: "\e931";
+}
+.icon-key-01:before {
+  content: "\e90d";
+}
+.icon-user:before {
+  content: "\e90e";
+}
+.icon-padlock:before {
+  content: "\e924";
+}
+.icon-manual-usuario:before {
+  content: "\e90f";
+}
+.icon-auditoria:before {
+  content: "\e910";
+}
+.icon-ayuda-01:before {
+  content: "\e911";
+}
+.icon-carga_masiva:before {
+  content: "\e913";
+}
+.icon-circulo:before {
+  content: "\e914";
+}
+.icon-coincidencias:before {
+  content: "\e915";
+}
+.icon-configuracion:before {
+  content: "\e916";
+}
+.icon-estado_proceso_busqueda-coincidencias:before {
+  content: "\e91a";
+}
+.icon-estado_proceso_busqueda-perfiles:before {
+  content: "\e917";
+}
+.icon-informacion_sistema:before {
+  content: "\e918";
+}
+.icon-logo-100x40 .path1:before {
+  content: "\e919";
+  color: rgb(249, 196, 194);
+}
+.icon-logo-100x40 .path2:before {
+  content: "\e91b";
+  margin-left: -1em;
+  color: rgb(198, 111, 163);
+}
+.icon-logo-100x40 .path3:before {
+  content: "\e91c";
+  margin-left: -1em;
+  color: rgb(239, 108, 108);
+}
+.icon-logo-100x40 .path4:before {
+  content: "\e91d";
+  margin-left: -1em;
+  color: rgb(255, 255, 255);
+}
+.icon-logo-100x40 .path5:before {
+  content: "\e91e";
+  margin-left: -1em;
+  color: rgb(193, 87, 161);
+}
+.icon-logo-100x40 .path6:before {
+  content: "\e91f";
+  margin-left: -1em;
+  color: rgb(255, 255, 255);
+}
+.icon-logo-100x40 .path7:before {
+  content: "\e920";
+  margin-left: -1em;
+  color: rgb(251, 211, 41);
+}
+.icon-logo-100x40 .path8:before {
+  content: "\e92b";
+  margin-left: -1em;
+  color: rgb(255, 255, 255);
+}
+.icon-logo-100x40 .path9:before {
+  content: "\e92d";
+  margin-left: -1em;
+  color: rgb(255, 255, 255);
+}
+.icon-logo-100x40 .path10:before {
+  content: "\e92e";
+  margin-left: -1em;
+  color: rgb(157, 199, 64);
+}
+.icon-logo-100x40 .path11:before {
+  content: "\e92f";
+  margin-left: -1em;
+  color: rgb(188, 70, 151);
+}
+.icon-logo-100x40 .path12:before {
+  content: "\e930";
+  margin-left: -1em;
+  color: rgb(255, 255, 255);
+}
+.icon-logo-100x40 .path13:before {
+  content: "\e932";
+  margin-left: -1em;
+  color: rgb(249, 196, 194);
+}
+.icon-logo-100x40 .path14:before {
+  content: "\e933";
+  margin-left: -1em;
+  color: rgb(255, 255, 255);
+}
+.icon-logo-100x40 .path15:before {
+  content: "\e934";
+  margin-left: -1em;
+  color: rgb(255, 255, 255);
+}
+.icon-logo-100x40 .path16:before {
+  content: "\e935";
+  margin-left: -1em;
+  color: rgb(94, 95, 94);
+}
+.icon-logo-100x40 .path17:before {
+  content: "\e936";
+  margin-left: -1em;
+  color: rgb(94, 95, 94);
+}
+.icon-logo-100x40 .path18:before {
+  content: "\e937";
+  margin-left: -1em;
+  color: rgb(94, 95, 94);
+}
+.icon-logo-100x40 .path19:before {
+  content: "\e938";
+  margin-left: -1em;
+  color: rgb(94, 95, 94);
+}
+.icon-logo-100x40 .path20:before {
+  content: "\e939";
+  margin-left: -1em;
+  color: rgb(94, 95, 94);
+}
+.icon-logo-100x40 .path21:before {
+  content: "\e93a";
+  margin-left: -1em;
+  color: rgb(15, 156, 212);
+}
+.icon-logout:before {
+  content: "\e921";
+}
+.icon-manual:before {
+  content: "\e922";
+}
+.icon-notificaciones:before {
+  content: "\e923";
+}
+.icon-pedigri:before {
+  content: "\e925";
+}
+.icon-perfiles:before {
+  content: "\e926";
+}
+.icon-refresh:before {
+  content: "\e927";
+}
+.icon-catalogos:before {
+  content: "\e928";
+}
+.icon-categorias:before {
+  content: "\e929";
+}
+.icon-seguridad:before {
+  content: "\e92c";
+}
+
+
+
+/* "Estilos"  */
+
+.icon-lg {
+    font-size: 2em;
+    vertical-align: -20%;
+}
+
+.icon {
+    display: inline-block;
+    font-size: inherit;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-stack-1x,
+.icon-stack-2x {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    text-align: center;
+}
+.icon-stack-1x {
+    line-height: inherit;
+}
+.icon-stack-2x {
+    font-size: 2em;
+}
+
+.icon-stack {
+    position: relative;
+    display: inline-block;
+    width: 2em;
+    height: 2em;
+    line-height: 2em;
+    vertical-align: middle;
+}
+
+.icon-circulo-o{
+    color: rgb(198, 111, 163);
+}
+
+.icon-conf{
+    font-size: 24px;
+    padding-right: 10px;
+}
+
+
+
+
+/*              ***************Animaciones***************                          */
+@keyframes anim-rotate {
+    0% {
+        transform: rotate(0);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.spinner{
+    display: inline-block;
+    animation: anim-rotate 2s infinite linear;
+}
+
+
+

@@ -1,0 +1,21 @@
+<div id="saveLocus" class="col-md-12 laboratories-section-big">
+    <div class="laboratories-section">
+        <div class="m-t-10">
+            <h6 help-tip="aliases" help-tip-placement="top">Alias</h6>
+            <tags-input-modal class="tags-input" ng-model="selectedAliasCopy" placeholder="Ingrese un alias"></tags-input-modal>
+        </div>
+        <div class="m-t-10">
+            <h6>Requerido</h6>
+            <input type="checkbox" ng-model="selectedLocusCopy.required" >
+        </div>
+        <div class="m-t-10" ng-hide="selectedLocusCopy.chromosome=='XY' || selectedLocusCopy.chromosome=='MT' || !selectedLocusCopy.chromosome">
+            <h6>Valor alelo mínimo</h6>
+            <input name="minAlleleValue" id="minAlleleValue" ng-required="selectedLocusCopy.chromosome!=='XY' && selectedLocusCopy.chromosome!=='MT' && selectedLocusCopy.chromosome" class="form-control form-select " type="number" min="0" step="1" max="99" ng-pattern="/^\d*(\.[1-9]{1,1})?$/" data-ng-model="selectedLocusCopy.minAlleleValue" />
+        </div>
+        <div class="m-t-10" ng-hide="selectedLocusCopy.chromosome=='XY' || selectedLocusCopy.chromosome=='MT' || !selectedLocusCopy.chromosome">
+            <h6>Valor alelo máximo</h6>
+            <input name="maxAlleleValue" id="maxAlleleValue" ng-required="selectedLocusCopy.chromosome!=='XY' && selectedLocusCopy.chromosome!=='MT' && selectedLocusCopy.chromosome" class="form-control form-select" type="number"  min="{{selectedLocusCopy.minAlleleValue}}" step="1" max="99" ng-pattern="/^\d*(\.[1-9]{1,1})?$/" data-ng-model="selectedLocusCopy.maxAlleleValue" />
+        </div>
+
+    </div>
+</div>

@@ -1,0 +1,195 @@
+<form name="addForm" novalidate>
+    <table class="table table-striped" ng-if="activeAnalysis!=4">
+        <thead>
+            <tr>
+                <th style="width:90%">
+                    <div class="col-md-2">Marcadores</div>
+                    <div class="col-md-7 text-center">Alelos</div>
+                    <div class="col-md-3 text-center">Rango</div>
+                </th>
+                <th style="width:10%"></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng:repeat="(locus, alleles) in profile.genotypification[activeAnalysis]" name="{{profile.id}}">
+                <td style="width:90%">
+                    <div class="col-md-2">{{locusById[locus].name}}</div>
+                    <div class="col-md-7 text-center">
+                        <span class="text-center" ng:repeat="allele in alleles track by $index">
+                            <span pdg-allele-label-picker class="form-control dna-profile-allele">
+                                <span ng-class="{outofladder: isOutOfLadder(locusById[locus],allele)}">{{allele | mt: locus: activeAnalysis: analysisTypes}}</span>
+                            </span>
+                        </span>
+                    </div>
+                    <div class="col-md-3" class="text-center" ng-hide="!locusById[locus].maxAlleleValue">
+                        <{{locusById[locus].minAlleleValue}}, {{locusById[locus].minAlleleValue}}-{{locusById[locus].maxAlleleValue}}, >{{locusById[locus].maxAlleleValue}}
+                    </div>
+                </td>
+                <td style="width:10%"></td>
+            </tr>
+
+                <tr ng-repeat="l in addedLocus"
+                ng-class="{success: status.current == 'dblCheck' && $index == chkAnalysis.index, active: status.current == 'dblCheck' && $index > chkAnalysis.index}">
+                <td style="width:90%">
+                     <div pdg-locus
+                     name="{{l.id}}" info="l" index="$index" status="status.current"
+                     new-analysis="newAnalysis"
+                     chk-analysis="chkAnalysis"
+                     error-msg="l.errorMsg"
+                     validate-locus="validateLocus" loci="loci" selected-alleles="selectedAlleles"
+                     labels="labels" enable-labels-status="enableLabelsStatus" profile="profile"></div>
+                </td>
+                <td style="width:10%">
+                    <button class="btn pull-right" ng-click="removeLocus($index)"
+                            ng-disabled="addedLocus.length > 0 && status.current == 'dblCheck'"
+                            help-tip="kits.locus.remove" help-tip-placement="left" tabIndex="-1">
+                        <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <table class="table table-striped" ng-if="activeAnalysis==4">
+        <thead>
+        <tr>
+            <th style="width:97%">
+                <div class="col-md-3" >Rangos</div>
+                <div class="col-md-9 text-center" >Mutaciones</div>
+            </th>
+            <th style="width:3%"></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="locus in storedRegions">
+            <td style="width:97%">
+                <div class="col-md-3">
+                       <span ng:repeat="allele in profile.genotypification[activeAnalysis][locus+'_RANGE'] track by $index">
+                            <span pdg-allele-label-picker class="form-control dna-profile-allele">
+                                <span>{{allele}}</span>
+                            </span>
+                        </span>
+                </div>
+                <div class="col-md-9 text-center">
+                        <span ng:repeat="allele in profile.genotypification[activeAnalysis][locus] track by $index">
+                            <span pdg-allele-label-picker class="form-control dna-profile-allele">
+                                <span>{{allele | mitochondrial: locus }}</span>
+                            </span>
+                        </span>
+                </div>
+            </td>
+            <td style="width:3%"></td>
+        </tr>
+
+        <tr ng-repeat="l in addedRegions">
+            <td class="text-center" style="width:97%"  ng-class="{success: status.current == 'dblCheck' && ($index == chkAnalysis.indexCh || $index == chkAnalysis.index), active: status.current == 'dblCheck' && ($index > chkAnalysis.indexCh || $index > chkAnalysis.index)}">
+                <div pdg-locus-range-mt class="col-md-3 text-center"
+                     name="l"  info="addedLocusById[l+'_RANGE']" index="$index" status="status.current"
+                     new-analysis="newAnalysis"
+                     chk-analysis="chkAnalysis"
+                     error-msg="mt[l+'_RANGE'].errorMsg"
+                     validate-locus="validateLocusMt" loci="loci" selected-alleles="selectedAlleles"
+                     labels="labels" enable-labels-status="enableLabelsStatus" profile="profile"></div>
+                <div pdg-locus-range-mt  class="col-md-9 text-center"
+                     name="l" info="addedLocusById[l]" index="$index" status="status.current"
+                     new-analysis="newAnalysis"
+                     chk-analysis="chkAnalysis"
+                     error-msg="mt[l].errorMsg"
+                     validate-locus="validateLocusMt" loci="loci" selected-alleles="selectedAlleles"
+                     labels="labels" enable-labels-status="enableLabelsStatus" profile="profile"></div>
+            </td>
+            <td style="width:3%" >
+                <button class="btn pull-right" ng-click="removeLocusMt(l);"
+                        ng-disabled="addedLocus.length > 0 && status.current == 'dblCheck'"
+                        help-tip="mt.discard" help-tip-placement="left" tabIndex="-1">
+                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                </button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</form>
+<div class="m-l-10 m-r-10 m-b-10">
+    <div ng-show="activeAnalysis!=4" class="loose-locus" data-ng-show="!isDeleted" data-ng-disabled="!subcategory.manualLoading" show-permissions="ADD_MANUAL_LOCUS">
+        <label >Agregar un marcador</label>
+        <select ng-hide="activeAnalysis==4" data-ng-model="newLocus" ng-disabled="((addedLocus.length > 0 && status.current == 'dblCheck') || !subcategory.manualLoading) || profile.readOnly"
+                data-ng-options="item.id as item.name for item in getPossibleLocus() | filter: {analysisType: activeAnalysis} | filter: locusAlreadyAdded | orderBy:'name'"
+                class="form-control form-select" data-ng-change="addLocus(newLocus); newLocus=undefined;">
+            <option value="" selected="selected">Marcador</option>
+        </select>
+    </div>
+    <div ng-show="activeAnalysis==4" class="loose-locus" data-ng-show="!isDeleted" >
+        <div>
+            <button type="button"  data-ng-disabled="!possibleRegions && possibleRegions.length==0 || status.current == 'dblCheck'" data-ng-click="addRegion()" class="btn btn-secondary-action">Agregar Rango</button>
+        </div>
+    </div>
+    <h4 ng-hide="electropherograms.length===0">Electroferograma</h4>
+    <carousel interval="3000">
+      <slide ng-repeat="slide in electropherograms">
+        <img ng-src="{{slide}}" style="margin:auto; height: 200px;" modal-img>
+      </slide>
+    </carousel>
+    <h4 ng-hide="files.length===0">Archivos</h4>
+    <div class="form-group">
+        <div ng-repeat="file in files" style="font-size: 1.1em;">
+            <a href="{{file.path}}" download="{{file.name}}">
+                <i class="glyphicon glyphicon-download" ></i>
+                {{file.name}}
+            </a>
+        </div>
+    </div>
+    <p>&nbsp;</p>
+
+</div>
+
+<footer class="profile-footer">
+
+    <button type="button" ng-show="profile.associable && isSTR()" title="Asocie un perfil existente" ng-disabled="profile.readOnly"
+            class="btn btn-secondary-action" ng-click="associateProfiles()">
+        Asociar perfiles
+    </button>
+
+    <button type="button" ng-show="profile.labelable && isSTR()" id="setLabels"
+            class="btn btn-secondary-action" ng-click="showLabelsModal()">
+        Cambiar etiquetas
+    </button>
+
+    <button type="button" ng-repeat="(labelId, label) in labels track by $index"
+        ng-click="setLabels(labelId)"
+        class="{{'btn btn-default mixes-button-' + label.id}}"
+        ng-disabled="profile.labelable === false"
+        ng-show="(profile.labelable || labelsAreUsed()) && isSTR()">
+        {{label.caption}}
+    </button>
+
+    <button type="button"
+            ng-show="(profile.labelable || profile.associable) && isSTR()" id="saveLabels"
+            ng-disabled="(!labelsAreUsed()) || profile.readOnly"
+            class="btn btn-secondary-action" ng-click="saveLabels()"
+            title="Seleccione uno o varios alelos y luego asigne la etiqueta deseada haciendo click en los cuadros correspondientes. Cuando termine de etiquetar haga click en Guardar etiquetas para que queden guardados en el sistema.">
+        Guardar etiquetas
+    </button>
+
+    <div class="desk-align-right inside-right">
+
+        <div class="btn btn-link-action" ng-click="doCancel()" id="cancel" type="button" ng-show="addedLocus.length > 0">
+            <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+            <span>Cancelar</span>
+        </div>
+
+        <button type="button" id="verify" ng-show="addedLocus.length > 0 && status.current == 'fill'" ng-disabled="addForm.$invalid || isEmpty(newAnalysis)"
+                class="btn btn-secondary-action" ng-click="verifyNewAnalysis(newAnalysis, chkAnalysis, loci, status)">
+            Verificar carga
+        </button>
+
+        <button type="button" id="createAnalysis" ng-show="addedLocus.length > 0 && status.current == 'dblCheck'" ng-disabled="addForm.$invalid || (chkAnalysis.index < loci.length && activeAnalysis!=4) ||(chkAnalysis.index+chkAnalysis.indexCh< loci.length && activeAnalysis==4)  "
+                class="btn btn-secondary-action" ng-click="save(newAnalysis)">
+            Guardar
+        </button>
+
+    </div>
+    <button type="button" title="Replicar a instancia superior"
+            class="btn btn-secondary-action pull-right" ng-disabled="profile.isUploadedToSuperior" ng-click="uploadProfile()" ng-show="subcategory.replicate" >
+        Replicar a instancia superior
+    </button>
+</footer>

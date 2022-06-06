@@ -1,0 +1,143 @@
+
+<div class="row padding-0 breadcrumb_column">
+	<div class="col-md-12 padding-0">
+		<div class="row padding-0">
+			<div class="breadcrumb_content">
+				<ol class="breadcrumb">
+					<li>
+						<div class="btn volver" onclick="history.back()">
+							<span  class="icon-atras" title="Volver"></span>
+						</div>
+					</li>
+					<li class="active">Registro de eventos</li>
+				</ol>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="container-top">
+		<div class="row padding-0 match-group-search">
+	<div class="content">
+		<div class="options-header">
+			<form class="navbar-form padding-0" role="search" name="searchLogForm" novalidate data-ng-submit="searchWithParameters()">
+				<div class="row padding-0" >
+					<!-- usuario -->
+					<div class="form-group col-md-4  vertical-align">
+						<label for="search-user" class="col-md-2 padding-left-0">Usuario</label>
+						<input id="search-user" type="text" data-ng-model="filters.user" class="col-md-10 form-control"/>
+					</div>
+					<div class="form-group col-md-4">
+						<div class="col-md-2 padding-left-0">
+								<label for="hourFrom" class=" " >Fecha </label>
+							</div>
+							<div class="col-md-10">
+								<div class="row padding-0">
+									<div class="col-md-6">
+									<!-- fecha desde -->
+								<input type="text" name="hourFrom" id="hourFrom"
+							placeholder="Desde" data-datepicker-popup="dd/MM/yyyy"
+							data-ng-model="filters.hourFrom"
+							data-is-open="datepickers.hourFrom"
+							data-datepicker-options="dateOptions" data-close-text="Close" data-ng-click="toggleDatePicker($event,'hourFrom')" class="col-md-5 form-control"/>
+						</div>
+							<div class="col-md-6">
+							<!-- fecha hasta -->
+								<input type="text" name="hourUntil" id="hourUntil"
+								placeholder="Hasta" data-datepicker-popup="dd/MM/yyyy"
+								data-ng-model="filters.hourUntil"
+								data-is-open="datepickers.hourUntil"
+								data-datepicker-options="dateOptions" data-close-text="Close"
+									data-ng-click="toggleDatePicker($event,'hourUntil')" class="col-md-5 form-control"/>
+								</div>
+</div>
+						</div>
+					</div>
+						
+						
+						
+						
+						
+					</div>
+						
+					
+				</div>
+				<div class="row padding-0">
+					<!-- operacion -->
+					<div class="form-group col-md-5 vertical-align" >
+						<label class="col-md-2 padding-left-0" for="search-operation">Operación</label>
+						<input id="search-operation" ng-init="getOperations()"
+						ng-model="filters.operation" class="col-md-10 form-control">
+					</div>
+					<div class="form-group col-md-4 vertical-align">
+						<div class="col-md-2">
+							<label for="search-result">Resultado</label>
+						</div>
+						<div class="item-input col-md-3">
+							<select id="search-result" data-ng-model="filters.result"
+							data-ng-options="item.value as item.label for item in results" class=" form-control"></select>
+						</div>
+					</div>
+					
+					<div class="text-right col-md-3 vertical-align">
+						<!-- <button type="reset" class="btn btn-default" ng-click="logLotInit()">
+							<span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+						</button> -->
+						<div class="col-md-6 padding-right-0" ng-click="clean()">
+								<span id="processingSpan" class="icon-refresh" ng-class="{'spinner': isProcessing}" data-ng-show="isProcessing"></span>
+								<a  title="Limpiar filtros" ng-click="logLotInit()" ng-disabled="isProcessing"  class="cancel-link" >Limpiar</a>
+						</div>
+						<div class="col-md-6 padding-right-0" >
+							<button id="search-button" type="submit" class="btn btn-default btn-primary-action">Buscar</button>
+						</div>
+					</div>
+				</div>
+				<!--<input id="search-text" type="text" class="form-control search-main" data-ng-model="search" placeholder="Busque por Código, acción ..." ng-required="true"/>-->
+				
+			</form>
+		</div>
+</div>
+</div>
+<div class="row padding-0">
+	<div class="content">
+		<table class="table  table-bordered" data-ng-init="logLotInit()">
+			<thead>
+				<tr>
+					<th class="text-center">
+						<a href="" ng-click="sortBy('id')">Id
+							<span ng-show="sortField == 'id'" class="caret" ng-class="{'caret-reversed': !ascending}"></span>
+						</a>
+					</th>
+					<th class="text-center">
+						<a href="" ng-click="sortBy('timestamp')">Fecha <span ng-show="sortField == 'timestamp'" class="caret" ng-class="{'caret-reversed': !ascending}"></span></a>
+					</th>
+					<th class="text-center">
+						<a href="" ng-click="sortBy('userId')">Usuario <span ng-show="sortField == 'userId'" class="caret" ng-class="{'caret-reversed': !ascending}"></span></a>
+					</th>
+					<th class="text-center">Operación</th>
+					<th class="text-center">Recurso</th>
+					<th class="text-center">Resultado</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr data-ng-repeat="entry in entries">
+					<td>{{entry.index}}</td>
+					<td>{{entry.timestamp | date:'yyyy-MM-dd HH:mm:ss'}}</td>
+					<td>{{entry.userId}}</td>
+					<td class="text-left">
+						<span ng-if="entry.otp"> [ TOTP:{{entry.otp}} ] </span> {{"resource." + entry.description | i18next}}
+					</td>
+					<td>{{entry.result}}</td>
+					<td>{{entry.status == 200 ? "Ok" : "Error"}}</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</div>
+</div>
+<footer style="z-index:2">
+	<div style="width: 100%;">
+		<pagination boundary-links="true" ng-change="changePage()" items-per-page="{{pageSizeLog}}" max-size="10" total-items="totalItemsLog" ng-model="currentPageLog" class="pagination-sm" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;"  rotate="false"></pagination>
+		
+		<button style="float:right;" class="btn btn-default" ng-click="doTheBack()" style="float: right;">Atras</button>
+	</div>
+</footer>

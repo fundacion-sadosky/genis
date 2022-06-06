@@ -1,0 +1,30 @@
+
+
+<div class="row padding-0 breadcrumb_column">
+    <div class="col-md-12 padding-0">
+        <div class="row padding-0">
+            <div class="breadcrumb_content">
+                <ol class="breadcrumb">
+                        <li>
+                            <div class="btn volver" onclick="history.back()">
+                                <span  class="icon-atras" title="Volver"></span>
+                            </div>
+                        </li>
+                        <li class="active" ng-if="!showInbox">Home</li>
+                        <li class="active" ng-if="showInbox">Inbox</li>
+                        
+                        
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+<div ng-if="!showInbox" class="container-top">
+    <p>Bienvenido a GENis.</p>
+</div>
+
+
+<div ng-if="showInbox" ng-include="'/assets/javascripts/inbox/views/inbox.html'"></div>

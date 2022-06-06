@@ -1,0 +1,6 @@
+# --- !Ups
+
+UPDATE  "APP"."COURT_CASE" SET "CASE_TYPE" = 'MPI' WHERE "CASE_TYPE" IS NULL;
+
+# --- !Downs
+

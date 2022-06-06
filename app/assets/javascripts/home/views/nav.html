@@ -1,0 +1,240 @@
+
+<nav class="navbar menu-items ng-scope col-md-2" style="height: 2.4em;" data-ng-controller="headerController" data-ng-cloak>
+	<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+		<div class="menu-bar">
+
+			<ul show-permissions="PROFILE_DATA_CRUD, DNA_PROFILE_CRUD, PROTOPROFILE_BULK_UPLOAD,PROTOPROFILE_BULK_ACCEPTANCE, IMP_PERF_INS" class="nav navbar-nav menu-item">
+				<li class="profile" data-ng-class="{itemselected: selectedMenu == 'profile'}">
+					<a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false" class="menu-item">
+						<p><i class="icon-perfiles icon-lg"></i>
+							Perfiles<b class="caret"></b></p>
+					</a>
+					<ul class="dropdown-menu dropdown-main-menu submenu">
+						<li show-permissions="PROFILE_DATA_CRUD, DNA_PROFILE_CRUD">
+							<a  data-ng-click="selectedMenu = 'profile'" href="#/search/profiledata" aria-expanded="false"  class="menu-item">Listado de Perfiles</a>
+						</li>
+						<li show-permissions="PROTOPROFILE_BULK_UPLOAD">
+							<a data-ng-click=" selectedMenu = 'profile'" href="#/profiles/bulkupload-step1"  class="menu-item">Alta Masiva de Análisis</a>
+						</li>
+						<li show-permissions="PROTOPROFILE_BULK_ACCEPTANCE">
+							<a data-ng-click=" selectedMenu = 'profile'" href="#/profiles/bulkupload-step2"  class="menu-item">Aceptación Masiva de Análisis</a>
+						</li>
+						<li show-permissions="IMP_PERF_INS">
+							<a data-ng-click=" selectedMenu = 'profile'" href="#/profile-approval"  class="menu-item">Aprobación de Perfiles de Instancia Inferior</a>
+						</li>
+						<li show-permissions="PROFILE_COMPARISON">
+							<a data-ng-click=" selectedMenu = 'profile'" href="#/profile-comparison">Comparación de Perfiles</a>
+						</li>
+						<li show-permissions="PROFILE_EXPORTER">
+							<a  data-ng-click="selectedMenu = 'profile'" href="#/profile-exporter" aria-expanded="false"  class="menu-item">Exportador de Perfiles</a>
+						</li>
+						<li show-permissions="PROFILE_EXPORTER_TO_LIMS">
+							<a  data-ng-click="selectedMenu = 'profile'" href="#/profile-exporterToLims" aria-expanded="false"  class="menu-item">Exportador de archivos para Lims</a>
+						</li>
+					</ul>
+				</li>
+			</ul>
+
+			<ul show-permissions="PEDIGREE_CRUD" class="nav navbar-nav menu-item">
+				<li class="pedigree" data-ng-class="{itemselected: selectedMenu == 'courtcases'}"  class="menu-item">
+					<a data-ng-click=" selectedMenu = 'courtcases'" href="#/courtcases" aria-expanded="false">
+						<p><i class="icon-pedigri icon-lg"></i> MPI/DVI</p>
+					</a>
+				</li>
+			</ul>
+
+			<ul show-permissions="MATCHES_MANAGER, PEDIGREE_CRUD" class="nav navbar-nav menu-item">
+				<li class="matching" data-ng-class="{itemselected: selectedMenu=='matching'}" class="menu-item">
+					<a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+						<p><i class="icon-coincidencias icon-lg"></i> Coincidencias<b class="caret"></b></p>
+					</a>
+					<ul class="dropdown-menu dropdown-main-menu submenu">
+						<li class="menu-item"><a show-permissions="MATCHES_MANAGER" data-ng-click=" selectedMenu = 'matching'" href="#/matches">Forense</a></li>
+						<!--<li class="menu-item"><a show-permissions="MATCHES_MANAGER" data-ng-click=" selectedMenu = 'matching'" href="#/matches?isCollapsingMatch=true">Collapsing</a></li>-->
+						<li class="menu-item"><a show-permissions="PEDIGREE_CRUD" data-ng-click=" selectedMenu = 'matching'" href="#/pedigreeMatches">MPI</a></li>
+						</li>
+					</ul>
+				</li>
+			</ul>
+
+			<ul show-permissions="OPERATION_LOG_READ,REPORTING_VIEW, INF_INS_CRUD" class="nav navbar-nav menu-item">
+				<li class="menu-item audit" data-ng-class="{itemselected: selectedMenu=='audit'}" >
+					<a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+						<p><i class="icon-auditoria icon-lg"></i> Monitoreo<b class="caret"></b></p>
+					</a>
+					<ul class="dropdown-menu dropdown-main-menu submenu">
+						<li show-permissions="REPORTING_VIEW" class="menu-item">
+							<a data-ng-click=" selectedMenu = 'audit'" href="#/reportes-main">Reportes</a>
+						</li>
+						<li show-permissions="OPERATION_LOG_READ" class="menu-item">
+							<a data-ng-click=" selectedMenu = 'audit'" href="#/audit/operationLogLots">Historial de Operaciones</a>
+						</li>
+						<li show-permissions="INF_INS_CRUD" class="menu-item">
+							<a data-ng-click=" selectedMenu = 'audit'"  href="#/inferior-instances">Instancias Inferiores</a>
+						</li>
+
+					</ul>
+				</li>
+			</ul>
+
+
+
+
+			<ul show-permissions="ALLELIC_FREQ_DB_VIEW, ALLELIC_FREQ_DB_CRUD, LABORATORY_CRUD, GENETICIST_CRUD, USER_CRUD, ROLE_CRUD, CATEGORY_CRUD, LOCUS_CRUD, KIT_CRUD, BIO_MAT_CRUD, MOTIVE_CRUD"
+				class="nav navbar-nav menu-item">
+				<li class="menu-item stadistics" data-ng-class="{itemselected: selectedMenu=='configuration'}">
+					<a data-ng-click="selectedMenu = 'configuration'" href="#/configuracion" aria-expanded="false">
+						<p><i class="icon-configuracion icon-lg" ></i> Configuración </p>
+					</a>
+				</li>
+			</ul>
+
+			<div class="nav navbar-nav navbar-right">
+				
+			<li class="notifications" data-ng-include="'/assets/javascripts/home/views/notifications.html'"></li>
+
+			<li class="right-nav-item">
+				<a href="/assets/manuales/GENis-Manual.pdf" download="Manual de Usuario-GENis.pdf">
+					<div class="manual"  title="Manual">
+						<i class="icon-stack" >
+							<i class="icon-circulo icon-stack-2x"></i>
+							<i class="icon-manual-usuario icon-stack-1x"></i>
+						</i>
+					</div>
+				</a>
+			</li>
+
+			<li data-ng-controller="HelpTipCtrl as helptips"  class="right-nav-item" >
+				<a class="help"  href="" data-ng-click="selectedMenu = helptips.toggle()"  ng-class="{'help-tip-selected': helpActive}">
+					<div class="question"  title="Ayuda">
+						<i class="icon-stack" >
+							<i class="icon-circulo icon-stack-2x"></i>
+							<i class="icon-ayuda-01 icon-stack-2x"></i>
+						</i> </div> </a>
+			</li>
+
+			<li class="right-nav-item">
+				<a data-ng-click="showAbout()" >
+					<div class="info-system" title="Información del sistema">
+						<i class="icon-stack" >
+							<i class="icon-circulo icon-stack-2x"></i>
+							<i class="icon-informacion_sistema icon-stack-2x"></i>
+						</i>
+					</div>
+				</a>
+			</li>
+
+			<li id="userMenuLi" data-ng-show="!!user" class="user-profile">
+				<a id="userMenuA" class="dropdown-toggle" data-toggle="dropdown" href="#">
+					<!-- 					<div class="fa fa-user"></div> -->
+					<div class="username">
+						<i class="icon-user icon-lg">
+						</i>
+						<span class="username_id">{{user.name | prittyLimitTo: 7: false}}</span>
+						<b class="caret"></b>
+					</div>
+				</a>
+
+				<ul id="userMenuUl" class="dropdown-menu dropdown-main-menu submenu">
+					<li id="userMenuLogoutLi"><a id="userMenuLogoutA" href="" data-ng-click="logout()"> <span
+							class="icon-logout"></span> Cerrar sesión
+					</a></li>
+				</ul>
+			</li>
+		</div>
+        
+	</div>
+</div>
+</nav>
+
+
+
+
+
+<!--
+<nav class="navbar menu-items ng-scope col-md-2" style="height: 2.4em;" data-ng-controller="headerController" data-ng-cloak>
+	<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+		<div class="menu-bar">
+			<ul show-permissions="PROFILE_DATA_CRUD, DNA_PROFILE_CRUD" class="nav navbar-nav menu-item">
+				<li class="profile" data-ng-class="{itemselected: selectedMenu == 'profile'}">
+					<a  data-ng-click="selectedMenu = 'profile'" href="#/search/profiledata" aria-expanded="false">
+						<p><i class="fa fa-users fa-lg"></i> Perfiles</p>
+					</a>
+				</li>
+			</ul>
+			
+			<ul show-permissions="PEDIGREE_CRUD" class="nav navbar-nav menu-item">
+				<li class="pedigree" data-ng-class="{itemselected: selectedMenu == 'courtcases'}">
+					<a data-ng-click=" selectedMenu = 'courtcases'" href="#/courtcases" aria-expanded="false">
+						<p><i class="fa fa-sitemap fa-lg"></i> Pedigrí</p>
+					</a>
+				</li>
+			</ul>
+
+			<ul show-permissions="PROTOPROFILE_BULK_UPLOAD, PROTOPROFILE_BULK_ACCEPTANCE" class="nav navbar-nav menu-item">
+				<li class="bulkUpload" data-ng-class="{itemselected: selectedMenu=='bulkUpload'}">
+					<a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+							<p><i class="fa fa-cloud-upload fa-lg" ></i> Carga Masiva<b class="caret"></b></p>
+					</a>
+					<ul class="dropdown-menu dropdown-main-menu submenu">
+						<li show-permissions="PROTOPROFILE_BULK_UPLOAD"><a data-ng-click=" selectedMenu = 'bulkUpload'" href="#/profiles/bulkupload-step1">Alta masiva de análisis</a></li>
+						<li show-permissions="PROTOPROFILE_BULK_ACCEPTANCE"><a data-ng-click=" selectedMenu = 'bulkUpload'" href="#/profiles/bulkupload-step2">Alta masiva - Aceptación de análisis</a></li>
+					</ul>
+				</li>
+			</ul>
+
+			<ul show-permissions="OPERATION_LOG_READ" class="nav navbar-nav menu-item">
+				<li class="audit" data-ng-class="{itemselected: selectedMenu=='audit'}">
+					<a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+						<p><i class="fa fa-book fa-lg"></i> Auditoría<b class="caret"></b></p>
+					</a>
+					<ul class="dropdown-menu dropdown-main-menu submenu">
+						<li><a data-ng-click=" selectedMenu = 'audit'" href="#/audit/operationLogLots">Historial de operaciones</a></li>
+					</ul>
+				</li>
+			</ul>
+			
+			<ul show-permissions="MATCHES_MANAGER, PEDIGREE_CRUD" class="nav navbar-nav menu-item">
+				<li class="matching" data-ng-class="{itemselected: selectedMenu=='matching'}">
+					<a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+						<p><i class="fa fa-book fa-lg"></i> Coincidencias<b class="caret"></b></p>
+					</a>
+					<ul class="dropdown-menu dropdown-main-menu submenu">
+						<li><a show-permissions="MATCHES_MANAGER" data-ng-click=" selectedMenu = 'matching'" href="#/matches">Forense</a></li>
+						<li><a show-permissions="PEDIGREE_CRUD" data-ng-click=" selectedMenu = 'matching'" href="#/pedigreeMatches">Búsqueda de personas</a></li>
+					</ul>
+				</li>
+			</ul>
+				
+				
+			<ul show-permissions="ALLELIC_FREQ_DB_VIEW, ALLELIC_FREQ_DB_CRUD, LABORATORY_CRUD, GENETICIST_CRUD, USER_CRUD, ROLE_CRUD, CATEGORY_CRUD, LOCUS_CRUD, KIT_CRUD, BIO_MAT_CRUD, MOTIVE_CRUD"
+				class="nav navbar-nav menu-item">
+				<li class="stadistics" data-ng-class="{itemselected: selectedMenu=='configuration'}">
+					<a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+						<p><i class="fa fa-cogs fa-lg" ></i>	Configuración<b class="caret"></b> </p>
+					</a>
+					<ul class="dropdown-menu dropdown-main-menu submenu">
+						<li show-permissions="ALLELIC_FREQ_DB_VIEW, ALLELIC_FREQ_DB_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/stats">Frecuencias Alélicas</a></li>
+						<li show-permissions="LABORATORY_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/laboratories">Laboratorios</a></li>
+						<li show-permissions="GENETICIST_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/geneticist">Genetistas</a></li>
+						<li show-permissions="USER_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/users">Usuarios</a></li>
+						<li show-permissions="ROLE_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/roles">Roles</a></li>
+						<li show-permissions="CATEGORY_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/categories">Categorias</a></li>
+						<li show-permissions="BIO_MAT_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/biomaterialtype">Tipo de Material Biológico</a></li>
+						<li show-permissions="LOCUS_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/locus">Marcadores</a></li>
+						<li show-permissions="KIT_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/kits">Kits</a></li>
+						<li show-permissions="MOTIVE_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/motives">Motivos</a></li>
+						<li show-permissions="INSTANCE_INTERCONNECTION"><a data-ng-click=" selectedMenu = 'configuration'" href="#/menu-interconnect">Interconexión de Instancias</a></li>
+						<li show-permissions="REPORTING_VIEW"><a data-ng-click=" selectedMenu = 'configuration'" href="#/reportes-main">Reportes</a></li>
+					</ul>
+				</li>
+			</ul>
+
+		</div>
+
+
+
+</nav>
+
+
+-->
