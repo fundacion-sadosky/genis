@@ -16,6 +16,15 @@ project/metals.sbt
 project/project/
 project/target/
 target/
+codegen/
+app-2.11/
+
+# suggested by play framework
+logs
+tmp
+dist
+.cache
+RUNNING_PID
 
 # eclipse
 build/
@@ -43,3 +52,9 @@ bin/
 
 # general
 *.class
+
+# GENis
+public/export/
+# dev conf files 
+application-dev.conf
+logger-dev.xml

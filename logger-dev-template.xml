@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+	<conversionRule conversionWord="coloredLevel" converterClass="play.api.Logger$ColoredLevel" />
+
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%coloredLevel- %date - %logger{15} - %message%n%xException</pattern>
+		</encoder>
+	</appender>
+
+	<appender name="FILE"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+	<file>${application.home:-.}/logs/application.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${application.home:-.}/logs/application.%d{yyyy-MM-dd}.log</fileNamePattern>
+		</rollingPolicy>
+		<encoder>
+			<pattern>[%level] %date [%thread] %logger: %message%n%xException</pattern>
+		</encoder>
+	</appender>
+
+	<logger name="play" level="INFO"/>
+	<logger name="akka" level="INFO"/>
+	<logger name="audit" level="DEBUG" />
+	<logger name="configdata" level="DEBUG" />
+	<logger name="bulkupload" level="DEBUG" />
+	<logger name="Global" level="DEBUG" />
+	<logger name="controllers" level="DEBUG" />
+	<logger name="injector" level="DEBUG" />
+	<logger name="laboratories" level="DEBUG" />
+	<logger name="matching" level="DEBUG"/>
+	<logger name="pedigree" level="DEBUG"/>
+	<logger name="models" level="DEBUG" />
+	<logger name="notifications" level="DEBUG" />
+	<logger name="probability" level="DEBUG" />
+	<logger name="profile" level="DEBUG" />
+	<logger name="profiledata" level="DEBUG" />
+	<logger name="search" level="DEBUG" />
+	<logger name="security" level="DEBUG" />
+	<logger name="services" level="DEBUG" />
+	<logger name="stats" level="DEBUG" />
+	<logger name="models" level="DEBUG" />
+	<logger name="util" level="DEBUG" />
+	<logger name="views" level="DEBUG" />
+	<logger name="user" level="DEBUG" />
+	<logger name="audit.PEOSignerActor" level="INFO" />
+
+	<logger name="scala.slick.jdbc.JdbcBackend.statement" level="OFF" />
+	<logger name="org.mockito" level="OFF" />
+
+	<logger name="org.apache.spark" level="ERROR" />
+	<logger name="org.mongodb.driver" level="WARN" />
+
+	<!-- Off these ones as they are annoying, and anyway we manage configuration 
+		ourself -->
+	<logger name="com.avaje.ebean.config.PropertyMapLoader" level="OFF" />
+	<logger name="com.avaje.ebeaninternal.server.core.XmlConfigLoader" level="OFF" />
+	<logger name="com.avaje.ebeaninternal.server.lib.BackgroundThread" level="OFF" />
+	<logger name="com.gargoylesoftware.htmlunit.javascript" level="OFF" />
+
+	<root level="INFO">
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="FILE" />	
+	</root>
+
+</configuration>
