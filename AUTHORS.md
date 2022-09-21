@@ -4,8 +4,8 @@ Sitio oficial: http://www.fundacionsadosky.org.ar/genis/
 Licenciado bajo AGPL-3.0, puede encontrarse en 
 https://github.com/fundacion-sadosky/genis/LICENSE
 
-La coordinación general del proyecto se encuentra a cargo de Gustavo Sibilla.
-La dirección del proyecto se encuentra a cargo de María Soledad Escobar. 
+La Coordinación General del proyecto se encuentra a cargo de Gustavo Sibilla.
+La Coordinaciòn del Desarrollo se encuentra a cargo de María Soledad Escobar.
 
 A lo largo de las sucesivas etapas de desarrollo GENis ha recibido la colaboración de:
 * listar colaboladores institucionales

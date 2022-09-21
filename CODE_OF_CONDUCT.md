@@ -19,9 +19,9 @@ Ejemplos de comportamiento inaceptable:
 
 * El uso de lenguaje o imágenes sexualizadas, y aproximaciones o atenciones sexuales de cualquier tipo
 * Comentarios despectivos (trolling), insultantes o derogatorios, y ataques personales o políticos
-* El acoso en público o privado, dentro o fuera de los espacios institucionales del nuestro proyecto.
+* El acoso en público o privado, dentro o fuera de los espacios institucionales del nuestro proyecto
 * Publicar información privada de otras personas, tales como direcciones físicas o de correo electrónico, sin su permiso explícito
-* Otras conductas que puedan ser razonablemente consideradas como inapropiadas en un entorno profesional.
+* Otras conductas que puedan ser razonablemente consideradas como inapropiadas en un entorno profesional
 
 ## Aplicación de las responsabilidades
 
@@ -59,5 +59,6 @@ Este Código de Conducta para todos los participantes del proyecto GENis versió
 Las Guías de Impacto en la Comunidad están inspiradas en la escalera de aplicación del código de conducta de Mozilla.
 Para respuestas a las preguntas frecuentes de este código de conducta, consulta las FAQ en https://www.contributor-covenant.org/faq.
 Hay traducciones disponibles en https://www.contributor-covenant.org/translations.
-El Código de Conducta para todos los participantes del proyecto GENis puede ser actualizado en cualquier momento por la Fundación Sadosky a su solo criterio.Última actualización: 10/09/2022.
+El Código de Conducta para todos los participantes del proyecto GENis puede ser actualizado en cualquier momento por la Fundación Sadosky a su solo criterio. 
+Última actualización: 10/09/2022.
 
