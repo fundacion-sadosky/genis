@@ -1,3 +1,0 @@
-Sample Name	Specimen Category	UD1	UD2	Marker	Allele 1	Allele 2	Allele 3	Allele 4	Allele 5	Allele 6	Allele 7	Allele 8
-Persona	SIMPLE	UsuarioGeneMapper	Powerplex21	AMEL	X	Y						
-Persona	SIMPLE	UsuarioGeneMapper	Powerplex21	D3S1358	15	17						
