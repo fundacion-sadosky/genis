@@ -1,24 +1,114 @@
-Genis
-======
+# GENis
 
-Proyecto de datos genéticos para la Fundación Sadosky
+El software GENis es una herramienta informática que permite contrastar perfiles genéticos provenientes de muestras biológicas obtenidas en distintas escenas de crimen o de desastres, vinculando así eventos ocurridos en diferente tiempo y lugar, aumentando las probabilidades de individualización de delincuentes, personas desaparecidas o víctimas de siniestros.
 
 ## Requerimientos
-
-- JDK 8
+- Sbt 0.13.8
+- JDK/JRE 8
 - PostgreSQL 9.4.4
 - MongoDB 2.6
 - OpenLDAP
-- Sbt 0.13.8
 
-En la base de datos de SQL deben existir dos databases `pdgdb` el cual es creado por defecto y crear a mano otra, llamada `pdgLogDb`.
+Para una explicación detallada sobre como instalar GENis y configurar el software necesario consulte el [manual de instalación de GENis](https://github.com/fundacion-sadosky/genis/files/9739746/instalacion.pdf). A continuación se resumen los pasos para una configuración básica y se indica como correr el sistema en entornos de desarrollo y producción. Los archivos a los que se haga referencia pueden encontrarse bajo el directorio */utils*.
 
-Toda la configuración de las conexiones a estos servicios externos se encuentra en el archivo de configuración `pdg-core/conf/application.conf`.
+## Configurar un entorno de ejecución de GENis
 
-## Instalación
-Para poder correr la aplicación es necesario:
-- Posicionarse en la raíz de la aplicación
-- Correr activator o sbt
-- Ejecutar el comando `run`
-- Entrar desde el navegador a http://localhost:9000/
-- Para apagar la aplicación en la consola apretar `Ctrl + D`
+### Configuración de ldap
+
+Reconfigurar ldap ingresando **genis.local** para el nombre de dominio y de organización: 
+
+```
+sudo dpkg-reconfigure slapd 
+```
+
+Cargar los datos de configuración inicial:
+
+```
+ldapadd -x -D cn=admin,dc=genis,dc=local -H ldap://:389 -W -f X-GENIS-LDAPConfig_Base_FULL.ldif -v
+```
+
+Chequear la carga de los datos:
+```
+ldapsearch -x -b "dc=genis,dc=local" -H ldap://:389 -D "cn=admin,dc=genis,dc=local" -W "objectclass=*"
+```
+
+### Configuración de postgresql
+Crear un usuario de postgres y las bases de datos de GENis:
+```
+sudo adduser genissqladmin
+sudo -u postgres createuser -d -e -S -R genissqladmin
+sudo -u postgres psql -c "ALTER USER genissqladmin PASSWORD '********';"
+sudo -u genissqladmin createdb -e genisdb
+sudo -u genissqladmin createdb -e genislogdb 
+```
+### Configuración de mongodb
+Crear las colecciones de configuración inicial:
+```
+sh < "MongoSetup.sh"
+```
+### Usuario inicial del sistema
+
+GENis utiliza un mecanismo de autenticación basado en TOPT. 
+Durante la configuración del sistema se crea el usuario '*setup*', con password '*pass*' y secret para TOPT '*ETZK6M66LFH3PHIG*'. 
+Utilice ésta cuenta libremente para propósitos de desarrollo pero en producción solicite una nueva cuenta de administrador en la pantalla de login, luego ingrese con el usuario '*setup*' para habilitarla y finalmente inactive el usuario '*setup*'.
+Si tuviera problemas para ingresar al sistema puede que precise instalar el servicio NTP como se indica en el [manual de instalación de GENis](https://github.com/fundacion-sadosky/genis/files/9739746/instalacion.pdf). 
+Para obtener el TOPT puede utilizar https://gauth.apps.gbraad.nl/
+
+## Correr GENis en un entorno de desarrollo
+
+### Adecuación de parámetros del sistema
+
+Copiar el archivo *application-dev-template.conf* a *application-dev.conf*. Editar los parámetros de conexión a bases datos y ldap según corresponda y specificar la ruta de exportación de perfiles y archivos lims. Se cuenta además con el archivo *logger-dev-template.xml* que puede copiarse a *logger-dev.xml* para reconfigurar el logger en desarrollo.
+
+### Ejecución de GENis
+
+En el directorio raíz de la aplicación correr (no todos los parámetros son siempre necesarios, se incluyen en forma ilustrativa):
+```
+sbt run --java-home /usr/lib/jvm/java-8-openjdk-amd64
+-Xms512M -Xmx10g -Xss1M -XX:+CMSClassUnloadingEnabled
+-Dconfig.file=./application-dev.conf 
+-Dlogger.file=./logger-dev.xml 
+-Dhttps.port=9443 -Dhttp.port=9000
+```
+
+En el navegador ingresar a http://localhost:9000/. 
+Si es la primera vez que corre la aplicación se le preguntará por la ejecución de los scripts de evolutions para crear el esquema de datos. Para apagar la aplicación en la consola apretar `Ctrl + C`
+
+## Distrubuír y correr GENis en producción
+Para generar una nueva versión de GENis actualizar el nro. de versión en el archivo *build.sbt*, borrar la carpeta *target* y correr
+
+```
+sbt dist
+```
+
+Se generará un zip en la carpeta *target/universal* con todo lo necesario para correr el sistema en producción.
+Para correr GENis:
+- descomprimir el zip bajo */usr/share*
+- otorgar permiso de ejecución al script bin/genis 
+    ```sudo chmod +x bin/genis```
+- modificar los parámetros de configuración del sistema. Las conexiones a bases de datos ldap se encuentran en */conf/storage.conf* y los datos del laboratorio y rutas de exportación de archivos en */conf/genis-misc.conf*
+
+- correr el sistema:
+```
+sudo ./bin/genis -v 
+-DapplyEvolutions.default=true
+-DapplyDownEvolutions.default=true
+-DapplyEvolutions.logDb=true
+-DapplyDownEvolutions.logDb=true
+-Dhttp.port=9000 -Dhttps.port=9443 
+-Dconfig.file=/usr/share/genis/conf/application.conf &
+```
+En el archivo RUNNING_PID se encuentra el nro. de proceso para detener la ejecución del sistema. 
+```
+Cat RUNNING_PID
+Sudo kill -9 pid
+Sudo rm –rf RUNNING_PID
+```
+Para actualizar GENis se debe pisar la carpeta */usr/share/genis* con la nueva versión pero previamente se debe realizar un backup de los archivos de configuración bajo */conf* para reutilizarlos en la nueva versión si no se modificaron o utilizarlos como referencia para la configurar la nueva versión. 
+
+## Utilidades
+Bajo */utils* se encuentran scripts de datos inciales y de mantenimiento, también archivos con datos de ejemplo para probar el funcionamiento del sistema.
+EL script *cleanDatabases.sh* sirve para borrar datos transaccionales, de perfiles, matches, pedigrís, notificaciones, etc, sin afectar datos de configuración.
+```
+sudo sh cleanDatabases.sh
+```
