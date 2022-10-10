@@ -1,6 +1,6 @@
 # Cómo contribuir a GENis
 
-Muchas gracias por querer colaborar en GENis :heart:. Si no lo hiciste todavia leé el [README del proyecto](https://github.com/fundacion-sadosky/genis/README.md) para informarte sobre GENis y obtener ayuda para la instalación del ambiente de desarrollo. 
+Muchas gracias por querer colaborar en GENis :heart:. Si no lo hiciste todavia leé el [README del proyecto](https://github.com/fundacion-sadosky/genis/blob/main/README.md) para informarte sobre GENis y obtener ayuda para la instalación y desarrollo. 
 En GENis trabajamos con Pull Requests, por eso si queres aportar al proyecto vas a tener que forkearlo, crear un branch y abrir un PR para subir los cambios al repositorio original.
 
 ## Issues
