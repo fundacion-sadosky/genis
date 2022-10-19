@@ -2,16 +2,16 @@
 
 El software GENis es una herramienta informática que permite contrastar perfiles genéticos provenientes de muestras biológicas obtenidas en distintas escenas de crimen o de desastres, vinculando así eventos ocurridos en diferente tiempo y lugar, aumentando las probabilidades de individualización de delincuentes, personas desaparecidas o víctimas de siniestros.
 
-## Requerimientos
-- Sbt 0.13.8
-- JDK/JRE 8
-- PostgreSQL 9.4.4
-- MongoDB 2.6
-- OpenLDAP
-
 Para una explicación detallada sobre como instalar GENis y configurar el software necesario consulte el [manual de instalación de GENis](https://github.com/fundacion-sadosky/genis/files/9739746/instalacion.pdf). A continuación se resumen los pasos para una configuración básica y se indica como correr el sistema en entornos de desarrollo y producción. Los archivos a los que se haga referencia pueden encontrarse bajo el directorio */utils*.
 
 ## Configurar un entorno de ejecución de GENis
+
+GENis está desarrollado en Scala, para correr la aplicación se requiere JRE 8 y para continuar su desarrollo JDK 8 y Sbt.
+
+### Otros requerimientos
+- PostgreSQL 9.4.4
+- MongoDB 2.6
+- OpenLDAP
 
 ### Configuración de ldap
 
@@ -100,14 +100,14 @@ sudo ./bin/genis -v
 ```
 En el archivo RUNNING_PID se encuentra el nro. de proceso para detener la ejecución del sistema. 
 ```
-Cat RUNNING_PID
-Sudo kill -9 pid
-Sudo rm –rf RUNNING_PID
+cat RUNNING_PID
+sudo kill -9 pid
+sudo rm –rf RUNNING_PID
 ```
 Para actualizar GENis se debe pisar la carpeta */usr/share/genis* con la nueva versión pero previamente se debe realizar un backup de los archivos de configuración bajo */conf* para reutilizarlos en la nueva versión si no se modificaron o utilizarlos como referencia para la configurar la nueva versión. 
 
 ## Utilidades
-Bajo */utils* se encuentran scripts de datos inciales y de mantenimiento, también archivos con datos de ejemplo para probar el funcionamiento del sistema.
+Bajo */utils* se encuentran los scripts con las últimas versiones de los datos de configuración del sistema, utilidades para el mantenimiento y archivos con datos de ejemplo para para pruebas.
 EL script *cleanDatabases.sh* sirve para borrar datos transaccionales, de perfiles, matches, pedigrís, notificaciones, etc, sin afectar datos de configuración.
 ```
 sudo sh cleanDatabases.sh
