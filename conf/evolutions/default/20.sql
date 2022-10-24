@@ -1,4 +1,5 @@
 # --- !Ups
-UPDATE "APP"."GROUP" SET "NAME" = 'Muestras Ante Mortem' WHERE "ID" = 'AM';
-UPDATE "APP"."GROUP" SET "NAME" = 'Muestras Post Mortem' WHERE "ID" = 'PM';
+ALTER TABLE "APP"."BATCH_PROTO_PROFILE" ADD COLUMN "LABEL" character varying(50);
+
 # --- !Downs
+ALTER TABLE "APP"."BATCH_PROTO_PROFILE" DROP COLUMN "LABEL";

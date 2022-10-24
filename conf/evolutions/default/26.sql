@@ -1,15 +1,18 @@
 # --- !Ups
 
-CREATE TABLE "APP"."COURT_CASE_PROFILE"
+create table "APP"."FILE_SENT"
 (
-  "ID_COURT_CASE" bigint NOT NULL,
-  "GLOBAL_CODE" character varying(100) NOT NULL,
-  CONSTRAINT "PROFILES_COURT_CASE_PKEY" PRIMARY KEY ("GLOBAL_CODE","ID_COURT_CASE"),
-  CONSTRAINT "CASE_TYPE_FK1" FOREIGN KEY ("ID_COURT_CASE") REFERENCES "APP"."COURT_CASE" ("ID"),
-  CONSTRAINT "CASE_TYPE_FK2" FOREIGN KEY ("GLOBAL_CODE") REFERENCES "APP"."PROFILE_DATA" ("GLOBAL_CODE")
-);
-
-
+  "ID" varchar(100) not null,
+  "TARGET_LAB" text not null,
+  "STATUS" bigint
+    constraint FILE_SENT_FK1
+    references "APP"."INFERIOR_INSTANCE_PROFILE_STATUS",
+  "DATE" timestamp default now(),
+  "FILE_TYPE" text not null,
+  constraint "FILE_SENT_ID_PKEY"
+  primary key ("ID", "TARGET_LAB")
+)
+;
 # --- !Downs
 
-DROP TABLE "APP"."COURT_CASE_PROFILE";
+DROP TABLE IF EXISTS "APP"."FILE_SENT";

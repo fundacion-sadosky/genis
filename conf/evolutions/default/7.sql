@@ -1,185 +1,100 @@
 # --- !Ups
 
-UPDATE "APP"."CATEGORY" SET "PEDIGREE_ASSOCIATION" = FALSE;
+CREATE TABLE "APP"."TRACE"
+(
+  "ID" bigserial,
+  "PROFILE" character varying(100) NOT NULL,
+  "USER" character varying(50) NOT NULL,
+  "DATE" timestamp NOT NULL,
+  "TRACE" character varying NOT NULL,
+  "KIND" character varying(100) NOT NULL,
+  CONSTRAINT "APP_TRACE_ID_PKEY" PRIMARY KEY ("ID")
+);
 
-INSERT INTO "APP"."GROUP" ("ID", "NAME") VALUES
- ('AM', 'Muestras Ante Morten'),
- ('PM', 'Muestras Post Morten');
+ALTER TABLE "APP"."CATEGORY_CONFIGURATION"
+  DROP CONSTRAINT "APP_CATEGORY_CONFIGURATION_CATEGORY_FK";
+ALTER TABLE "APP"."CATEGORY_CONFIGURATION"
+  ADD CONSTRAINT "APP_CATEGORY_CONFIGURATION_CATEGORY_FK" FOREIGN KEY ("CATEGORY")
+    REFERENCES "APP"."CATEGORY" ("ID")
+    ON UPDATE CASCADE ON DELETE CASCADE;
 
-INSERT INTO "APP"."CATEGORY" ("GROUP", "ID", "NAME", "IS_REFERENCE", "PEDIGREE_ASSOCIATION") VALUES
- ('AM', 'ER', 'Elementos Personales de la persona desaparecida', false, true),
- ('AM', 'IR', 'Individuos de  Referencia', true, true),
- ('AM', 'INNV', 'Personas que buscan conocer su identidad biológica', true, true),
- ('PM', 'INN', 'Personas fallecidas no identificadas', false, true),
- ('PM', 'RNN', 'Restos Biológicos no identificados', false, true),
- ('PM', 'ENN', 'Elementos Personales hallados de la persona desaparecida', false, true);
+ALTER TABLE "APP"."CATEGORY_ALIAS"
+  DROP CONSTRAINT "CATEGORY_ALIAS_FK";
+ALTER TABLE "APP"."CATEGORY_ALIAS"
+  ADD CONSTRAINT "CATEGORY_ALIAS_FK" FOREIGN KEY ("CATEGORY")
+	  REFERENCES "APP"."CATEGORY" ("ID")
+	  ON UPDATE CASCADE ON DELETE CASCADE;
 
-INSERT INTO "APP"."CATEGORY_MATCHING" ("CATEGORY", "CATEGORY_RELATED", "PRIORITY", "MINIMUM_STRINGENCY", "FAIL_ON_MATCH", "FORWARD_TO_UPPER", "MATCHING_ALGORITHM", "MIN_LOCUS_MATCH", "MISMATCHS_ALLOWED", "TYPE") VALUES
-('IR', 'ER', 1, 'LowStringency', false, false, 'ENFSI', 11, 2, 1),
-('IR', 'ENN', 1, 'LowStringency', false, false, 'ENFSI', 11, 2, 1),
-('ER', 'IR', 1, 'LowStringency', false, false, 'ENFSI', 11, 2, 1),
-('ENN', 'IR', 1, 'LowStringency', false, false, 'ENFSI', 11, 2, 1),
-('INN', 'IR', 1, 'LowStringency', false, false, 'ENFSI', 11, 2, 1),
-('INN', 'ER', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 1),
-('INN', 'INNV', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 1),
-('INN', 'ENN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 1),
-('IR', 'INN', 1, 'LowStringency', false, false, 'ENFSI', 11, 2, 1),
-('ER', 'INN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 1),
-('INNV', 'INN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 1),
-('ENN', 'INN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 1),
-('ER', 'ENN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 1),
-('ENN', 'ER', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 1),
-('INNV', 'IR', 1, 'LowStringency', false, false, 'ENFSI', 11, 2, 1),
-('INNV', 'ER', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 1),
-('INNV', 'ENN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 1),
-('IR', 'INNV', 1, 'LowStringency', false, false, 'ENFSI', 11, 2, 1),
-('ER', 'INNV', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 1),
-('ENN', 'INNV', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 1),
-('RNN', 'IR', 1, 'LowStringency', false, false, 'ENFSI', 11, 2, 1),
-('RNN', 'INN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 1),
-('RNN', 'ER', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 1),
-('RNN', 'INNV', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 1),
-('RNN', 'ENN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 1),
-('IR', 'RNN', 1, 'LowStringency', false, false, 'ENFSI', 11, 2, 1),
-('INN', 'RNN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 1),
-('ER', 'RNN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 1),
-('INNV', 'RNN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 1),
-('ENN', 'RNN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 1),
-('ER', 'ER', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 1),
-('INN', 'INN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 1),
-('RNN', 'RNN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 1),
-('ENN', 'ENN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 1),
-('IR', 'ER', 1, 'LowStringency', false, false, 'ENFSI', 11, 2, 2),
-('IR', 'ENN', 1, 'LowStringency', false, false, 'ENFSI', 11, 2, 2),
-('ER', 'IR', 1, 'LowStringency', false, false, 'ENFSI', 11, 2, 2),
-('ENN', 'IR', 1, 'LowStringency', false, false, 'ENFSI', 11, 2, 2),
-('INN', 'IR', 1, 'LowStringency', false, false, 'ENFSI', 11, 2, 2),
-('INN', 'ER', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 2),
-('INN', 'INNV', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 2),
-('INN', 'ENN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 2),
-('IR', 'INN', 1, 'LowStringency', false, false, 'ENFSI', 11, 2, 2),
-('ER', 'INN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 2),
-('INNV', 'INN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 2),
-('ENN', 'INN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 2),
-('ER', 'ENN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 2),
-('ENN', 'ER', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 2),
-('INNV', 'IR', 1, 'LowStringency', false, false, 'ENFSI', 11, 2, 2),
-('INNV', 'ER', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 2),
-('INNV', 'ENN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 2),
-('IR', 'INNV', 1, 'LowStringency', false, false, 'ENFSI', 11, 2, 2),
-('ER', 'INNV', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 2),
-('ENN', 'INNV', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 2),
-('RNN', 'IR', 1, 'LowStringency', false, false, 'ENFSI', 11, 2, 2),
-('RNN', 'INN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 2),
-('RNN', 'ER', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 2),
-('RNN', 'INNV', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 2),
-('RNN', 'ENN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 2),
-('IR', 'RNN', 1, 'LowStringency', false, false, 'ENFSI', 11, 2, 2),
-('INN', 'RNN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 2),
-('ER', 'RNN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 2),
-('INNV', 'RNN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 2),
-('ENN', 'RNN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 2),
-('ER', 'ER', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 2),
-('INN', 'INN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 2),
-('RNN', 'RNN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 2),
-('ENN', 'ENN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 2),
-('IR', 'ER', 1, 'LowStringency', false, false, 'ENFSI', 11, 2, 3),
-('IR', 'ENN', 1, 'LowStringency', false, false, 'ENFSI', 11, 2, 3),
-('ER', 'IR', 1, 'LowStringency', false, false, 'ENFSI', 11, 2, 3),
-('ENN', 'IR', 1, 'LowStringency', false, false, 'ENFSI', 11, 2, 3),
-('INN', 'IR', 1, 'LowStringency', false, false, 'ENFSI', 11, 2, 3),
-('INN', 'ER', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 3),
-('INN', 'INNV', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 3),
-('INN', 'ENN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 3),
-('IR', 'INN', 1, 'LowStringency', false, false, 'ENFSI', 11, 2, 3),
-('ER', 'INN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 3),
-('INNV', 'INN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 3),
-('ENN', 'INN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 3),
-('ER', 'ENN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 3),
-('ENN', 'ER', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 3),
-('INNV', 'IR', 1, 'LowStringency', false, false, 'ENFSI', 11, 2, 3),
-('INNV', 'ER', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 3),
-('INNV', 'ENN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 3),
-('IR', 'INNV', 1, 'LowStringency', false, false, 'ENFSI', 11, 2, 3),
-('ER', 'INNV', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 3),
-('ENN', 'INNV', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 3),
-('RNN', 'IR', 1, 'LowStringency', false, false, 'ENFSI', 11, 2, 3),
-('RNN', 'INN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 3),
-('RNN', 'ER', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 3),
-('RNN', 'INNV', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 3),
-('RNN', 'ENN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 3),
-('IR', 'RNN', 1, 'LowStringency', false, false, 'ENFSI', 11, 2, 3),
-('INN', 'RNN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 3),
-('ER', 'RNN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 3),
-('INNV', 'RNN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 3),
-('ENN', 'RNN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 3),
-('ER', 'ER', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 3),
-('INN', 'INN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 3),
-('RNN', 'RNN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 3),
-('ENN', 'ENN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 3),
-('IR', 'ER', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 4),
-('IR', 'ENN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 4),
-('ER', 'IR', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 4),
-('ENN', 'IR', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 4),
-('INN', 'IR', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 4),
-('INN', 'ER', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 4),
-('INN', 'INNV', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 4),
-('INN', 'ENN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 4),
-('IR', 'INN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 4),
-('ER', 'INN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 4),
-('INNV', 'INN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 4),
-('ENN', 'INN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 4),
-('ER', 'ENN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 4),
-('ENN', 'ER', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 4),
-('INNV', 'IR', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 4),
-('INNV', 'ER', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 4),
-('INNV', 'ENN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 4),
-('IR', 'INNV', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 4),
-('ER', 'INNV', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 4),
-('ENN', 'INNV', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 4),
-('RNN', 'IR', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 4),
-('RNN', 'INN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 4),
-('RNN', 'ER', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 4),
-('RNN', 'INNV', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 4),
-('RNN', 'ENN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 4),
-('IR', 'RNN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 4),
-('INN', 'RNN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 4),
-('ER', 'RNN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 4),
-('INNV', 'RNN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 4),
-('ENN', 'RNN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 4),
-('ER', 'ER', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 4),
-('INN', 'INN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 4),
-('RNN', 'RNN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 4),
-('ENN', 'ENN', 1, 'HighStringency', false, false, 'ENFSI', 11, 2, 4);
+ALTER TABLE "APP"."CATEGORY_ASSOCIATION"
+  DROP CONSTRAINT "CATEGORY_ASSOCIATION_CATEGORY_FKEY";
+ALTER TABLE "APP"."CATEGORY_ASSOCIATION"
+  DROP CONSTRAINT "CATEGORY_ASSOCIATION_CATEGORY_RELATED_FKEY";
+ALTER TABLE "APP"."CATEGORY_ASSOCIATION"
+  ADD CONSTRAINT "CATEGORY_ASSOCIATION_CATEGORY_FKEY" FOREIGN KEY ("CATEGORY")
+      REFERENCES "APP"."CATEGORY" ("ID")
+      ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE "APP"."CATEGORY_ASSOCIATION"
+  ADD CONSTRAINT "CATEGORY_ASSOCIATION_CATEGORY_RELATED_FKEY" FOREIGN KEY ("CATEGORY_RELATED")
+      REFERENCES "APP"."CATEGORY" ("ID")
+      ON UPDATE CASCADE ON DELETE CASCADE;
 
-INSERT INTO "APP"."CATEGORY_CONFIGURATION"
-("CATEGORY", "TYPE", "COLLECTION_URI", "DRAFT_URI", "MIN_LOCUS_PER_PROFILE", "MAX_OVERAGE_DEVIATED_LOCI", "MAX_ALLELES_PER_LOCUS")
-VALUES
-('ER', 1, '', '', 'K/2', '2', 2),
-('INN', 1, '', '', 'K', '2', 2),
-('INNV', 1, '', '', 'K', '2', 2),
-('RNN', 1, '', '', 'K', '2', 2),
-('ENN', 1, '', '', 'K', '2', 2),
-('IR', 1, '', '', 'K', '2', 2),
-('ER', 2, '', '', 'K/2', '2', 2),
-('INN', 2, '', '', 'K', '2', 2),
-('INNV', 2, '', '', 'K', '2', 2),
-('RNN', 2, '', '', 'K', '2', 2),
-('ENN', 2, '', '', 'K', '2', 2),
-('IR', 2, '', '', 'K', '2', 2),
-('ER', 3, '', '', 'K/2', '2', 2),
-('INN', 3, '', '', 'K', '2', 2),
-('INNV', 3, '', '', 'K', '2', 2),
-('RNN', 3, '', '', 'K', '2', 2),
-('ENN', 3, '', '', 'K', '2', 2),
-('IR', 3, '', '', 'K', '2', 2);
+ALTER TABLE "APP"."CATEGORY_MATCHING"
+  DROP CONSTRAINT "CATEGORY_MATCHING_CATEGORY_FKEY";
+ALTER TABLE "APP"."CATEGORY_MATCHING"
+  DROP CONSTRAINT "CATEGORY_MATCHING_CATEGORY_RELATED_FKEY";
+ALTER TABLE "APP"."CATEGORY_MATCHING"
+  ADD CONSTRAINT "CATEGORY_MATCHING_CATEGORY_FKEY" FOREIGN KEY ("CATEGORY")
+      REFERENCES "APP"."CATEGORY" ("ID")
+      ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE "APP"."CATEGORY_MATCHING"
+  ADD  CONSTRAINT "CATEGORY_MATCHING_CATEGORY_RELATED_FKEY" FOREIGN KEY ("CATEGORY_RELATED")
+      REFERENCES "APP"."CATEGORY" ("ID")
+      ON UPDATE CASCADE ON DELETE CASCADE;
+
+ALTER TABLE "APP"."CATEGORY_MATCHING" ADD COLUMN "CONSIDER_FOR_N" BOOLEAN NOT NULL DEFAULT TRUE;
 
 # --- !Downs
 
-DELETE FROM "APP"."CATEGORY_MATCHING" WHERE "CATEGORY_RELATED" IN ('ER', 'INN', 'INNV', 'RNN', 'ENN', 'IR');
-DELETE FROM "APP"."CATEGORY_MATCHING" WHERE "CATEGORY" IN ('ER', 'INN', 'INNV', 'RNN', 'ENN', 'IR');
-DELETE FROM "APP"."CATEGORY_CONFIGURATION" WHERE "CATEGORY" IN ('ER', 'INN', 'INNV', 'RNN', 'ENN', 'IR');
-DELETE FROM "APP"."CATEGORY_ASSOCIATION" WHERE "CATEGORY" IN ('ER', 'INN', 'INNV', 'RNN', 'ENN', 'IR');
-DELETE FROM "APP"."PROFILE_DATA" WHERE "CATEGORY" IN ('ER', 'INN', 'INNV', 'RNN', 'ENN', 'IR');
-DELETE FROM "APP"."CATEGORY" WHERE "GROUP" IN ('AM', 'PM');
-DELETE FROM "APP"."GROUP" WHERE "ID" IN ('AM', 'PM');
+DROP TABLE "APP"."TRACE";
+
+ALTER TABLE "APP"."CATEGORY_CONFIGURATION"
+  DROP CONSTRAINT "APP_CATEGORY_CONFIGURATION_CATEGORY_FK";
+ALTER TABLE "APP"."CATEGORY_CONFIGURATION"
+  ADD CONSTRAINT "APP_CATEGORY_CONFIGURATION_CATEGORY_FK" FOREIGN KEY ("CATEGORY")
+    REFERENCES "APP"."CATEGORY" ("ID")
+    ON UPDATE CASCADE ON DELETE RESTRICT;
+
+ALTER TABLE "APP"."CATEGORY_ALIAS"
+  DROP CONSTRAINT "CATEGORY_ALIAS_FK";
+ALTER TABLE "APP"."CATEGORY_ALIAS"
+  ADD CONSTRAINT "CATEGORY_ALIAS_FK" FOREIGN KEY ("CATEGORY")
+	  REFERENCES "APP"."CATEGORY" ("ID")
+	  ON UPDATE CASCADE ON DELETE RESTRICT;
+
+ALTER TABLE "APP"."CATEGORY_ASSOCIATION"
+  DROP CONSTRAINT "CATEGORY_ASSOCIATION_CATEGORY_FKEY";
+ALTER TABLE "APP"."CATEGORY_ASSOCIATION"
+  DROP CONSTRAINT "CATEGORY_ASSOCIATION_CATEGORY_RELATED_FKEY";
+ALTER TABLE "APP"."CATEGORY_ASSOCIATION"
+  ADD CONSTRAINT "CATEGORY_ASSOCIATION_CATEGORY_FKEY" FOREIGN KEY ("CATEGORY")
+      REFERENCES "APP"."CATEGORY" ("ID")
+      ON UPDATE CASCADE ON DELETE RESTRICT;
+ALTER TABLE "APP"."CATEGORY_ASSOCIATION"
+  ADD CONSTRAINT "CATEGORY_ASSOCIATION_CATEGORY_RELATED_FKEY" FOREIGN KEY ("CATEGORY_RELATED")
+      REFERENCES "APP"."CATEGORY" ("ID")
+      ON UPDATE CASCADE ON DELETE RESTRICT;
+
+ALTER TABLE "APP"."CATEGORY_MATCHING"
+  DROP CONSTRAINT "CATEGORY_MATCHING_CATEGORY_FKEY";
+ALTER TABLE "APP"."CATEGORY_MATCHING"
+  DROP CONSTRAINT "CATEGORY_MATCHING_CATEGORY_RELATED_FKEY";
+ALTER TABLE "APP"."CATEGORY_MATCHING"
+  ADD CONSTRAINT "CATEGORY_MATCHING_CATEGORY_FKEY" FOREIGN KEY ("CATEGORY")
+      REFERENCES "APP"."CATEGORY" ("ID")
+      ON UPDATE CASCADE ON DELETE RESTRICT;
+ALTER TABLE "APP"."CATEGORY_MATCHING"
+  ADD  CONSTRAINT "CATEGORY_MATCHING_CATEGORY_RELATED_FKEY" FOREIGN KEY ("CATEGORY_RELATED")
+      REFERENCES "APP"."CATEGORY" ("ID")
+      ON UPDATE CASCADE ON DELETE RESTRICT;
+
+ALTER TABLE "APP"."CATEGORY_MATCHING" DROP COLUMN "CONSIDER_FOR_N";

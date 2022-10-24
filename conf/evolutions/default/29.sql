@@ -1,10 +1,73 @@
 # --- !Ups
+create table "APP"."MUTATION_MODEL_TYPE"
+(
+  "ID" bigserial,
+  "DESCRIPTION" text not null,
+  primary key ("ID")
+);
+create table "APP"."MUTATION_MODEL"
+(
+  "ID" bigserial not null,
+  "NAME" text not null,
+  "MUTATION_MODEL_TYPE" BIGINT not null,
+  "ACTIVE" BOOLEAN not null,
+  "IGNORE_SEX" BOOLEAN not null,
+  primary key ("ID"),
+  CONSTRAINT "MUTATION_MODEL_FK" FOREIGN KEY ("MUTATION_MODEL_TYPE")
+  REFERENCES "APP"."MUTATION_MODEL_TYPE" ("ID")
+);
 
-ALTER TABLE "APP"."PEDIGREE" ADD COLUMN "ASSIGNEE" character varying(50) NOT NULL DEFAULT 'tst-admintist';
+create table "APP"."MUTATION_MODEL_PARAMETER"
+(
+  "ID" bigserial not null,
+  "ID_MUTATION_MODEL" BIGINT not null,
+  "LOCUS" character varying(50) not null,
+  "SEX" VARCHAR(1) not null,
+  "MUTATION_RATE" numeric(10,8),
+  "MUTATION_RANGE" numeric(10,8),
+  "MUTATION_RATE_MICROVARIANT" numeric(10,8),
+  primary key ("ID"),
+  CONSTRAINT "MUTATION_MODEL_PARAMETERS_FK" FOREIGN KEY ("ID_MUTATION_MODEL")
+  REFERENCES "APP"."MUTATION_MODEL" ("ID"),
+  CONSTRAINT "MUTATION_MODEL_PARAMETERS_UK" UNIQUE ("ID_MUTATION_MODEL","LOCUS","SEX"),
+  CONSTRAINT "MUTATION_MODEL_PARAMETERS_FK2" FOREIGN KEY ("LOCUS")
+  REFERENCES "APP"."LOCUS" ("ID")
+);
 
--- poner el update con el asignee del caso buscar!
+CREATE INDEX "MUTATION_MODEL_PARAMETERS_IDX1" ON "APP"."MUTATION_MODEL_PARAMETER" ("ID_MUTATION_MODEL");
 
-ALTER TABLE "APP"."PEDIGREE" ALTER COLUMN  "ASSIGNEE" DROP DEFAULT;
+create table "APP"."MUTATION_MODEL_KI"
+(
+  "ID" bigserial not null,
+  "ID_MUTATION_MODEL_PARAMETER" BIGINT not null,
+  "ALLELE" double precision NOT NULL,
+  "KI" numeric(10,8) NOT NULL,
+  primary key ("ID"),
+  CONSTRAINT "MUTATION_MODEL_KI_FK" FOREIGN KEY ("ID_MUTATION_MODEL_PARAMETER")
+  REFERENCES "APP"."MUTATION_MODEL_PARAMETER" ("ID")
+);
+CREATE INDEX "MUTATION_MODEL_KI_IDX1" ON "APP"."MUTATION_MODEL_KI" ("ID_MUTATION_MODEL_PARAMETER");
 
+create table "APP"."MUTATION_DEFAULT_PARAMETER"
+(
+  "ID" bigserial not null,
+  "LOCUS" character varying(50) not null,
+  "SEX" VARCHAR(1) not null,
+  "MUTATION_RATE" numeric(10,8) NOT NULL,
+  primary key ("ID")
+);
+
+create table "APP"."LOCUS_ALLELE"
+(
+  "ID" bigserial not null,
+  "LOCUS" character varying(50) not null,
+  "ALLELE" double precision NOT NULL,
+  primary key ("ID")
+);
 # --- !Downs
-ALTER TABLE "APP"."PEDIGREE" DROP COLUMN "ASSIGNEE";
+DROP TABLE IF EXISTS  "APP"."MUTATION_MODEL_KI";
+DROP TABLE IF EXISTS  "APP"."MUTATION_MODEL_PARAMETER";
+DROP TABLE IF EXISTS  "APP"."MUTATION_MODEL";
+DROP TABLE IF EXISTS  "APP"."MUTATION_MODEL_TYPE";
+DROP TABLE IF EXISTS  "APP"."MUTATION_DEFAULT_PARAMETER";
+DROP TABLE IF EXISTS  "APP"."LOCUS_ALLELE";
