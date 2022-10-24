@@ -96,7 +96,7 @@ sudo ./bin/genis -v
 -DapplyEvolutions.logDb=true
 -DapplyDownEvolutions.logDb=true
 -Dhttp.port=9000 -Dhttps.port=9443 
--Dconfig.file=/usr/share/genis/conf/application.conf &
+-Dconfig.file=./conf/application.conf &
 ```
 En el archivo RUNNING_PID se encuentra el nro. de proceso para detener la ejecución del sistema. 
 ```
@@ -106,7 +106,12 @@ sudo rm –rf RUNNING_PID
 ```
 Para actualizar GENis se debe pisar la carpeta */usr/share/genis* con la nueva versión pero previamente se debe realizar un backup de los archivos de configuración bajo */conf* para reutilizarlos en la nueva versión si no se modificaron o utilizarlos como referencia para la configurar la nueva versión. 
 
-## Utilidades
+## Datos inciales del sistema
+Luego de correr el sistema el esquema de datos ya se encuentra creado y se deben cargar los datos inciales del sistema.
+```
+sudo -u genissqladmin psql -d genisdb -f dml.sql
+```
+## Otras utilidades
 Bajo */utils* se encuentran los scripts con las últimas versiones de los datos de configuración del sistema, utilidades para el mantenimiento y archivos con datos de ejemplo para para pruebas.
 EL script *cleanDatabases.sh* sirve para borrar datos transaccionales, de perfiles, matches, pedigrís, notificaciones, etc, sin afectar datos de configuración.
 ```
