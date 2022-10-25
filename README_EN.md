@@ -41,17 +41,15 @@ Create the initial setup collections:
 ```
 sh < "MongoSetup.sh"
 ```
-
-### Initial system user
-GENis uses an authentication mechanism based on TOPT. 
-During system setup the user '*setup*' is created, with password '*pass*' and secret for TOPT '*ETZK6M66LFH3PHIG*'. 
-Use this account freely for development purposes but for production request a new administrator account at the login screen, then login with user '*setup*' to enable it and finally disable user '*setup*'.
-If you have problems logging in, you may need to install the NTP service as described in the [GENis installation manual] (https://github.com/fundacion-sadosky/genis/files/9739746/instalacion.pdf).
-To get the TOPT you can use https://gauth.apps.gbraad.nl/
+### Initial system datai
+After running the system, the data schema is already created and the initial data of the system must be loaded.
+```
+sudo -u genissqladmin psql -d genisdb -f dml.sql
+```
 
 ## Running GENis in a development environment
 ### System parameter configuration
-Copy the *application-dev-template.conf* file to *application-dev.conf*. Edit database connection and ldap parameters as appropriate and specify the export path for profiles and lims files. There is also a *logger-dev-template.xml* file that can be copied to *logger-dev.xml* to reconfigure the logger under development.
+Copy the *application-dev-template.conf* file to *application-dev.conf*. Edit database connection and ldap parameters as appropriate and specify the export path for profiles and lims files. The file *logger-dev-template.xml* also can be copied to *logger-dev.xml* to reconfigure the logger under development.
 
 ### GENis execution
 From the application root directory, run (not all parameters are always necessary, they are included for illustrative purposes):
@@ -92,6 +90,13 @@ sudo kill -9 pid
 sudo rm –rf RUNNING_PID
 ```
 To upgrade GENis step on the */usr/share/genis* folder with the latest version but previously make a backup of the configuration files under */conf* to reuse them in the latest version if they were not modified or use them as a reference to configure the latest version.
+
+### Initial system user
+GENis uses an authentication mechanism based on TOPT. 
+During system setup the user '*setup*' is created, with password '*pass*' and secret for TOPT '*ETZK6M66LFH3PHIG*'. 
+Use this account freely for development purposes but for production request a new administrator account at the login screen, then login with user '*setup*' to enable it and finally disable user '*setup*'.
+If you have problems logging in, you may need to install the NTP service as described in the [GENis installation manual] (https://github.com/fundacion-sadosky/genis/files/9739746/instalacion.pdf).
+To get the TOPT you can use https://gauth.apps.gbraad.nl/
 
 ## Utils
 Under */utils* are the scripts with the latest versions of the system configuration data, tools for maintenance and sample data files for testing.

@@ -46,19 +46,16 @@ Crear las colecciones de configuración inicial:
 ```
 sh < "MongoSetup.sh"
 ```
-### Usuario inicial del sistema
-
-GENis utiliza un mecanismo de autenticación basado en TOPT. 
-Durante la configuración del sistema se crea el usuario '*setup*', con password '*pass*' y secret para TOPT '*ETZK6M66LFH3PHIG*'. 
-Utilice ésta cuenta libremente para propósitos de desarrollo pero en producción solicite una nueva cuenta de administrador en la pantalla de login, luego ingrese con el usuario '*setup*' para habilitarla y finalmente inactive el usuario '*setup*'.
-Si tuviera problemas para ingresar al sistema puede que precise instalar el servicio NTP como se indica en el [manual de instalación de GENis](https://github.com/fundacion-sadosky/genis/files/9739746/instalacion.pdf). 
-Para obtener el TOPT puede utilizar https://gauth.apps.gbraad.nl/
-
+### Datos inciales del sistema
+Luego de correr el sistema el esquema de datos ya se encuentra creado y se deben cargar los datos inciales del sistema.
+```
+sudo -u genissqladmin psql -d genisdb -f dml.sql
+```
 ## Correr GENis en un entorno de desarrollo
 
 ### Adecuación de parámetros del sistema
 
-Copiar el archivo *application-dev-template.conf* a *application-dev.conf*. Editar los parámetros de conexión a bases datos y ldap según corresponda y specificar la ruta de exportación de perfiles y archivos lims. Se cuenta además con el archivo *logger-dev-template.xml* que puede copiarse a *logger-dev.xml* para reconfigurar el logger en desarrollo.
+Copiar el archivo *application-dev-template.conf* a *application-dev.conf*. Editar los parámetros de conexión a bases datos y ldap según corresponda y especificar la ruta de exportación de perfiles y archivos lims. El archivo *logger-dev-template.xml* también puede copiarse a *logger-dev.xml* para reconfigurar el logger en desarrollo.
 
 ### Ejecución de GENis
 
@@ -72,7 +69,7 @@ sbt run --java-home /usr/lib/jvm/java-8-openjdk-amd64
 ```
 
 En el navegador ingresar a http://localhost:9000/. 
-Si es la primera vez que corre la aplicación se le preguntará por la ejecución de los scripts de evolutions para crear el esquema de datos. Para apagar la aplicación en la consola apretar `Ctrl + C`
+Si es la primera vez que corre la aplicación se le preguntará por la ejecución de los scripts de evolutions para crear el esquema de datos. Para detener la aplicación en la consola ingresar `Ctrl + C`
 
 ## Distrubuír y correr GENis en producción
 Para generar una nueva versión de GENis actualizar el nro. de versión en el archivo *build.sbt*, borrar la carpeta *target* y correr
@@ -106,11 +103,14 @@ sudo rm –rf RUNNING_PID
 ```
 Para actualizar GENis se debe pisar la carpeta */usr/share/genis* con la nueva versión pero previamente se debe realizar un backup de los archivos de configuración bajo */conf* para reutilizarlos en la nueva versión si no se modificaron o utilizarlos como referencia para la configurar la nueva versión. 
 
-## Datos inciales del sistema
-Luego de correr el sistema el esquema de datos ya se encuentra creado y se deben cargar los datos inciales del sistema.
-```
-sudo -u genissqladmin psql -d genisdb -f dml.sql
-```
+## Usuario inicial del sistema
+
+GENis utiliza un mecanismo de autenticación basado en TOPT.
+Durante la configuración del sistema se crea el usuario '*setup*', con password '*pass*' y secret para TOPT '*ETZK6M66LFH3PHIG*'.
+Utilice ésta cuenta libremente para propósitos de desarrollo pero en producción solicite una nueva cuenta de administrador en la pantalla de login, luego ingrese con el usuario '*setup*' para habilitarla y finalmente inactive el usuario '*setup*'.
+Si tuviera problemas para ingresar al sistema puede que precise instalar el servicio NTP como se indica en el [manual de instalación de GENis](https://github.com/fundacion-sadosky/genis/files/9739746/instalacion.pdf).
+Para obtener el TOPT puede utilizar https://gauth.apps.gbraad.nl/
+
 ## Otras utilidades
 Bajo */utils* se encuentran los scripts con las últimas versiones de los datos de configuración del sistema, utilidades para el mantenimiento y archivos con datos de ejemplo para para pruebas.
 EL script *cleanDatabases.sh* sirve para borrar datos transaccionales, de perfiles, matches, pedigrís, notificaciones, etc, sin afectar datos de configuración.
