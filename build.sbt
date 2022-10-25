@@ -1,8 +1,8 @@
 import WebKeys._
-import uk.gov.hmrc.gitstamp.GitStampPlugin._
+//import uk.gov.hmrc.gitstamp.GitStampPlugin._
 import RjsKeys._
 
-Seq( gitStampSettings: _* )
+//Seq( gitStampSettings: _* )
 
 name := """genis"""
 
@@ -87,7 +87,6 @@ linuxPackageMappings in Debian += packageTemplateMapping(s"/var/run/${normalized
 
 linuxPackageMappings in Debian += packageMapping( file("scripts/init-script.sh") -> s"/etc/init.d/${normalizedName.value}" ) withPerms "0755" 
 
-
 maintainerScripts in Debian := {
   import DebianConstants._
   import com.typesafe.sbt.packager.MappingsHelper._  
@@ -104,7 +103,6 @@ maintainerScripts in Debian := {
 
   tmp
 }
-
 
 // Dependencies
 libraryDependencies ++= Seq(

@@ -4,9 +4,8 @@ logLevel := Level.Warn
 // The Typesafe repository
 resolvers += "Typesafe repository" at "https://repo.typesafe.com/typesafe/releases/"
 
-resolvers += Resolver.url("hmrc-sbt-plugin-releases", url("https://dl.bintray.com/hmrc/sbt-plugin-releases"))(Resolver.ivyStylePatterns)
-  
-addSbtPlugin("uk.gov.hmrc" % "sbt-git-stamp" % "5.1.0")
+//resolvers += Resolver.url("hmrc-sbt-plugin-releases", url("https://dl.bintray.com/hmrc/sbt-plugin-releases"))(Resolver.ivyStylePatterns)
+//addSbtPlugin("uk.gov.hmrc" % "sbt-git-stamp" % "5.1.0")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.1.5")
 
