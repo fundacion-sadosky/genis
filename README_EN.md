@@ -96,7 +96,7 @@ GENis uses an authentication mechanism based on TOPT.
 During system setup the user '*setup*' is created, with password '*pass*' and secret for TOPT '*ETZK6M66LFH3PHIG*'. 
 Use this account freely for development purposes but for production request a new administrator account at the login screen, then login with user '*setup*' to enable it and finally disable user '*setup*'.
 If you have problems logging in, you may need to install the NTP service as described in the [GENis installation manual] (https://github.com/fundacion-sadosky/genis/files/9739746/instalacion.pdf).
-To get the TOPT you can use https://gauth.apps.gbraad.nl/
+To get the password from the TOPT you can use https://gauth.apps.gbraad.nl/
 
 ## Utils
 Under */utils* are the scripts with the latest versions of the system configuration data, tools for maintenance and sample data files for testing.
