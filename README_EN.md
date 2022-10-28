@@ -1,4 +1,4 @@
-# GENis
+# GENis 5.1.8
 
 GENis is a software developed to compare genetic profiles from biological samples obtained at different crime or disaster scenes, thus linking events that occurred at different times and places, increasing the probability of identifying criminals, missing persons, or victims of disasters.
 

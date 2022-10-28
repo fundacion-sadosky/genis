@@ -1,4 +1,4 @@
-# GENis
+# GENis 5.1.8
 
 El software GENis es una herramienta informática que permite contrastar perfiles genéticos provenientes de muestras biológicas obtenidas en distintas escenas de crimen o de desastres, vinculando así eventos ocurridos en diferente tiempo y lugar, aumentando las probabilidades de individualización de delincuentes, personas desaparecidas o víctimas de siniestros.
 
