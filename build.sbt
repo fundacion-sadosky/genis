@@ -284,8 +284,6 @@ emojiLogs
 
 net.virtualvoid.sbt.graph.Plugin.graphSettings
 
-
-
 instrumentSettings
 
 ScoverageKeys.excludedPackages in ScoverageCompile := "<empty>;models\\..*;views\\..*;"
