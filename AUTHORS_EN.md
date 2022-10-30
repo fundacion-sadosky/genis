@@ -9,15 +9,15 @@ Development Coordinator: María Soledad Escobar.
 
 Throughout the successive stages of development GENis has received the collaboration of:
 
-Conicet
-Instituto Leloir
-Asociación Argentina de Bioinformática y Biología Computacional
-Universidad de Buenos Aires
-Universidad Nacional de Quilmes 
-Universidad Nacional de Rosario 
-Universidad Nacional de Tucumán 
-Universidad Nacional de Córdoba 
-Laboratorio de Análisis comparativo de ADN de la Suprema Corte de Justicia de la Provincia de Buenos Aires
-Servicio de Genética Forense del Superior Tribunal de Justicia de la Provincia de Entre Ríos
-Instituto de Investigación Criminal y Ciencias Forenses del Norte de la Procuración General de la Provincia de Buenos Aires
-Servicio de Huellas Digitales Genéticas de la Universidad de Buenos Aires
+* Conicet
+* Instituto Leloir
+* Asociación Argentina de Bioinformática y Biología Computacional
+* Universidad de Buenos Aires
+* Universidad Nacional de Quilmes
+* Universidad Nacional de Rosario
+* Universidad Nacional de Tucumán
+* Universidad Nacional de Córdoba
+* Laboratorio de Análisis comparativo de ADN de la Suprema Corte de Justicia de la Provincia de Buenos Aires
+* Servicio de Genética Forense del Superior Tribunal de Justicia de la Provincia de Entre Ríos
+* Instituto de Investigación Criminal y Ciencias Forenses del Norte de la Procuración General de la Provincia de Buenos Aires
+* Servicio de Huellas Digitales Genéticas de la Universidad de Buenos Aires
