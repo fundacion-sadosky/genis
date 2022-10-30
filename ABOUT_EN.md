@@ -4,6 +4,6 @@ Official site: http://www.fundacionsadosky.org.ar/genis/
 Licensed under AGPL-3.0, it can be found at
 https://github.com/fundacion-sadosky/genis/blob/main/LICENSE
 The authors can be consulted in the file
-https://github.com/fundacion-sadosky/genis/blob/main/AUTHORS.md
+https://github.com/fundacion-sadosky/genis/blob/main/AUTHORS_EN.md
 Ways to contribute to the project can be found at 
-https://github.com/fundacion-sadosky/genis/blob/main/CONTRIBUTING.md
+https://github.com/fundacion-sadosky/genis/blob/main/CONTRIBUTING_EN.md
