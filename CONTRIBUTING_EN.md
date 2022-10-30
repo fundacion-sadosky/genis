@@ -1,5 +1,5 @@
 # How to contribute to GENis
-Thank you for wanting to contribute to GENis: heart. If you haven't done it yet, please read the [project README] (https://github.com/fundacion-sadosky/genis/blob/main/README.md) to learn more about GENis and get help for installation and development. 
+Thank you for wanting to contribute to GENis: heart. If you haven't done it yet, please read the [project README] (https://github.com/fundacion-sadosky/genis/blob/main/README_EN.md) to learn more about GENis and get help for installation and development. 
 In GENis we work using Pull Requests, so if you want to contribute to the project you will have to fork it, create a branch, and open a PR to upload the changes to the original repo.
 
 ## Issues
