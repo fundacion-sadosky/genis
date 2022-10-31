@@ -2,7 +2,7 @@
 
 GENis is a software developed to compare genetic profiles from biological samples obtained at different crime or disaster scenes, thus linking events that occurred at different times and places, increasing the probability of identifying criminals, missing persons, or victims of disasters.
 
-For a detailed explanation on how to install GENis and configure the necessary software, please refer to the [GENis installation manual] (https://github.com/fundacion-sadosky/genis/files/9739746/instalacion.pdf). The following summarizes the steps for basic configuration and shows how to run the system in development and production environments. The files referred to can be found under the */utils* directory.
+For a detailed explanation on how to install GENis and configure the necessary software, please refer to the [GENis installation manual](https://github.com/fundacion-sadosky/genis/files/9739746/instalacion.pdf). The following summarizes the steps for basic configuration and shows how to run the system in development and production environments. The files referred to can be found under the */utils* directory.
 
 ## Setting up a GENis runtime environment
 GENis is developed in Scala, JRE 8 is required to run the application and JDK 8 and Sbt are required for further development.
