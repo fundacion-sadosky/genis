@@ -1,7 +1,7 @@
-**GENis versión 5.1.8.**
-Sitio oficial: http://www.fundacionsadosky.org.ar/genis/
-©2022 Fundación Manuel Sadosky.
-Licenciado bajo AGPL-3.0, puede encontrarse en 
+**GENis versión 5.1.8.**  
+Sitio oficial: http://www.fundacionsadosky.org.ar/genis/  
+©2022 Fundación Manuel Sadosky.  
+Licenciado bajo AGPL-3.0, puede encontrarse en   
 https://github.com/fundacion-sadosky/genis/blob/main/LICENSE
 
 La Coordinación General del proyecto se encuentra a cargo de Gustavo Sibilla.
