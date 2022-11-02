@@ -1,6 +1,6 @@
 # GENis 5.1.8
 
-El software GENis es una herramienta informática que permite contrastar perfiles genéticos provenientes de muestras biológicas obtenidas en distintas escenas de crimen o de desastres, vinculando así eventos ocurridos en diferente tiempo y lugar, aumentando las probabilidades de individualización de delincuentes, personas desaparecidas o víctimas de siniestros.
+El software GENis es una herramienta informática desarrollada por la [Fundación Dr. Manuel Sadosky](https://www.fundacionsadosky.org.ar) que permite contrastar perfiles genéticos provenientes de muestras biológicas obtenidas en distintas escenas de crimen o de desastres, vinculando así eventos ocurridos en diferente tiempo y lugar, aumentando las probabilidades de individualización de delincuentes, personas desaparecidas o víctimas de siniestros.
 
 Para una explicación detallada sobre como instalar GENis y configurar el software necesario consulte el [manual de instalación de GENis](https://github.com/fundacion-sadosky/genis/files/9739746/instalacion.pdf). A continuación se resumen los pasos para una configuración básica y se indica como correr el sistema en entornos de desarrollo y producción. Los archivos a los que se haga referencia pueden encontrarse bajo el directorio */utils*.
 
@@ -47,7 +47,7 @@ Crear las colecciones de configuración inicial:
 sh < "MongoSetup.sh"
 ```
 ### Datos inciales del sistema
-Luego de correr el sistema el esquema de datos ya se encuentra creado y se deben cargar los datos inciales del sistema.
+Luego de correr el sistema el esquema de datos ya se encuentra creado y se deben cargar los datos iniciales del sistema.
 ```
 sudo -u genissqladmin psql -d genisdb -f dml.sql
 ```
@@ -71,7 +71,7 @@ sbt run --java-home /usr/lib/jvm/java-8-openjdk-amd64
 En el navegador ingresar a http://localhost:9000/. 
 Si es la primera vez que corre la aplicación se le preguntará por la ejecución de los scripts de evolutions para crear el esquema de datos. Para detener la aplicación en la consola ingresar `Ctrl + C`
 
-## Distrubuír y correr GENis en producción
+## Distribuir y correr GENis en producción
 Para generar una nueva versión de GENis actualizar el nro. de versión en el archivo *build.sbt*, borrar la carpeta *target* y correr
 
 ```
@@ -113,7 +113,7 @@ Para obtener el password a partir del TOPT puede utilizar https://gauth.apps.gbr
 
 ## Otras utilidades
 Bajo */utils* se encuentran los scripts con las últimas versiones de los datos de configuración del sistema, utilidades para el mantenimiento y archivos con datos de ejemplo para para pruebas.
-EL script *cleanDatabases.sh* sirve para borrar datos transaccionales, de perfiles, matches, pedigrís, notificaciones, etc, sin afectar datos de configuración.
+El script *cleanDatabases.sh* sirve para borrar datos transaccionales, de perfiles, matches, pedigrís, notificaciones, etc, sin afectar datos de configuración.
 ```
 sudo sh cleanDatabases.sh
 ```
