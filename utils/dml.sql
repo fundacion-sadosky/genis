@@ -9,15 +9,6 @@ COPY "APP"."ANALYSIS_TYPE" ("ID", "NAME", "MITOCHONDRIAL") FROM stdin;
 4	MT	t
 \.
 
-
---
--- Data for Name: BATCH_PROTO_PROFILE; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
---
-
-COPY "APP"."BATCH_PROTO_PROFILE" ("ID", "USER", "DATE", "LABEL", "ANALYSISTYPE") FROM stdin;
-\.
-
-
 --
 -- Data for Name: BIO_MATERIAL_TYPE; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
 --
@@ -32,7 +23,6 @@ HUESO	Hueso	\N
 Textil	Textil	\N
 \.
 
-
 --
 -- Data for Name: CASE_TYPE; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
 --
@@ -41,7 +31,6 @@ COPY "APP"."CASE_TYPE" ("ID", "NAME") FROM stdin;
 MPI	MPI
 DVI	DVI
 \.
-
 
 --
 -- Data for Name: GROUP; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
@@ -55,7 +44,6 @@ PM	Muestras Post Mortem	\N
 AM_DVI	Muestras Ante Mortem DVI	\N
 PM_DVI	Muestras Post Mortem DVI	\N
 \.
-
 
 --
 -- Data for Name: CATEGORY; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
@@ -103,7 +91,6 @@ Suspect	SOSPECHOSO
 IMPUTADO	SOSPECHOSO
 \.
 
-
 --
 -- Data for Name: CATEGORY_ASSOCIATION; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
 --
@@ -111,7 +98,6 @@ IMPUTADO	SOSPECHOSO
 COPY "APP"."CATEGORY_ASSOCIATION" ("CATEGORY", "CATEGORY_RELATED", "MISMATCHS", "ID", "TYPE") FROM stdin;
 EvidenciaMezcla	VICTIMA	2	27	1
 \.
-
 
 --
 -- Data for Name: CATEGORY_CONFIGURATION; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
@@ -200,7 +186,6 @@ SOSPECHOSO	SOSPECHOSO
 VICTIMA	VICTIMA
 CondenadoMultialelico	CondenadoMultialelico
 \.
-
 
 --
 -- Data for Name: CATEGORY_MATCHING; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
@@ -517,15 +502,6 @@ EvidenciaMezcla	SOSPECHOSO	1	ModerateStringency	f	t	ENFSI	13	2	1416	1	t
 EvidenciaMezcla	SOSPECHOSO	1	ModerateStringency	f	t	ENFSI	10	0	1417	3	t
 \.
 
-
---
--- Data for Name: CONNECTION; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
---
-
-COPY "APP"."CONNECTION" ("ID", "NAME", "URL", "DELETED") FROM stdin;
-\.
-
-
 --
 -- Data for Name: COUNTRY; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
 --
@@ -533,39 +509,6 @@ COPY "APP"."CONNECTION" ("ID", "NAME", "URL", "DELETED") FROM stdin;
 COPY "APP"."COUNTRY" ("CODE", "NAME") FROM stdin;
 AR	Argentina
 \.
-
-
---
--- Data for Name: COURT_CASE; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
---
-
-COPY "APP"."COURT_CASE" ("ID", "ATTORNEY", "COURT", "ASSIGNEE", "INTERNAL_SAMPLE_CODE", "CRIME_INVOLVED", "CRIME_TYPE", "CRIMINAL_CASE", "STATUS", "CASE_TYPE") FROM stdin;
-\.
-
-
---
--- Data for Name: COURT_CASE_DATA_FILIATION; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
---
-
-COPY "APP"."COURT_CASE_DATA_FILIATION" ("ID", "ID_COURT_CASE", "FIRSTNAME", "LASTNAME", "SEX", "DATE_OF_BIRTH", "DATE_OF_BIRTH_FROM", "DATE_OF_BIRTH_TO", "DATE_OF_MISSING", "NATIONALITY", "IDENTIFICATION", "HEIGHT", "WEIGHT", "HAIRCOLOR", "SKINCOLOR", "CLOTHING", "ALIAS", "PARTICULARITIES") FROM stdin;
-\.
-
-
---
--- Data for Name: PROFILE_DATA; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
---
-
-COPY "APP"."PROFILE_DATA" ("ID", "CATEGORY", "GLOBAL_CODE", "INTERNAL_CODE", "DESCRIPTION", "ATTORNEY", "BIO_MATERIAL_TYPE", "COURT", "CRIME_INVOLVED", "CRIME_TYPE", "CRIMINAL_CASE", "INTERNAL_SAMPLE_CODE", "ASSIGNEE", "LABORATORY", "PROFILE_EXPIRATION_DATE", "RESPONSIBLE_GENETICIST", "SAMPLE_DATE", "SAMPLE_ENTRY_DATE", "DELETED", "DELETED_SOLICITOR", "DELETED_MOTIVE") FROM stdin;
-\.
-
-
---
--- Data for Name: COURT_CASE_PROFILE; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
---
-
-COPY "APP"."COURT_CASE_PROFILE" ("ID_COURT_CASE", "GLOBAL_CODE", "PROFILE_TYPE", "GROUPED_BY") FROM stdin;
-\.
-
 
 --
 -- Data for Name: CRIME_TYPE; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
@@ -586,7 +529,6 @@ PROPIEDAD	Contra la Propiedad	\N
 SEG_NACION	Contra la Seguridad de la Nación	\N
 SEG_PUBLICA	Contra la Seguridad Publica	\N
 \.
-
 
 --
 -- Data for Name: CRIME_INVOLVED; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
@@ -612,23 +554,6 @@ FALSIFICACION	FE_PUBLICA	Falsificación de Moneda	\N
 OPERACION	ORDEN_ECO_FINANCIERO	Operación con Bienes Ilegales	\N
 \.
 
-
---
--- Data for Name: DISCLAIMER; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
---
-
-COPY "APP"."DISCLAIMER" ("ID", "TEXT") FROM stdin;
-\.
-
-
---
--- Data for Name: EXTERNAL_PROFILE_DATA; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
---
-
-COPY "APP"."EXTERNAL_PROFILE_DATA" ("ID", "LABORATORY_INSTANCE_ORIGIN", "LABORATORY_INSTANCE_INMEDIATE") FROM stdin;
-\.
-
-
 --
 -- Data for Name: INFERIOR_INSTANCE_PROFILE_STATUS; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
 --
@@ -652,16 +577,6 @@ COPY "APP"."INFERIOR_INSTANCE_PROFILE_STATUS" ("ID", "STATUS") FROM stdin;
 16	File Sent
 \.
 
-
---
--- Data for Name: FILE_SENT; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
---
-
-COPY "APP"."FILE_SENT" ("ID", "TARGET_LAB", "STATUS", "DATE", "FILE_TYPE") FROM stdin;
-\.
-
-
---
 -- Data for Name: PROVINCE; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
 --
 
@@ -692,23 +607,6 @@ V	Tierra del Fuego	AR
 T	Tucumán	AR
 \.
 
-
---
--- Data for Name: LABORATORY; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
---
-
-COPY "APP"."LABORATORY" ("CODE_NAME", "NAME", "COUNTRY", "PROVINCE", "ADDRESS", "TELEPHONE", "CONTACT_EMAIL", "DROP_IN", "DROP_OUT") FROM stdin;
-\.
-
-
---
--- Data for Name: GENETICIST; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
---
-
-COPY "APP"."GENETICIST" ("ID", "LABORATORY", "NAME", "LASTNAME", "EMAIL", "TELEPHONE") FROM stdin;
-\.
-
-
 --
 -- Data for Name: INSTANCE_STATUS; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
 --
@@ -718,15 +616,6 @@ COPY "APP"."INSTANCE_STATUS" ("ID", "STATUS") FROM stdin;
 2	Aprobada
 3	Desaprobada
 \.
-
-
---
--- Data for Name: INFERIOR_INSTANCE; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
---
-
-COPY "APP"."INFERIOR_INSTANCE" ("ID", "URL", "LABORATORY", "STATUS") FROM stdin;
-\.
-
 
 --
 -- Data for Name: LOCUS; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
@@ -808,7 +697,6 @@ DYS19	DYS19	Y	1	1	3	f	10.0	19.0
 DYF387S1	DYF387S1	Y	1	3	3	f	30.0	44.0
 \.
 
-
 --
 -- Data for Name: LOCUS_ALIAS; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
 --
@@ -826,39 +714,6 @@ DYS389 II	DYS389II
 DYS385ab	DYS385
 DYS387S1	DYF387S1
 \.
-
-
---
--- Data for Name: LOCUS_ALLELE; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
---
-
-COPY "APP"."LOCUS_ALLELE" ("ID", "LOCUS", "ALLELE") FROM stdin;
-\.
-
-
---
--- Data for Name: LOCUS_LINK; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
---
-
-COPY "APP"."LOCUS_LINK" ("ID", "LOCUS", "LINK", "FACTOR", "DISTANCE") FROM stdin;
-\.
-
-
---
--- Data for Name: MATCH_SEND_STATUS; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
---
-
-COPY "APP"."MATCH_SEND_STATUS" ("ID", "TARGET_LAB", "MESSAGE", "STATUS", "DATE") FROM stdin;
-\.
-
-
---
--- Data for Name: MATCH_UPDATE_SEND_STATUS; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
---
-
-COPY "APP"."MATCH_UPDATE_SEND_STATUS" ("ID", "TARGET_LAB", "MESSAGE", "STATUS", "DATE") FROM stdin;
-\.
-
 
 --
 -- Data for Name: MITOCHONDRIAL_RCRS; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
@@ -17436,7 +17291,6 @@ COPY "APP"."MITOCHONDRIAL_RCRS" ("POSITION", "BASE") FROM stdin;
 16569	G
 \.
 
-
 --
 -- Data for Name: MOTIVE_TYPE; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
 --
@@ -17445,7 +17299,6 @@ COPY "APP"."MOTIVE_TYPE" ("ID", "DESCRIPTION") FROM stdin;
 1	Rechazo de perfil
 2	Baja de perfil
 \.
-
 
 --
 -- Data for Name: MOTIVE; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
@@ -17457,7 +17310,6 @@ COPY "APP"."MOTIVE" ("ID", "MOTIVE_TYPE", "DESCRIPTION", "FREE_TEXT", "DELETED")
 3	1	Inválido	f	f
 4	2	Solicitud por oficio judicial	f	f
 \.
-
 
 --
 -- Data for Name: MUTATION_DEFAULT_PARAMETER; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
@@ -17520,7 +17372,6 @@ COPY "APP"."MUTATION_DEFAULT_PARAMETER" ("ID", "LOCUS", "SEX", "MUTATION_RATE") 
 54	ACTBP2	I	0.00640000
 \.
 
-
 --
 -- Data for Name: MUTATION_MODEL_TYPE; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
 --
@@ -17530,55 +17381,6 @@ COPY "APP"."MUTATION_MODEL_TYPE" ("ID", "DESCRIPTION") FROM stdin;
 2	Stepwise
 3	Stepwise extended
 \.
-
-
---
--- Data for Name: MUTATION_MODEL; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
---
-
-COPY "APP"."MUTATION_MODEL" ("ID", "NAME", "MUTATION_MODEL_TYPE", "ACTIVE", "IGNORE_SEX", "CANT_SALTOS") FROM stdin;
-\.
-
-
---
--- Data for Name: MUTATION_MODEL_PARAMETER; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
---
-
-COPY "APP"."MUTATION_MODEL_PARAMETER" ("ID", "ID_MUTATION_MODEL", "LOCUS", "SEX", "MUTATION_RATE", "MUTATION_RANGE", "MUTATION_RATE_MICROVARIANT") FROM stdin;
-\.
-
-
---
--- Data for Name: MUTATION_MODEL_KI; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
---
-
-COPY "APP"."MUTATION_MODEL_KI" ("ID", "ID_MUTATION_MODEL_PARAMETER", "ALLELE", "KI") FROM stdin;
-\.
-
-
---
--- Data for Name: NOTIFICATION; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
---
-
-COPY "APP"."NOTIFICATION" ("ID", "USER", "KIND", "INFO", "CREATION_DATE", "UPDATE_DATE", "PENDING", "FLAGGED") FROM stdin;
-\.
-
-
---
--- Data for Name: PEDIGREE; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
---
-
-COPY "APP"."PEDIGREE" ("ID", "ID_COURT_CASE", "NAME", "CREATION_DATE", "STATUS", "ASSIGNEE", "CONSISTENCY_RUN") FROM stdin;
-\.
-
-
---
--- Data for Name: PEDCHECK; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
---
-
-COPY "APP"."PEDCHECK" ("ID", "ID_PEDIGREE", "LOCUS", "GLOBAL_CODE") FROM stdin;
-\.
-
 
 --
 -- Data for Name: POPULATION_BASE_FREQUENCY_NAME; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
@@ -17981,55 +17783,6 @@ COPY "APP"."POPULATION_BASE_FREQUENCY" ("ID", "BASE_NAME", "MARKER", "ALLELE", "
 385	1	D21S11	-1	0.00250000
 386	1	PentaE	-1	0.00250000
 \.
-
-
---
--- Data for Name: PROFILE_DATA_FILIATION; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
---
-
-COPY "APP"."PROFILE_DATA_FILIATION" ("ID", "PROFILE_DATA", "FULL_NAME", "NICKNAME", "BIRTHDAY", "BIRTH_PLACE", "NATIONALITY", "IDENTIFICATION", "IDENTIFICATION_ISSUING_AUTHORITY", "ADDRESS") FROM stdin;
-\.
-
-
---
--- Data for Name: PROFILE_DATA_FILIATION_RESOURCES; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
---
-
-COPY "APP"."PROFILE_DATA_FILIATION_RESOURCES" ("ID", "PROFILE_DATA_FILIATION", "RESOURCE", "RESOURCE_TYPE") FROM stdin;
-\.
-
-
---
--- Data for Name: PROFILE_DATA_MOTIVE; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
---
-
-COPY "APP"."PROFILE_DATA_MOTIVE" ("ID", "ID_PROFILE_DATA", "DELETED_DATE", "ID_DELETED_MOTIVE") FROM stdin;
-\.
-
-
---
--- Data for Name: PROFILE_SENT; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
---
-
-COPY "APP"."PROFILE_SENT" ("ID", "LABCODE", "GLOBAL_CODE", "STATUS", "MOTIVE") FROM stdin;
-\.
-
-
---
--- Data for Name: PROFILE_UPLOADED; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
---
-
-COPY "APP"."PROFILE_UPLOADED" ("ID", "GLOBAL_CODE", "STATUS", "MOTIVE") FROM stdin;
-\.
-
-
---
--- Data for Name: PROTO_PROFILE; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
---
-
-COPY "APP"."PROTO_PROFILE" ("ID", "SAMPLE_NAME", "ID_BATCH", "ASSIGNEE", "CATEGORY", "STATUS", "PANEL", "ERRORS", "GENOTYPIFICATIONS", "MATCHING_RULES", "MISMATCHS", "REJECT_MOTIVE", "PREEXISTENCE", "GENEMAPPER_LINE", "ID_REJECT_MOTIVE", "REJECTION_USER", "REJECTION_DATE") FROM stdin;
-\.
-
 
 --
 -- Data for Name: STRKIT; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
@@ -18647,42 +18400,10 @@ PFAKit	AMEL	\N	10
 
 
 --
--- Data for Name: SUPERIOR_INSTANCE_PROFILE_APPROVAL; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
---
-
-COPY "APP"."SUPERIOR_INSTANCE_PROFILE_APPROVAL" ("ID", "GLOBAL_CODE", "PROFILE", "LABORATORY", "LABORATORY_INSTANCE_ORIGIN", "LABORATORY_INSTANCE_INMEDIATE", "SAMPLE_ENTRY_DATE", "RECEPTION_DATE", "ERRORS", "REJECTION_USER", "REJECTION_DATE", "ID_REJECT_MOTIVE", "REJECT_MOTIVE", "DELETED", "PROFILE_ASSOCIATED") FROM stdin;
-\.
-
-
---
--- Data for Name: TRACE; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
---
-
-COPY "APP"."TRACE" ("ID", "PROFILE", "USER", "DATE", "TRACE", "KIND") FROM stdin;
-\.
-
-
---
--- Data for Name: TRACE_PEDIGREE; Type: TABLE DATA; Schema: APP; Owner: genissqladmin
---
-
-COPY "APP"."TRACE_PEDIGREE" ("ID", "PEDIGREE", "USER", "DATE", "TRACE", "KIND") FROM stdin;
-\.
-
-
---
 -- Name: ANALYSIS_TYPE_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
 --
 
 SELECT pg_catalog.setval('"APP"."ANALYSIS_TYPE_ID_seq"', 4, true);
-
-
---
--- Name: BATCH_PROTO_PROFILE_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
---
-
-SELECT pg_catalog.setval('"APP"."BATCH_PROTO_PROFILE_ID_seq"', 278, true);
-
 
 --
 -- Name: CATEGORY_ASSOCIATION_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
@@ -18690,13 +18411,11 @@ SELECT pg_catalog.setval('"APP"."BATCH_PROTO_PROFILE_ID_seq"', 278, true);
 
 SELECT pg_catalog.setval('"APP"."CATEGORY_ASSOCIATION_ID_seq"', 27, true);
 
-
 --
 -- Name: CATEGORY_CONFIGURATION_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
 --
 
 SELECT pg_catalog.setval('"APP"."CATEGORY_CONFIGURATION_ID_seq"', 544, true);
-
 
 --
 -- Name: CATEGORY_MATCHING_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
@@ -18704,111 +18423,11 @@ SELECT pg_catalog.setval('"APP"."CATEGORY_CONFIGURATION_ID_seq"', 544, true);
 
 SELECT pg_catalog.setval('"APP"."CATEGORY_MATCHING_ID_seq"', 1417, true);
 
-
---
--- Name: CONNECTION_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
---
-
-SELECT pg_catalog.setval('"APP"."CONNECTION_ID_seq"', 1, false);
-
-
---
--- Name: COURT_CASE_DATA_FILIATION_ID_COURT_CASE_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
---
-
-SELECT pg_catalog.setval('"APP"."COURT_CASE_DATA_FILIATION_ID_COURT_CASE_seq"', 1, false);
-
-
---
--- Name: COURT_CASE_DATA_FILIATION_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
---
-
-SELECT pg_catalog.setval('"APP"."COURT_CASE_DATA_FILIATION_ID_seq"', 1, false);
-
-
---
--- Name: COURT_CASE_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
---
-
-SELECT pg_catalog.setval('"APP"."COURT_CASE_ID_seq"', 1, true);
-
-
---
--- Name: DISCLAIMER_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
---
-
-SELECT pg_catalog.setval('"APP"."DISCLAIMER_ID_seq"', 1, false);
-
-
---
--- Name: EXTERNAL_PROFILE_DATA_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
---
-
-SELECT pg_catalog.setval('"APP"."EXTERNAL_PROFILE_DATA_ID_seq"', 1, false);
-
-
---
--- Name: GENETICIST_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
---
-
-SELECT pg_catalog.setval('"APP"."GENETICIST_ID_seq"', 1, false);
-
-
---
--- Name: INFERIOR_INSTANCE_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
---
-
-SELECT pg_catalog.setval('"APP"."INFERIOR_INSTANCE_ID_seq"', 3, true);
-
-
---
--- Name: INFERIOR_INSTANCE_PROFILE_STATUS_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
---
-
-SELECT pg_catalog.setval('"APP"."INFERIOR_INSTANCE_PROFILE_STATUS_ID_seq"', 1, false);
-
-
---
--- Name: INSTANCE_STATUS_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
---
-
-SELECT pg_catalog.setval('"APP"."INSTANCE_STATUS_ID_seq"', 1, false);
-
-
---
--- Name: LOCUS_ALLELE_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
---
-
-SELECT pg_catalog.setval('"APP"."LOCUS_ALLELE_ID_seq"', 281, true);
-
-
---
--- Name: LOCUS_LINK_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
---
-
-SELECT pg_catalog.setval('"APP"."LOCUS_LINK_ID_seq"', 1, false);
-
-
 --
 -- Name: MOTIVE_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
 --
 
 SELECT pg_catalog.setval('"APP"."MOTIVE_ID_seq"', 4, true);
-
-
---
--- Name: MOTIVE_MOTIVE_TYPE_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
---
-
-SELECT pg_catalog.setval('"APP"."MOTIVE_MOTIVE_TYPE_seq"', 1, false);
-
-
---
--- Name: MOTIVE_TYPE_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
---
-
-SELECT pg_catalog.setval('"APP"."MOTIVE_TYPE_ID_seq"', 1, false);
-
 
 --
 -- Name: MUTATION_DEFAULT_PARAMETER_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
@@ -18816,62 +18435,11 @@ SELECT pg_catalog.setval('"APP"."MOTIVE_TYPE_ID_seq"', 1, false);
 
 SELECT pg_catalog.setval('"APP"."MUTATION_DEFAULT_PARAMETER_ID_seq"', 54, true);
 
-
---
--- Name: MUTATION_MODEL_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
---
-
-SELECT pg_catalog.setval('"APP"."MUTATION_MODEL_ID_seq"', 1, false);
-
-
---
--- Name: MUTATION_MODEL_KI_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
---
-
-SELECT pg_catalog.setval('"APP"."MUTATION_MODEL_KI_ID_seq"', 1, false);
-
-
---
--- Name: MUTATION_MODEL_PARAMETER_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
---
-
-SELECT pg_catalog.setval('"APP"."MUTATION_MODEL_PARAMETER_ID_seq"', 1, false);
-
-
---
--- Name: MUTATION_MODEL_TYPE_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
---
-
-SELECT pg_catalog.setval('"APP"."MUTATION_MODEL_TYPE_ID_seq"', 1, false);
-
-
---
--- Name: NOTIFICATION_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
---
-
-SELECT pg_catalog.setval('"APP"."NOTIFICATION_ID_seq"', 14501, true);
-
-
---
--- Name: PEDCHECK_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
---
-
-SELECT pg_catalog.setval('"APP"."PEDCHECK_ID_seq"', 1, false);
-
-
---
--- Name: PEDIGREE_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
---
-
-SELECT pg_catalog.setval('"APP"."PEDIGREE_ID_seq"', 1, false);
-
-
 --
 -- Name: POPULATION_BASE_FREQUENCY_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
 --
 
 SELECT pg_catalog.setval('"APP"."POPULATION_BASE_FREQUENCY_ID_seq"', 386, true);
-
 
 --
 -- Name: POPULATION_BASE_FREQUENCY_NAME_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
@@ -18879,94 +18447,27 @@ SELECT pg_catalog.setval('"APP"."POPULATION_BASE_FREQUENCY_ID_seq"', 386, true);
 
 SELECT pg_catalog.setval('"APP"."POPULATION_BASE_FREQUENCY_NAME_ID_seq"', 1, true);
 
-
 --
--- Name: PROFILE_DATA_FILIATION_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
---
-
-SELECT pg_catalog.setval('"APP"."PROFILE_DATA_FILIATION_ID_seq"', 505, true);
-
-
---
--- Name: PROFILE_DATA_FILIATION_RESOURCES_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
+-- Name: INSTANCE_STATUS_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
 --
 
-SELECT pg_catalog.setval('"APP"."PROFILE_DATA_FILIATION_RESOURCES_ID_seq"', 1, false);
-
-
---
--- Name: PROFILE_DATA_GLOBAL_CODE_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
---
-
-SELECT pg_catalog.setval('"APP"."PROFILE_DATA_GLOBAL_CODE_seq"', 2273, true);
-
+SELECT pg_catalog.setval('"APP"."INSTANCE_STATUS_ID_seq"', 3, true);
 
 --
--- Name: PROFILE_DATA_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
+-- Name: INFERIOR_INSTANCE_PROFILE_STATUS_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
 --
 
-SELECT pg_catalog.setval('"APP"."PROFILE_DATA_ID_seq"', 2830, true);
-
-
---
--- Name: PROFILE_DATA_MOTIVE_ID_DELETED_MOTIVE_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
---
-
-SELECT pg_catalog.setval('"APP"."PROFILE_DATA_MOTIVE_ID_DELETED_MOTIVE_seq"', 1, false);
-
+SELECT pg_catalog.setval('"APP"."INFERIOR_INSTANCE_PROFILE_STATUS_ID_seq"', 16, true);
 
 --
--- Name: PROFILE_DATA_MOTIVE_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
+-- Name: MOTIVE_TYPE_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
 --
 
-SELECT pg_catalog.setval('"APP"."PROFILE_DATA_MOTIVE_ID_seq"', 22, true);
-
-
---
--- Name: PROFILE_SENT_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
---
-
-SELECT pg_catalog.setval('"APP"."PROFILE_SENT_ID_seq"', 1, false);
-
+SELECT pg_catalog.setval('"APP"."MOTIVE_TYPE_ID_seq"', 2, true);
 
 --
--- Name: PROFILE_UPLOADED_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
+-- Name: MUTATION_MODEL_TYPE_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
 --
 
-SELECT pg_catalog.setval('"APP"."PROFILE_UPLOADED_ID_seq"', 1, false);
-
-
---
--- Name: PROTO_PROFILE_DATA_GLOBAL_CODE_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
---
-
-SELECT pg_catalog.setval('"APP"."PROTO_PROFILE_DATA_GLOBAL_CODE_seq"', 1100, false);
-
-
---
--- Name: PROTO_PROFILE_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
---
-
-SELECT pg_catalog.setval('"APP"."PROTO_PROFILE_ID_seq"', 4250, true);
-
-
---
--- Name: SUPERIOR_INSTANCE_PROFILE_APPROVAL_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
---
-
-SELECT pg_catalog.setval('"APP"."SUPERIOR_INSTANCE_PROFILE_APPROVAL_ID_seq"', 786, true);
-
-
---
--- Name: TRACE_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
---
-
-SELECT pg_catalog.setval('"APP"."TRACE_ID_seq"', 4423, true);
-
-
---
--- Name: TRACE_PEDIGREE_ID_seq; Type: SEQUENCE SET; Schema: APP; Owner: genissqladmin
---
-
-SELECT pg_catalog.setval('"APP"."TRACE_PEDIGREE_ID_seq"', 1, false);
+SELECT pg_catalog.setval('"APP"."MUTATION_MODEL_TYPE_ID_seq"',3, true);
 
