@@ -4,6 +4,8 @@ El software GENis es una herramienta informática desarrollada por la [Fundació
 
 Para una explicación detallada sobre como instalar GENis y configurar el software necesario consulte el [manual de instalación de GENis](https://github.com/fundacion-sadosky/genis/files/9739746/instalacion.pdf). A continuación se resumen los pasos para una configuración básica y se indica como correr el sistema en entornos de desarrollo y producción. Los archivos a los que se haga referencia pueden encontrarse bajo el directorio */utils*.
 
+Para informarse sobre el funcionamiento del sistema consulte el [manual de usuario de GENis](https://github.com/fundacion-sadosky/genis/files/9739748/manual.pdf).
+
 ## Configurar un entorno de ejecución de GENis
 
 GENis está desarrollado en Scala, para correr la aplicación se requiere JRE 8 y para continuar su desarrollo JDK 8 y Sbt.
