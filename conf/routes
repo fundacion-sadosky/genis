@@ -9,6 +9,7 @@ GET      /status                                              @controllers.Statu
 
 GET      /categoryTree                                        @controllers.Categories.categoryTree
 GET      /categories                                          @controllers.Categories.list
+GET      /categoriesWithProfiles                              @controllers.Categories.listWithProfiles
 
 GET      /categoryTreeManualLoading                           @controllers.Categories.categoryTreeManualLoading
 

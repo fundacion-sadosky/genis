@@ -1070,44 +1070,44 @@ trait Tables {
    *  @param profileData Database column PROFILE_DATA DBType(VARCHAR), Length(100,true)
    *  @param fullName Database column FULL_NAME DBType(VARCHAR), Length(150,true)
    *  @param nickname Database column NICKNAME DBType(VARCHAR), Length(150,true)
-   *  @param birthday Database column BIRTHDAY DBType(DATE)
-   *  @param birthPlace Database column BIRTH_PLACE DBType(VARCHAR), Length(100,true)
-   *  @param nationality Database column NATIONALITY DBType(VARCHAR), Length(50,true)
+   *  @param birthday Database column BIRTHDAY DBType(DATE), Default(None)
+   *  @param birthPlace Database column BIRTH_PLACE DBType(VARCHAR), Length(100,true), Default(None)
+   *  @param nationality Database column NATIONALITY DBType(VARCHAR), Length(50,true), Default(None)
    *  @param identification Database column IDENTIFICATION DBType(VARCHAR), Length(100,true)
    *  @param identificationIssuingAuthority Database column IDENTIFICATION_ISSUING_AUTHORITY DBType(VARCHAR), Length(100,true)
    *  @param address Database column ADDRESS DBType(VARCHAR), Length(100,true) */
-  case class ProfileDataFiliationRow(id: Long, profileData: String, fullName: String, nickname: String, birthday: java.sql.Date, birthPlace: String, nationality: String, identification: String, identificationIssuingAuthority: String, address: String)
+  case class ProfileDataFiliationRow(id: Long, profileData: String, fullName: Option[String], nickname: Option[String], birthday: Option[java.sql.Date]=None, birthPlace: Option[String], nationality: Option[String], identification: Option[String], identificationIssuingAuthority: Option[String], address: Option[String])
   /** GetResult implicit for fetching ProfileDataFiliationRow objects using plain SQL queries */
   implicit def GetResultProfileDataFiliationRow(implicit e0: GR[Long], e1: GR[String], e2: GR[java.sql.Date]): GR[ProfileDataFiliationRow] = GR{
     prs => import prs._
-    ProfileDataFiliationRow.tupled((<<[Long], <<[String], <<[String], <<[String], <<[java.sql.Date], <<[String], <<[String], <<[String], <<[String], <<[String]))
+    ProfileDataFiliationRow.tupled((<<[Long], <<[String], <<?[String], <<?[String], <<?[java.sql.Date], <<?[String], <<?[String], <<?[String], <<?[String], <<?[String]))
   }
   /** Table description of table PROFILE_DATA_FILIATION. Objects of this class serve as prototypes for rows in queries. */
   class ProfileDataFiliation(_tableTag: Tag, schema: Option[String], tableName: String) extends Table[ProfileDataFiliationRow](_tableTag, schema, tableName) {
     def * = (id, profileData, fullName, nickname, birthday, birthPlace, nationality, identification, identificationIssuingAuthority, address) <> (ProfileDataFiliationRow.tupled, ProfileDataFiliationRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = (id.?, profileData.?, fullName.?, nickname.?, birthday.?, birthPlace.?, nationality.?, identification.?, identificationIssuingAuthority.?, address.?).shaped.<>({r=>import r._; _1.map(_=> ProfileDataFiliationRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get, _7.get, _8.get, _9.get, _10.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? = (id.?, profileData.?, fullName, nickname, birthday, birthPlace, nationality, identification, identificationIssuingAuthority, address).shaped.<>({r=>import r._; _1.map(_=> ProfileDataFiliationRow.tupled((_1.get, _2.get, _3, _4, _5, _6, _7, _8, _9, _10)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
     
     /** Database column ID DBType(BIGINT), AutoInc, PrimaryKey */
     val id: Column[Long] = column[Long]("ID", O.AutoInc, O.PrimaryKey)
     /** Database column PROFILE_DATA DBType(VARCHAR), Length(100,true) */
     val profileData: Column[String] = column[String]("PROFILE_DATA", O.Length(100,varying=true))
     /** Database column FULL_NAME DBType(VARCHAR), Length(150,true) */
-    val fullName: Column[String] = column[String]("FULL_NAME", O.Length(150,varying=true))
+    val fullName: Column[Option[String]] = column[Option[String]]("FULL_NAME", O.Length(150,varying=true), O.Default(None))
     /** Database column NICKNAME DBType(VARCHAR), Length(150,true) */
-    val nickname: Column[String] = column[String]("NICKNAME", O.Length(150,varying=true))
+    val nickname: Column[Option[String]]= column[Option[String]]("NICKNAME", O.Length(150,varying=true), O.Default(None))
     /** Database column BIRTHDAY DBType(DATE) */
-    val birthday: Column[java.sql.Date] = column[java.sql.Date]("BIRTHDAY")
+    val birthday: Column[Option[java.sql.Date]] = column[Option[java.sql.Date]]("BIRTHDAY", O.Default(None))
     /** Database column BIRTH_PLACE DBType(VARCHAR), Length(100,true) */
-    val birthPlace: Column[String] = column[String]("BIRTH_PLACE", O.Length(100,varying=true))
+    val birthPlace: Column[Option[String]] = column[Option[String]]("BIRTH_PLACE", O.Length(100,varying=true), O.Default(None))
     /** Database column NATIONALITY DBType(VARCHAR), Length(50,true) */
-    val nationality: Column[String] = column[String]("NATIONALITY", O.Length(50,varying=true))
+    val nationality: Column[Option[String]] = column[Option[String]]("NATIONALITY", O.Length(50,varying=true), O.Default(None))
     /** Database column IDENTIFICATION DBType(VARCHAR), Length(100,true) */
-    val identification: Column[String] = column[String]("IDENTIFICATION", O.Length(100,varying=true))
+    val identification: Column[Option[String]] = column[Option[String]]("IDENTIFICATION", O.Length(100,varying=true), O.Default(None))
     /** Database column IDENTIFICATION_ISSUING_AUTHORITY DBType(VARCHAR), Length(100,true) */
-    val identificationIssuingAuthority: Column[String] = column[String]("IDENTIFICATION_ISSUING_AUTHORITY", O.Length(100,varying=true))
+    val identificationIssuingAuthority: Column[Option[String]] = column[Option[String]]("IDENTIFICATION_ISSUING_AUTHORITY", O.Length(100,varying=true), O.Default(None))
     /** Database column ADDRESS DBType(VARCHAR), Length(100,true) */
-    val address: Column[String] = column[String]("ADDRESS", O.Length(100,varying=true))
+    val address: Column[Option[String]] = column[Option[String]]("ADDRESS", O.Length(100,varying=true), O.Default(None))
     
     /** Foreign key referencing ProfileData (database name PROFILE_DATA_FILIATION_FK) */
     lazy val profileDataFk = foreignKey("PROFILE_DATA_FILIATION_FK", profileData, ProfileData)(r => r.globalCode, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Restrict)

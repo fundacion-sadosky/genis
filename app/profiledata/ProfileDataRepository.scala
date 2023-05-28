@@ -84,7 +84,7 @@ abstract class ProfileDataRepository extends DefaultDb with Transaction  {
    *
    */
   def getTotalProfilesByUser(search: ProfileDataSearch): Future[Int]
-  def getTotalProfilesByUser(userId : String, isSuperUser : Boolean): Future[Int]
+  def getTotalProfilesByUser(userId : String, isSuperUser : Boolean, category:String=""): Future[Int]
   def getProfilesByUser(search: ProfileDataSearch): Future[Seq[ProfileDataFull]]
   def giveGlobalCode(labCode: String): Future[String]
   def isDeleted(globalCode: SampleCode): Future[Option[Boolean]]
@@ -225,13 +225,28 @@ class SlickProfileDataRepository @Inject() (implicit app: Application) extends P
     if ((isSuperUser || pd.assignee === userId) && ((pd.deleted && inactive) || (!pd.deleted && active)))
   } yield (pd,pdu.?,epd.?)).sortBy(_._1.globalCode.desc)
 
+  private def queryDefineGetProfileDataByUserAndStatusAndCategory(userId: Column[String], isSuperUser: Column[Boolean],
+                                                       active: Column[Boolean], inactive: Column[Boolean], category: Column[String]) = (for {
+    ((pd,pdu),epd) <- profilesData leftJoin(profileUploaded) on(_.id === _.id) leftJoin externalProfileDataTable on (_._1.id === _.id)
+    if ((isSuperUser || pd.assignee === userId) && ((pd.deleted && inactive) || (!pd.deleted && active)) && (pd.category===category))
+  } yield (pd,pdu.?,epd.?)).sortBy(_._1.globalCode.desc)
+
   private def queryDefineGetProfileDataByUser(userId: Column[String], isSuperUser: Column[Boolean]) = (for {
     (pd) <- profilesData if (isSuperUser || pd.assignee === userId)
   } yield (pd)).sortBy(_.globalCode.desc)
 
+  private def queryDefineGetProfileDataByUserAndCategory(userId: Column[String], isSuperUser: Column[Boolean], category: Column[String]) = (for {
+    (pd) <- profilesData if ((isSuperUser || pd.assignee === userId) && (pd.category===category))
+  } yield (pd)).sortBy(_.globalCode.desc)
+
   val queryGetProfileDataByUserAndStatus = Compiled(queryDefineGetProfileDataByUserAndStatus _)
 
+  val queryGetProfileDataByUserAndStatusAndCategory = Compiled(queryDefineGetProfileDataByUserAndStatusAndCategory _)
+
   val queryGetProfileDataByUser = Compiled(queryDefineGetProfileDataByUser _)
+
+  val queryGetProfileDataByUserAndCategory = Compiled(queryDefineGetProfileDataByUserAndCategory _)
+
 
   override def isDeleted(globalCode: SampleCode): Future[Option[Boolean]] = Future {
     DB.withSession { implicit session =>
@@ -241,20 +256,37 @@ class SlickProfileDataRepository @Inject() (implicit app: Application) extends P
 
   override def getProfilesByUser(search: ProfileDataSearch): Future[Seq[ProfileDataFull]] = Future {
     if(search.notUploaded.contains(true)){
-      DB.withSession { implicit session =>
-        queryGetProfileDataByUserAndStatus(search.userId, search.isSuperUser, search.active, search.inactive)
-          .list.filter(_._2.isEmpty).drop(search.page * search.pageSize).take(search.pageSize).iterator.toVector map {
-          case (pd,pdu,epd) =>
-            ProfileDataFull(AlphanumericId(pd.category),
-              SampleCode(pd.globalCode), pd.attorney, pd.bioMaterialType,
-              pd.court, pd.crimeInvolved, pd.crimeType, pd.criminalCase,
-              pd.internalSampleCode, pd.assignee, pd.laboratory, pd.deleted, None,
-              pd.responsibleGeneticist, pd.profileExpirationDate, pd.sampleDate,
-              pd.sampleEntryDate, None,pdu.isDefined,epd.isDefined)
+      if(search.category.isEmpty) {
+        DB.withSession { implicit session =>
+          queryGetProfileDataByUserAndStatus(search.userId, search.isSuperUser, search.active, search.inactive)
+            .list.filter(_._2.isEmpty).drop(search.page * search.pageSize).take(search.pageSize).iterator.toVector map {
+            case (pd,pdu,epd) =>
+              ProfileDataFull(AlphanumericId(pd.category),
+                SampleCode(pd.globalCode), pd.attorney, pd.bioMaterialType,
+                pd.court, pd.crimeInvolved, pd.crimeType, pd.criminalCase,
+                pd.internalSampleCode, pd.assignee, pd.laboratory, pd.deleted, None,
+                pd.responsibleGeneticist, pd.profileExpirationDate, pd.sampleDate,
+                pd.sampleEntryDate, None,pdu.isDefined,epd.isDefined)
+          }
+        }
+      }else{
+        DB.withSession { implicit session =>
+          queryGetProfileDataByUserAndStatusAndCategory(search.userId, search.isSuperUser, search.active, search.inactive,search.category)
+            .list.filter(_._2.isEmpty).drop(search.page * search.pageSize).take(search.pageSize).iterator.toVector map {
+            case (pd,pdu,epd) =>
+              ProfileDataFull(AlphanumericId(pd.category),
+                SampleCode(pd.globalCode), pd.attorney, pd.bioMaterialType,
+                pd.court, pd.crimeInvolved, pd.crimeType, pd.criminalCase,
+                pd.internalSampleCode, pd.assignee, pd.laboratory, pd.deleted, None,
+                pd.responsibleGeneticist, pd.profileExpirationDate, pd.sampleDate,
+                pd.sampleEntryDate, None,pdu.isDefined,epd.isDefined)
+          }
         }
       }
-    }else{
-      DB.withSession { implicit session =>
+    }
+    else{
+      if(search.category.isEmpty) {
+        DB.withSession { implicit session =>
         queryGetProfileDataByUserAndStatus(search.userId, search.isSuperUser, search.active, search.inactive)
           .list.drop(search.page * search.pageSize).take(search.pageSize).iterator.toVector map {
           case (pd,pdu,epd) =>
@@ -266,27 +298,58 @@ class SlickProfileDataRepository @Inject() (implicit app: Application) extends P
               pd.sampleEntryDate, None,pdu.isDefined,epd.isDefined)
         }
       }
+    }else{
+        DB.withSession { implicit session =>
+          queryGetProfileDataByUserAndStatusAndCategory(search.userId, search.isSuperUser, search.active, search.inactive,search.category)
+            .list.drop(search.page * search.pageSize).take(search.pageSize).iterator.toVector map {
+            case (pd,pdu,epd) =>
+              ProfileDataFull(AlphanumericId(pd.category),
+                SampleCode(pd.globalCode), pd.attorney, pd.bioMaterialType,
+                pd.court, pd.crimeInvolved, pd.crimeType, pd.criminalCase,
+                pd.internalSampleCode, pd.assignee, pd.laboratory, pd.deleted, None,
+                pd.responsibleGeneticist, pd.profileExpirationDate, pd.sampleDate,
+                pd.sampleEntryDate, None,pdu.isDefined,epd.isDefined)
+          }
+        }
+      }
     }
   }
 
   override def getTotalProfilesByUser(search: ProfileDataSearch): Future[Int] = Future {
     if(search.notUploaded.contains(true)){
+      if(search.category.isEmpty) {
+        DB.withSession { implicit session =>
+          queryGetProfileDataByUserAndStatus(search.userId, search.isSuperUser, search.active, search.inactive).list.filter(_._2.isEmpty).length
+        }
+      }else{
+        DB.withSession { implicit session =>
+          queryGetProfileDataByUserAndStatusAndCategory(search.userId, search.isSuperUser, search.active, search.inactive, search.category).list.filter(_._2.isEmpty).length
+        }
+      }
+    }else{
+      if(search.category.isEmpty) {
+        DB.withSession { implicit session =>
+          queryGetProfileDataByUserAndStatus(search.userId, search.isSuperUser, search.active, search.inactive).list.length
+        }
+      }else{
+        DB.withSession { implicit session =>
+          queryGetProfileDataByUserAndStatusAndCategory(search.userId, search.isSuperUser, search.active, search.inactive, search.category).list.length
+        }
+      }
+    }
+  }
+
+  override def getTotalProfilesByUser(userId : String, isSuperUser : Boolean, category: String=""): Future[Int] = Future {
+    if (category.isEmpty){
       DB.withSession { implicit session =>
-        queryGetProfileDataByUserAndStatus(search.userId, search.isSuperUser, search.active, search.inactive).list.filter(_._2.isEmpty).length
+        queryGetProfileDataByUser(userId, isSuperUser).list.length
       }
     }else{
       DB.withSession { implicit session =>
-        queryGetProfileDataByUserAndStatus(search.userId, search.isSuperUser, search.active, search.inactive).list.length
+        queryGetProfileDataByUserAndCategory(userId, isSuperUser, category).list.length
       }
     }
   }
-
-  override def getTotalProfilesByUser(userId : String, isSuperUser : Boolean): Future[Int] = Future {
-    DB.withSession { implicit session =>
-      queryGetProfileDataByUser(userId, isSuperUser).list.length
-    }
-  }
-
 
   override def delete(globalCode: SampleCode, motive: DeletedMotive): Future[Int] = {
     DB.withTransaction { implicit session =>
@@ -433,7 +496,8 @@ class SlickProfileDataRepository @Inject() (implicit app: Application) extends P
       profileData.dataFiliation.map { filiationData =>
 
         val profileMDF = new ProfileDataFiliationRow(0, globalCode, filiationData.fullName, filiationData.nickname,
-          new java.sql.Date(filiationData.birthday.getTime), filiationData.birthPlace, filiationData.nationality,
+          filiationData.birthday.map { x => new java.sql.Date(x.getTime) }
+          , filiationData.birthPlace, filiationData.nationality,
           filiationData.identification, filiationData.identificationIssuingAuthority, filiationData.address)
         profileMetaDataFiliations += profileMDF
 
@@ -493,13 +557,13 @@ class SlickProfileDataRepository @Inject() (implicit app: Application) extends P
 
       val secondResult = newProfile.dataFiliation.fold(-1)({ filiationData =>
 
-        val fd = (filiationData.fullName, filiationData.nickname, new java.sql.Date(filiationData.birthday.getTime()), filiationData.birthPlace, filiationData.nationality,
+        val fd = (filiationData.fullName, filiationData.nickname,filiationData.birthday.map { x => new java.sql.Date(x.getTime) }, filiationData.birthPlace, filiationData.nationality,
           filiationData.identification, filiationData.identificationIssuingAuthority, filiationData.address)
 
         val resultPdf = queryUpdatePdFiliation(globalCode.text).update(fd) match {
           case 0 => {
             val profileMDF = new ProfileDataFiliationRow(0, globalCode.text, filiationData.fullName, filiationData.nickname,
-              new java.sql.Date(filiationData.birthday.getTime), filiationData.birthPlace, filiationData.nationality,
+              filiationData.birthday.map { x => new java.sql.Date(x.getTime) }, filiationData.birthPlace, filiationData.nationality,
               filiationData.identification, filiationData.identificationIssuingAuthority, filiationData.address)
             profileMetaDataFiliations += profileMDF
             1
@@ -734,13 +798,13 @@ class ProtoProfileDataRepository @Inject() (implicit app: Application) extends S
 
       val secondResult = newProfile.dataFiliation.fold(-1)({ filiationData =>
 
-        val fd = (filiationData.fullName, filiationData.nickname, new java.sql.Date(filiationData.birthday.getTime()), filiationData.birthPlace, filiationData.nationality,
+        val fd = (filiationData.fullName, filiationData.nickname, filiationData.birthday.map { x => new java.sql.Date(x.getTime) }, filiationData.birthPlace, filiationData.nationality,
           filiationData.identification, filiationData.identificationIssuingAuthority, filiationData.address)
 
         val resultPdf = queryUpdatePdFiliation(globalCode.text).update(fd) match {
           case 0 => {
             val profileMDF = new ProfileDataFiliationRow(0, globalCode.text, filiationData.fullName, filiationData.nickname,
-              new java.sql.Date(filiationData.birthday.getTime), filiationData.birthPlace, filiationData.nationality,
+              filiationData.birthday.map { x => new java.sql.Date(x.getTime) }, filiationData.birthPlace, filiationData.nationality,
               filiationData.identification, filiationData.identificationIssuingAuthority, filiationData.address)
             profileMetaDataFiliations += profileMDF
             1

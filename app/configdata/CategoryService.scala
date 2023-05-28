@@ -24,6 +24,7 @@ abstract class CategoryService {
 
   def categoryTree: Category.CategoryTree
   def listCategories: Map[AlphanumericId, FullCategory]
+  def listCategoriesWithProfiles: Map[AlphanumericId,String]
   def categoryTreeManualLoading: Category.CategoryTree
   def addCategory(category: Category): Future[Either[String, FullCategory]]
   def removeCategory(categoryId: AlphanumericId): Future[Either[String, Int]]
@@ -63,6 +64,13 @@ class CachedCategoryService @Inject() (cache: CacheService, categoryRepository: 
       val list = Await.result(categoryRepository.listCategories, Duration(10, SECONDS))
       list.map { category => category.id -> category }.toMap
     }
+  }
+
+  override def listCategoriesWithProfiles: Map[AlphanumericId,String] = {
+   // cache.getOrElse(Keys.categories) {
+      val list = Await.result(categoryRepository.listCategoriesWithProfiles, Duration(10, SECONDS))
+      list.map { category => category.id -> category.name }.toMap
+  //  }
   }
 
   override def categoryTreeManualLoading: Category.CategoryTree = {

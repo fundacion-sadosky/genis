@@ -106,7 +106,7 @@ class ProfileDataRepositoryTest extends PdgSpec {
 
       val gc = Await.result(profileDataRepository.add(pda, "AR-C-SHDG"), duration)
 
-      val pmdf = new DataFiliation("SA LO", "nick", new Date(0), "AR", "AR", "11", "RCP", "SA", List.empty[Long], List.empty[Long], List.empty[Long])
+      val pmdf = new DataFiliation(Some("SA LO"), Some("nick"), Some(new Date(0)), Some("AR"), Some("AR"), Some("11"), Some("RCP"), Some("SA"), List.empty[Long], List.empty[Long], List.empty[Long])
 
       val profileData = ProfileData(pda.category, gc,
         Option("attorney"), Option("SANGRE"), Option("court desc"), Option("ASESINATO"),

@@ -166,9 +166,13 @@ function ProfileDataController($scope, $log, profileDataService, profileDataComm
             $scope.isFieldComplete($scope.profileData.dataFiliation.nationality) && $scope.isFieldComplete($scope.profileData.dataFiliation.identification) &&
             $scope.isFieldComplete($scope.profileData.dataFiliation.identificationIssuingAuthority) && $scope.isFieldComplete($scope.profileData.dataFiliation.address);
 
-			if (isDataFiliationComplete){
-                $scope.profileData.dataFiliation.token = $scope.token;
-            }
+			//if (isDataFiliationComplete){
+            //    $scope.profileData.dataFiliation.token = $scope.token;
+            //}
+
+            isDataFiliationComplete=true;
+            $scope.profileData.dataFiliation.token = $scope.token;
+
         } else {
             $scope.profileData.dataFiliation = undefined;
         }
@@ -187,7 +191,7 @@ function ProfileDataController($scope, $log, profileDataService, profileDataComm
                         if (response.data && response.data.message) {
                             alertService.error({message: response.data.message});
                         } else {
-							alertService.error({message: 'Ha ocurrido un error'});
+							alertService.error({message: 'Ha ocurrido un error al crear'});
 						}
                     }
                 );
@@ -199,12 +203,12 @@ function ProfileDataController($scope, $log, profileDataService, profileDataComm
                             alertService.success({message: 'Se ha actualizado el perfil: ' + $scope.sampleCode});
                             onSucessUpdate();
                         }else{
-                            alertService.error({message: 'Ha ocurrido un error'});
+                            alertService.error({message: 'Ha ocurrido un error al actualizar'});
 						}
                     },
                     function (response) {
-                        console.log('Error al actualizar el perfile',response);
-                        alertService.error({message: 'Ha ocurrido un error'});
+                        console.log('Error al actualizar el perfil',response);
+                        alertService.error({message: 'Ha ocurrido un error al actualizar'});
                     }
                 );
             }

@@ -4,7 +4,7 @@ define(['angular'], function(angular) {
 function searchController($scope, $log, profiledataService, searchService, $modal, alertService, $location, userService, appConf) {
     $scope.currentPage = 1;
     $scope.pageSize = 30;
-	$scope.search = {input: '', active: true, inactive: false,notUploaded: false};
+	$scope.search = {input: '', active: true, inactive: false,notUploaded: false, category:''};
     $scope.lab = "-"+appConf.labCode+"-";
 
     localStorage.removeItem("searchPedigree");
@@ -15,6 +15,10 @@ function searchController($scope, $log, profiledataService, searchService, $moda
 	profiledataService.getSubCategories().then(function(response) {
 		$scope.categories = response.data;
 	});
+
+	searchService.getCategoriesWithProfiles().then(function (response) {
+        $scope.categoriesWithProfiles = response.data;
+    });
 
 	var modalInstance = null;
 
@@ -50,7 +54,7 @@ function searchController($scope, $log, profiledataService, searchService, $moda
     };
 
 	$scope.clean = function() {
-		$scope.search = {input: '', active: true, inactive: false};
+		$scope.search = {input: '', active: true, inactive: false, category:''};
         $scope.getProfiles($scope.search);
 	};
 

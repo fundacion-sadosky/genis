@@ -29,7 +29,7 @@ class SearchProfileDatas @Inject() (
       },
       search => {
         userService.isSuperUser(search.userId).flatMap(isSuperUser => {
-          val newSearch = new ProfileDataSearch(search.userId,isSuperUser, search.page, search.pageSize, search.input, search.active, search.inactive, search.notUploaded)
+          val newSearch = new ProfileDataSearch(search.userId,isSuperUser, search.page, search.pageSize, search.input, search.active, search.inactive, search.notUploaded, search.category)
           fullTextSearchService.searchProfileDatas(newSearch) map {
             profileDatas => Ok(Json.toJson(profileDatas))
           }
@@ -46,7 +46,7 @@ class SearchProfileDatas @Inject() (
       },
       search => {
         userService.isSuperUser(search.userId).flatMap(isSuperUser => {
-          val newSearch = new ProfileDataSearch(search.userId,isSuperUser, search.page, search.pageSize, search.input, search.active, search.inactive, search.notUploaded)
+          val newSearch = new ProfileDataSearch(search.userId,isSuperUser, search.page, search.pageSize, search.input, search.active, search.inactive, search.notUploaded, search.category)
 /*
           fullTextSearchService.searchTotalProfileDatas(newSearch).map { size =>
             Ok("").withHeaders("X-PROFILES-LENGTH" -> size.toString)

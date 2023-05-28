@@ -369,7 +369,7 @@ class SlickProtoProfileRepository @Inject() (
         categoryService.getCategory(cat).foreach { catres =>
           if (catres.filiationDataRequired) {
             getGetProfileDataFiliationByProfileData(gc).delete
-            protoProfileDataFil += ProfileDataFiliationRow(0, gc, "", "", new java.sql.Date(-62135758800000L), "", "", "", "", "")
+            protoProfileDataFil += ProfileDataFiliationRow(0, gc, Some(""), Some(""), Some(new java.sql.Date(-62135758800000L)), Some(""), Some(""), Some(""), Some(""), Some(""))
           }
         }
         ret
@@ -466,7 +466,7 @@ class SlickProtoProfileRepository @Inject() (
 
         categoryService.getCategory(AlphanumericId(protoProfile.category)).foreach { cat =>
           if (cat.filiationDataRequired) {
-            protoProfileDataFil += ProfileDataFiliationRow(0, gcFk, "", "", new java.sql.Date(-2208988800L), "", "", "", "", "")
+            protoProfileDataFil += ProfileDataFiliationRow(0, gcFk, Some(""), Some(""), Some(new java.sql.Date(-2208988800L)), Some(""), Some(""), Some(""), Some(""), Some(""))
           }
         }
         res

@@ -128,7 +128,7 @@ object Stubs {
 
   val userPassword = UserPassword("user", "pass", totpToken)
 
-  val pmdf = new DataFiliation("Juan Perez", "Don Juan", new Date(0), "Morón", "Argentina", "DNI XX.XXX.XXX", "R.C.P.", "direccion", List(), List(), List())
+  val pmdf = new DataFiliation(Some("Juan Perez"), Some("Don Juan"), Some(new Date(0)), Some("Morón"), Some("Argentina"), Some("DNI XX.XXX.XXX"), Some("R.C.P."), Some("direccion"), List(), List(), List())
   val pmdfa = new DataFiliationAttempt(pmdf.fullName, pmdf.nickname, pmdf.birthday, pmdf.birthPlace, pmdf.nationality, pmdf.identificationIssuingAuthority, pmdf.identification, pmdf.address, "inprints", "pictures", "signatures")
 
   val userPermissions: Set[Permission] = Set(Permission.DNA_PROFILE_CRUD, Permission.MATCHES_MANAGER)

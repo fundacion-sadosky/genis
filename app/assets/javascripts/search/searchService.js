@@ -33,6 +33,11 @@ function SearchService(playRoutes, userService){
 	this.getCategories = function()  {
 		return playRoutes.controllers.Categories.categoryTree().get();
 	};
+
+	this.getCategoriesWithProfiles = function(){
+		return playRoutes.controllers.Categories.listWithProfiles().get();
+    };
+
 }
 
 	return SearchService;

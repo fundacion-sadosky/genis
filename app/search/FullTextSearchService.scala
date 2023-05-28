@@ -55,6 +55,7 @@ class FullTextSearchServiceImpl @Inject() (fullTextSearch: FullTextSearch, profi
       }
   }
 
+  // solo se utiliza en un test
   override def searchTotalProfileDatas(search: ProfileDataSearch) : Future[Int] = {
     if (search.input.isEmpty)
       profileDataRepo.getTotalProfilesByUser(search)
@@ -64,12 +65,12 @@ class FullTextSearchServiceImpl @Inject() (fullTextSearch: FullTextSearch, profi
 
   override def searchFilterTotalAndTotalProfileDatas(search: ProfileDataSearch) : Future[(Int, Int)] = {
     if (search.input.isEmpty)
-      profileDataRepo.getTotalProfilesByUser(search.userId, search.isSuperUser).flatMap(totalDBSize => {
+      profileDataRepo.getTotalProfilesByUser(search.userId, search.isSuperUser,search.category).flatMap(totalDBSize => {
         profileDataRepo.getTotalProfilesByUser(search).flatMap(filteredSize => Future {(filteredSize, totalDBSize)})
       })
 
     else
-      profileDataRepo.getTotalProfilesByUser(search.userId, search.isSuperUser).flatMap(totalDBSize => {
+      profileDataRepo.getTotalProfilesByUser(search.userId, search.isSuperUser, search.category).flatMap(totalDBSize => {
         fullTextSearch.searchTotalProfiles(search).flatMap(filteredSize => Future {(filteredSize, totalDBSize)})
       })
       //fullTextSearch.searchTotalProfiles(search)

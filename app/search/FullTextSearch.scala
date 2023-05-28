@@ -35,7 +35,6 @@ class FullTextSearchPg @Inject() (implicit app: Application) extends FullTextSea
   val batchProtoProfile= Tables.BatchProtoProfile
   val protoProfile = Tables.ProtoProfile
 
-
   def replaceCharacters(inputParam: String):String = {
     Option(inputParam) match {
       case None => inputParam
@@ -50,11 +49,12 @@ class FullTextSearchPg @Inject() (implicit app: Application) extends FullTextSea
       }
     }
   }
+
   override def searchProfiles(search: ProfileDataSearch): Future[Seq[ProfileData]] = Future {
 
     DB.withSession { implicit session =>
 
-      createSearchQuery(search.copy(input = replaceCharacters(search.input))).drop(search.page * search.pageSize).take(search.pageSize).iterator.toVector map {
+      createSearchQuery(search.copy(input = replaceCharacters(search.input))).sortBy(_._1.globalCode.asc).drop(search.page * search.pageSize).take(search.pageSize).iterator.toVector map {
         case (pd, _,epd) =>
           ProfileData(AlphanumericId(pd.category),
             SampleCode(pd.globalCode), pd.attorney, pd.bioMaterialType,
@@ -92,14 +92,12 @@ class FullTextSearchPg @Inject() (implicit app: Application) extends FullTextSea
     }
   }(dExecutionContext)
 
-
-
   //private def coalesce[T](c: Column[Option[T]], default: Column[T])(implicit arg0: TypedType[T]) = SimpleFunction[T]("coalesce").apply(Seq(c, default, ???))
   private def coalesce[T](c: Column[Option[T]], default: Column[T])(implicit arg0: TypedType[T]) = SimpleFunction.binary[Option[T], T, T]("coalesce").apply(c, default)
 
   def createSearchQuery(search: ProfileDataSearch) = {
 
-    def coalesce2[T](c: Column[T], default: Column[T])(implicit arg0: TypedType[T]) = SimpleFunction.binary[T, T, T]("coalesce").apply(c, default)
+    //def coalesce2[T](c: Column[T], default: Column[T])(implicit arg0: TypedType[T]) = SimpleFunction.binary[T, T, T]("coalesce").apply(c, default)
 
     val query = pdatas.leftJoin(pdfs).on(_.id === _.id).leftJoin(pdu).on(_._1.id === _.id).leftJoin(epd).on(_._1._1.id === _.id)
 
@@ -120,10 +118,10 @@ class FullTextSearchPg @Inject() (implicit app: Application) extends FullTextSea
         pd.assignee ++ " " ++
         pd.laboratory ++ " " ++
         coalesce(pd.responsibleGeneticist, "") ++ " " ++
-        coalesce2(pdf.fullName, "")  ++ " " ++
-        coalesce2(pdf.identification, "")  ++ " " ++
-        coalesce2(pdf.nationality, "")  ++ " " ++
-        coalesce2(pdf.address, "") 
+        pdf.fullName.getOrElse("")  ++ " " ++
+        pdf.identification.getOrElse("")  ++ " " ++
+        pdf.nationality.getOrElse("") ++ " " ++
+        pdf.address.getOrElse("")
     }
 
     val inputLike = if (search.input != null && search.input.trim.nonEmpty) search.input + ":*" else search.input
@@ -131,11 +129,23 @@ class FullTextSearchPg @Inject() (implicit app: Application) extends FullTextSea
       .filter {
         record => {
           if(search.notUploaded.contains(true)){
-            record._2.id.isNull && ((record._1._1._1.deleted && search.inactive) || (!record._1._1._1.deleted && search.active)) &&
-              toTsVector(searchFields(record._1._1)).setWeight('A') @@ toTsQuery(inputLike)
+            if(search.category.isEmpty) {
+              record._2.id.isNull && ((record._1._1._1.deleted && search.inactive) || (!record._1._1._1.deleted && search.active)) &&
+                toTsVector(searchFields(record._1._1)).setWeight('A') @@ toTsQuery(inputLike)
+            }else{
+              record._2.id.isNull && ((record._1._1._1.deleted && search.inactive) || (!record._1._1._1.deleted && search.active)) &&
+                record._1._1._1.category===search.category &&
+                toTsVector(searchFields(record._1._1)).setWeight('A') @@ toTsQuery(inputLike)
+            }
           }else{
-            ((record._1._1._1.deleted && search.inactive) || (!record._1._1._1.deleted && search.active)) &&
-              toTsVector(searchFields(record._1._1)).setWeight('A') @@ toTsQuery(inputLike)
+            if(search.category.isEmpty) {
+              ((record._1._1._1.deleted && search.inactive) || (!record._1._1._1.deleted && search.active)) &&
+                toTsVector(searchFields(record._1._1)).setWeight('A') @@ toTsQuery(inputLike)
+            }else{
+              ((record._1._1._1.deleted && search.inactive) || (!record._1._1._1.deleted && search.active)) &&
+                record._1._1._1.category ===search.category &&
+                toTsVector(searchFields(record._1._1)).setWeight('A') @@ toTsQuery(inputLike)
+            }
           }
         }
       }
@@ -148,13 +158,13 @@ class FullTextSearchPg @Inject() (implicit app: Application) extends FullTextSea
         pd => pd._1.assignee === search.userId
       }
     }
-
-    profiles.sortBy(_._2)
+profiles
+    //profiles.sortBy(_._2)
   }
 
   def createSearchQueryLabel(search: ProfileDataSearch) = {
 
-    def coalesce2[T](c: Column[T], default: Column[T])(implicit arg0: TypedType[T]) = SimpleFunction.binary[T, T, T]("coalesce").apply(c, default)
+    //def coalesce2[T](c: Column[T], default: Column[T])(implicit arg0: TypedType[T]) = SimpleFunction.binary[T, T, T]("coalesce").apply(c, default)
 
     val query = (pdatas.leftJoin (pdfs).on(_.id === _.id)) innerJoin  (protoProfile innerJoin batchProtoProfile on (_.idBatch === _.id)) on (_._1.internalSampleCode === _._1.sampleName )
 
@@ -176,11 +186,11 @@ class FullTextSearchPg @Inject() (implicit app: Application) extends FullTextSea
         pd.assignee ++ " " ++
         pd.laboratory ++ " " ++
         coalesce(pd.responsibleGeneticist, "") ++ " " ++
-        coalesce2(pdf.fullName, "")  ++ " " ++
-        coalesce2(pdf.identification, "")  ++ " " ++
+        pdf.fullName.getOrElse("")  ++ " " ++
+        pdf.identification.getOrElse("")  ++ " " ++
         coalesce(bpp.label,"") ++ " " ++
-        coalesce2(pdf.nationality, "")  ++ " " ++
-        coalesce2(pdf.address, "")
+        pdf.nationality.getOrElse("")  ++ " " ++
+        pdf.address.getOrElse("")
 
     }
 

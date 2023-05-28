@@ -25,31 +25,37 @@
                         <div class="options-header new-load vertical-align" ng-class="{'profile-header-clerk': hasPermission('PROFILE_DATA_CRUD')}">
                             <div class="form-group col-md-12 padding-0">
                                 <form class="navbar-form  vertical-align padding-0" role="search" name="searchPdForm" novalidate data-ng-submit="getProfiles(search)">
-                                    <div class="col-md-4 padding-left-0 padding-right-0 vertical-align">
-                                        <label class="col-md-4 padding-left-0" for="search-text">Buscar perfiles</label>
-                                        <div class="col-md-8 padding-left-0">
-                                            <input id="search-text" type="text" class="form-control search-main form-select"
-                                            data-ng-model="search.input" placeholder="Código, categoría o laboratorio"/>
+                                    <div class="col-md-5 padding-left-0 padding-right-0 vertical-align">
+                                        <label class="col-md-1 padding-left-0" for="search-text">Buscar</label>
+                                        <div class="col-md-5 padding-left-1">
+                                            <input id="search-text" type="text" class="form-control search-main form-select" data-ng-model="search.input" placeholder="Criterio de búsqueda"/>
+                                        </div>
+                                        <label class="col-md-2 padding-left-0" for="search-category">Categoría</label>
+                                        <div class="col-md-4 padding-left-0">
+                                            <select id="search-category" data-ng-model="search.category" class="custom-select form-control form-select">
+                                                <option value="{{undefined}}">Todas</option>
+                                                <option ng-repeat="categorywp in categoriesWithProfiles" value="{{categorywp.id}}">{{categorywp.category}}</option>
+                                            </select>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-5">
                                         <div class="form-group col-md-3 padding-0  vertical-align" >
-                                            <div class="item-input padding-left-0 col-md-1  text-left">
+                                            <div class="item-input padding-0 col-md-1  text-left">
                                                 <input type="checkbox" data-ng-model="search.active" id="active">
                                             </div>
-                                            <label class="col-md-6 padding-0" for="active">Activos</label>
+                                            <label class="col-md-11 padding-1" for="active">Activos</label>
                                         </div>
                                         <div class="form-group col-md-4 padding-0 vertical-align">
                                             <div class="item-input padding-0 col-md-1  text-left">
                                                 <input type="checkbox" data-ng-model="search.inactive" id="dadodebaja">
                                             </div>
-                                            <label class="col-md-6 padding-0" for="dadodebaja">Dados de baja</label>
+                                            <label class="col-md-11 padding-1" for="dadodebaja">Dados de baja</label>
                                         </div>
                                         <div class="form-group col-md-5 padding-0 vertical-align">
                                             <div class="item-input padding-0 col-md-1  text-left">
                                                 <input type="checkbox" data-ng-model="search.notUploaded" id="notUploaded">
                                             </div>
-                                            <label class="col-md-10 padding-0" for="notUploaded">Pendientes de replicar</label>
+                                            <label class="col-md-11 padding-1" for="notUploaded">Pendientes de replicar</label>
                                         </div>
                                     </div>
                                     <div class="col-md-2 desk-align-right inside-right padding-0">
@@ -57,7 +63,6 @@
                                         <a  title="Limpiar filtros" ng-click="clean()" ng-disabled="isProcessing"  class="cancel-link" >Limpiar</a>
                                         <button id="search-button" type="submit" class="btn btn-secondary-action" data-ng-disabled="searchForm.$invalid">Buscar</button>
                                     </div>
-
                                 </form>
                             </div>
                         </div>

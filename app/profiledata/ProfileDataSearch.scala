@@ -10,7 +10,8 @@ case class ProfileDataSearch(
   input: String = "",
   active: Boolean = true,
   inactive: Boolean = false,
-  notUploaded: Option[Boolean] = None)
+  notUploaded: Option[Boolean] = None,
+  category: String="")
 
 object ProfileDataSearch {
   implicit val format = Json.format[ProfileDataSearch]

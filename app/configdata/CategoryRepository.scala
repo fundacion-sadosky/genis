@@ -24,6 +24,8 @@ abstract class CategoryRepository extends DefaultDb with Transaction {
   def listGroupsAndCategoriesManualLoading: Future[Seq[(Group, Option[Category])]]
   def listCategories: Future[Seq[FullCategory]]
 
+  def listCategoriesWithProfiles: Future[List[Category]]
+
   def addCategory(cat: Category): Future[AlphanumericId]
   def updateCategory(category: Category): Future[Int]
   def removeCategory(categoryId: AlphanumericId): Future[Int]
@@ -65,6 +67,19 @@ class SlickCategoryRepository @Inject() (implicit app: Application) extends Cate
   val categoryMappingTable: TableQuery[Tables.CategoryMapping] = Tables.CategoryMapping
 
   val analysisTypes: TableQuery[Tables.AnalysisType] = Tables.AnalysisType
+
+  val profilesData: TableQuery[Tables.ProfileData] = Tables.ProfileData // Tables.ProtoProfileData
+
+  private def queryGetCategoriesWithProfiles() = for (
+    (category,pd) <- categories join profilesData on (_.id === _.category) //groupBy(row=>(row._1.id,row._1.name,row._1.isReference,row._1.description))
+  ) yield (category)
+
+  override def listCategoriesWithProfiles: Future[List[Category]] = Future{
+  DB.withSession { implicit session =>
+    queryGetCategoriesWithProfiles().list.map(c=>
+      Category(AlphanumericId(c.id),AlphanumericId(c.group),c.name,c.isReference,c.description)
+    )}
+  }
 
   val categoryQuery = Compiled(for (
     (category) <- categories

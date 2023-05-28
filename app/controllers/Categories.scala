@@ -2,7 +2,6 @@ package controllers
 
 import javax.inject.Inject
 import javax.inject.Singleton
-
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
 import play.api.mvc.Action
@@ -45,6 +44,17 @@ class Categories @Inject() (categoryService: CategoryService) extends Controller
         case (id, category) => id.text -> category
       }
 
+      Ok(Json.toJson(catList))
+    }
+  }
+
+  def listWithProfiles = Action.async {
+    val fcs = Future.successful(categoryService.listCategoriesWithProfiles)
+    fcs map { list =>
+      val catList = list map {
+        //case (id, category) => id.text -> category
+        case (id, category) => Json.obj("id"->id.text,"category"->category)
+      }
       Ok(Json.toJson(catList))
     }
   }

@@ -106,7 +106,7 @@ object Permission {
       StaticAuthorisationOperation("""/convertDiscard|/masiveDiscardByGlobalCode|/masiveDiscardByMatchesList""".r, """POST""".r, "MatchDiscard"),
       StaticAuthorisationOperation("""/uploadStatus""".r, """POST""".r, "MatchDiscard"),
       StaticAuthorisationOperation("""/canUploadMatchStatus""".r, """GET""".r, "MatchDiscard"),
-      StaticAuthorisationOperation("""/categories|/categoryTree""".r, """GET""".r, "CategoryTreeRead"),
+      StaticAuthorisationOperation("""/categories|/categoryTree|/categoriesWithProfiles""".r, """GET""".r, "CategoryTreeRead"),
       StaticAuthorisationOperation("""/laboratory.*""".r, """GET""".r, "LaboratoryRead"),
       StaticAuthorisationOperation("""/populationBaseFreq.*""".r, """GET""".r, "PopulationBaseFreqRead"),
       StaticAuthorisationOperation("""/notifications.*|/match-notifications.*""".r, """.*""".r, "NotificationsAll"),
