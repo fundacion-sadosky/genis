@@ -601,9 +601,20 @@ class InterconnectionServiceImpl @Inject()(akkaSystem: ActorSystem = null, conne
     if (sampleEntryDate != null && !sampleEntryDate.isEmpty) {
       sampleEntryDateOption = Some(new java.sql.Date(java.lang.Long.valueOf(sampleEntryDate)))
     }
-    importProfileValidator(profile).map {
+
+    val newGenotipificationWithLocusKeys = profile.genotypification.map(x=>{
+      //var newGenotipification=locusAliasToLocusId(x._2)
+      x.copy(_2=locusAliasToLocusId(x._2))
+    })
+    val newAnalisisWithLocusKeys = profile.analyses.get.map(analysis => {
+      //var newGenotification=locusAliasToLocusId(analysis.genotypification)
+      analysis.copy(genotypification = locusAliasToLocusId(analysis.genotypification))
+    })
+    val profileChanged1 = profile.copy(genotypification=newGenotipificationWithLocusKeys, analyses = Some(newAnalisisWithLocusKeys))
+
+    importProfileValidator(profileChanged1).map {
       case Right(()) => {
-        val newAnalisis = profile.analyses.get.map(analysis => {
+        val newAnalisis = profileChanged1.analyses.get.map(analysis => {
           var kitOpt = kitToOptionKit(analysis.kit)
           if (kitOpt.isDefined) {
             analysis.copy(kit = kitOpt.get)
@@ -612,13 +623,13 @@ class InterconnectionServiceImpl @Inject()(akkaSystem: ActorSystem = null, conne
           }
         })
 
-        val profileChanged = profile.copy(analyses = Some(newAnalisis))
+        val profileChanged2 = profileChanged1.copy(analyses = Some(newAnalisis))
 
         superiorInstanceProfileApprovalRepository.upsert(
           SuperiorInstanceProfileApproval
           (id = 0L,
             globalCode = profile._id.text,
-            profile = Json.toJson(profileChanged).toString(),
+            profile = Json.toJson(profileChanged2).toString(),
             laboratory = labo,
             laboratoryInstanceOrigin = labCodeInstanceOrigin,
             laboratoryImmediateInstance = labCodeInmediateInstance,
@@ -644,6 +655,19 @@ class InterconnectionServiceImpl @Inject()(akkaSystem: ActorSystem = null, conne
       }
     }
     ()
+  }
+
+  private def locusAliasToLocusId(genotipification: Profile.Genotypification): Profile.Genotypification = {
+    val locusAlias = Await.result(kitService.getLocusAlias,Duration(10,SECONDS))
+    // locusAlias keys are the alias
+    val newGenotipification = genotipification.map(marker => {
+      if(locusAlias.keys.toList.contains(marker._1)) {
+        marker.copy(_1=locusAlias.get(marker._1).get.toString())
+      } else{
+        marker
+      }
+    })
+    newGenotipification
   }
 
   private def existProfileData(globalCode: SampleCode): Future[Boolean] = {
