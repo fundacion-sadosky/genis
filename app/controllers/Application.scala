@@ -87,9 +87,10 @@ class Application @Inject() (app: play.api.Application, @Named("genisManifest") 
 
     val version = (for {
       iver <- manifest.get("Implementation-Version")
-      gcom <- manifest.get("Git-Head-Rev")
+      //gcom <- manifest.get("Git-Head-Rev")
     } yield {
-      s"$iver r${gcom.take(9)}"
+      //s"$iver r${gcom.take(9)}"
+      s"$iver"
     }).getOrElse("develop")
 
     var appJson = Json.obj(

@@ -1,8 +1,8 @@
 import WebKeys._
-//import uk.gov.hmrc.gitstamp.GitStampPlugin._
+//import com.nescale.gitstamp.GitStampPlugin._
 import RjsKeys._
 
-//Seq( gitStampSettings: _* )
+//Seq(gitStampSettings: _*)
 
 name := """genis"""
 
@@ -16,7 +16,7 @@ transitiveClassifiers := Seq("sources", "javadoc")
 // TODO Set your organization here; ThisBuild means it will apply to all sub-modules
 organization in ThisBuild := "ar.org.fundacionsadosky"
 
-version := "5.1.8"
+version := "5.1.9"
 
 packageDescription := "Genis app"
 
