@@ -9,7 +9,7 @@
             
             <div show-permissions="SCENARIO_CRUD" class="text-right buttons-group-escenarios col-md-6" ng-if="!profile.isReference">
                 <a id="goto-scenario-button" class="btn btn-round btn-success selected" href="" ng-click="addScenario()">Agregar nuevo escenario</a>
-                <a id="goto-scenarios-button" class="btn btn-round" href="" ng-click="!normal.viewScenarios || getScenarios()" ng-disabled="{{!normal.viewScenarios}}">Ver escenarios</a>
+                <a id="goto-scenarios-button" class="btn btn-round" href="" ng-click="!normal.viewScenarios || getScenarios()" ng-disabled="!normal.viewScenarios">Ver escenarios</a>
                 <a id="descarteTodos-button" class="btn btn-round" href="" pdg-confirm pdg-confirm-title="Descartar Coincidencias"
                    pdg-confirm-content="Al confirmar esta acción se descartarán todas las coincidencias del grupo. ¿Está seguro?"
                    pdg-on-confirm="descarteMasivo" param="{{normal}}" >Descartar todo</a>

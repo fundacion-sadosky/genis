@@ -47,13 +47,13 @@ define([], function() {
         var loadScenario = function() {
             scenarioService.get({$oid: $scope.scenarioId}).then(function (response) {
                 $scope.scenarioData = response.data;
-                $scope.result = response.data.result;
                 $scope.lastDate = response.data.date.$date;
                 $scope.scenario = response.data.calculationScenario;
                 $scope.profile = $scope.scenario.sample;
                 $scope.isRestricted = response.data.isRestricted;
                 getMatchDetails();
                 getProfileData($scope.profile);
+                $scope.result = response.data.result;
             });
         };
 

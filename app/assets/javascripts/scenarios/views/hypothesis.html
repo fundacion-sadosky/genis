@@ -157,16 +157,13 @@
         <span id="calculationWarning"
               data-ng-if="isProcessing && (scenario.prosecutor.unknowns > 2 || scenario.defense.unknowns > 2)">
             Esta operación puede tardar unos minutos...</span>
-        <span id="processingSpan" class="icon-refresh"
-              data-ng-class="{'spinner': isProcessing}" data-ng-show="isProcessing"></span>
-
-
-
+        <span id="processingSpan" class="icon-refresh" data-ng-class="{'spinner': isProcessing}" data-ng-show="isProcessing"></span>
         <button ng-if="options.length !== 0 && scenarioData.state.toString() !== 'Validated'" help-tip="scenario.calculate" help-tip-placement="left"
                 type="button"
                 class="btn btn-primary-action"
                 data-ng-click="calculate()"
-                data-ng-disabled="scenarioForm.$invalid || isProcessing">Calcular</button>
-
+                data-ng-disabled="scenarioForm.$invalid || isProcessing">
+            Calcular
+        </button>
     </div>
 </footer>
