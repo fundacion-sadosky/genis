@@ -178,7 +178,7 @@ libraryDependencies ++= Seq(
   "org.jboss.aerogear" % "aerogear-otp-java" % "1.0.0"
 )
 
-resolvers += "Cascading Conjars" at "http://conjars.org/repo/"
+resolvers += "Cascading Conjars" at "https://conjars.wensel.net/repo/"
 
 // Spark 2.0
 libraryDependencies ++= Seq(
