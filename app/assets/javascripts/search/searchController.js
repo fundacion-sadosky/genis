@@ -2,7 +2,7 @@ define(['angular'], function(angular) {
 'use strict';
 
 function searchController($scope, $log, profiledataService, searchService, $modal, alertService, $location, userService, appConf) {
-    $scope.currentPage = 1;
+
     $scope.pageSize = 30;
 	$scope.search = {input: '', active: true, inactive: false,notUploaded: false, category:''};
     $scope.lab = "-"+appConf.labCode+"-";
@@ -22,6 +22,17 @@ function searchController($scope, $log, profiledataService, searchService, $moda
 
 	var modalInstance = null;
 
+    if(localStorage.length > 0 && localStorage.getItem('search')){
+        $scope.search=JSON.parse(localStorage.getItem('search'));
+        localStorage.removeItem('search');
+    }
+    if(localStorage.length > 0 && localStorage.getItem('page')){
+        $scope.page=JSON.parse(localStorage.getItem('page'));
+        localStorage.removeItem('page');
+    }else{
+        $scope.page = 0;
+    }
+    console.log('page:' + $scope.page);
 
 	var giveDeleteProfileModal = function(pd, editMode) {
 		$scope.pdToDeleted = pd;
@@ -55,14 +66,27 @@ function searchController($scope, $log, profiledataService, searchService, $moda
 
 	$scope.clean = function() {
 		$scope.search = {input: '', active: true, inactive: false, category:''};
+		// las dos lineas siguientes no harian falta
+		//localStorage.removeItem('search');
+		//localStorage.removeItem('page');
+		$scope.page=0;
         $scope.getProfiles($scope.search);
 	};
 
+	$scope.doSearch = function(){
+        $scope.page=0;
+        $scope.getProfiles($scope.search);
+    };
+
+    $scope.store_search = function(){
+       localStorage.setItem('search',JSON.stringify($scope.search));
+       localStorage.setItem('page',JSON.stringify($scope.page));
+    };
+
 	var createSearchObject = function(filters) {
 		$scope.previousFilters = angular.copy(filters);
-
         var searchObject = angular.copy(filters);
-		searchObject.page = $scope.currentPage - 1;
+		searchObject.page = $scope.page;
 		searchObject.pageSize = $scope.pageSize;
 		return searchObject;
 	};
@@ -84,10 +108,13 @@ function searchController($scope, $log, profiledataService, searchService, $moda
                     $scope.isProcessing = false;
                 });
 			}
+			$scope.currentPage=$scope.page+1;
 		});
 	};
 
     $scope.changePage = function() {
+        $scope.page=$scope.currentPage-1;
+        console.log('change_page:' + $scope.page);
         $scope.getProfiles($scope.previousFilters);
     };
 

@@ -24,7 +24,7 @@
                 <div class="content">
                         <div class="options-header new-load vertical-align" ng-class="{'profile-header-clerk': hasPermission('PROFILE_DATA_CRUD')}">
                             <div class="form-group col-md-12 padding-0">
-                                <form class="navbar-form  vertical-align padding-0" role="search" name="searchPdForm" novalidate data-ng-submit="getProfiles(search)">
+                                <form class="navbar-form  vertical-align padding-0" role="search" name="searchPdForm" novalidate data-ng-submit="doSearch()">
                                     <div class="col-md-5 padding-left-0 padding-right-0 vertical-align">
                                         <label class="col-md-1 padding-left-0" for="search-text">Buscar</label>
                                         <div class="col-md-5 padding-left-1">
@@ -34,7 +34,7 @@
                                         <div class="col-md-4 padding-left-0">
                                             <select id="search-category" data-ng-model="search.category" class="custom-select form-control form-select">
                                                 <option value="{{undefined}}">Todas</option>
-                                                <option ng-repeat="categorywp in categoriesWithProfiles" value="{{categorywp.id}}">{{categorywp.category}}</option>
+                                                <option ng-repeat="categorywp in categoriesWithProfiles" value="{{categorywp.id}}" ng-selected="search.category === categorywp.id">{{categorywp.category}}</option>
                                             </select>
                                         </div>
                                     </div>
@@ -120,27 +120,27 @@
                     <td class="centered" ng-if="pd.readOnly">Si</td>
                     <td class="centered" ng-if="!pd.readOnly">No</td>
                     <td show-permissions="PROFILE_DATA_CRUD" class="col-md-1 centered">
-                        <a id="showupd_{{$index}}" ng-show="!pd.deleted" class="btn btn-default btn-link-action btn-link-border" href="#/profiledata/{{pd.globalCode}}">
+                        <a id="showupd_{{$index}}" ng-show="!pd.deleted" class="btn btn-default btn-link-action btn-link-border" ng-click="store_search()" href="#/profiledata/{{pd.globalCode}}">
                             <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
                         </a>
                     </td>
                     <td show-permissions="DNA_PROFILE_CRUD" class="col-md-1 centered">
-                        <a id="showview_{{$index}}" ng-show="!pd.deleted" class="btn btn-default btn-link-action btn-link-border" href="#/profile/{{pd.globalCode}}?tab=dna">
+                        <a id="showview_{{$index}}" ng-show="!pd.deleted" class="btn btn-default btn-link-action btn-link-border" ng-click="store_search()" href="#/profile/{{pd.globalCode}}?tab=dna">
                             <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
                         </a>
                     </td>
                     <td show-permissions="DNA_PROFILE_CRUD" class="col-md-1 centered" >
-                        <a id="showplus_{{$index}}" ng-show="!pd.deleted" class="btn btn-default btn-link-action btn-link-border"  ng-disabled="(!allowManualLoading(pd)) || pd.isExternal || pd.readOnly " ng-click="pd.readOnly || !allowManualLoading(pd) || pd.isExternal || goToProfileTab(pd.globalCode)" href=""  >
+                        <a id="showplus_{{$index}}" ng-show="!pd.deleted" class="btn btn-default btn-link-action btn-link-border"  ng-disabled="(!allowManualLoading(pd)) || pd.isExternal || pd.readOnly " ng-click="pd.readOnly || !allowManualLoading(pd) || pd.isExternal || goToProfileTab(pd.globalCode);store_search()" href=""  >
                             <span class="glyphicon glyphicon-plus" aria-hidden="true" ng-disabled="pd.isExternal || pd.readOnly"></span>
                         </a>
                     </td>
                     <td show-permissions="PROFILE_DATA_CRUD" class="col-md-1 centered">
-                        <a id="showbook_{{$index}}" class="btn btn-default btn-link-action btn-link-border" href="#/trace/{{pd.globalCode}}">
+                        <a id="showbook_{{$index}}" class="btn btn-default btn-link-action btn-link-border" ng-click="store_search()" href="#/trace/{{pd.globalCode}}">
                             <span class="glyphicon glyphicon-book" aria-hidden="true"></span>
                         </a>
                     </td>
                     <td show-permissions="PROFILE_DATA_CRUD" class="col-md-1 centered">
-                        <a data-ng-show="pd.deleted" id="delete_s_{{$index}}" class="btn btn-default btn-link-action btn-link-border" data-ng-click="showMotive(pd.globalCode)">
+                        <a data-ng-show="pd.deleted" id="delete_s_{{$index}}" class="btn btn-default btn-link-action btn-link-border" data-ng-click="showMotive(pd.globalCode);">
                             <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
                         </a>
                         <a data-ng-show="!pd.deleted" id="delete_n_{{$index}}" class="btn btn-default btn-link-action btn-link-border" data-ng-click="doDelete(pd)">
@@ -153,9 +153,6 @@
     </div>
     </div>
 </div>
-
-
-   
 
 <footer class="search-footer">
 	<div>
