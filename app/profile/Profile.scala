@@ -103,7 +103,8 @@ object Profile {
 
 
 
-case class ProfileModelView(_id: Option[SampleCode],
+case class ProfileModelView(
+  _id: Option[SampleCode],
   globalCode: Option[SampleCode],
   categoryId: Option[AlphanumericId],
   genotypification: Option[GenotypificationByType],
@@ -116,7 +117,8 @@ case class ProfileModelView(_id: Option[SampleCode],
   editable: Boolean,
   isReference:Boolean,
   readOnly: Boolean,
-  isUploadedToSuperior:Boolean)
+  isUploadedToSuperior:Boolean
+)
 
 object ProfileModelView {
   implicit val mvf = Json.format[ProfileModelView]

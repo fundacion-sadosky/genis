@@ -184,54 +184,69 @@ class AuthServiceImpl @Inject() (
     }
   }
 
-  def verifyAndDecryptRequest(encryptedUri: String, verb: String, userNameOpt: Option[String], otp: Option[TotpToken]): Try[String] = {
+  def verifyAndDecryptRequest(
+    encryptedUri: String,
+    verb: String,
+    userNameOpt:
+    Option[String],
+    otp: Option[TotpToken]
+  ): Try[String] = {
     if (isPublicResource(encryptedUri)) {
       Success(encryptedUri)
     } else {
-
       userNameOpt.fold[Try[String]] {
-        Failure(new IllegalAccessException("Non public reosurces request must have 'X-USER' header"))
-      } { userName =>
-        cache.get(FullUserKey(userName, credentialsExpTime)).fold[Try[String]]({
-          val msg = s"no authenticated for $userName"
-          logger.info(msg);
-          Failure(new NoSuchElementException(msg)) // No authenticatedPair, badRequest
-        })({ user =>
-          // http://blog.cloudme.org/2013/08/interoperable-aes-encryption-with-java-and-javascript/
-          val authenticatedPair = user.credentials
-          logger.trace("using " + authenticatedPair)
-
-          val uriToDecrypt = encryptedUri.substring(1)
-
-          logger.trace("decrypting " + uriToDecrypt)
-
-          val decryptedUriBytes = cryptoService.decrypt(Base64.decodeBase64(uriToDecrypt), authenticatedPair)
-
-          val decryptedUri = new String(decryptedUriBytes)
-
-          logger.trace("decryptedUri is " + decryptedUri)
-
-          val operation = AuthorisationOperation(decryptedUri.takeWhile { _ != '?' }, verb)
-          val isAuthorized = canPerform(userName, operation)
-
-          if (isAuthorized) {
-
-            if (validateSensitiveTotp(userName, operation, otp)) {
-              Success(decryptedUri)
-            } else {
-              Failure(new IllegalAccessException(s"User $userName has not provided a valid Totp for resource $operation"))
-            }
-
-          } else {
-            Failure(new IllegalAccessException(s"User $userName has no priviledges for resource $operation"))
-          }
-
-        })
-
+        Failure(
+          new IllegalAccessException(
+            "Non public reosurces request must have 'X-USER' header"
+          )
+        )
+      } {
+        userName =>
+          cache
+            .get(FullUserKey(userName, credentialsExpTime))
+            .fold[Try[String]](
+              {
+                val msg = s"no authenticated for $userName"
+                logger.info(msg);
+                Failure(new NoSuchElementException(msg)) // No authenticatedPair, badRequest
+              }
+            ) (
+              {
+                user =>
+                  // http://blog.cloudme.org/2013/08/interoperable-aes-encryption-with-java-and-javascript/
+                  val authenticatedPair = user.credentials
+                  logger.trace("using " + authenticatedPair)
+                  val uriToDecrypt = encryptedUri.substring(1)
+                  logger.trace("decrypting " + uriToDecrypt)
+                  val decryptedUriBytes = cryptoService.decrypt(
+                    Base64.decodeBase64(uriToDecrypt),
+                    authenticatedPair
+                  )
+                  val decryptedUri = new String(decryptedUriBytes)
+                  logger.trace("decryptedUri is " + decryptedUri)
+                  val operation = AuthorisationOperation(decryptedUri.takeWhile { _ != '?' }, verb)
+                  val isAuthorized = canPerform(userName, operation)
+                  if (isAuthorized) {
+                    if (validateSensitiveTotp(userName, operation, otp)) {
+                      Success(decryptedUri)
+                    } else {
+                      Failure(
+                        new IllegalAccessException(
+                          s"User $userName has not provided a valid Totp for resource $operation"
+                        )
+                      )
+                    }
+                  } else {
+                    Failure(
+                      new IllegalAccessException(
+                        s"User $userName has no priviledges for resource $operation"
+                      )
+                    )
+                  }
+              }
+            )
       }
-
     }
-
   }
 
   override def getSensitiveOperations(): Set[AuthorisationOperation] = {

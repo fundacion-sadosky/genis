@@ -32,7 +32,8 @@ import play.api.db.slick.Config.driver.simple.columnExtensionMethods
 import play.api.db.slick.Config.driver.simple.longColumnType
 import play.api.db.slick.Config.driver.simple.queryToAppliedQueryInvoker
 import play.api.db.slick.Config.driver.simple.queryToInsertInvoker
-import play.api.db.slick.Config.driver.simple.runnableCompiledToAppliedQueryInvoker
+import play.api.db.slick.Config.driver.simple.
+  runnableCompiledToAppliedQueryInvoker
 import play.api.db.slick.Config.driver.simple.slickDriver
 import play.api.db.slick.Config.driver.simple.stringColumnType
 import play.api.db.slick.Config.driver.simple.valueToConstColumn
@@ -58,12 +59,24 @@ abstract class ProfileDataRepository extends DefaultDb with Transaction  {
    * Create a new ProfileData
    *
    */
-  def add(profileData: ProfileData, completeLabCode: String, imageList: Option[List[File]] = None, picturesList: Option[List[File]] = None, signaturesList: Option[List[File]] = None): Future[SampleCode]
+  def add(
+    profileData: ProfileData,
+    completeLabCode: String,
+    imageList: Option[List[File]] = None,
+    picturesList: Option[List[File]] = None,
+    signaturesList: Option[List[File]] = None
+  ): Future[SampleCode]
   /**
    * Update a ProfileData
    *
    */
-  def updateProfileData(globalCode: SampleCode, newProfile: ProfileData, imageList: Option[List[File]] = None, picturesList: Option[List[File]] = None, signaturesList: Option[List[File]] = None): Future[Boolean]
+  def updateProfileData(
+    globalCode: SampleCode,
+    newProfile: ProfileData,
+    imageList: Option[List[File]] = None,
+    picturesList: Option[List[File]] = None,
+    signaturesList: Option[List[File]] = None
+  ): Future[Boolean]
   /**
    * Get a complete ProfileData with data filiation if is present
    *
@@ -84,7 +97,11 @@ abstract class ProfileDataRepository extends DefaultDb with Transaction  {
    *
    */
   def getTotalProfilesByUser(search: ProfileDataSearch): Future[Int]
-  def getTotalProfilesByUser(userId : String, isSuperUser : Boolean, category:String=""): Future[Int]
+  def getTotalProfilesByUser(
+    userId : String,
+    isSuperUser : Boolean,
+    category:String=""
+  ): Future[Int]
   def getProfilesByUser(search: ProfileDataSearch): Future[Seq[ProfileDataFull]]
   def giveGlobalCode(labCode: String): Future[String]
   def isDeleted(globalCode: SampleCode): Future[Option[Boolean]]
@@ -92,59 +109,111 @@ abstract class ProfileDataRepository extends DefaultDb with Transaction  {
   def findByCodes(globalCodes: List[SampleCode]): Future[Seq[ProfileData]]
   def getGlobalCode(internalSampleCode: String): Future[Option[SampleCode]]
 
-  def addExternalProfile(profileData: ProfileData,labOrigin:String,labImmediate:String): Future[SampleCode]
-  def updateUploadStatus(globalCode: String,status:Long,motive:Option[String]= None): Future[Either[String,Unit]]
-  def findUploadedProfilesByCodes(globalCodes: Seq[SampleCode]): Future[Seq[SampleCode]]
+  def addExternalProfile(
+    profileData: ProfileData,
+    labOrigin:String,
+    labImmediate:String
+  ): Future[SampleCode]
+  def updateUploadStatus(
+    globalCode: String,
+    status:Long,
+    motive:Option[String]=None
+  ): Future[Either[String,Unit]]
+  def findUploadedProfilesByCodes(
+    globalCodes: Seq[SampleCode]
+  ): Future[Seq[SampleCode]]
 
-  def getProfileUploadStatusByGlobalCode(globalCode:SampleCode):Future[Option[Long]]
+  def getProfileUploadStatusByGlobalCode(
+    globalCode:SampleCode
+  ):Future[Option[Long]]
 
-  def getExternalProfileDataByGlobalCode(globalCode:String):Future[Option[ExternalProfileDataRow]]
+  def getExternalProfileDataByGlobalCode(
+    globalCode:String
+  ):Future[Option[ExternalProfileDataRow]]
   def gefFailedProfilesUploaded():Future[List[ProfileUploadedRow]]
   def gefFailedProfilesUploadedDeleted():Future[List[ProfileUploadedRow]]
   def gefFailedProfilesSentDeleted(labCode:String):Future[List[ProfileSentRow]]
-  def updateProfileSentStatus(globalCode: String,status:Long,motive:Option[String]= None,labCode:String): Future[Either[String,Unit]]
+  def updateProfileSentStatus(
+    globalCode: String,
+    status:Long,
+    motive:Option[String]=None,
+    labCode:String
+  ): Future[Either[String,Unit]]
   def getMtRcrs():Future[MtRCRS]
 }
 
 @Singleton
-class SlickProfileDataRepository @Inject() (implicit app: Application) extends ProfileDataRepository {
+class SlickProfileDataRepository @Inject() (
+  implicit app: Application
+) extends ProfileDataRepository {
   val logger: Logger = Logger(this.getClass())
 
-  val profilesData: TableQuery[Tables.ProfileData] = Tables.ProfileData // Tables.ProtoProfileData
-  val externalProfileDataTable: TableQuery[Tables.ExternalProfileData] = Tables.ExternalProfileData // Tables.ExternalProfileData
-  val profileUploaded: TableQuery[Tables.ProfileUploaded] = Tables.ProfileUploaded
-  val profileSent: TableQuery[Tables.ProfileSent] = Tables.ProfileSent
-  val mitochondrialRcrs: TableQuery[Tables.MitochondrialRcrs] = Tables.MitochondrialRcrs
+  val profilesData: TableQuery[Tables.ProfileData] =
+    Tables.ProfileData // Tables.ProtoProfileData
+  val externalProfileDataTable: TableQuery[Tables.ExternalProfileData] =
+    Tables.ExternalProfileData // Tables.ExternalProfileData
+  val profileUploaded: TableQuery[Tables.ProfileUploaded] =
+    Tables.ProfileUploaded
+  val profileSent: TableQuery[Tables.ProfileSent] =
+    Tables.ProfileSent
+  val mitochondrialRcrs: TableQuery[Tables.MitochondrialRcrs] =
+    Tables.MitochondrialRcrs
 
-  val profileMetaDataFiliations: TableQuery[Tables.ProfileDataFiliation] = Tables.ProfileDataFiliation // Tables.ProtoProfileDataFiliation
-  val profileMetaDataFiliationResources: TableQuery[Tables.ProfileDataFiliationResources] = Tables.ProfileDataFiliationResources // Tables.ProtoProfileDataFiliationResources
-  val profileDataMotive: TableQuery[Tables.ProfileDataMotive] = Tables.ProfileDataMotive
+  val profileMetaDataFiliations: TableQuery[Tables.ProfileDataFiliation] =
+    Tables.ProfileDataFiliation // Tables.ProtoProfileDataFiliation
+  val profileMetaDataFiliationResources
+    : TableQuery[Tables.ProfileDataFiliationResources] =
+    Tables.ProfileDataFiliationResources
+    // Tables.ProtoProfileDataFiliationResources
+  val profileDataMotive: TableQuery[Tables.ProfileDataMotive] =
+    Tables.ProfileDataMotive
   val groups: TableQuery[Tables.Group] = Tables.Group
   val categories: TableQuery[Tables.Category] = Tables.Category
-  val resources: TableQuery[Tables.ProfileDataFiliationResources] = Tables.ProfileDataFiliationResources
+  val resources: TableQuery[Tables.ProfileDataFiliationResources] =
+    Tables.ProfileDataFiliationResources
 
   val laboratories: TableQuery[Tables.Laboratory] = Tables.Laboratory
-  val profilesDataMotive: TableQuery[Tables.ProfileDataMotive] = Tables.ProfileDataMotive
+  val profilesDataMotive: TableQuery[Tables.ProfileDataMotive] =
+    Tables.ProfileDataMotive
 
-  val queryGetGlobalCode = Compiled { internalSampleCode: Column[String] =>
-    for{
-      pd <- profilesData if pd.internalSampleCode === internalSampleCode && !pd.deleted
-    }yield (pd.globalCode)
+  val queryGetGlobalCode = Compiled {
+    internalSampleCode: Column[String] =>
+      for{
+        pd <- profilesData if
+          pd.internalSampleCode === internalSampleCode && !pd.deleted
+      }
+        yield (pd.globalCode)
   }
   val getByGlobalCode = Compiled(queryGetByGlobalCode _)
   val getProfileUploadedById = Compiled(queryProfileUploadedById _)
-  val getProfileUploadedByGlobalCode = Compiled(queryProfileUploadedByGlobalCode _)
-  val getExternalProfileDataByGlobalCodeCompiled = Compiled(queryGetExternalProfileDataByGlobalCode _)
+  val getProfileUploadedByGlobalCode =
+    Compiled(queryProfileUploadedByGlobalCode _)
+  val getExternalProfileDataByGlobalCodeCompiled =
+    Compiled(queryGetExternalProfileDataByGlobalCode _)
 
-  private def queryGetByGlobalCode(globalCode: Column[String]) = profilesData.filter(_.globalCode === globalCode)
-  private def queryProfileUploadedById(id: Column[Long]) = profileUploaded.filter(_.id === id)
-  private def queryProfileUploadedByGlobalCode(globalCode: Column[String]) = profileUploaded.filter(_.globalCode === globalCode)
-  private def queryProfileUploadedByGlobalCodeInSet(globalCodes: Seq[String]) = profileUploaded.filter(_.globalCode inSet globalCodes)
-  private def queryFailedUploadedProfiles() = profileUploaded.filter(_.status === 1L)
-  private def queryFailedUploadedProfilesDeleted() = profileUploaded.filter(_.status === 5L)
-  private def queryFailedSentProfilesDeleted(labCode: Column[String]) = profileSent.filter(_.status === 5L).filter(_.labCode === labCode)
+  private def queryGetByGlobalCode(globalCode: Column[String]) =
+    profilesData.filter(_.globalCode === globalCode)
+  private def queryProfileUploadedById(id: Column[Long]) =
+    profileUploaded.filter(_.id === id)
+  private def queryProfileUploadedByGlobalCode(globalCode: Column[String]) =
+    profileUploaded.filter(_.globalCode === globalCode)
+  private def queryProfileUploadedByGlobalCodeInSet(globalCodes: Seq[String]) =
+    profileUploaded.filter(_.globalCode inSet globalCodes)
+  private def queryFailedUploadedProfiles() =
+    profileUploaded.filter(_.status === 1L)
+  private def queryFailedUploadedProfilesDeleted() =
+    profileUploaded.filter(_.status === 5L)
+  private def queryFailedSentProfilesDeleted(labCode: Column[String]) =
+    profileSent.filter(_.status === 5L).filter(_.labCode === labCode)
 
-  private def queryGetExternalProfileDataByGlobalCode(globalCode: Column[String]) = externalProfileDataTable.innerJoin(profilesData).on(_.id === _.id).filter(_._2.globalCode === globalCode).map(x => x._1)
+  private def queryGetExternalProfileDataByGlobalCode(
+    globalCode: Column[String]
+  ) =
+    externalProfileDataTable
+      .innerJoin(profilesData)
+      .on(_.id === _.id)
+      .filter(_._2.globalCode === globalCode)
+      .map(x => x._1)
 
   private def queryDefineDeletePd(globalCode: Column[String]) = for {
     pd <- profilesData if pd.globalCode === globalCode
@@ -152,17 +221,47 @@ class SlickProfileDataRepository @Inject() (implicit app: Application) extends P
 
   private def queryUpdatePd(globalCode: Column[String]) = for {
     pd <- profilesData if pd.globalCode === globalCode
-  } yield (pd.attorney, pd.bioMaterialType, pd.court, pd.crimeInvolved, pd.crimeType, pd.criminalCase,
-    pd.responsibleGeneticist, pd.profileExpirationDate, pd.sampleDate, pd.sampleEntryDate)
+  } yield (
+    pd.attorney,
+    pd.bioMaterialType,
+    pd.court,
+    pd.crimeInvolved,
+    pd.crimeType,
+    pd.criminalCase,
+    pd.responsibleGeneticist,
+    pd.profileExpirationDate,
+    pd.sampleDate,
+    pd.sampleEntryDate
+  )
 
   protected def queryUpdateProtoPd(globalCode: Column[String]) = for {
     pd <- profilesData if pd.globalCode === globalCode
-  } yield (pd.attorney, pd.bioMaterialType, pd.court, pd.crimeInvolved, pd.crimeType, pd.criminalCase,
-    pd.responsibleGeneticist, pd.profileExpirationDate, pd.sampleDate, pd.sampleEntryDate, pd.laboratory)
+  } yield (
+    pd.attorney,
+    pd.bioMaterialType,
+    pd.court,
+    pd.crimeInvolved,
+    pd.crimeType,
+    pd.criminalCase,
+    pd.responsibleGeneticist,
+    pd.profileExpirationDate,
+    pd.sampleDate,
+    pd.sampleEntryDate,
+    pd.laboratory
+  )
 
   protected def queryUpdatePdFiliation(sampleCode: Column[String]) = for {
     pdf <- profileMetaDataFiliations if (pdf.profileData === sampleCode)
-  } yield (pdf.fullName, pdf.nickname, pdf.birthday, pdf.birthPlace, pdf.nationality, pdf.identification, pdf.identificationIssuingAuthority, pdf.address)
+  } yield (
+    pdf.fullName,
+    pdf.nickname,
+    pdf.birthday,
+    pdf.birthPlace,
+    pdf.nationality,
+    pdf.identification,
+    pdf.identificationIssuingAuthority,
+    pdf.address
+  )
 
   private def queryDefineGetIdProfileData(globalCode: Column[String]) = for {
     pd <- profilesData if (pd.globalCode === globalCode)
@@ -171,16 +270,26 @@ class SlickProfileDataRepository @Inject() (implicit app: Application) extends P
   val queryGetIdProfileData = Compiled(queryDefineGetIdProfileData _)
 
   private def queryDefineGetProfileData(id: Column[Long]) = for (
-    ((pd, pmdf),epd) <- profilesData leftJoin profileMetaDataFiliations  on (_.globalCode === _.profileData) leftJoin externalProfileDataTable on (_._1.id === _.id)
-      if pd.id === id
+    ((pd, pmdf),epd) <-
+      profilesData
+        leftJoin profileMetaDataFiliations
+        on (_.globalCode === _.profileData)
+        leftJoin externalProfileDataTable
+        on (_._1.id === _.id)
+        if pd.id === id
   ) yield (pd, pmdf.?,epd.?)
 
   private def queryDefineResource(id: Column[String]) = for (
-    resource <- profileMetaDataFiliationResources if (resource.profileDataFiliation === id)
+    resource <- profileMetaDataFiliationResources
+      if resource.profileDataFiliation === id
   ) yield (resource.resourceType, resource.id)
 
-  private def queryDefineGetResource(resourceType: Column[String], id: Column[Long]) = for {
-    resource <- profileMetaDataFiliationResources if (resource.id === id && resource.resourceType === resourceType)
+  private def queryDefineGetResource(
+    resourceType: Column[String],
+    id: Column[Long]
+  ) = for {
+    resource <- profileMetaDataFiliationResources
+      if (resource.id === id && resource.resourceType === resourceType)
   } yield (resource.resource)
 
   val queryDeletePd = Compiled(queryDefineDeletePd _)
@@ -192,7 +301,8 @@ class SlickProfileDataRepository @Inject() (implicit app: Application) extends P
   val queryResource = Compiled(queryDefineResource _)
 
   val getFailedUploadedProfiles = Compiled(queryFailedUploadedProfiles)
-  val getFailedUploadedProfilesDeleted = Compiled(queryFailedUploadedProfilesDeleted)
+  val getFailedUploadedProfilesDeleted =
+    Compiled(queryFailedUploadedProfilesDeleted)
   val getFailedSentProfilesDeleted = Compiled(queryFailedSentProfilesDeleted _)
 
 
@@ -202,103 +312,250 @@ class SlickProfileDataRepository @Inject() (implicit app: Application) extends P
 
   val queryGetLabByCode = Compiled(queryDefineGetLabByCode _)
 
-  private def queryDefineGetProfileDataBySampleCode(sampleCode: Column[String]) = for (
-    ((pd, pmdf),epd) <- profilesData leftJoin profileMetaDataFiliations  on (_.globalCode === _.profileData) leftJoin externalProfileDataTable on (_._1.id === _.id)
-      if pd.globalCode === sampleCode
+  private def queryDefineGetProfileDataBySampleCode(
+    sampleCode: Column[String]
+  ) = for (
+    ((pd, pmdf), epd) <-
+      profilesData
+        leftJoin profileMetaDataFiliations
+        on (_.globalCode === _.profileData)
+        leftJoin externalProfileDataTable
+        on (_._1.id === _.id)
+        if pd.globalCode === sampleCode
   ) yield (pd, pmdf.?,epd.?)
 
-  val queryGetProfileDataBySampleCode = Compiled(queryDefineGetProfileDataBySampleCode _)
+  val queryGetProfileDataBySampleCode =
+    Compiled(queryDefineGetProfileDataBySampleCode _)
 
-  private def queryDefineFindByCode(code: Column[String]) = for ((pd,epd) <- profilesData leftJoin externalProfileDataTable on (_.id === _.id) if (pd.globalCode === code)) yield (pd,epd.?)
+  private def queryDefineFindByCode(code: Column[String]) =
+    for (
+      (pd, epd) <-
+        profilesData
+          leftJoin externalProfileDataTable
+          on (_.id === _.id)
+          if (pd.globalCode === code)
+    ) yield (pd,epd.?)
 
   val queryFindProfileDataByCode = Compiled(queryDefineFindByCode _)
 
-  private def queryDefineGetResources(id: Column[String], resourceType: Column[String]) = for {
-    resource <- profileMetaDataFiliationResources if (resource.profileDataFiliation === id && resource.resourceType === resourceType)
-  } yield (resource.id)
+  private def queryDefineGetResources(
+    id: Column[String],
+    resourceType: Column[String]
+  ) = for {
+    resource <-
+      profileMetaDataFiliationResources
+    if resource.profileDataFiliation === id &&
+      resource.resourceType === resourceType
+  } yield resource.id
 
   val queryGetResources = Compiled(queryDefineGetResources _)
 
-  private def queryDefineGetProfileDataByUserAndStatus(userId: Column[String], isSuperUser: Column[Boolean],
-                                                       active: Column[Boolean], inactive: Column[Boolean]) = (for {
-    ((pd,pdu),epd) <- profilesData leftJoin(profileUploaded) on(_.id === _.id) leftJoin externalProfileDataTable on (_._1.id === _.id)
-    if ((isSuperUser || pd.assignee === userId) && ((pd.deleted && inactive) || (!pd.deleted && active)))
-  } yield (pd,pdu.?,epd.?)).sortBy(_._1.globalCode.desc)
+  private def queryDefineGetProfileDataByUserAndStatus(
+    userId: Column[String],
+    isSuperUser: Column[Boolean],
+    active: Column[Boolean],
+    inactive: Column[Boolean]
+  ) = (
+    for {
+      ((pd, pdu), epd) <- (
+        profilesData
+          leftJoin profileUploaded
+          on (_.id === _.id)
+          leftJoin externalProfileDataTable
+          on (_._1.id === _.id)
+        )
+    if (isSuperUser || pd.assignee === userId) &&
+      ((pd.deleted && inactive) || (!pd.deleted && active))
 
-  private def queryDefineGetProfileDataByUserAndStatusAndCategory(userId: Column[String], isSuperUser: Column[Boolean],
-                                                       active: Column[Boolean], inactive: Column[Boolean], category: Column[String]) = (for {
-    ((pd,pdu),epd) <- profilesData leftJoin(profileUploaded) on(_.id === _.id) leftJoin externalProfileDataTable on (_._1.id === _.id)
-    if ((isSuperUser || pd.assignee === userId) && ((pd.deleted && inactive) || (!pd.deleted && active)) && (pd.category===category))
-  } yield (pd,pdu.?,epd.?)).sortBy(_._1.globalCode.desc)
+    } yield (pd,pdu.?,epd.?)
+  ) sortBy(_._1.globalCode.desc)
 
-  private def queryDefineGetProfileDataByUser(userId: Column[String], isSuperUser: Column[Boolean]) = (for {
-    (pd) <- profilesData if (isSuperUser || pd.assignee === userId)
-  } yield (pd)).sortBy(_.globalCode.desc)
+  private def queryDefineGetProfileDataByUserAndStatusAndCategory(
+    userId: Column[String],
+    isSuperUser: Column[Boolean],
+    active: Column[Boolean],
+    inactive: Column[Boolean],
+    category: Column[String]
+  ) = (for {
+    ((pd,pdu),epd) <- (
+      profilesData
+        leftJoin profileUploaded
+        on(_.id === _.id)
+        leftJoin externalProfileDataTable
+        on(_._1.id === _.id)
+      )
+    if (
+      (isSuperUser || pd.assignee === userId) &&
+      ((pd.deleted && inactive) || (!pd.deleted && active))
+      && (pd.category===category)
+    )
+  } yield (pd,pdu.?,epd.?)
+  ) sortBy(_._1.globalCode.desc)
 
-  private def queryDefineGetProfileDataByUserAndCategory(userId: Column[String], isSuperUser: Column[Boolean], category: Column[String]) = (for {
-    (pd) <- profilesData if ((isSuperUser || pd.assignee === userId) && (pd.category===category))
-  } yield (pd)).sortBy(_.globalCode.desc)
+  private def queryDefineGetProfileDataByUser(
+    userId: Column[String],
+    isSuperUser: Column[Boolean]
+  ) = (
+    for {
+    pd <- profilesData if (isSuperUser || pd.assignee === userId)
+    } yield pd
+  ) sortBy(_.globalCode.desc)
 
-  val queryGetProfileDataByUserAndStatus = Compiled(queryDefineGetProfileDataByUserAndStatus _)
+  private def queryDefineGetProfileDataByUserAndCategory(
+    userId: Column[String],
+    isSuperUser: Column[Boolean],
+    category: Column[String]
+  ) = (
+    for {
+      pd <- profilesData
+        if (isSuperUser || pd.assignee === userId) && (pd.category===category)
+    } yield (pd)
+  ) sortBy(_.globalCode.desc)
 
-  val queryGetProfileDataByUserAndStatusAndCategory = Compiled(queryDefineGetProfileDataByUserAndStatusAndCategory _)
+  val queryGetProfileDataByUserAndStatus =
+    Compiled(queryDefineGetProfileDataByUserAndStatus _)
 
-  val queryGetProfileDataByUser = Compiled(queryDefineGetProfileDataByUser _)
+  val queryGetProfileDataByUserAndStatusAndCategory =
+    Compiled(queryDefineGetProfileDataByUserAndStatusAndCategory _)
 
-  val queryGetProfileDataByUserAndCategory = Compiled(queryDefineGetProfileDataByUserAndCategory _)
+  val queryGetProfileDataByUser =
+    Compiled(queryDefineGetProfileDataByUser _)
 
+  val queryGetProfileDataByUserAndCategory =
+    Compiled(queryDefineGetProfileDataByUserAndCategory _)
 
-  override def isDeleted(globalCode: SampleCode): Future[Option[Boolean]] = Future {
+  override def isDeleted(globalCode: SampleCode)
+  : Future[Option[Boolean]] = Future {
     DB.withSession { implicit session =>
       queryDeletePd(globalCode.text).firstOption map { x => x._1 }
     }
   }
 
-  override def getProfilesByUser(search: ProfileDataSearch): Future[Seq[ProfileDataFull]] = Future {
+  override def getProfilesByUser(search: ProfileDataSearch)
+  : Future[Seq[ProfileDataFull]] = Future {
     if(search.notUploaded.contains(true)){
       if(search.category.isEmpty) {
-        DB.withSession { implicit session =>
-          queryGetProfileDataByUserAndStatus(search.userId, search.isSuperUser, search.active, search.inactive)
-            .list.filter(_._2.isEmpty).drop(search.page * search.pageSize).take(search.pageSize).iterator.toVector map {
-            case (pd,pdu,epd) =>
-              ProfileDataFull(AlphanumericId(pd.category),
-                SampleCode(pd.globalCode), pd.attorney, pd.bioMaterialType,
-                pd.court, pd.crimeInvolved, pd.crimeType, pd.criminalCase,
-                pd.internalSampleCode, pd.assignee, pd.laboratory, pd.deleted, None,
-                pd.responsibleGeneticist, pd.profileExpirationDate, pd.sampleDate,
-                pd.sampleEntryDate, None,pdu.isDefined,epd.isDefined)
+        DB.withSession {
+          implicit session =>
+            queryGetProfileDataByUserAndStatus(
+              search.userId,
+              search.isSuperUser,
+              search.active,
+              search.inactive
+            )
+            .list
+              .filter(_._2.isEmpty)
+              .drop(search.page * search.pageSize)
+              .take(search.pageSize)
+              .iterator
+              .toVector map {
+                case (pd,pdu,epd) =>
+                  ProfileDataFull(
+                    AlphanumericId(pd.category),
+                    SampleCode(pd.globalCode),
+                    pd.attorney,
+                    pd.bioMaterialType,
+                    pd.court,
+                    pd.crimeInvolved,
+                    pd.crimeType,
+                    pd.criminalCase,
+                    pd.internalSampleCode,
+                    pd.assignee,
+                    pd.laboratory,
+                    pd.deleted,
+                    None,
+                    pd.responsibleGeneticist,
+                    pd.profileExpirationDate,
+                    pd.sampleDate,
+                    pd.sampleEntryDate,
+                    None,
+                    pdu.isDefined,
+                    epd.isDefined
+                  )
+              }
           }
-        }
-      }else{
+      } else {
         DB.withSession { implicit session =>
-          queryGetProfileDataByUserAndStatusAndCategory(search.userId, search.isSuperUser, search.active, search.inactive,search.category)
-            .list.filter(_._2.isEmpty).drop(search.page * search.pageSize).take(search.pageSize).iterator.toVector map {
-            case (pd,pdu,epd) =>
-              ProfileDataFull(AlphanumericId(pd.category),
-                SampleCode(pd.globalCode), pd.attorney, pd.bioMaterialType,
-                pd.court, pd.crimeInvolved, pd.crimeType, pd.criminalCase,
-                pd.internalSampleCode, pd.assignee, pd.laboratory, pd.deleted, None,
-                pd.responsibleGeneticist, pd.profileExpirationDate, pd.sampleDate,
-                pd.sampleEntryDate, None,pdu.isDefined,epd.isDefined)
+          queryGetProfileDataByUserAndStatusAndCategory(
+            search.userId,
+            search.isSuperUser,
+            search.active,
+            search.inactive,
+            search.category
+          )
+          .list
+            .filter(_._2.isEmpty)
+            .drop(search.page * search.pageSize)
+            .take(search.pageSize)
+            .iterator
+            .toVector map {
+              case (pd,pdu,epd) =>
+                ProfileDataFull(
+                  AlphanumericId(pd.category),
+                  SampleCode(pd.globalCode),
+                  pd.attorney,
+                  pd.bioMaterialType,
+                  pd.court,
+                  pd.crimeInvolved,
+                  pd.crimeType,
+                  pd.criminalCase,
+                  pd.internalSampleCode,
+                  pd.assignee,
+                  pd.laboratory,
+                  pd.deleted,
+                  None,
+                  pd.responsibleGeneticist,
+                  pd.profileExpirationDate,
+                  pd.sampleDate,
+                  pd.sampleEntryDate,
+                  None,
+                  pdu.isDefined,
+                  epd.isDefined
+                )
+            }
           }
-        }
       }
-    }
-    else{
-      if(search.category.isEmpty) {
-        DB.withSession { implicit session =>
-        queryGetProfileDataByUserAndStatus(search.userId, search.isSuperUser, search.active, search.inactive)
-          .list.drop(search.page * search.pageSize).take(search.pageSize).iterator.toVector map {
-          case (pd,pdu,epd) =>
-            ProfileDataFull(AlphanumericId(pd.category),
-              SampleCode(pd.globalCode), pd.attorney, pd.bioMaterialType,
-              pd.court, pd.crimeInvolved, pd.crimeType, pd.criminalCase,
-              pd.internalSampleCode, pd.assignee, pd.laboratory, pd.deleted, None,
-              pd.responsibleGeneticist, pd.profileExpirationDate, pd.sampleDate,
-              pd.sampleEntryDate, None,pdu.isDefined,epd.isDefined)
-        }
-      }
-    }else{
+    } else {
+      if (search.category.isEmpty) {
+        DB.withSession {
+          implicit session =>
+            queryGetProfileDataByUserAndStatus(
+              search.userId,
+              search.isSuperUser,
+              search.active,
+              search.inactive
+            )
+            .list
+              .drop(search.page * search.pageSize)
+              .take(search.pageSize)
+              .iterator
+              .toVector map {
+                case (pd,pdu,epd) =>
+                  ProfileDataFull(
+                    AlphanumericId(pd.category),
+                    SampleCode(pd.globalCode),
+                    pd.attorney,
+                    pd.bioMaterialType,
+                    pd.court,
+                    pd.crimeInvolved,
+                    pd.crimeType,
+                    pd.criminalCase,
+                    pd.internalSampleCode,
+                    pd.assignee,
+                    pd.laboratory,
+                    pd.deleted,
+                    None,
+                    pd.responsibleGeneticist,
+                    pd.profileExpirationDate,
+                    pd.sampleDate,
+                    pd.sampleEntryDate,
+                    None,
+                    pdu.isDefined,
+                    epd.isDefined
+                  )
+              }
+          }
+    } else {
         DB.withSession { implicit session =>
           queryGetProfileDataByUserAndStatusAndCategory(search.userId, search.isSuperUser, search.active, search.inactive,search.category)
             .list.drop(search.page * search.pageSize).take(search.pageSize).iterator.toVector map {
@@ -400,7 +657,9 @@ class SlickProfileDataRepository @Inject() (implicit app: Application) extends P
 
       val filiationData = pmdf.map(pmdf => {
 
-        val resources = queryResource(pmdf.profileData).list.groupBy(row => row._1)
+        val resources = queryResource(pmdf.profileData)
+          .list
+          .groupBy(row => row._1)
         val inprints = resources.get("I").getOrElse(Nil).map(tup => tup._2)
         val pictures = resources.get("P").getOrElse(Nil).map(tup => tup._2)
         val signatures = resources.get("S").getOrElse(Nil).map(tup => tup._2)
@@ -737,10 +996,17 @@ class SlickProfileDataRepository @Inject() (implicit app: Application) extends P
     }
   }
 
-  override def findUploadedProfilesByCodes(globalCodes: Seq[SampleCode]): Future[Seq[SampleCode]] = {
-    this.runInTransactionAsync { implicit session => {
-      queryProfileUploadedByGlobalCodeInSet(globalCodes.map(x => x.text)).list.map(x => SampleCode(x.globalCode))
-    }
+  override def findUploadedProfilesByCodes(
+    globalCodes: Seq[SampleCode]
+  ): Future[Seq[SampleCode]] = {
+    this.runInTransactionAsync {
+      implicit session => {
+        queryProfileUploadedByGlobalCodeInSet(
+          globalCodes.map(x => x.text)
+        )
+        .list
+        .map(x => SampleCode(x.globalCode))
+      }
     }
   }
   override def updateProfileSentStatus(globalCode: String,status:Long,motive:Option[String]= None,labCode:String): Future[Either[String,Unit]] = {
