@@ -15,7 +15,8 @@ function CryptoService(userService) {
 
 		var encryptedBytes = aes.AES.encrypt(text, key, {iv : iv});
 
-		var encryptedText = encryptedBytes.ciphertext
+		var encryptedText = encryptedBytes
+			.ciphertext
 			.toString(enc.enc.Base64)
 			.replace(/\//g, '_')
 			.replace(/\+/g, '-')
