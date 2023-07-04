@@ -1,0 +1,86 @@
+# genis.local Organizational Units
+
+dn: dc=genis,dc=local
+objectClass: dcObject
+objectClass: organization
+dc: genis
+o: example
+
+dn: ou=Groups,dc=genis,dc=local
+objectClass: top
+objectClass: organizationalUnit
+ou: Groups
+
+dn: ou=Users,dc=genis,dc=local
+objectClass: top
+objectClass: organizationalUnit
+ou: Users
+
+dn: ou=Roles,dc=genis,dc=local
+objectClass: top
+objectClass: organizationalUnit
+ou: Roles
+
+# genis.local Groups
+
+dn:cn=GENisAdmins,ou=Groups,dc=genis,dc=local
+objectClass:posixGroup
+cn:GENisAdmins
+gidNumber:10000
+
+dn:cn=GENisServiceAccts,ou=Groups,dc=genis,dc=local
+objectClass:posixGroup
+cn:GENisServiceAccts
+gidNumber:20000
+
+dn:cn=GENisUsers,ou=Groups,dc=genis,dc=local
+objectClass:posixGroup
+cn:GENisUsers
+gidNumber:30000
+
+# genis.local LDAP Roles
+
+dn: cn=admin,ou=Roles,dc=genis,dc=local
+objectClass: top
+objectClass: organizationalRole
+cn: admin
+ou: Roles
+street: DNA_PROFILE_CRUD
+street: PROTOPROFILE_BULK_UPLOAD
+street: PROFILE_DATA_CRUD
+street: PEDIGREE_CRUD
+street: BIO_MAT_CRUD
+street: OPERATION_LOG_READ
+street: LABORATORY_CRUD
+street: MATCHES_MANAGER
+street: ALLELIC_FREQ_DB_CRUD
+street: PROTOPROFILE_BULK_ACCEPTANCE
+street: ALLELIC_FREQ_DB_VIEW
+street: ROLE_CRUD
+street: USER_CRUD
+street: CATEGORY_CRUD
+street: PROFILE_DATA_SEARCH
+street: GENETICIST_CRUD
+street: SCENARIO_CRUD
+street: LOCUS_CRUD
+street: KIT_CRUD
+description: Administrador
+
+# setup User
+
+dn: uid=setup,ou=Users,dc=genis,dc=local
+uid: setup
+givenName: s
+sn: etup
+cn: etup s
+mail: setup@genis.local
+employeeType: admin
+jpegPhoto:: k9O0fq2XRgtW2YfHs372iBYF8qdRGVySfvb/lP/PVFo=
+telephoneNumber: 0000000000
+o: sgm
+title: false
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: person
+userPassword:: e1NTSEF9R3B3SnBwYlVEMUZMUy8wYVEvVmJ5c3VVR2JSZUlwMEY=
+street: active
