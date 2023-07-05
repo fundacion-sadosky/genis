@@ -1,111 +1,142 @@
-
 <div class="row padding-0 breadcrumb_column">
-	<div class="col-md-12 padding-0">
-		<div class="row padding-0">
-			<div class="breadcrumb_content">
-				<ol class="breadcrumb">
-						<li>
-							<div class="btn volver" onclick="history.back()">
-								<span  class="icon-atras" title="Volver"></span>
-							</div>
-						</li>
-						<li class="active">Bases Poblacionales de Frecuencia</li>
-							
-						</ol>
-					</div>
-				</div>
-			</div>
-		</div>
-<div class="container-top">
-<div class="row padding-0 content">
-
-	<!-- <h3>Bases Poblacionales</h3> -->
-	<div show-permissions="ALLELIC_FREQ_DB_CRUD" class="options-header new-load">
-
-        <div class="input-data">
-            <form name="nameForm" class="form-inline" novalidate>
-
-                <div class="form-group">
-                    <input id="dbName" type="text" class="form-control form-select"
-                        data-ng-model="popBaseFreq.name" placeholder="Nombre:"
-                        data-ng-required="true" required />
-                </div>
-
-                <div class="form-group">
-                    <input id="dbTheta" type="number" class="freq-number form-control form-select" step="0.1" min="0" max="1"
-                        data-ng-model="popBaseFreq.theta" placeholder="Theta:"
-                        data-ng-required="true" required />
-                </div>
-
-                <div class="form-group">
-
-                    <select id="dbModel" class="form-control form-select" data-ng-model="popBaseFreq.model" style="width:240px"
-                    data-ng-options="sm.id as sm.name for sm in giveStatsModels(popBaseFreq.theta)"
-                    required>
-                    </select>
-
-                </div>
-
-                <div class="btn btn-secondary-action btn-file">
-                    Seleccionar<input id="inputCsvFile" class="form-control" type="file" name="file"
-                        ngf-select="" ng-model="csvFile" accept=".csv, text/plain">
-                </div>
-
-                <span>{{csvFile[0].name | prittyLimitTo : 15: true }}</span>
-
-                <button id="saveCsv" type="button" class="btn btn-primary-action"
-                    data-ng-click="saveFileCSV(csvFile)"
-                    data-ng-disabled="nameForm.$invalid"
-                    help-tip="format.baseFrequency" help-tip-placement="right">Guardar</button>
-
-            </form>
-        </div>
-	</div>
-	<table class="table  table-bordered">
-		<thead>
-			<tr>
-				<th>Default</th>
-				<th>Nombre</th>
-				<th>Theta</th>
-				<th>Modelo</th>
-				<th class="centered">Estado</th>
-				<th class="centered">Ver</th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr data-ng-repeat="item in baseNames | orderBy: 'name'">
-				<td><input data-ng-disabled="disable('ALLELIC_FREQ_DB_CRUD',item.default)" type="radio"
-					data-ng-value="item.default" data-ng-checked="item.default"
-					data-ng-click="setDefault(item.name)" name="default-base">
-				</td>
-				<td>{{item.name}}</td>
-				<td>{{item.theta}}</td>
-				<td>{{resolveName(item.model)}}</td>
-				<td class="col-md-2 centered">
-					<button data-ng-disabled="disable('ALLELIC_FREQ_DB_CRUD',item.default)" id="modify_{{$index}}"
-						type="button" class="btn btn-default btn-link-action btn-link-border"
-						data-ng-class="{ 'btn-success': item.state, 'btn-danger': !item.state}"
-						data-ng-click="toggleStateBase(item.name,!item.state)">
-						<div data-ng-if="item.state">
-							<span class="glyphicon glyphicon-ok"></span>
-						</div>
-						<div data-ng-if="!item.state">
-							<span class="glyphicon glyphicon-remove" data-ng-if="!item.state"></span>
-						</div>
-					</button>
-				</td>
-				<td class="col-md-3 centered"><a id="do_{{$index}}"
-					data-ng-disabled="!item.state" class="btn btn-default btn-link-action btn-link-border"
-					data-ng-click="goTo(item.name)"> <span
-						class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
-				</a></td>
-
-			</tr>
-
-		</tbody>
-	</table>
-
+  <div class="col-md-12 padding-0">
+    <div class="row padding-0">
+      <div class="breadcrumb_content">
+        <ol class="breadcrumb">
+          <li>
+            <div class="btn volver" onclick="history.back()">
+              <span  class="icon-atras" title="Volver"></span>
+            </div>
+          </li>
+          <li class="active">Bases Poblacionales de Frecuencia</li>
+        </ol>
+      </div>
+    </div>
+  </div>
 </div>
+
+<div class="container-top">
+  <div class="row padding-0 content">
+
+    <!-- <h3>Bases Poblacionales</h3> -->
+    <div show-permissions="ALLELIC_FREQ_DB_CRUD" class="options-header new-load">
+      <div class="input-data">
+        <form name="nameForm" class="form-inline" novalidate>
+          <div class="form-group">
+            <input
+              id="dbName"
+              type="text"
+              class="form-control form-select"
+              data-ng-model="popBaseFreq.name"
+              placeholder="Nombre:"
+              data-ng-required="true"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <input
+              id="dbTheta"
+              type="number"
+              class="freq-number form-control form-select"
+              step="0.1"
+              min="0"
+              max="1"
+              data-ng-model="popBaseFreq.theta"
+              placeholder="Theta:"
+              data-ng-required="true"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <select
+              id="dbModel"
+              class="form-control form-select"
+              data-ng-model="popBaseFreq.model"
+              style="width:240px"
+              data-ng-options="sm.id as sm.name for sm in giveStatsModels(popBaseFreq.theta)"
+              required>
+            </select>
+          </div>
+          <div class="btn btn-secondary-action btn-file">
+            Seleccionar
+            <input
+              id="inputCsvFile"
+              class="form-control"
+              type="file"
+              name="file"
+              ngf-select=""
+              ng-model="csvFile"
+              accept=".csv, text/plain"
+              required
+            >
+          </div>
+          <button
+            id="saveCsv"
+            type="button"
+            class="btn btn-primary-action"
+            data-ng-click="saveFileCSV(csvFile)"
+            data-ng-disabled="nameForm.$invalid"
+            help-tip="format.baseFrequency"
+            help-tip-placement="right"
+          >Guardar
+          </button>
+          <span
+            ng-if="(csvFile.length > 0)"
+          >
+            <span class="bold">
+              <br>
+              Archivo seleccionado:
+            </span>
+            {{csvFile[0].name | prittyLimitTo : 15: true }}
+          </span>
+        </form>
+      </div>
+    </div>
+    <table class="table  table-bordered">
+      <thead>
+      <tr>
+        <th>Default</th>
+        <th>Nombre</th>
+        <th>Theta</th>
+        <th>Modelo</th>
+        <th class="centered">Estado</th>
+        <th class="centered">Ver</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr data-ng-repeat="item in baseNames | orderBy: 'name'">
+        <td><input data-ng-disabled="disable('ALLELIC_FREQ_DB_CRUD',item.default)" type="radio"
+                   data-ng-value="item.default" data-ng-checked="item.default"
+                   data-ng-click="setDefault(item.name)" name="default-base">
+        </td>
+        <td>{{item.name}}</td>
+        <td>{{item.theta}}</td>
+        <td>{{resolveName(item.model)}}</td>
+        <td class="col-md-2 centered">
+          <button data-ng-disabled="disable('ALLELIC_FREQ_DB_CRUD',item.default)" id="modify_{{$index}}"
+                  type="button" class="btn btn-default btn-link-action btn-link-border"
+                  data-ng-class="{ 'btn-success': item.state, 'btn-danger': !item.state}"
+                  data-ng-click="toggleStateBase(item.name,!item.state)">
+            <div data-ng-if="item.state">
+              <span class="glyphicon glyphicon-ok"></span>
+            </div>
+            <div data-ng-if="!item.state">
+              <span class="glyphicon glyphicon-remove" data-ng-if="!item.state"></span>
+            </div>
+          </button>
+        </td>
+        <td class="col-md-3 centered"><a id="do_{{$index}}"
+                                         data-ng-disabled="!item.state" class="btn btn-default btn-link-action btn-link-border"
+                                         data-ng-click="goTo(item.name)"> <span
+          class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
+        </a></td>
+
+      </tr>
+
+      </tbody>
+    </table>
+
+  </div>
 
 
 </div>
