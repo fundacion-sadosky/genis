@@ -7,7 +7,7 @@ import hmac
 import struct
 import sys
 import time
-from typing import Mapping, Optional
+from typing import Mapping, Optional, List
 from unittest.mock import patch
 try:
   import pytest
@@ -39,7 +39,7 @@ def calculate_totp(key: str) -> str:
   )
 
 
-def _check_jsonfile_content(data: list[Mapping]) -> bool:
+def _check_jsonfile_content(data: List[Mapping]) -> bool:
   try:
     assert isinstance(data, list)
     assert len(data) > 0
