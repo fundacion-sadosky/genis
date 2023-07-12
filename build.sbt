@@ -1,6 +1,10 @@
-import WebKeys._
+// import WebKeys._
 //import com.nescale.gitstamp.GitStampPlugin._
 import RjsKeys._
+
+
+import sbt.{Logger, Level}
+
 
 //Seq(gitStampSettings: _*)
 
@@ -11,9 +15,11 @@ scalaVersion := "2.11.11"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
+logLevel := Level.Debug
 
 transitiveClassifiers := Seq("sources", "javadoc")
-// TODO Set your organization here; ThisBuild means it will apply to all sub-modules
+// TODO Set your organization here; ThisBuild means it will apply to all
+// sub-modules
 organization in ThisBuild := "ar.org.fundacionsadosky"
 
 version := "5.1.9"
@@ -39,68 +45,91 @@ debianPackageDependencies in Debian := Seq(
 )
 
 linuxPackageMappings in Debian := {
-    // mappings: Seq[LinuxPackageMapping]
-    val mappings = linuxPackageMappings.value
-
-    // this process will must return another Seq[LinuxPackageMapping]
-    mappings map {  linuxPackage =>
-
-        // each mapping element is a Seq[(java.io.File, String)]
-        val filtered = linuxPackage.mappings map {
-            case (file, name) => file -> name // alter stuff here
-        } filterNot {
-            case (file, name) => name.contains("/share/doc/")
-        }
-
-        // returns a fresh LinuxPackageMapping based on the above
-        linuxPackage.copy(
-            mappings = filtered
-        )
-    } filter {
-        linuxPackage => linuxPackage.mappings.nonEmpty // return all mappings that are nonEmpty (this effectively removes all empty linuxPackageMappings)
-    }
+  // mappings: Seq[LinuxPackageMapping]
+  val mappings = linuxPackageMappings.value
+  // this process will must return another Seq[LinuxPackageMapping]
+  mappings map {
+    linuxPackage =>
+      // each mapping element is a Seq[(java.io.File, String)]
+      val filtered = linuxPackage.mappings map {
+          case (file, fname) => file -> fname // alter stuff here
+      } filterNot {
+          case (file, fname) => fname.contains("/share/doc/")
+      }
+      // returns a fresh LinuxPackageMapping based on the above
+      linuxPackage.copy(mappings = filtered)
+  } filter {
+    // return all mappings that are nonEmpty (this effectively removes all
+    // empty linuxPackageMappings)
+    linuxPackage => linuxPackage.mappings.nonEmpty
+  }
 }
   
 linuxPackageMappings in Debian ++= {
-  import com.typesafe.sbt.packager.MappingsHelper._  
-
-  directory("scripts/provided") filterNot { case (f, _) =>
-    f.isDirectory
-  } map { case (f, _) =>
-    packageMapping( f -> s"/usr/share/${normalizedName.value}/scripts/${f.name}" ) withUser normalizedName.value withGroup normalizedName.value withPerms "0754" 
+  import com.typesafe.sbt.packager.MappingsHelper._
+  directory("scripts/provided") filterNot {
+    case (f, _) => f.isDirectory
+  } map {
+    case (f, _) =>
+      (
+        packageMapping(
+          f -> s"/usr/share/${normalizedName.value}/scripts/${f.name}"
+        )
+        withUser normalizedName.value
+        withGroup normalizedName.value
+        withPerms "0754"
+      )
   }
-
 }
 
 linuxPackageMappings in Debian ++= {
-  import com.typesafe.sbt.packager.MappingsHelper._  
-
-  directory("scripts/evolutions") filterNot { case (f, _) =>
-    f.isDirectory
-  } map { case (f, _) =>
-    packageMapping( f -> s"/usr/share/${normalizedName.value}/evolutions/${f.name}" ) withUser normalizedName.value withGroup normalizedName.value withPerms "0754" 
+  import com.typesafe.sbt.packager.MappingsHelper._
+  directory("scripts/evolutions") filterNot {
+    case (f, _) => f.isDirectory
+  } map {
+    case (f, _) =>
+      (
+        packageMapping(
+          f -> s"/usr/share/${normalizedName.value}/evolutions/${f.name}"
+        )
+        withUser normalizedName.value
+        withGroup normalizedName.value
+        withPerms "0754"
+      )
   }
-
 }
 
-linuxPackageMappings in Debian += packageTemplateMapping(s"/var/run/${normalizedName.value}")() withUser normalizedName.value withGroup normalizedName.value
+linuxPackageMappings in Debian += {
+  val logger = sbt.Keys.sLog.value
+  logger.info("""Starting build process...""")
+  val pkgMapping = packageTemplateMapping(
+    s"/var/run/${normalizedName.value}"
+  )()
+  (
+    pkgMapping
+      withUser normalizedName.value
+      withGroup normalizedName.value
+  )
+}
 
-linuxPackageMappings in Debian += packageMapping( file("scripts/init-script.sh") -> s"/etc/init.d/${normalizedName.value}" ) withPerms "0755" 
+linuxPackageMappings in Debian += packageMapping(
+  file("scripts/init-script.sh") -> s"/etc/init.d/${normalizedName.value}"
+) withPerms "0755"
 
 maintainerScripts in Debian := {
   import DebianConstants._
-  import com.typesafe.sbt.packager.MappingsHelper._  
- 
+  import com.typesafe.sbt.packager.MappingsHelper._
   var tmp = (maintainerScripts in Debian).value
-  
-  directory("scripts/maintainer/postinst").sorted filterNot { case (f, _) =>
-    f.isDirectory
-  } map { case (f, _) =>
-    Postinst -> f 
-  } foreach { tup =>
-    tmp = maintainerScriptsAppendFromFile(tmp)(tup)   
-  }
-
+  val x = directory("scripts/maintainer/postint")
+  directory("scripts/maintainer/postinst")
+    .sorted
+    .filterNot {
+      case (f, _) => f.isDirectory
+    } map {
+      case (f, _) => Postinst -> f
+    } foreach {
+      tup => tmp = maintainerScriptsAppendFromFile(tmp)(tup)
+    }
   tmp
 }
 
@@ -120,7 +149,10 @@ libraryDependencies ++= Seq(
   "postgresql" % "postgresql" % "9.1-901-1.jdbc4"
 )
 
-resolvers += "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/"
+resolvers += (
+  "Sonatype Snapshots"
+    at "https://oss.sonatype.org/content/repositories/snapshots/"
+)
 
 // NoSQL
 libraryDependencies ++= Seq(
@@ -134,7 +166,7 @@ libraryDependencies ++= Seq(
     "javax.inject" % "javax.inject" % "1"
 )
 
-// web assets (i.e. client-side) 
+// web assets (i.e. client-side)
 libraryDependencies ++= Seq(
   "org.webjars.npm" % "lodash" % "4.17.4",
   "org.webjars" % "requirejs" % "2.1.14-1",
@@ -148,7 +180,7 @@ libraryDependencies ++= Seq(
   "org.webjars" % "angular-ui-sortable" % "0.13.0",
   "org.webjars" % "cryptojs" % "3.1.2",
   "org.webjars" % "angular-file-upload" % "4.1.3",
-  "org.webjars" % "angular-hotkeys" % "1.4.0",  
+  "org.webjars" % "angular-hotkeys" % "1.4.0",
   "org.webjars" % "i18next" % "1.7.3",
   "org.webjars" % "ng-i18next" % "0.3.2",
   "org.webjars" % "qrcodejs" % "07f829d",
@@ -158,12 +190,12 @@ libraryDependencies ++= Seq(
   "org.webjars" % "animate.css" % "3.5.2"
   )
 
-// LDAP 
+// LDAP
 libraryDependencies ++= Seq(
   "com.unboundid" % "unboundid-ldapsdk" % "2.3.1"
 )
 
-// CSV	 
+// CSV
 libraryDependencies ++= Seq(
   "com.github.tototoshi" %% "scala-csv" % "1.2.0"
 )
@@ -173,7 +205,7 @@ libraryDependencies ++= Seq(
  "org.scala-lang.modules" %% "scala-async" % "0.9.6"
 )
 
-// TOTP 
+// TOTP
 libraryDependencies ++= Seq(
   "org.jboss.aerogear" % "aerogear-otp-java" % "1.0.0"
 )
@@ -184,16 +216,17 @@ resolvers += "Cascading Conjars" at "https://conjars.wensel.net/repo/"
 libraryDependencies ++= Seq(
 	"org.apache.spark" %% "spark-core" % "2.1.1" withSources() withJavadoc(),
   "org.apache.spark" %% "spark-sql" % "2.1.1",
-	//"org.mongodb.spark" % "mongo-spark-connector_2.11" % "2.0.0" withSources() withJavadoc(),
+	//"org.mongodb.spark" % "mongo-spark-connector_2.11" % "2.0.0"
+  // withSources() withJavadoc(),
 	"org.mongodb" % "mongo-java-driver" % "3.2.2" withSources() withJavadoc(),
   "org.scala-graph" %% "graph-core" % "1.11.5"
 )
 
-libraryDependencies ++= Seq(
-  ws
-)
+libraryDependencies ++= Seq(ws)
 
-libraryDependencies += "de.leanovate.play-mockws" %% "play-mockws" % "2.3.2" % Test
+libraryDependencies += (
+  "de.leanovate.play-mockws" %% "play-mockws" % "2.3.2" % Test
+)
 
 // Test
 libraryDependencies ++= Seq(
@@ -217,10 +250,13 @@ scalacOptions in ThisBuild ++= Seq(
   "-target:jvm-1.8",
   "-encoding", "UTF-8",
   "-deprecation", // warning and location for usages of deprecated APIs
-  "-feature", // warning and location for usages of features that should be imported explicitly
-  "-unchecked", // additional warnings where generated code depends on assumptions
+  "-feature", // warning and location for usages of features that should be
+              // imported explicitly
+  "-unchecked", // additional warnings where generated code depends on
+                // assumptions
   "-Xlint", // recommended additional warnings
-  "-Ywarn-adapted-args", // Warn if an argument list is modified to match the receiver
+  "-Ywarn-adapted-args", // Warn if an argument list is modified to match the
+                         // receiver
   "-Ywarn-value-discard", // Warn when non-Unit expression results are unused
   "-Ywarn-inaccessible",
   "-Ywarn-dead-code"
@@ -239,27 +275,31 @@ javacOptions in ThisBuild ++= Seq(
 
 JsEngineKeys.engineType := JsEngineKeys.EngineType.Node
 
-JsEngineKeys.command := Some(new sbt.File("//usr//bin//nodejs"))
+JsEngineKeys.command := Option(new sbt.File("//usr//bin//nodejs"))
 
 // Configure the steps of the asset pipeline (used in stage and dist tasks)
 // rjs = RequireJS, uglifies, shrinks to one file, replaces WebJars with CDN
 // digest = Adds hash to filename
-// gzip = Zips all assets, Asset controller serves them automatically when client accepts them
+// gzip = Zips all assets, Asset controller serves them automatically when
+// client accepts them
 pipelineStages := Seq(digest, rjs, gzip)
 
 // RequireJS with sbt-rjs (https://github.com/sbt/sbt-rjs#sbt-rjs)
 // ~~~
 RjsKeys.paths += ("jsRoutes" -> ("/jsroutes" -> "empty:"))
-
 RjsKeys.paths += ("appConf" -> ("/appConf" -> "empty:"))
-
 RjsKeys.paths += ("sensitiveOper" -> ("/sensitiveOper" -> "empty:"))
-
 RjsKeys.paths += ("team" -> ("/team" -> "empty:"))
 
 webJarCdns := Map("org.webjars" -> "//cdn.jsdelivr.net/webjars")
 
-includeFilter in (Assets, LessKeys.less) := "mainTest.less" | "main.less" | "mainAmarillo.less" | "mainAzul.less" | "mainVerde.less"
+includeFilter in (Assets, LessKeys.less) := (
+  "mainTest.less" |
+    "main.less" |
+    "mainAmarillo.less" |
+    "mainAzul.less" |
+    "mainVerde.less"
+)
 
 //RjsKeys.mainModule := "main"
 
@@ -286,7 +326,8 @@ net.virtualvoid.sbt.graph.Plugin.graphSettings
 
 instrumentSettings
 
-ScoverageKeys.excludedPackages in ScoverageCompile := "<empty>;models\\..*;views\\..*;"
+ScoverageKeys.excludedPackages in ScoverageCompile :=
+  "<empty>;models\\..*;views\\..*;"
 
 ScoverageKeys.minimumCoverage := 80
 

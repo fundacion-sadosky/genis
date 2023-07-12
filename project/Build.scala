@@ -3,6 +3,7 @@ import Keys._
 import Tests._
 
 import play.Play.autoImport._
+
 import PlayKeys._
 import play.PlayScala
 
@@ -18,7 +19,10 @@ object myBuild extends Build {
     base = file("."),
     settings = super.settings ++ Seq(
       slick <<= slickCodeGenTask // register manual sbt command
-      )).dependsOn(codegenProject).enablePlugins(PlayScala)
+    )
+  )
+  .dependsOn(codegenProject)
+  .enablePlugins(PlayScala)
 
   // code generation task
   lazy val codegenProject = Project(
@@ -36,15 +40,39 @@ object myBuild extends Build {
   )
   
   lazy val slick = TaskKey[Seq[File]]("slick-codegen")
-  lazy val slickCodeGenTask = (scalaSource in Compile, resourceDirectory in Compile, dependencyClasspath in Compile, runner in Compile, streams) map { (srcDir, resDir, cp, r, s) =>
-    val outputDir = (srcDir).getPath
-    val slickDriver = "scala.slick.driver.PostgresDriver"
-    val pkg = "models"
-    val url = "jdbc:h2:mem:;INIT=RUNSCRIPT FROM '" + (resDir.getPath) + "/schema.sql';MODE=PostgreSQL"
-    val jdbcDriver = "org.h2.Driver"
+  lazy val slickCodeGenTask = (
+    scalaSource in Compile,
+    resourceDirectory in Compile,
+    dependencyClasspath in Compile,
+    runner in Compile,
+    streams
+  ) map {
+    (srcDir, resDir, cp, r, s) =>
+      val outputDir = (srcDir).getPath
+      val slickDriver = "scala.slick.driver.PostgresDriver"
+      val pkg = "models"
+      val url = (
+        "jdbc:h2:mem:;INIT=RUNSCRIPT FROM '" +
+          (resDir.getPath) +
+          "/schema.sql';MODE=PostgreSQL"
+      )
+      val jdbcDriver = "org.h2.Driver"
 
-    toError(r.run("util.PdgSlickCodeGenerator", cp.files, Array(slickDriver, jdbcDriver, url, outputDir, pkg), s.log))
-    val fname = outputDir + "/" + pkg + "/Tables.scala"
-    Seq(file(fname))
-  }
+      toError(
+        r.run(
+          "util.PdgSlickCodeGenerator",
+          cp.files,
+          Array(
+            slickDriver,
+            jdbcDriver,
+            url,
+            outputDir,
+            pkg
+          ),
+          s.log
+        )
+      )
+      val fname = outputDir + "/" + pkg + "/Tables.scala"
+      Seq(file(fname))
+    }
 }
