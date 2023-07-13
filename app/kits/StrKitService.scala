@@ -23,6 +23,7 @@ abstract class StrKitService {
   def getLocusAlias: Future[Map[String, String]]
   def findLociByKits(kitIds: Seq[String]): Future[Map[String, List[StrKitLocus]]]
   def add(kit: FullStrKit): Future[Either[String, String]]
+  def update(kit: StrKit): Future[Either[String, String]]
   def delete(id: String): Future[Either[String, String]]
 }
 
@@ -111,6 +112,21 @@ class StrKitServiceImpl @Inject() (
     }
       locusResult
     }
+    }
+  }
+
+  override def update(kit: StrKit): Future[Either[String, String]] = {
+    if(kit.locy_quantity<kit.representative_parameter){
+      Future.successful(Left(Messages("error.E0697")))
+    }else {
+      strKitRepository.runInTransactionAsync { implicit session =>
+        val updateResult=strKitRepository.update(kit)
+        updateResult match {
+          case Left(_) => session.rollback()
+          case Right(_) => this.cleanCache
+        }
+        updateResult
+      }
     }
   }
 

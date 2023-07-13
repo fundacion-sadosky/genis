@@ -19,12 +19,14 @@ import scala.concurrent.{Await, Future}
 
 class MockKitRepository(addResult: Either[String,String],
                         deleteResult: Either[String,String],
+                        updateResult: Either[String,String]=Right(""),
                         updateLocus:Either[String,String] = Right(""),
                         deleteDiscreteValuesLocus:Either[String,String]= Right("")) extends StrKitRepository {
   override def add(kit: StrKit)(implicit session: Session): Either[String, String] = addResult
   override def deleteAlias(id: String)(implicit session: Session): Either[String, String] = deleteResult
   override def addAlias(id: String, alias: String)(implicit session: Session): Either[String, String] = addResult
   override def deleteLocus(id: String)(implicit session: Session): Either[String, String] = deleteResult
+  override def update(kit: StrKit): Either[String, String]=updateResult
   override def delete(id: String)(implicit session: Session): Either[String, String] = deleteResult
   override def addLocus(id: String, locus: NewStrKitLocus)(implicit session: Session): Either[String, String] = addResult
   override def listFull(): Future[Seq[FullStrKit]] = Future.successful(Seq())
