@@ -49,9 +49,10 @@ Crear las colecciones de configuración inicial:
 sh < "MongoSetup.sh"
 ```
 ### Datos inciales del sistema
-Luego de correr el sistema el esquema de datos ya se encuentra creado y se deben cargar los datos iniciales del sistema.
+Luego de correr el sistema el esquema de datos ya se encuentra creado y se deben cargar los datos iniciales del sistema y los datos particulares de la región.
 ```
 sudo -u genissqladmin psql -d genisdb -f dml.sql
+sudo -u genissqladmin psql -d genisdb -f locales/AR.sql
 ```
 ## Correr GENis en un entorno de desarrollo
 
@@ -73,7 +74,8 @@ sbt run --java-home /usr/lib/jvm/java-8-openjdk-amd64
 En el navegador ingresar a http://localhost:9000/. 
 Si es la primera vez que corre la aplicación se le preguntará por la ejecución de los scripts de evolutions para crear el esquema de datos. Para detener la aplicación en la consola ingresar `Ctrl + C`
 
-## Distribuir y correr GENis en producción
+## Descargar, distribuir y correr GENis en producción
+Puede descargar la última versión de GENis ingresando a la sección de releases. Para actualizar el sistema consulte [`UPGRADING.md`](https://github.com/fundacion-sadosky/genis/blob/main/UPGRADING.md).
 Para generar una nueva versión de GENis actualizar el nro. de versión en el archivo *build.sbt*, borrar la carpeta *target* y correr
 
 ```
@@ -103,8 +105,7 @@ cat RUNNING_PID
 sudo kill -9 pid
 sudo rm –rf RUNNING_PID
 ```
-Para actualizar GENis se debe pisar la carpeta */usr/share/genis* con la nueva versión pero previamente se debe realizar un backup de los archivos de configuración bajo */conf* para reutilizarlos en la nueva versión si no se modificaron o utilizarlos como referencia para la configurar la nueva versión. 
-
+ 
 ## Usuario inicial del sistema
 
 GENis utiliza un mecanismo de autenticación basado en TOPT.

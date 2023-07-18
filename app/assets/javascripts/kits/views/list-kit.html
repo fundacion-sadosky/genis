@@ -25,6 +25,7 @@
             <th><div help-tip="kits.representativeParameter" help-tip-placement="bottom">Parámetro representativo</div></th>
             <th><div help-tip="kits.alias.list" help-tip-placement="top">Alias</div></th>
             <th>Marcadores</th>
+            <th>Modificar</th>
             <th>Eliminar</th>
             </thead>
             <tbody>
@@ -47,6 +48,11 @@
                     <button pdg-locus-popover locus="k.locus" class="btn btn-default btn-link-action btn-link-border">
                         <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
                     </button>
+                </td>
+                <td class="col-md-1 centered">
+                    <a class="btn btn-default btn-link-action btn-link-border" data-ng-click="doUpdate(k.id)">
+                        <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+                    </a>
                 </td>
                 <td>
                     <button class="btn btn-default btn-link-action btn-link-border" ng-click="remove(k.id)">

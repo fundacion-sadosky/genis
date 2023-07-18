@@ -261,6 +261,7 @@ object Permission {
       StaticAuthorisationOperation("""/locus.*""".r, """GET""".r, "LocusRead"),
       StaticAuthorisationOperation("""/strkit.*""".r, """GET""".r, "StrKitsAll"),
       StaticAuthorisationOperation("""/strkit.*""".r, """POST""".r, "StrKitCreate"),
+      StaticAuthorisationOperation("""/strkit.*""".r, """PUT""".r, "StrKitUpdate"),
       StaticAuthorisationOperation("""/strkit.*""".r, """DELETE""".r, "StrKitDelete"),
       StaticAuthorisationOperation("""/analysistypes""".r, """GET""".r, "AnalysisTypeRead")
     )

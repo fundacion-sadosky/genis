@@ -4,7 +4,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 import configdata.Group
-import kits.{FullStrKit, StrKitService}
+import kits.{FullStrKit, StrKitService, StrKit}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.{JsError, Json}
 import play.api.mvc.{Action, BodyParsers, Controller}
@@ -20,6 +20,15 @@ class StrKits @Inject() (strKitService: StrKitService) extends Controller {
 
   def listFull = Action.async {
     strKitService.listFull map { kits => Ok(Json.toJson(kits)) }
+  }
+
+  def get(id: String) = Action.async {
+    strKitService.get(id) map { kit =>
+      kit match {
+        case Some(kit) => Ok(Json.toJson(kit))
+        case None => NoContent
+      }
+    }
   }
 
   def findLociByKit(idKit: String) = Action.async { request =>
@@ -40,6 +49,17 @@ class StrKits @Inject() (strKitService: StrKitService) extends Controller {
           case Left(error) => BadRequest(Json.obj("status" -> "KO", "message" -> Json.toJson(error)))
         }
       })
+  }
+
+  def update = Action.async(BodyParsers.parse.json) { request =>
+    val input = request.body.validate[StrKit]
+    input.fold(
+      errors => Future.successful(BadRequest(Json.obj("status" -> "KO", "message" -> JsError.toFlatJson(errors)))),
+      kit => strKitService.update(kit).map(result => result match {
+        case Right(id) => Ok(Json.toJson(id)).withHeaders("X-CREATED-ID" -> id)
+        case Left(error) => BadRequest(Json.toJson(error))
+      })
+    )
   }
 
   def delete(id: String) = Action.async {

@@ -301,10 +301,12 @@ DELETE   /locus/delete/:id                                    @controllers.Locis
 GET      /locus/ranges                                        @controllers.Locis.ranges
 
 # Kits
+GET      /strkits/:id                                         @controllers.StrKits.get(id: String)
 GET      /strkits                                             @controllers.StrKits.list
 GET      /strkits/:kitId/loci                                 @controllers.StrKits.findLociByKit(kitId: String)
 GET      /strkits-full                                        @controllers.StrKits.listFull
 POST     /strkit/create                                       @controllers.StrKits.add
+PUT      /strkit/update                                       @controllers.StrKits.update
 DELETE   /strkit/delete/:id                                   @controllers.StrKits.delete(id: String)
 
 # Trace

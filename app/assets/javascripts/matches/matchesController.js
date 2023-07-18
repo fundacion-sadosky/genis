@@ -23,9 +23,6 @@ define(['angular','lodash','jquery'], function(angular,_,$) {
         $scope.status = [{label: "todos", value: "", index: 0}, {label: "pendientes", value: "pending", index: 1},
             { label: "confirmados",value: "hit", index: 2 },{label: "descartados", value: "discarded", index: 3}, {label: "conflictos", value: "conflict", index: 4}];
 
-
-
-
         if(localStorage.length > 0 && localStorage.getItem("searchMatches")){
             var inicio = JSON.parse(localStorage.getItem("searchMatches"));
         var index = $scope.status.filter(function (item) {

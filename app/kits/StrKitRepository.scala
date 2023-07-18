@@ -25,6 +25,7 @@ abstract class StrKitRepository extends DefaultDb with Transaction {
   def add(kit: StrKit)(implicit session: Session): Either[String, String]
   def addAlias(id: String, alias: String)(implicit session: Session): Either[String, String]
   def addLocus(id: String, locus: NewStrKitLocus)(implicit session: Session): Either[String, String]
+  def update(kit: StrKit)(implicit session: Session): Either[String, String]
   def delete(id: String)(implicit session: Session): Either[String,String]
   def deleteAlias(id: String)(implicit session: Session): Either[String,String]
   def deleteLocus(id: String)(implicit session: Session): Either[String,String]
@@ -204,6 +205,20 @@ class SlickKitDataRepository @Inject() (implicit app: Application) extends StrKi
         Left(e.getMessage)
       }
     }
+  }
+
+  override def update(kit : StrKit)(implicit session: Session): Either[String, String] = {
+      try {
+        val q = for (k <- kits if k.id === kit.id) yield (k.representativeParameter)
+        val arg = (kit.representative_parameter)
+        q.update(arg)
+        Right(kit.id)
+      } catch {
+        case e: Exception => {
+          e.printStackTrace()
+          Left(e.getMessage())
+        }
+      }
   }
 
   override def delete(id: String)(implicit session: Session): Either[String,String] = {
