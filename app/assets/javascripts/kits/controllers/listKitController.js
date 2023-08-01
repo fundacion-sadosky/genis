@@ -53,8 +53,9 @@ define([], function() {
             $scope.selectedKit.id = id;
             $scope.modalInstance = $modal.open({
                 templateUrl:'/assets/javascripts/kits/views/update.html',
+                controller:'saveController',
                 scope: $scope,
-                keyboard: false
+                keyboard: true,
             });
         };
 

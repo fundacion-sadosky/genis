@@ -1,26 +1,60 @@
-<form name="kitForm">
-	<div ng-controller="kitsSaveController">
-		<div class="modal-header">
-			<h2>Kit: <b>{{selectedKit.name}}</b></h2>
-		</div>
-		<div class="modal-body">
-			<div id="tab-1" class="tab-pane active tab-format">
+	<div class="content">
+		<div>
+
+			<div class="modal-header">
+				<h2>Kit: <b>{{selectedKit.name}}</b></h2>
+			</div>
+
+			<div class="modal-body">
 				<fieldset>
 					<div class="form-group">
-						<div data-ng-include="'/assets/javascripts/kits/views/save.html'" ></div>
+					<form name="kitForm2" novalidate>
+						<!--<div data-ng-include="'/assets/javascripts/kits/views/save.html'" ></div>-->
+						<h5>Datos del Kit</h5>
+						<div class="m-t-10">
+							<div class="col-md-7 padding-0 m-t-5">
+								<label for="id-kit">
+									Id<span class="field-obligated">*</span>
+								</label>
+							</div>
+							<div class="col-md-5 padding-0">
+								<input id="id-kit" name="id" ng-readonly="true" class="form-control form-select" type="text" data-ng-model="selectedKit.id" required/>
+								<form-validation input="kitForm2.id-kit"></form-validation>
+							</div>
+						</div>
+						<div class="m-t-10">
+							<div class="col-md-10 padding-0 m-t-5">
+								<label for="loci-minimum">
+									Parámetro representativo<span class="field-obligated">*</span>
+								</label>
+							</div>
+							<div class="col-md-2 padding-0">
+								<input name="lociMinimum" id="loci-minimum" type="number" min="0" step="1" required class="form-control form-select padding-left-0" data-ng-model="selectedKit.representative_parameter" />
+								<form-validation input="kitForm2.loci-minimum" min="0"></form-validation>
+							</div>
+						</div>
+						<div class="m-t-10">
+							<div class="col-md-4 padding-0 m-t-5">
+								<label for="newElement">Alias</label>
+							</div>
+							<div class="col-md-8 padding-0">
+								<tags-input-modal class="tags-input" ng-model="selectedKit.alias" placeholder="Ingrese un alias" ></tags-input-modal>
+							</div>
+						</div>
+					</form>
 					</div>
-
 				</fieldset>
 			</div>
-		</div>
-		<div class="modal-footer">
-			<div class="btn btn-link-action" ng-click="closeModal()">
-			   	<span title="Cerrar">
-			   		<span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
-			   	</span>
-				<span class="btn-link-action">Cerrar</span>
+
+			<div class="modal-footer">
+				<div class="btn btn-link-action" ng-click="closeModal()">
+					<span title="Cerrar">
+						<span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+					</span>
+					<span class="btn-link-action">Cerrar</span>
+				</div>
+				<button id="saveUpd" type="button" class="btn btn-primary-action" data-ng-click="updateKit()">Guardar</button>
 			</div>
-			<button id="saveUpd" type="button" class="btn btn-primary-action" data-ng-click="updateKit()">Guardar</button>
+
 		</div>
 	</div>
-</form>

@@ -7,7 +7,7 @@ angular
     .controller('newKitController', ['$scope', 'analysisTypeService', 'kitService', 'alertService', 'locusService', newKitController])
     .controller('listKitController', ['$scope','$modal', 'kitService', 'alertService', 'analysisTypeService', listKitController])
     .controller('kitController', ['$scope', 'kitService', 'helper', kitController])
-    .controller('kitsSaveController', ['$scope', '$log', 'kitService', 'alertService', saveController])
+    .controller('saveController', ['$scope', '$log', 'kitService', 'alertService', saveController])
     .service('kitService', ['playRoutes', kitService])
     .directive('pdgLocusPopover', ['$compile', 'locusService', pdgLocusPopover])
     .config(['$routeProvider', function($routeProvider) {

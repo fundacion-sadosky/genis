@@ -302,6 +302,7 @@ GET      /locus/ranges                                        @controllers.Locis
 
 # Kits
 GET      /strkits/:id                                         @controllers.StrKits.get(id: String)
+GET      /strkits-full/:id                                    @controllers.StrKits.getFull(id: String)
 GET      /strkits                                             @controllers.StrKits.list
 GET      /strkits/:kitId/loci                                 @controllers.StrKits.findLociByKit(kitId: String)
 GET      /strkits-full                                        @controllers.StrKits.listFull

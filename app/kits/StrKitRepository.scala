@@ -15,6 +15,7 @@ import scala.concurrent.Future
 
 abstract class StrKitRepository extends DefaultDb with Transaction {
   def get(id: String): Future[Option[StrKit]]
+  def getFull(id: String): Future[Option[FullStrKit]]
   def list(): Future[Seq[StrKit]]
   def listFull(): Future[Seq[FullStrKit]]
   def findLociByKit(kitId: String): Future[List[StrKitLocus]]
@@ -72,6 +73,17 @@ class SlickKitDataRepository @Inject() (implicit app: Application) extends StrKi
     for{
       l <- kits if l.id === id
     } yield l
+  }
+
+  override def getFull(id: String): Future[Option[FullStrKit]] = Future {
+    DB.withSession { implicit session =>
+      queryGetKit(id).firstOption map { f =>
+        FullStrKit(f.id, f.name, f.`type`, f.lociQty, f.representativeParameter,
+          queryGetKitAliasById(id).list.map(a => a.alias),
+          queryLociByKitCompiled(id).list.map(l => NewStrKitLocus(l._1, l._6, l._7.getOrElse(Int.MaxValue)))
+        )
+      }
+    }
   }
 
   override def get(id: String): Future[Option[StrKit]] = Future {

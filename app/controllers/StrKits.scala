@@ -31,6 +31,15 @@ class StrKits @Inject() (strKitService: StrKitService) extends Controller {
     }
   }
 
+  def getFull(id: String) = Action.async {
+    strKitService.getFull(id) map { kit =>
+      kit match {
+        case Some(kit) => Ok(Json.toJson(kit))
+        case None => NoContent
+      }
+    }
+  }
+
   def findLociByKit(idKit: String) = Action.async { request =>
     strKitService.findLociByKit(idKit) map { loci =>
       Ok(Json.toJson(loci))
@@ -52,7 +61,7 @@ class StrKits @Inject() (strKitService: StrKitService) extends Controller {
   }
 
   def update = Action.async(BodyParsers.parse.json) { request =>
-    val input = request.body.validate[StrKit]
+    val input = request.body.validate[FullStrKit]
     input.fold(
       errors => Future.successful(BadRequest(Json.obj("status" -> "KO", "message" -> JsError.toFlatJson(errors)))),
       kit => strKitService.update(kit).map(result => result match {
