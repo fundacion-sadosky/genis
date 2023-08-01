@@ -7,6 +7,10 @@ define([],function() {
             return playRoutes.controllers.StrKits.get(id).get();
         };
 
+        this.getFull = function(id){
+            return playRoutes.controllers.StrKits.getFull(id).get();
+        };
+
         this.listFull = function () {
             return playRoutes.controllers.StrKits.listFull().get();
         };

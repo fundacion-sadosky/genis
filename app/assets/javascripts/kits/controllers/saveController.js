@@ -4,14 +4,14 @@ define([], function() {
 	function SaveCtrl ($scope, $log, kitService, alertService) {
 
 		if ($scope.selectedKit.id){
-			kitService.get($scope.selectedKit.id).then(function(response){
+			kitService.getFull($scope.selectedKit.id).then(function(response){
 				$scope.selectedKit = response.data;
 			});
 		}
 
 		$scope.closeModal = function(){
 			$scope.clearSelectedKit();
-			$scope.kitForm.$setPristine();
+			$scope.kitForm2.$setPristine();
 			$scope.modalInstance.close();
 		};
 
@@ -24,7 +24,7 @@ define([], function() {
                         alertService.error({message: ' El kit no pudo ser actualizado'});
                     }
                     $scope.selectedKit = undefined;
-                    $scope.kitForm.$setPristine();
+                    $scope.kitForm2.$setPristine();
                     $scope.loadKits();
                     $scope.closeModal();
                 },
@@ -39,7 +39,7 @@ define([], function() {
 
 		$scope.cancelForm = function(){
 			$scope.clearSelectedKit();
-			$scope.kitForm.$setPristine();
+			$scope.kitForm2.$setPristine();
 		};
 
 	}
