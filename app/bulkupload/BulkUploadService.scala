@@ -101,11 +101,14 @@ class BulkUploadServiceImpl @Inject() (
     protoRepo.getBatchesStep2(userId, geneMapperId, isSuperUser)
   }
 
-  override def uploadProtoProfiles(user: String, tempFile: TemporaryFile, label: Option[String], analysisType: String): Future[Either[String, Long]] = {
-
+  override def uploadProtoProfiles(
+    user: String,
+    tempFile: TemporaryFile,
+    label: Option[String],
+    analysisType: String
+  ): Future[Either[String, Long]] = {
     val aliasKits = kitService.getKitAlias
     val lociAlias = kitService.getLocusAlias
-
     val kitsPromise = kitService.list() flatMap { kits =>
       val primisedLoci = kits map { kit =>
         val kitLoci = kitService.findLociByKit(kit.id) map { loci => (kit.id, loci.map(_.id)) }
@@ -113,12 +116,10 @@ class BulkUploadServiceImpl @Inject() (
       }
       Future.sequence(primisedLoci) map { _.toMap }
     }
-
     val categoryAliasesPromise = categoryService.listCategories flatMap {
       case (id, category) =>
         category.aliases.map { _ -> id } :+ ((id.text, id))
     }
-
     val vaildatorPromise = for {
       geneticists <- userService.findUserAssignable.map { _.toList }
       kits <- kitsPromise
@@ -135,41 +136,54 @@ class BulkUploadServiceImpl @Inject() (
         categoryAliases
       )
     }
-    protoProfiledataService.getMtRcrs().flatMap(mtRcrs => {
-
-
-    vaildatorPromise.flatMap { vaildator =>
-      val csvFile = new File(tempFile.file.getAbsolutePath + "_permanent")
-      tempFile.moveTo(csvFile)
-      tempFile.clean()
-      val either = if(analysisType.equals("Autosomal")){ GeneMapperFileParser.parse(csvFile, vaildator)
-                    }else{ GeneMapperFileMitoParser.parse(csvFile, vaildator,mtRcrs)}
-      either.fold[Future[Either[String, Long]]](
-        error => {
-          logger.error(error)
-          Future.successful(Left(error))
-        },
-        stream => {
-          val kits = stream.map(_.kit).distinct.toSeq
-
-          kitService.findLociByKits(kits).flatMap { kits =>
-
-            val batchIdPromise = protoRepo.createBatch(user, stream, labCode, kits, label, analysisType)
-            batchIdPromise.onComplete { batchId => csvFile.delete() }
-            batchIdPromise map { Right(_) }
-          }
-        })
-    }
-    }).recover{
-      case e: IndexOutOfBoundsException => {
-        logger.error(Messages("error.E0302"),e)
-        Left(Messages("error.E0302"))
+    protoProfiledataService
+      .getMtRcrs()
+      .flatMap(
+        mtRcrs => {
+          vaildatorPromise
+            .flatMap {
+              vaildator =>
+                val csvFile = new File(
+                  tempFile.file.getAbsolutePath + "_permanent"
+                )
+                tempFile.moveTo(csvFile)
+                tempFile.clean()
+                val either = if (analysisType.equals("Autosomal")) {
+                  GeneMapperFileParser.parse(csvFile, vaildator)
+                } else {
+                  GeneMapperFileMitoParser.parse(csvFile, vaildator,mtRcrs)
+                }
+                either.fold[Future[Either[String, Long]]](
+                  error => {
+                    logger.error(error)
+                    Future.successful(Left(error))
+                  },
+                  stream => {
+                    val kits = stream.map(_.kit).distinct.toSeq
+                    kitService.findLociByKits(kits).flatMap {
+                      kits =>
+                        val batchIdPromise = protoRepo.createBatch(
+                          user, stream, labCode, kits, label, analysisType
+                        )
+                        batchIdPromise
+                          .onComplete { batchId => csvFile.delete() }
+                        batchIdPromise map { Right(_) }
+                    }
+                  }
+                )
+            }
+        }
+      )
+      .recover {
+        case e: IndexOutOfBoundsException => {
+          logger.error(Messages("error.E0302"), e)
+          Left(Messages("error.E0302"))
+        }
+        case error => {
+          logger.error(error.getMessage)
+          Left(Messages("error.E0301"))
+        }
       }
-      case error => {
-        logger.error(error.getMessage)
-        Left(Messages("error.E0301"))
-      }
-    }
   }
 
   private def updateStatus(id: Long, status: ProtoProfileStatus.Value): Future[Seq[String]] = {

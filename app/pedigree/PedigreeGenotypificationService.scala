@@ -116,35 +116,94 @@ class PedigreeGenotypificationServiceImpl @Inject()(
     }
   }
 
-  override def saveGenotypification(pedigree: PedigreeGenogram, profiles: Array[Profile],
-                                  frequencyTable: BayesianNetwork.FrequencyTable, analysisType: AnalysisType, linkage: Linkage,
-                                   mutationModel: Option[MutationModel]): Future[Either[String, Long]] = {
+  override def saveGenotypification(
+    pedigree: PedigreeGenogram,
+    profiles: Array[Profile],
+    frequencyTable: BayesianNetwork.FrequencyTable,
+    analysisType: AnalysisType,
+    linkage: Linkage,
+    mutationModel: Option[MutationModel]
+  ): Future[Either[String, Long]] = {
     logger.info("---------------------SAVE GENO BEGIN -----------")
-
-    mutationService.generateN(profiles,mutationModel).flatMap(result => {
-      if(result.isRight){
-        val markers = profileRepository.getProfilesMarkers(profiles)
-        val unknowns = pedigree.genogram.filter(_.unknown).map(_.alias.text).toArray
-
-        val mutationModelType: Option[Long] = if (mutationModel.nonEmpty) Some(mutationModel.get.mutationType) else None
-        mutationService.getMutationModelData(mutationModel,markers).flatMap(mutationModelData => {
-          mutationService.getAllPossibleAllelesByLocus().flatMap(n =>{
-          bayesianNetworkService.getGenotypification(pedigree, profiles, frequencyTable, analysisType, linkage, mutationModelType, mutationModelData,n) flatMap {
-            genotypification => {
-              val newGenotypification = genotypification.map(plainCPT => PlainCPT2(plainCPT.header, plainCPT.matrix.toArray))
-//              val pedigreeGenotypification = PedigreeGenotypification(pedigree._id, genotypification, pedigree.boundary, pedigree.frequencyTable.get, unknowns)
-              val pedigreeGenotypification = PedigreeGenotypification(pedigree._id, newGenotypification, pedigree.boundary, pedigree.frequencyTable.get, unknowns)
-              logger.info("---------------------SAVE GENO END -----------")
-              pedigreeGenotypificationRepository.upsertGenotypification(pedigreeGenotypification)
+    mutationService
+      .generateN(
+        profiles,
+        mutationModel
+      ).flatMap(
+        result => {
+          if(result.isRight) {
+            val markers = profileRepository.
+              getProfilesMarkers(profiles)
+            markers.foreach(
+              marker => {
+                logger.info(s"Marker: ${marker}")
+              }
+            )
+            val unknowns = pedigree
+              .genogram
+              .filter(_.unknown)
+              .map(_.alias.text)
+              .toArray
+            val mutationModelType: Option[Long] = if (mutationModel.nonEmpty) {
+              Some(mutationModel.get.mutationType)
+            } else {
+              None
             }
+            mutationService
+              .getMutationModelData(mutationModel, markers)
+              .flatMap(
+                mutationModelData => {
+                  mutationService
+                    .getAllPossibleAllelesByLocus()
+                    .flatMap(
+                      n => {
+                        bayesianNetworkService
+                          .getGenotypification(
+                            pedigree,
+                            profiles,
+                            frequencyTable,
+                            analysisType,
+                            linkage,
+                            mutationModelType,
+                            mutationModelData,
+                            n
+                          )
+                          .flatMap {
+                            genotypification => {
+                              val newGenotypification = genotypification
+                                .map(
+                                  plainCPT => PlainCPT2(
+                                    plainCPT.header,
+                                    plainCPT.matrix.toArray
+                                  )
+                                )
+                              //  val pedigreeGenotypification = PedigreeGenotypification(pedigree._id, genotypification, pedigree.boundary, pedigree.frequencyTable.get, unknowns)
+                              val pedigreeGenotypification =
+                                PedigreeGenotypification(
+                                  pedigree._id,
+                                  newGenotypification,
+                                  pedigree.boundary,
+                                  pedigree.frequencyTable.get,
+                                  unknowns
+                                )
+
+                              logger.info("--- SAVE GENO END / Main branch ---")
+                              pedigreeGenotypificationRepository
+                                .upsertGenotypification(
+                                  pedigreeGenotypification
+                                )
+                            }
+                          }
+                      }
+                    )
+                }
+              )
+          } else {
+            logger.info("--- SAVE GENO END / Secondary branch ---")
+            Future.successful(Left(result.left.get))
           }
-        })
-      })
-      }else{
-        logger.info("---------------------SAVE GENO END -----------")
-        Future.successful(Left(result.left.get))
       }
-    })
+    )
   }
   def saveGenotypificationActor(pedigree: PedigreeGenogram, profiles: Array[Profile],
                                     frequencyTable: BayesianNetwork.FrequencyTable, analysisType: AnalysisType, linkage: Linkage,

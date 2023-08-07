@@ -6,53 +6,67 @@ define(['lodash'], function(_) {
 		$scope.protoProfiles = {};
 		$scope.batches = [];
 		$scope.editedSubcats = {};
-        $scope.pageSize = 50;
-        $scope.editedIds = [];
+    $scope.pageSize = 50;
+    $scope.editedIds = [];
 		var toogle = true;
 		$scope.pendientes = false;
 
-        localStorage.removeItem("searchPedigree");
-        localStorage.removeItem("searchMatches");
-        localStorage.removeItem("searchPedigreeMatches");
+    localStorage.removeItem("searchPedigree");
+    localStorage.removeItem("searchMatches");
+    localStorage.removeItem("searchPedigreeMatches");
 
-        var getAllBatches = function() {
-            $scope.isProcessing = true;
-            return bulkuploadService.getBatchesStep1().then(function(response) {
-                $scope.batches = response.data;
-                $scope.batchesById = _.keyBy($scope.batches, 'id');
-                $scope.batches.forEach(function(batch){
-                    batch.pageSize = $scope.pageSize;
-                    batch.page = 1;
-                });
-                $scope.isProcessing = false;
-            });
-
-        };
-        var loadLocus = function() {
-            return locusService.listFull().then(function(response) {
-                $scope.locus = response.data;
-                $scope.locusById = _.keyBy(_.map($scope.locus, function (o) {  return o.locus;}), 'id');
-            });
-        };
-
-        getAllBatches();
-        loadLocus();
-
-		profileDataService.getCategories().then(function(response) {
-			$scope.categories = response.data;
-		});
+    var getAllBatches = function() {
+      $scope.isProcessing = true;
+      return bulkuploadService
+        .getBatchesStep1()
+        .then(
+          function(response) {
+            $scope.batches = response.data;
+            $scope.batchesById = _.keyBy($scope.batches, 'id');
+            $scope.batches.forEach(
+              function(batch){
+                batch.pageSize = $scope.pageSize;
+                batch.page = 1;
+              }
+            );
+            $scope.isProcessing = false;
+          }
+        );
+    };
+    var loadLocus = function() {
+        return locusService
+          .listFull()
+          .then(
+            function(response) {
+              $scope.locus = response.data;
+              $scope.locusById = _.keyBy(
+                _.map($scope.locus, function (o) {  return o.locus;}),
+                'id'
+              );
+        });
+    };
+    getAllBatches();
+    loadLocus();
+		profileDataService.getCategories().then(
+      function(response) {
+        $scope.categories = response.data;
+      }
+    );
 
 		var upload = function(files, label, analysis) {
-            var file = files;
+      var file = files;
 			$log.info('upload a file');
 			$scope.isProcessing = true;
-            var url;
+      var url;
 			if(_.isUndefined(label)){
-                url = cryptoService.encryptBase64('/bulkuploader?label= '+'&analysisType=' +analysis);
-            }
-			else{
-                url = cryptoService.encryptBase64('/bulkuploader?label='+ label +'&analysisType=' +analysis );
-            }
+        url = cryptoService.encryptBase64(
+          '/bulkuploader?label= '+'&analysisType=' +analysis
+        );
+      } else {
+        url = cryptoService.encryptBase64(
+          '/bulkuploader?label='+ label +'&analysisType=' +analysis
+        );
+      }
 			file.upload = $upload.upload({
 				url: url, 
 				method: 'POST',
