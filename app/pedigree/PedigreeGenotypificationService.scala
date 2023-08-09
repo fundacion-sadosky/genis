@@ -170,6 +170,7 @@ class PedigreeGenotypificationServiceImpl @Inject()(
                           )
                           .flatMap {
                             genotypification => {
+                              println(s"Genotification has ${genotypification.length} CPTS")
                               val newGenotypification = genotypification
                                 .map(
                                   plainCPT => PlainCPT2(
@@ -177,7 +178,6 @@ class PedigreeGenotypificationServiceImpl @Inject()(
                                     plainCPT.matrix.toArray
                                   )
                                 )
-                              //  val pedigreeGenotypification = PedigreeGenotypification(pedigree._id, genotypification, pedigree.boundary, pedigree.frequencyTable.get, unknowns)
                               val pedigreeGenotypification =
                                 PedigreeGenotypification(
                                   pedigree._id,

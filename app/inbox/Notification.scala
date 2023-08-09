@@ -120,7 +120,8 @@ case class PedigreeMatchingInfo(
 
 case class BulkUploadInfo(
    protoProfileId: String,
-   sampleName: String) extends NotificationInfo {
+   sampleName: String
+) extends NotificationInfo {
   override val kind = NotificationType.bulkImport
   val description = s"Nuevo perfil para importación: $sampleName"
   val url = s"/profiles/bulkupload-step2/protoprofile/$protoProfileId"

@@ -96,8 +96,23 @@ class BayesianNetworkServiceImpl @Inject() (
                                    mutationModelData: Option[List[(MutationModelParameter, List[MutationModelKi],MutationModel)]],
                                    n: Map[String,List[Double]] = Map.empty): Future[Array[PlainCPT]] = {
     Future {
-      val normalizedFrequencyTable = BayesianNetwork.getNormalizedFrequencyTable(frequencyTable)
-      BayesianNetwork.getGenotypification(profiles, pedigree.genogram.toArray, normalizedFrequencyTable, analysisType, linkage,None,true,locusService.locusRangeMap(),mutationModelType, mutationModelData,n)
+      val normalizedFrequencyTable = BayesianNetwork
+        .getNormalizedFrequencyTable(frequencyTable)
+      println("BayesianNetworkServiceImpl.getGenotypification use.")
+      BayesianNetwork
+        .getGenotypification(
+          profiles,
+          pedigree.genogram.toArray,
+          normalizedFrequencyTable,
+          analysisType,
+          linkage,
+          None,
+          true,
+          locusService.locusRangeMap(),
+          mutationModelType,
+          mutationModelData,
+          n
+        )
     }
   }
 

@@ -92,6 +92,7 @@ object BayesianNetwork {
       print("----------------------\n")
     }
     val startGenotypificationTime = System.currentTimeMillis()
+    println("BayesianNetwork.calculateProbability use.")
     val genotypification = getGenotypification(
       profiles,
       genogram,
@@ -426,7 +427,7 @@ object BayesianNetwork {
       print("----------------------\n")
     }
     val startSubgraphsGraphTime = System.currentTimeMillis()
-    val subgraphs = getSubgraphs(graph)
+    var subgraphs = getSubgraphs(graph)
     val endSubgraphsGraphTime = System.currentTimeMillis()
     if (verbose) {
       print("------------------------------")
@@ -441,6 +442,12 @@ object BayesianNetwork {
     }
     val unknown = genogram.filter(_.unknown).head.alias.text
     var cont = 0
+
+    // DEBUG CODE ///
+//    subgraphs = subgraphs.filter(x=>x.toString().contains("ACTBP2"))
+//    println(s"Length of subgraphs: ${subgraphs.length}")
+    // END of DEBUG CODE
+
     val geno = subgraphs
       .zipWithIndex
       .flatMap {
@@ -463,7 +470,7 @@ object BayesianNetwork {
           val startPrunningCPTsTime = System.currentTimeMillis()
           val prunnedCPTs = pruneCPTs(variables, subgraph, cpts)
           val endPrunningCPTsTime = System.currentTimeMillis()
-    /*
+
           if (verbose) {
             print("------------------------------")
             print(s"PruneCPTs: ${endPrunningCPTsTime - startPrunningCPTsTime}")
@@ -472,7 +479,7 @@ object BayesianNetwork {
             print(s"Cant. PruneCPTs: ${prunnedCPTs.length}")
             print("----------------------\n")
           }
-    */
+
           if (prunnedCPTs.nonEmpty) {
             val prunnedVariables = prunnedCPTs.map(_.variable.name)
             val prunnedGraph = subgraph filter subgraph.having(node = n => prunnedVariables.contains(n.toOuter))
@@ -481,18 +488,24 @@ object BayesianNetwork {
             val startVariableEliminationTime = System.currentTimeMillis()
             val ve = variableElimination(unknown, prunnedCPTs.map(_.getPlain()), queries, prunnedGraph, verbose)
             val endVariableEliminationTime = System.currentTimeMillis()
-//            if (verbose) {
-//              val deltaT = endVariableEliminationTime -
-//                startVariableEliminationTime
-//              print("------------------------------")
-//              print(s"VariableElimination: ${deltaT}----------------------\n")
-//            }
+            if (verbose) {
+              val deltaT = endVariableEliminationTime -
+                startVariableEliminationTime
+              print("------------------------------")
+              print(s"VariableElimination: ${deltaT}----------------------\n")
+            }
+            println(s"Current Ve: ${ve.header.mkString(",")}. Size: ${ve.matrix.length}")
             Some(ve)
           } else {
             None
           }
       }
       .filter(_.matrix.nonEmpty)
+    geno.foreach(
+      x => {
+        println(x.header.mkString(","))
+      }
+    )
     geno
   }
 
@@ -513,9 +526,9 @@ object BayesianNetwork {
       marker => {
         val pVariable = s"${unknown}_${marker}_p"
         val mVariable = s"${unknown}_${marker}_m"
-        val alleles = queryProfiles(unknown)(marker)
         // si no tiene el marcador no hace nada
         if (queryProfiles(unknown).contains(marker)) {
+          val alleles = queryProfiles(unknown)(marker)
           // Si es sin mutaciones o todos los alelos estan en el genotipo toma
           // las prob normal,
           // sino toma la prob solo del alelo que esta y usa como prob del alelo
