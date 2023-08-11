@@ -33,18 +33,36 @@ object BayesianNetwork {
   val name = "pedigree"
   val zero = BigDecimal.valueOf(0)
   val logger = Logger(this.getClass())
-
   val attrs = Array("m", "p")
+
   def getNFromTable(ft:BayesianNetwork.FrequencyTable):
     Map[String, List[Double]]= {
-    ft.map(x => (x._1, x._2.map(y => y._1).toList))
+    ft.map(
+      x => (
+        x._1,
+        x._2
+          .map(y => y._1)
+          .toList
+      )
+    )
   }
   def getMarkersFromCpts(cpts2:Array[PlainCPT2]):Set[String] = {
-    val cpts = cpts2.map(plainCpt2 => PlainCPT(plainCpt2.header, plainCpt2.matrix.iterator, plainCpt2.matrix.length))
+    val cpts = cpts2.map(
+      plainCpt2 => PlainCPT(
+        plainCpt2.header,
+        plainCpt2.matrix.iterator,
+        plainCpt2.matrix.length
+      )
+    )
     getMarkersFromCpts(cpts)
   }
   def getMarkersFromCpts(cpts:Array[PlainCPT]):Set[String] = {
-    cpts.filter(!_.matrix.isEmpty).map(cpt => extractMarker(cpt.header.head)).toSet
+    cpts
+      .filter(!_.matrix.isEmpty)
+      .map(
+        cpt => extractMarker(cpt.header.head)
+      )
+      .toSet
   }
   // Scenario or reclculate genotipification for new alleles
   def calculateProbability(
@@ -54,12 +72,10 @@ object BayesianNetwork {
     analysisType: AnalysisType,
     linkage: Linkage,
     verbose: Boolean = false,
-    mutationModelType: Option[Long]=None,
-    mutationModelData: Option[List[(
-      MutationModelParameter, List[MutationModelKi], MutationModel
-    )]] = None,
+    mutationModelType: Option[Long] = None,
+    mutationModelData: Option[List[MutationModelData]] = None,
     seenAlleles: Map[String, List[Double]] = Map.empty,
-    locusRangeMap:NewMatchingResult.AlleleMatchRange  = Map.empty
+    locusRangeMap:NewMatchingResult.AlleleMatchRange = Map.empty
   ): Double = {
     val n = if(seenAlleles.isEmpty) {
       getNFromTable(frequencyTable)
@@ -75,9 +91,8 @@ object BayesianNetwork {
     )
     val endQueryProfilesTime = System.currentTimeMillis()
     if (verbose) {
-      print("------------------------------")
-      print(s"GetQueryProfiles: ${endQueryProfilesTime-starQueryProfilesTime}")
-      print("----------------------\n")
+      val deltaT = endQueryProfilesTime-starQueryProfilesTime
+      logger.info(s"--- GetQueryProfiles: ${deltaT} ---")
     }
     val markers = queryProfiles.values.head.keys.toArray
     val linkageMarkers = linkage.keySet.union(linkage.values.map(_._1).toSet)
@@ -87,12 +102,9 @@ object BayesianNetwork {
     if (verbose) {
       val deltaT = endNormalizedFrequencyTableTime -
         starNormalizedFrequencyTableTime
-      print("------------------------------")
-      print(s"GetNormalizedFrequencyTable: ${deltaT}")
-      print("----------------------\n")
+      logger.info(s"--- GetNormalizedFrequencyTable: ${deltaT} ---")
     }
     val startGenotypificationTime = System.currentTimeMillis()
-    println("BayesianNetwork.calculateProbability use.")
     val genotypification = getGenotypification(
       profiles,
       genogram,
@@ -105,18 +117,16 @@ object BayesianNetwork {
       mutationModelType,
       mutationModelData,
       n
-    ) // TODO pasarle el modelo de mutacion, como cuando se llama desde PedigreeGenotificationService
+    )
+    // TODO pasarle el modelo de mutacion, como cuando se llama desde
+    //      PedigreeGenotificationService
     val endGenotypificationTime = System.currentTimeMillis()
     if (verbose) {
       val deltaT = endGenotypificationTime - startGenotypificationTime
-      print("------------------------------")
-      print(s"GetGenotypification: ${deltaT}")
-      print("----------------------\n")
+      logger.info(s"--- GetGenotypification: ${deltaT} ---")
     }
-    //printCPTs(genotypification)
     val startLRTime = System.currentTimeMillis()
     val genoMarkers = getMarkersFromCpts(genotypification).toArray
-     // .map(x => Profile.Marker(x))
     val lr = calculateLR(
       queryProfiles
         .map(
@@ -141,10 +151,8 @@ object BayesianNetwork {
     )
     val endLRTime = System.currentTimeMillis()
     if (verbose) {
-      print("------------------------------")
-      print(s"GetLR: ${endLRTime-startLRTime}----------------------\n")
-      print("------------------------------")
-      print(s"LR: ${lr._1}!!!!!!---------------------\n")
+      logger.info(s"--- GetLR: ${endLRTime-startLRTime} ---")
+      logger.info(s"--- LR: ${lr._1} ---")
     }
     lr._1
   }
@@ -156,9 +164,7 @@ object BayesianNetwork {
     analysisType: AnalysisType,
     genotypification: Array[PlainCPT],
     mutationModelType: Option[Long] = None,
-    mutationModelData: Option[
-      List[(MutationModelParameter, List[MutationModelKi], MutationModel)]
-    ] = None,
+    mutationModelData: Option[List[MutationModelData]] = None,
     n: Map[String,List[Double]] = Map.empty
   ): (Double, String) = {
     val linkeage:Linkage = Map.empty
@@ -182,11 +188,14 @@ object BayesianNetwork {
       mutationModelData,
       n
     )
-    print("------------------------------")
-    print(s"Profile: ${profile.globalCode} - ${profile.internalSampleCode}")
-    print("--------------------\n")
-    print("------------------------------")
-    print(s"LR: ${lr._1}!!!!!!---------------------\n")
+    logger.info(
+      s"--- Profile: ${
+        profile.globalCode
+      } - ${
+        profile .internalSampleCode
+      }"
+    )
+    logger.info(s"--- LR: ${lr._1} ---")
     lr
   }
 
@@ -201,14 +210,30 @@ object BayesianNetwork {
     mutationModelData: Option[List[MutationModelData]] = None,
     n: Map[String, List[Double]] = Map.empty
   ) : (Double, String) = {
-    val markersToFilter = getMarkersToFilter(markers, queryProfiles, genotypification, n)
-    val messageInit = "El valor calculado de LR es aproximado debido a que se detectaron alelos no vistos que no estan en el genotipo de la familia,"
+    val markersToFilter = getMarkersToFilter(
+      markers,
+      queryProfiles,
+      genotypification,
+      n
+    )
+    val messageInit = s"""${
+        "El valor calculado de LR es aproximado debido a que se detectaron "
+      }${
+        "alelos no vistos que no estan en el genotipo de la familia,"
+      }"""
     var message = ""
     var messageMarkersFitered = ""
-    val genotypificationFiltered = filterGenotypification(genotypification, markersToFilter)
+    val genotypificationFiltered = filterGenotypification(
+      genotypification,
+      markersToFilter
+    )
     val queryProfilesFiltered = filterQueryProfile(queryProfiles, markersToFilter)
     if (markersToFilter.length > 0) {
-      messageMarkersFitered += " se descartaron el o los marcadores que lo/s contenían y que no compartían ningún alelo con la familia "
+      messageMarkersFitered += s"""${
+        " se descartaron el o los marcadores que lo/s contenían y que no "
+      }${
+        "compartían ningún alelo con la familia "
+      }"""
     }
     val evidenceProbabilityLog = getEvidenceProbabilityLog(genotypificationFiltered)
 //    print("------------------------------")
@@ -235,7 +260,6 @@ object BayesianNetwork {
 //    print("----------------------")
 //    print(s"Genotype probability: ${genotypeProbability}!!!!!!")
 //    print("---------------------\n")
-//    var lr = 0.0
     val subjectProbabilityLog = evidenceProbabilityLog + genotypeProbabilityLog
     val lr = math.exp(
       queryProbabilityLog._1 - subjectProbabilityLog
@@ -301,9 +325,25 @@ object BayesianNetwork {
         // si no tiene el marcador no hace nada
         if (queryProfiles(unknown).contains(marker)) {
           val alleles = queryProfiles(unknown)(marker)
-          //si hay alguno y no estan todos, es un marcador incompleto con alelos nuevos
-          if (isAnyAlellesInGenotipeAndN(marker, alleles, pVariable, mVariable, genotypification, n) &&
-              !isAllAlellesInGenotipeAndN(marker, alleles, pVariable, mVariable, genotypification, n)) {
+          // si hay alguno y no estan todos, es un marcador incompleto
+          // con alelos nuevos
+          lazy val isAny =  isAnyAlellesInGenotipeAndN(
+            marker,
+            alleles,
+            pVariable,
+            mVariable,
+            genotypification,
+            n
+          )
+          lazy val isAll = isAllAlellesInGenotipeAndN(
+            marker,
+            alleles,
+            pVariable,
+            mVariable,
+            genotypification,
+            n
+          )
+          if (isAny && !isAll) {
             incompleteMarkers = incompleteMarkers ++ List(marker)
           }
         }
@@ -444,8 +484,8 @@ object BayesianNetwork {
     var cont = 0
 
     // DEBUG CODE ///
-//    subgraphs = subgraphs.filter(x=>x.toString().contains("ACTBP2"))
-//    println(s"Length of subgraphs: ${subgraphs.length}")
+    subgraphs = subgraphs.filter(x=>x.toString().contains("ACTBP2"))
+    logger.info(s"Length of subgraphs: ${subgraphs.length}")
     // END of DEBUG CODE
 
     val geno = subgraphs
@@ -465,11 +505,60 @@ object BayesianNetwork {
 
           val startGeneratingCPTsTime = System.currentTimeMillis()
           val cpts = generateCPTs(variables, subgraph, frequencyTable, linkage, mutationModelType, mutationModelData, n, genogram)
+
+//          cpts.foreach(
+//            cpt => {
+//              val matrix = extractMatrixFromCPT(cpt)
+//              logger.info(s"CPT: ${cpt.header.mkString("/")} | ${
+//                matrix.length match {
+//                  case x if x <= 2 =>
+//                    matrix
+//                      .map(
+//                        x => s"${x(0)} ${x(0)} ... ${x.length - 2} more."
+//                      )
+//                      .mkString(" ")
+//                  case x => s"Array of length: ${x}"
+//                }
+//              }")
+//            }
+//          )
+
+          cpts.foreach(
+            cpt => {
+              val matrix = extractMatrixFromCPT(cpt)
+              logger.info(
+                s"CPT: ${cpt.header.mkString("/")} | ${
+                  s"Cant of last diff of zero: ${
+                    matrix.count(x => x.last != 0)
+                  }"
+                }"
+              )
+            }
+          )
+
           val endGeneratingCPTsTime = System.currentTimeMillis()
 
           val startPrunningCPTsTime = System.currentTimeMillis()
           val prunnedCPTs = pruneCPTs(variables, subgraph, cpts)
           val endPrunningCPTsTime = System.currentTimeMillis()
+
+//          prunnedCPTs.foreach(
+//            cpt => {
+//              val matrix = extractMatrixFromCPT(cpt)
+//              logger.info(s"CPT: ${cpt.header.mkString("/")} | ${
+//                matrix.length match {
+//                  case 0 => "Empty Array"
+//                  case x if x <= 2 =>
+//                    matrix
+//                      .map(
+//                        x => s"${x(0)} ${x(0)} ... ${x.length - 2} more."
+//                      )
+//                      .mkString(" ")
+//                  case x => s"Array of length: ${x}"
+//                }
+//              }")
+//            }
+//          )
 
           if (verbose) {
             print("------------------------------")
@@ -494,18 +583,13 @@ object BayesianNetwork {
               print("------------------------------")
               print(s"VariableElimination: ${deltaT}----------------------\n")
             }
-            println(s"Current Ve: ${ve.header.mkString(",")}. Size: ${ve.matrix.length}")
             Some(ve)
           } else {
             None
           }
       }
       .filter(_.matrix.nonEmpty)
-    geno.foreach(
-      x => {
-        println(x.header.mkString(","))
-      }
-    )
+    logger.info(s"--- Genotification Size: ${geno.length} ---")
     geno
   }
 
@@ -664,38 +748,61 @@ object BayesianNetwork {
     probability
   }
 
-  private def isAnyAlellesInGenotipeAndN(marker: String, alelles: Array[Double], pVariable: String, mVariable: String, genotypification: Array[PlainCPT], n: Map[String,List[Double]]) : Boolean = {
-    val isInN = alelles.forall(n.getOrElse(marker, List.empty).contains(_))
+  private def isAnyAlellesInGenotipeAndN(
+    marker: String,
+    alelles: Array[Double],
+    pVariable: String,
+    mVariable: String,
+    genotypification: Array[PlainCPT],
+    n: Map[String,List[Double]]
+  ) : Boolean = {
+    val isInN = alelles.forall(
+      n.getOrElse(marker, List.empty)
+        .contains(_)
+    )
     val markerCpts = genotypification.filter(
       cpt => cpt.header.contains(mVariable) || cpt.header.contains(pVariable)
     )
-    val alellesInGenotype = alelles.filter(allele => markerCpts.forall(cpt=> {
-      val matrixArray = cpt.matrix.toArray
-//        println(
-//          s"""-----------marcador:: ${cpt.header.apply(0)}
-//             |---------------------""".stripMargin
-//        )
-      cpt.matrix = matrixArray.iterator
-      (matrixArray.map(_.apply(0))).contains(allele)
-    }))
-    (isInN && (alellesInGenotype.length>0))
+    val alellesInGenotype = alelles.filter(
+      allele => markerCpts.forall(
+        cpt=> {
+          val matrixArray = cpt.matrix.toArray
+          cpt.matrix = matrixArray.iterator
+          matrixArray
+            .map(_.apply(0))
+            .contains(allele)
+        }
+      )
+    )
+    isInN && (alellesInGenotype.length>0)
   }
 
-  private def isAllAlellesInGenotipeAndN(marker: String, alelles: Array[Double], pVariable: String, mVariable: String, genotypification: Array[PlainCPT], n: Map[String,List[Double]]) : Boolean = {
+  private def isAllAlellesInGenotipeAndN(
+    marker: String,
+    alelles: Array[Double],
+    pVariable: String,
+    mVariable: String,
+    genotypification: Array[PlainCPT],
+    n: Map[String, List[Double]]
+  ) : Boolean = {
     val isInN = alelles.forall(n.getOrElse(marker, List.empty).contains(_))
 
 
-    val markerCpts = genotypification.filter(cpt =>(cpt.header.contains(mVariable) || (cpt.header.contains(pVariable))))
-    val isInGenotipe = alelles.forall(allele => markerCpts.forall(cpt=> {
-      val matrixArray = cpt.matrix.toArray
-//       println(
-//         s"""-----------marcador:: ${cpt.header.apply(0)}
-//            |---------------------""".stripMargin)
-//      )
-      cpt.matrix = matrixArray.iterator
-      (matrixArray.map(_.apply(0))).contains(allele)
-    }))
-    (isInN && isInGenotipe)
+    val markerCpts = genotypification.filter(
+      cpt => cpt.header.contains(mVariable) || cpt.header.contains(pVariable)
+    )
+    val isInGenotipe = alelles.forall(
+      allele => markerCpts.forall(
+        cpt=> {
+          val matrixArray = cpt.matrix.toArray
+          cpt.matrix = matrixArray.iterator
+          matrixArray
+            .map(_.apply(0))
+            .contains(allele)
+        }
+      )
+    )
+    isInN && isInGenotipe
   }
 
   private def getAlelleInGenotype(
@@ -713,10 +820,6 @@ object BayesianNetwork {
       allele => markerCpts.forall(
         cpt=> {
           val matrixArray = cpt.matrix.toArray
-//      println(
-//        s"""-----------marcador:: ${cpt.header.apply(0)}
-//           |---------------------""".stripMargin
-//      )
           cpt.matrix = matrixArray.iterator
           (matrixArray.map(_.apply(0))).contains(allele)
         }
@@ -736,12 +839,11 @@ object BayesianNetwork {
     val sums = cpts
       .map(
         cpt => {
-          val matrixArray = cpt.matrix.toArray
-//          println(s"""- Marcador: ${cpt.header.apply(0)}""" )
-          // Here, We need to 're-fill' the matrix iterator after consuming it
-          // in the previous line.
-          cpt.matrix = matrixArray.iterator
-//          println(s"""---> Sum: ${matrixArray.map(_.last).sum}""")
+//          val matrixArray = cpt.matrix.toArray
+//          // Here, We need to 're-fill' the matrix iterator after consuming it
+//          // in the previous line.
+//          cpt.matrix = matrixArray.iterator
+          val matrixArray = extractMatrixFromPlainCPT(cpt)
           matrixArray
             .map(_.last)
             .sum
@@ -754,6 +856,18 @@ object BayesianNetwork {
       .map(n => math.log(n))
       .sum
     logs_sum
+  }
+
+  private def extractMatrixFromCPT(cpt: CPT): Array[Array[Double]] = {
+    val matrix = cpt.matrix.toArray
+    cpt.matrix = matrix.iterator
+    matrix
+  }
+
+  private def extractMatrixFromPlainCPT(cpt: PlainCPT): Array[Array[Double]] = {
+    val matrix = cpt.matrix.toArray
+    cpt.matrix = matrix.iterator
+    matrix
   }
 
   def getGenotypeProbabilityLog(
@@ -797,7 +911,8 @@ object BayesianNetwork {
     }
     frequencyTable(marker).getOrElse(allele, frequencyTable(marker)(-1))
 */
-    //Para cualquier frecuencia menor a la minima se toma la frecuencia minima por definicion de Mariana Herrera - 01-2020
+    // Para cualquier frecuencia menor a la minima se toma la
+    // frecuencia minima por definicion de Mariana Herrera - 01-2020
     val frecuenciaMinima = frequencyTable(marker).get(-1.0)
     val alleleFrecuency = frequencyTable(marker).get(allele)
     if (
@@ -847,7 +962,7 @@ object BayesianNetwork {
   ): Array[CPT] = {
     val pruning = Array(
       nodePrunning(variables, graph)(_),
-      stateRemoval(_),
+//      stateRemoval(_) //,
       zeroProbabilityPrunning(_)
     )
     pruning
@@ -859,15 +974,20 @@ object BayesianNetwork {
   private def printCPTs(cpts: Array[CPT]) = {
     cpts.foreach {
       cpt =>
-        println(cpt.header.mkString(" "))
-        println(cpt.matrix.map(row => row.mkString(" ")).mkString("\n"))
+        logger.info(cpt.header.mkString(" "))
+        logger.info(cpt.matrix.map(row => row.mkString(" ")).mkString("\n"))
     }
   }
 
   private def printArrayCPTs(cpts: Array[Array[Array[Double]]]) = {
     cpts.foreach {
       cpt =>
-        println(cpt.map(row => row.mkString(" ")).mkString("\n"))
+        logger.info(
+          cpt.map(
+            row => row.mkString(" ")
+          )
+          .mkString("\n")
+        )
     }
   }
 
@@ -883,41 +1003,39 @@ object BayesianNetwork {
     val startGetOrderingTime = System.currentTimeMillis()
     var sortedVariables = getOrdering(graph, queries, cptsInput)
     val endGetOrderingTime = System.currentTimeMillis()
-//    if (verbose) println(s"------------------------------GetOrdering: ${endGetOrderingTime-startGetOrderingTime}----------------------")
+//    if (verbose) println(s"--- GetOrdering: ${endGetOrderingTime-startGetOrderingTime} ---")
 
-//    if (verbose) println(s"------------------------------Cant variable: ${sortedVariables.length}----------------------")
+//    if (verbose) println(s"--- Cant variable: ${sortedVariables.length} ---")
     sortedVariables
       .zipWithIndex
       .foreach {
         case (variable, index) =>
-//          if (verbose) println(s"------------------------------Variable: ${variable}----------------------")
+//          if (verbose) println(s"--- Variable: ${variable} ---")
           val dependentCPTs = cpts.filter(_.header.contains(variable))
-    //      if (verbose) println(s"------------------------------Cant dependentCPTs: ${dependentCPTs.length}----------------------")
+    //      if (verbose) println(s"--- Cant dependentCPTs: ${dependentCPTs.length} ---")
           if (dependentCPTs.nonEmpty) {
             val startProdFactor = System.currentTimeMillis()
             val product = prodFactor(unknown, dependentCPTs)
             val endProdFactor = System.currentTimeMillis()
-    //        if (verbose) println(s"------------------------------ProdFactor: ${endProdFactor-startProdFactor}----------------------")
-
+    //        if (verbose) println(s"--- ProdFactor: ${endProdFactor-startProdFactor} ---")
             val startSumFactor = System.currentTimeMillis()
             val cpt = sumFactor(product, variable)
             val endSumFactor = System.currentTimeMillis()
-    //        if (verbose) println(s"------------------------------SumFactor: ${endSumFactor-startSumFactor}----------------------")
+    //        if (verbose) println(s"--- SumFactor: ${endSumFactor-startSumFactor} ---
             // Replace all dependent factors by result cpt
             cpts = (cpts diff dependentCPTs) :+ cpt
           }
-      //println(s"\n${index+1}) Variable: $variable")
-      //printCPTs(cpts)
     }
     val startFinalProdFactor = System.currentTimeMillis()
     val pf = prodFactor(unknown, cpts)
     val endFinalProdFactor = System.currentTimeMillis()
-//    if (verbose) println(s"------------------------------Final ProdFactor: ${endFinalProdFactor-startFinalProdFactor}----------------------")
+//    if (verbose) println(s"--- Final ProdFactor: ${endFinalProdFactor-startFinalProdFactor} ---")
     if (verbose) {
-      println(
-        s"""------------------------------Plain CPT cant header
-           |: ${pf.header.foldLeft("")((acum, h) => acum ++ " " ++ h)}
-           |----------------------""".stripMargin)
+      logger.info(
+        s"""--- Plain CPT cant header: ${
+          pf.header.foldLeft("")((acum, h) => acum ++ " " ++ h)
+        } ---"""
+      )
     }
     pf
   }
@@ -1126,7 +1244,7 @@ object BayesianNetwork {
         else {
           // TODO aca poner la probabilidad de la tabla de mutaciones con indice
           //  ap o am (de acuerdo al selector) y node
-          var allelei = if (s.contains(1)) ap else am
+          val allelei = if (s.contains(1)) ap else am
           getProbabityOfNonDiagonal(
             variable,
             mutationModelType,
@@ -1227,14 +1345,24 @@ object BayesianNetwork {
               .getOrElse(zero)
             // si es menor o igual a la cant de saltos del modelo y es salto
             // entero
-            if((((allelei - allelej).abs) <= mutationMarkerData._3.cantSaltos.toDouble) && (((allelei - allelej).abs) % 1 == 0)) {
-              (ki * ( Math.pow(
-                mutationMarkerData._1
-                  .mutationRange
-                  .getOrElse(zero)
-                  .doubleValue(),
-                (allelei-allelej).abs
-              ))).doubleValue()
+            val alleleDiff = (allelei - allelej).abs
+            if (
+                (
+                  alleleDiff <= mutationMarkerData._3.cantSaltos.toDouble
+                ) && (
+                  alleleDiff % 1 == 0
+                )
+            ) {
+              (
+                ki * Math.pow(
+                  mutationMarkerData._1
+                    .mutationRange
+                    .getOrElse(zero)
+                    .doubleValue(),
+                  alleleDiff
+                )
+              )
+              .doubleValue()
             } else {
               0.0
             }
@@ -1245,17 +1373,24 @@ object BayesianNetwork {
     }
   }
 
-  def getCPT(frequencyTable: FrequencyTable,
-             variables: Array[Variable], vertex: Variable,
-             linkage: Linkage, mutationModelType: Option[Long],
-             mutationModelData: Option[List[(MutationModelParameter, List[MutationModelKi],MutationModel)]] = None,
-             n: Map[String,List[Double]] = Map.empty, individuals: Array[Individual]): CPT = {
+  def getCPT(
+    frequencyTable: FrequencyTable,
+    variables: Array[Variable],
+    vertex: Variable,
+    linkage: Linkage,
+    mutationModelType: Option[Long],
+    mutationModelData: Option[List[MutationModelData]] = None,
+    n: Map[String,List[Double]] = Map.empty,
+    individuals: Array[Individual]
+  ): CPT = {
     val header = variables.map(_.name) :+ "Probability"
-
     val possibilities = variables.map {
       case Variable(_, _, VariableKind.Selector, _, _) => Array(1.0,2.0)
-      case Variable(name, _, VariableKind.Genotype, Some(alleles), false) => getPossibilitiesAlleles(alleles, name, individuals)// alleles
-      case Variable(_, _, VariableKind.Genotype, _, _) => n.getOrElse(vertex.marker, Nil).toArray //frequencyTable.getOrElse(vertex.marker, Map.empty).keys.toArray.filterNot(d => d.equals(-1.0))
+      case Variable(name, _, VariableKind.Genotype, Some(alleles), false) =>
+        getPossibilitiesAlleles(alleles, name, individuals)// alleles
+      case Variable(_, _, VariableKind.Genotype, _, _) =>
+        n.getOrElse(vertex.marker, Nil).toArray
+      //frequencyTable.getOrElse(vertex.marker, Map.empty).keys.toArray.filterNot(d => d.equals(-1.0))
       /*{
         if(mutationModelType.isEmpty) {
            frequencyTable.get(vertex.marker).get.keySet.toArray.filterNot(nro => nro.equals(-1.0))
@@ -1265,16 +1400,30 @@ object BayesianNetwork {
       }*/
       case Variable(_, _, VariableKind.Heterocygote, _, _) => Array(0.0)
     }
-    val matrix = generatePermutations(possibilities, header, vertex, frequencyTable, linkage, mutationModelType, mutationModelData,n)
-
+    val matrix = generatePermutations(
+      possibilities,
+      header,
+      vertex,
+      frequencyTable,
+      linkage,
+      mutationModelType,
+      mutationModelData,
+      n
+    )
     new CPT(vertex, header, matrix.iterator, matrix.size)
   }
 
-  private def getPossibilitiesAlleles(alleles : Array[Double], variableName : String, individuals: Array[Individual]) : Array[Double] = {
-    val individualName = variableName.substring(0, variableName.indexOf('_'))
-    val individual = individuals.filter((ind => ind.alias.text.equals(individualName))).apply(0)
+  private def getPossibilitiesAlleles(
+    alleles : Array[Double],
+    variableName : String,
+    individuals: Array[Individual]
+  ) : Array[Double] = {
+    val individualName = variableName
+      .substring(0, variableName.indexOf('_'))
+    val individual = individuals
+      .filter(ind => ind.alias.text.equals(individualName))
+      .apply(0)
     val selector = variableName.charAt(variableName.length-1)
-
     //si es fundador y heterocigota //padre primer alelo madre segundo alelo
     var ret = Array[Double]()
     if(heterocygoteFounder(individual, Option(alleles))) {
@@ -1286,7 +1435,6 @@ object BayesianNetwork {
     } else {
       ret = alleles
     }
-
     ret
   }
 
@@ -1300,19 +1448,31 @@ object BayesianNetwork {
                          mutationModelType: Option[Long]=None, mutationModelData: Option[List[(MutationModelParameter, List[MutationModelKi],MutationModel)]]=None,
                          n: Map[String,List[Double]] = Map.empty): Matrix = {
 */
-def generatePermutations(lists: Array[Array[Double]], header: Array[String], variable: Variable, frequencyTable: FrequencyTable, linkage: Linkage,
-                         mutationModelType: Option[Long]=None, mutationModelData: Option[List[(MutationModelParameter, List[MutationModelKi],MutationModel)]]=None,
-                         n: Map[String,List[Double]] = Map.empty): ArrayBuffer[Array[Double]] = {
-
+def generatePermutations(
+  lists: Array[Array[Double]],
+  header: Array[String],
+  variable: Variable,
+  frequencyTable: FrequencyTable,
+  linkage: Linkage,
+  mutationModelType: Option[Long]=None,
+  mutationModelData: Option[List[MutationModelData]]=None,
+  n: Map[String,List[Double]] = Map.empty
+): ArrayBuffer[Array[Double]] = {
     val result = ArrayBuffer[Array[Double]]()
-//    var result = Iterator[Array[Double]]()
-
     def recursive(depth: Int, current: ArrayBuffer[Double]): Unit = {
       if (depth == lists.length) {
         val row = current.toArray
-        val probability = getRowProbability(row, header, variable, frequencyTable, linkage, mutationModelType, mutationModelData,n)
+        val probability = getRowProbability(
+          row,
+          header,
+          variable,
+          frequencyTable,
+          linkage,
+          mutationModelType,
+          mutationModelData,
+          n
+        )
         result += (row :+ probability)
-//        result  = result ++ Array(row :+ probability)
       } else {
         for (i <- lists(depth).indices) {
           recursive(depth + 1, current :+ lists(depth)(i))
@@ -1321,7 +1481,6 @@ def generatePermutations(lists: Array[Array[Double]], header: Array[String], var
     }
 
     recursive(0, ArrayBuffer[Double]())
-//    result.toArray
     result
   }
 
@@ -1330,70 +1489,123 @@ def generatePermutations(lists: Array[Array[Double]], header: Array[String], var
       Graph.from(component.nodes.map(_.toOuter), component.edges.map(_.toOuter))).toArray
   }
 
-  def getAlleles(marker: Profile.Marker, globalCode: Option[SampleCode], profiles: Array[Profile]): Option[Array[Double]] = {
-    globalCode.flatMap { gc =>
-      val profile = profiles.find(_.globalCode == gc).get
-      profile.genotypification.get(1).flatMap { genotypification =>
-        genotypification.get(marker).flatMap { alleles =>
-            val strs = alleles.filter { case Allele(_) => true; case OutOfLadderAllele(_,_) =>true; case MicroVariant(_) => true; case _ => false }
-                              .map(x => x match {case Allele(count) => count.toDouble; case _ => -1.0}).distinct
-            if (strs.size <= 2) Some(strs.toArray)
-            else None // Trisomias
-        }
+  def getAlleles(
+    marker: Profile.Marker,
+    globalCode: Option[SampleCode],
+    profiles: Array[Profile]
+  ): Option[Array[Double]] = {
+    globalCode.flatMap {
+      gc =>
+        val profile = profiles.find(_.globalCode == gc).get
+        profile.genotypification
+          .get(1)
+          .flatMap {
+            genotypification =>
+              genotypification
+                .get(marker)
+                .flatMap {
+                  alleles =>
+                    val strs = alleles
+                      .filter {
+                        case Allele(_) => true;
+                        case OutOfLadderAllele(_,_) => true;
+                        case MicroVariant(_) => true;
+                        case _ => false
+                      }
+                      .map(
+                        x => x match {
+                          case Allele(count) => count.toDouble;
+                          case _ => -1.0
+                        }
+                      )
+                      .distinct
+                    if (strs.size <= 2) {
+                      Some(strs.toArray)
+                    } else {
+                      None // Trisomias
+                    }
+          }
       }
     }
   }
 
-  def generateGraph(profiles: Array[Profile], markers: Array[Profile.Marker],
-                    individuals: Array[Individual], linkage: Linkage, mutationModelType: Option[Long] = None): (Map[String, Variable], Graph[String, DiEdge]) = {
-    val vertices: Map[String, Variable] = generateVertices(markers, profiles, individuals, mutationModelType)
-    val edges: List[DiEdge[String]] = generateEdges(markers, individuals, vertices, linkage)
+  def generateGraph(
+    profiles: Array[Profile],
+    markers: Array[Profile.Marker],
+    individuals: Array[Individual],
+    linkage: Linkage,
+    mutationModelType: Option[Long] = None
+  ): (Map[String, Variable], Graph[String, DiEdge]) = {
+    val vertices: Map[String, Variable] = generateVertices(
+      markers,
+      profiles,
+      individuals,
+      mutationModelType
+    )
+    val edges: List[DiEdge[String]] = generateEdges(
+      markers,
+      individuals,
+      vertices,
+      linkage)
 
     (vertices, Graph.from(vertices.keys, edges))
   }
 
-  def generateEdges(markers: Array[Profile.Marker], individuals: Array[Individual],
-                    variables: Map[String, Variable], linkage: Linkage): List[DiEdge[String]] = {
-
+  def generateEdges(
+    markers: Array[Profile.Marker],
+    individuals: Array[Individual],
+    variables: Map[String, Variable],
+    linkage: Linkage
+  ): List[DiEdge[String]] = {
     var edges = List.empty[DiEdge[String]] // no puede ser array
+    individuals.foreach {
+      individual =>
+      markers.foreach {
+        marker =>
+        attrs.foreach {
+          attr =>
+            val variable = variables(getVariableName(individual.alias, marker, attr))
 
-    individuals.foreach { individual =>
-      markers.foreach { marker =>
-        attrs.foreach { attr =>
-          val variable = variables(getVariableName(individual.alias, marker, attr))
-
-          if (attr == "m" && individual.idMother.isDefined) {
-            attrs.foreach { motherAttr =>
-              val mother = getVariableName(individual.idMother.get, marker, motherAttr)
-              edges :+= mother ~> variable.name
+            if (attr == "m" && individual.idMother.isDefined) {
+              attrs.foreach {
+                motherAttr =>
+                  val mother = getVariableName(individual.idMother.get, marker, motherAttr)
+                  edges :+= mother ~> variable.name
+              }
+              val selector = getVariableName(individual.alias, marker, "m_s")
+              edges :+= selector ~> variable.name
             }
 
-            val selector = getVariableName(individual.alias, marker, "m_s")
-            edges :+= selector ~> variable.name
-          }
-
-          if (attr == "p" && individual.idFather.isDefined) {
-            attrs.foreach { fatherAttr =>
-              val father = getVariableName(individual.idFather.get, marker, fatherAttr)
-              edges :+= father ~> variable.name
+            if (attr == "p" && individual.idFather.isDefined) {
+              attrs.foreach {
+                fatherAttr =>
+                  val father = getVariableName(individual.idFather.get, marker, fatherAttr)
+                  edges :+= father ~> variable.name
+              }
+              val selector = getVariableName(individual.alias, marker, "p_s")
+              edges :+= selector ~> variable.name
             }
 
-            val selector = getVariableName(individual.alias, marker, "p_s")
-            edges :+= selector ~> variable.name
-          }
-
-          if (heterocygoteNonFounder(individual, variable.alleles)) {
-            val pm = getVariableName(individual.alias, marker, "pm")
-            edges :+= variable.name ~> pm
-          }
-
-          if (linkage.contains(marker) &&
-            ((attr == "p" && individual.idFather.isDefined) || (attr == "m" && individual.idMother.isDefined))) {
-            val previousSelector = getVariableName(individual.alias, linkage(marker)._1, s"${attr}_s")
-            val selector = getVariableName(individual.alias, marker, s"${attr}_s")
-
-            edges :+= previousSelector ~> selector
-          }
+            if (heterocygoteNonFounder(individual, variable.alleles)) {
+              val pm = getVariableName(individual.alias, marker, "pm")
+              edges :+= variable.name ~> pm
+            }
+            lazy val marker_is_linked = linkage.contains(marker)
+            lazy val is_father_case = attr == "p" && individual.idFather.isDefined
+            lazy val is_mother_case = attr == "m" && individual.idMother.isDefined
+            if (marker_is_linked && (is_father_case || is_mother_case)) {
+              val previousSelector = getVariableName(
+                individual.alias,
+                linkage(marker)._1,
+                s"${attr}_s"
+              )
+              val selector = getVariableName(
+                individual.alias,
+                marker,
+                s"${attr}_s"
+              )
+              edges :+= previousSelector ~> selector
+            }
 
         }
       }
@@ -1402,159 +1614,261 @@ def generatePermutations(lists: Array[Array[Double]], header: Array[String], var
     edges
   }
 
-  def allelesMutated(alleles: Option[Array[Double]], allelesM: Option[Array[Double]], allelesP: Option[Array[Double]]): Boolean = {
-
+  def allelesMutated(
+    alleles: Option[Array[Double]],
+    allelesM: Option[Array[Double]],
+    allelesP: Option[Array[Double]]
+  ): Boolean = {
     (alleles.map(_.toList), allelesM, allelesP) match {
       case (Some(a :: Nil), Some(mother), Some(father)) =>
         !(mother.contains(a) && father.contains(a))
       case (Some(a1 :: a2 :: Nil), Some(mother), Some(father)) =>
-        !((mother.contains(a1) && father.contains(a2)) || (mother.contains(a2) && father.contains(a1)))
+        !((mother.contains(a1) && father.contains(a2)) ||
+          (mother.contains(a2) && father.contains(a1)))
       case (Some(child), None, Some(father)) => !father.exists(child.contains(_))
       case (Some(child), Some(mother), None) => !mother.exists(child.contains(_))
       case _ => false
     }
-
   }
 
-  def generateVertices(markers: Array[Profile.Marker], profiles: Array[Profile],
-                       individuals: Array[Individual], mutationModelType: Option[Long]): Map[String, Variable] = {
+  def generateVertices(
+    markers: Array[Profile.Marker],
+    profiles: Array[Profile],
+    individuals: Array[Individual],
+    mutationModelType: Option[Long]
+  ): Map[String, Variable] = {
     var variables = Map.empty[String, Variable]
+    individuals.foreach {
+      individual =>
+        markers.foreach { marker =>
+          var alleles: Option[Array[Double]] = getAlleles(
+            marker,
+            individual.globalCode,
+            profiles
+          )
+          var allelesM: Option[Array[Double]] = None
+          var allelesP: Option[Array[Double]] = None
 
-    individuals.foreach { individual =>
-      markers.foreach { marker =>
-        var alleles: Option[Array[Double]] = getAlleles(marker, individual.globalCode, profiles)
-        var allelesM: Option[Array[Double]] = None
-        var allelesP: Option[Array[Double]] = None
+          if (individual.idMother.isDefined) {
+            allelesM = getAlleles(
+              marker,
+              individuals
+                .find(_.alias == individual.idMother.get)
+                .get
+                .globalCode,
+              profiles
+            )
+            val name = getVariableName(
+              individual.alias,
+              marker,
+              "m_s"
+            )
+            variables += name -> Variable(
+              name,
+              marker,
+              VariableKind.Selector,
+              None,
+              individual.unknown
+            )
+          }
 
-        if (individual.idMother.isDefined) {
-          allelesM = getAlleles(marker, individuals.find(_.alias == individual.idMother.get).get.globalCode, profiles)
-          val name = getVariableName(individual.alias, marker, "m_s")
-          variables += name -> Variable(name, marker, VariableKind.Selector, None, individual.unknown)
-        }
+          if (individual.idFather.isDefined) {
+            allelesP = getAlleles(
+              marker,
+              individuals
+                .find(_.alias == individual.idFather.get)
+                .get.globalCode,
+              profiles
+            )
+            val name = getVariableName(
+              individual.alias,
+              marker,
+              "p_s"
+            )
+            variables += name -> Variable(
+              name,
+              marker,
+              VariableKind.Selector,
+              None,
+              individual.unknown
+            )
+          }
 
-        if (individual.idFather.isDefined) {
-          allelesP = getAlleles(marker, individuals.find(_.alias == individual.idFather.get).get.globalCode, profiles)
-          val name = getVariableName(individual.alias, marker, "p_s")
-          variables += name -> Variable(name, marker, VariableKind.Selector, None, individual.unknown)
-        }
+          lazy val mutationsWithoutMutationModel =
+            allelesMutated(alleles, allelesM, allelesP) && mutationModelType.isEmpty
 
-        if (allelesMutated(alleles, allelesM, allelesP) && mutationModelType.isEmpty/* && TODO modelo sin mutaciones */) {
-          alleles = None
-        }
+          if (mutationsWithoutMutationModel /* && TODO modelo sin mutaciones */) {
+            alleles = None
+          }
 
-        variables ++= attrs.map { attr =>
-          val name = getVariableName(individual.alias, marker, attr)
-          name -> Variable(name, marker, VariableKind.Genotype, alleles, individual.unknown)
-        }
+          variables ++= attrs.map {
+            attr =>
+              val name = getVariableName(
+                individual.alias,
+                marker,
+                attr
+              )
+              name -> Variable(
+                name,
+                marker,
+                VariableKind.Genotype,
+                alleles,
+                individual.unknown
+              )
+          }
 
-        if (heterocygoteNonFounder(individual, alleles)) {
-          val name = getVariableName(individual.alias, marker, "pm")
-          variables += name -> Variable(name, marker, VariableKind.Heterocygote, None, individual.unknown)
+          if (heterocygoteNonFounder(individual, alleles)) {
+            val name = getVariableName(individual.alias, marker, "pm")
+            variables += name -> Variable(
+              name,
+              marker,
+              VariableKind.Heterocygote,
+              None,
+              individual.unknown
+            )
+          }
         }
       }
-    }
-    variables
+      variables
   }
 
-  private def heterocygoteFounder(individual: Individual, alleles: Option[Array[Double]]) = {
+  private def heterocygoteFounder(
+    individual: Individual,
+    alleles: Option[Array[Double]]
+  ) = {
     val founder = !individual.idFather.isDefined && !individual.idMother.isDefined
     val heterocygote = alleles.fold(false)(_.length == 2)
-
     founder && heterocygote && !individual.unknown
   }
 
-  private def heterocygoteNonFounder(individual: Individual, alleles: Option[Array[Double]]) = {
+  private def heterocygoteNonFounder(
+    individual: Individual,
+    alleles: Option[Array[Double]]
+  ) = {
     val notFounder = individual.idFather.isDefined || individual.idMother.isDefined
     val heterocygote = alleles.fold(false)(_.length == 2)
-
     notFounder && heterocygote && !individual.unknown
   }
 
-  private def getVariableName(alias: NodeAlias, locus: String, attr: String) = {
+  private def getVariableName(
+    alias: NodeAlias,
+    locus: String,
+    attr: String
+  ) = {
     s"${alias.text}_${locus}_$attr"
   }
 
   def stateRemoval(cpts:Array[CPT]): Array[CPT] = {
     var cptOut: Map[String, Set[Double]] = Map.empty
 
-    cpts.foreach { cpt =>
-      var cpt0: Map[String, Set[Double]] = Map.empty
-      var cpt1: Map[String, Set[Double]] = Map.empty
+    cpts.foreach {
+      cpt =>
+        var cpt0: Map[String, Set[Double]] = Map.empty
+        var cpt1: Map[String, Set[Double]] = Map.empty
 
-      if (cpt.header.size > 2){
-        //El foreach borra todos los elementos del iterador, pasarlos a un array para recorrerlos
-        var cptMatrix = Array[Array[Double]]()
-        cptMatrix = cpt.matrix.toArray
+        if (cpt.header.size > 2){
+          //El foreach borra todos los elementos del iterador, pasarlos a un array para recorrerlos
+          var cptMatrix = Array[Array[Double]]()
+          cptMatrix = cpt.matrix.toArray
 
-//        cpt.matrix.foreach { row =>
-        cptMatrix.foreach { row =>
-          cpt.header.zipWithIndex.foreach {
-            case (column, index) =>
-              if (column!= "Probability" && row.last == 0) {
-                cpt0 += (column -> (cpt0.getOrElse(column, Set.empty) + row(index)))
-              } else if (column != "Probability" && row.last != 0) {
-                cpt1 += (column -> (cpt1.getOrElse(column, Set.empty) + row(index)))
+  //        cpt.matrix.foreach { row =>
+          cptMatrix.foreach {
+            row =>
+              cpt.header.zipWithIndex.foreach {
+                case (column, index) =>
+                  if (column!= "Probability" && row.last == 0) {
+                    cpt0 += (column -> (cpt0.getOrElse(column, Set.empty) + row(index)))
+                    logger.info(s"--- Adding to CPT1: ${column} ---")
+                  } else if (column != "Probability" && row.last != 0) {
+                    cpt1 += (column -> (cpt1.getOrElse(column, Set.empty) + row(index)))
+                    logger.info(s"--- Adding to CPT2: ${column} ---")
+                  }
               }
           }
+
+          val lout = (cpt0.keySet union cpt1.keySet).map {
+            key => (key, cpt0.getOrElse(key, Set.empty) diff cpt1.getOrElse(key, Set.empty))
+          }.filter(_._2.nonEmpty).toMap
+
+          cptOut = cptOut.keySet.union(lout.keySet).map {
+            key => (key, cptOut.getOrElse(key, Set.empty) ++ lout.getOrElse(key, Set.empty))
+          }.toMap
+          cpt.matrix = cptMatrix.iterator
         }
-
-        val lout = (cpt0.keySet union cpt1.keySet).map {
-          key => (key, cpt0.getOrElse(key, Set.empty) diff cpt1.getOrElse(key, Set.empty))
-        }.filter(_._2.nonEmpty).toMap
-
-        cptOut = cptOut.keySet.union(lout.keySet).map {
-          key => (key, cptOut.getOrElse(key, Set.empty) ++ lout.getOrElse(key, Set.empty))
-        }.toMap
-        cpt.matrix = cptMatrix.iterator
-      }
     }
 
-    cpts.map { cpt =>
-     cpt.matrix = cptOut.foldLeft[Matrix](cpt.matrix) { case (matrix, (columnName, allelesToRemove)) =>
-       val column = cpt.header.zipWithIndex.find(_._1 == columnName)
-       if (column.isDefined) {
-          val index = column.get._2
-          matrix.filter(row => {
-            !allelesToRemove.contains(row(index))
-          })
-/*
-         matrix.map(row => {
-           val rowArray = row.toArray
-           if(!allelesToRemove.contains(rowArray(index))) rowArray.iterator else Iterator.empty
-         }).filterNot(rowIt => rowIt.isEmpty)
-*/
-        } else {
-           matrix
+    logger.info(s"--- cptOut = ${cptOut.keys.mkString(" ")} ---")
+
+    cpts.map {
+      cpt =>
+        cpt.matrix = cptOut.foldLeft[Matrix](cpt.matrix) {
+          case (matrix, (columnName, allelesToRemove)) =>
+            val column = cpt
+              .header
+              .zipWithIndex
+              .find(_._1 == columnName)
+            if (column.isDefined) {
+              val index = column.get._2
+              matrix.filter(
+                row => {!allelesToRemove.contains(row(index))}
+              )
+  /*
+           matrix.map(row => {
+             val rowArray = row.toArray
+             if(!allelesToRemove.contains(rowArray(index))) rowArray.iterator else Iterator.empty
+           }).filterNot(rowIt => rowIt.isEmpty)
+  */
+            } else {
+              matrix
+            }
         }
-     }
-      val matrixArray = cpt.matrix.toArray
-      cpt.matrixSize = matrixArray.size
-      cpt.matrix = matrixArray.iterator
-      cpt
+        val matrixArray = cpt.matrix.toArray
+        cpt.matrixSize = matrixArray.size
+        cpt.matrix = matrixArray.iterator
+        cpt
     }
   }
 
-  def nodePrunning(variablesMap: Map[String, Variable], graph: Graph[String, DiEdge])(cpts:Array[CPT]): Array[CPT] = {
-    val variables = graph.nodes
+  def nodePrunning(
+    variablesMap: Map[String, Variable],
+    graph: Graph[String, DiEdge]
+  )(cpts:Array[CPT]): Array[CPT] = {
+    val var_filter = (variable:Variable) => (
+      variable.alleles.isEmpty &&
+        !variable.unknown &&
+        variable.kind != VariableKind.Heterocygote
+    )
+    val variables = graph
+      .nodes
       .filter(_.outDegree == 0)
       .map(v => variablesMap(v))
-      .filter(variable => variable.alleles.isEmpty && !variable.unknown && variable.kind != VariableKind.Heterocygote)
+      .filter(var_filter)
       .map(_.name)
       .toList
 
-    if (variables.nonEmpty){
+//    logger.info(s"--- Node Prunning: Variable is empty=${variables.isEmpty}")
+
+    if (variables.nonEmpty) {
       // todo: hacerlo con --! y List[Param[String,DiEdge]]
-      nodePrunning(variablesMap, graph filter graph.having(node = n => !variables.contains(n.toOuter)))(cpts.filter(cpt => !variables.contains(cpt.variable.name)))
+      nodePrunning(
+        variablesMap,
+        graph filter graph.having(node = n => !variables.contains(n.toOuter))
+      )(
+        cpts filter {cpt => !variables.contains(cpt.variable.name)}
+      )
     } else {
       cpts
     }
   }
 
   def zeroProbabilityPrunning(cpts:Array[CPT]): Array[CPT] = {
-    cpts.map(cpt => {
-      cpt.matrix = cpt.matrix.filter(row => {
-        row.last > 0
-      })
+    cpts.map(
+      cpt => {
+        cpt.matrix = cpt.matrix.filter(
+          row => {
+            row.last > 0
+          }
+        )
 /*
       cpt.matrix = cpt.matrix.map(row => {
         val rowArray = row.toArray
@@ -1573,12 +1887,15 @@ def generatePermutations(lists: Array[Array[Double]], header: Array[String], var
   }
 
   def getConditional(cpts: Array[CPT]): Array[CPT] = {
-    cpts.map(cpt => {
-      val (matrix1, matrixCopy) = cpt.matrix.duplicate
-      val sum = matrix1.map(row => row.last).sum //todo: 1
-      cpt.matrix = matrixCopy.map(row => row.zipWithIndex.map{
-        case (col, index) => if(index == row.length-1) col/sum else col //todo: 2
-      })
+    cpts.map(
+      cpt => {
+        val (matrix1, matrixCopy) = cpt.matrix.duplicate
+        val sum = matrix1.map(row => row.last).sum //todo: 1
+        cpt.matrix = matrixCopy.map(
+          row => row.zipWithIndex.map{
+            case (col, index) => if (index == row.length-1) col/sum else col //todo: 2
+          }
+        )
 /*
       val matrixArray = cpt.matrix.map(rowIt => rowIt.toArray).toArray
       val sum = matrixArray.map(row => row.last).sum //todo: 1
@@ -1586,17 +1903,63 @@ def generatePermutations(lists: Array[Array[Double]], header: Array[String], var
         case (col, index) => if(index == row.length-1) col/sum else col //todo: 2
       }).map(row => row.iterator).iterator
 */
-      cpt
-    })
+        cpt
+      }
+    )
   }
 
-  def getAlleleFather(row: Array[Double], header: Array[String], variableName: String) = findKey(header, key => key.endsWith("p") && key != variableName).map(row(_))
-  def getAlleleMother(row: Array[Double], header: Array[String], variableName: String) = findKey(header, key => key.endsWith("m") && key != variableName).map(row(_))
-  def getSelector(row: Array[Double], header: Array[String]) = findKey(header, _.endsWith("s")).map(x => row(x))
-  def getNode(row: Array[Double], header: Array[String], variableName: String) = row(findKey(header, _ == variableName).get)
+  def getAlleleFather(
+    row: Array[Double],
+    header: Array[String],
+    variableName: String
+  ): Option[Double] =
+    findKey(
+      header,
+      key => key.endsWith("p") && key != variableName
+    )
+    .map(row(_))
+  def getAlleleMother(
+    row: Array[Double],
+    header: Array[String],
+    variableName: String
+  ): Option[Double] =
+    findKey(
+      header,
+      key => key.endsWith("m") && key != variableName
+    )
+    .map(row(_))
 
-  private def findKey(header: Array[String], condition: String => Boolean): Option[Int] = {
-    header.zipWithIndex.find { case (key, _) => condition(key) }.map(_._2)
+  def getSelector(
+    row: Array[Double],
+    header: Array[String]
+  ): Option[Double] =
+    findKey(
+      header,
+      _.endsWith("s")
+    )
+    .map(x => row(x))
+
+  def getNode(
+    row: Array[Double],
+    header: Array[String],
+    variableName: String
+  ): Double =
+    row(
+      findKey(
+        header,
+        _ == variableName
+      ).get
+    )
+
+  private def findKey(
+    header: Array[String],
+    condition: String => Boolean
+  ): Option[Int] = {
+    // TODO: Why to use zipWithIndex if the index is not used later?
+    header
+      .zipWithIndex
+      .find { case (key, _) => condition(key) }
+      .map(_._2)
   }
 
 }
