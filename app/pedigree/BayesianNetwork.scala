@@ -1,11 +1,8 @@
 package pedigree
 
-import java.util.Arrays.ArrayList
-
 import kits.AnalysisType
 import matching.{MatchingAlgorithm, NewMatchingResult}
 import pedigree.PedigreeMatchingAlgorithm.extractMarker
-import play.api.libs.json.Json
 import profile.Profile.Marker
 import profile._
 import types.SampleCode
@@ -17,9 +14,8 @@ import scalax.collection.Graph
 import scalax.collection.GraphEdge.{DiEdge, _}
 import scalax.collection.GraphPredef._
 
-
 object BayesianNetwork {
-  private type MutationModelData = (
+  type MutationModelData = (
     MutationModelParameter,
       List[MutationModelKi],
       MutationModel
@@ -90,20 +86,20 @@ object BayesianNetwork {
       frequencyTable
     )
     val endQueryProfilesTime = System.currentTimeMillis()
-    if (verbose) {
-      val deltaT = endQueryProfilesTime-starQueryProfilesTime
-      logger.info(s"--- GetQueryProfiles: ${deltaT} ---")
-    }
+//    if (verbose) {
+//      val deltaT = endQueryProfilesTime-starQueryProfilesTime
+//      logger.info(s"--- GetQueryProfiles: ${deltaT} ---")
+//    }
     val markers = queryProfiles.values.head.keys.toArray
     val linkageMarkers = linkage.keySet.union(linkage.values.map(_._1).toSet)
     val starNormalizedFrequencyTableTime = System.currentTimeMillis()
     val normalizedFrequencyTable = getNormalizedFrequencyTable(frequencyTable)
     val endNormalizedFrequencyTableTime = System.currentTimeMillis()
-    if (verbose) {
-      val deltaT = endNormalizedFrequencyTableTime -
-        starNormalizedFrequencyTableTime
-      logger.info(s"--- GetNormalizedFrequencyTable: ${deltaT} ---")
-    }
+//    if (verbose) {
+//      val deltaT = endNormalizedFrequencyTableTime -
+//        starNormalizedFrequencyTableTime
+//      logger.info(s"--- GetNormalizedFrequencyTable: ${deltaT} ---")
+//    }
     val startGenotypificationTime = System.currentTimeMillis()
     val genotypification = getGenotypification(
       profiles,
@@ -121,10 +117,10 @@ object BayesianNetwork {
     // TODO pasarle el modelo de mutacion, como cuando se llama desde
     //      PedigreeGenotificationService
     val endGenotypificationTime = System.currentTimeMillis()
-    if (verbose) {
-      val deltaT = endGenotypificationTime - startGenotypificationTime
-      logger.info(s"--- GetGenotypification: ${deltaT} ---")
-    }
+//    if (verbose) {
+//      val deltaT = endGenotypificationTime - startGenotypificationTime
+//      logger.info(s"--- GetGenotypification: ${deltaT} ---")
+//    }
     val startLRTime = System.currentTimeMillis()
     val genoMarkers = getMarkersFromCpts(genotypification).toArray
     val lr = calculateLR(
@@ -236,9 +232,6 @@ object BayesianNetwork {
       }"""
     }
     val evidenceProbabilityLog = getEvidenceProbabilityLog(genotypificationFiltered)
-//    print("------------------------------")
-//    print(s"Evidence probability: ${evidenceProbability}!!!!!!")
-//    print("---------------------\n")
     val queryProbabilityLog = getQueryProbabilityLog(
       markers,
       queryProfilesFiltered,
@@ -250,16 +243,10 @@ object BayesianNetwork {
       mutationModelData,
       n
     )
-//    print("------------------------------")
-//    print(s"Query probability: ${queryProbability}!!!!!!")
-//    print("---------------------\n")
     val genotypeProbabilityLog = getGenotypeProbabilityLog(
       queryProfilesFiltered,
       normalizedFrequencyTable
     )
-//    print("----------------------")
-//    print(s"Genotype probability: ${genotypeProbability}!!!!!!")
-//    print("---------------------\n")
     val subjectProbabilityLog = evidenceProbabilityLog + genotypeProbabilityLog
     val lr = math.exp(
       queryProbabilityLog._1 - subjectProbabilityLog
@@ -387,7 +374,6 @@ object BayesianNetwork {
     FrequencyTable = {
     frequencyTable.map {
       case (marker, alleles) => {
-//        val allelesSinfrecMin = alleles.filter(x=>(!x._1.equals(-1.0)))
         val sum = alleles.values.sum
         if (sum > 1) {
           (
@@ -460,33 +446,24 @@ object BayesianNetwork {
       mutationModelType
     )
     val endGeneratingGraphTime = System.currentTimeMillis()
-    if (verbose) {
-      val deltaT = endGeneratingGraphTime-startGeneratingGraphTime
-      print("------------------------------")
-      print(s"GenerateGraph: ${deltaT}")
-      print("----------------------\n")
-    }
+//    if (verbose) {
+//      val deltaT = endGeneratingGraphTime-startGeneratingGraphTime
+//      logger.info(s"--- GenerateGraph: ${deltaT} ---")
+//    }
     val startSubgraphsGraphTime = System.currentTimeMillis()
-    var subgraphs = getSubgraphs(graph)
+    val subgraphs = getSubgraphs(graph)
     val endSubgraphsGraphTime = System.currentTimeMillis()
-    if (verbose) {
-      print("------------------------------")
-      print(s"GetSubgraphs: ${endSubgraphsGraphTime-startSubgraphsGraphTime}")
-      print("----------------------\n")
-    }
+//    if (verbose) {
+//      logger.info(s"--- GetSubgraphs: ${
+//        endSubgraphsGraphTime-startSubgraphsGraphTime
+//      } ---")
+//    }
 
-    if (verbose){
-      print("------------------------------")
-      print(s"Cant subgraphs: ${subgraphs.length}")
-      print("----------------------\n")
-    }
+//    if (verbose){
+//      logger.info(s"--- Cant subgraphs: ${subgraphs.length} ---")
+//    }
     val unknown = genogram.filter(_.unknown).head.alias.text
     var cont = 0
-
-    // DEBUG CODE ///
-    subgraphs = subgraphs.filter(x=>x.toString().contains("ACTBP2"))
-    logger.info(s"Length of subgraphs: ${subgraphs.length}")
-    // END of DEBUG CODE
 
     val geno = subgraphs
       .zipWithIndex
@@ -495,45 +472,23 @@ object BayesianNetwork {
           val variables = variablesMap.filter {
             case (n, _) => subgraph.nodes.exists(_.toOuter == n)
           }
-          if (verbose) {
-            print("------------------------------")
-            print(s"subgraphs : ${index}----------------------\n")
-            print("------------------------------")
-            print(s"subgraphs i, cant variables: ${variables.keys.size}")
-            print(s"----------------------\n")
-          }
+//          if (verbose) {
+//            logger.info(s"--- subgraphs: ${index} ---")
+//            logger.info(s"--- subgraphs i, cant variables: ${
+//              variables.keys.size
+//            } ---")
+//          }
 
           val startGeneratingCPTsTime = System.currentTimeMillis()
-          val cpts = generateCPTs(variables, subgraph, frequencyTable, linkage, mutationModelType, mutationModelData, n, genogram)
-
-//          cpts.foreach(
-//            cpt => {
-//              val matrix = extractMatrixFromCPT(cpt)
-//              logger.info(s"CPT: ${cpt.header.mkString("/")} | ${
-//                matrix.length match {
-//                  case x if x <= 2 =>
-//                    matrix
-//                      .map(
-//                        x => s"${x(0)} ${x(0)} ... ${x.length - 2} more."
-//                      )
-//                      .mkString(" ")
-//                  case x => s"Array of length: ${x}"
-//                }
-//              }")
-//            }
-//          )
-
-          cpts.foreach(
-            cpt => {
-              val matrix = extractMatrixFromCPT(cpt)
-              logger.info(
-                s"CPT: ${cpt.header.mkString("/")} | ${
-                  s"Cant of last diff of zero: ${
-                    matrix.count(x => x.last != 0)
-                  }"
-                }"
-              )
-            }
+          val cpts = generateCPTs(
+            variables,
+            subgraph,
+            frequencyTable,
+            linkage,
+            mutationModelType,
+            mutationModelData,
+            n,
+            genogram
           )
 
           val endGeneratingCPTsTime = System.currentTimeMillis()
@@ -542,32 +497,12 @@ object BayesianNetwork {
           val prunnedCPTs = pruneCPTs(variables, subgraph, cpts)
           val endPrunningCPTsTime = System.currentTimeMillis()
 
-//          prunnedCPTs.foreach(
-//            cpt => {
-//              val matrix = extractMatrixFromCPT(cpt)
-//              logger.info(s"CPT: ${cpt.header.mkString("/")} | ${
-//                matrix.length match {
-//                  case 0 => "Empty Array"
-//                  case x if x <= 2 =>
-//                    matrix
-//                      .map(
-//                        x => s"${x(0)} ${x(0)} ... ${x.length - 2} more."
-//                      )
-//                      .mkString(" ")
-//                  case x => s"Array of length: ${x}"
-//                }
-//              }")
-//            }
-//          )
-
-          if (verbose) {
-            print("------------------------------")
-            print(s"PruneCPTs: ${endPrunningCPTsTime - startPrunningCPTsTime}")
-            print("----------------------\n")
-            print("------------------------------")
-            print(s"Cant. PruneCPTs: ${prunnedCPTs.length}")
-            print("----------------------\n")
-          }
+//          if (verbose) {
+//            logger.info(s"--- PruneCPTs: ${
+//              endPrunningCPTsTime - startPrunningCPTsTime
+//            } ---")
+//            logger.info(s"--- Cant. PruneCPTs: ${prunnedCPTs.length} ---")
+//          }
 
           if (prunnedCPTs.nonEmpty) {
             val prunnedVariables = prunnedCPTs.map(_.variable.name)
@@ -577,19 +512,18 @@ object BayesianNetwork {
             val startVariableEliminationTime = System.currentTimeMillis()
             val ve = variableElimination(unknown, prunnedCPTs.map(_.getPlain()), queries, prunnedGraph, verbose)
             val endVariableEliminationTime = System.currentTimeMillis()
-            if (verbose) {
-              val deltaT = endVariableEliminationTime -
-                startVariableEliminationTime
-              print("------------------------------")
-              print(s"VariableElimination: ${deltaT}----------------------\n")
-            }
+//            if (verbose) {
+//              val deltaT = endVariableEliminationTime -
+//                startVariableEliminationTime
+//              logger.info(s"--- VariableElimination: ${deltaT} ---")
+//            }
             Some(ve)
           } else {
             None
           }
       }
       .filter(_.matrix.nonEmpty)
-    logger.info(s"--- Genotification Size: ${geno.length} ---")
+//    logger.info(s"--- Genotification Size: ${geno.length} ---")
     geno
   }
 
@@ -671,19 +605,21 @@ object BayesianNetwork {
             val minPorbabilityOfMVarible = getMinProbabilityofVariable(
               mVariable, dependentCPTs, marker, frequencyTable
             )
-/*
-            println(s"------------------------------Variable ${mVariable} ---Min probability of: ${minPorbabilityOfMVarible}!!!!!!---------------------")
-            println(s"------------------------------Variable ${pVariable} ---Min probability of: ${minPorbabilityOfPVarible}!!!!!!---------------------")
-*/
             var x : Array[Double] = Array.empty
-            //La probabilidad va a ser la suma de las probabilidades de la variable de la madre y la variable del padre en el genotipo del alelo que si está
+            // La probabilidad va a ser la suma de las probabilidades de la
+            // variable de la madre y la variable del padre en el genotipo del
+            // alelo que si está
             x = x ++ alleles :+ (
               (probabilityMVariable * minPorbabilityOfPVarible) +
                 (probabilityPVariable * minPorbabilityOfMVarible)
             )
 
             val matrixResult = ArrayBuffer(x)
-            val cptResult = new PlainCPT(header, matrixResult.iterator, matrixResult.size)
+            val cptResult = new PlainCPT(
+              header,
+              matrixResult.iterator,
+              matrixResult.size
+            )
             cpts = (cpts diff dependentCPTs) :+ cptResult
 
             if (message.isEmpty) {
@@ -702,30 +638,51 @@ object BayesianNetwork {
     (evidenceProbability, message)
   }
 
-  private def getProbabilityOf(variable: String, alelle: Double, cpts: Array[PlainCPT]) : Double = {
-    val cptsOfVariable = cpts.filter(cpt => cpt.header.contains(variable))
+  private def getProbabilityOf(
+    variable: String,
+    alelle: Double,
+    cpts: Array[PlainCPT]
+  ) : Double = {
+    val cptsOfVariable = cpts.filter(
+      cpt => cpt.header.contains(variable)
+    )
     var probability = 0.0
     cptsOfVariable.foreach{
       cpt => {
         val matrixArray = cpt.matrix.toArray
         cpt.matrix = matrixArray.iterator
-        probability = matrixArray.filter(elem => elem.contains(alelle)).apply(0).last
+        probability = matrixArray
+          .filter(
+            elem => elem.contains(alelle)
+          )
+          .apply(0)
+          .last
       }
     }
 
     probability
   }
 
-  private def getCountMinFrecbeforeMin( marker: String, frequencyTable: FrequencyTable) : Int = {
-    val frecMin = frequencyTable.getOrElse(marker, Map.empty).get(-1.0)
-
-    val menorFrecMin = frequencyTable.getOrElse(marker, Map.empty).filter(tuple => (tuple._2.<(frecMin.get)))
-
+  private def getCountMinFrecbeforeMin(
+    marker: String,
+    frequencyTable: FrequencyTable
+  ) : Int = {
+    val frecMin = frequencyTable
+      .getOrElse(marker, Map.empty)
+      .get(-1.0)
+    val menorFrecMin = frequencyTable
+      .getOrElse(marker, Map.empty)
+      .filter(tuple => (tuple._2.<(frecMin.get)))
     val cantMenores = menorFrecMin.keys.size
     cantMenores
   }
 
-  private def getMinProbabilityofVariable(variable: String, cpts: Array[PlainCPT], marker: String, frequencyTable: FrequencyTable) : Double = {
+  private def getMinProbabilityofVariable(
+    variable: String,
+    cpts: Array[PlainCPT],
+    marker: String,
+    frequencyTable: FrequencyTable
+  ) : Double = {
     val cptsOfVariable = cpts.filter(cpt => cpt.header.contains(variable))
 //    val cantMinFrecBeforeMin = getCountMinFrecbeforeMin(marker, frequencyTable)
     var probability = 0.0
@@ -741,7 +698,6 @@ object BayesianNetwork {
         else
           probability = matrixArraYOrderer.apply(0).last
 */
-
       }
     }
 
@@ -905,12 +861,6 @@ object BayesianNetwork {
     marker: Marker,
     frequencyTable: FrequencyTable
   ): Double = {
-/*
-    if (frequencyTable(marker).get(allele).isEmpty || allele.equals(-1.0)) {
-      println(s"------------------------------Busca la frecuencia minima de ${allele} y ${marker}:: ${frequencyTable(marker).getOrElse(allele, frequencyTable(marker)(-1))}----------")
-    }
-    frequencyTable(marker).getOrElse(allele, frequencyTable(marker)(-1))
-*/
     // Para cualquier frecuencia menor a la minima se toma la
     // frecuencia minima por definicion de Mariana Herrera - 01-2020
     val frecuenciaMinima = frequencyTable(marker).get(-1.0)
@@ -999,29 +949,21 @@ object BayesianNetwork {
     verbose: Boolean = false
   ): PlainCPT = {
     var cpts = cptsInput
-    //printCPTs(cpts)
     val startGetOrderingTime = System.currentTimeMillis()
     var sortedVariables = getOrdering(graph, queries, cptsInput)
     val endGetOrderingTime = System.currentTimeMillis()
-//    if (verbose) println(s"--- GetOrdering: ${endGetOrderingTime-startGetOrderingTime} ---")
-
-//    if (verbose) println(s"--- Cant variable: ${sortedVariables.length} ---")
     sortedVariables
       .zipWithIndex
       .foreach {
         case (variable, index) =>
-//          if (verbose) println(s"--- Variable: ${variable} ---")
           val dependentCPTs = cpts.filter(_.header.contains(variable))
-    //      if (verbose) println(s"--- Cant dependentCPTs: ${dependentCPTs.length} ---")
           if (dependentCPTs.nonEmpty) {
             val startProdFactor = System.currentTimeMillis()
             val product = prodFactor(unknown, dependentCPTs)
             val endProdFactor = System.currentTimeMillis()
-    //        if (verbose) println(s"--- ProdFactor: ${endProdFactor-startProdFactor} ---")
             val startSumFactor = System.currentTimeMillis()
             val cpt = sumFactor(product, variable)
             val endSumFactor = System.currentTimeMillis()
-    //        if (verbose) println(s"--- SumFactor: ${endSumFactor-startSumFactor} ---
             // Replace all dependent factors by result cpt
             cpts = (cpts diff dependentCPTs) :+ cpt
           }
@@ -1029,14 +971,13 @@ object BayesianNetwork {
     val startFinalProdFactor = System.currentTimeMillis()
     val pf = prodFactor(unknown, cpts)
     val endFinalProdFactor = System.currentTimeMillis()
-//    if (verbose) println(s"--- Final ProdFactor: ${endFinalProdFactor-startFinalProdFactor} ---")
-    if (verbose) {
-      logger.info(
-        s"""--- Plain CPT cant header: ${
-          pf.header.foldLeft("")((acum, h) => acum ++ " " ++ h)
-        } ---"""
-      )
-    }
+//    if (verbose) {
+//      logger.info(
+//        s"""--- Plain CPT cant header: ${
+//          pf.header.foldLeft("")((acum, h) => acum ++ " " ++ h)
+//        } ---"""
+//      )
+//    }
     pf
   }
 
@@ -1771,17 +1712,16 @@ def generatePermutations(
           var cptMatrix = Array[Array[Double]]()
           cptMatrix = cpt.matrix.toArray
 
-  //        cpt.matrix.foreach { row =>
           cptMatrix.foreach {
             row =>
               cpt.header.zipWithIndex.foreach {
                 case (column, index) =>
                   if (column!= "Probability" && row.last == 0) {
                     cpt0 += (column -> (cpt0.getOrElse(column, Set.empty) + row(index)))
-                    logger.info(s"--- Adding to CPT1: ${column} ---")
+//                    logger.info(s"--- Adding to CPT1: ${column} ---")
                   } else if (column != "Probability" && row.last != 0) {
                     cpt1 += (column -> (cpt1.getOrElse(column, Set.empty) + row(index)))
-                    logger.info(s"--- Adding to CPT2: ${column} ---")
+//                    logger.info(s"--- Adding to CPT2: ${column} ---")
                   }
               }
           }
@@ -1797,7 +1737,7 @@ def generatePermutations(
         }
     }
 
-    logger.info(s"--- cptOut = ${cptOut.keys.mkString(" ")} ---")
+//    logger.info(s"--- cptOut = ${cptOut.keys.mkString(" ")} ---")
 
     cpts.map {
       cpt =>

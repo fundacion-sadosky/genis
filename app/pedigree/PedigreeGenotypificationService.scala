@@ -54,23 +54,15 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 
 trait PedigreeGenotypificationService {
-  def generateGenotypificationAndFindMatches(pedigreeId: Long):
-    Future[Either[String, Long]]
+  def generateGenotypificationAndFindMatches(pedigreeId: Long): Future[Either[String, Long]]
 
-  def saveGenotypification(
-    pedigree: PedigreeGenogram,
-    profiles: Array[Profile],
-    frequencyTable: BayesianNetwork.FrequencyTable,
-    analysisType: AnalysisType,
-    linkage: Linkage,
-    mutationModel: Option[MutationModel]
-  ): Future[Either[String, Long]]
+  def saveGenotypification(pedigree: PedigreeGenogram, profiles: Array[Profile],
+                           frequencyTable: BayesianNetwork.FrequencyTable, analysisType: AnalysisType, linkage: Linkage,
+                           mutationModel: Option[MutationModel]): Future[Either[String, Long]]
 
   def calculateProbability(c:CalculateProbabilityScenarioPed):Double
 
-  def calculateProbabilityActor(
-    calculateProbabilityScenarioPed:CalculateProbabilityScenarioPed
-  ):Future[Double]
+  def calculateProbabilityActor(calculateProbabilityScenarioPed:CalculateProbabilityScenarioPed):Future[Double]
 }
 
 @Singleton
@@ -169,11 +161,11 @@ class PedigreeGenotypificationServiceImpl @Inject()(
           if(result.isRight) {
             val markers = profileRepository.
               getProfilesMarkers(profiles)
-            markers.foreach(
-              marker => {
-                logger.info(s"Marker: ${marker}")
-              }
-            )
+//            markers.foreach(
+//              marker => {
+//                logger.info(s"Marker: ${marker}")
+//              }
+//            )
             val unknowns = pedigree
               .genogram
               .filter(_.unknown)
@@ -266,7 +258,7 @@ class PedigreeGenotypificationServiceImpl @Inject()(
   override def calculateProbability(
     c:CalculateProbabilityScenarioPed
   ):Double = {
-    logger.info("--- CalculateProbability BEGIN ---")
+//    logger.info("--- CalculateProbability BEGIN ---")
     val probability = BayesianNetwork
       .calculateProbability(
         c.profiles,
@@ -280,7 +272,7 @@ class PedigreeGenotypificationServiceImpl @Inject()(
         c.seenAlleles,
         c.locusRangeMap
       )
-    logger.info("--- CalculateProbability END ---")
+//    logger.info("--- CalculateProbability END ---")
     probability
   }
 

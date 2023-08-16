@@ -273,17 +273,40 @@ class BulkUploadServiceImpl @Inject() (
     }
   }
 
-  override def rejectProtoProfile(id: Long, motive: String, userId: String,idMotive:Long): Future[Seq[String]] = {
-    this.updateProtoProfileStatus(id, ProtoProfileStatus.Rejected, userId).flatMap { errors =>
-      if (errors.isEmpty)
-        protoRepo.setRejectMotive(id, motive,userId,idMotive,new java.sql.Timestamp(Calendar.getInstance().getTime().getTime)).map { count =>
-          if (count == 1)
-            Nil
-          else
-            Seq(Messages("error.E0102"))
-        }
-      else
-        Future.successful(Nil)
+  override def rejectProtoProfile(
+    id: Long,
+    motive: String,
+    userId: String,
+    idMotive:Long
+  ): Future[Seq[String]] = {
+    this
+      .updateProtoProfileStatus(
+        id,
+        ProtoProfileStatus.Rejected,
+        userId
+      )
+      .flatMap {
+        errors =>
+          if (errors.isEmpty) {
+            protoRepo
+              .setRejectMotive(
+                id,
+                motive,
+                userId,
+                idMotive,
+                new java.sql.Timestamp(Calendar.getInstance().getTime().getTime)
+              )
+              .map {
+                count =>
+                  if (count == 1) {
+                    Nil
+                  } else {
+                    Seq(Messages("error.E0102"))
+                  }
+              }
+          } else {
+            Future.successful(Nil)
+          }
     }
   }
 
@@ -362,7 +385,6 @@ class BulkUploadServiceImpl @Inject() (
             .distinct
             .map(msg => s"<br>${msg}")
             .mkString("")
-//          val joinedMessage = Messages("error.E0103")
           Left(joinedMessage)
         } else {
           Right(idBatch)
@@ -454,19 +476,47 @@ class BulkUploadServiceImpl @Inject() (
     }
   }
 
-  override def updateProtoProfileStatus(id: Long, status: ProtoProfileStatus.Value, userId: String,replicate : Boolean = false): Future[Seq[String]] = {
-    protoRepo.getProtoProfile(id).flatMap { protoProfileOpt =>
-
-      protoProfileOpt.fold({
-        Future.successful(Seq(Messages("error.E0105",id)))
-      })(protoProfile => {
-
-        userService.findByGeneMapper(protoProfile.assignee) flatMap { geneticistOpt =>
-          geneticistOpt.fold({
-            Future.successful(Seq(Messages("error.E0200", protoProfile.assignee)))
-          })(geneticist => transitionStatus(status, protoProfile, geneticist.userName, userId,replicate))
+  override def updateProtoProfileStatus(
+    id: Long,
+    status: ProtoProfileStatus.Value,
+    userId: String,
+    replicate : Boolean = false
+  ): Future[Seq[String]] = {
+    protoRepo
+      .getProtoProfile(id)
+      .flatMap {
+        protoProfileOpt =>
+          lazy val error105 = Future.successful(
+            Seq(Messages("error.E0105", id))
+          )
+          val genError200 = (assignee:String) => {
+            Future.successful(
+              Seq(
+                Messages("error.E0200", assignee )
+              )
+            )
           }
-      })
+          val transitionWithGeneticist =
+            (protoProfile: ProtoProfile) =>
+            (g:UserView) => {
+              transitionStatus(
+                status,
+                protoProfile,
+                g.userName,
+                userId,
+                replicate
+              )
+          }
+          val transitionate = (protoProfile:ProtoProfile) => {
+            userService
+              .findByGeneMapper(protoProfile.assignee)
+              .flatMap(
+                _.fold
+                  (genError200(protoProfile.assignee))
+                  (transitionWithGeneticist(protoProfile))
+              )
+            }
+          protoProfileOpt.fold(error105)(transitionate)
     }
   }
 
