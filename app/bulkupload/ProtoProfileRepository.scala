@@ -353,9 +353,14 @@ class SlickProtoProfileRepository @Inject() (
     }
   }
 
-  override def updateProtoProfileStatus(id: Long, status: ProtoProfileStatus.Value): Future[Int] = Future {
-    DB.withTransaction { implicit session =>
-      queryUpdateStatusProtoProfile(id).update(status.toString())
+  override def updateProtoProfileStatus(
+    id: Long,
+    status: ProtoProfileStatus.Value
+  ): Future[Int] = Future {
+    DB.withTransaction {
+      implicit session =>
+        queryUpdateStatusProtoProfile(id)
+          .update(status.toString())
     }
   }
 

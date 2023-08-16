@@ -75,44 +75,71 @@ class PedigreeGenotypificationServiceImpl @Inject()(
   pedigreeSparkMatcher: PedigreeSparkMatcher,
   pedigreeRepository: PedigreeRepository,
   mutationService: MutationService = null,
-  mutationRepository: MutationRepository = null) extends PedigreeGenotypificationService {
+  mutationRepository: MutationRepository = null
+) extends PedigreeGenotypificationService {
 
   val logger = Logger(this.getClass())
+  implicit val executionContext = akkaSystem
+    .dispatchers
+    .lookup("play.akka.actor.pedigree-context")
+  val bayesianGenotypificationActor: ActorRef = akkaSystem
+    .actorOf(
+      BayesianGenotypificationActor
+        .props(this)
+    )
 
-  implicit val executionContext = akkaSystem.dispatchers.lookup("play.akka.actor.pedigree-context")
-  val bayesianGenotypificationActor: ActorRef = akkaSystem.actorOf(BayesianGenotypificationActor.props(this))
-
-  override def generateGenotypificationAndFindMatches(pedigreeId: Long): Future[Either[String, Long]] = {
-    pedigreeRepository.get(pedigreeId).flatMap {
-      pedigreeOpt => {
-        val pedigree = pedigreeOpt.get
-
-        val frequencyTableName = pedigree.frequencyTable.getOrElse(throw new RuntimeException(Messages("error.E0201")))
-
-        val codes = pedigree.genogram.flatMap(_.globalCode).toList
-        val result = {
-          for {
-            profiles <- profileRepository.findByCodes(codes)
-            analysisType <- calculationTypeService.getAnalysisTypeByCalculation(BayesianNetwork.name)
-            frequencyTable <- bayesianNetworkService.getFrequencyTable(frequencyTableName)
-            linkage <- bayesianNetworkService.getLinkage()
-            mutationModel <- if(pedigree.mutationModelId.isDefined){mutationRepository.getMutationModel(pedigree.mutationModelId)}else{Future.successful(None)}
-          } yield {
-            saveGenotypificationActor(pedigree, profiles.toArray, frequencyTable._2, analysisType, linkage, mutationModel)
+  override def generateGenotypificationAndFindMatches(
+    pedigreeId: Long
+  ): Future[Either[String, Long]] = {
+    pedigreeRepository
+      .get(pedigreeId)
+      .flatMap {
+        pedigreeOpt => {
+          val pedigree = pedigreeOpt.get
+          val frequencyTableName = pedigree
+            .frequencyTable
+            .getOrElse(throw new RuntimeException(Messages("error.E0201")))
+          val codes = pedigree
+            .genogram
+            .flatMap(_.globalCode)
+            .toList
+          val result = {
+            for {
+              profiles <- profileRepository.findByCodes(codes)
+              analysisType <- calculationTypeService
+                .getAnalysisTypeByCalculation(BayesianNetwork.name)
+              frequencyTable <- bayesianNetworkService
+                .getFrequencyTable(frequencyTableName)
+              linkage <- bayesianNetworkService.getLinkage()
+              mutationModel <- if (pedigree.mutationModelId.isDefined) {
+                mutationRepository
+                  .getMutationModel(pedigree.mutationModelId)
+              } else {
+                Future.successful(None)
+              }
+            } yield {
+              saveGenotypificationActor(
+                pedigree,
+                profiles.toArray,
+                frequencyTable._2,
+                analysisType,
+                linkage,
+                mutationModel
+              )
+            }
           }
-        }.flatMap(identity).recover {
-          case err =>
-            err.printStackTrace()
-            Left(err.getMessage)
+          .flatMap(identity).recover {
+            case err =>
+              err.printStackTrace()
+              Left(err.getMessage)
+          }
+          result.foreach {
+            case Right(id) => pedigreeSparkMatcher
+              .findMatchesInBackGround(pedigreeId)
+            case Left(error) => ()
+          }
+          result
         }
-
-        result.foreach {
-          case Right(id) => pedigreeSparkMatcher.findMatchesInBackGround(pedigreeId)
-          case Left(error) => ()
-        }
-
-        result
-      }
     }
   }
 
@@ -124,7 +151,7 @@ class PedigreeGenotypificationServiceImpl @Inject()(
     linkage: Linkage,
     mutationModel: Option[MutationModel]
   ): Future[Either[String, Long]] = {
-    logger.info("---------------------SAVE GENO BEGIN -----------")
+    logger.info("--- SAVE GENO BEGIN ---")
     mutationService
       .generateN(
         profiles,
@@ -134,11 +161,11 @@ class PedigreeGenotypificationServiceImpl @Inject()(
           if(result.isRight) {
             val markers = profileRepository.
               getProfilesMarkers(profiles)
-            markers.foreach(
-              marker => {
-                logger.info(s"Marker: ${marker}")
-              }
-            )
+//            markers.foreach(
+//              marker => {
+//                logger.info(s"Marker: ${marker}")
+//              }
+//            )
             val unknowns = pedigree
               .genogram
               .filter(_.unknown)
@@ -177,7 +204,6 @@ class PedigreeGenotypificationServiceImpl @Inject()(
                                     plainCPT.matrix.toArray
                                   )
                                 )
-                              //  val pedigreeGenotypification = PedigreeGenotypification(pedigree._id, genotypification, pedigree.boundary, pedigree.frequencyTable.get, unknowns)
                               val pedigreeGenotypification =
                                 PedigreeGenotypification(
                                   pedigree._id,
@@ -205,25 +231,62 @@ class PedigreeGenotypificationServiceImpl @Inject()(
       }
     )
   }
-  def saveGenotypificationActor(pedigree: PedigreeGenogram, profiles: Array[Profile],
-                                    frequencyTable: BayesianNetwork.FrequencyTable, analysisType: AnalysisType, linkage: Linkage,
-                                    mutationModel: Option[MutationModel]): Future[Either[String, Long]] = {
-    implicit val timeout = akka.util.Timeout(Some(Duration("30 days")).collect { case d: FiniteDuration => d }.get)
-    val result = (bayesianGenotypificationActor ? SaveGenotypification(pedigree, profiles,
-      frequencyTable, analysisType, linkage, mutationModel)).mapTo[Either[String, Long]]
+  def saveGenotypificationActor(
+    pedigree: PedigreeGenogram,
+    profiles: Array[Profile],
+    frequencyTable: BayesianNetwork.FrequencyTable,
+    analysisType: AnalysisType, linkage: Linkage,
+    mutationModel: Option[MutationModel]
+  ): Future[Either[String, Long]] = {
+    implicit val timeout: Timeout = akka.util
+      .Timeout(Some(Duration("30 days"))
+      .collect { case d: FiniteDuration => d }.get)
+    val result = (
+      bayesianGenotypificationActor ?
+        SaveGenotypification(
+          pedigree,
+          profiles,
+          frequencyTable,
+          analysisType,
+          linkage,
+          mutationModel
+        )
+      )
+      .mapTo[Either[String, Long]]
     result
   }
-  override def calculateProbability(c:CalculateProbabilityScenarioPed):Double = {
-    logger.info("---------------------calculateProbability BEGIN -----------")
-    val probability = BayesianNetwork.calculateProbability(c.profiles, c.genogram,c.frequencyTable, c.analysisType, c.linkage,c.verbose,
-      c.mutationModelType, c.mutationModelData,c.seenAlleles,c.locusRangeMap)
-    logger.info("---------------------calculateProbability END -----------")
+  override def calculateProbability(
+    c:CalculateProbabilityScenarioPed
+  ):Double = {
+//    logger.info("--- CalculateProbability BEGIN ---")
+    val probability = BayesianNetwork
+      .calculateProbability(
+        c.profiles,
+        c.genogram,
+        c.frequencyTable,
+        c.analysisType,
+        c.linkage,
+        c.verbose,
+        c.mutationModelType,
+        c.mutationModelData,
+        c.seenAlleles,
+        c.locusRangeMap
+      )
+//    logger.info("--- CalculateProbability END ---")
     probability
   }
 
-  override def calculateProbabilityActor(calculateProbabilityScenarioPed:CalculateProbabilityScenarioPed):Future[Double] = {
-    implicit val timeout = akka.util.Timeout(Some(Duration("30 days")).collect { case d: FiniteDuration => d }.get)
-    val result = (bayesianGenotypificationActor ? calculateProbabilityScenarioPed).mapTo[Double]
+  override def calculateProbabilityActor(
+    calculateProbabilityScenarioPed:CalculateProbabilityScenarioPed
+  ):Future[Double] = {
+    implicit val timeout = akka.util
+      .Timeout(Some(Duration("30 days"))
+      .collect { case d: FiniteDuration => d }.get)
+    val result = (
+      bayesianGenotypificationActor ?
+        calculateProbabilityScenarioPed
+      )
+      .mapTo[Double]
     result
   }
 }
