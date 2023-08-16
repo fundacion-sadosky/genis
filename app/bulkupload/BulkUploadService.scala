@@ -563,7 +563,11 @@ class BulkUploadServiceImpl @Inject() (
   }
   override def deleteBatch(id: Long):Future[Either[String,Long]] = {
 
-    val countImported = Await.result(protoRepo.countImportedProfilesByBatch(id),Duration(10, SECONDS));
+    val countImported = Await
+      .result(
+        protoRepo.countImportedProfilesByBatch(id),
+        Duration(10, SECONDS)
+      )
     countImported.fold(msg => {
       Future.successful(Left(msg))
     }, count =>{
