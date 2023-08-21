@@ -19,24 +19,29 @@ function SecureRequestInterceptor($q, $window, $log, $injector) {
 
 			var isSignup = request.url.indexOf("/signup") === 0;
 
-            var isClearPass = request.url.indexOf("/clear-password") === 0;
+			var isClearPass = request.url.indexOf("/clear-password") === 0;
 
-            var isDisclaimer = request.url.indexOf("/disclaimer") === 0;
+			var isDisclaimer = request.url.indexOf("/disclaimer") === 0;
 
-            var isRolesForSignUp = request.url.indexOf("/rolesForSU") === 0;
+			var isRolesForSignUp = request.url.indexOf("/rolesForSU") === 0;
 
-			var isSecuredPath = !(isPublicAsset || isJsLibAsset || isSensitiveOpList || isLogin || isSignup || isRolesForSignUp || isClearPass || isDisclaimer);
+			var isSecuredPath = !(
+				isPublicAsset ||
+				isJsLibAsset ||
+				isSensitiveOpList ||
+				isLogin ||
+				isSignup ||
+				isRolesForSignUp ||
+				isClearPass ||
+				isDisclaimer
+			);
 
 			if (isSecuredPath && !request.file) {
 				// non public assets
-				
 				$log.log("original request", request.url, request);
-
 				request = $injector.get('cryptoService').encryptRequest(request);
-
 				$log.log("encryptedRequest", request.url, request);
 			}
-
 			return request;
 		}
 	};
