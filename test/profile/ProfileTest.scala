@@ -28,7 +28,20 @@ class ProfileTest extends Specification {
   "AlleleValue" should {
     "parses Allele" in {
       Json.fromJson[AlleleValue](Json.parse("22.2")).asOpt.get must beEqualTo(Allele(22.2))
-
+    }
+    "be contructed for mitochondrial homopoymeric regions from string with '-' as first character" in {
+      val text: String = "-16500.1A"
+      val allele = AlleleValue(text)
+      allele match {
+        case Mitocondrial(base, pos) =>
+          (base must beEqualTo('A')) and
+            (pos must beEqualTo(16500.1)).toResult
+        case _ => failure("show")
+      }
+    }
+    "should fail to contruct  mitochondrial homopolymeric region from string not starting with '-'" in {
+      val text: String = "16500.1A"
+      AlleleValue(text) must throwA[IllegalArgumentException]
     }
   }
 

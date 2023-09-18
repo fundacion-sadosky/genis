@@ -6,10 +6,12 @@ import play.api.data.validation.ValidationError
 import reactivemongo.bson.BSONObjectID
 import play.modules.reactivemongo.json.BSONFormats._
 import types._
+
 import java.util.Date
 import org.apache.hadoop.record.compiler.JString
 import matching.Stringency.Stringency
 import configdata.MatchingRule
+import matching.MatchingAlgorithm.baseMatch
 
 sealed trait AlleleValue {
   def extendTo(target: AlleleValue): Option[AlleleValue]
@@ -23,7 +25,7 @@ object AlleleValue {
 //  val sequencedAlleleRegEx = """^((\d+)(\.(\d{1,2}))?)(:(\d+))?$""".r
   val xyRegEx = """^([XY])$""".r
   val mtDelDnaRegEx = """^([ACGTBDHRYKMSWNV])(\d+)(DEL)$""".r
-  val mtInsDnaRegEx = """^(\d+.[12])([ACGTBDHRYKMSWNV])$""".r
+  val mtInsDnaRegEx = """^-(\d+.[12])([ACGTBDHRYKMSWNV])$""".r
   val mtSusDnaRegEx = """^([ACGTBDHRYKMSWNV])(\d+)([ACGTBDHRYKMSWNV])$""".r
 
   //val mtDnaRegExMongo = """^([ACGTURYSWKMBHVN-])@(\d+)$""".r
@@ -38,7 +40,7 @@ object AlleleValue {
 //      case sequencedAlleleRegEx(count, _, _, _, _, variation) => SequencedAllele(BigDecimal(count), variation.toInt)
       case xyRegEx(xy) => XY(xy.head)
       case mtDelDnaRegEx(_,_,_) => Mitocondrial('-', BigDecimal(text.substring(1,text.size-3)))
-      case mtInsDnaRegEx(base, position) => Mitocondrial(text.charAt(text.size-1), BigDecimal(text.substring(0,text.size-1)))
+      case mtInsDnaRegEx(base, position) => Mitocondrial(text.charAt(text.size-1), BigDecimal(text.substring(1,text.size-1)))
       case mtSusDnaRegEx(base, position,letra) => Mitocondrial(text.charAt(text.size-1), BigDecimal(text.substring(1,text.size-1)))
       case mtDnaRegExMongo(base, position) => Mitocondrial(base.head, BigDecimal(position))
       case mtInsDnaRegExMongo(base, position) => Mitocondrial(base.head, BigDecimal(position))
@@ -104,10 +106,58 @@ case class Allele(count: BigDecimal) extends AlleleValue {
 
 case class Mitocondrial(base: Char, position: BigDecimal) extends AlleleValue {
   def extendTo(allele: AlleleValue): Option[AlleleValue] = {
-    if (allele == this)
-      Some(allele)
-    else
+    if (allele == this) {
+      Option(allele)
+    } else {
       None
+    }
+  }
+  def hasSamePosition(other:Mitocondrial): Boolean = {
+    this.position.equals(other.position)
+  }
+  /**
+   * Checks that a base mutation matches ambiguosly with other base, and that
+   * the position of the mutation is the same.
+   */
+  def isExactMatch(other: Mitocondrial): Boolean = {
+    this.hasSamePosition(other) && baseMatch(this.base, other.base)
+  }
+  def mismatchInSamePosition(other:Mitocondrial): Boolean = {
+    this.hasSamePosition(other) && !baseMatch(this.base, other.base)
+  }
+  
+  def before(other:Mitocondrial): Boolean = {
+    this.position < other.position
+  }
+  
+  def after(other: Mitocondrial): Boolean = {
+    this.position > other.position
+  }
+  
+  def matchReference(mtRCRS: MtRCRS): Boolean = {
+    val pos:Option[Int] = if (this.position % 1 == 0) {
+      Option(this.position.toInt)
+    } else {
+      None
+    }
+    val compareThisBaseToReference = (refBase:String) => {
+      refBase
+        .length
+        .equals(1)
+        .&&(
+          baseMatch(
+            refBase.toCharArray.head,
+            this.base
+          )
+        )
+    }
+    val compareToRefPosition = (p:Int) => {
+      mtRCRS
+        .tabla
+        .get(p)
+        .fold(false)(compareThisBaseToReference)
+    }
+    pos.fold(false)(compareToRefPosition)
   }
 }
 

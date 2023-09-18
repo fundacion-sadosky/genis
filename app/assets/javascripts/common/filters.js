@@ -112,12 +112,12 @@ define([ 'angular','appConf' ], function(angular,appConf) {
 
 	mod.filter('mt', ['profileHelper', function (profileHelper) {
 		return function(allele, locus, type, analysisTypes) {
-            if (type && analysisTypes[type].mitochondrial && !locus.endsWith("RANGE")) {
-                var values = profileHelper.getMtValues(allele.toString());
-                return profileHelper.formatMt(values);
-            } else {
-                return allele;
-            }            
+      if (type && analysisTypes[type].mitochondrial && !locus.endsWith("RANGE")) {
+        var values = profileHelper.getMtValues(allele.toString());
+        return profileHelper.formatMt(values);
+      } else {
+          return allele;
+      }
 		};
 	}]);
 

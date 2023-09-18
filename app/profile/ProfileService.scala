@@ -3,7 +3,6 @@ package profile
 import java.io.File
 import java.nio.file.{Files, Paths}
 import java.util.{Calendar, Date, UUID}
-
 import javax.inject.{Inject, Named, Singleton}
 import com.github.tototoshi.csv.{CSVWriter, DefaultCSVFormat}
 import configdata._
@@ -22,6 +21,7 @@ import types.{AlphanumericId, MongoDate, SampleCode}
 import util.Misc
 import play.api.i18n.Messages
 import play.api.libs.json.Json
+import profile.Profile.Marker
 import user.UserService
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -169,38 +169,57 @@ class ProfileServiceImpl @Inject() (
     a.extendTo(b).isDefined
   }
 
-  private def mergeLocusAlleles(base: List[AlleleValue], extension: List[AlleleValue]): Either[String, List[AlleleValue]] = {
-    if (Misc.existsInjection(base, extension, canExtend)) Right(extension)
-    else {
+  private def mergeLocusAlleles(
+    base: List[AlleleValue],
+    extension: List[AlleleValue]): Either[String,
+    List[AlleleValue]] = {
+    if (Misc.existsInjection(base, extension, canExtend)) {
+      Right(extension)
+    } else {
       val l1 = base.map(_.toString()).mkString("(", ", ", ")")
       val l2 = extension.map(_.toString()).mkString("(", ", ", ")")
       Left(Messages("error.E0400", l1 ,l2))
     }
   }
 
-  private def merge(base: GenotypificationByType, extension: Profile.Genotypification) = {
-    locusService.list().map { locus =>
-      val locusMap = locus.map(l => l.id -> l.analysisType).toMap
-      val newGen = extension.groupBy { case (m, a) => locusMap(m) }
-
-      base.keySet.union(newGen.keySet).map { analysisType => {
-        val markers = base.getOrElse(analysisType, Map.empty).keySet
-          .union(newGen.getOrElse(analysisType, Map.empty).keySet)
-          //.filterNot(_.endsWith("_RANGE"))
-
-        analysisType ->
-          markers.map {
-            l => l -> {
-              val safeBase = base.getOrElse(analysisType, Map.empty).withDefaultValue(Nil)
-              val safeExt = newGen.getOrElse(analysisType, Map.empty).withDefault(marker => safeBase(marker))
-              mergeLocusAlleles(safeBase(l), safeExt(l))
+  private def merge(
+    base: GenotypificationByType,
+    extension: Profile.Genotypification
+  ): Future[Map[Int, Map[Marker, Either[String, List[AlleleValue]]]]] = {
+    locusService
+      .list()
+      .map {
+        locus =>
+          val locusMap = locus.map(l => l.id -> l.analysisType).toMap
+          val newGen = extension.groupBy { case (m, a) => locusMap(m) }
+          base
+            .keySet
+            .union(newGen.keySet)
+            .map {
+              analysisType => {
+                val markers = base
+                  .getOrElse(analysisType, Map.empty)
+                  .keySet
+                  .union(newGen.getOrElse(analysisType, Map.empty).keySet)
+                //.filterNot(_.endsWith("_RANGE"))
+              analysisType ->
+                markers
+                  .map {
+                    l => l -> {
+                      val safeBase = base
+                        .getOrElse(analysisType, Map.empty)
+                        .withDefaultValue(Nil)
+                      val safeExt = newGen
+                        .getOrElse(analysisType, Map.empty)
+                        .withDefault(marker => safeBase(marker))
+                      mergeLocusAlleles(safeBase(l), safeExt(l))
+                    }
+                  }
+                  .toMap
+              }
             }
-          }.toMap
+            .toMap
       }
-      }.toMap
-
-    }
-
   }
   def isExistingKit(kitId:String): Future[Boolean] = {
     kitService.listFull().map{
@@ -453,16 +472,37 @@ class ProfileServiceImpl @Inject() (
         case (false,_) => {
           val category = categoryService.getCategory(profileData.category).get
           val isReference = category.isReference
-
           val sizeOfMitocondrialKit: Int = 4
+          val newAnalysisIsMitochondrial = newAnalysis
+            .genotypification
+            .keys
+            .exists(
+              marker => marker.endsWith("_RANGE")
+            )
           val analysis = Analysis(
             UUID.randomUUID.toString,
             MongoDate(new Date()),
-            newAnalysis.kit.getOrElse(
-              if(newAnalysis.`type`.contains(sizeOfMitocondrialKit)) {manualMitocondrialKit} else {manualKit}
-            ),
-            newAnalysis.genotypification.filterNot { case (marker, alleles) => alleles.isEmpty },
-            newAnalysis.`type`)
+            newAnalysis
+              .kit
+                .getOrElse(
+                  if(newAnalysis.`type`.contains(sizeOfMitocondrialKit)) {
+                    manualMitocondrialKit
+                  } else {
+                    manualKit
+                  }
+                ),
+            newAnalysis
+              .genotypification
+              .filterNot {
+                case (marker, alleles) =>
+                  val thereAreNoAlleles = alleles.isEmpty
+                  lazy val isMitochondrialRange = marker.endsWith("_RANGE")
+                  lazy val isMitochondrialMutation =
+                    newAnalysisIsMitochondrial && !isMitochondrialRange
+                  thereAreNoAlleles && !isMitochondrialMutation
+              },
+            newAnalysis.`type`
+          )
 
           val analysisTypeFut = newAnalysis.kit
             .fold(Future.successful(newAnalysis.`type`.get)){ kit => kitService.get(kit) map { opt => opt.get.`type` }}
@@ -602,7 +642,8 @@ class ProfileServiceImpl @Inject() (
           if(replicate){
             newfut.onSuccess{
               case Right(profile) => {
-                interconnectionService.uploadProfileToSuperiorInstance(profile,profileData)
+                interconnectionService
+                  .uploadProfileToSuperiorInstance(profile, profileData)
               }
             }
           }
@@ -613,44 +654,91 @@ class ProfileServiceImpl @Inject() (
     }
   }
 
-  private def getContributors(profileData: ProfileData,analysis: Analysis, profileOpt: Option[Profile], isReference: Boolean, contributorsOpt: Option[Int],at: AnalysisType): Future[Int] = {
-    val statsFut = if (!isReference) probabilityService.getStats(profileData.laboratory) else Future.successful(None)
-
-    statsFut flatMap { statOption =>
-      contributorsOpt match {
-        case Some(c) => Future.successful(c)
-        case None => {
-          if (profileOpt.isDefined) {
-            Future.successful(profileOpt.get.contributors.getOrElse(1))
-          } else {
-            if (!isReference && at.id.!=(3)) {
-              val stats = statOption.getOrElse(throw new NoFrequencyException(Messages("error.E0610")))
-              probabilityService.calculateContributors(analysis, profileData.category, stats)
-            } else
-              Future.successful(1)
+  private def getContributors(
+    profileData: ProfileData,
+    analysis: Analysis,
+    profileOpt: Option[Profile],
+    isReference: Boolean,
+    contributorsOpt: Option[Int],
+    at: AnalysisType
+  ): Future[Int] = {
+    val statsFut = if (!isReference) {
+      probabilityService.getStats(profileData.laboratory)
+    } else {
+      Future.successful(None)
+    }
+    statsFut flatMap {
+      statOption =>
+        contributorsOpt match {
+          case Some(c) => Future.successful(c)
+          case None => {
+            if (profileOpt.isDefined) {
+              Future.successful(profileOpt.get.contributors.getOrElse(1))
+            } else {
+              if (!isReference && at.id.!=(3)) {
+                val stats = statOption
+                  .getOrElse(
+                    throw new NoFrequencyException(Messages("error.E0610"))
+                  )
+                probabilityService
+                  .calculateContributors(analysis, profileData.category, stats)
+              } else {
+                Future.successful(1)
+              }
+            }
           }
         }
-      }
     }
   }
 
-  override def create(newAnalysis: NewAnalysis, savePictures: Boolean = true,replicate : Boolean = false): Future[Either[List[String], Profile]] = {
-
+  override def create(
+    newAnalysis: NewAnalysis,
+    savePictures: Boolean = true,
+    replicate : Boolean = false
+  ): Future[Either[List[String], Profile]] = {
     val globalCode = newAnalysis.globalCode
-
-    profileDataRepository.findByCode(globalCode).flatMap { profileDataOpt =>
-      profileDataOpt.fold[Future[Either[List[String], Profile]]]({
-        Future.successful(Left(List(Messages("error.E0113", globalCode))))
-      })({ profileData =>
-        profileRepository.findByCode(globalCode).flatMap { profileOpt =>
-          val res = upsert(profileData, profileOpt, newAnalysis, savePictures,replicate)
-          res.onSuccess {
-            case Right(_) => if (profileOpt.isEmpty) notificationService.solve(profileData.assignee, ProfileDataInfo(profileData.internalSampleCode, profileData.globalCode))
-            case Left(_) => {}
-          }
-          res
-        }
-      })
+    profileDataRepository
+      .findByCode(globalCode)
+      .flatMap {
+        profileDataOpt =>
+          profileDataOpt
+            .fold[Future[Either[List[String], Profile]]](
+              {
+                Future.successful(
+                  Left(List(Messages("error.E0113", globalCode)))
+                )
+              }
+            )(
+              {
+                profileData =>
+                  profileRepository
+                    .findByCode(globalCode)
+                    .flatMap {
+                      profileOpt =>
+                        val res = upsert(
+                          profileData,
+                          profileOpt,
+                          newAnalysis,
+                          savePictures,
+                          replicate
+                        )
+                        res.onSuccess {
+                          case Right(_) => if (profileOpt.isEmpty) {
+                            notificationService
+                              .solve(
+                                profileData.assignee,
+                                ProfileDataInfo(
+                                  profileData.internalSampleCode,
+                                  profileData.globalCode
+                                )
+                              )
+                          }
+                          case Left(_) => {}
+                        }
+                        res
+                    }
+              }
+      )
     }
   }
 

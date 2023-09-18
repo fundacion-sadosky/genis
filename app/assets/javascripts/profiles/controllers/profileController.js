@@ -390,6 +390,7 @@ function ProfileController(
 		}
 	};
     $scope.validateLocusMt = function(newAnalysis, checkAnalysis, locus, loci,index) {
+      console.log("In validateLocusMt");
         var srcOrg = newAnalysis.genotypification[locus];
         var src = cleanArray(srcOrg,"");
         var check = checkAnalysis.genotypification[locus];

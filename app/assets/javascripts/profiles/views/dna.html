@@ -88,15 +88,29 @@
                      new-analysis="newAnalysis"
                      chk-analysis="chkAnalysis"
                      error-msg="mt[l+'_RANGE'].errorMsg"
-                     validate-locus="validateLocusMt" loci="loci" selected-alleles="selectedAlleles"
-                     labels="labels" enable-labels-status="enableLabelsStatus" profile="profile"></div>
-                <div pdg-locus-range-mt  class="col-md-9 text-center"
-                     name="l" info="addedLocusById[l]" index="$index" status="status.current"
+                     validate-locus="validateLocusMt"
+                     loci="loci"
+                     selected-alleles="selectedAlleles"
+                     labels="labels"
+                     enable-labels-status="enableLabelsStatus"
+                     profile="profile">
+                </div>
+                <div pdg-locus-range-mt
+                     class="col-md-9 text-center"
+                     name="l"
+                     info="addedLocusById[l]"
+                     index="$index"
+                     status="status.current"
                      new-analysis="newAnalysis"
                      chk-analysis="chkAnalysis"
                      error-msg="mt[l].errorMsg"
-                     validate-locus="validateLocusMt" loci="loci" selected-alleles="selectedAlleles"
-                     labels="labels" enable-labels-status="enableLabelsStatus" profile="profile"></div>
+                     validate-locus="validateLocusMt"
+                     loci="loci"
+                     selected-alleles="selectedAlleles"
+                     labels="labels"
+                     enable-labels-status="enableLabelsStatus"
+                     profile="profile">
+                </div>
             </td>
             <td style="width:3%" >
                 <button class="btn pull-right" ng-click="removeLocusMt(l);"

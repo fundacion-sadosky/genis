@@ -1,13 +1,12 @@
 package pedigree
 
 import java.util.Date
-
 import configdata.{MatchingRule, MtConfiguration}
 import kits.AnalysisType
 import matching._
 import org.bson.types.ObjectId
 import play.api.Logger
-import profile.Profile
+import profile.{MtRCRS, Profile}
 import types.{AlphanumericId, MongoDate, MongoId}
 
 import scala.collection.Seq
@@ -35,10 +34,23 @@ object PedigreeMatchingAlgorithm {
     }
   }
 
-  def performMatch(config: MtConfiguration, p: Profile, q: Profile, matchingRule: MatchingRule, id: Option[MongoId] = None,
-                   idPedigree: Long, assignee: String, alias: String,locusRangeMap:NewMatchingResult.AlleleMatchRange): Option[PedigreeMatchResult] = {
-    val matchResult = MatchingAlgorithm.performMatch(config, p, q, matchingRule, id, 0,locusRangeMap)
-    matchToPedigreeMatch(matchResult, p, q, idPedigree, assignee, alias,locusRangeMap)
+  def performMatch(
+    config: MtConfiguration,
+    p: Profile,
+    q: Profile,
+    matchingRule: MatchingRule,
+    mtRcrs: MtRCRS,
+    id: Option[MongoId] = None,
+    idPedigree: Long,
+    assignee: String,
+    alias: String,
+    locusRangeMap:NewMatchingResult.AlleleMatchRange
+  ): Option[PedigreeMatchResult] = {
+    val matchResult = MatchingAlgorithm
+      .performMatch(config, p, q, matchingRule, mtRcrs, id, 0,locusRangeMap)
+    matchToPedigreeMatch(
+      matchResult, p, q, idPedigree, assignee, alias, locusRangeMap
+    )
   }
   def getMarkers(p:Profile):List[String] = {
     p.genotypification.get(1).map(result => {

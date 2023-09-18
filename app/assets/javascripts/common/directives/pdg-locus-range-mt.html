@@ -35,10 +35,11 @@
 				ng-disabled="index != chkAnalysis[indexCh]"
 				ng-pattern="regexPattern"
 				alleleCheck
-                help-tip="{{(isRange) ? (isEven($index)?'mt.rangeFrom':'mt.rangeTo'):'mt.mutation'}}"
-                help-tip-placement="{{(isEven($index)?'bottom':'top')}}"
+				help-tip="{{(isRange) ? (isEven($index)?'mt.rangeFrom':'mt.rangeTo'):'mt.mutation'}}"
+				help-tip-placement="{{(isEven($index)?'bottom':'top')}}"
 				size="9"
-				ng-change="validateLocus(locus.id)">
+				ng-change="validateLocus(locus.id)"
+			>
 		</span>
 		<span ng-show="status === 'dblCheck'" class="pdg-locus-mt-icon"
 			  ng-class="{

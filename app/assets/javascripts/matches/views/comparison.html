@@ -10,7 +10,6 @@
 							</div>
 						</li>
 					<li class="active">Comparación</li>
-					
 				</ol>
 			</div>
 		</div>
@@ -75,35 +74,63 @@
 					</tr>
 				</thead>
 				<tbody>
-					<tr ng:repeat="item in comparision" ng-show="showLocus(item.locus)"
-						class="{{(showCalculation)?'comparision-' + results.matchingAlleles[item.locus].toLowerCase():''}}">
+					<tr
+						ng:repeat="item in comparision"
+						ng-show="showLocus(item.locus)"
+						class="{{(showCalculation)?'comparision-' + results.matchingAlleles[item.locus].toLowerCase():''}}"
+					>
 						<td>{{(showCalculation) ? item.locus: 'mt.'+item.locus| i18next}}</td>
 						<td class="text-center">
-							<span ng:repeat="allele in item.g[profileId] track by $index" class="text-center comparision-allele"
-								id="{{'g1' + $parent.$index + '_' + $index}}" name="{{'g1' + $parent.$index + '_' + $index}}"
-								  ng-class="{'allele-matched': (item.p2.indexOf(allele) != -1),
-								  			'mixes-label-1': setLabel(profileId, item.locus, allele, 1) || setLabel(profileId, item.locus, allele, undefined),
-								  			'mixes-label-2': setLabel(profileId, item.locus, allele, 2),
-								  			'mixes-label-3': setLabel(profileId, item.locus, allele, 3),
-								  			'mixes-label-4': setLabel(profileId, item.locus, allele, 4),
-											'brick-allele': !mixM && mixF ,
-											'mt-comparison':!showCalculation && (matchingAlleles.indexOf(allele) != -1)}">{{item.p2.indexOf(allele)}}
-									{{allele | mt: item.locus: results.type: analysisTypes}}<span ng-if="shouldShowMinAlelle(allele,results.allelesRanges[item.locus])">/<{{results.allelesRanges[item.locus].min}}</span><span ng-if="shouldShowMaxAlelle(allele,results.allelesRanges[item.locus])">/>{{results.allelesRanges[item.locus].max}}</span>
+							<span
+								ng:repeat="allele in item.g[profileId] track by $index"
+								class="text-center comparision-allele"
+								id="{{'g1' + $parent.$index + '_' + $index}}"
+								name="{{'g1' + $parent.$index + '_' + $index}}"
+								ng-class="{
+									'allele-matched': (item.p2.indexOf(allele) != -1),
+									'mixes-label-1': setLabel(profileId, item.locus, allele, 1) || setLabel(profileId, item.locus, allele, undefined),
+									'mixes-label-2': setLabel(profileId, item.locus, allele, 2),
+									'mixes-label-3': setLabel(profileId, item.locus, allele, 3),
+									'mixes-label-4': setLabel(profileId, item.locus, allele, 4),
+									'brick-allele': !mixM && mixF ,
+									'mt-comparison':!showCalculation && (matchingAlleles.indexOf(allele) != -1)
+								}"
+							>
+								{{item.p2.indexOf(allele)}}
+								{{allele | mt: item.locus: results.type: analysisTypes}}
+								<span
+									ng-if="shouldShowMinAlelle(allele,results.allelesRanges[item.locus])"
+								>/<{{results.allelesRanges[item.locus].min}}
+								</span>
+								<span
+									ng-if="shouldShowMaxAlelle(allele,results.allelesRanges[item.locus])"
+								>/>{{results.allelesRanges[item.locus].max}}
+								</span>
 							</span>
 						</td>
 						<td class="text-center">
-							<span ng:repeat="allele in item.g[matchedProfileId] track by $index" class="text-center comparision-allele"
-								id="{{'g2' + $parent.$index + '_' + $index}}" name="{{'g2' + $parent.$index + '_' + $index}}"
-								ng-class="{'allele-matched': (item.p1.indexOf(allele) != -1),
-								            'mixes-label-1': setLabel(matchedProfileId, item.locus, allele, 1) || setLabel(matchedProfileId, item.locus, allele, undefined),
-								  			'mixes-label-2': setLabel(matchedProfileId, item.locus, allele, 2),
-								  			'mixes-label-3': setLabel(matchedProfileId, item.locus, allele, 3),
-								  			'mixes-label-4': setLabel(matchedProfileId, item.locus, allele, 4),
-								  			'brick-allele': !mixF && mixM  ,
-								  			'mt-comparison':!showCalculation && (matchingAlleles.indexOf(allele) != -1)}"	>{{item.p1.indexOf(allele)}}
-									{{allele | mt: item.locus: results.type: analysisTypes}}<span ng-if="shouldShowMinAlelle(allele,results.allelesRanges[item.locus])">/<{{results.allelesRanges[item.locus].min}}</span><span ng-if="shouldShowMaxAlelle(allele,results.allelesRanges[item.locus])">/>{{results.allelesRanges[item.locus].max}}</span>
-
-								</span>
+							<span
+								ng:repeat="allele in item.g[matchedProfileId] track by $index"
+								class="text-center comparision-allele"
+								id="{{'g2' + $parent.$index + '_' + $index}}"
+								name="{{'g2' + $parent.$index + '_' + $index}}"
+								ng-class="
+									{
+										'allele-matched': (item.p1.indexOf(allele) != -1),
+										'mixes-label-1': setLabel(matchedProfileId, item.locus, allele, 1) || setLabel(matchedProfileId, item.locus, allele, undefined),
+										'mixes-label-2': setLabel(matchedProfileId, item.locus, allele, 2),
+										'mixes-label-3': setLabel(matchedProfileId, item.locus, allele, 3),
+										'mixes-label-4': setLabel(matchedProfileId, item.locus, allele, 4),
+										'brick-allele': !mixF && mixM,
+										'mt-comparison':!showCalculation && (matchingAlleles.indexOf(allele) != -1)
+									}"
+							>
+								{{item.p1.indexOf(allele)}}
+								Alelo: {{allele | mt : item.locus : results.type : analysisTypes}}
+<!--								{{allele | mt: item.locus: results.type: analysisTypes}}-->
+								<span ng-if="shouldShowMinAlelle(allele,results.allelesRanges[item.locus])">/<{{results.allelesRanges[item.locus].min}}</span>
+								<span ng-if="shouldShowMaxAlelle(allele,results.allelesRanges[item.locus])">/>{{results.allelesRanges[item.locus].max}}</span>
+							</span>
 						</td>
 						<td class="text-center" ng-class="{'statiscs-comparison': showCalculation}"  ng-if="showCalculation">
 							<span class="text-center comparision-allele" ng-if="showCalculation"
