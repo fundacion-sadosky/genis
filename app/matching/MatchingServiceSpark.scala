@@ -340,18 +340,17 @@ class MatchingServiceSparkImpl @Inject() (
     }
   }
 
-  override def findMatches(globalCode: SampleCode, matchType: Option[String] = None): Unit = {
+  override def findMatches(
+    globalCode: SampleCode,
+    matchType: Option[String] = None
+  ): Unit = {
     logger.debug(s"Enqueue profile $globalCode to spark matcher")
     matchType match {
-      case None => {
+      case None =>
         spak2Matcher.findMatchesInBackGround(globalCode)
-      }
-      case Some("MPI") => {
+      case Some("MPI") =>
         pedigreeSparkMatcher.findMatchesInBackGround(globalCode, matchType.get)
-      }
-      case _ => {
-        ()
-      }
+      case _ => ()
     }
   }
 

@@ -19,13 +19,13 @@ case class PedigreeDirectLinkMatch(
   `type`: Int,
   profile: MatchingProfile,
   pedigree: PedigreeProfileInfo,
-  result: NewMatchingResult) extends PedigreeMatchResult {
+  result: NewMatchingResult
+) extends PedigreeMatchResult {
   override val kind = PedigreeMatchKind.DirectLink
 }
 
 object PedigreeDirectLinkMatch {
   implicit val reads: Reads[PedigreeDirectLinkMatch] = Json.reads[PedigreeDirectLinkMatch]
-
   implicit val writes: OWrites[PedigreeDirectLinkMatch] = new OWrites[PedigreeDirectLinkMatch] {
     def writes(mr: PedigreeDirectLinkMatch): JsObject = {
       Json.obj(
@@ -39,7 +39,6 @@ object PedigreeDirectLinkMatch {
       )
     }
   }
-
   implicit val format: OFormat[PedigreeDirectLinkMatch] = OFormat(reads, writes)
 }
 
@@ -54,7 +53,6 @@ case class PedigreeMissingInfoMatch(
 
 object PedigreeMissingInfoMatch {
   implicit val reads: Reads[PedigreeMissingInfoMatch] = Json.reads[PedigreeMissingInfoMatch]
-
   implicit val writes: OWrites[PedigreeMissingInfoMatch] = new OWrites[PedigreeMissingInfoMatch] {
     def writes(mr: PedigreeMissingInfoMatch): JsObject = {
       Json.obj(
@@ -67,7 +65,6 @@ object PedigreeMissingInfoMatch {
       )
     }
   }
-
   implicit val format: OFormat[PedigreeMissingInfoMatch] = OFormat(reads, writes)
 }
 
@@ -86,7 +83,6 @@ case class PedigreeCompatibilityMatch(
 
 object PedigreeCompatibilityMatch {
   implicit val reads: Reads[PedigreeCompatibilityMatch] = Json.reads[PedigreeCompatibilityMatch]
-
   implicit val writes: OWrites[PedigreeCompatibilityMatch] = new OWrites[PedigreeCompatibilityMatch] {
     def writes(mr: PedigreeCompatibilityMatch): JsObject = {
       Json.obj(
@@ -103,7 +99,6 @@ object PedigreeCompatibilityMatch {
       )
     }
   }
-
   implicit val format: OFormat[PedigreeCompatibilityMatch] = OFormat(reads, writes)
 }
 
