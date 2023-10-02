@@ -556,24 +556,18 @@ $inputMsg has matched against ${matchesRDD.count()} $inputMatch candidates
     logger.debug(s"Start pedigree matching process for profile ${profile.globalCode.text}")
     matchStatusService.pushJobStatus(PedigreeMatchJobStarted)
     try {
-      // TODO [#37] I can check here if there are IR profile to match MPI
-      //   pedigrees.
-      val category = categoryService.getCategory(profile.categoryId).get
-      val isReferenceProfileMatchingAnMpiCase =
-        category.isReference && matchType == "MPI"
-      val pedigrees = isReferenceProfileMatchingAnMpiCase match {
-        case true => Seq[PedigreeGenogram]()
-        case false => Await
+      val isReferenceProfileMatchingAnMpiCase = {
+        profile.categoryId.text == "IR" && matchType == "MPI"
+      }
+      val pedigrees = if (isReferenceProfileMatchingAnMpiCase) {
+        Seq[PedigreeGenogram]()
+      } else {
+        Await
           .result(
             pedigreeRepo.getActivePedigreesByCaseType(matchType),
             duration
           )
       }
-//      val pedigrees: Seq[PedigreeGenogram] = Await
-//        .result(
-//          pedigreeRepo.getActivePedigreesByCaseType(matchType),
-//          duration
-//        )
       val mapOfRules = getMatchingRules(profile)
       val mtAnalysis = 4
       val isMt = profile
