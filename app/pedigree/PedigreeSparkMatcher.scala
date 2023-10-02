@@ -528,100 +528,176 @@ $inputMsg has matched against ${matchesRDD.count()} $inputMatch candidates
       matchStatusService.pushJobStatus(PedigreeMatchJobEnded)
     }
   }
-  def deleteNotUsedScreeningMatches(matchesRDD: RDD[PedigreeMatchResult],mithocondrialMatches: Set[MatchResultScreening]) = {
+  def deleteNotUsedScreeningMatches(
+    matchesRDD: RDD[PedigreeMatchResult],
+    mithocondrialMatches: Set[MatchResultScreening]
+  ) = {
     val mitocondrialMatches = matchesRDD.map{
       case pedigreeMatchResult:PedigreeCompatibilityMatch => {
         pedigreeMatchResult.matchingId
       }
       case _ => ""
     }.map(x => if(x.length== 0) None else Some(x)).collect().flatten.toSet
-    val allMitocondrialMatches = mithocondrialMatches.filter(_.deleteable).map(_.matchId)
-    matchingRepository.discardScreeningMatches(allMitocondrialMatches.diff(mitocondrialMatches).toList)
+    val allMitocondrialMatches = mithocondrialMatches
+      .filter(_.deleteable)
+      .map(_.matchId)
+    matchingRepository
+      .discardScreeningMatches(
+        allMitocondrialMatches
+          .diff(mitocondrialMatches)
+          .toList
+      )
   }
-  private val findMatchesByProfileFunc = (profile: Profile,locusRangeMap:NewMatchingResult.AlleleMatchRange, matchType: String) => {
-
+  private val findMatchesByProfileFunc = (
+    profile: Profile,
+    locusRangeMap:NewMatchingResult.AlleleMatchRange,
+    matchType: String
+  ) => {
     logger.debug(s"Start pedigree matching process for profile ${profile.globalCode.text}")
     matchStatusService.pushJobStatus(PedigreeMatchJobStarted)
-    try{
-    val pedigrees: Seq[PedigreeGenogram] = Await.result(pedigreeRepo.getActivePedigreesByCaseType(matchType), duration)
-    val mapOfRules = getMatchingRules(profile)
-    val mtAnalysis = 4
-    val isMt = profile.genotypification.get(mtAnalysis).isDefined
-    val config = mtConfiguration
-    val frequencyTables = Await.result(bayesianNetworkService.getFrequencyTables(pedigrees.map(_.frequencyTable).flatten.distinct), duration)
-    var mithocondrialMatches:(Set[MatchResultScreening],Set[MatchResultScreening]) = (Set.empty,Set.empty)
-
-    val matchesRDD: RDD[PedigreeMatchResult] = pedigrees.map { pedigree =>
-      var mtProfileCode = ""
-      val executeScreeningMitochondrial = pedigree.executeScreeningMitochondrial
-      val pedigreeId = pedigree._id
-      val assignee = pedigree.assignee
-      val idCourtCase = pedigree.idCourtCase
-      val completePedigree = Await.result(pedigreeRepo.get(pedigreeId), duration)
-      val codes = completePedigree.get.genogram.flatMap(_.globalCode).toList
-      val pedigreeProfiles = Await.result(profileRepo.findByCodes(codes), duration)
-
-      val mutationModel: Option[MutationModel] = if(completePedigree.get.mutationModelId.isDefined) {
-        Await.result(mutationRepository.getMutationModel(completePedigree.get.mutationModelId), duration)
-      } else { None }
-
-      val markers = profileRepo.getProfilesMarkers(pedigreeProfiles.toArray)
-
-      val mutationModelType: Option[Long] = if (mutationModel.nonEmpty) Some(mutationModel.get.mutationType) else None
-      val mutationModelData = Await.result(mutationService.getMutationModelData(mutationModel,markers),duration)
-      val n = Await.result(mutationService.getAllPossibleAllelesByLocus(),duration)
-      val caseType = completePedigree.get.caseType
-
-      // Compatibilidad
-      val pedigreeGenotypificationRDD = getPedigreeGenotypificationRDD(pedigreeId)
-      val analysisType = Await.result(calculationTypeService.getAnalysisTypeByCalculation(BayesianNetwork.name), duration)
-      if(executeScreeningMitochondrial && isMt){
-        val mtProfile = MatchingAlgorithm.getMtProfile(pedigree.genogram,pedigreeProfiles)
-        if (mtProfile.isDefined) {
-          mtProfileCode = mtProfile
-            .get
-            .globalCode
-            .text
-          mithocondrialMatches = Await.result(
-            this
-              .matchingServiceSpark
-              .findScreeningMatches(
-                mtProfile.get,
-                pedigreeProfiles
-                  .toList
-                  .map(_.globalCode.text),
-                pedigree.numberOfMismatches
-              ),
+    try {
+      val isReferenceProfileMatchingAnMpiCase = {
+        profile.categoryId.text == "IR" && matchType == "MPI"
+      }
+      val pedigrees = if (isReferenceProfileMatchingAnMpiCase) {
+        Seq[PedigreeGenogram]()
+      } else {
+        Await
+          .result(
+            pedigreeRepo.getActivePedigreesByCaseType(matchType),
             duration
           )
-        }
       }
-      pedigreeGenotypificationRDD.flatMap { pedigreeGenotypification =>
-
-        val mitoMatchesMap = mithocondrialMatches._2.map(t => t.globalCode -> t.matchId).toMap
-        val mitoM = mitoMatchesMap.get(profile.globalCode.text)
-        if(executeScreeningMitochondrial && mitoM.isDefined){
-          findCompatibilityMatches(frequencyTables(pedigreeGenotypification.frequencyTable), profile, pedigreeGenotypification, pedigreeId, assignee, analysisType, mutationModelType, mutationModelData,n, caseType,idCourtCase)
-            .map{
-              case pedigreeMatchResult:PedigreeCompatibilityMatch =>{
-                Some(pedigreeMatchResult.copy(matchingId = mitoM.get,mtProfile = mtProfileCode))
-              }
-              case x => Some(x)
-            }.flatten
-        }else {
-          if(executeScreeningMitochondrial && isMt && mtProfileCode.nonEmpty){
-            Nil
-          }else{
-            findCompatibilityMatches(frequencyTables(pedigreeGenotypification.frequencyTable), profile, pedigreeGenotypification, pedigreeId, assignee, analysisType, mutationModelType, mutationModelData,n, caseType,idCourtCase)
+      val mapOfRules = getMatchingRules(profile)
+      val mtAnalysis = 4
+      val isMt = profile
+        .genotypification
+        .get(mtAnalysis)
+        .isDefined
+      val config = mtConfiguration
+      val frequencyTables = Await
+        .result(
+          bayesianNetworkService
+            .getFrequencyTables(
+              pedigrees
+                .map(_.frequencyTable)
+                .flatten
+                .distinct
+            ),
+          duration
+        )
+      var mithocondrialMatches:(
+        Set[MatchResultScreening],
+        Set[MatchResultScreening]
+      ) = (Set.empty, Set.empty)
+      val matchesRDD: RDD[PedigreeMatchResult] = pedigrees.map {
+        pedigree =>
+          var mtProfileCode = ""
+          val executeScreeningMitochondrial = pedigree.executeScreeningMitochondrial
+          val pedigreeId = pedigree._id
+          val assignee = pedigree.assignee
+          val idCourtCase = pedigree.idCourtCase
+          val completePedigree = Await.result(pedigreeRepo.get(pedigreeId), duration)
+          val codes = completePedigree.get.genogram.flatMap(_.globalCode).toList
+          val pedigreeProfiles = Await.result(profileRepo.findByCodes(codes), duration)
+          val mutationModel: Option[MutationModel] = if(completePedigree.get.mutationModelId.isDefined) {
+            Await.result(mutationRepository.getMutationModel(completePedigree.get.mutationModelId), duration)
+          } else {
+            None
           }
+          val markers = profileRepo.getProfilesMarkers(pedigreeProfiles.toArray)
+          val mutationModelType: Option[Long] = if (mutationModel.nonEmpty) Some(mutationModel.get.mutationType) else None
+          val mutationModelData = Await.result(mutationService.getMutationModelData(mutationModel,markers),duration)
+          val n = Await.result(mutationService.getAllPossibleAllelesByLocus(),duration)
+          val caseType = completePedigree.get.caseType
+          // Compatibilidad
+          val pedigreeGenotypificationRDD = getPedigreeGenotypificationRDD(pedigreeId)
+          val analysisType = Await
+            .result(
+              calculationTypeService.getAnalysisTypeByCalculation(BayesianNetwork.name),
+              duration
+            )
+          if(executeScreeningMitochondrial && isMt){
+            val mtProfile = MatchingAlgorithm
+              .getMtProfile(
+                pedigree.genogram,
+                pedigreeProfiles
+              )
+            if (mtProfile.isDefined) {
+              mtProfileCode = mtProfile
+                .get
+                .globalCode
+                .text
+              mithocondrialMatches = Await.result(
+                this
+                  .matchingServiceSpark
+                  .findScreeningMatches(
+                    mtProfile.get,
+                    pedigreeProfiles
+                      .toList
+                      .map(_.globalCode.text),
+                    pedigree.numberOfMismatches
+                  ),
+                duration
+              )
+            }
+          }
+          pedigreeGenotypificationRDD
+            .flatMap {
+              pedigreeGenotypification =>
+                val mitoMatchesMap = mithocondrialMatches._2
+                  .map(t => t.globalCode -> t.matchId)
+                  .toMap
+                val mitoM = mitoMatchesMap.get(profile.globalCode.text)
+                if(executeScreeningMitochondrial && mitoM.isDefined){
+                  findCompatibilityMatches(
+                    frequencyTables(pedigreeGenotypification.frequencyTable),
+                    profile,
+                    pedigreeGenotypification,
+                    pedigreeId,
+                    assignee,
+                    analysisType,
+                    mutationModelType,
+                    mutationModelData,
+                    n,
+                    caseType,
+                    idCourtCase
+                  )
+                  .map {
+                    case pedigreeMatchResult:PedigreeCompatibilityMatch =>{
+                      Some(pedigreeMatchResult.copy(matchingId = mitoM.get,mtProfile = mtProfileCode))
+                    }
+                    case x => Some(x)
+                  }.flatten
+                } else {
+                    if(executeScreeningMitochondrial && isMt && mtProfileCode.nonEmpty){
+                      Nil
+                  } else {
+                      findCompatibilityMatches(
+                        frequencyTables(pedigreeGenotypification.frequencyTable),
+                        profile,
+                        pedigreeGenotypification,
+                        pedigreeId,
+                        assignee,
+                        analysisType,
+                        mutationModelType,
+                        mutationModelData,
+                        n,
+                        caseType,
+                        idCourtCase
+                      )
+                  }
+              }
+            }
         }
-      }
-    }.foldLeft(Spark2.context.emptyRDD[PedigreeMatchResult]) { case (prev, current) => prev.union(current) }
-
-    saveMatches(matchesRDD.cache, Left(profile))
-    deleteNotUsedScreeningMatches(matchesRDD,mithocondrialMatches._1)
-
-    }finally {
+        .foldLeft(
+          Spark2.context.emptyRDD[PedigreeMatchResult]
+        ) {
+          case (prev, current) => prev.union(current)
+        }
+      saveMatches(matchesRDD.cache, Left(profile))
+      deleteNotUsedScreeningMatches(matchesRDD, mithocondrialMatches._1)
+    } finally {
       matchStatusService.pushJobStatus(PedigreeMatchJobEnded)
     }
   }
@@ -751,16 +827,37 @@ $inputMsg has matched against ${matchesRDD.count()} $inputMatch candidates
     matchingActor ! idPedigree
   }
 
-  override def findMatchesBlocking(globalCode: SampleCode, matchType: String): Unit = {
+  override def findMatchesBlocking(
+    globalCode: SampleCode,
+    matchType: String
+  ): Unit = {
     val f = profileRepo.findByCode(globalCode)
     val locusRangeMap:NewMatchingResult.AlleleMatchRange = locusService.locusRangeMap()
-
     val result = Await.result(f, duration)
-    result.foreach { p =>
-      val category = categoryService.getCategory(p.categoryId).get
-      traceService.add(Trace(globalCode, p.assignee, new Date(), PedigreeMatchProcessInfo(category.matchingRules)))
-      findMatchesByProfileFunc(MatchingAlgorithm.convertProfileWithConvertedOutOfLadderAlleles(p,locusRangeMap),locusRangeMap, matchType)
-      Await.result(profileRepo.setMatcheableAndProcessed(globalCode), duration)
+    result.foreach {
+      p =>
+        val category = categoryService.getCategory(p.categoryId).get
+        traceService.add(
+          Trace(
+            globalCode,
+            p.assignee,
+            new Date(),
+            PedigreeMatchProcessInfo(category.matchingRules)
+          )
+        )
+        findMatchesByProfileFunc(
+          MatchingAlgorithm
+            .convertProfileWithConvertedOutOfLadderAlleles(
+              p,
+              locusRangeMap
+            ),
+            locusRangeMap,
+            matchType
+        )
+        Await.result(
+          profileRepo.setMatcheableAndProcessed(globalCode),
+          duration
+        )
     }
   }
 

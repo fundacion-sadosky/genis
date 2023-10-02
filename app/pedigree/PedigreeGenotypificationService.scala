@@ -258,7 +258,7 @@ class PedigreeGenotypificationServiceImpl @Inject()(
   override def calculateProbability(
     c:CalculateProbabilityScenarioPed
   ):Double = {
-//    logger.info("--- CalculateProbability BEGIN ---")
+    logger.info("--- CalculateProbability BEGIN ---")
     val probability = BayesianNetwork
       .calculateProbability(
         c.profiles,
@@ -272,7 +272,7 @@ class PedigreeGenotypificationServiceImpl @Inject()(
         c.seenAlleles,
         c.locusRangeMap
       )
-//    logger.info("--- CalculateProbability END ---")
+    logger.info("--- CalculateProbability END ---")
     probability
   }
 
