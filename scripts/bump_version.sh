@@ -23,6 +23,7 @@ back to the 'Version' file, and updates the version in the following files:
 - CODE_OF_CONDUCT_EN.md
 - README.md
 - README_EN.md
+- CHANGELOG.md
 EOF
 }
 
@@ -46,7 +47,7 @@ if [[ $# -ne 1 ]]; then
 fi
 
 check_version_file_exists() {
-    if [ ! -f VERSION ]; then
+    if [ ! -f Version ]; then
         echo "VERSION file does not exist."
         exit 1
     fi
@@ -54,7 +55,7 @@ check_version_file_exists() {
 
 read_current_version() {
     # Read version from VERSION file
-    version=$(cat VERSION)
+    version=$(cat Version)
 
     # Validate the version format
     if [[ ! $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
@@ -82,7 +83,7 @@ patch_version_files(){
     echo "Version bumped from $version to $major.$minor.$patch"
 
     # Write new version into Version file
-    echo "$major.$minor.$patch" > VERSION
+    echo "$major.$minor.$patch" > Version
 
     # Update the verion number in files
 
@@ -130,11 +131,29 @@ patch_version_files(){
         CODE_OF_CONDUCT_EN.md
 
     # build.sbt uses its own regex
-    query="(version := \")5.1.9(\")"
+    query="(version := \")[0-9]+\.[0-9]+\.[0-9]+(\")"
     replacement="\1$major.$minor.$patch\2"
     check_file_exists build.sbt && \
         sed -i -r "s/$query/$replacement/" \
         build.sbt
+  
+    # CHANGELOG.md uses it own regex
+    query="^# Changelog"
+    msg="_Si está actualizando el sistema por favor lea:  [\`UPGRADING.md\`](https:\/\/github.com\/fundacion-sadosky\/genis\/blob\/main\/UPGRADING.md)._"
+    current_date=$(date +"%Y-%m-%d")
+    replacement="# Changelog\n\n\
+## [$major.$minor.$patch] - $current_date\n\n\
+##msg##\n\n\
+### Changed\n\n\
+### Added\n\n\
+### Fixed\n\n\
+[v$major.$minor.$patch]: https:\/\/github.com\/fundacion-sadosky\/genis\/releases\/tag\/v$major.$minor.$patch"
+    check_file_exists CHANGELOG.md && \
+        sed -i -r "s/$query/$replacement/" CHANGELOG.md
+        sed -i -r "/Si está actualizando/{N;d;}" CHANGELOG.md
+        sed -i -r "s/##msg##/$msg/" CHANGELOG.md
+    
+    echo "Please Update the changes, additions and fixes in CHANGELOG.md"
 
 }
 
