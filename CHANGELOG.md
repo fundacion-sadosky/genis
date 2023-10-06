@@ -11,6 +11,9 @@
 - La notación de regiones homopoliméricas en análsis mitocondrial requiere que
   comience con un signo '-'
   ([#34, #38](https://github.com/fundacion-sadosky/genis/issues/34)).
+- Se mejora la utlización de servicios mediante contendores con docker y se
+  documenta el proceso de instalación para entornos de desarrollo y producción
+  ([#53](https://github.com/fundacion-sadosky/genis/issues/53)). 
 
 ### Fixed
 
