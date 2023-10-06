@@ -16,6 +16,7 @@ import scala.concurrent.{Await, Future}
 abstract class StrKitService {
 
   def get(id: String): Future[Option[StrKit]]
+  def getFull(id: String): Future[Option[FullStrKit]]
   def list(): Future[Seq[StrKit]]
   def listFull(): Future[Seq[FullStrKit]]
   def findLociByKit(kitId: String): Future[List[StrKitLocus]]
@@ -23,6 +24,7 @@ abstract class StrKitService {
   def getLocusAlias: Future[Map[String, String]]
   def findLociByKits(kitIds: Seq[String]): Future[Map[String, List[StrKitLocus]]]
   def add(kit: FullStrKit): Future[Either[String, String]]
+  def update(kit: FullStrKit): Future[Either[String, String]]
   def delete(id: String): Future[Either[String, String]]
 }
 
@@ -35,6 +37,10 @@ class StrKitServiceImpl @Inject() (
 
   private def cleanCache = {
     cache.pop(Keys.strKits)
+  }
+
+  override def getFull(id: String): Future[Option[FullStrKit]] = {
+    strKitRepository.getFull(id)
   }
 
   override def get(id: String): Future[Option[StrKit]] = {
@@ -111,6 +117,27 @@ class StrKitServiceImpl @Inject() (
     }
       locusResult
     }
+    }
+  }
+
+  override def update(kit: FullStrKit): Future[Either[String, String]] = {
+    if(kit.locy_quantity<kit.representative_parameter){
+      Future.successful(Left(Messages("error.E0697")))
+    }else {
+      strKitRepository.runInTransactionAsync { implicit session =>
+        val updateResult=strKitRepository.update(StrKit(kit.id, kit.name, kit.`type`, kit.locy_quantity, kit.representative_parameter))
+        val deleteAliasResult = updateResult.fold(Left(_), r =>
+          strKitRepository.deleteAlias(kit.id))
+        val aliasResult = deleteAliasResult.fold(Left(_), r =>
+          kit.alias.foldLeft[Either[String,String]](Right(kit.id)){
+            case (prev,current) => prev.fold(Left(_),r=>strKitRepository.addAlias(kit.id, current))
+          })
+        aliasResult match {
+          case Left(_) => session.rollback()
+          case Right(_) => this.cleanCache
+        }
+        aliasResult
+      }
     }
   }
 

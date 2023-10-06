@@ -99,8 +99,11 @@ class Pedigrees @Inject() (
     pedigreeService.getPedigree(pedigreeId).map ( _.fold(NoContent)(f => Ok(Json.toJson(f))))
   }
 
-  def getPedigreeCoincidencia(id: Long) = Action.async { request =>
-    pedigreeService.getPedigreeCoincidencia(id).map (f => Ok(Json.toJson(f)))
+  def getPedigreeCoincidencia(id: Long): Action[AnyContent] = Action.async {
+    request =>
+      pedigreeService
+        .getPedigreeCoincidencia(id)
+        .map (f => Ok(Json.toJson(f)))
   }
 
   def getMatchByProfile(globalCodes: String) = Action.async { request =>
@@ -305,23 +308,42 @@ class Pedigrees @Inject() (
     )
   }
 
-  def countMatches() = Action.async(BodyParsers.parse.json) { request =>
-    val input = request.body.validate[PedigreeMatchCardSearch]
-
-    input.fold(
-      errors => {
-        Future.successful(BadRequest(JsError.toFlatJson(errors)))
-      },
-      search => {
-        userService.isSuperUser(search.user).flatMap(isSuperUser => {
-          val newSearch = new PedigreeMatchCardSearch(search.user, isSuperUser, search.group, search.page, search.pageSize, search.profile, search.hourFrom,
-            search.hourUntil, search.category, search.caseType, search.status, search.idCourtCase)
-          pedigreeMatchesService.countMatches(newSearch).map {
-            size => Ok("").withHeaders("X-MATCHES-LENGTH" -> size.toString)
-          }
-        })
-      }
-    )
+  def countMatches(): Action[JsValue] = Action.async(BodyParsers.parse.json) { 
+    request =>
+      val input = request.body.validate[PedigreeMatchCardSearch]
+      input.fold(
+        errors => {
+          Future.successful(BadRequest(JsError.toFlatJson(errors)))
+        },
+        search => {
+          userService
+            .isSuperUser(search.user)
+            .flatMap(
+              isSuperUser => {
+                val newSearch = new PedigreeMatchCardSearch(
+                  search.user,
+                  isSuperUser,
+                  search.group,
+                  search.page,
+                  search.pageSize,
+                  search.profile,
+                  search.hourFrom,
+                  search.hourUntil,
+                  search.category,
+                  search.caseType,
+                  search.status,
+                  search.idCourtCase
+                )
+                pedigreeMatchesService
+                  .countMatches(newSearch)
+                  .map {
+                    size => Ok("")
+                      .withHeaders("X-MATCHES-LENGTH" -> size.toString)
+                  }
+              }
+            )
+        }
+      )
   }
 
   def getMatchesByGroup = Action.async(BodyParsers.parse.json) { request =>

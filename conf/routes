@@ -68,7 +68,7 @@ GET      /resources/static/:type/:id                          @controllers.Profi
 ## Search ProfileData
 POST      /search/profileData/search                           @controllers.SearchProfileDatas.search()
 POST      /search/profileData/searchTotal                      @controllers.SearchProfileDatas.searchTotal()
-GET      /search/profileData/:category                        @controllers.SearchProfileDatas.searchProfilesAssociable(input: String, category: String)
+GET       /search/profileData/:category                        @controllers.SearchProfileDatas.searchProfilesAssociable(input: String, category: String)
 
 # Laboratories
 GET      /laboratory                                          @controllers.Laboratories.list
@@ -149,14 +149,14 @@ GET      /mixture/compare                                     @controllers.Match
 POST     /convertHit                                          @controllers.Matching.convertHit(matchingId: String, firingCode: types.SampleCode)
 POST     /convertDiscard                                      @controllers.Matching.convertDiscard(matchId: String, firingCode: types.SampleCode)
 POST     /uploadStatus                                        @controllers.Matching.uploadStatus(matchId: String, firingCode: types.SampleCode)
-GET     /canUploadMatchStatus                                 @controllers.Matching.canUploadMatchStatus(matchId: String)
+GET      /canUploadMatchStatus                                 @controllers.Matching.canUploadMatchStatus(matchId: String)
 GET      /getByMatchedProfileId                               @controllers.Matching.getByMatchedProfileId(matchingId: String, isPedigreeMatch: Boolean,isCollapsing:Option[Boolean],isScreening:Option[Boolean])
 #GET      /comparedGenotyfications                             @controllers.Matching.getComparedGenotyfications(globalCode: types.SampleCode, matchedGlobalCode: types.SampleCode)
 POST     /lr                                                  @controllers.Matching.getLR
 #POST     /mixture/lr                                          @controllers.Matching.getMixtureLRByLocus
 DELETE   /collapsing/partial                                  @controllers.Matching.deleteByLeftProfile(globalCode: String,courtCaseId:Long)
 POST     /masiveDiscardByGlobalCode                           @controllers.Matching.masiveDiscardByGlobalCode(firingCode: types.SampleCode)
-POST    /masiveDiscardByMatchesList                           @controllers.Matching.masiveDiscardByMatchesList(firingCode: types.SampleCode, matches: List[String])
+POST     /masiveDiscardByMatchesList                           @controllers.Matching.masiveDiscardByMatchesList(firingCode: types.SampleCode, matches: List[String])
 GET      /matching-profile                                    @controllers.Matching.searchMatchesProfile(globalCode: String)
 
 # Notifications
@@ -301,10 +301,13 @@ DELETE   /locus/delete/:id                                    @controllers.Locis
 GET      /locus/ranges                                        @controllers.Locis.ranges
 
 # Kits
+GET      /strkits/:id                                         @controllers.StrKits.get(id: String)
+GET      /strkits-full/:id                                    @controllers.StrKits.getFull(id: String)
 GET      /strkits                                             @controllers.StrKits.list
 GET      /strkits/:kitId/loci                                 @controllers.StrKits.findLociByKit(kitId: String)
 GET      /strkits-full                                        @controllers.StrKits.listFull
 POST     /strkit/create                                       @controllers.StrKits.add
+PUT      /strkit/update                                       @controllers.StrKits.update
 DELETE   /strkit/delete/:id                                   @controllers.StrKits.delete(id: String)
 
 # Trace

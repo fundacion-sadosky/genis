@@ -101,39 +101,50 @@ case class PlainCPT(header0: Array[String], matrix0: BayesianNetwork.Matrix, mat
   }
 */
 
-  def prodFactor(otherCPT: PlainCPT) = {
-    val joinFields = (this.header.init intersect otherCPT.header.init).sorted
+  def prodFactor(otherCPT: PlainCPT): PlainCPT = {
+    val joinFields = (
+      this.header.init intersect otherCPT.header.init
+      ).sorted
     val joinFieldsPos1 = this.header.zipWithIndex.filter(z => joinFields.contains(z._1)).sorted
     val diffFieldsPos1 = this.header.zipWithIndex.filterNot(z => joinFields.contains(z._1) || z._1 == "Probability")
     val joinFieldsPos2 = otherCPT.header.zipWithIndex.filter(z => joinFields.contains(z._1)).sorted
     val diffFieldsPos2 = otherCPT.header.zipWithIndex.filterNot(z => joinFields.contains(z._1) || z._1 == "Probability")
 
     if (joinFields.nonEmpty) {
-/*
+      /*
       println(s"+++++++++++this.matrix cant rows: ${this.matrixSize} +++++++++++" )
       println(s"+++++++++++other.matrix cant rows: ${otherCPT.matrixSize} +++++++++++" )
 */
-
-      if ((this.matrixSize < 1000 && otherCPT.matrixSize < 10000) || (this.matrixSize < 100 && otherCPT.matrixSize < 60000)
-        || (this.matrixSize < 100000 && otherCPT.matrixSize < 200)) {
-         prodFactorOriginaOptimizado(otherCPT)
+      if (
+        (this.matrixSize < 1000 && otherCPT.matrixSize < 10000) ||
+          (this.matrixSize < 100 && otherCPT .matrixSize < 60000) ||
+          (this.matrixSize < 100000 && otherCPT.matrixSize < 200)
+      ) {
+        prodFactorOriginaOptimizado(otherCPT)
       } else {
-/*
+        /*
         println(s"+++++++++++this.matrix cant rows: ${this.matrixSize} +++++++++++")
         println(s"+++++++++++other.matrix cant rows: ${otherCPT.matrixSize} +++++++++++")
-*/
-
+        */
         var resultMatrixIterator = Iterator[Array[Double]]()
         var resultMatrixSize = 0
-
         if (this.matrixSize != 0 && otherCPT.matrixSize != 0) {
-          var thisMatrixPartitions = partitionOfjoinFields(this.matrix, this.matrixSize, joinFieldsPos1, diffFieldsPos1)
+          var thisMatrixPartitions = partitionOfjoinFields(
+            this.matrix,
+            this.matrixSize,
+            joinFieldsPos1,
+            diffFieldsPos1
+          )
           //      println(s"+++++++++++Termina particion this, cant part : ${thisMatrixPartitions.keys.size} +++++++++++" )
           matrix = null
-          var otherMatrixPartitions = partitionOfjoinFields(otherCPT.matrix, otherCPT.matrixSize, joinFieldsPos2, diffFieldsPos2)
+          var otherMatrixPartitions = partitionOfjoinFields(
+            otherCPT.matrix,
+            otherCPT.matrixSize,
+            joinFieldsPos2,
+            diffFieldsPos2
+          )
           //      println(s"+++++++++++Termina particion other, cant part : ${otherMatrixPartitions.keys.size} +++++++++++" )
           otherCPT.matrix = null
-
           val keysIterator = thisMatrixPartitions.keysIterator
           var partitionNr = 1
           var valuesDiff1ToAddIterator = Iterator[(Array[Double], Double)]()
@@ -147,13 +158,11 @@ case class PlainCPT(header0: Array[String], matrix0: BayesianNetwork.Matrix, mat
               val cantPart1 = valuesDiff1ToAdd.length
               val cantPart2 = valuesDiff2ToAdd.length
               /*
-            println(s"+++Particion: ${partitionNr}.1  Cant registros : ${cantPart1} ++++++++++")
-            println(s"+++Particion: ${partitionNr}.2  Cant registros : ${cantPart2} ++++++++++")
-  */
+                println(s"+++Particion: ${partitionNr}.1  Cant registros : ${cantPart1} ++++++++++")
+                println(s"+++Particion: ${partitionNr}.2  Cant registros : ${cantPart2} ++++++++++")
+              */
               var j = 0
-
               if (cantPart1 < cantPart2) {
-
                 while (j < valuesDiff1ToAdd.length) {
                   val diffValues1 = valuesDiff1ToAdd(j)
                   j += 1
@@ -161,14 +170,20 @@ case class PlainCPT(header0: Array[String], matrix0: BayesianNetwork.Matrix, mat
                   while (k < valuesDiff2ToAdd.length) {
                     val diffValues2 = valuesDiff2ToAdd(k)
                     k += 1
-                    resultMatrixIterator = resultMatrixIterator ++ Array(joinFieldsValues1.toArray ++ diffValues1._1 ++ diffValues2._1 :+ (diffValues1._2 * diffValues2._2))
+                    resultMatrixIterator = resultMatrixIterator ++
+                      Array(
+                        joinFieldsValues1.toArray ++
+                        diffValues1._1 ++
+                        diffValues2._1 :+
+                          (diffValues1._2 * diffValues2._2)
+                      )
                     resultMatrixSize += 1
                     /*
                   if((resultMatrixSize % 1000000) == 0) {
                     println(s"+++ResultIt: ${resultMatrixSize}  ++++++++++")
                     System.gc()
                   }
-  */
+                  */
                   }
                 }
               } else {
@@ -179,7 +194,13 @@ case class PlainCPT(header0: Array[String], matrix0: BayesianNetwork.Matrix, mat
                   while (k < valuesDiff1ToAdd.length) {
                     val diffValues1 = valuesDiff1ToAdd(k)
                     k += 1
-                    resultMatrixIterator = resultMatrixIterator ++ Array(joinFieldsValues1.toArray ++ diffValues1._1 ++ diffValues2._1 :+ (diffValues1._2 * diffValues2._2))
+                    resultMatrixIterator = resultMatrixIterator ++
+                      Array(
+                        joinFieldsValues1.toArray ++
+                          diffValues1._1 ++
+                          diffValues2._1 :+
+                            (diffValues1._2 * diffValues2._2)
+                      )
                     resultMatrixSize += 1
                     /*
                   if((resultMatrixSize % 1000000) == 0) {
@@ -190,21 +211,20 @@ case class PlainCPT(header0: Array[String], matrix0: BayesianNetwork.Matrix, mat
                   }
                 }
               }
-
               partitionNr += 1
             }
           }
           thisMatrixPartitions = null
           otherMatrixPartitions = null
         }
-
-        val resultHeader = joinFields ++ diffFieldsPos1.map(_._1) ++ diffFieldsPos2.map(_._1) :+ "Probability"
+        val resultHeader = joinFields ++
+          diffFieldsPos1.map(_._1) ++
+          diffFieldsPos2.map(_._1) :+ "Probability"
         //      println(s"+++++++++++Fin Prod matrix rows :${resultMatrixSize} +++++++++++" )
         PlainCPT(resultHeader, resultMatrixIterator, resultMatrixSize)
       }
     } else {
       println("+++++++++++++++++++++++++++++++++++ cross join ++++++++++++++++++++++++++++++++")
-
       val otherMatrixArray = otherCPT.matrix.toArray
       var resultMatrix = ArrayBuffer[Array[Double]]()
       var resultMatrixIterator = Iterator[Array[Double]]()
@@ -222,17 +242,21 @@ case class PlainCPT(header0: Array[String], matrix0: BayesianNetwork.Matrix, mat
         }
         otherMatrixIterator = otherMatrixArray.iterator
       }
-
       val resultHeader = diffFieldsPos1.map(_._1) ++ diffFieldsPos2.map(_._1) :+ "Probability"
-
       PlainCPT(resultHeader, resultMatrixIterator, resultMatrixSize)
     }
   }
 
-  def partitionOfjoinFields(matrix: BayesianNetwork.Matrix, matrixSize : Int, joinFieldsPos1: Array[(String, Int)], diffFieldsPos1: Array[(String, Int)]) : mutable.HashMap[List[Double], ArrayBuffer[(Array[Double], Double)]] = {
+  def partitionOfjoinFields(
+    matrix: BayesianNetwork.Matrix,
+    matrixSize : Int,
+    joinFieldsPos1: Array[(String, Int)],
+    diffFieldsPos1: Array[(String, Int)]
+  ) : mutable.HashMap[List[Double], ArrayBuffer[(Array[Double], Double)]] = {
 
-    var matrixPartitions = mutable.HashMap[List[Double], ArrayBuffer[(Array[Double], Double)]]()
-    if(matrixSize < 1000000) {
+    var matrixPartitions = mutable
+      .HashMap[List[Double], ArrayBuffer[(Array[Double], Double)]]()
+    if ( matrixSize < 1000000) {
       matrixPartitions = singleOrdererPartition(matrix, joinFieldsPos1, diffFieldsPos1)
     } else if (matrixSize <= 6000000) {
       val grupedIterator = matrix.grouped(matrixSize / 2)

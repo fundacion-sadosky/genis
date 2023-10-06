@@ -2,7 +2,7 @@ package pedigree
 
 import profile.Profile
 
-object VariableKind extends Enumeration{
+object VariableKind extends Enumeration {
   type VariableKind = Value
   val Genotype, Selector, Heterocygote, Homocygote = Value
 }
@@ -12,4 +12,5 @@ case class Variable(
    marker: Profile.Marker,
    kind: VariableKind.Value,
    alleles: Option[Array[Double]] = None,
-   unknown: Boolean = false)
+   unknown: Boolean = false
+)

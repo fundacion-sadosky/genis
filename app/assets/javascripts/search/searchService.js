@@ -2,8 +2,7 @@ define([], function() {
 'use strict';
 
 function SearchService(playRoutes, userService){
-	
-	
+
 	this.search = function(search) {
 		var user = userService.getUser();
 		search.userId = user.name;

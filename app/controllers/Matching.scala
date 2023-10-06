@@ -1,14 +1,13 @@
 package controllers
 
 import javax.inject.Inject
-
 import matching._
 import pedigree.PedigreeMatchesService
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json.toJsFieldJsValueWrapper
 import play.api.libs.json.{JsError, Json}
-import play.api.mvc.{Action, BodyParsers, Controller, Results}
+import play.api.mvc.{Action, AnyContent, BodyParsers, Controller, Results}
 import probability._
 import profile.ProfileService
 import profiledata.ProfileDataAttempt
@@ -140,17 +139,26 @@ class Matching @Inject()(
     }
   }
 
-  def getByMatchedProfileId(matchingId: String, isPedigreeMatch: Boolean, isCollapsing: Option[Boolean], isScreening: Option[Boolean]) = Action.async { request =>
-    val matchFuture = if (!isPedigreeMatch) {
-      matchingService.getByMatchedProfileId(matchingId, isCollapsing, isScreening)
-    } else {
-      pedigreeMatchService.getMatchById(matchingId)
-    }
-
-    matchFuture.map {
-      case Some(m) => Ok(Json.toJson(m))
-      case _ => Results.NotFound
-    }
+  def getByMatchedProfileId(
+    matchingId: String,
+    isPedigreeMatch: Boolean,
+    isCollapsing: Option[Boolean],
+    isScreening: Option[Boolean]
+  ): Action[AnyContent] = Action.async {
+    request =>
+      val matchFuture = if (!isPedigreeMatch) {
+        matchingService.getByMatchedProfileId(
+          matchingId,
+          isCollapsing,
+          isScreening
+        )
+      } else {
+        pedigreeMatchService.getMatchById(matchingId)
+      }
+      matchFuture.map {
+        case Some(m) => Ok(Json.toJson(m))
+        case _ => Results.NotFound
+      }
   }
 
   def getComparedMixtureGene(globalCodes: List[String], matchId: String, isCollapsing: Option[Boolean], isScreening: Option[Boolean]) = Action.async { request =>

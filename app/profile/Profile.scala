@@ -5,6 +5,7 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json.Json.JsValueWrapper
 import play.api.libs.json._
 import profile.GenotypificationByType._
+import profile.Profile.{LabeledGenotypification, Mismatch}
 import types._
 
 object GenotypificationByType {
@@ -44,7 +45,8 @@ case class Profile(
   deleted: Boolean = false,
   matcheable: Boolean = false,
   isReference: Boolean = true,
-  processed: Boolean = false)
+  processed: Boolean = false
+)
 
 object Profile {
 
@@ -102,8 +104,123 @@ object Profile {
 }
 
 
+object ProfileBuilder {
+  private var _id: SampleCode = null
+  private var globalCode: SampleCode = null
+  private var internalSampleCode: String = null
+  private var assignee: String = null
+  private var categoryId: AlphanumericId = null
+  private var genotypification: GenotypificationByType = null
+  private var analyses: Option[List[Analysis]] = null
+  private var labeledGenotypification: Option[Profile.LabeledGenotypification] = null
+  private var contributors: Option[Int] = null
+  private var mismatches: Option[Profile.Mismatch] = null
+  private var matchingRules: Option[Seq[MatchingRule]] = None
+  private var associatedTo: Option[List[SampleCode]] = None
+  private var deleted: Boolean = false
+  private var matcheable: Boolean = false
+  private var isReference: Boolean = true
+  private var processed: Boolean = false
+  
+  val withId: SampleCode=>this.type = (id:SampleCode) => {
+    this._id = id
+    this
+  }
+  val withGlobalCode: SampleCode=>this.type  = (code:SampleCode) => {
+    this.globalCode = code
+    this
+  }
+  val withinternalSampleCode: String => ProfileBuilder.type =
+    (code: String) => {
+      this.internalSampleCode = code
+      this
+    }
+  val withAsignee: String => ProfileBuilder.type = (assignee: String) => {
+    this.assignee = assignee
+    this
+  }
+  val withCategoryId: AlphanumericId => ProfileBuilder.type =
+    (categoryId: AlphanumericId) => {
+      this.categoryId = categoryId
+      this
+    }
+  val withGenotypification: GenotypificationByType => ProfileBuilder.type =
+    (genotypification: GenotypificationByType) => {
+       this.genotypification = genotypification
+        this
+    }
+  val withAnalysis: Option[List[Analysis]] => ProfileBuilder.type =
+    (analysis: Option[List[Analysis]]) => {
+      this.analyses = analysis
+      this
+    }
+  val withLabeledGenotypification:
+    Option[LabeledGenotypification] => ProfileBuilder.type =
+      (labeled: Option[Profile.LabeledGenotypification]) => {
+        this.labeledGenotypification = labeled
+        this
+      }
+  val wihtContributors: Option[Int] => ProfileBuilder.type =
+    (contributors: Option[Int]) => {
+      this.contributors = contributors
+      this
+    }
+  val WithMismatches: Option[Mismatch] => ProfileBuilder.type =
+    (mismatches: Option[Profile.Mismatch]) => {
+      this.mismatches = mismatches
+      this
+    }
+  val withMatchingRules: Option[Seq[MatchingRule]] => ProfileBuilder.type =
+    (matchingRules :Option[Seq[MatchingRule]]) => {
+      this.matchingRules = matchingRules
+      this
+    }
+  val withAssociatedTo: Option[List[SampleCode]] => ProfileBuilder.type =
+    (associatedTo: Option[List[SampleCode]]) => {
+      this.associatedTo = associatedTo
+      this
+    }
+  val withDeleted: Boolean => ProfileBuilder.type = (deleted: Boolean) => {
+    this.deleted = deleted
+    this
+  }
+  val withMatcheable: Boolean => Unit = (matcheable: Boolean) => {
+    this.matcheable = matcheable
+  }
+  val withIsReference: Boolean => ProfileBuilder.type =
+    (isReference: Boolean) => {
+      this.isReference = isReference
+      this
+    }
+  val withProcessed: Boolean => ProfileBuilder.type = (processed: Boolean) => {
+    this.processed = processed
+    this
+  }
+  val build: () => Profile = () => {
+    Profile(
+      this._id,
+      this.globalCode,
+      this.internalSampleCode,
+      this.assignee,
+      this.categoryId,
+      this.genotypification,
+      this.analyses,
+      this.labeledGenotypification,
+      this.contributors,
+      this.mismatches,
+      this.matchingRules,
+      this.associatedTo,
+      this.deleted,
+      this.matcheable,
+      this.isReference,
+      this.processed
+    )
+  }
+}
 
-case class ProfileModelView(_id: Option[SampleCode],
+
+case class ProfileModelView(
+  _id: Option[SampleCode],
   globalCode: Option[SampleCode],
   categoryId: Option[AlphanumericId],
   genotypification: Option[GenotypificationByType],
@@ -116,7 +233,8 @@ case class ProfileModelView(_id: Option[SampleCode],
   editable: Boolean,
   isReference:Boolean,
   readOnly: Boolean,
-  isUploadedToSuperior:Boolean)
+  isUploadedToSuperior:Boolean
+)
 
 object ProfileModelView {
   implicit val mvf = Json.format[ProfileModelView]

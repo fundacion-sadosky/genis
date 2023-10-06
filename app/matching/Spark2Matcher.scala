@@ -4,7 +4,6 @@ import java.io.File
 import java.text.ParseException
 import java.util.Date
 import javax.inject.{Inject, Named, Singleton}
-
 import matching.LRCalculation
 import kits.Locus
 import akka.actor.{Actor, ActorSystem, Props, actorRef2Scala}
@@ -36,6 +35,7 @@ import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.{Duration, SECONDS}
 import connections.InterconnectionService
 import pedigree.PedigreeService
+import profiledata.ProfileDataRepository
 import user.UserService;
 @Singleton
 class Spark2Matcher @Inject() (
@@ -46,6 +46,7 @@ class Spark2Matcher @Inject() (
     matchStatusService: MatchingProcessStatus,
     locusService: LocusService,
     traceService: TraceService,
+    profileDataRepository: ProfileDataRepository,
     @Named("mongoUri") mongoUri: String,
     @Named("mtConfig") mtConfiguration: MtConfiguration,
     interconnectionService:InterconnectionService = null,
@@ -57,7 +58,7 @@ class Spark2Matcher @Inject() (
     userService: UserService = null/*,
     /*@Named("limsArchivesPath")*/exportProfilesPath: String = "",
     /*@Named("generateLimsFiles")*/exportaALims: Boolean = false*/) {
-
+  
   private val matchesTable:String = if(matches.isEmpty){"matches"}else{matches}
   private val matchingActor = akkaSystem.actorOf(MatchingActor.props(this))
 
@@ -244,10 +245,12 @@ class Spark2Matcher @Inject() (
 
   }
 
-  protected def traceMatch(searched: Profile,
-                         matchesToInsertRDD: RDD[MatchResult], matchesToReplaceRDD: RDD[(String, MatchResult)],
-                         matchesToDeleteRDD: RDD[((String, Integer), String)]) {
-
+  protected def traceMatch(
+    searched: Profile,
+    matchesToInsertRDD: RDD[MatchResult],
+    matchesToReplaceRDD: RDD[(String, MatchResult)],
+    matchesToDeleteRDD: RDD[((String, Integer), String)]
+  ) {
     val matchResultToDocWithId = (tup: (String, MatchResult)) => {
       val matchResult = tup._2
       val leftProfile = Json.toJson(matchResult.leftProfile).toString()
@@ -448,41 +451,80 @@ class Spark2Matcher @Inject() (
       }
       })
   }
-  private val findMatchesFunc = (searched: Profile,locusRangeMap:NewMatchingResult.AlleleMatchRange) => {
-
+  
+  private val findMatchesFunc = (
+    searched: Profile,
+    locusRangeMap:NewMatchingResult.AlleleMatchRange
+  ) => {
     logger.debug(s"Start matching process for profile ${searched.globalCode}")
-
     matchStatusService.pushJobStatus(MatchJobStarted)
-
     // map of (global code, analysis type) -> mongo document id
     val existingMatchesRDD = getExistingMatchesRDD(searched.globalCode.text)
-
     val existingMatches = existingMatchesRDD.collect().toMap
-
     val mapOfRules = getMatchingRules(searched)
-
-    val profilesRDD: RDD[Profile] = getProfilesRDD(searched.globalCode, mapOfRules.map(_.categoryRelated).distinct)
-
-    val n = profilesRDD.filter(profile => mapOfRules.exists(rule => profile.genotypification.keySet.contains(rule.`type`) && rule.categoryRelated == profile.categoryId && rule.considerForN)).count
+    val profilesRDD: RDD[Profile] = getProfilesRDD(
+      searched.globalCode,
+      mapOfRules.map(_.categoryRelated).distinct
+    )
+    val n = profilesRDD
+      .filter(
+        profile => mapOfRules
+          .exists(
+            rule => profile.genotypification.keySet.contains(rule.`type`) &&
+              rule.categoryRelated == profile.categoryId &&
+              rule.considerForN
+          )
+      )
+      .count
 
     val config = mtConfiguration
-
+    val duration = Duration(100, SECONDS)
+    val mtRcrs = Await.result(
+      profileDataRepository.getMtRcrs(),
+      duration
+    )
     val newMatchesRDD = profilesRDD
-        .flatMap { profile =>
-
-        mapOfRules.filter(_.categoryRelated == profile.categoryId).map(_.`type`).flatMap { at =>
-
-          val rules = mapOfRules.filter(mr => mr.`type` == at && mr.categoryRelated == profile.categoryId)
-          val enfsi = rules.find(_.matchingAlgorithm == Algorithm.ENFSI)
-          val mixmix = rules.find(_.matchingAlgorithm == Algorithm.GENIS_MM)
-          val pIsMix = searched.contributors.getOrElse(1) == 2
-          val qIsMix = profile.contributors.getOrElse(1) == 2
-
-          val matchingAlgorithm = if (pIsMix && qIsMix && mixmix.isDefined) mixmix.orElse(enfsi) else enfsi
-          matchingAlgorithm.flatMap { performMatch(config, searched, profile, _, None, n,locusRangeMap) }
-
-        }
-
+      .flatMap {
+        profile =>
+          mapOfRules
+            .filter(
+              _.categoryRelated == profile.categoryId
+            )
+            .map(_.`type`)
+            .flatMap {
+              at =>
+                val rules = mapOfRules
+                  .filter(
+                    mr => mr.`type` == at &&
+                      mr.categoryRelated == profile.categoryId
+                  )
+                val enfsi = rules
+                  .find(_.matchingAlgorithm == Algorithm.ENFSI)
+                val mixmix = rules
+                  .find(_.matchingAlgorithm == Algorithm.GENIS_MM)
+                val pIsMix = searched.contributors.getOrElse(1) == 2
+                val qIsMix = profile.contributors.getOrElse(1) == 2
+                val matchingAlgorithm = if (
+                  pIsMix && qIsMix && mixmix.isDefined
+                ) {
+                  mixmix.orElse(enfsi)
+                } else {
+                  enfsi
+                }
+                matchingAlgorithm
+                  .flatMap {
+                    performMatch(
+                      config,
+                      searched,
+                      profile,
+                      _,
+                      mtRcrs,
+                      None,
+                      n,
+                      locusRangeMap
+                    )
+                  }
+            }
       }
       .cache
 
@@ -522,23 +564,16 @@ Profile ${searched.globalCode} has matched against ${newMatchesRDD.count()} prof
     logger.info(msg)
 
     saveMatchesToDelete(matchesToDeleteRDD)
-
     saveMatchesToReplace(matchesToReplaceRDD,locusRangeMap,searched)
-
     saveMatchesToInsert(matchesToInsertRDD,locusRangeMap,searched)
-
 /*
     if (exportaALims){
       createMatchLimsArchive(searched, matchesToInsertRDD, matchesToReplaceRDD)
     }
 */
-
     sendNotifications(matchesToInsertRDD, matchesToReplaceRDD)
-
     sendToInferiorInstance(matchesToInsertRDD,matchesToReplaceRDD,matchesToDeleteRDD)
-
     traceMatch(searched, matchesToInsertRDD, matchesToReplaceRDD, matchesToDeleteRDD)
-
     matchStatusService.pushJobStatus(MatchJobEndend)
   }
 

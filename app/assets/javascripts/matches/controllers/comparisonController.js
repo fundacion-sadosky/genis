@@ -4,20 +4,32 @@
 define([ 'angular','lodash' ], function(angular,_) {
 	'use strict';
 
-	function ComparisonController($scope, $routeParams, $modal, matcherService, profiledataService, profileService, $sce, 
-			statsService, alertService, cryptoService, appConf, analysisTypeService, locusService,$window) {
+	function ComparisonController(
+		$scope,
+		$routeParams,
+		$modal,
+		matcherService,
+		profiledataService,
+		profileService,
+		$sce, 
+		statsService,
+		alertService,
+		cryptoService,
+		appConf,
+		analysisTypeService,
+		locusService,
+		$window
+	) {
 
 		$scope.lab = "-"+appConf.labCode+"-";
-        $scope.stringency = matcherService.getStrigencyEnum();
+		$scope.stringency = matcherService.getStrigencyEnum();
 		$scope.profileId = $routeParams.profileId;
 		$scope.matchingId = $routeParams.matchingId;
 		$scope.isPedigreeMatch = $routeParams.isPedigreeMatch === "true";
 		$scope.matchedProfileId = $routeParams.matchedProfileId;
-        $scope.isCollapsingMatch = $routeParams.isCollapsingMatch === "true";
-        $scope.isScreening = $routeParams.isScreening === "true";
-
-
-        $scope.trustAsHtml = $sce.trustAsHtml;
+		$scope.isCollapsingMatch = $routeParams.isCollapsingMatch === "true";
+		$scope.isScreening = $routeParams.isScreening === "true";
+		$scope.trustAsHtml = $sce.trustAsHtml;
 		$scope.selectedOptions = {
 			'frequencyTable': null,
 			'probabilityModel': null,
@@ -40,13 +52,13 @@ define([ 'angular','lodash' ], function(angular,_) {
 			});
 		});
         
-        $scope.showLocus = function(locus) {
-            if ($scope.locusById && $scope.results) {
-                return $scope.locusById[locus].analysisType === $scope.results.type;
-            } else {
-                return false;
-            }
-        };
+		$scope.showLocus = function(locus) {
+				if ($scope.locusById && $scope.results) {
+						return $scope.locusById[locus].analysisType === $scope.results.type;
+				} else {
+						return false;
+				}
+		};
 
 		$scope.sortLoci = function (id) {
 			profileService.getLociByStrKitId(id).then(function (response) {
@@ -95,7 +107,6 @@ define([ 'angular','lodash' ], function(angular,_) {
 			if (!confirmRes) {
 				return;
 			}
-
 			matcherService.doDiscard($scope.matchingId, $scope.profileId).then(
 				function (response) {
 					onResolution(response, 'discarded', 'descarte');
@@ -110,60 +121,92 @@ define([ 'angular','lodash' ], function(angular,_) {
 			if (!confirmRes) {
 				return;
 			}
-
 			matcherService.doHit($scope.matchingId, $scope.profileId).then(
 				function (response) {
 					onResolution(response, 'hit', 'acto de confirmación');
 					getResults();
 				},function (response) {
-                    alertService.error({message: response.data.message});
-                }
+					alertService.error({message: response.data.message});
+				}
 				);
 		};
 
-        var loadCalculation = function() {
-            $scope.showCalculation = $scope.analysisTypes[$scope.results.type].name === 'Autosomal';
-            if ($scope.showCalculation) {
-                statsService.getDefaultOptions($scope.profileId).then(function (opts) {
-                    $scope.selectedOptions = opts;
-                    getRandomMatchProbabilitiesByLocus();
-                }, function () {
-                    statsService.getDefaultOptions($scope.matchedProfileId).then(function (opts) {
-                        $scope.selectedOptions = opts;
-                        getRandomMatchProbabilitiesByLocus();
-					});
-                });
-            }
-        };
+		var loadCalculation = function() {
+				$scope.showCalculation = $scope.analysisTypes[$scope.results.type].name === 'Autosomal';
+				if ($scope.showCalculation) {
+						statsService.getDefaultOptions($scope.profileId).then(function (opts) {
+								$scope.selectedOptions = opts;
+								getRandomMatchProbabilitiesByLocus();
+						}, function () {
+								statsService.getDefaultOptions($scope.matchedProfileId).then(function (opts) {
+										$scope.selectedOptions = opts;
+										getRandomMatchProbabilitiesByLocus();
+			});
+						});
+				}
+		};
 
 		var getResults = function() {
-            matcherService.getResults($scope.matchingId, $scope.isPedigreeMatch,$scope.isCollapsingMatch,$scope.isScreening).then(
+			matcherService
+				.getResults(
+					$scope.matchingId,
+					$scope.isPedigreeMatch,
+					$scope.isCollapsingMatch,
+					$scope.isScreening
+				).then(
 				function (response) {
-					if (response.data && response.data.results && response.data.results.length > 0) {
+					if (
+						response.data &&
+						response.data.results &&
+						response.data.results.length > 0
+					) {
 						$scope.results = response.data.results[0];
-                        console.log("resultMatch",$scope.results);
-                        $scope.matchingAlleles = Object.keys($scope.results.matchingAlleles).map(function (value) { return value.replace(",",".") ;});
-                        console.log("matchingAlleles",$scope.matchingAlleles);
-
-                        var statusProfileId = $scope.results.status[$scope.profileId];
-						var statusMatched = $scope.results.status[$scope.matchedProfileId];
-						if(!_.isUndefined($scope.results.superiorProfile)&&$scope.results.superiorProfile!==null){
-							$scope.assignProfile($scope.results.superiorProfile.globalCode,$scope.results.superiorProfile);
-
-                            if(!_.isUndefined($scope.results.superiorProfileData)&&$scope.results.superiorProfileData!==null){
-								if($scope.results.superiorProfile.globalCode===$scope.profileId){
-                                    $scope.profileData = {};
-                                    $scope.assignProfileData($scope.profileData,$scope.results.superiorProfileData,$scope.results.superiorProfile.globalCode);
+						console.log("resultMatch",$scope.results);
+						$scope.matchingAlleles = Object
+							.keys($scope.results.matchingAlleles)
+							.map(
+								function (value) { 
+									return value.replace(",",".") ;
 								}
-                                if($scope.results.superiorProfile.globalCode===$scope.matchedProfileId){
-                                    $scope.matchedProfileData = {};
-                                    $scope.assignProfileData($scope.matchedProfileData,$scope.results.superiorProfileData,$scope.results.superiorProfile.globalCode);
-                                }
-                            }
+							);
+						console.log("matchingAlleles",$scope.matchingAlleles);
+						var statusProfileId = $scope.results.status[$scope.profileId];
+						var statusMatched = $scope.results.status[$scope.matchedProfileId];
+						if(
+							!_.isUndefined($scope.results.superiorProfile) &&
+							$scope.results.superiorProfile!==null
+						){
+							$scope.assignProfile(
+								$scope.results.superiorProfile.globalCode,
+								$scope.results.superiorProfile
+							);
+							if(
+								!_.isUndefined($scope.results.superiorProfileData) &&
+								$scope.results.superiorProfileData!==null
+							){
+								if(
+									$scope.results.superiorProfile.globalCode===$scope.profileId
+								){
+									$scope.profileData = {};
+									$scope.assignProfileData(
+										$scope.profileData,
+										$scope.results.superiorProfileData,
+										$scope.results.superiorProfile.globalCode
+									);
+								}
+								if(
+									$scope.results.superiorProfile.globalCode===$scope.matchedProfileId
+								){
+									$scope.matchedProfileData = {};
+									$scope.assignProfileData(
+										$scope.matchedProfileData,
+										$scope.results.superiorProfileData,
+										$scope.results.superiorProfile.globalCode
+									);
+								}
+							}
 						}
-
 						$scope.closedMatch = true;
-
 						if (statusProfileId === "discarded" && statusMatched === "discarded") {
 							$scope.matchStatus = "discarded";
 						} else if (statusProfileId === "hit" && statusMatched === "hit") {
@@ -175,12 +218,12 @@ define([ 'angular','lodash' ], function(angular,_) {
 							$scope.matchStatus = "conflict";
 							$scope.closedMatch = false;
 						}
-
-                        loadCalculation();
+						loadCalculation();
 					} else {
 						$scope.results = null;
 					}
-				});
+				}
+			);
 		};
 
 		analysisTypeService.listById().then(function(response) {
@@ -204,60 +247,68 @@ define([ 'angular','lodash' ], function(angular,_) {
 		$scope.labels = {};
 		profileService.getProfile($scope.profileId).then(
 			function(response) {
-                $scope.assignProfile($scope.profileId,response.data);
-            });
-
+				$scope.assignProfile($scope.profileId,response.data);
+		});
 		profileService.getProfile($scope.matchedProfileId).then(
 			function(response) {
-                $scope.assignProfile($scope.matchedProfileId,response.data);
-			});
-        $scope.assignProfile = function (profileId,profile){
-            if (profile.labeledGenotypification) {
-                $scope.labeledGenotypifications[profileId] = profile.labeledGenotypification;
-                $scope.labels[profileId] = Object.keys(profile.labeledGenotypification);
-            }
-            $scope.labelSets = profile.labelsSets;
-            $scope.mixM = profile.contributors > 1;
+				$scope.assignProfile($scope.matchedProfileId,response.data);
+			}
+		);
+		$scope.assignProfile = function (profileId, profile){
+			if (profile.labeledGenotypification) {
+				$scope.labeledGenotypifications[profileId] = profile.labeledGenotypification;
+				$scope.labels[profileId] = Object.keys(profile.labeledGenotypification);
+			}
+			$scope.labelSets = profile.labelsSets;
+			$scope.mixM = profile.contributors > 1;
 		};
-        $scope.assignProfileData = function (localProfileData,superiorProfileData,globalCode) {
+		$scope.assignProfileData = function (localProfileData,superiorProfileData,globalCode) {
 			if(!_.isUndefined(localProfileData) && !_.isUndefined(superiorProfileData) ){
-                localProfileData.assignee = superiorProfileData.assignee;
-                localProfileData.category = superiorProfileData.category;
-                localProfileData.deleted = false;
-                localProfileData.globalCode = globalCode;
-                localProfileData.internalSampleCode = superiorProfileData.internalSampleCode;
-                localProfileData.laboratory = superiorProfileData.laboratoryDescription;
-                localProfileData.responsibleGeneticist = superiorProfileData.responsibleGeneticist;
-                localProfileData.bioMaterialType = superiorProfileData.bioMaterialType;
-                localProfileData.sampleEntryDate = superiorProfileData.sampleEntryDate;
-                localProfileData.sampleDate = superiorProfileData.sampleDate;
-                localProfileData.profileExpirationDate = superiorProfileData.profileExpirationDate;
-            }
+				localProfileData.assignee = superiorProfileData.assignee;
+				localProfileData.category = superiorProfileData.category;
+				localProfileData.deleted = false;
+				localProfileData.globalCode = globalCode;
+				localProfileData.internalSampleCode = superiorProfileData.internalSampleCode;
+				localProfileData.laboratory = superiorProfileData.laboratoryDescription;
+				localProfileData.responsibleGeneticist = superiorProfileData.responsibleGeneticist;
+				localProfileData.bioMaterialType = superiorProfileData.bioMaterialType;
+				localProfileData.sampleEntryDate = superiorProfileData.sampleEntryDate;
+				localProfileData.sampleDate = superiorProfileData.sampleDate;
+				localProfileData.profileExpirationDate = superiorProfileData.profileExpirationDate;
+			}
 		};
-		matcherService.getComparedGenotyfications($scope.profileId, $scope.matchedProfileId,$scope.matchingId,$scope.isCollapsingMatch,$scope.isScreening).then(
+		
+		matcherService.getComparedGenotyfications($scope.profileId,
+			$scope.matchedProfileId,
+			$scope.matchingId,
+			$scope.isCollapsingMatch,
+			$scope.isScreening
+		).then(
 			function(response) {
-                function mtConvert(item) {
-                    item.locusSort = item.locus;
-                    if(item.locus === 'HV1'){
-                        item.locusSort = 'HV1_VAR';
-                    }
-                    if(item.locus === 'HV2'){
-                        item.locusSort = 'HV2_VAR';
-                    }
-                    if(item.locus === 'HV3'){
-                        item.locusSort = 'HV3_VAR';
-                    }
-                    if(item.locus === 'HV4'){
-                        item.locusSort = 'HV4_VAR';
-                    }
-                    return item;
-                }
+				function mtConvert(item) {
+					item.locusSort = item.locus;
+					if(item.locus === 'HV1'){
+							item.locusSort = 'HV1_VAR';
+					}
+					if(item.locus === 'HV2'){
+							item.locusSort = 'HV2_VAR';
+					}
+					if(item.locus === 'HV3'){
+							item.locusSort = 'HV3_VAR';
+					}
+					if(item.locus === 'HV4'){
+							item.locusSort = 'HV4_VAR';
+					}
+					return item;
+				}
 				$scope.comparision = _.sortBy(response.data.map(mtConvert), ['locusSort']);
-                console.log('comparision',$scope.comparision);
-            });
+					console.log('comparision',$scope.comparision);
+		});
 		
 		function encryptedEpgs(profile, epgs) {
-			return epgs.map(function(e){ return cryptoService.encryptBase64("/profiles/" + profile + "/epg/" + e.fileId);});
+			return epgs.map(function(e){
+				return cryptoService.encryptBase64("/profiles/" + profile + "/epg/" + e.fileId);
+			});
 		}
 		
 		profileService.getElectropherogramsByCode($scope.profileId).then(
@@ -305,7 +356,14 @@ define([ 'angular','lodash' ], function(angular,_) {
 		};
 		
 		function getRandomMatchProbabilitiesByLocus() {
-			if(!$scope.selectedOptions || !$scope.selectedOptions.frequencyTable || !$scope.selectedOptions.probabilityModel || $scope.selectedOptions.dropIn === undefined || $scope.selectedOptions.dropOut === undefined || $scope.selectedOptions.theta === undefined) {
+			if(
+				!$scope.selectedOptions ||
+				!$scope.selectedOptions.frequencyTable ||
+				!$scope.selectedOptions.probabilityModel ||
+				$scope.selectedOptions.dropIn === undefined ||
+				$scope.selectedOptions.dropOut === undefined ||
+				$scope.selectedOptions.theta === undefined
+			) {
 				alertService.info({message: 'No existen parámetros para el cálculo del LR'});
 				return;
 			}
@@ -396,28 +454,20 @@ define([ 'angular','lodash' ], function(angular,_) {
 		};
 
 		function cantidadDeContributors() {
-
-            profileService.findByCode($scope.profileId).then(function (result) {
-                $scope.profileIContributors = result.data.contributors;
-
-            profileService.findByCode($scope.matchedProfileId).then(function (result) {
-                $scope.matchingIContributors = result.data.contributors;
-
-            if(( $scope.profileIContributors === 2 && $scope.matchingIContributors > 2 ) ||
-                ($scope.profileIContributors > 2 && $scope.matchingIContributors === 2)) {
-                $scope.matchAg = true;
-            }else{
-                $scope.matchAg =false;
-            }
-            });
-
-            });
-        }
-
+					profileService.findByCode($scope.profileId).then(function (result) {
+						$scope.profileIContributors = result.data.contributors;
+					profileService.findByCode($scope.matchedProfileId).then(function (result) {
+						$scope.matchingIContributors = result.data.contributors;
+					if(( $scope.profileIContributors === 2 && $scope.matchingIContributors > 2 ) ||
+						($scope.profileIContributors > 2 && $scope.matchingIContributors === 2)) {
+						$scope.matchAg = true;
+					}else{
+						$scope.matchAg =false;
+					}
+				});
+			});
+		}
 		cantidadDeContributors();
-
-    }
-
+	}
 	return ComparisonController;
-
 });

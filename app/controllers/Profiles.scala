@@ -4,15 +4,15 @@ import javax.inject.{Inject, Singleton}
 import configdata.CategoryService
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.iteratee.Enumerator
-import play.api.libs.json.{JsError, Json}
+import play.api.libs.json.{JsError, JsValue, Json}
 import play.api.mvc._
 import play.modules.reactivemongo.MongoController
 import profile.GenotypificationByType._
 import profile.{GenotypificationByType => _, _}
 import services.{CacheService, UploadedAnalysisKey}
 import types.{AlphanumericId, _}
-import java.nio.file.Files
 
+import java.nio.file.Files
 import play.api.i18n.Messages
 
 import scala.concurrent._
@@ -20,7 +20,15 @@ import scala.concurrent.duration.Duration
 import scala.util.{Left, Right};
 
 @Singleton
-class Profiles @Inject()(categoryService: CategoryService, profileService: ProfileService, cache: CacheService, profileExportService: ProfileExporterService, limsArchivesExporterService: LimsArchivesExporterService) extends Controller with MongoController with JsonActions {
+class Profiles @Inject()(
+  categoryService: CategoryService,
+  profileService: ProfileService,
+  cache: CacheService,
+  profileExportService:
+  ProfileExporterService,
+  limsArchivesExporterService:
+  LimsArchivesExporterService
+) extends Controller with MongoController with JsonActions {
 
   def create = Action.async(BodyParsers.parse.json) { request =>
     val input = request.body.validate[NewAnalysis]
@@ -238,32 +246,39 @@ class Profiles @Inject()(categoryService: CategoryService, profileService: Profi
     )
   }
 
-  def exporterLimsFiles() = Action(BodyParsers.parse.json) { request =>
-    val user = request.session("X-USER")
-    request.body.validate[ExportLimsFilesFilter].fold(
-      errors => {
-        BadRequest(JsError.toFlatJson(errors))
-      },
-      input => {
-        Await.result(
-/*
-          profileExportService.filterProfiles(input).flatMap {
-            case Nil => Future.successful(BadRequest(Messages("error.E2000")))
-            case profileList =>
-              profileExportService.exportProfiles(profileList, user).map {
-                case Right(resourceName) => {
-                  Ok(resourceName);
-                }
-                case Left(error) => BadRequest(error)
-              }
-*/
-          limsArchivesExporterService.exportLimsFiles(input).flatMap{
-            case Right(resourceName) =>  Future.successful(Ok(resourceName))
-            case Left(error) => Future.successful(BadRequest(error))
+  def exporterLimsFiles(): Action[JsValue] = Action(BodyParsers.parse.json) {
+    request =>
+      // val user = request.session("X-USER")
+      request
+        .body
+        .validate[ExportLimsFilesFilter]
+        .fold(
+          errors => {
+            BadRequest(JsError.toFlatJson(errors))
+          },
+          input => {
+            Await.result(
+    /*
+              profileExportService.filterProfiles(input).flatMap {
+                case Nil => Future.successful(BadRequest(Messages("error.E2000")))
+                case profileList =>
+                  profileExportService.exportProfiles(profileList, user).map {
+                    case Right(resourceName) => {
+                      Ok(resourceName);
+                    }
+                    case Left(error) => BadRequest(error)
+                  }
+    */
+              limsArchivesExporterService
+                .exportLimsFiles(input)
+                .flatMap{
+                  case Right(resourceName) =>  Future.successful(Ok(resourceName))
+                  case Left(error) => Future.successful(BadRequest(error))
+                },
+              Duration.Inf
+            )
           }
-          , Duration.Inf)
-      }
-    )
+        )
   }
 
   def getExportFile(user: String) = Action.async { request =>
@@ -273,13 +288,13 @@ class Profiles @Inject()(categoryService: CategoryService, profileService: Profi
   }
 
   def getLimsAltaFile() = Action.async { request =>
-    val file = limsArchivesExporterService.getFileOfAlta()
+    val file = limsArchivesExporterService.getFileOfAlta
     val fileContent: Enumerator[Array[Byte]] = Enumerator.fromFile(file)
     Future.successful(Result(header = ResponseHeader(200), body = fileContent))
   }
 
   def getLimsMatchFile() = Action.async { request =>
-    val file = limsArchivesExporterService.getFileOfMatch()
+    val file = limsArchivesExporterService.getFileOfMatch
     val fileContent: Enumerator[Array[Byte]] = Enumerator.fromFile(file)
     Future.successful(Result(header = ResponseHeader(200), body = fileContent))
   }

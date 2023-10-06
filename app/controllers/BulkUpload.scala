@@ -116,18 +116,40 @@ class BulkUpload @Inject() (bulkUploadService: BulkUploadService, userService: U
       case Right(pp) => Ok(Json.toJson(pp))
     }
   }
-  def updateBatchStatus(idBatch: Long, status: String,replicateAll:Boolean) = Action.async(BodyParsers.parse.json) { request =>
-    val idsToReplicate = request.body.validate[List[Long]].getOrElse(Nil)
-
-    val userId = request.headers.get("X-USER").get
-
-    userService.isSuperUser(userId).flatMap(isSuperUser => {
-      bulkUploadService.updateBatchStatus(idBatch, ProtoProfileStatus.withName(status), userId, isSuperUser, replicateAll, idsToReplicate) map {
-        case Right(id) => Ok(Json.toJson(id))
-        case Left(error) => BadRequest(Json.toJson(error))
-      }
-    })
-  }
+  def updateBatchStatus(
+    idBatch: Long,
+    status: String,
+    replicateAll:Boolean
+  ): Action[JsValue] =
+    Action.async(BodyParsers.parse.json) {
+      request =>
+        val idsToReplicate = request
+          .body
+          .validate[List[Long]]
+          .getOrElse(Nil)
+        val userId = request
+          .headers
+          .get("X-USER")
+          .get
+        userService
+          .isSuperUser(userId)
+          .flatMap(
+            isSuperUser => {
+              bulkUploadService
+                .updateBatchStatus(
+                  idBatch,
+                  ProtoProfileStatus.withName(status),
+                  userId,
+                  isSuperUser,
+                  replicateAll,
+                  idsToReplicate
+                ) map {
+                case Right(id) => Ok(Json.toJson(id))
+                case Left(error) => BadRequest(Json.toJson(error))
+              }
+            }
+          )
+    }
 
   def updateProtoProfileRulesMismatch() = Action.async(BodyParsers.parse.json) { request =>
     val hypothesisJs = request.body.validate[ProtoProfileMatchingQuality]

@@ -1,7 +1,7 @@
 define([], function() {
     'use strict';
 
-    function ListKitController($scope, kitService, alertService, analysisTypeService) {
+    function ListKitController($scope,$modal, kitService, alertService, analysisTypeService) {
 
         $scope.activeOption = -1;
         $scope.loadKits();
@@ -42,6 +42,25 @@ define([], function() {
                 alertService.error(response.data);
                 $scope.isProcessing = false;
             });
+        };
+
+        $scope.clearSelectedKit = function(){
+            $scope.selectedKit = { };
+        };
+        $scope.clearSelectedKit();
+
+        var giveUpdateModal = function(id){
+            $scope.selectedKit.id = id;
+            $scope.modalInstance = $modal.open({
+                templateUrl:'/assets/javascripts/kits/views/update.html',
+                controller:'saveController',
+                scope: $scope,
+                keyboard: true,
+            });
+        };
+
+        $scope.doUpdate = function(id){
+            giveUpdateModal(id);
         };
         
     }

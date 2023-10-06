@@ -9,13 +9,19 @@ class BulkUploadModule(conf: Configuration) extends AbstractModule {
   override protected def configure() {
 
     val labCode = conf.getString("laboratory.code").get
-    bind(classOf[String]).annotatedWith(Names.named("labCode")).toInstance(labCode);
+    bind(classOf[String])
+      .annotatedWith(Names.named("labCode"))
+      .toInstance(labCode);
 
     val ppgcd = conf.getString("protoprofile.globalCode.dummy").get
-    bind(classOf[String]).annotatedWith(Names.named("protoProfileGcDummy")).toInstance(ppgcd)
+    bind(classOf[String])
+      .annotatedWith(Names.named("protoProfileGcDummy"))
+      .toInstance(ppgcd)
     
-    bind(classOf[ProtoProfileRepository]).to(classOf[SlickProtoProfileRepository])
-    bind(classOf[BulkUploadService]).to(classOf[BulkUploadServiceImpl])
+    bind(classOf[ProtoProfileRepository])
+      .to(classOf[SlickProtoProfileRepository])
+    bind(classOf[BulkUploadService])
+      .to(classOf[BulkUploadServiceImpl])
     ()
   }
 

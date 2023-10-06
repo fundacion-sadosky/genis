@@ -11,14 +11,11 @@ case class NodeAlias(override val text: String)
   extends ConstrainedText(text, NodeAlias.validationRe)
 
 object NodeAlias {
-
   val validationRe = """^[a-zA-Z0-9\-]{1,15}$""".r
-
   implicit val reads = ConstrainedText.readsOf(NodeAlias.apply)
   implicit val writes = ConstrainedText.writesOf[NodeAlias]
   implicit val qsBinder = ConstrainedText.qsBinderOf(NodeAlias.apply)
   implicit val pathBinder = ConstrainedText.pathBinderOf(NodeAlias.apply)
-
 }
 
 case class Individual(
@@ -28,7 +25,8 @@ case class Individual(
    sex: Sex.Value,
    globalCode: Option[SampleCode],
    unknown: Boolean,
-   isReference: Option[Boolean])
+   isReference: Option[Boolean]
+)
 
 object Individual {
   implicit val individualFormat = Json.format[Individual]
@@ -46,7 +44,8 @@ case class PedigreeGenogram(
   numberOfMismatches: Option[Int],
   caseType:String,
   mutationModelId: Option[Long] = None,
-  idCourtCase: Long)
+  idCourtCase: Long
+)
 
 object PedigreeGenogram {
   implicit val longReads: Reads[Long] = new Reads[Long] {

@@ -15,6 +15,7 @@ import scala.concurrent.Future
 
 abstract class StrKitRepository extends DefaultDb with Transaction {
   def get(id: String): Future[Option[StrKit]]
+  def getFull(id: String): Future[Option[FullStrKit]]
   def list(): Future[Seq[StrKit]]
   def listFull(): Future[Seq[FullStrKit]]
   def findLociByKit(kitId: String): Future[List[StrKitLocus]]
@@ -25,6 +26,7 @@ abstract class StrKitRepository extends DefaultDb with Transaction {
   def add(kit: StrKit)(implicit session: Session): Either[String, String]
   def addAlias(id: String, alias: String)(implicit session: Session): Either[String, String]
   def addLocus(id: String, locus: NewStrKitLocus)(implicit session: Session): Either[String, String]
+  def update(kit: StrKit)(implicit session: Session): Either[String, String]
   def delete(id: String)(implicit session: Session): Either[String,String]
   def deleteAlias(id: String)(implicit session: Session): Either[String,String]
   def deleteLocus(id: String)(implicit session: Session): Either[String,String]
@@ -71,6 +73,17 @@ class SlickKitDataRepository @Inject() (implicit app: Application) extends StrKi
     for{
       l <- kits if l.id === id
     } yield l
+  }
+
+  override def getFull(id: String): Future[Option[FullStrKit]] = Future {
+    DB.withSession { implicit session =>
+      queryGetKit(id).firstOption map { f =>
+        FullStrKit(f.id, f.name, f.`type`, f.lociQty, f.representativeParameter,
+          queryGetKitAliasById(id).list.map(a => a.alias),
+          queryLociByKitCompiled(id).list.map(l => NewStrKitLocus(l._1, l._6, l._7.getOrElse(Int.MaxValue)))
+        )
+      }
+    }
   }
 
   override def get(id: String): Future[Option[StrKit]] = Future {
@@ -204,6 +217,20 @@ class SlickKitDataRepository @Inject() (implicit app: Application) extends StrKi
         Left(e.getMessage)
       }
     }
+  }
+
+  override def update(kit : StrKit)(implicit session: Session): Either[String, String] = {
+      try {
+        val q = for (k <- kits if k.id === kit.id) yield (k.representativeParameter)
+        val arg = (kit.representative_parameter)
+        q.update(arg)
+        Right(kit.id)
+      } catch {
+        case e: Exception => {
+          e.printStackTrace()
+          Left(e.getMessage())
+        }
+      }
   }
 
   override def delete(id: String)(implicit session: Session): Either[String,String] = {

@@ -12,19 +12,19 @@ import play.api.db.slick._
 import profile.ProfileRepository
 import services.{CacheService, Keys}
 import specs.PdgSpec
-
 import scala.concurrent.duration.{Duration, SECONDS}
 import scala.concurrent.{Await, Future}
 
-
 class MockKitRepository(addResult: Either[String,String],
                         deleteResult: Either[String,String],
+                        updateResult: Either[String,String]=Right(""),
                         updateLocus:Either[String,String] = Right(""),
                         deleteDiscreteValuesLocus:Either[String,String]= Right("")) extends StrKitRepository {
   override def add(kit: StrKit)(implicit session: Session): Either[String, String] = addResult
   override def deleteAlias(id: String)(implicit session: Session): Either[String, String] = deleteResult
   override def addAlias(id: String, alias: String)(implicit session: Session): Either[String, String] = addResult
   override def deleteLocus(id: String)(implicit session: Session): Either[String, String] = deleteResult
+  override def update(kit: StrKit)(implicit session: Session): Either[String, String]=updateResult
   override def delete(id: String)(implicit session: Session): Either[String, String] = deleteResult
   override def addLocus(id: String, locus: NewStrKitLocus)(implicit session: Session): Either[String, String] = addResult
   override def listFull(): Future[Seq[FullStrKit]] = Future.successful(Seq())
@@ -36,4 +36,5 @@ class MockKitRepository(addResult: Either[String,String],
   override def findLociByKits(kitIds: Seq[String]): Future[Map[String, List[StrKitLocus]]] = Future.successful(Map())
   override def runInTransactionAsync[T](f: Session => T): Future[T] = Future { DB.withTransaction { implicit session => f(session) } }
   override def get(id: String): Future[Option[StrKit]] = Future.successful(None)
+  override def getFull(id: String): Future[Option[FullStrKit]] = Future.successful(None)
 }

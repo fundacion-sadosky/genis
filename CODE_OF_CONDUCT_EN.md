@@ -50,7 +50,7 @@ Community leaders will follow these Community Impact Guidelines in determining t
 **Consequence**: A permanent ban, which will be determined by the GENis Community Committee and conveyed to the user, the GENis administrators and the entire community through the official list genis.everyone@fundacionsadosky.org.ar, to prevent any public interaction with the project community.
 
 ## Attribution
-This Code of Conduct for all GENis project participants version 5.1.9 is an adaptation of the Contributor Covenant, version 2.0, available at https://www.contributor-covenant.org/es/version/2/0/code_of_conduct.html.
+This Code of Conduct for all GENis project participants version 5.1.10 is an adaptation of the Contributor Covenant, version 2.0, available at https://www.contributor-covenant.org/es/version/2/0/code_of_conduct.html.
 Community Impact Guidelines are inspired by Mozilla's code of conduct enforcement ladder.
 For answers to frequently asked questions about this code of conduct, see the FAQ at https://www.contributor-covenant.org/faq.
 Translations are available at https://www.contributor-covenant.org/translations.

@@ -6,7 +6,11 @@ function CryptoService(userService) {
 	this.encryptBase64 = function(text) {
 
 		var user = userService.getUser();
-		
+
+		if (!user) {
+			return text;
+		}
+
 		var keyTxt = user.credentials.key;
 		var ivTxt = user.credentials.iv;
 		
@@ -15,7 +19,8 @@ function CryptoService(userService) {
 
 		var encryptedBytes = aes.AES.encrypt(text, key, {iv : iv});
 
-		var encryptedText = encryptedBytes.ciphertext
+		var encryptedText = encryptedBytes
+			.ciphertext
 			.toString(enc.enc.Base64)
 			.replace(/\//g, '_')
 			.replace(/\+/g, '-')
@@ -29,10 +34,17 @@ function CryptoService(userService) {
 
 		var user = userService.getUser();
 
-		request.headers['X-USER'] = user.name;
-		request.headers['X-SUPERUSER'] = user.superuser;
-		
+		if (user) {
+			request.headers['X-USER'] = user.name;
+			request.headers['X-SUPERUSER'] = user.superuser;
+		} else {
+			request.headers['X-USER'] = "";
+			request.headers['X-SUPERUSER'] = "";
+		}
+
+		console.log(request.url);
 		request.url = this.encryptBase64(request.url);
+		console.log(request.url);
 
 		if (request.data) {
 			request.data = this.encryptBase64(JSON.stringify(request.data));

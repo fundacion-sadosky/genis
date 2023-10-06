@@ -171,24 +171,28 @@ case class ProtoProfileBuilder(
       errors)
   }
 
-  def buildWithMarker(marker: String, alleles: Seq[String], mitocondrial: Boolean = false): ProtoProfileBuilder = {
-
-    val allelesVal = alleles.filterNot {
-      _.trim.isEmpty()
-    }.map { alleleVal =>
-      try {
-
-        Right(toAlleleValue(alleleVal))
-
-      } catch {
-        case e: Throwable => {
-          logger.error(s"Error parsing allele value for $marker: ${e.getMessage}")
-          Left(e.getMessage)
-        }
+  def buildWithMarker(
+    marker: String,
+    alleles: Seq[String],
+    mitocondrial: Boolean = false
+  ): ProtoProfileBuilder = {
+    val allelesVal = alleles
+      .filterNot {
+        _.trim.isEmpty()
       }
-    }
-
-    val tup = allelesVal.partition(either => either.isRight)
+      .map {
+        alleleVal =>
+          try {
+            Right(toAlleleValue(alleleVal))
+          } catch {
+            case e: Throwable =>
+              logger.error(s"Error parsing allele value for $marker: ${e.getMessage}")
+              Left(e.getMessage)
+          }
+      }
+    val tup = allelesVal.partition(
+      either => either.isRight
+    )
     val ok = tup._1 map {
       _.right.get
     }
@@ -212,7 +216,8 @@ case class ProtoProfileBuilder(
       this.matchingRules,
       this.preexistence,
       this.genemapperLine,
-      errors)
+      errors
+    )
   }
 
   private val normalizeRe = """\W""".r
@@ -224,13 +229,14 @@ case class ProtoProfileBuilder(
     }, { genisCat =>
       genisCat
     })
-
-    val cty = category.fold[Option[AlphanumericId]](fa => None, fb => Some(AlphanumericId(fb)))
-
+    val cty = category
+      .fold[Option[AlphanumericId]](
+        fa => None,
+        fb => Some(AlphanumericId(fb))
+      )
     val buildErrors = this.preexistence.fold(this.errors)(gc =>
       validator.validateAssigneAndCategory(gc, this.validator.geneticists.find(_.geneMapperId == this.assignee).get.id, cty).fold(this.errors)(err =>
         this.errors.+:(err)))
-
 
     val stat =
       if (buildErrors.isEmpty) {
@@ -263,11 +269,9 @@ case class ProtoProfileBuilder(
       this.preexistence)
   }
 
-  def buildWithErrors(validacion: Int): ProtoProfileBuilder = {
-
-    val err = cond((validacion != 0), Messages("error.E030" + validacion))
+  def buildWithErrors(validacion: Option[String]): ProtoProfileBuilder = {
+    val err = validacion map {x => Messages(s"error.$x")}
     val errors = err.fold(this.errors)(error => this.errors :+ error)
-
     ProtoProfileBuilder(
       this.validator,
       this.id,
@@ -280,21 +284,24 @@ case class ProtoProfileBuilder(
       this.matchingRules,
       this.preexistence,
       this.genemapperLine,
-      errors)
+      errors
+    )
   }
 
-  def buildWithAllelesVal(alelos: List[(Mitocondrial, String)], mito: MtRCRS): ProtoProfileBuilder = {
+  def buildWithAllelesVal(
+    alelos: List[(Mitocondrial, String)],
+    mito: MtRCRS
+  ): ProtoProfileBuilder = {
     var errores = this.errors
-    val pos = alelos.map { x =>
-      x match {
+    val pos = alelos
+      .map {
         case (Mitocondrial(base, position), letra) =>
           base -> position.toInt -> letra
         case _ => 'b' -> 0 -> "borrar"
       }
-    }.toList.filter(_._2 != "borrar")
-
+      .toList
+      .filter(_._2 != "borrar")
     if (!pos.isEmpty) {
-
       var validacion = pos.map { posicion => {
         val letraOriginal = mito.tabla.get(posicion._1._2)
         letraOriginal match {
@@ -305,10 +312,14 @@ case class ProtoProfileBuilder(
       }
       }
 
-
-      validacion.map { error =>
-        var err = cond((error._1 != 0), Messages("error.E03" + error._1, error._2))
-        errores = err.fold(errores)(error => errores :+ error)
+      validacion
+        .map {
+          error =>
+            var err = cond(
+              (error._1 != 0),
+              Messages("error.E03" + error._1, error._2)
+            )
+            errores = err.fold(errores)(error => errores :+ error)
       }
     }
 
@@ -324,26 +335,29 @@ case class ProtoProfileBuilder(
       this.matchingRules,
       this.preexistence,
       this.genemapperLine,
-      errores)
-
+      errores
+    )
   }
-
 
   def buildWithMtExistente(): ProtoProfileBuilder = {
     var errores = this.errors
     val existe = validator.validarMtExistente(this.sampleName)
-
     if (existe) {
       val msg = if (!errores.isEmpty) {
-        val existe = errores.exists { x =>
-          val exist = false
-          (x.contains("E0315"))
-          !exist
+        val existe = errores.exists {
+          x =>
+            val exist = false
+            (x.contains("E0315"))
+            !exist
         }
-        if (!existe) "error.E0315"
-        else "borrar"
-      } else "error.E0315"
-
+        if (!existe) {
+          "error.E0315"
+        } else {
+          "borrar"
+        }
+      } else {
+        "error.E0315"
+      }
       val err = cond((msg != "borrar"), Messages(msg))
       errores = err.fold(errores)(error => errores :+ error)
     }
@@ -360,11 +374,9 @@ case class ProtoProfileBuilder(
       this.matchingRules,
       this.preexistence,
       this.genemapperLine,
-      errores)
-
-
+      errores
+    )
   }
-
 }
 case class Validator(
     val protoRepo: ProtoProfileRepository,

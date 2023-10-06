@@ -62,16 +62,26 @@ define([], function() {
 			return playRoutes.controllers.Matching.getTotalMatches().post(search);
 		};
 
-		this.getResults = function(matchingId, isPedigreeMatch,isCollapsing,isScreening) {
-			return playRoutes.controllers.Matching.getByMatchedProfileId(matchingId, isPedigreeMatch,isCollapsing,isScreening).get()
-				.success(function(data/*, status, headers, response*/) {
-
-					if (data && data.results) {
-						fillReducedStringencies(data.results);
-					}
-				}).error(function() {
-					//$log.info('Matching.getByMatchedProfileId :(');
-				});
+		this.getResults = function(
+			matchingId,
+			isPedigreeMatch,
+			isCollapsing,
+			isScreening
+		) {
+			return playRoutes.controllers.Matching.getByMatchedProfileId(
+				matchingId,
+				isPedigreeMatch,
+				isCollapsing,
+				isScreening
+			).get()
+				.success(
+					function(data/*, status, headers, response*/) {
+						if (data && data.results) {
+							fillReducedStringencies(data.results);
+						}
+					}).error(function() {
+						//$log.info('Matching.getByMatchedProfileId :(');
+					});
 		};
 		
 		this.getComparedGenotyfications = function(leftGlobalCode, rightGlobalCode,matchId,isCollapsing,isScreening) {

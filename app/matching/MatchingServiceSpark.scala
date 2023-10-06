@@ -340,18 +340,17 @@ class MatchingServiceSparkImpl @Inject() (
     }
   }
 
-  override def findMatches(globalCode: SampleCode, matchType: Option[String] = None): Unit = {
+  override def findMatches(
+    globalCode: SampleCode,
+    matchType: Option[String] = None
+  ): Unit = {
     logger.debug(s"Enqueue profile $globalCode to spark matcher")
     matchType match {
-      case None => {
+      case None =>
         spak2Matcher.findMatchesInBackGround(globalCode)
-      }
-      case Some("MPI") => {
+      case Some("MPI") =>
         pedigreeSparkMatcher.findMatchesInBackGround(globalCode, matchType.get)
-      }
-      case _ => {
-        ()
-      }
+      case _ => ()
     }
   }
 
@@ -595,16 +594,28 @@ class MatchingServiceSparkImpl @Inject() (
   override def discardCollapsingByLeftAndRightProfile(id:String,courtCaseId:Long) : Future[Unit] = {
     this.matchingRepo.discardCollapsingByLeftAndRightProfile(id,courtCaseId)
   }
-  override def findScreeningMatches(profile:Profile, queryProfiles:List[String],numberOfMismatches: Option[Int]):Future[(Set[MatchResultScreening],Set[MatchResultScreening])]  = Future{
-    val result = this.spark2MatcherScreening.findMatchesBlocking(profile,queryProfiles,numberOfMismatches)
-    (result._1,(result._1 union result._2).map(x =>{
-      val oldMatchId = result._3.get((x.globalCode,4))
-      if(oldMatchId.isDefined){
-        x.copy(matchId = oldMatchId.get)
-      }else{
-        x
-      }
-    }))
+  override def findScreeningMatches(
+    profile:Profile,
+    queryProfiles:List[String],
+    numberOfMismatches: Option[Int]
+  ):Future[(Set[MatchResultScreening],Set[MatchResultScreening])]  = Future{
+    val result = this
+      .spark2MatcherScreening
+      .findMatchesBlocking(profile, queryProfiles, numberOfMismatches)
+    (
+      result._1,
+      (result._1 union result._2)
+        .map(
+          x => {
+            val oldMatchId = result._3.get((x.globalCode,4))
+            if (oldMatchId.isDefined) {
+              x.copy(matchId = oldMatchId.get)
+            } else {
+              x
+            }
+          }
+        )
+    )
   }
 
   override def masiveGroupDiscardByGlobalCode(firingCode: SampleCode, isSuperUser: Boolean,replicate:Boolean = true) : Future[Either[String, Seq[SampleCode]]] = {

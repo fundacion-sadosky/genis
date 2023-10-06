@@ -177,13 +177,20 @@ define([], function() {
 			
 			var ss = cryptoService.encryptBase64('/populationBaseFreq');
 			var file = $scope.csvFile;
-			$scope.upload = $upload.upload({
-				url: ss, 
+			var uploadConfig = {
+				url: ss,
 				method: 'POST',
-				fields: {baseName: $scope.popBaseFreq.name, baseTheta: $scope.popBaseFreq.theta, baseModel: $scope.popBaseFreq.model},
+				fields: {
+					baseName: $scope.popBaseFreq.name,
+					baseTheta: $scope.popBaseFreq.theta,
+					baseModel: $scope.popBaseFreq.model
+				},
 				file: file,
-			}).success(sucessFilePost)
-			.error(errorFilePost);				
+			};
+			$scope.upload = $upload
+				.upload(uploadConfig)
+				.success(sucessFilePost)
+				.error(errorFilePost);
 		};
 		
 	}

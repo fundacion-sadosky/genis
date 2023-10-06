@@ -3,7 +3,6 @@ package matching
 import java.text.ParseException
 import java.util.Date
 import javax.inject.{Inject, Named, Singleton}
-
 import kits.Locus
 import akka.actor.{Actor, ActorSystem, Props, actorRef2Scala}
 import com.mongodb.BasicDBObject
@@ -34,45 +33,51 @@ import scala.concurrent.duration.{Duration, SECONDS}
 import connections.InterconnectionService
 import pedigree.PedigreeService
 import probability.CalculationTypeService
+import profiledata.ProfileDataRepository
 import user.UserService;
 
 @Singleton
-class Spark2MatcherCollapsing @Inject()(akkaSystem: ActorSystem,
-                                        profileRepo: ProfileRepository,
-                                        notificationService: NotificationService,
-                                        categoryService: CategoryService,
-                                        matchStatusService: MatchingProcessStatus,
-                                        locusService: LocusService,
-                                        traceService: TraceService,
-                                        @Named("mongoUri") mongoUri: String,
-                                        @Named("mtConfig") mtConfiguration: MtConfiguration,
-                                        interconnectionService:InterconnectionService = null,
-                                        @Named("defaultAssignee") nomRespSuperior : String,
-                                        @Named("labCode") currentInstanceLabCode: String,
-                                        pedigreeService:PedigreeService = null,
-                                        matches:String = "",
-                                        calculatorService:MatchingCalculatorService,
-                                        userService: UserService = null /*,
-                                            /*@Named("limsArchivesPath")*/ exportProfilesPath: String = "",
-                                            /*@Named("generateLimsFiles")*/ exportaALims: Boolean = false*/)
-                extends Spark2Matcher(akkaSystem
-                                      ,profileRepo
-                                      ,notificationService
-                                      ,categoryService
-                                      ,matchStatusService
-                                      ,locusService
-                                      ,traceService
-                                      ,mongoUri
-                                      ,mtConfiguration
-                                      ,interconnectionService
-                                      ,nomRespSuperior
-                                      ,currentInstanceLabCode
-                                      ,pedigreeService
-                                      ,"collapsingMatches"
-                                      ,calculatorService,
-                                      userService
-                                      /*, ""
-                                      ,false*/){
+class Spark2MatcherCollapsing @Inject()(
+  akkaSystem: ActorSystem,
+  profileRepo: ProfileRepository,
+  notificationService: NotificationService,
+  categoryService: CategoryService,
+  matchStatusService: MatchingProcessStatus,
+  locusService: LocusService,
+  traceService: TraceService,
+  profileDataRepository: ProfileDataRepository,
+  @Named("mongoUri") mongoUri: String,
+  @Named("mtConfig") mtConfiguration: MtConfiguration,
+  interconnectionService:InterconnectionService = null,
+  @Named("defaultAssignee") nomRespSuperior : String,
+  @Named("labCode") currentInstanceLabCode: String,
+  pedigreeService:PedigreeService = null,
+  matches:String = "",
+  calculatorService:MatchingCalculatorService,
+  userService: UserService = null /*,
+  /*@Named("limsArchivesPath")*/ exportProfilesPath: String = "",
+  /*@Named("generateLimsFiles")*/ exportaALims: Boolean = false*/
+) extends Spark2Matcher(
+  akkaSystem
+  ,profileRepo
+  ,notificationService
+  ,categoryService
+  ,matchStatusService
+  ,locusService
+  ,traceService
+  ,profileDataRepository
+  ,mongoUri
+  ,mtConfiguration
+  ,interconnectionService
+  ,nomRespSuperior
+  ,currentInstanceLabCode
+  ,pedigreeService
+  ,"collapsingMatches"
+  ,calculatorService,
+  userService
+  /*, ""
+  ,false*/
+){
 
   private val collapsingActor = akkaSystem.actorOf(CollapsingActor.props(this))
 
@@ -149,6 +154,13 @@ class Spark2MatcherCollapsing @Inject()(akkaSystem: ActorSystem,
 
     val config = mtConfiguration
 
+    val duration = Duration(100, SECONDS)
+
+    val mtRcrs = Await.result(
+      profileDataRepository.getMtRcrs(),
+      duration
+    )
+    
     val newMatchesRDD = profilesRDD
         .flatMap { profile =>
 
@@ -161,7 +173,7 @@ class Spark2MatcherCollapsing @Inject()(akkaSystem: ActorSystem,
           val qIsMix = profile.contributors.getOrElse(1) == 2
 
           val matchingAlgorithm = if (pIsMix && qIsMix && mixmix.isDefined) mixmix.orElse(enfsi) else enfsi
-          matchingAlgorithm.flatMap { performMatch(config, searched, profile, _, None, n,locusRangeMap,Some(idCourtCase)) }
+          matchingAlgorithm.flatMap { performMatch(config, searched, profile, _, mtRcrs, None, n,locusRangeMap,Some(idCourtCase)) }
 
         }
 
