@@ -1,6 +1,6 @@
 # Changelog
 
-## [5.1.10] - 2023-10-05
+## [v5.1.10] - 2023-10-05
 
 ### Changed
 
@@ -29,14 +29,14 @@
   persona ([#34](https://github.com/fundacion-sadosky/genis/issues/34)).
 - Se corrigió un error en el cual se podía dar una coincidencia entre dos
   individuos de referencia en un caso de MPI
-  ([#37] (https://github.com/fundacion-sadosky/genis/issues/37)).
+  ([#37](https://github.com/fundacion-sadosky/genis/issues/37)).
 - Se corrigió un error en el cual el cual el boton para subir frecuencias estaba
-  activo cuando no había un archivo de secuencias seleccionado para subir
-  ([#30] (https://github.com/fundacion-sadosky/genis/issues/30)).
+  activo cuando no había un archivo de frecuencias seleccionado para subir
+  ([#30](https://github.com/fundacion-sadosky/genis/issues/30)).
 - Se corrigió un error que se producía al mientras se inicia la aplicación
   debido a que se intentaba acceder a una ruta que requiere un usuario
   auntenticado antes de mostrar la pantalla de ingreso.
-  ([#35] (https://github.com/fundacion-sadosky/genis/issues/35)).
+  ([#35](https://github.com/fundacion-sadosky/genis/issues/35)).
 
 [v5.1.10]: https://github.com/fundacion-sadosky/genis/releases/tag/v5.1.10
 

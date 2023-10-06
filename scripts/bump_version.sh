@@ -142,7 +142,7 @@ patch_version_files(){
     msg="_Si está actualizando el sistema por favor lea:  [\`UPGRADING.md\`](https:\/\/github.com\/fundacion-sadosky\/genis\/blob\/main\/UPGRADING.md)._"
     current_date=$(date +"%Y-%m-%d")
     replacement="# Changelog\n\n\
-## [$major.$minor.$patch] - $current_date\n\n\
+## v[$major.$minor.$patch] - $current_date\n\n\
 ##msg##\n\n\
 ### Changed\n\n\
 ### Added\n\n\
