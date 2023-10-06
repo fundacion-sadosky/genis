@@ -2,45 +2,58 @@ version: '3.8'
 services:
   
   postgres:
-    image: postgres:9.6
+    image: postgres:14.9
     container_name: genis_postgres
+    restart: always
     environment:
       - POSTGRES_PASSWORD=postgres
+      - POSTGRES_INITDB_ARGS="--auth=md5"
     ports:
       - "5432:5432"      
     volumes:
-      - ./pgsql_data:/var/lib/postgresql/data
+      - 'pgsql_data:/var/lib/postgresql/data'
       - ./pgsql_init:/docker-entrypoint-initdb.d
-
+  
   openldap:
     image: docker.io/bitnami/openldap:2.6
     container_name: genis_ldap
-    #restart: always
+    restart: always
     ports:
       - '1389:1389'
       - '1636:1636'
     environment:
       - LDAP_ROOT=dc=genis,dc=local
-      - LDAP_SKIP_DEFAULT_TREE=yes  
+      - LDAP_SKIP_DEFAULT_TREE=yes
       - LDAP_ADMIN_USERNAME=admin
       - LDAP_ADMIN_PASSWORD=adminp
       - LDAP_CUSTOM_LDIF_DIR=/ldifs
     volumes:
-      - ./openldap_data:/bitnami/openldap
+      - 'openldap_data:/bitnami/openldap'
       - ./openldap_init:/ldifs        
 
   mongo:
-    image: mongo:3.4
+    image: mongo:3.4.20
     container_name: genis_mongo
+    restart: always    
     ports:
       - "27017:27017"      
     volumes:
+      - 'mongo_data:/data/db'
       - ./mongo_init:/docker-entrypoint-initdb.d
   
   mongo-express:
     image: mongo-express
     container_name: genis_mongo-express
+    restart: always    
     ports:
       - 8081:8081
     environment:
       ME_CONFIG_MONGODB_SERVER: genis_mongo
+
+volumes:
+  openldap_data:
+    driver: local
+  pgsql_data:
+    driver: local
+  mongo_data:
+    driver: local    
