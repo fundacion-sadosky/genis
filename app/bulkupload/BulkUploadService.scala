@@ -20,7 +20,6 @@ import play.api.i18n.Messages
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.language.{implicitConversions, postfixOps}
-import connections.InterconnectionService
 
 
 abstract class BulkUploadService {
@@ -173,10 +172,13 @@ class BulkUploadServiceImpl @Inject() (
         }
       )
       .recover {
-        case e: IndexOutOfBoundsException => {
+        case e: IndexOutOfBoundsException =>
           logger.error(Messages("error.E0302"), e)
           Left(Messages("error.E0302"))
-        }
+        case error: KitNotExistsException =>
+          val errorMessage = Messages("error.E0316", error.getMessage)
+          logger.error(errorMessage)
+          Left(errorMessage)
         case error => {
           logger.error(error.getMessage)
           Left(Messages("error.E0301"))

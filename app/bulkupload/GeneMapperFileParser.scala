@@ -17,11 +17,14 @@ object GeneMapperFileParser {
       .build
   }
 
-  private def parseLine(prev: List[String], mapa: GeneMaperFileHeader, builder: ProtoProfileBuilder, input: Stream[List[String]]): (ProtoProfile, Stream[List[String]]) = {
+  private def parseLine(
+    prev: List[String],
+    mapa: GeneMaperFileHeader,
+    builder: ProtoProfileBuilder,
+    input: Stream[List[String]]
+  ): (ProtoProfile, Stream[List[String]]) = {
     input match {
-
       case Stream.Empty => (builder.build, Stream.Empty)
-
       case line #:: tail if (line(mapa.sampleName) == prev(mapa.sampleName)) => {
         val bldrMd = builder
           .buildWithSampleName(line(mapa.sampleName))
@@ -29,33 +32,51 @@ object GeneMapperFileParser {
           .buildWithCategory(line(mapa.SpecimenCategory))
           .buildWithKit(line(mapa.UD2))
           .buildWithGenemapperLine(line)
-
-        val alleles = Seq(line(mapa.Allele1), line(mapa.Allele2), line(mapa.Allele3), line(mapa.Allele4), line(mapa.Allele5), line(mapa.Allele6), line(mapa.Allele7), line(mapa.Allele8))
-
+        val alleles = Seq(
+          line(mapa.Allele1),
+          line(mapa.Allele2),
+          line(mapa.Allele3),
+          line(mapa.Allele4),
+          line(mapa.Allele5),
+          line(mapa.Allele6),
+          line(mapa.Allele7),
+          line(mapa.Allele8)
+        )
         val bldr = bldrMd.buildWithMarker(line(mapa.Marker), alleles)
         parseLine(line, mapa, bldr, tail)
       }
-
       case head #:: tail => (builder.build, input)
     }
   }
 
-  def parse(csvFile: File, validator: Validator): Either[String, Stream[ProtoProfile]] = {
-
-    def profileStream(source: Stream[List[String]], header: GeneMaperFileHeader): Stream[ProtoProfile] = {
-      if (source.isEmpty)
+  def parse(
+    csvFile: File,
+    validator: Validator
+  ): Either[String, Stream[ProtoProfile]] = {
+    def profileStream(
+      source: Stream[List[String]],
+      header: GeneMaperFileHeader
+    ): Stream[ProtoProfile] = {
+      if (source.isEmpty) {
         Stream.Empty
-      else {
-        val (protoProfile, remainingLines) = parseLine(source.head, header, ProtoProfileBuilder(validator, genemapperLine = Seq(header.HeaderLine)), source)
+      } else {
+        val (protoProfile, remainingLines) = parseLine(
+          source.head,
+          header,
+          ProtoProfileBuilder(
+            validator,
+            genemapperLine = Seq(header.HeaderLine)
+          ),
+          source
+        )
         Stream.cons(protoProfile, profileStream(remainingLines, header))
       }
     }
-
     val stream = CSVReader.open(csvFile).toStream
     val header = stream.head
     val lines = stream.tail
     val mapar = parseHeader(header)
-    mapar.right.map {h => profileStream(lines, h) }
+    val result = mapar.right.map {header => profileStream(lines, header) }
+    result
   }
 }
-

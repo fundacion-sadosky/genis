@@ -129,16 +129,26 @@ class SlickKitDataRepository @Inject() (implicit app: Application) extends StrKi
       on (_.id === _.locus) if relation.strkit inSetBind kitIds
   ) yield (locus, relation)
 
-  override def findLociByKits(kitIds: Seq[String]): Future[Map[String, List[StrKitLocus]]] = Future {
-    def convert2Loci(l: List[(Tables.LocusRow, Tables.StrkitLocusRow)]): List[StrKitLocus] = {
-      l.foldLeft(List[StrKitLocus]()) { (p, c) =>
-        p :+ StrKitLocus(c._1.id, c._1.name, c._1.chromosome, c._1.minimumAllelesQty, c._1.maximumAllelesQty, c._2.fluorophore, c._2.order.getOrElse(Int.MaxValue))
+  override def findLociByKits(kitIds: Seq[String])
+    : Future[Map[String, List[StrKitLocus]]] = Future {
+    def convert2Loci(
+      l: List[(Tables.LocusRow, Tables.StrkitLocusRow)]
+    ): List[StrKitLocus] = {
+      l.foldLeft(List[StrKitLocus]()) {
+        (p, c) =>
+          p :+ StrKitLocus(
+            c._1.id, c._1.name, c._1.chromosome, c._1.minimumAllelesQty,
+            c._1.maximumAllelesQty, c._2.fluorophore,
+            c._2.order.getOrElse(Int.MaxValue)
+          )
       }
     }
-
-    DB.withSession { implicit session =>
-      val groupedByKit = queryFindLociByKits(kitIds.toList).list.groupBy { _._2.strkit }
-      groupedByKit.map { r => r._1 -> convert2Loci(r._2) }
+    DB.withSession {
+      implicit session =>
+        val groupedByKit = queryFindLociByKits(kitIds.toList)
+          .list
+          .groupBy { _._2.strkit }
+        groupedByKit.map { r => r._1 -> convert2Loci(r._2) }
     }
   }
 

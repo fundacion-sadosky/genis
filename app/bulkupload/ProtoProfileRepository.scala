@@ -45,6 +45,7 @@ import configdata.{CategoryService, MatchingRule}
 import kits.StrKitLocus
 import util.{DefaultDb, Transaction}
 import search.PaginationSearch
+import bulkupload.KitNotExistsException
 
 import scala.slick.driver.PostgresDriver
 
@@ -425,58 +426,75 @@ class SlickProtoProfileRepository @Inject() (
     }
   }
 
-  override def createBatch(user: String, protoProfileStream: Stream[ProtoProfile], laboratory: String, kits: Map[String, List[StrKitLocus]], label : Option[String], analysisType: String): Future[Long] = Future {
-
-    DB.withTransaction { implicit session =>
-
-      val batchRow = BatchProtoProfileRow(0, user, new Date(), label, analysisType)
-
-      val batchId = (batchProtoProfiles returning batchProtoProfiles.map(_.id)) += batchRow
-
-      protoProfileStream.foreach { protoProfile =>
-        val joinLociGen = for {
-          locus <- kits(protoProfile.kit)
-          g <- protoProfile.genotypification
-          if (g.locus == locus.id)
-        } yield (locus.order, g)
-
-        val sortedGen = joinLociGen.sortBy(_._1).map(_._2)
-
-        val jsonGenotypification = Json.toJson(sortedGen).toString
-        val matchingRules = Json.toJson(protoProfile.matchingRules).toString
-        val mismatches = Json.toJson(protoProfile.mismatches).toString
-
-        val errors = if (!protoProfile.errors.isEmpty)
-          Some(protoProfile.errors.reduce { (prev, rest) => prev.concat(";" + rest) })
-        else
-          None
-
-        val pprow = ProtoProfileRow(
-          0, protoProfile.sampleName,
-          batchId, protoProfile.assignee,
-          protoProfile.category,
-          protoProfile.status.toString, protoProfile.kit,
-          errors, jsonGenotypification, matchingRules, mismatches,
-          None, protoProfile.preexistence.map(_.text), protoProfile.geneMapperLine)
-        val pdFK = protoProfiles returning (protoProfiles.map { _.id }) += pprow
-
-        val gcFk = ppGcD + pdFK
-        val stashp = ProfileDataRow(
-          0, protoProfile.category, gcFk, protoProfile.sampleName,
-          None, None, None, None, None, None, None,
-          protoProfile.sampleName, protoProfile.assignee, laboratory,
-          None, None, None, None, false, None, None)
-
-        val res = protoProfileData += stashp
-
-        categoryService.getCategory(AlphanumericId(protoProfile.category)).foreach { cat =>
-          if (cat.filiationDataRequired) {
-            protoProfileDataFil += ProfileDataFiliationRow(0, gcFk, Some(""), Some(""), Some(new java.sql.Date(-2208988800L)), Some(""), Some(""), Some(""), Some(""), Some(""))
-          }
+  override def createBatch(
+    user: String,
+    protoProfileStream: Stream[ProtoProfile],
+    laboratory: String,
+    kits: Map[String, List[StrKitLocus]],
+    label : Option[String],
+    analysisType: String
+  ): Future[Long] = Future {
+    DB.withTransaction {
+      implicit session =>
+        val batchRow = BatchProtoProfileRow(0, user, new Date(), label, analysisType)
+        val batchId = (batchProtoProfiles returning batchProtoProfiles.map(_.id)) += batchRow
+        protoProfileStream.foreach {
+          protoProfile =>
+            if (!kits.contains(protoProfile.kit)) {
+              throw KitNotExistsException(protoProfile.kit)
+            }
+            val joinLociGen = for {
+              locus <- kits(protoProfile.kit)
+              g <- protoProfile.genotypification
+              if g.locus == locus.id
+            } yield (locus.order, g)
+            val sortedGen = joinLociGen.sortBy(_._1).map(_._2)
+            val jsonGenotypification = Json.toJson(sortedGen).toString
+            val matchingRules = Json.toJson(protoProfile.matchingRules).toString
+            val mismatches = Json.toJson(protoProfile.mismatches).toString
+            val errors = if (protoProfile.errors.nonEmpty) {
+              Option(
+                protoProfile.errors.reduce {
+                  (prev, rest) => prev.concat(s";$rest")
+                }
+              )
+            } else {
+              None
+            }
+            val pprow = ProtoProfileRow(
+              0, protoProfile.sampleName, batchId, protoProfile.assignee,
+              protoProfile.category, protoProfile.status.toString,
+              protoProfile.kit, errors, jsonGenotypification, matchingRules,
+              mismatches, None, protoProfile.preexistence.map(_.text),
+              protoProfile.geneMapperLine
+            )
+            val pdFK = protoProfiles returning protoProfiles.map { _.id } += pprow
+            val gcFk = s"$ppGcD$pdFK"
+            val stashp = ProfileDataRow(
+              0, protoProfile.category, gcFk, protoProfile.sampleName,
+              None, None, None, None, None, None, None,
+              protoProfile.sampleName, protoProfile.assignee, laboratory,
+              None, None, None, None, false, None, None
+            )
+            val res = protoProfileData += stashp
+            categoryService
+              .getCategory(
+                AlphanumericId(protoProfile.category)
+              )
+              .foreach {
+                cat =>
+                  if (cat.filiationDataRequired) {
+                    protoProfileDataFil += ProfileDataFiliationRow(
+                      0, gcFk, Option(""), Option(""),
+                      Option(new java.sql.Date(-2208988800L)),
+                      Option(""), Option(""), Option(""), Option(""),
+                      Option("")
+                    )
+                  }
+              }
+            res
         }
-        res
-      }
-      batchId
+        batchId
     }
   }
 
