@@ -8,7 +8,6 @@ import reactivemongo.api.{Cursor, QueryOpts}
 import play.modules.reactivemongo.json.collection.{JSONCollection, _}
 import reactivemongo.api._
 import play.modules.reactivemongo.json._
-import profiledata.ProfileDataViewCoincidencia
 import reactivemongo.api.commands.Command
 import reactivemongo.bson.BSONDocument
 import types.Count
@@ -16,7 +15,6 @@ import types.Count
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
-import scala.util.{Failure, Success}
 
 abstract class PedigreeMatchesRepository {
   def getMatches(search: PedigreeMatchCardSearch) : Future[Seq[PedigreeMatch]]
@@ -93,12 +91,6 @@ class MongoPedigreeMatchesRepository extends PedigreeMatchesRepository {
 
     if(search.caseType.isDefined){
       filters = Json.obj("pedigree.caseType" -> search.caseType.get) :: filters
-//      if (search.caseType.get == "MPI") {
-//        filters = Json.obj(
-////          "profile.categoryId" -> Json.obj("$ne" -> "IR")
-//        "profile.categoryId" -> "IR"
-//        ) :: filters
-//      }
     }
 
     if(search.status.isDefined){
@@ -509,6 +501,8 @@ override def  countProfilesHitPedigrees(globalCodes:String):Future[Int]={
     val sortQuery = search.sortField match {
       case "date" => Json.obj("matchingDate" -> directionValue)
       case "profile" => Json.obj("profile.globalCode" -> directionValue)
+      case "category" => Json.obj("profile.categoryId" -> directionValue)
+      case "profileg" => Json.obj("profile.globalCode" -> directionValue)
       case "unknown" => Json.obj("pedigree.unknown" -> directionValue)
       case "profileStatus" => Json.obj("profile.status" -> directionValue)
       case "pedigreeStatus" => Json.obj("pedigree.status" -> directionValue)
@@ -532,6 +526,7 @@ override def  countProfilesHitPedigrees(globalCodes:String):Future[Int]={
       case "profileStatus" => Json.obj("profile.status" -> directionValue)
       case "pedigreeStatus" => Json.obj("pedigree.status" -> directionValue)
       case "compatibility" => Json.obj("compatibility" -> directionValue)
+      case _ => Json.obj("matchingDate" -> directionValue)
     }
 
    var ped= pedigreeMatches
