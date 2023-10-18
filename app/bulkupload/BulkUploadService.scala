@@ -364,7 +364,8 @@ class BulkUploadServiceImpl @Inject() (
                           status,
                           protoProfile,
                           geneticist.userName,
-                          userId, replicate
+                          userId,
+                          replicate
                         )
                       } else {
                         Future.successful(Seq())
