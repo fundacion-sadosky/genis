@@ -91,6 +91,12 @@ class MongoPedigreeMatchesRepository extends PedigreeMatchesRepository {
 
     if(search.caseType.isDefined){
       filters = Json.obj("pedigree.caseType" -> search.caseType.get) :: filters
+//      if (search.caseType.get == "MPI") {
+//        filters = Json.obj(
+////          "profile.categoryId" -> Json.obj("$ne" -> "IR")
+//        "profile.categoryId" -> "IR"
+//        ) :: filters
+//      }
     }
 
     if(search.status.isDefined){
