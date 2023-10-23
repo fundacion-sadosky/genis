@@ -597,7 +597,12 @@ override def getMetadata( personDataSearch:PersonDataSearch): Future[List[Person
 
 
   override def addBatches(courtCaseProfiles:CaseBatchAdd):Future[Either[String, Unit]] = {
-    pedigreeDataRepository.getProfilesFromBatches(courtCaseProfiles.courtcaseId, courtCaseProfiles.batches, courtCaseProfiles.tipo).flatMap {
+    pedigreeDataRepository
+      .getProfilesFromBatches(
+        courtCaseProfiles.courtcaseId,
+        courtCaseProfiles.batches,
+        courtCaseProfiles.tipo
+      ).flatMap {
       case Nil => {
         Future.successful(Left(Messages("error.E0203")))
       }

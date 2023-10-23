@@ -977,11 +977,20 @@ override def createMetadata(idCourtCase: Long, personData:  PersonData) : Future
     }
   }
 
-  override def getProfilesFromBatches(courtCase:Long,batches:List[Long], tipo : Int):Future[List[(String,Boolean)]] = Future{
-    DB.withSession { implicit session =>
-      val range = batches.mkString("(",",",")")
-      val queryGetProfilesFromBatches = Q.query[(Int,Long), (String,Boolean)](queryStringGetProfilesFromBatches.replaceAll("RANGO",range))
-      queryGetProfilesFromBatches(tipo,courtCase).list
+  override def getProfilesFromBatches(
+    courtCase:Long,
+    batches:List[Long],
+    tipo: Int
+  ):Future[List[(String,Boolean)]] = Future{
+    DB.withSession {
+      implicit session =>
+        val range = batches.mkString("(",",",")")
+        val sqlRawQuery = queryStringGetProfilesFromBatches
+          .replaceAll("RANGO", range)
+        val queryGetProfilesFromBatches = Q.query[(Int, Long), (String, Boolean)](
+          sqlRawQuery
+        )
+        queryGetProfilesFromBatches(tipo, courtCase).list
     }
   }
 

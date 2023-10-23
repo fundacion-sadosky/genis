@@ -63,6 +63,7 @@ error.E0312= E0312: El rango no pertenece a D-loop(1-576, 16024-16569).
 error.E0313= E0313: La base no corresponde a la posicion : {0}.
 error.E0314= E0314: Posicion {0} no existente.
 error.E0315= E0315: El perfil ya tiene un análisis mitocondrial.
+error.E0316= E0316: El Kit ''{0}'' No existe en la base de datos.
 #
 error.E0400= E0400: No se pueden cambiar los valores {0} por {1}.
 error.E0500= E0500: Error al actualizar la configuración el motivo.

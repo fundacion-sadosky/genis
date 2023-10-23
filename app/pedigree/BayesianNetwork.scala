@@ -247,10 +247,15 @@ object BayesianNetwork {
       queryProfilesFiltered,
       normalizedFrequencyTable
     )
-    val subjectProbabilityLog = evidenceProbabilityLog + genotypeProbabilityLog
-    val lr = math.exp(
-      queryProbabilityLog._1 - subjectProbabilityLog
-    )
+    val lr = if (evidenceProbabilityLog.isEmpty || genotypeProbabilityLog.isEmpty || queryProbabilityLog._1.isEmpty) {
+      0.0
+    } else {
+      val subjectProbabilityLog = evidenceProbabilityLog.get + genotypeProbabilityLog.get
+      math.exp(
+        queryProbabilityLog._1.get - subjectProbabilityLog
+      )
+    }
+
     // Process Error Message
     if (!messageMarkersFitered.isEmpty || !queryProbabilityLog._2.isEmpty) {
       if (!messageMarkersFitered.isEmpty) {
@@ -536,7 +541,7 @@ object BayesianNetwork {
     linkage: Linkage, mutationModelType: Option[Long] = None,
     mutationModelData: Option[List[MutationModelData]] = None,
     n: Map[String, List[Double]] = Map.empty
-  ): (Double, String) = {
+  ): (Option[Double], String) = {
     var cpts = genotypification
     var message = ""
     val unknown = queryProfiles.keys.head
@@ -787,31 +792,31 @@ object BayesianNetwork {
   /**
    * Returns the natural-log-probability of given evidence CPTs.
    *
-   * @param cpts: Array[PlainCPT]
+   * @param cpts : Array[PlainCPT]
    * @return The probabilty of teh Evidence as natural log to avoid precision
-   *         overflow.
+   *         overflow. We use None, when prob is Zero, and cannot compute log(0).
    */
-  def getEvidenceProbabilityLog(cpts: Array[PlainCPT]): Double = {
+  def getEvidenceProbabilityLog(cpts: Array[PlainCPT]): Option[Double] = {
     val sums = cpts
       .map(
         cpt => {
-//          val matrixArray = cpt.matrix.toArray
-//          // Here, We need to 're-fill' the matrix iterator after consuming it
-//          // in the previous line.
-//          cpt.matrix = matrixArray.iterator
+          //          val matrixArray = cpt.matrix.toArray
+          //          // Here, We need to 're-fill' the matrix iterator after consuming it
+          //          // in the previous line.
+          //          cpt.matrix = matrixArray.iterator
           val matrixArray = extractMatrixFromPlainCPT(cpt)
           matrixArray
             .map(_.last)
             .sum
         }
       )
-    val logs_sum = sums
-      // Here all zero values are removed to avoid errors when computing logs.
-      // However, no element should be zero here.
-      .filter(n => n > 0)
-      .map(n => math.log(n))
-      .sum
-    logs_sum
+    val result: Option[Double] = sums.foldLeft(Option(0d))(
+      (acc, n) => acc match {
+        case Some(x) if n > 0 => Some(x + math.log(n))
+        case _ => None
+      }
+    )
+    result
   }
 
   private def extractMatrixFromCPT(cpt: CPT): Array[Array[Double]] = {
@@ -829,8 +834,8 @@ object BayesianNetwork {
   def getGenotypeProbabilityLog(
     queryProfiles: Map[String, Map[Marker, Array[Double]]],
     frequencyTable: FrequencyTable
-  ): Double = {
-    val probs = queryProfiles.head._2.map {
+  ): Option[Double] = {
+    val probs: Iterable[Double] = queryProfiles.head._2.map {
       case (marker, alleles) =>
         if (alleles.length == 1) {
           val frequency = getFrequency(alleles(0), marker, frequencyTable)
@@ -850,10 +855,13 @@ object BayesianNetwork {
           1
         }
     }
-    probs
-      .filter(n => n>0)
-      .map(n => math.log(n))
-      .sum
+    val result: Option[Double] = probs.foldLeft(Option(0d))(
+       (acc, n) => acc match {
+         case Some(x) if (n>0) => Some(x + math.log(n))
+         case _ => None
+        }
+    )
+    result
   }
 
   def getFrequency(
