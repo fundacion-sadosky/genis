@@ -39,9 +39,15 @@ class ProfileTest extends Specification {
         case _ => failure("show")
       }
     }
-    "should fail to contruct  mitochondrial homopolymeric region from string not starting with '-'" in {
+    "should contruct mitochondrial homopolymeric region from string not starting with '-'" in {
       val text: String = "16500.1A"
-      AlleleValue(text) must throwA[IllegalArgumentException]
+      val allele = AlleleValue(text)
+      allele match {
+        case Mitocondrial(base, pos) =>
+          (base must beEqualTo('A')) and
+            (pos must beEqualTo(16500.1)).toResult
+        case _ => failure("show")
+      }
     }
   }
 
