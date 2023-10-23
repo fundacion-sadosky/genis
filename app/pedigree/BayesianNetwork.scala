@@ -834,13 +834,8 @@ object BayesianNetwork {
   def getGenotypeProbabilityLog(
     queryProfiles: Map[String, Map[Marker, Array[Double]]],
     frequencyTable: FrequencyTable
-<<<<<<< HEAD
   ): Option[Double] = {
     val probs: Iterable[Double] = queryProfiles.head._2.map {
-=======
-  ): Double = {
-    val probs = queryProfiles.head._2.map {
->>>>>>> dev
       case (marker, alleles) =>
         if (alleles.length == 1) {
           val frequency = getFrequency(alleles(0), marker, frequencyTable)
