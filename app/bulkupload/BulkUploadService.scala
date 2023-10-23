@@ -172,7 +172,7 @@ class BulkUploadServiceImpl @Inject() (
         }
       )
       .recover {
-       case e: IndexOutOfBoundsException =>
+        case e: IndexOutOfBoundsException =>
           logger.error(Messages("error.E0302"), e)
           Left(Messages("error.E0302"))
         case error: KitNotExistsException =>
