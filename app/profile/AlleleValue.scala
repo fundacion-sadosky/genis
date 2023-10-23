@@ -18,16 +18,14 @@ sealed trait AlleleValue {
 }
 
 object AlleleValue {
-
   val outOfLadderRegEx = """^(\d+)[<|>]$""".r
   val microVariant = """^(\d+)(\.([xX]))?$""".r
   val decimalNumberRegEx = """^(\d+)(\.(\d{1,1}))?$""".r
-//  val sequencedAlleleRegEx = """^((\d+)(\.(\d{1,2}))?)(:(\d+))?$""".r
+  //  val sequencedAlleleRegEx = """^((\d+)(\.(\d{1,2}))?)(:(\d+))?$""".r
   val xyRegEx = """^([XY])$""".r
   val mtDelDnaRegEx = """^([ACGTBDHRYKMSWNV])(\d+)(DEL)$""".r
-  val mtInsDnaRegEx = """^-(\d+.[12])([ACGTBDHRYKMSWNV])$""".r
+  val mtInsDnaRegEx = """^-*(\d+.[12])([ACGTBDHRYKMSWNV])$""".r
   val mtSusDnaRegEx = """^([ACGTBDHRYKMSWNV])(\d+)([ACGTBDHRYKMSWNV])$""".r
-
   //val mtDnaRegExMongo = """^([ACGTURYSWKMBHVN-])@(\d+)$""".r
   val mtDnaRegExMongo = """^([ACGTBDHRYKMSWNV-])@(\d+)$""".r
   val mtInsDnaRegExMongo = """^([ACGTBDHRYKMSWNV])@(\d+.[12])$""".r
@@ -40,14 +38,12 @@ object AlleleValue {
 //      case sequencedAlleleRegEx(count, _, _, _, _, variation) => SequencedAllele(BigDecimal(count), variation.toInt)
       case xyRegEx(xy) => XY(xy.head)
       case mtDelDnaRegEx(_,_,_) => Mitocondrial('-', BigDecimal(text.substring(1,text.size-3)))
-      case mtInsDnaRegEx(base, position) => Mitocondrial(text.charAt(text.size-1), BigDecimal(text.substring(1,text.size-1)))
+      case mtInsDnaRegEx(position, base) => Mitocondrial(base.head, BigDecimal(position))
       case mtSusDnaRegEx(base, position,letra) => Mitocondrial(text.charAt(text.size-1), BigDecimal(text.substring(1,text.size-1)))
       case mtDnaRegExMongo(base, position) => Mitocondrial(base.head, BigDecimal(position))
       case mtInsDnaRegExMongo(base, position) => Mitocondrial(base.head, BigDecimal(position))
-
       case _ => throw new IllegalArgumentException(s"Allele Value Expected, but found '$text'")
     }
-
   }
 
   implicit val alleleReads: Reads[AlleleValue] = new Reads[AlleleValue] {
@@ -63,7 +59,6 @@ object AlleleValue {
         case err: IllegalArgumentException => JsError(err.getMessage)
       }
     }
-
   }
 
   implicit val alleleWrites: Writes[AlleleValue] = new Writes[AlleleValue] {
