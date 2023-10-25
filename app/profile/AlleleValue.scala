@@ -135,6 +135,7 @@ case class Mitocondrial(base: Char, position: BigDecimal) extends AlleleValue {
     } else {
       None
     }
+
     val compareThisBaseToReference = (refBase:String) => {
       refBase
         .length
