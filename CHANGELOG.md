@@ -1,5 +1,26 @@
 # Changelog
 
+## v[5.1.11] - 2023-10-25
+
+_Si está actualizando el sistema por favor lea:  [`UPGRADING.md`](https://github.com/fundacion-sadosky/genis/blob/main/UPGRADING.md)._
+
+### Fixed
+
+- Se mejoró el proceso de instalación en entornos de desarrollo y producción
+  usando contenedores de Docker.
+  ([#53](https://github.com/fundacion-sadosky/genis/issues/53)).
+- Se corrigió un error en el módulo DVI por el cual se generaba un error,
+  cuando se hace la agrupación de resultados.
+  ([#56](https://github.com/fundacion-sadosky/genis/issues/56)).
+- Se corrigió un error en el módulo MPI que producía coincidencias inespecíficas.
+  ([#57](https://github.com/fundacion-sadosky/genis/issues/57)).
+- Se modificó la carga de análisis mitocondriales para que acepte inserciones
+  usando tanto la notación que comienza con un in signo menos ('-'), como la que
+  que no lo requiere.
+  ([#59](https://github.com/fundacion-sadosky/genis/issues/59)).
+
+[v5.1.11]: https://github.com/fundacion-sadosky/genis/releases/tag/v5.1.11
+
 ## [v5.1.10] - 2023-10-05
 
 ### Changed

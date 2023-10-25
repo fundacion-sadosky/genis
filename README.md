@@ -1,4 +1,4 @@
-# GENis 5.1.10
+# GENis 5.1.11
 
 El software GENis es una herramienta informática desarrollada por la [Fundación Dr. Manuel Sadosky](https://www.fundacionsadosky.org.ar) que permite contrastar perfiles genéticos provenientes de muestras biológicas obtenidas en distintas escenas de crimen o de desastres, vinculando así eventos ocurridos en diferente tiempo y lugar, aumentando las probabilidades de individualización de delincuentes, personas desaparecidas o víctimas de siniestros.
 
