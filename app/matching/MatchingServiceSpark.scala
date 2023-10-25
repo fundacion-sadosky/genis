@@ -186,7 +186,7 @@ class MatchingServiceSparkImpl @Inject() (
   }
 
   override def canUploadMatchStatus(matchId: String): Future[Boolean] = {
-    matchingRepo.getByMatchingProfileId(matchId) flatMap { matchResult =>
+    matchingRepo.getByMatchingProfileId(matchId,Some(true)) flatMap { matchResult =>
       Future.successful(this.interconnectionService.isInterconnectionMatch(matchResult.get))
     }
 
