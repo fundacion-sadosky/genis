@@ -8,6 +8,7 @@ define([ 'angular','lodash' ], function(angular,_) {
 		$scope,
 		$routeParams,
 		$modal,
+		$timeout,
 		matcherService,
 		profiledataService,
 		profileService,
@@ -321,7 +322,16 @@ define([ 'angular','lodash' ], function(angular,_) {
 				$scope.matchedepg = encryptedEpgs($scope.matchedProfileId, response.data);
 			});
 		
-		$scope.printReport = function() {window.print();};
+		$scope.printReport = function() {
+			$timeout(function(){
+				var report = window.open('', '_blank');
+				report.document.write('<html>' + '<head></head>' + '<body>' + $scope.profileId + '</body></html>');
+				report.document.close();
+				report.document.title = "Reporte de coincidencias mitocondriales";
+				report.print();
+				// report.close();
+			});
+		};
 		
 		profiledataService.getCategories().then(function(response){
 			$scope.categories = response.data;

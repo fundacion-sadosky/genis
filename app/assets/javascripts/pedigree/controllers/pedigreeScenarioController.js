@@ -1,7 +1,7 @@
 define(['angular', 'jquery'], function(angular, $) {
     'use strict';
 
-    var PedigreeScenarioCtrl = function($scope, alertService, pedigreeService, $modal, $timeout,$window,$routeParams,$location) {
+    var PedigreeScenarioCtrl = function($scope, alertService, pedigreeService, $modal, $timeout, $window,$routeParams,$location) {
 
         var network;
         console.log($routeParams);

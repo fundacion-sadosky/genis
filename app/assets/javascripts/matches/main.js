@@ -14,7 +14,7 @@ angular
 	.service('matchesService', ['playRoutes', 'userService', matchesService])
 	.service('hypothesesService', ['playRoutes', hypothesesService])
 	.controller('matchesController', ['$scope', '$routeParams' , 'matchesService', 'profileDataService', 'alertService','laboratoriesService', 'profileService', 'locusService', 'helper', '$anchorScroll','$timeout',  matchesController])
-	.controller('comparisonController', ['$scope', '$routeParams', '$modal', 'matchesService', 'profileDataService', 'profileService', '$sce', 'statsService', 'alertService', 'cryptoService', 'appConf', 'analysisTypeService', 'locusService','$window', comparisonController])
+	.controller('comparisonController', ['$scope', '$routeParams', '$modal', '$timeout', 'matchesService', 'profileDataService', 'profileService', '$sce', 'statsService', 'alertService', 'cryptoService', 'appConf', 'analysisTypeService', 'locusService','$window', comparisonController])
 	.controller('statsOptionModalController', ['$scope', '$modal', '$modalInstance', 'selectedOptions', 'mix', 'statsService', 'alertService', 'profileData', 'scenarioService',  statsOptionModalController])
 	.directive('pdgProfileDataInfo', [ 'profileDataService', pdgProfileDataInfo])
 	.directive('pdgProfileDataInfoPopover', ['profileDataService', 'matchesService', pdgProfileDataInfoPopover])
