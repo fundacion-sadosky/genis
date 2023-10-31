@@ -185,8 +185,8 @@ class MatchingServiceSparkImpl @Inject() (
 
   }
 
-  override def canUploadMatchStatus(matchId: String): Future[Boolean] = {
-    matchingRepo.getByMatchingProfileId(matchId,Some(true)) flatMap { matchResult =>
+  override def canUploadMatchStatus(matchId: String, isCollapsing:Option[Boolean] = None, isScreening:Option[Boolean] = None): Future[Boolean] = {
+    matchingRepo.getByMatchingProfileId(matchId,isCollapsing, isScreening) flatMap { matchResult =>
       Future.successful(this.interconnectionService.isInterconnectionMatch(matchResult.get))
     }
 
@@ -548,7 +548,7 @@ class MatchingServiceSparkImpl @Inject() (
   override def getMatchesByGroup(search: MatchGroupSearch): Future[Seq[MatchingResult]] = {
      val listMatchingResult = matchingRepo.getMatchesByGroup(search)
      val result =  Future.sequence(listMatchingResult.map( mr => {
-      this.canUploadMatchStatus(mr.oid).map(isInterconection => mr.copy(isInterconnectionMatch = isInterconection))
+      this.canUploadMatchStatus(mr.oid,search.isCollapsing).map(isInterconection => mr.copy(isInterconnectionMatch = isInterconection))
     }))
     result
   }
