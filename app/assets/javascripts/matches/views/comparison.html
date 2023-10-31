@@ -126,7 +126,7 @@
 									}"
 							>
 								{{item.p1.indexOf(allele)}}
-								Alelo: {{allele | mt : item.locus : results.type : analysisTypes}}
+								{{allele | mt : item.locus : results.type : analysisTypes}}
 <!--								{{allele | mt: item.locus: results.type: analysisTypes}}-->
 								<span ng-if="shouldShowMinAlelle(allele,results.allelesRanges[item.locus])">/<{{results.allelesRanges[item.locus].min}}</span>
 								<span ng-if="shouldShowMaxAlelle(allele,results.allelesRanges[item.locus])">/>{{results.allelesRanges[item.locus].max}}</span>
