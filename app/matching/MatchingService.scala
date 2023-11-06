@@ -28,7 +28,7 @@ trait MatchingService {
 
   def uploadStatus(matchId: String, firingCode: SampleCode, isSuperUser: Boolean): Future[String]
 
-  def canUploadMatchStatus(matchId: String): Future[Boolean]
+  def canUploadMatchStatus(matchId: String, isCollapsing:Option[Boolean] = None, isScreening:Option[Boolean] = None): Future[Boolean]
 
   def convertHitOrDiscard(matchId: String, firingCode: SampleCode, isSuperUser: Boolean,action:String): Future[Either[String, Seq[SampleCode]]]
 

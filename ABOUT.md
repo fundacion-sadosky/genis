@@ -1,4 +1,4 @@
-**GENis versión 5.1.10.**  
+**GENis versión 5.1.11.**  
 Sitio oficial: http://www.fundacionsadosky.org.ar/genis/  
 ©2022 Fundación Manuel Sadosky.  
 Licenciado bajo AGPL-3.0, puede encontrarse en  
