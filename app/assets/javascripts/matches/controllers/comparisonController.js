@@ -323,13 +323,95 @@ define([ 'angular','lodash' ], function(angular,_) {
 			});
 		
 		$scope.printReport = function() {
+			var createEmptyReport = function (){
+				var newWindow = window.open('', '_blank');
+				newWindow.document.write('<html><head><title></title></head><body></body></html>');
+				newWindow.document.close();
+				return newWindow;
+			};
+			var setHeadAndBodyStructure = function(doc) {
+				doc.title = "GENIS - Reporte de coincidencias";
+				var $body = $('body', doc);
+				$body.append('<h1 id="reportTitle">Reporte de Coincidencias</h1>');
+				var $title = $('#reportTitle', doc);
+				$body.css("font-family", "Helvetica");
+				$title.css("text-align", "center");
+				$("head", doc).append(
+					'<style>'+
+					'.key{text-align:right; width:35%; font-weight: bold;font-size: small}'+
+					'.val{text-align:right; width:65%;}'+
+					'.rowSmall{font-size: x-small;}'+
+					'#summary{width:100%;}'+
+					'#summTitle{text-align:center;}'+
+					'</style>'
+				);
+				$body.append('<table id="summary">');
+			};
+			var addSummaryTitle = function(doc, text) {
+				var summ = $('#summary', doc);
+				summ.before('<div id="summTitle"><h2>'+text+'</h2></div>');
+			};
+			var addSummaryRowGeneric = function(
+				doc,
+				keyColText,
+				valueColText,
+				keyClasses,
+				valClasses
+			) {
+				if (valueColText === undefined || valueColText === null) {
+					return;
+				}
+				var summ = $('#summary', doc);
+				summ.append('<tr>');
+				$('#summary tr:last', doc)
+					.append('<td class="'+keyClasses+'"><div>'+keyColText+':</div></td>');
+				$('#summary tr:last', doc)
+					.append('<td class="'+valClasses+'"><div>'+valueColText+'</div></td>');
+			};
+			var addSummarySpacerRow = function(doc) {
+				var summ = $('#summary', doc);
+				summ.append('<tr>');
+				$('#summary tr:last', doc)
+					.append('<td class="key rowSmall"><div> </div></td>');
+				$('#summary tr:last', doc)
+					.append('<td class="val rowSmall"><div> </div></td>');
+			};
+			var addSummaryRow = function(doc, keyColText, valueColText) {
+				addSummaryRowGeneric(doc, keyColText, valueColText, "key", "val");
+			};
+			var addSummaryRowSmall = function(doc, keyColText, valueColText) {
+				addSummaryRowGeneric(
+					doc, keyColText, valueColText, "key rowSmall", "val rowSmall"
+				);
+			};
 			$timeout(function(){
-				var report = window.open('', '_blank');
-				report.document.write('<html>' + '<head></head>' + '<body>' + $scope.profileId + '</body></html>');
-				report.document.close();
-				report.document.title = "Reporte de coincidencias mitocondriales";
-				report.print();
-				// report.close();
+				var report = createEmptyReport();
+				$(report.document).ready(
+					function() {
+						setHeadAndBodyStructure(report.document);
+						addSummaryTitle(report.document, "Resumen de perfiles!!!");
+						addSummaryRow(report.document, "Codigo Genis", $scope.profileId);
+						addSummaryRow(report.document, "Categoria", $scope.profileData.internalSampleCode);
+						addSummaryRowSmall(report.document, "Gen. Asignado", $scope.profileData.assignee);
+						addSummaryRowSmall(report.document, "Gen. Responsable", $scope.profileData.responsibleGeneticist);
+						addSummaryRowSmall(report.document, "Fecha de caducidad del perfil", $scope.profileData.profileExpirationDate);
+						addSummaryRowSmall(report.document, "Laboratory", $scope.profileData.laboratory);
+						addSummaryRowSmall(report.document, "Tipo De Muestra Biologica", $scope.profileData.bioMaterialType);
+						addSummaryRowSmall(report.document, "Fecha De Ingreso", $scope.profileData.sampleEntryDate);
+						addSummaryRowSmall(report.document, "Fecha Toma de Muestra", $scope.profileData.sampleDate);
+						addSummarySpacerRow(report.document);
+						addSummaryRow(report.document, "Codigo Genis", "ASDASDASD");
+						addSummaryRow(report.document, "Categoria", "ASDASDASD");
+						addSummaryRowSmall(report.document, "Gen. Asignado", $scope.profileData.assignee);
+						addSummaryRowSmall(report.document, "Gen. Responsable", $scope.profileData.responsibleGeneticist);
+						addSummaryRowSmall(report.document, "Fecha de caducidad del perfil", $scope.profileData.profileExpirationDate);
+						addSummaryRowSmall(report.document, "Laboratory", $scope.profileData.laboratory);
+						addSummaryRowSmall(report.document, "Tipo De Muestra Biologica", $scope.profileData.bioMaterialType);
+						addSummaryRowSmall(report.document, "Fecha De Ingreso", $scope.profileData.sampleEntryDate);
+						addSummaryRowSmall(report.document, "Fecha Toma de Muestra", $scope.profileData.sampleDate);
+					// newWindow.print();
+					// newWindow.close();
+				});
 			});
 		};
 		
