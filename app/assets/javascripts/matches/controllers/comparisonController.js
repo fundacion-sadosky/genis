@@ -9,6 +9,7 @@ define([ 'angular','lodash' ], function(angular,_) {
 		$routeParams,
 		$modal,
 		$timeout,
+		$filter,
 		matcherService,
 		profiledataService,
 		profileService,
@@ -323,6 +324,7 @@ define([ 'angular','lodash' ], function(angular,_) {
 			});
 		
 		$scope.printReport = function() {
+			var rowBackground = true;
 			var createEmptyReport = function (){
 				var newWindow = window.open('', '_blank');
 				newWindow.document.write('<html><head><title></title></head><body></body></html>');
@@ -338,18 +340,27 @@ define([ 'angular','lodash' ], function(angular,_) {
 				$title.css("text-align", "center");
 				$("head", doc).append(
 					'<style>'+
-					'.key{text-align:right; width:35%; font-weight: bold;font-size: small}'+
+					'.key{text-align:right; width:35%; font-weight: bold; font-size: small}'+
 					'.val{text-align:right; width:65%;}'+
 					'.rowSmall{font-size: x-small;}'+
+					'.lbg{background-color: #f0f0f0;}'+
+					'.dbg{background-color: #F5F5F5;}'+
 					'#summary{width:100%;}'+
-					'#summTitle{text-align:center;}'+
+					'.summTitle{' +
+					'  text-align:right;' +
+					'  font-weight: bold;' +
+					'  border-bottom-style: solid;' +
+					'  border-bottom-color: silver;' +
+					'  border-bottom-width: 2px;}'+
 					'</style>'
 				);
 				$body.append('<table id="summary">');
 			};
 			var addSummaryTitle = function(doc, text) {
 				var summ = $('#summary', doc);
-				summ.before('<div id="summTitle"><h2>'+text+'</h2></div>');
+				summ.append('<tr>');
+				$('#summary tr:last', doc)
+					.append('<td class="summTitle" colspan="2"><div>'+text+'</div></td>');
 			};
 			var addSummaryRowGeneric = function(
 				doc,
@@ -359,6 +370,7 @@ define([ 'angular','lodash' ], function(angular,_) {
 				valClasses
 			) {
 				if (valueColText === undefined || valueColText === null) {
+					rowBackground = !rowBackground;
 					return;
 				}
 				var summ = $('#summary', doc);
@@ -377,11 +389,15 @@ define([ 'angular','lodash' ], function(angular,_) {
 					.append('<td class="val rowSmall"><div> </div></td>');
 			};
 			var addSummaryRow = function(doc, keyColText, valueColText) {
-				addSummaryRowGeneric(doc, keyColText, valueColText, "key", "val");
+				var bgClass = rowBackground ? "lbg" : "dbg";
+				rowBackground = !rowBackground;
+				addSummaryRowGeneric(doc, keyColText, valueColText, "key " + bgClass, "val " + bgClass);
 			};
 			var addSummaryRowSmall = function(doc, keyColText, valueColText) {
+				var bgClass = rowBackground ? "lbg" : "dbg";
+				rowBackground = !rowBackground;
 				addSummaryRowGeneric(
-					doc, keyColText, valueColText, "key rowSmall", "val rowSmall"
+					doc, keyColText, valueColText, "key rowSmall "+ bgClass, "val rowSmall " + bgClass
 				);
 			};
 			$timeout(function(){
@@ -389,19 +405,27 @@ define([ 'angular','lodash' ], function(angular,_) {
 				$(report.document).ready(
 					function() {
 						setHeadAndBodyStructure(report.document);
-						addSummaryTitle(report.document, "Resumen de perfiles!!!");
-						addSummaryRow(report.document, "Codigo Genis", $scope.profileId);
-						addSummaryRow(report.document, "Categoria", $scope.profileData.internalSampleCode);
-						addSummaryRowSmall(report.document, "Gen. Asignado", $scope.profileData.assignee);
-						addSummaryRowSmall(report.document, "Gen. Responsable", $scope.profileData.responsibleGeneticist);
-						addSummaryRowSmall(report.document, "Fecha de caducidad del perfil", $scope.profileData.profileExpirationDate);
-						addSummaryRowSmall(report.document, "Laboratory", $scope.profileData.laboratory);
-						addSummaryRowSmall(report.document, "Tipo De Muestra Biologica", $scope.profileData.bioMaterialType);
-						addSummaryRowSmall(report.document, "Fecha De Ingreso", $scope.profileData.sampleEntryDate);
-						addSummaryRowSmall(report.document, "Fecha Toma de Muestra", $scope.profileData.sampleDate);
+						addSummaryTitle(report.document, "Resumen de perfiles");
 						addSummarySpacerRow(report.document);
-						addSummaryRow(report.document, "Codigo Genis", "ASDASDASD");
-						addSummaryRow(report.document, "Categoria", "ASDASDASD");
+						addSummaryRow(report.document, "Codigo Genis", $scope.profileId);
+						addSummaryRow(report.document, "Codigo Laboratorio", $scope.profileData.internalSampleCode);
+						addSummaryRow(report.document, "Categoria", $scope.getSubcatName($scope.profileData.category));
+						addSummaryRowSmall(report.document, "Gen. Asignado", $scope.profileData.assignee);
+						addSummaryRowSmall(report.document, "Gen. Responsable", $scope.profileData.responsibleGeneticist);
+						addSummaryRowSmall(report.document, "Fecha de caducidad del perfil", $scope.profileData.profileExpirationDate);
+						addSummaryRowSmall(report.document, "Laboratorio", $scope.profileData.laboratory);
+						addSummaryRowSmall(report.document, "Tipo De Muestra Biologica", $scope.profileData.bioMaterialType);
+						addSummaryRowSmall(report.document, "Fecha De Ingreso", $scope.profileData.sampleEntryDate);
+						addSummaryRowSmall(report.document, "Fecha Toma de Muestra", $scope.profileData.sampleDate);
+						addSummaryRowSmall(
+							report.document,
+							"Estado",
+							$filter('translatematchstatus')($scope.results.status[$scope.profileId].toUpperCase())
+						);
+						addSummarySpacerRow(report.document);
+						addSummaryRow(report.document, "Codigo Genis", $scope.matchedProfileId);
+						addSummaryRow(report.document, "Codigo Laboratorio", $scope.matchedProfileData.internalSampleCode);
+						addSummaryRow(report.document, "Categoria", $scope.getSubcatName($scope.matchedProfileData.category));
 						addSummaryRowSmall(report.document, "Gen. Asignado", $scope.profileData.assignee);
 						addSummaryRowSmall(report.document, "Gen. Responsable", $scope.profileData.responsibleGeneticist);
 						addSummaryRowSmall(report.document, "Fecha de caducidad del perfil", $scope.profileData.profileExpirationDate);
@@ -409,8 +433,50 @@ define([ 'angular','lodash' ], function(angular,_) {
 						addSummaryRowSmall(report.document, "Tipo De Muestra Biologica", $scope.profileData.bioMaterialType);
 						addSummaryRowSmall(report.document, "Fecha De Ingreso", $scope.profileData.sampleEntryDate);
 						addSummaryRowSmall(report.document, "Fecha Toma de Muestra", $scope.profileData.sampleDate);
-					// newWindow.print();
-					// newWindow.close();
+						addSummaryRowSmall(
+							report.document,
+							"Estado",
+							$filter('translatematchstatus')($scope.results.status[$scope.matchedProfileId].toUpperCase())
+						);
+						if ($scope.showCalculation) {
+							addSummarySpacerRow(report.document);
+							addSummaryTitle(report.document, "Estadística");
+							addSummarySpacerRow(report.document);
+							addSummaryRow(
+								report.document,
+								"LR",
+								$filter('likelihoodratioComp')($scope.pvalue, true, $scope.statsResolved)
+							);
+							var selOpt = $scope.selectedOptions;
+							addSummaryRowSmall(
+								report.document,
+								"Base de datos de frecuencia",
+								(selOpt.frequencyTable)? selOpt.frequencyTable: '-'
+							);
+							addSummaryRowSmall(
+								report.document,
+								"Modelo estadístico",
+								(selOpt.probabilityModel)? selOpt.probabilityModel: '-'
+							);
+							addSummaryRowSmall(
+								report.document,
+								"Valor &Theta;",
+								(selOpt.theta)? selOpt.theta: '-'
+							);
+							addSummaryRowSmall(
+								report.document,
+								"Estrictez",
+								$scope.stringency[$scope.results.stringency].text
+							);
+							var alleles = $scope.results.reducedStringencies.values()[0];
+							addSummaryRowSmall(
+								report.document,
+								"Alelos",
+								alleles + ' / ' + $scope.results.totalAlleles
+							);
+						}
+						// newWindow.print();
+						// newWindow.close();
 				});
 			});
 		};
@@ -438,10 +504,9 @@ define([ 'angular','lodash' ], function(angular,_) {
 			var statHeader = '<div class="form-group"><label>lblTitle:</label> ';
 			var statFooter = '</div>';
 			var selOpt = $scope.selectedOptions;
-			
-			return statHeader.replace('lblTitle', 'Base de datos de frecuencia') + 
+			return statHeader.replace('lblTitle', 'Base de datos de frecuencia') +
 				((selOpt.frequencyTable)? selOpt.frequencyTable: '')  + statFooter + 
-				statHeader.replace('lblTitle', 'Modelo estadístico') + 
+				statHeader.replace('lblTitle', 'Modelo estadístico') +
 				((selOpt.probabilityModel)? selOpt.probabilityModel: '') + statFooter + 
 				statHeader.replace('lblTitle', '&Theta;') + 
 				((selOpt.theta)? selOpt.theta: '') + statFooter;
