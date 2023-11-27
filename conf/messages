@@ -46,7 +46,6 @@ error.E0208= E0208: El perfil {0} está asociado a pedigris activos o en constru
 error.E0209= E0209: Los perfiles {0} tienen coincidencias pendientes.
 error.E0210= E0210: El perfil {0} tiene coincidencias pendientes.
 error.E0211= E0211: El caso contiene pedigris activos.
-error.E0212= E0212: El pédigri {0} no tiene personas desaparecidas/desconocidas. Configurando el pédigri en modo construcción para poder modificarlo.
 
 #Carga Masiva
 error.E0301= E0301: Error importando el lote.
