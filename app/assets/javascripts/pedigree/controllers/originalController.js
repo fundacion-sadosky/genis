@@ -156,39 +156,46 @@ var OriginalCtrl = function($scope, pedigreeService, $log, $routeParams, $modal,
     };
 
 	$scope.save = function() {
-        $scope.pedigree.assignee = $scope.courtcase.assignee;
-        $scope.pedigreeMetadata.assignee = $scope.courtcase.assignee;
-        $scope.pedigreeMetadata.name = $scope.$parent.pedigreeName;
-        $scope.pedigreeData = {};
-        $scope.pedigreeData.pedigreeMetaData = $scope.pedigreeMetadata;
-        $scope.pedigree.caseType = $scope.courtcase.caseType;
-        $scope.pedigree.idCourtCase = $scope.courtcaseId;
-        $scope.pedigreeData.pedigreeGenogram = $scope.pedigree;
-        $scope.pedigreeMetadata.courtCaseName = $scope.courtcase.internalSampleCode;
-        if(!_.isUndefined($scope.copiedFrom)){
-            $scope.pedigreeData.copiedFrom = $scope.copiedFrom;
-            $scope.copiedFrom = undefined;
-        }
-        pedigreeService.createCompletePedigree($scope.pedigreeData).then(function(response) {
-            $scope.guardo = true;
-            if (response.data !== Number($scope.pedigreeId)) {
+    var number_of_unknowns = $scope.pedigree.genogram
+      .filter(function(p) {return p.unknown;})
+      .length;
+    if (number_of_unknowns != 1) {
+      alertService.error({message: 'El pedigrí debe tener una persona desconocida/desaparecida.'});
+      return;
+    }
+    $scope.pedigree.assignee = $scope.courtcase.assignee;
+    $scope.pedigreeMetadata.assignee = $scope.courtcase.assignee;
+    $scope.pedigreeMetadata.name = $scope.$parent.pedigreeName;
+    $scope.pedigreeData = {};
+    $scope.pedigreeData.pedigreeMetaData = $scope.pedigreeMetadata;
+    $scope.pedigree.caseType = $scope.courtcase.caseType;
+    $scope.pedigree.idCourtCase = $scope.courtcaseId;
+    $scope.pedigreeData.pedigreeGenogram = $scope.pedigree;
+    $scope.pedigreeMetadata.courtCaseName = $scope.courtcase.internalSampleCode;
+    if(!_.isUndefined($scope.copiedFrom)){
+      $scope.pedigreeData.copiedFrom = $scope.copiedFrom;
+      $scope.copiedFrom = undefined;
+    }
+    pedigreeService
+      .createCompletePedigree($scope.pedigreeData)
+      .then(function(response) {
+          $scope.guardo = true;
+          if (response.data !== Number($scope.pedigreeId)) {
 
-                $scope.pedigreeId = response.data;
-                $scope.pedigree._id = $scope.pedigreeId;
-                $routeParams.pedigreeId = "" + $scope.pedigreeId;
-                $route.updateParams({
-                    pedigreeId: $routeParams.pedigreeId
-                });
-                $route.reload();
-            }
-            alertService.success({message: 'La operación se ha realizado éxitosamente'});
-
+            $scope.pedigreeId = response.data;
+            $scope.pedigree._id = $scope.pedigreeId;
+            $routeParams.pedigreeId = "" + $scope.pedigreeId;
+            $route.updateParams({
+               pedigreeId: $routeParams.pedigreeId
+            });
+            $route.reload();
+          }
+          alertService.success({message: 'La operación se ha realizado éxitosamente'});
         }, function(response){
-            alertService.error({message: 'Ha ocurrido un error ' + (response.data ? response.data : response)});
-            return;
+          alertService.error({message: 'Ha ocurrido un error ' + (response.data ? response.data : response)});
+          return;
         });
-
-    };
+  };
 	
 	$scope.rAlias = new RegExp(/^[a-zA-Z0-9\-]{1,15}$/);
 	$scope.isNodeValid = function(node) {
