@@ -2,67 +2,33 @@ package pedigree
 
 import javax.inject.{Inject, Singleton}
 import akka.actor.{ActorRef, ActorSystem}
-import connections.SendRequestActor
 import kits.AnalysisType
-import pedigree.BayesianNetwork.{FrequencyTable, Linkage}
+import pedigree.BayesianNetwork.Linkage
 import probability.CalculationTypeService
 import profile.{Profile, ProfileRepository}
 import play.api.i18n.Messages
-import types.SampleCode
-import java.security.SecureRandom
-
-import matching._
-import java.util.{Calendar, Date}
-
-import javax.inject.{Inject, Named, Singleton}
 import akka.pattern.ask
-import org.apache.commons.codec.binary.Base64
-import akka.actor.{ActorRef, ActorSystem}
+import akka.dispatch.MessageDispatcher
 import akka.util.Timeout
-import audit.PEOSignerActor
-import connections.ProfileTransfer
-
-import scala.concurrent.Await
-import models.Tables.ExternalProfileDataRow
-import configdata.{CategoryConfiguration, CategoryRepository, CategoryService}
-import inbox._
-import kits.AnalysisType
 import play.api.Logger
-import play.api.libs.json.{JsValue, Json}
-import play.api.libs.ws.{WSBody, _}
-import profile.{Profile, ProfileService}
-import profiledata.{DeletedMotive, ProfileData, ProfileDataService}
-import types.{AlphanumericId, Permission, SampleCode}
-import user.{RoleService, UserService}
-import connections.MatchSuperiorInstance
-import util.FutureUtils
-
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.async.Async.{async, await}
-import play.api.i18n.Messages
-
-import scala.concurrent.duration.{Duration, FiniteDuration, SECONDS}
-import scala.util.Try
-import inbox.DiscardInfoInbox
-import inbox.HitInfoInbox
-import inbox.DeleteProfileInfo
-import trace.{MatchInfo, MatchTypeInfo, Trace, TraceService}
-
-import scala.collection.mutable
-import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
+import scala.concurrent.duration.{Duration, FiniteDuration}
 
 trait PedigreeGenotypificationService {
   def generateGenotypificationAndFindMatches(pedigreeId: Long): Future[Either[String, Long]]
 
-  def saveGenotypification(pedigree: PedigreeGenogram, profiles: Array[Profile],
-                           frequencyTable: BayesianNetwork.FrequencyTable, analysisType: AnalysisType, linkage: Linkage,
-                           mutationModel: Option[MutationModel]): Future[Either[String, Long]]
+  def saveGenotypification(
+    pedigree: PedigreeGenogram,
+    profiles: Array[Profile],
+    frequencyTable: BayesianNetwork.FrequencyTable,
+    analysisType: AnalysisType,
+    linkage: Linkage,
+    mutationModel: Option[MutationModel]
+  ): Future[Either[String, Long]]
 
-  def calculateProbability(c:CalculateProbabilityScenarioPed):Double
+  def calculateProbability(c: CalculateProbabilityScenarioPed): Double
 
-  def calculateProbabilityActor(calculateProbabilityScenarioPed:CalculateProbabilityScenarioPed):Future[Double]
+  def calculateProbabilityActor(calculateProbabilityScenarioPed: CalculateProbabilityScenarioPed): Future[Double]
 }
 
 @Singleton
@@ -74,15 +40,16 @@ class PedigreeGenotypificationServiceImpl @Inject()(
   pedigreeGenotypificationRepository: PedigreeGenotypificationRepository,
   pedigreeSparkMatcher: PedigreeSparkMatcher,
   pedigreeRepository: PedigreeRepository,
-  mutationService: MutationService = null,
-  mutationRepository: MutationRepository = null
+  mutationService: MutationService,
+  mutationRepository: MutationRepository,
+  pedigreeDataRepository: PedigreeDataRepository
 ) extends PedigreeGenotypificationService {
 
-  val logger = Logger(this.getClass())
-  implicit val executionContext = akkaSystem
+  val logger: Logger = Logger(this.getClass)
+  implicit val executionContext: MessageDispatcher = akkaSystem
     .dispatchers
     .lookup("play.akka.actor.pedigree-context")
-  val bayesianGenotypificationActor: ActorRef = akkaSystem
+  private val bayesianGenotypificationActor: ActorRef = akkaSystem
     .actorOf(
       BayesianGenotypificationActor
         .props(this)
@@ -134,9 +101,9 @@ class PedigreeGenotypificationServiceImpl @Inject()(
               Left(err.getMessage)
           }
           result.foreach {
-            case Right(id) => pedigreeSparkMatcher
+            case Right(_) => pedigreeSparkMatcher
               .findMatchesInBackGround(pedigreeId)
-            case Left(error) => ()
+            case Left(_) => ()
           }
           result
         }
@@ -156,16 +123,12 @@ class PedigreeGenotypificationServiceImpl @Inject()(
       .generateN(
         profiles,
         mutationModel
-      ).flatMap(
+      )
+      .flatMap(
         result => {
           if(result.isRight) {
             val markers = profileRepository.
               getProfilesMarkers(profiles)
-//            markers.foreach(
-//              marker => {
-//                logger.info(s"Marker: ${marker}")
-//              }
-//            )
             val unknowns = pedigree
               .genogram
               .filter(_.unknown)
@@ -212,7 +175,6 @@ class PedigreeGenotypificationServiceImpl @Inject()(
                                   pedigree.frequencyTable.get,
                                   unknowns
                                 )
-
                               logger.info("--- SAVE GENO END / Main branch ---")
                               pedigreeGenotypificationRepository
                                 .upsertGenotypification(
@@ -224,6 +186,34 @@ class PedigreeGenotypificationServiceImpl @Inject()(
                     )
                 }
               )
+              .recoverWith {
+                case err =>
+                  pedigreeRepository
+                    .changeStatus(pedigree.idCourtCase, PedigreeStatus.UnderConstruction)
+                  pedigreeDataRepository
+                    .getCourtCase(pedigree.idCourtCase)
+                    .map {
+                      case None => "[unknown]"
+                      case Some(x) => x.internalSampleCode
+                    }
+                    .map {
+                      caseId =>
+                        err match {
+                          case _: PedigreeNotHavingUnknownException =>
+                            Messages("error.E0212", caseId)
+                          case e: Exception =>
+                            s"""Se encontró una excepción mientras se procesaba
+                            |un pédigri del caso $caseId: ${e.getMessage}"""
+                              .stripMargin
+                              .replaceAll("\n", "")
+                        }
+                    }
+                    .map {
+                      msg =>
+                        logger.error(msg)
+                        Left(msg)
+                    }
+              }
           } else {
             logger.info("--- SAVE GENO END / Secondary branch ---")
             Future.successful(Left(result.left.get))
@@ -231,7 +221,8 @@ class PedigreeGenotypificationServiceImpl @Inject()(
       }
     )
   }
-  def saveGenotypificationActor(
+
+  private def saveGenotypificationActor(
     pedigree: PedigreeGenogram,
     profiles: Array[Profile],
     frequencyTable: BayesianNetwork.FrequencyTable,
@@ -255,6 +246,7 @@ class PedigreeGenotypificationServiceImpl @Inject()(
       .mapTo[Either[String, Long]]
     result
   }
+
   override def calculateProbability(
     c:CalculateProbabilityScenarioPed
   ):Double = {
@@ -279,7 +271,7 @@ class PedigreeGenotypificationServiceImpl @Inject()(
   override def calculateProbabilityActor(
     calculateProbabilityScenarioPed:CalculateProbabilityScenarioPed
   ):Future[Double] = {
-    implicit val timeout = akka.util
+    implicit val timeout: Timeout = akka.util
       .Timeout(Some(Duration("30 days"))
       .collect { case d: FiniteDuration => d }.get)
     val result = (
@@ -290,4 +282,3 @@ class PedigreeGenotypificationServiceImpl @Inject()(
     result
   }
 }
-
