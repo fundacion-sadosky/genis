@@ -16,6 +16,7 @@ import play.api.i18n.Messages
 abstract class RoleService {
   def getRolePermissions(): Map[String, Set[Permission]]
   def getRoles(): Future[Seq[Role]]
+  def getRolesForSignUp(): Future[Seq[Role]]
   def addRole(role: Role): Future[Boolean]
   def updateRole(role: Role): Future[Boolean]
   def deleteRole(id: String): Future[Either[String, Boolean]]
