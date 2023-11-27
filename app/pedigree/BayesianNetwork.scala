@@ -467,10 +467,7 @@ object BayesianNetwork {
 //    if (verbose){
 //      logger.info(s"--- Cant subgraphs: ${subgraphs.length} ---")
 //    }
-    val unknown: String = genogram.find(_.unknown) match {
-      case None => throw new PedigreeNotHavingUnknownException()
-      case Some(x) => x.alias.text
-    }
+    val unknown = genogram.filter(_.unknown).head.alias.text
     var cont = 0
 
     val geno = subgraphs

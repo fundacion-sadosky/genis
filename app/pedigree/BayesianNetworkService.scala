@@ -2,7 +2,6 @@ package pedigree
 
 import javax.inject.{Inject, Singleton}
 import akka.actor.ActorSystem
-import akka.dispatch.MessageDispatcher
 import inbox.{NotificationService, PedigreeLRInfo}
 import kits.{AnalysisType, LocusService}
 import matching.{AleleRange, NewMatchingResult}
@@ -49,7 +48,7 @@ class BayesianNetworkServiceImpl @Inject() (
    userService: UserService = null
 ) extends BayesianNetworkService {
 
-  implicit val executionContext: MessageDispatcher = akkaSystem
+  implicit val executionContext = akkaSystem
     .dispatchers
     .lookup("play.akka.actor.pedigree-context")
   // con este nombre se configura en el application.conf
@@ -61,7 +60,7 @@ class BayesianNetworkServiceImpl @Inject() (
     val lrFuture = (
       for {
         _ <- pedigreeScenarioService.updateScenario(
-          getScenarioWithProcessing(scenario, processing = true)
+          getScenarioWithProcessing(scenario, true)
         )
         profiles <- profileRepository.findByCodes(codes)
         analysisType <- calculationTypeService
@@ -100,7 +99,7 @@ class BayesianNetworkServiceImpl @Inject() (
               frequencyTable._2,
               analysisType,
               linkage,
-              verbose = false,
+              false,
               mutationModelType,
               mutationModelData,
               n,
@@ -146,7 +145,7 @@ class BayesianNetworkServiceImpl @Inject() (
         .updateScenario(
           getScenarioWithProcessing(
             scenario,
-            processing = false
+            false
           )
         )
     }
@@ -191,7 +190,7 @@ class BayesianNetworkServiceImpl @Inject() (
           analysisType,
           linkage,
           None,
-          verbose = true,
+          true,
           locusService.locusRangeMap(),
           mutationModelType,
           mutationModelData,
@@ -200,12 +199,11 @@ class BayesianNetworkServiceImpl @Inject() (
     }
   }
 
-//  def createGenotypification(
-//    genogram: Seq[Individual],
-//    frequencyTable: String
-//  ): Future[Map[Nothing, Nothing]] = {
-//    Future.successful(Map.empty)
-//  }
+  private def createGenotypification(genogram: Seq[Individual],
+    frequencyTable: String
+  ) = {
+    Future.successful(Map.empty)
+  }
 
   override def getFrequencyTable(name: String):
     Future[(String, FrequencyTable)] = {
