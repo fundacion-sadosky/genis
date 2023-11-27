@@ -35,14 +35,19 @@ class BayesianGenotypificationActor(pedigreeGenotypificationService: PedigreeGen
 
   private val logger = Logger(this.getClass)
 
-  def receive = {
-    case (saveGenotypification:SaveGenotypification)=> {
-      val result = Await.result(pedigreeGenotypificationService.saveGenotypification(saveGenotypification.pedigree,
-        saveGenotypification.profiles,
-        saveGenotypification.frequencyTable,
-        saveGenotypification.analysisType,
-        saveGenotypification.linkage,
-        saveGenotypification.mutationModel),Duration.Inf)
+  def receive: Receive = {
+    case saveGenotypification:SaveGenotypification => {
+      val result = Await.result(
+        pedigreeGenotypificationService.saveGenotypification(
+          saveGenotypification.pedigree,
+          saveGenotypification.profiles,
+          saveGenotypification.frequencyTable,
+          saveGenotypification.analysisType,
+          saveGenotypification.linkage,
+          saveGenotypification.mutationModel
+        ),
+        Duration.Inf
+      )
       sender ! result
     }
     case (calculateProbabilityScenarioPed:CalculateProbabilityScenarioPed)=> {

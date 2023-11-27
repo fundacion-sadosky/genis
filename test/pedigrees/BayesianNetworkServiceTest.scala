@@ -37,7 +37,17 @@ class BayesianNetworkServiceTest extends PdgSpec with MockitoSugar {
   val mutationService = mock[MutationService]
   val locusService = mock[LocusService]
   val mutationRepository = mock[MutationRepository]
-  val pedigreeGenotypificationService = new PedigreeGenotypificationServiceImpl(Akka.system,null,null,null,null,null,null,null,null)
+  val pedigreeGenotypificationService = new PedigreeGenotypificationServiceImpl(
+    Akka.system,
+    null,
+    null,
+    null,null,
+    null,
+    null,
+    null,
+    null,
+    null
+  )
   val possibleLocus : Map[String,List[Double]] = Map.empty
   when(mutationService.getAllPossibleAllelesByLocus()).thenReturn(Future.successful(possibleLocus))
   when(mutationService.getMutationModelData(any[Option[MutationModel]],any[List[String]])).thenReturn(Future.successful(None))
