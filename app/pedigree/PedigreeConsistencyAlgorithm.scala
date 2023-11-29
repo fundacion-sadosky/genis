@@ -77,7 +77,7 @@ object PedigreeConsistencyAlgorithm {
         Future.successful(result)
       }
     })
-
+    
   }
 
   private def generateCombinations(profiles: Array[Profile], genogram: Array[Individual], marker: Marker) = {
@@ -87,40 +87,50 @@ object PedigreeConsistencyAlgorithm {
     }).toList
   }
 
-  def langeGoradia(profiles: Array[Profile], genogram: Array[Individual], marker : Profile.Marker): Future[(Profile.Marker,List[NodeAlias])] ={
+  def langeGoradia(
+    profiles: Array[Profile],
+    genogram: Array[Individual],
+    marker : Profile.Marker
+  ): Future[(Profile.Marker, List[NodeAlias])] ={
 
-    val pedIndividuals = genogram filter { i => !i.unknown}
-
+    val pedIndividuals = genogram filter { i => !i.unknown }
     val pedAlleles: Array[Double]  = getPedAlleles(profiles, genogram, marker)
 
     //posibles genotipos a partir de los alelos del pedigree
-    val gtypes = getPosiblesGenotypes(pedIndividuals, pedAlleles, profiles, marker) //individuos con sus posibles genotipos
+    val gtypes = getPosiblesGenotypes(
+      pedIndividuals,
+      pedAlleles,
+      profiles,
+      marker
+    ) //individuos con sus posibles genotipos
 
-    val subNucs : mutable.Map[(Option[NodeAlias], Option[NodeAlias]), Array[NodeAlias]] = getSubnuclearFamilies(genogram)
+    val subNucs: mutable.Map[(Option[NodeAlias], Option[NodeAlias]), Array[NodeAlias]] = getSubnuclearFamilies(genogram)
     val parent = subNucs.keys
 
     var parentsToOrder :Array[((Option[NodeAlias], Option[NodeAlias]), Double)] = Array()
 
-    //ordenar familias subnucleares
-    parent.foreach(couple => {
-      var infoFather, infoMother : Double = 0.0
-      if (couple._1.nonEmpty)
-        infoFather = 1.0 / (gtypes(couple._1.get.text).length)
-
-      if (couple._2.nonEmpty)
-        infoMother = 1.0 / (gtypes(couple._2.get.text).length)
-
-      val infoParents : Double = infoFather + infoMother
-
-      val children = subNucs(couple)
-      var infoChildren : Double = 0.0
-      children.foreach(child => {
-        infoChildren += 1.0 / (gtypes(child.text).length)
-      })
-
-      val order : Double = 2.0 * infoParents + infoChildren
-      parentsToOrder = parentsToOrder.+:(couple, order)
-    })
+    // Ordenar familias subnucleares
+    parent.foreach(
+      couple => {
+        var infoFather, infoMother : Double = 0.0
+        if (couple._1.nonEmpty) {
+          infoFather = 1.0 / gtypes(couple._1.get.text).length
+        }
+        if (couple._2.nonEmpty) {
+          infoMother = 1.0 / gtypes(couple._2.get.text).length
+        }
+        val infoParents : Double = infoFather + infoMother
+        val children = subNucs(couple)
+        var infoChildren : Double = 0.0
+        children.foreach(
+          child => {
+            infoChildren += 1.0 / gtypes(child.text).length
+          }
+        )
+        val order : Double = 2.0 * infoParents + infoChildren
+        parentsToOrder = parentsToOrder.+:(couple, order)
+      }
+    )
 
     parentsToOrder = parentsToOrder.sortBy(_._2)
 
@@ -309,7 +319,11 @@ object PedigreeConsistencyAlgorithm {
     }
   }
 
-  def getPosiblesGenotypes(pedIndividual: Array[Individual], pedAlleles: Array[Double], profiles: Array[Profile],  marker : Profile.Marker)
+  def getPosiblesGenotypes(
+    pedIndividual: Array[Individual],
+    pedAlleles: Array[Double],
+    profiles: Array[Profile],
+    marker : Profile.Marker)
     : mutable.Map[String, Array[(Double, Double)]] = {
 
    val genotypes = pedIndividual map { individual =>
