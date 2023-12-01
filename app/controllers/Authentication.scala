@@ -1,24 +1,16 @@
 package controllers
 
 import java.util.Date
-
 import scala.concurrent.Future
-
 import javax.inject.Inject
 import javax.inject.Singleton
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.functional.syntax.functionalCanBuildApplicative
 import play.api.libs.functional.syntax.toFunctionalBuilderOps
 import play.api.libs.functional.syntax.unlift
-import play.api.libs.json.Format
-import play.api.libs.json.JsError
-import play.api.libs.json.JsPath
-import play.api.libs.json.Json
-import play.api.libs.json.Reads
+import play.api.libs.json.{Format, JsError, JsPath, JsValue, Json, Reads, Writes, __}
 import play.api.libs.json.Reads.StringReads
 import play.api.libs.json.Reads.functorReads
-import play.api.libs.json.Writes
-import play.api.libs.json.__
 import play.api.mvc.Action
 import play.api.mvc.BodyParsers
 import play.api.mvc.Controller
@@ -66,27 +58,29 @@ object AuthenticationRequest {
 @Singleton
 class Authentication @Inject() (authService: AuthService) extends Controller with JsonActions {
 
-  def login = Action.async(BodyParsers.parse.json) { request =>
+  def login: Action[JsValue] = Action.async(BodyParsers.parse.json) {
+    request =>
+      val input = request.body.validate[UserPassword]
+      val result = input.fold(
+        errors => {
+          Future.successful(BadRequest(JsError.toFlatJson(errors)).withHeaders("Date" -> (new Date()).toString()))
+        },
+        userPassword => {
+          val result = authService.authenticate(userPassword.userName.toLowerCase, userPassword.password, userPassword.otp)
+          result map { userOpt =>
+            val response = userOpt.fold[Result]({
+              Results.NotFound
+            })({ user =>
+              Ok(Json.toJson(user))
+            })
 
-    val input = request.body.validate[UserPassword]
-    input.fold(
-      errors => {
-        Future.successful(BadRequest(JsError.toFlatJson(errors)).withHeaders("Date" -> (new Date()).toString()))
-      },
-      userPassword => {
-        val result = authService.authenticate(userPassword.userName.toLowerCase, userPassword.password, userPassword.otp)
-        result map { userOpt =>
-          val response = userOpt.fold[Result]({
-            Results.NotFound
-          })({ user =>
-            Ok(Json.toJson(user))
-          })
-
-          response
-            .withHeaders("Date" -> (new Date()).toString())
-            .withSession(("X-USER", userPassword.userName.toLowerCase))
+            response
+              .withHeaders("Date" -> (new Date()).toString())
+              .withSession(("X-USER", userPassword.userName.toLowerCase))
+          }
         }
-      })
+      )
+      result
   }
 
   def getSensitiveOperations() = Action {

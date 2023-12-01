@@ -62,17 +62,22 @@ function UserService(playRoutes, $cookies, $window, $log) {
 	};
 
 	this.authenticate = function(credentials) {
-			
 		var authenticationRequest = credentials;
-
-		return playRoutes.controllers.Authentication.login().post(authenticationRequest)
-				.success(
-					function(response){
-						setUserIntoSessionStorage(response);
-						user = getUserFromSessionStorage();
-						fireLogin(user);
-					}
-				).error(function(){
+		var loginResult = playRoutes
+			.controllers
+			.Authentication
+			.login();
+		return loginResult
+			.post(authenticationRequest)
+			.success(
+				function(response){
+					setUserIntoSessionStorage(response);
+					user = getUserFromSessionStorage();
+					fireLogin(user);
+				}
+			)
+			.error(
+				function(){
 					logout();
 				}
 			);

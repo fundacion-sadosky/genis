@@ -118,36 +118,38 @@ trait InterconnectionService {
 }
 
 @Singleton
-class InterconnectionServiceImpl @Inject()(akkaSystem: ActorSystem = null, connectionRepository: ConnectionRepository,
-                                           inferiorInstanceRepository: InferiorInstanceRepository,
-                                           categoryRepository: CategoryRepository,
-                                           superiorInstanceProfileApprovalRepository: SuperiorInstanceProfileApprovalRepository,
-                                           client: WSClient,
-                                           userService: UserService,
-                                           roleService: RoleService,
-                                           profileService: ProfileService,
-                                           kitService: StrKitService,
-                                           notificationService: NotificationService,
-                                           @Named("protocol") val protocol: String,
-                                           @Named("status") val status: String,
-                                           @Named("categoryTreeCombo") val categoryTreeCombo: String,
-                                           @Named("insertConnection") val insertConnection: String,
-                                           @Named("localUrl") val localUrl: String,
-                                           @Named("uploadProfile") val uploadProfile: String,
-                                           @Named("labCode") val currentInstanceLabCode: String,
-                                           profileDataService: ProfileDataService = null,
-                                           categoryService: CategoryService = null,
-                                           traceService: TraceService = null,
-                                           matchingRepository: MatchingRepository = null,
-                                           matchingService: MatchingService = null,
-                                           @Named("defaultAssignee") val defaultNotificationReceiver: String = "tst-admin",
-                                           @Named("timeOutOnDemand") val timeOutOnDemand: String = "1 seconds",
-                                           @Named("timeOutQueue") val timeOutQueue: String = "1 seconds",
-                                           @Named("timeActorSendRequestGet") val timeActorSendRequestGet: String = "1 seconds",
-                                           @Named("timeActorSendRequestPutPostDelete") val timeActorSendRequestPutPostDelete: String = "1 seconds",
-                                           @Named("timeOutHolder") val timeOutHolder: Int = 1000,
-                                           cache: CacheService = null
-                                          ) extends InterconnectionService {
+class InterconnectionServiceImpl @Inject()(
+  akkaSystem: ActorSystem = null,
+  connectionRepository: ConnectionRepository,
+  inferiorInstanceRepository: InferiorInstanceRepository,
+  categoryRepository: CategoryRepository,
+  superiorInstanceProfileApprovalRepository: SuperiorInstanceProfileApprovalRepository,
+  client: WSClient,
+  userService: UserService,
+  roleService: RoleService,
+  profileService: ProfileService,
+  kitService: StrKitService,
+  notificationService: NotificationService,
+  @Named("protocol") val protocol: String,
+  @Named("status") val status: String,
+  @Named("categoryTreeCombo") val categoryTreeCombo: String,
+  @Named("insertConnection") val insertConnection: String,
+  @Named("localUrl") val localUrl: String,
+  @Named("uploadProfile") val uploadProfile: String,
+  @Named("labCode") val currentInstanceLabCode: String,
+  profileDataService: ProfileDataService = null,
+  categoryService: CategoryService = null,
+  traceService: TraceService = null,
+  matchingRepository: MatchingRepository = null,
+  matchingService: MatchingService = null,
+  @Named("defaultAssignee") val defaultNotificationReceiver: String = "tst-admin",
+  @Named("timeOutOnDemand") val timeOutOnDemand: String = "1 seconds",
+  @Named("timeOutQueue") val timeOutQueue: String = "1 seconds",
+  @Named("timeActorSendRequestGet") val timeActorSendRequestGet: String = "1 seconds",
+  @Named("timeActorSendRequestPutPostDelete") val timeActorSendRequestPutPostDelete: String = "1 seconds",
+  @Named("timeOutHolder") val timeOutHolder: Int = 1000,
+  cache: CacheService = null
+) extends InterconnectionService {
   val defaultTimeoutQueue = akka.util.Timeout(Some(Duration(timeOutQueue)).collect { case d: FiniteDuration => d }.get)
   val defaultTimeoutOnDemand = akka.util.Timeout(Some(Duration(timeOutOnDemand)).collect { case d: FiniteDuration => d }.get)
   val sendRequestActorGlobal: ActorRef = akkaSystem.actorOf(SendRequestActor.props())
@@ -194,12 +196,15 @@ class InterconnectionServiceImpl @Inject()(akkaSystem: ActorSystem = null, conne
   override def getConnectionsStatus(url: String): Future[Either[String, Unit]] = {
 
     try {
-      val holder: WSRequestHolder = addHeadersURL(client.url(protocol + url + status))
+      val clientURL = client.url(s"${protocol}${url}${status}")
+      val holder: WSRequestHolder = addHeadersURL(clientURL)
       val futureResponse: Future[WSResponse] = this.sendRequestOnDemand(holder)
       futureResponse.flatMap(result => {
         if (result.status == 200) {
+          logger.debug(s"Successfull Connection to ${clientURL}")
           Future.successful(Right(()))
         } else {
+          logger.debug(s"Failed Connection to ${clientURL} - Status code: ${result.status}")
           Future.successful(Left(Messages("error.E0707")))
         }
       }).recoverWith {
