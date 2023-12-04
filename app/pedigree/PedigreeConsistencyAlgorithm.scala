@@ -57,37 +57,69 @@ object PedigreeConsistencyAlgorithm {
     .map(x => PedigreeConsistencyCheck(x._1.text,x._2.map(_._2.toString).toList))
     incompatibleMarkersByProfile.toSeq
   }
-  def langeGoradiaElimination(profiles: Array[Profile], genogram: Array[Individual], marker : Profile.Marker): Future[(Profile.Marker,List[NodeAlias])] = {
-    langeGoradia(profiles,genogram,marker).flatMap(result =>{
-      //&& result._2.size != 3
-      if(result._2.nonEmpty ){//Hay una inconsistencia
-        Future.sequence(generateCombinations(profiles, genogram, marker)).map(result2 => {
-          var primero = result2.filter(x => x._2._2.isEmpty)
-          if(primero.nonEmpty){
-            // me encontro alguno que me remueve la inconsistencia
-            (marker,primero.flatMap(_._1).distinct)
-          }else{
-            // ninguno me quita la inconsistencia
-            // devuelvo todos
-            (marker,genogram.toList.map(_.alias))
+  private def langeGoradiaElimination(
+    profiles: Array[Profile],
+    genogram: Array[Individual],
+    marker : Profile.Marker
+  ): Future[(Profile.Marker, Seq[NodeAlias])] = {
+    langeGoradia(profiles, genogram, marker)
+      .flatMap(
+        result =>{
+          //&& result._2.size != 3
+          if(result._2.nonEmpty) {//Hay una inconsistencia
+            Future
+              .sequence(
+                generateCombinations(profiles, genogram, marker)
+              )
+              .map(
+                result2 => {
+                  val primero = result2.filter(x => x._2._2.isEmpty)
+                  if (primero.nonEmpty) {
+                    // me encontro alguno que me remueve la inconsistencia
+                    (marker, primero.flatMap(_._1).distinct)
+                  } else {
+                    // ninguno me quita la inconsistencia
+                    // devuelvo todos
+                    (marker, genogram.toList.map(_.alias))
+                  }
+                }
+              )
+          } else {
+            // es consistente
+            Future.successful(result)
           }
-        })
-      }else{
-        // es consistente
-        Future.successful(result)
-      }
-    })
-    
+        }
+      )
   }
 
-  private def generateCombinations(profiles: Array[Profile], genogram: Array[Individual], marker: Marker) = {
-    profiles.map( p => (p.globalCode,profiles.filter(_.globalCode != p.globalCode))).map(profilesCombination => {
-      langeGoradia(profilesCombination._2, genogram, marker).map(result =>
-        (List(genogram.find(_.globalCode.contains(profilesCombination._1)).map(_.alias)).flatten, result))
-    }).toList
+  private def generateCombinations(
+    profiles: Array[Profile],
+    genogram: Array[Individual],
+    marker: Marker
+  ): Seq[Future[(List[NodeAlias], (Marker, List[NodeAlias]))]] = {
+    profiles
+      .map(p => (p.globalCode, profiles.filter(_.globalCode != p.globalCode)))
+      .map(
+        profilesCombination => {
+          langeGoradia(profilesCombination._2, genogram, marker)
+            .map(
+              result =>
+              (
+                List(
+                  genogram
+                    .find(_.globalCode.contains(profilesCombination._1))
+                    .map(_.alias)
+                  )
+                  .flatten,
+                result
+              )
+            )
+       }
+      )
+      .toList
   }
 
-  def langeGoradia(
+  private def langeGoradia(
     profiles: Array[Profile],
     genogram: Array[Individual],
     marker : Profile.Marker
@@ -98,7 +130,8 @@ object PedigreeConsistencyAlgorithm {
 
     //posibles genotipos a partir de los alelos del pedigree
     val gtypes = getPosiblesGenotypes(
-      pedIndividuals,
+//      pedIndividuals,
+      genogram,
       pedAlleles,
       profiles,
       marker
