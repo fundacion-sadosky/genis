@@ -1,21 +1,22 @@
 package user
 
 import scala.concurrent.Await
-import scala.concurrent.duration.Duration
-import scala.concurrent.duration.SECONDS
+import scala.concurrent.duration.{Duration, FiniteDuration, SECONDS}
+import org.scalatestplus.play.PlaySpec
 import specs.PdgSpec
 import org.mockito.Matchers.any
 import org.mockito.Mockito.when
 import org.scalatest.mock.MockitoSugar
+import services.CacheService
+
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import stubs.Stubs
 
 class RoleServiceTest extends PdgSpec with MockitoSugar{
 
-  val duration = Duration(10, SECONDS)
-  
-  val userRepoMockProvider = mock[UserRepository]
+  val duration: FiniteDuration = Duration(10, SECONDS)
+  val userRepoMockProvider: UserRepository = mock[UserRepository]
   when(userRepoMockProvider.listAllUsers).thenReturn(Future(Seq(Stubs.ldapUser)))
   
   "A Role service" must {
@@ -26,32 +27,41 @@ class RoleServiceTest extends PdgSpec with MockitoSugar{
       res.isLeft mustBe true
     }
   }
+}
 
+class RoleServiceSimpleTest extends PlaySpec with MockitoSugar{
+
+  val userRepoMockProvider: UserRepository = mock[UserRepository]
+  val cacheServiceMock: CacheService = mock[CacheService]
+  val roleRepositoryMock: RoleRepository = mock[RoleRepository]
+  
+  val target = new RoleServiceImpl(
+    roleRepositoryMock,
+    cacheServiceMock,
+    userRepoMockProvider
+  )
+  
   "A Role service" must {
     "get all permissions" in {
-      val target = new RoleServiceImpl(null, null, userRepoMockProvider)
       val result = target.listPermissions()
-
       result.size mustBe >(0)
     }
-  }
 
-  "A Role service" must {
     "translate an operation in the most exact way possible" in {
-      val target = new RoleServiceImpl(null, null, userRepoMockProvider)
-      val result = target.translatePermission("GET", "/geneticist/50")
+      val result = target
+        .translatePermission("GET", "/geneticist/50")
 
       result mustBe "GeneticistRead"
     }
-  }
 
-  "A Role service" must {
+    "avoid failing when a operation translation is not possible" in {
+      val result = target.translatePermission("TRACE", "/geneticist/50")
+      result mustBe "No valid operation found for: (TRACE, /geneticist/50)"
+    }
+
     "get all operations" in {
-      val target = new RoleServiceImpl(null, null, userRepoMockProvider)
       val result = target.listOperations()
-
       result.size mustBe >(0)
     }
   }
-  
 }

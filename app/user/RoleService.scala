@@ -6,6 +6,7 @@ import javax.inject.Singleton
 
 import types.Permission
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.Logger
 import security.StaticAuthorisationOperation
 import services.CacheService
 import services.Keys
@@ -28,6 +29,8 @@ abstract class RoleService {
 @Singleton
 class RoleServiceImpl @Inject() (roleRepository: RoleRepository, cacheService: CacheService, userRepository: UserRepository) extends RoleService {
 
+  private val logger = Logger(this.getClass)
+  
   private def cleanCache = {
     cacheService.pop(Keys.roles)
     cacheService.pop(Keys.rolePermissionMap)
@@ -50,7 +53,8 @@ class RoleServiceImpl @Inject() (roleRepository: RoleRepository, cacheService: C
   }
 
   private def listFullOperations(): Set[StaticAuthorisationOperation] = {
-    (Permission.list + LOGIN_SIGNUP).flatMap(permission => permission.operations)
+    (Permission.list + LOGIN_SIGNUP)
+      .flatMap(permission => permission.operations)
   }
 
   def listOperations(): Set[String] = {
@@ -58,19 +62,42 @@ class RoleServiceImpl @Inject() (roleRepository: RoleRepository, cacheService: C
   }
 
   override def translatePermission(action: String, resource: String): String = {
-    val validOperations = listFullOperations().filterNot(op => regexMatchQuality(action, resource)(op) match {
-      case (0, _) => true
-      case (_, 0) => true
-      case _ => false
-    })
-    validOperations.minBy({ op =>
-      val q = regexMatchQuality(action, resource)(op)
-      q._1 + q._2
-    }).descriptionKey
+    val validOperations =
+      listFullOperations()
+        .filterNot(
+          op => regexMatchQuality(action, resource)(op) match {
+            case (0, _) => true
+            case (_, 0) => true
+            case _ => false
+          }
+        )
+    if (validOperations.isEmpty) {
+      val msg = s"No valid operation found for: ($action, $resource)"
+      logger.debug(msg)
+      msg
+    } else {
+      validOperations
+        .minBy(
+          {
+            op =>
+              val q = regexMatchQuality(action, resource)(op)
+              q._1 + q._2
+          }
+        )
+        .descriptionKey
+    }
   }
 
-  def regexMatchQuality(action: String, resource: String)(operation: StaticAuthorisationOperation): (Int, Int) = {
-    (operation.action.findAllIn(action).size, operation.resource.findAllIn(resource).size)
+  private def regexMatchQuality(
+      action: String,
+      resource: String
+    )(
+      operation: StaticAuthorisationOperation
+    ): (Int, Int) = {
+    (
+      operation.action.findAllIn(action).size,
+      operation.resource.findAllIn(resource).size
+    )
   }
 
   override def addRole(role: Role): Future[Boolean] = {
