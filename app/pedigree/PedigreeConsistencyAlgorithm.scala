@@ -8,7 +8,7 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import types.SampleCode
 
 import scala.collection.mutable
-import scala.concurrent.duration.{Duration}
+import scala.concurrent.duration.Duration
 import scala.util.control.Breaks._
 
 object PedigreeConsistencyAlgorithm {
@@ -169,10 +169,8 @@ object PedigreeConsistencyAlgorithm {
     genogram: Array[Individual],
     marker : Profile.Marker
   ): Future[(Profile.Marker, List[NodeAlias])] ={
-
     val pedIndividuals = genogram filter { i => !i.unknown }
     val pedAlleles: Array[Double]  = getPedAlleles(profiles, genogram, marker)
-
     //posibles genotipos a partir de los alelos del pedigree
     val gtypes = getPosiblesGenotypes(
 //      pedIndividuals,
@@ -181,12 +179,9 @@ object PedigreeConsistencyAlgorithm {
       profiles,
       marker
     ) //individuos con sus posibles genotipos
-
     val subNucs: mutable.Map[(Option[NodeAlias], Option[NodeAlias]), Array[NodeAlias]] = getSubnuclearFamilies(genogram)
     val parent = subNucs.keys
-
     var parentsToOrder :Array[((Option[NodeAlias], Option[NodeAlias]), Double)] = Array()
-
     // Ordenar familias subnucleares
     parent.foreach(
       couple => {
@@ -209,14 +204,11 @@ object PedigreeConsistencyAlgorithm {
         parentsToOrder = parentsToOrder.+:(couple, order)
       }
     )
-
     parentsToOrder = parentsToOrder.sortBy(_._2)
-
     var orderedParents :Array[(Option[NodeAlias], Option[NodeAlias])] = Array()
     parentsToOrder.foreach(couple => {
       orderedParents = orderedParents.+:(couple._1)
     })
-
     var itera = true
     var incompatibleFam :List[NodeAlias]= Nil
     while (itera) {
@@ -238,29 +230,28 @@ object PedigreeConsistencyAlgorithm {
           var hijosComp = 0
 
           breakable {
-
-            children.foreach(child => {
-              val gChild = gtypes.getOrElse(child.text,Array.empty)
-              val comp = gChild.filter(geno => gMate.contains(geno))
-              if (comp.length > 0) {
-                //encontre uno compatible
-                hijosComp = hijosComp + 1
-                //guardo el o los genotipos compatible del hijo
-                lAux.put(child.text,(lAux.getOrElse(child.text,Array.empty))++(comp))
-
-                //guardo el o los genotipos compatible del padre si tiene padre
-                if (couple._1.nonEmpty ) {
-                  lAux.put(couple._1.get.text, lAux.getOrElse(couple._1.get.text,Array.empty) :+ parentCombination._1 )
+            children.foreach(
+              child => {
+                val gChild = gtypes.getOrElse(child.text,Array.empty)
+                val comp = gChild.filter(geno => gMate.contains(geno))
+                if (comp.length > 0) {
+                  //encontre uno compatible
+                  hijosComp = hijosComp + 1
+                  //guardo el o los genotipos compatible del hijo
+                  lAux.put(child.text,(lAux.getOrElse(child.text,Array.empty))++(comp))
+                  //guardo el o los genotipos compatible del padre si tiene padre
+                  if (couple._1.nonEmpty ) {
+                    lAux.put(couple._1.get.text, lAux.getOrElse(couple._1.get.text,Array.empty) :+ parentCombination._1)
+                  }
+                  //guardo el o los genotipos compatible de la madre si tiene madre
+                  if (couple._2.nonEmpty) {
+                    lAux.put(couple._2.get.text, lAux.getOrElse(couple._2.get.text,Array.empty) :+ parentCombination._2)
+                  }
+                } else {
+                    break()
                 }
-                //guardo el o los genotipos compatible de la madre si tiene madre
-                if (couple._2.nonEmpty) {
-                  lAux.put(couple._2.get.text, lAux.getOrElse(couple._2.get.text,Array.empty) :+ parentCombination._2 )
-                }
-
-              } else {
-                  break()
               }
-            })
+            )
           }
 
           if( hijosComp==children.length ) { //todos los hijos compatibles?
@@ -292,8 +283,8 @@ object PedigreeConsistencyAlgorithm {
               }
             })
           }
-
-          }) //parentalCombination
+          }
+          ) //parentalCombination
 
         if (!isSomeGenoCompatWithAllChildren || isAnyEmptyGenotification(couple, children, gIn)) {
           //familia incompatible
@@ -404,13 +395,13 @@ object PedigreeConsistencyAlgorithm {
   private def transformToGenogram(alelles: Array[Double]) : (Double, Double) = {
     // TODO que pasa si es homocigota?
     // TODO se arreglo para que no pinche
-    if (alelles.size==2) {
+    if (alelles.length == 2) {
       if(alelles(0) < alelles(1)) {
         (alelles(0), alelles(1))
       } else {
         (alelles(1), alelles(0))
       }
-    } else if (alelles.size==1) {
+    } else if (alelles.length == 1) {
       (alelles(0), alelles(0))
     } else {
       (666.0,666.0)
@@ -475,7 +466,7 @@ object PedigreeConsistencyAlgorithm {
     val subNucs: mutable.Map[(Option[NodeAlias], Option[NodeAlias]), Array[NodeAlias]] = mutable.Map()
     genogram map {
       individual =>
-        if (!individual.unknown && (individual.idFather.nonEmpty || individual.idMother.nonEmpty)) {
+        if (individual.idFather.nonEmpty || individual.idMother.nonEmpty) {
           if (subNucs.contains((individual.idFather, individual.idMother))) {
             var children = subNucs((individual.idFather, individual.idMother))
             children = children.+:(individual.alias)

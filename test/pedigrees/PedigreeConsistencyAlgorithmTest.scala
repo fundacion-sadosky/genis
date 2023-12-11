@@ -2,12 +2,9 @@ package pedigrees
 
 import org.scalatestplus.play.PlaySpec
 import pedigree.{Individual, NodeAlias, PedigreeConsistencyAlgorithm, PedigreeConsistencyCheck}
-import profile.GenotypificationByType.GenotypificationByType
-import profile.{Allele, Mitocondrial, Profile, XY}
-import stubs.Stubs.{catA1, genotypification}
+import profile.{Allele, Profile}
+import stubs.Stubs.catA1
 import types.{SampleCode, Sex}
-import matching.{CompareMixtureGenotypification, MatchingServiceSparkImpl}
-import stubs.Stubs
 
 class PedigreeConsistencyAlgorithmTest extends PlaySpec{
 
@@ -15,31 +12,43 @@ class PedigreeConsistencyAlgorithmTest extends PlaySpec{
     profiles: Array[Profile],
     genogram: Array[Individual]
   ):Seq[PedigreeConsistencyCheck]={
-//    val matchingService = new matching.MatchingServiceSparkImpl(
-//      profileRepo = null,
-//      matchingRepo = null,
-//      notificationService = null,
-//      categoryService = null,
-//      profileDataRepo = null,
-//      scenarioRepository = null,
-//      spak2Matcher = null,
-//      traceService = null,
-//      pedigreeSparkMatcher = null,
-//      pedigreeRepo = null,
-//      pedigreeGenotypificationService = null,
-//      interconnectionService = null,
-//      spark2MatcherCollapsing = null,
-//      spark2MatcherScreening = null
-//    )
     PedigreeConsistencyAlgorithm.isConsistent(profiles, genogram)
   }
   def profileBuilder(globalCode:String,alleles:List[Allele],empty:Boolean =false): Profile = {
     if(empty){
-      Profile(SampleCode(globalCode), SampleCode(globalCode), globalCode, "",catA1.id,
-        Map.empty, None, None, None, None, None, None, false, true, false)
-    }else{
-      Profile(SampleCode(globalCode), SampleCode(globalCode), globalCode, "",catA1.id,
-        Map( 1 -> Map("LOCUS1" -> alleles)), None, None, None, None, None, None, false, true, false)
+      Profile(
+        SampleCode(globalCode),
+        SampleCode(globalCode),
+        globalCode,
+        "",
+        catA1.id,
+        Map.empty,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        matcheable = true,
+        isReference = false
+      )
+    } else {
+      Profile(
+        SampleCode(globalCode),
+        SampleCode(globalCode),
+        globalCode,
+        "",
+        catA1.id,
+        Map( 1 -> Map("LOCUS1" -> alleles)),
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        matcheable = true,
+        isReference = false
+      )
     }
   }
   def individualBuilder(
@@ -102,17 +111,15 @@ class PedigreeConsistencyAlgorithmTest extends PlaySpec{
       result.size mustBe profiles.length
     }
 
-    "pedigree1 consistent. Un padre es unknown." in {
-
+    "pedigree is consistent. Father unknown and known." in {
       val profiles = Array(
         profileBuilder("AR-C-SHDG-1", List(Allele(12), Allele(12))),
         profileBuilder("AR-C-SHDG-2", List(Allele(13), Allele(12))),
         profileBuilder("AR-C-SHDG-3", List(Allele(15), Allele(15))),
         profileBuilder("AR-C-SHDG-4", List(Allele(12), Allele(15))),
-        profileBuilder("AR-C-SHDG-5", List(Allele(14), Allele(15)))
+        profileBuilder("AR-C-SHDG-5", List(Allele(13), Allele(15)))
       )
-
-      val genogram1 = Array(
+      val genogramUnknown = Array(
         individualBuilder("AbueloP", Sex.Male, Some("AR-C-SHDG-1")),
         individualBuilder("AbuelaP", Sex.Female, Some("AR-C-SHDG-2")),
         individualBuilder(
@@ -121,44 +128,74 @@ class PedigreeConsistencyAlgorithmTest extends PlaySpec{
           None,
           Some("AbueloP"),
           Some("AbuelaP"),
-          isUnknown = false
+          isUnknown = true
         ),
         individualBuilder("Madre", Sex.Female, Some("AR-C-SHDG-3")),
         individualBuilder("Hijo1", Sex.Male, Some("AR-C-SHDG-4"), Some("PadrePI"), Some("Madre")),
         individualBuilder("Hijo2", Sex.Male, Some("AR-C-SHDG-5"), Some("PadrePI"), Some("Madre"))
       )
-      val result = checkConsistency(profiles, genogram1)
-      println(result)
-      result mustBe Seq.empty
-    }
-
-    "pedigree1 es  inconsistent. Un padre es unknown." in {
-
-      val profiles = Array(
-        profileBuilder("AR-C-SHDG-1", List(Allele(12), Allele(13))),
-        profileBuilder("AR-C-SHDG-2", List(Allele(12), Allele(11))),
-        profileBuilder("AR-C-SHDG-3", List(Allele(12), Allele(13))),
-        profileBuilder("AR-C-SHDG-4", List(Allele(15), Allele(15)))
-      )
-
-      val genogram1 = Array(
-        individualBuilder("AbueloP-PI", Sex.Male, Some("AR-C-SHDG-1")),
+      val genogramKnown = Array(
+        individualBuilder("AbueloP", Sex.Male, Some("AR-C-SHDG-1")),
         individualBuilder("AbuelaP", Sex.Female, Some("AR-C-SHDG-2")),
         individualBuilder(
-          "Padre",
+          "PadrePI",
           Sex.Male,
           None,
-          Some("AbueloP-PI"),
+          Some("AbueloP"),
+          Some("AbuelaP")
+        ),
+        individualBuilder("Madre", Sex.Female, Some("AR-C-SHDG-3")),
+        individualBuilder( "Hijo1", Sex.Male, Some("AR-C-SHDG-4"), Some("PadrePI"), Some("Madre")),
+        individualBuilder( "Hijo2", Sex.Male, Some("AR-C-SHDG-5"), Some("PadrePI"), Some("Madre"))
+      )
+      val resultUnknown = checkConsistency(profiles, genogramUnknown)
+      resultUnknown mustBe Seq.empty
+      val resultKnown = checkConsistency(profiles, genogramKnown)
+      resultKnown mustBe Seq.empty
+    }
+
+    "pedigree es inconsistent. Father is unknown and known." in {
+      val profiles = Array(
+        profileBuilder("AR-C-SHDG-1", List(Allele(12), Allele(12))),
+        profileBuilder("AR-C-SHDG-2", List(Allele(13), Allele(12))),
+        profileBuilder("AR-C-SHDG-3", List(Allele(15), Allele(15))),
+        profileBuilder("AR-C-SHDG-4", List(Allele(12), Allele(15))),
+        profileBuilder("AR-C-SHDG-5", List(Allele(14), Allele(15)))
+      )
+      val genogramUnknown = Array(
+        individualBuilder("AbueloP", Sex.Male, Some("AR-C-SHDG-1")),
+        individualBuilder("AbuelaP", Sex.Female, Some("AR-C-SHDG-2")),
+        individualBuilder(
+          "PadrePI",
+          Sex.Male,
+          None,
+          Some("AbueloP"),
           Some("AbuelaP"),
           isUnknown = true
         ),
-        individualBuilder("Madre", Sex.Female, Some("AR-C-SHDG-4")),
-        individualBuilder("Hijo", Sex.Male, Some("AR-C-SHDG-3"), Some("Padre"), Some("Madre"))
+        individualBuilder("Madre", Sex.Female, Some("AR-C-SHDG-3")),
+        individualBuilder("Hijo1", Sex.Male, Some("AR-C-SHDG-4"), Some("PadrePI"), Some("Madre")),
+        individualBuilder("Hijo2", Sex.Male, Some("AR-C-SHDG-5"), Some("PadrePI"), Some("Madre"))
       )
-
-      val result = checkConsistency(profiles, genogram1)
-
-      result mustBe Seq.empty
+      val genogramKnown = Array(
+        individualBuilder("AbueloP", Sex.Male, Some("AR-C-SHDG-1")),
+        individualBuilder("AbuelaP", Sex.Female, Some("AR-C-SHDG-2")),
+        individualBuilder(
+          "PadrePI",
+          Sex.Male,
+          None,
+          Some("AbueloP"),
+          Some("AbuelaP")
+        ),
+        individualBuilder("Madre", Sex.Female, Some("AR-C-SHDG-3")),
+        individualBuilder( "Hijo1", Sex.Male, Some("AR-C-SHDG-4"), Some("PadrePI"), Some("Madre")),
+        individualBuilder( "Hijo2", Sex.Male, Some("AR-C-SHDG-5"), Some("PadrePI"), Some("Madre"))
+      )
+      val resultUnknown = checkConsistency(profiles, genogramUnknown)
+      resultUnknown.length mustBe 3
+      val resultKnown = checkConsistency(profiles, genogramKnown)
+      resultKnown.length mustBe 3
+      resultUnknown mustEqual resultKnown
     }
 
     "pedigree1 consistent los padres comparten primer alelo" in {
@@ -447,7 +484,7 @@ class PedigreeConsistencyAlgorithmTest extends PlaySpec{
       val result = checkConsistency(profiles,genogram1)
 
       result.size>1 mustBe true
-      result.size mustBe profiles.size
+      result.size mustBe profiles.length
     }
     "pedigree5 consistent contra abuelos 1" in {
 
@@ -548,7 +585,7 @@ class PedigreeConsistencyAlgorithmTest extends PlaySpec{
 
       val result = checkConsistency(profiles,genogram1)
 
-      result.size>0 mustBe true
+      result.nonEmpty mustBe true
       result.size mustBe 3
       result.sortBy(_.globalCode) mustBe Seq(PedigreeConsistencyCheck("AR-C-SHDG-3",List("LOCUS1")),
         PedigreeConsistencyCheck("AR-C-SHDG-4",List("LOCUS1")),
@@ -577,7 +614,7 @@ class PedigreeConsistencyAlgorithmTest extends PlaySpec{
 
       val result = checkConsistency(profiles,genogram1)
 
-      result.size>0 mustBe true
+      result.nonEmpty mustBe true
       result.size mustBe 3
     }
 
@@ -632,7 +669,7 @@ class PedigreeConsistencyAlgorithmTest extends PlaySpec{
       )
 
       val result = checkConsistency(profiles,genogram1)
-      result.size>0 mustBe true
+      result.nonEmpty mustBe true
       result.size mustBe 1
     }
     "pedigree6 consistent muchos tios dos inconsistente" in {
@@ -660,8 +697,8 @@ class PedigreeConsistencyAlgorithmTest extends PlaySpec{
 
       val result = checkConsistency(profiles,genogram1)
 
-      result.size>0 mustBe true
-      result.size mustBe profiles.size
+      result.nonEmpty mustBe true
+      result.size mustBe profiles.length
     }
 
     "pedigree7 consistent caso Pedigree5Mariana.png" in {
@@ -715,10 +752,11 @@ class PedigreeConsistencyAlgorithmTest extends PlaySpec{
     "pedigree7 consistent caso Pedigree5Mariana.png 2 - caso perfil sin marcador" in {
 
       val profiles =  Array(profileBuilder("AR-C-SHDG-1",List(Allele(8), Allele(8))),
-        profileBuilder("AR-C-SHDG-3",Nil,true),
+        profileBuilder("AR-C-SHDG-3",Nil,empty = true),
         profileBuilder("AR-C-SHDG-4",List(Allele(8), Allele(12))),
         profileBuilder("AR-C-SHDG-5",List(Allele(11), Allele(9))),
-        profileBuilder("AR-C-SHDG-7",List(Allele(11), Allele(12))))
+        profileBuilder("AR-C-SHDG-7",List(Allele(11), Allele(12)))
+      )
 
       val genogram1 = Array(
         individualBuilder("1",Sex.Male,Some("AR-C-SHDG-1")),
@@ -731,11 +769,8 @@ class PedigreeConsistencyAlgorithmTest extends PlaySpec{
         individualBuilder("8",Sex.Female),
         individualBuilder("9",Sex.Male,None,Some("6"), Some("8"))
       )
-
       val result = checkConsistency(profiles,genogram1)
-
       result mustBe Seq.empty
-
     }
   }
 }
