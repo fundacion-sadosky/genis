@@ -1,6 +1,8 @@
 /**
  * matcher controllers.
  */
+// const myModule = require('./mymodule');
+// let val = myModule.hello(); // val is "Hello"   
 define([ 'angular','lodash' ], function(angular,_) {
 	'use strict';
 
@@ -400,6 +402,12 @@ define([ 'angular','lodash' ], function(angular,_) {
 					doc, keyColText, valueColText, "key rowSmall "+ bgClass, "val rowSmall " + bgClass
 				);
 			};
+			var addMitoStruct = function(doc) {
+				var $body = $('body', doc);
+				$body.append('<table id="mito">');
+			};
+			// var addMitoTitle = 
+			// var addMitoRangeRow = 
 			$timeout(function(){
 				var report = createEmptyReport();
 				$(report.document).ready(
@@ -475,6 +483,20 @@ define([ 'angular','lodash' ], function(angular,_) {
 								alleles + ' / ' + $scope.results.totalAlleles
 							);
 						}
+						if ($scope.results.type === 4) { // Mitochondrial
+							addSummarySpacerRow(report.document);
+							addSummarySpacerRow(report.document);
+							addSummarySpacerRow(report.document);
+							addSummaryTitle(report.document, "Análisis mitocondrial");
+							
+							for (var item in $scope.comparision) {
+								if ($scope.showLocus(item.locus)) {
+									var x = myFunc();
+								}
+							}
+							
+						}
+						
 						// newWindow.print();
 						// newWindow.close();
 				});

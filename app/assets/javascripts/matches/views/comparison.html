@@ -179,7 +179,7 @@
 </div>
 
 </div>
-
+<div>{{matchingAlleles}}</div>
 <footer>
 
 <div class="text-left col-md-3 padding-0" ng-if="mixF || mixM">
@@ -212,7 +212,7 @@
 	</ui-select>
 
 	<button id="viewElect" type="button" class="btn btn-secondary-action" data-ng-click="showElectropherograms()" ng-disabled="epg.length === 0 && matchedepg.length === 0">Ver electroferogramas</button>
-	<button id="printReport" type="button" class="btn btn-secondary-action" data-ng-click="printReport()">Imprimir reporte</button>
+	<button id="printReport" type="button" class="btn btn-secondary-action" data-ng-click="printReport()">Imprimir reporte!!!</button>
 	<button id="doHit" ng-if="!isCollapsingMatch && !isScreening" ng-disabled="matchAg||(profileData.isExternal && matchedProfileData.isExternal)" pdg-confirm pdg-confirm-title="Confirmar Coincidencia" pdg-confirm-content="¿Está seguro?" type="button" class="btn btn-primary-action" pdg-on-confirm="doHit" data-ng-disabled="closedMatch" ng-show="!isPedigreeMatch">Confirmar Coincidencia</button>
 	<button id="doDescart" ng-if="!isCollapsingMatch && !isScreening" ng-disabled="profileData.isExternal && matchedProfileData.isExternal"  pdg-confirm pdg-confirm-title="Descartar Coincidencia" pdg-confirm-content="¿Está seguro?" type="button" class="btn btn-secondary-action" pdg-on-confirm="doDiscard" data-ng-disabled="closedMatch" ng-show="!isPedigreeMatch">Descartar Coincidencia</button>
 
