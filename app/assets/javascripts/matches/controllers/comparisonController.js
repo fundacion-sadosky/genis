@@ -344,10 +344,14 @@ define([ 'angular','lodash' ], function(angular,_) {
 					'<style>'+
 					'.key{text-align:right; width:35%; font-weight: bold; font-size: small}'+
 					'.val{text-align:right; width:65%;}'+
+					'.m1key{text-align:right; width:30%; font-weight: bold; font-size: small}'+
+					'.m2key{text-align:right; width:30%}'+
+					'.mval{text-align:right; width:40%;}'+
 					'.rowSmall{font-size: x-small;}'+
 					'.lbg{background-color: #f0f0f0;}'+
 					'.dbg{background-color: #F5F5F5;}'+
 					'#summary{width:100%;}'+
+					'#mito{width:100%;}'+
 					'.summTitle{' +
 					'  text-align:right;' +
 					'  font-weight: bold;' +
@@ -382,6 +386,28 @@ define([ 'angular','lodash' ], function(angular,_) {
 				$('#summary tr:last', doc)
 					.append('<td class="'+valClasses+'"><div>'+valueColText+'</div></td>');
 			};
+			var addRangeRowGeneric = function(
+				doc,
+				title,
+				keyColText,
+				valueColText,
+				key1Classes,
+				key2Classes,
+				valClasses
+			) {
+				if (valueColText === undefined || valueColText === null) {
+					rowBackground = !rowBackground;
+					return;
+				}
+				var summ = $('#mito', doc);
+				summ.append('<tr>');
+				$('#mito tr:last', doc)
+					.append('<td class="'+key1Classes+'"><div>'+title+'</div></td>');
+				$('#mito tr:last', doc)
+					.append('<td class="'+key1Classes+'"><div>'+keyColText+'</div></td>');
+				$('#mito tr:last', doc)
+					.append('<td class="'+valClasses+'"><div>'+valueColText+'</div></td>');
+			};
 			var addSummarySpacerRow = function(doc) {
 				var summ = $('#summary', doc);
 				summ.append('<tr>');
@@ -406,8 +432,87 @@ define([ 'angular','lodash' ], function(angular,_) {
 				var $body = $('body', doc);
 				$body.append('<table id="mito">');
 			};
-			// var addMitoTitle = 
-			// var addMitoRangeRow = 
+			var addMitoTitle = function(doc, title) {
+				var summ = $('#mito', doc);
+				summ.append('<tr>');
+				$('#mito tr:last', doc)
+					.append('<td class="summTitle" colspan="3"><div>' + title + '</div></td>');
+			};
+			var addMitoRangeRow = function(doc, title, keyColText, valueColText) {
+				var bgClass = rowBackground ? "lbg" : "dbg";
+				rowBackground = !rowBackground;
+				addRangeRowGeneric(
+					doc,
+					title,
+					keyColText,
+					valueColText, 
+					"m1key " + bgClass,
+					"m2key " + bgClass,
+				"mval " + bgClass
+				);
+			};
+			var selectRanges = function(comparision, profile) {
+				var ranges = comparision
+					.filter(function(x) {return x.locus.endsWith("_RANGE");})
+					.map(function(x) {return x.g[profile];})
+					.filter(function(x) {return x !== undefined;});
+				return ranges;
+			};
+			var rangeAsString = function(range) {
+				if (range === undefined) {
+					return "";
+				}
+				if (range.length === 2) {
+					return "[" + range[0] + " - " + range[1] + "]";
+				}
+				return "";
+			};
+			var addDefinedRanges = function(doc, comparision, profileId, matchedProfileId) {
+				var pRanges = selectRanges(comparision, profileId);
+				var mRanges = selectRanges(comparision, matchedProfileId);
+				var title = "Rangos Definidos:";
+				var pid = profileId;
+				for (var i in pRanges) {
+					addMitoRangeRow(doc, title, pid, rangeAsString(pRanges[i]));
+					pid = "";
+					title = "";
+				}
+				pid = matchedProfileId;
+				for (i in mRanges) {
+					addMitoRangeRow(doc, title, pid, rangeAsString(mRanges[i]));
+					pid = "";
+				}
+			};
+			var selectMatchingAlleles = function(comparision, profile, matching) {
+				var mAlleles = comparision
+					.filter(function(x){return x.locus.startsWith("HV") && !x.locus.endsWith("_RANGE");})
+					.flatMap(function(x){return x.g[profile];})
+					.filter(function(x){return x!==undefined;})
+					.filter(function(x){return matching.includes(x);});
+				return mAlleles;
+			};
+			var addMathingAlleles = function(doc, comparision, profileId, matchedProfileId, matching) {
+				var pAlleles = selectMatchingAlleles(comparision, profileId, matching);
+				var mAlleles = selectMatchingAlleles(comparision, matchedProfileId, matching);
+				var title = "Alelos coincidentes:";
+				var pid = profileId;
+				var allele = "";
+				for (var i in pAlleles) {
+					allele = $filter("mt")(pAlleles[i], "", $scope.results.type, $scope.analysisTypes);
+					addMitoRangeRow(doc, title, pid, allele);
+					pid = "";
+					title = "";
+				}
+				pid = $scope.matchedProfileId;
+				for (i in mAlleles) {
+					allele = $filter("mt")(mAlleles[i], "", $scope.results.type, $scope.analysisTypes);
+					addMitoRangeRow(doc, title, pid, allele);
+					pid = "";
+				}
+			};
+			var addNonMathingAlleles = function(doc, comparision, profileId, matchedProfileId, matching) {
+				// TODO: Add Non Matching Alleles code.
+			};
 			$timeout(function(){
 				var report = createEmptyReport();
 				$(report.document).ready(
@@ -434,13 +539,13 @@ define([ 'angular','lodash' ], function(angular,_) {
 						addSummaryRow(report.document, "Codigo Genis", $scope.matchedProfileId);
 						addSummaryRow(report.document, "Codigo Laboratorio", $scope.matchedProfileData.internalSampleCode);
 						addSummaryRow(report.document, "Categoria", $scope.getSubcatName($scope.matchedProfileData.category));
-						addSummaryRowSmall(report.document, "Gen. Asignado", $scope.profileData.assignee);
-						addSummaryRowSmall(report.document, "Gen. Responsable", $scope.profileData.responsibleGeneticist);
-						addSummaryRowSmall(report.document, "Fecha de caducidad del perfil", $scope.profileData.profileExpirationDate);
-						addSummaryRowSmall(report.document, "Laboratory", $scope.profileData.laboratory);
-						addSummaryRowSmall(report.document, "Tipo De Muestra Biologica", $scope.profileData.bioMaterialType);
-						addSummaryRowSmall(report.document, "Fecha De Ingreso", $scope.profileData.sampleEntryDate);
-						addSummaryRowSmall(report.document, "Fecha Toma de Muestra", $scope.profileData.sampleDate);
+						addSummaryRowSmall(report.document, "Gen. Asignado", $scope.matchedProfileData.assignee);
+						addSummaryRowSmall(report.document, "Gen. Responsable", $scope.matchedProfileData.responsibleGeneticist);
+						addSummaryRowSmall(report.document, "Fecha de caducidad del perfil", $scope.matchedProfileData.profileExpirationDate);
+						addSummaryRowSmall(report.document, "Laboratorio", $scope.matchedProfileData.laboratory);
+						addSummaryRowSmall(report.document, "Tipo De Muestra Biologica", $scope.matchedProfileData.bioMaterialType);
+						addSummaryRowSmall(report.document, "Fecha De Ingreso", $scope.matchedProfileData.sampleEntryDate);
+						addSummaryRowSmall(report.document, "Fecha Toma de Muestra", $scope.matchedProfileData.sampleDate);
 						addSummaryRowSmall(
 							report.document,
 							"Estado",
@@ -487,14 +592,28 @@ define([ 'angular','lodash' ], function(angular,_) {
 							addSummarySpacerRow(report.document);
 							addSummarySpacerRow(report.document);
 							addSummarySpacerRow(report.document);
-							addSummaryTitle(report.document, "Análisis mitocondrial");
-							
-							for (var item in $scope.comparision) {
-								if ($scope.showLocus(item.locus)) {
-									var x = myFunc();
-								}
-							}
-							
+							addMitoStruct(report.document);
+							addMitoTitle(report.document, "Análisis mitocondrial");
+							addDefinedRanges(
+								report.document,
+								$scope.comparision,
+								$scope.profileId,
+								$scope.matchedProfileId
+							);
+							addMathingAlleles(
+								report.document,
+								$scope.comparision,
+								$scope.profileId,
+								$scope.matchedProfileId,
+								$scope.matchingAlleles
+							);
+							addNonMathingAlleles(
+								report.document,
+								$scope.comparision,
+								$scope.profileId,
+								$scope.matchedProfileId,
+								$scope.matchingAlleles
+							);
 						}
 						
 						// newWindow.print();
