@@ -136,31 +136,31 @@ libraryDependencies ++= Seq(
 
 // web assets (i.e. client-side) 
 libraryDependencies ++= Seq(
-  "org.webjars.npm" % "lodash" % "4.17.4",
-  "org.webjars" % "requirejs" % "2.1.14-1",
-  "org.webjars" % "underscorejs" % "1.6.0-3",
-  "org.webjars" % "jquery" % "3.1.1-1",
-  "org.webjars" % "jquery-ui" % "1.11.1",
-  "org.webjars" % "bootstrap" % "3.3.7-1" exclude("org.webjars", "jquery"),
-  "org.webjars" % "angularjs" % "1.4.0" exclude("org.webjars", "jquery"),
-  "org.webjars" % "angular-ui-bootstrap" % "0.13.3",
-  "org.webjars" % "angular-ui-select" % "0.13.1",
+  "org.webjars.npm" % "lodash" % "4.17.21",
+  "org.webjars" % "requirejs" % "2.1.22",
+  "org.webjars" % "underscorejs" % "1.13.0-2",
+  "org.webjars" % "jquery" % "3.7.1",
+  "org.webjars" % "jquery-ui" % "1.13.2",
+  "org.webjars" % "bootstrap" % "3.4.1" exclude("org.webjars", "jquery"),
+  "org.webjars" % "angularjs" % "1.8.3" exclude("org.webjars", "jquery"),
+  "org.webjars" % "angular-ui-bootstrap" % "0.14.3",
+  "org.webjars" % "angular-ui-select" % "0.19.8",
   "org.webjars" % "angular-ui-sortable" % "0.13.0",
   "org.webjars" % "cryptojs" % "3.1.2",
-  "org.webjars" % "angular-file-upload" % "4.1.3",
-  "org.webjars" % "angular-hotkeys" % "1.4.0",  
-  "org.webjars" % "i18next" % "1.7.3",
+  "org.webjars" % "angular-file-upload" % "12.2.13",
+  "org.webjars" % "angular-hotkeys" % "1.4.5",  
+  "org.webjars" % "i18next" % "1.10.1",
   "org.webjars" % "ng-i18next" % "0.3.2",
   "org.webjars" % "qrcodejs" % "07f829d",
-  "org.webjars" % "font-awesome" % "4.4.0",
-  "org.webjars" % "d3js" % "3.5.5-1",
-  "org.webjars" % "dagre-d3" % "0.4.10",
-  "org.webjars" % "animate.css" % "3.5.2"
+  "org.webjars" % "font-awesome" % "4.7.0",
+  "org.webjars" % "d3js" % "3.5.17",
+  "org.webjars" % "dagre-d3" % "0.6.3",
+  "org.webjars" % "animate.css" % "3.7.2"
   )
 
 // LDAP 
 libraryDependencies ++= Seq(
-  "com.unboundid" % "unboundid-ldapsdk" % "2.3.1"
+  "com.unboundid" % "unboundid-ldapsdk" % "2.3.8"
 )
 
 // CSV	 
@@ -185,7 +185,7 @@ libraryDependencies ++= Seq(
 	"org.apache.spark" %% "spark-core" % "2.1.1" withSources() withJavadoc(),
   "org.apache.spark" %% "spark-sql" % "2.1.1",
 	//"org.mongodb.spark" % "mongo-spark-connector_2.11" % "2.0.0" withSources() withJavadoc(),
-	"org.mongodb" % "mongo-java-driver" % "3.2.2" withSources() withJavadoc(),
+	"org.mongodb" % "mongo-java-driver" % "3.12.14" withSources() withJavadoc(),
   "org.scala-graph" %% "graph-core" % "1.11.5"
 )
 
@@ -197,7 +197,7 @@ libraryDependencies += "de.leanovate.play-mockws" %% "play-mockws" % "2.3.2" % T
 
 // Test
 libraryDependencies ++= Seq(
-  "org.scalatestplus" % "play_2.11" % "1.2.0" % "test"
+  "org.scalatestplus" % "play_2.11" % "1.4.0" % "test"
 )
 
 //Reporting
@@ -208,7 +208,7 @@ libraryDependencies ++= Seq(
   //   - https://github.com/flyingsaucerproject/flyingsaucer
   //   - https://about.validator.nu/htmlparser/
   "net.sf.jtidy" % "jtidy" % "r938",
-  "org.xhtmlrenderer" % "flying-saucer-pdf-itext5" % "9.1.6",
+  "org.xhtmlrenderer" % "flying-saucer-pdf-itext5" % "9.3.2",
   "nu.validator.htmlparser" % "htmlparser" % "1.4"
 )
 
