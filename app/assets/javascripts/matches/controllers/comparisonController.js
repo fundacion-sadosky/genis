@@ -1,8 +1,6 @@
 /**
  * matcher controllers.
  */
-// const myModule = require('./mymodule');
-// let val = myModule.hello(); // val is "Hello"   
 define([ 'angular','lodash' ], function(angular,_) {
 	'use strict';
 
@@ -57,11 +55,12 @@ define([ 'angular','lodash' ], function(angular,_) {
 		});
         
 		$scope.showLocus = function(locus) {
-				if ($scope.locusById && $scope.results) {
-						return $scope.locusById[locus].analysisType === $scope.results.type;
-				} else {
-						return false;
-				}
+      return true; // for debugging
+      // if ($scope.locusById && $scope.results) {
+      //     return $scope.locusById[locus].analysisType === $scope.results.type;
+      // } else {
+      //     return false;
+      // }
 		};
 
 		$scope.sortLoci = function (id) {
@@ -136,18 +135,24 @@ define([ 'angular','lodash' ], function(angular,_) {
 		};
 
 		var loadCalculation = function() {
-				$scope.showCalculation = $scope.analysisTypes[$scope.results.type].name === 'Autosomal';
-				if ($scope.showCalculation) {
-						statsService.getDefaultOptions($scope.profileId).then(function (opts) {
-								$scope.selectedOptions = opts;
-								getRandomMatchProbabilitiesByLocus();
+			$scope.showCalculation = $scope.analysisTypes[$scope.results.type].name === 'Autosomal';
+			if ($scope.showCalculation) {
+				statsService
+					.getDefaultOptions($scope.profileId)
+					.then(
+						function (opts) {
+							$scope.selectedOptions = opts;
+							getRandomMatchProbabilitiesByLocus();
 						}, function () {
-								statsService.getDefaultOptions($scope.matchedProfileId).then(function (opts) {
+							statsService
+								.getDefaultOptions($scope.matchedProfileId)
+								.then(
+									function (opts) {
 										$scope.selectedOptions = opts;
 										getRandomMatchProbabilitiesByLocus();
-			});
+									});
 						});
-				}
+			}
 		};
 
 		var getResults = function() {
@@ -173,7 +178,6 @@ define([ 'angular','lodash' ], function(angular,_) {
 									return value.replace(",",".") ;
 								}
 							);
-						console.log("matchingAlleles",$scope.matchingAlleles);
 						var statusProfileId = $scope.results.status[$scope.profileId];
 						var statusMatched = $scope.results.status[$scope.matchedProfileId];
 						if(
@@ -229,22 +233,20 @@ define([ 'angular','lodash' ], function(angular,_) {
 				}
 			);
 		};
-
 		analysisTypeService.listById().then(function(response) {
 			$scope.analysisTypes = response;
 			getResults();
 		});
-		
 		profiledataService.getProfilesData([$scope.profileId, $scope.matchedProfileId]).then(
 			function(response) {
 				var profileDataTemp = response.data.filter(function(x){return x.globalCode === $scope.profileId;})[0];
-                var matchedProfileDataTemp = response.data.filter(function(x){return x.globalCode === $scope.matchedProfileId;})[0];
+					var matchedProfileDataTemp = response.data.filter(function(x){return x.globalCode === $scope.matchedProfileId;})[0];
 				if(!_.isUndefined(profileDataTemp)){
-                    $scope.profileData = profileDataTemp;
+					$scope.profileData = profileDataTemp;
 				}
-                if(!_.isUndefined(matchedProfileDataTemp)){
-                    $scope.matchedProfileData = matchedProfileDataTemp;
-                }
+				if(!_.isUndefined(matchedProfileDataTemp)){
+					$scope.matchedProfileData = matchedProfileDataTemp;
+				}
 		});
 		
 		$scope.labeledGenotypifications = {};
@@ -282,33 +284,35 @@ define([ 'angular','lodash' ], function(angular,_) {
 			}
 		};
 		
-		matcherService.getComparedGenotyfications($scope.profileId,
-			$scope.matchedProfileId,
-			$scope.matchingId,
-			$scope.isCollapsingMatch,
-			$scope.isScreening
-		).then(
-			function(response) {
-				function mtConvert(item) {
-					item.locusSort = item.locus;
-					if(item.locus === 'HV1'){
-							item.locusSort = 'HV1_VAR';
+		matcherService
+			.getComparedGenotyfications(
+				$scope.profileId,
+				$scope.matchedProfileId,
+				$scope.matchingId,
+				$scope.isCollapsingMatch,
+				$scope.isScreening
+			).then(
+				function(response) {
+					function mtConvert(item) {
+						item.locusSort = item.locus;
+						if(item.locus === 'HV1'){
+								item.locusSort = 'HV1_VAR';
+						}
+						if(item.locus === 'HV2'){
+								item.locusSort = 'HV2_VAR';
+						}
+						if(item.locus === 'HV3'){
+								item.locusSort = 'HV3_VAR';
+						}
+						if(item.locus === 'HV4'){
+								item.locusSort = 'HV4_VAR';
+						}
+						return item;
 					}
-					if(item.locus === 'HV2'){
-							item.locusSort = 'HV2_VAR';
-					}
-					if(item.locus === 'HV3'){
-							item.locusSort = 'HV3_VAR';
-					}
-					if(item.locus === 'HV4'){
-							item.locusSort = 'HV4_VAR';
-					}
-					return item;
-				}
-				$scope.comparision = _.sortBy(response.data.map(mtConvert), ['locusSort']);
+					$scope.comparision = _.sortBy(response.data.map(mtConvert), ['locusSort']);
 					console.log('comparision',$scope.comparision);
-		});
-		
+			}
+		);
 		function encryptedEpgs(profile, epgs) {
 			return epgs.map(function(e){
 				return cryptoService.encryptBase64("/profiles/" + profile + "/epg/" + e.fileId);
@@ -347,11 +351,14 @@ define([ 'angular','lodash' ], function(angular,_) {
 					'.m1key{text-align:right; width:30%; font-weight: bold; font-size: small}'+
 					'.m2key{text-align:right; width:30%}'+
 					'.mval{text-align:right; width:40%;}'+
+					'.crkey{text-align: right; width: 40%; font-weight: bold; font-size: small;}'+
+					'.crval{text-align: right; width: 30%;}'+
 					'.rowSmall{font-size: x-small;}'+
 					'.lbg{background-color: #f0f0f0;}'+
 					'.dbg{background-color: #F5F5F5;}'+
 					'#summary{width:100%;}'+
 					'#mito{width:100%;}'+
+					'#cromosomal{width:100%;}'+
 					'.summTitle{' +
 					'  text-align:right;' +
 					'  font-weight: bold;' +
@@ -416,6 +423,9 @@ define([ 'angular','lodash' ], function(angular,_) {
 				$('#summary tr:last', doc)
 					.append('<td class="val rowSmall"><div> </div></td>');
 			};
+			var addEndOfSummarySpacer = function(doc) {
+				$('#summary', doc).after('<div><br></div>');
+			};
 			var addSummaryRow = function(doc, keyColText, valueColText) {
 				var bgClass = rowBackground ? "lbg" : "dbg";
 				rowBackground = !rowBackground;
@@ -448,8 +458,86 @@ define([ 'angular','lodash' ], function(angular,_) {
 					valueColText, 
 					"m1key " + bgClass,
 					"m2key " + bgClass,
-				"mval " + bgClass
+					"mval " + bgClass
 				);
+			};
+			var addEndOfMitoSpacer = function(doc) {
+				$('#mito', doc).after('<div><br></div>');
+			};
+			var addCromosomalStruct = function(doc) {
+				var $body = $('body', doc);
+				$body.append('<table id="cromosomal">');
+			};
+			var addCromosomalTitle = function(doc, title) {
+				var cr = $('#cromosomal', doc);
+				cr.append('<tr>');
+				$('#cromosomal tr:last', doc)
+					.append('<td class="summTitle" colspan="3"><div>' + title + '</div></td>');
+			};
+			var addCromosomalProfilesNames = function(doc, profile1, profile2) {
+				var bgClass = rowBackground ? "lbg" : "dbg";
+				rowBackground = !rowBackground;
+				var cr = $('#cromosomal', doc);
+				cr.append('<tr>');
+				$('#cromosomal tr:last', doc)
+					.append('<td class="crkey '+bgClass+'"><div>Perfiles:</div></td>');
+				$('#cromosomal tr:last', doc)
+					.append('<td class="crval '+bgClass+'"><div>' + profile1 + '</div></td>');
+				$('#cromosomal tr:last', doc)
+					.append('<td class="crval '+bgClass+'"><div>' + profile2 + '</div></td>');
+			};
+			var addCromosomalMarkers = function(doc, comparision, pid1, pid2) {
+				// Get marker names
+				// create a mapping from marker to allele for each profile
+				// Select sex marker
+				// Sort autosomal markers by name
+				// Show markers
+				var allMarkers = comparision
+					.map(function(x) {return x.locus;})
+					.filter(function(x) {return !x.startsWith("HV");});
+				var markerMap = new Map(
+					comparision
+						.filter(function(x) {return !x.locus.startsWith("HV");})
+						.map(
+							function(x) {
+								return [x.locus, new Map(Object.entries(x.g))];
+							}
+						)
+				);
+				var sexMarker = Array.from(markerMap.entries())
+					.map(
+						function(k){
+							return [
+								k[0],
+								Array.from(k[1].entries())
+									.map(function(x){return x[1];})
+									.reduce(function(a, x) {return a.concat(x);})
+							];
+						}
+					)
+					.map(function(x){return [x[0], new Set(x[1])];})
+					.filter(function(x) {return x[1].size <=1 && (x[1].has("X") || x[1].has("Y"));})
+					.map(function(x){return x[0];})[0];
+				var autosomalMarkers = allMarkers
+					.filter(function (x) {return x !== sexMarker;})
+					.sort();
+				allMarkers = [sexMarker].concat(autosomalMarkers);
+				for (var i in allMarkers) {
+					var cMarker = allMarkers[i];
+					if (cMarker === undefined) {
+						continue;
+					}
+					var bgClass = rowBackground ? "lbg" : "dbg";
+					rowBackground = !rowBackground;
+					var cr = $('#cromosomal', doc);
+					cr.append('<tr>');
+					$('#cromosomal tr:last', doc)
+						.append('<td class="crkey '+bgClass+'"><div>'+cMarker+'</div></td>');
+					$('#cromosomal tr:last', doc)
+						.append('<td class="crval '+bgClass+'"><div>' + markerMap.get(cMarker).get(pid1) + '</div></td>');
+					$('#cromosomal tr:last', doc)
+						.append('<td class="crval '+bgClass+'"><div>' + markerMap.get(cMarker).get(pid2) + '</div></td>');
+				}
 			};
 			var selectRanges = function(comparision, profile) {
 				var ranges = comparision
@@ -491,6 +579,14 @@ define([ 'angular','lodash' ], function(angular,_) {
 					.filter(function(x){return matching.includes(x);});
 				return mAlleles;
 			};
+      var selectNonMatchingAlleles = function(comparision, profile, matching) {
+        var mAlleles = comparision
+          .filter(function(x){return x.locus.startsWith("HV") && !x.locus.endsWith("_RANGE");})
+          .flatMap(function(x){return x.g[profile];})
+          .filter(function(x){return x!==undefined;})
+          .filter(function(x){return !matching.includes(x);});
+        return mAlleles;
+      };
 			var addMathingAlleles = function(doc, comparision, profileId, matchedProfileId, matching) {
 				var pAlleles = selectMatchingAlleles(comparision, profileId, matching);
 				var mAlleles = selectMatchingAlleles(comparision, matchedProfileId, matching);
@@ -511,7 +607,31 @@ define([ 'angular','lodash' ], function(angular,_) {
 				}
 			};
 			var addNonMathingAlleles = function(doc, comparision, profileId, matchedProfileId, matching) {
-				// TODO: Add Non Matching Alleles code.
+        var pAlleles = selectNonMatchingAlleles(comparision, profileId, matching);
+        var mAlleles = selectNonMatchingAlleles(comparision, matchedProfileId, matching);
+        var title = "Alelos no coincidentes:";
+        var pid = profileId;
+        var allele = "";
+        for (var i in pAlleles) {
+          allele = $filter("mt")(pAlleles[i], "", $scope.results.type, $scope.analysisTypes);
+          addMitoRangeRow(doc, title, pid, allele);
+          pid = "";
+          title = "";
+        }
+        pid = $scope.matchedProfileId;
+        for (i in mAlleles) {
+          allele = $filter("mt")(mAlleles[i], "", $scope.results.type, $scope.analysisTypes);
+          addMitoRangeRow(doc, title, pid, allele);
+          pid = "";
+        }
+			};
+			var addTotalNumberOfDifferences = function(doc, comparision, profileId, matchedProfileId, matching) {
+				// TODO: Check if this function works well with insertions and deletions
+				var pAlleles = selectNonMatchingAlleles(comparision, profileId, matching);
+				var mAlleles = selectNonMatchingAlleles(comparision, matchedProfileId, matching);
+				var allAlleles = pAlleles.concat(mAlleles);
+				var nDiff = new Set(allAlleles.map(function(x) {return x.split("@")[1];})).size;
+				addMitoRangeRow(doc, "Total de diferencias:", "", nDiff);
 			};
 			$timeout(function(){
 				var report = createEmptyReport();
@@ -588,10 +708,8 @@ define([ 'angular','lodash' ], function(angular,_) {
 								alleles + ' / ' + $scope.results.totalAlleles
 							);
 						}
+						addEndOfSummarySpacer(report.document);
 						if ($scope.results.type === 4) { // Mitochondrial
-							addSummarySpacerRow(report.document);
-							addSummarySpacerRow(report.document);
-							addSummarySpacerRow(report.document);
 							addMitoStruct(report.document);
 							addMitoTitle(report.document, "Análisis mitocondrial");
 							addDefinedRanges(
@@ -614,8 +732,31 @@ define([ 'angular','lodash' ], function(angular,_) {
 								$scope.matchedProfileId,
 								$scope.matchingAlleles
 							);
+							addTotalNumberOfDifferences(
+								report.document,
+								$scope.comparision,
+								$scope.profileId,
+								$scope.matchedProfileId,
+								$scope.matchingAlleles
+							);
+							addEndOfMitoSpacer(report.document);
 						}
-						
+						console.log($scope.showCalculation);
+						if ($scope.showCalculation || !$scope.showCalculation) { // All autosomal alleles
+							addCromosomalStruct(report.document);
+							addCromosomalTitle(report.document, "Análisis de marcadores cromosómicos");
+							addCromosomalProfilesNames(
+								report.document,
+								$scope.profileId,
+								$scope.matchedProfileId
+							);
+							addCromosomalMarkers(
+								report.document,
+								$scope.comparision,
+								$scope.profileId,
+								$scope.matchedProfileId
+							);
+						}
 						// newWindow.print();
 						// newWindow.close();
 				});
@@ -684,18 +825,17 @@ define([ 'angular','lodash' ], function(angular,_) {
 					selectedOptions: function() {
 						return $scope.selectedOptions;
 					},
-                    mix: function() {
-                        return $scope.mixF && $scope.mixM;
-                    },
-                    profileData: function() {
-                        var obj = {};
-                        obj[$scope.profileId] = $scope.profileData;
-                        obj[$scope.matchedProfileId] = $scope.matchedProfileData;
-                        return obj;
-                    }
+          mix: function() {
+              return $scope.mixF && $scope.mixM;
+          },
+          profileData: function() {
+              var obj = {};
+              obj[$scope.profileId] = $scope.profileData;
+              obj[$scope.matchedProfileId] = $scope.matchedProfileData;
+              return obj;
+          }
 				}
 			});
-			
 			modalStatInstance.result.then(
 				function (statsOptions) {
 					$scope.selectedOptions = statsOptions;
