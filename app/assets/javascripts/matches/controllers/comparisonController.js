@@ -55,12 +55,11 @@ define([ 'angular','lodash' ], function(angular,_) {
 		});
         
 		$scope.showLocus = function(locus) {
-      return true; // for debugging
-      // if ($scope.locusById && $scope.results) {
-      //     return $scope.locusById[locus].analysisType === $scope.results.type;
-      // } else {
-      //     return false;
-      // }
+			if ($scope.locusById && $scope.results) {
+				return $scope.locusById[locus].analysisType === $scope.results.type;
+			} else {
+				return false;
+			}
 		};
 
 		$scope.sortLoci = function (id) {
@@ -351,8 +350,10 @@ define([ 'angular','lodash' ], function(angular,_) {
 					'.m1key{text-align:right; width:30%; font-weight: bold; font-size: small}'+
 					'.m2key{text-align:right; width:30%}'+
 					'.mval{text-align:right; width:40%;}'+
-					'.crkey{text-align: right; width: 40%; font-weight: bold; font-size: small;}'+
+					'.crkey{text-align: right; width: 20%; font-weight: bold; font-size: small;}'+
 					'.crval{text-align: right; width: 30%;}'+
+					'.crval-slim{text-align: right; width: 10%;}'+
+					'.bold{font-weight: bold;}'+
 					'.rowSmall{font-size: x-small;}'+
 					'.lbg{background-color: #f0f0f0;}'+
 					'.dbg{background-color: #F5F5F5;}'+
@@ -472,7 +473,7 @@ define([ 'angular','lodash' ], function(angular,_) {
 				var cr = $('#cromosomal', doc);
 				cr.append('<tr>');
 				$('#cromosomal tr:last', doc)
-					.append('<td class="summTitle" colspan="3"><div>' + title + '</div></td>');
+					.append('<td class="summTitle" colspan="5"><div>' + title + '</div></td>');
 			};
 			var addCromosomalProfilesNames = function(doc, profile1, profile2) {
 				var bgClass = rowBackground ? "lbg" : "dbg";
@@ -480,18 +481,28 @@ define([ 'angular','lodash' ], function(angular,_) {
 				var cr = $('#cromosomal', doc);
 				cr.append('<tr>');
 				$('#cromosomal tr:last', doc)
-					.append('<td class="crkey '+bgClass+'"><div>Perfiles:</div></td>');
+					.append('<td class="crkey '+bgClass+'"><div>Marcadores</div></td>');
 				$('#cromosomal tr:last', doc)
-					.append('<td class="crval '+bgClass+'"><div>' + profile1 + '</div></td>');
+					.append('<td colspan="2" class="crval bold '+bgClass+'"><div>Perfiles</div></td>');
 				$('#cromosomal tr:last', doc)
-					.append('<td class="crval '+bgClass+'"><div>' + profile2 + '</div></td>');
+					.append('<td class="crval-slim bold '+bgClass+'"><div>Valor LR</div></td>');
+				$('#cromosomal tr:last', doc)
+					.append('<td class="crval-slim bold '+bgClass+'"><div>Estringencia</div></td>');
+				bgClass = rowBackground ? "lbg" : "dbg";
+				rowBackground = !rowBackground;
+				cr.append('<tr>');
+				$('#cromosomal tr:last', doc)
+					.append('<td class="crkey '+bgClass+'"><div></div></td>');
+				$('#cromosomal tr:last', doc)
+					.append('<td colspan="" class="crval bold '+bgClass+'"><div>'+profile1+'</div></td>');
+				$('#cromosomal tr:last', doc)
+					.append('<td colspan="" class="crval bold '+bgClass+'"><div>'+profile2+'</div></td>');
+				$('#cromosomal tr:last', doc)
+					.append('<td class="crval-slim '+bgClass+'"><div></div></td>');
+				$('#cromosomal tr:last', doc)
+					.append('<td class="crval-slim '+bgClass+'"><div></div></td>');
 			};
 			var addCromosomalMarkers = function(doc, comparision, pid1, pid2) {
-				// Get marker names
-				// create a mapping from marker to allele for each profile
-				// Select sex marker
-				// Sort autosomal markers by name
-				// Show markers
 				var allMarkers = comparision
 					.map(function(x) {return x.locus;})
 					.filter(function(x) {return !x.startsWith("HV");});
@@ -522,6 +533,14 @@ define([ 'angular','lodash' ], function(angular,_) {
 					.filter(function (x) {return x !== sexMarker;})
 					.sort();
 				allMarkers = [sexMarker].concat(autosomalMarkers);
+				var formatAlleles = function(marker, pid) {
+					return markerMap
+						.get(marker)
+						.get(pid)
+						.map(function(x){return x+"/"+x;})
+						.join(" ");
+				};
+				var lrFilter = $filter('likelihoodratioComp');
 				for (var i in allMarkers) {
 					var cMarker = allMarkers[i];
 					if (cMarker === undefined) {
@@ -534,9 +553,20 @@ define([ 'angular','lodash' ], function(angular,_) {
 					$('#cromosomal tr:last', doc)
 						.append('<td class="crkey '+bgClass+'"><div>'+cMarker+'</div></td>');
 					$('#cromosomal tr:last', doc)
-						.append('<td class="crval '+bgClass+'"><div>' + markerMap.get(cMarker).get(pid1) + '</div></td>');
+						.append('<td class="crval '+bgClass+'"><div>' + formatAlleles(cMarker, pid1) + '</div></td>');
 					$('#cromosomal tr:last', doc)
-						.append('<td class="crval '+bgClass+'"><div>' + markerMap.get(cMarker).get(pid2) + '</div></td>');
+						.append('<td class="crval '+bgClass+'"><div>' + formatAlleles(cMarker, pid2) + '</div></td>');
+					var lr = lrFilter(
+						$scope.statsResolved[cMarker],
+						$scope.results.matchingAlleles[cMarker],
+						$scope.statsResolved
+					);
+					$('#cromosomal tr:last', doc)
+						.append('<td class="crval-slim '+bgClass+'"><div>' + lr + '</div></td>');
+					var stringency = $scope.stringency[$scope.results.matchingAlleles[cMarker]].text;
+					stringency = stringency || $scope.stringency.NoMatch.text;
+					$('#cromosomal tr:last', doc)
+						.append('<td class="crval-slim '+bgClass+'"><div>' + stringency + '</div></td>');
 				}
 			};
 			var selectRanges = function(comparision, profile) {
@@ -701,7 +731,13 @@ define([ 'angular','lodash' ], function(angular,_) {
 								"Estrictez",
 								$scope.stringency[$scope.results.stringency].text
 							);
-							var alleles = $scope.results.reducedStringencies.values()[0];
+							var alleles = Object
+								.entries(
+									$scope
+										.results
+										.reducedStringencies
+								);
+							alleles = (alleles[0]||[])[1] || 'N/A';
 							addSummaryRowSmall(
 								report.document,
 								"Alelos",
@@ -741,8 +777,7 @@ define([ 'angular','lodash' ], function(angular,_) {
 							);
 							addEndOfMitoSpacer(report.document);
 						}
-						console.log($scope.showCalculation);
-						if ($scope.showCalculation || !$scope.showCalculation) { // All autosomal alleles
+						if ($scope.showCalculation) { // All autosomal alleles
 							addCromosomalStruct(report.document);
 							addCromosomalTitle(report.document, "Análisis de marcadores cromosómicos");
 							addCromosomalProfilesNames(
@@ -757,8 +792,8 @@ define([ 'angular','lodash' ], function(angular,_) {
 								$scope.matchedProfileId
 							);
 						}
-						// newWindow.print();
-						// newWindow.close();
+						report.print();
+						report.close();
 				});
 			});
 		};

@@ -46,23 +46,19 @@
 							<span ng-if="!isCollapsingMatch && !isScreening" class="badge status-{{matchStatus}}"><b>{{results.status[matchedProfileId] | uppercase | translatematchstatus }}</b></span>
 						</td>
 						<td id="td-comp-gen-4" class="text-center col-md-4 column" style="padding-bottom: 20px;" ng-class="{'statiscs-comparison': showCalculation}">
-<!--							<div ng-if="showCalculation">-->
-							<div>
+							<div ng-if="showCalculation">
 								<div class="noprint" style="width:90%; float: left;"> 
 									<span class="comparison-profileID">Opciones estadísticas</span>
 									<!--<span class="rmp comparison-profileID" ng-if="!mixF && !mixM"> RMP: {{(1.0 / pvalue).toExponential(4)}}</span>-->
-<!--									<span class="comparison-profileID"> LR: {{pvalue | likelihoodratioComp: true: statsResolved}}</span>-->
-									<span class="comparison-profileID"> LR: {{pvalue}}</span>
+									<span class="comparison-profileID"> LR: {{pvalue | likelihoodratioComp: true: statsResolved}}</span>
 								</div>
-								
 								<div style="width:10%; float: left;" class="comparison-mixture-profileID">
 									<a tooltip-placement="bottom" tooltip-html-unsafe="{{getStatsInfo()}}" tooltip-trigger="click"><i class="fa fa-info-circle"></i></a>
 									<a ng-click="showStatsOptions()"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></a>
 								</div>
 							</div>
 						</td>
-<!--						<td id="td-comp-gen-5" rowspan="2" class="col-md-2 column results"  ng-if="showCalculation">-->
-						<td id="td-comp-gen-5" rowspan="2" class="col-md-2 column results">
+						<td id="td-comp-gen-5" rowspan="2" class="col-md-2 column results"  ng-if="showCalculation">
 							<div class="text-center">
 								<span class="badge ng-binding results-demanding" data-ng-class=stringency[results.stringency].css>{{stringency[results.stringency].text}}</span>
 							</div>
@@ -129,25 +125,19 @@
 							>
 								{{item.p1.indexOf(allele)}}
 								{{allele | mt : item.locus : results.type : analysisTypes}}
-<!--								{{allele | mt: item.locus: results.type: analysisTypes}}-->
 								<span ng-if="shouldShowMinAlelle(allele,results.allelesRanges[item.locus])">/<{{results.allelesRanges[item.locus].min}}</span>
 								<span ng-if="shouldShowMaxAlelle(allele,results.allelesRanges[item.locus])">/>{{results.allelesRanges[item.locus].max}}</span>
 							</span>
 						</td>
-<!--						<td class="text-center" ng-class="{'statiscs-comparison': showCalculation}"  ng-if="showCalculation">-->
-						<td class="text-center" ng-class="{'statiscs-comparison': showCalculation}">
-<!--							<span class="text-center comparision-allele" ng-if="showCalculation"-->
-							<span class="text-center comparision-allele"
+						<td class="text-center" ng-class="{'statiscs-comparison': showCalculation}"  ng-if="showCalculation">
+							<span class="text-center comparision-allele" ng-if="showCalculation"
 								id="{{'lr' + $parent.$index + '_' + $index}}"
 								name="{{'lr' + $parent.$index + '_' + $index}}"
 							>
-								{{statsResolved[item.locus]}}
-								{{statsResolved}}
 								{{statsResolved[item.locus] | likelihoodratioComp: results.matchingAlleles[item.locus]: statsResolved }}
 							</span>
 						</td>
-						<td class="text-center" ><!--ng-if="showCalculation"-->
-							<span>HELLO</span>
+						<td class="text-center" --ng-if="showCalculation">
 							<span class="{{'badge icon-' + results.matchingAlleles[item.locus].toLowerCase()}}"
 							ng-class="{'icon-nomatch': !(stringency[results.matchingAlleles[item.locus]].text)}">
 									{{
@@ -187,7 +177,6 @@
 </div>
 
 </div>
-<div>{{matchingAlleles}}</div>
 <footer>
 
 <div class="text-left col-md-3 padding-0" ng-if="mixF || mixM">

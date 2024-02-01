@@ -1,0 +1,104 @@
+.report-table-title {
+    text-align: right;
+    font-weight: bold;
+    border-bottom-style: solid;
+    border-bottom-color: silver;
+    border-bottom-width: 2px;
+    font-size: x-large;
+}
+
+.report-title {
+    text-align: center;
+    font-weight: bold;
+    font-size: 2em;
+    padding-bottom: 2em;
+}
+
+.scenarios-with-padding {
+    padding-bottom: 4em;
+}
+.sce-report-result-key {
+    width: 65%;
+    text-align: right;
+    font-weight: bold;
+    font-size: small;
+}
+
+.sce-report-result-val {
+    width: 35%;
+    text-align: right;
+    font-weight: normal;
+    font-size: large;
+}
+
+.sce-report-ind-title {
+    text-align: right;
+    font-weight: bold;
+    font-size: larger;
+    border-bottom-style: solid;
+    border-bottom-color: silver;
+    border-bottom-width: 2px;
+}
+
+.sce-report-ind-elem {
+    width: 16.3%;
+    text-align: right;
+    font-weight: normal;
+    font-size: medium;
+    border-bottom-style: solid;
+    border-bottom-color: gainsboro;
+    border-bottom-width: 1px;
+}
+.sce-report-ind-elem-wide {
+    width: 20%;
+    text-align: right;
+    font-weight: normal;
+    font-size: medium;
+    border-bottom-style: solid;
+    border-bottom-color: gainsboro;
+    border-bottom-width: 1px;
+}
+.sce-report-ind-elem-slim {
+    width: 10%;
+    text-align: right;
+    font-weight: normal;
+    font-size: medium;
+    border-bottom-style: solid;
+    border-bottom-color: gainsboro;
+    border-bottom-width: 1px;
+}
+
+.cr-marker {
+    width: 20%;
+    font-weight: bold;
+    font-size: medium;
+    text-align: right;
+    border-bottom-style: solid;
+    border-bottom-color: gainsboro;
+    border-bottom-width: 1px;
+}
+
+.cr-alleles {
+    width: 16%;
+    font-weight: normal;
+    font-size: medium;
+    text-align: right;
+    border-bottom-style: solid;
+    border-bottom-color: gainsboro;
+    border-bottom-width: 1px;
+}
+
+.cr-alleles-header {
+    font-weight: bold;
+    font-size: larger;
+    text-align: right;
+    border-bottom-style: solid;
+    border-bottom-color: silver;
+    border-bottom-width: 2px;
+}
+
+.cr-alleles-header-pid {
+    font-weight: normal;
+    font-size: small;
+    text-align: right;
+}
