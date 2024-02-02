@@ -44,6 +44,28 @@ define(['angular','lodash','jquery'], function(angular,_,$) {
 
         var user = userService.getUser();
         var userName = user.name;
+        
+        $scope.printSummaryReport = function(){
+          // alertService.info("Hay que imprimir!!!");
+          var head = '<head><title>Resumen caso ' + $scope.idCourtCase + '</title>';
+          $("link").each(function () {
+            head += '<link rel="stylesheet" href="' + $(this)[0].href + '" />';
+          });
+          head += "</head>";
+          $scope.$apply();
+          var report = window.open('', '_blank');
+          report.document.write(
+            '<html>' + head +
+            '<body>' +
+            $('#report_'+$scope.idCourtCase).html() +
+            '</body></html>'
+          );
+          report.document.close();
+          $(report).on('load', function(){
+            report.print();
+            report.close();
+          });
+        };
 
         $scope.toggleDatePicker = function($event, witch) {
             $event.preventDefault();
