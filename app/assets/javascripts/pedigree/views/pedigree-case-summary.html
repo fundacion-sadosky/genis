@@ -1,6 +1,9 @@
 <div class="coincidencia-estado row">
+  Matches:
   <div ng-repeat="matchPed in sumMatches track by $index">
+    <div >{{$index}}</div>
     <div ng-repeat="match in matchPed.matchCardPed track by $index">
+      <div>{{matchPed}}</div>
       <span>{{matchPed.matchCard.title}}</span>
       <span>{{matchPed.matchCard.category}}</span>
       <span>{{matchPed.matchCard.courtCaseName}}</span>

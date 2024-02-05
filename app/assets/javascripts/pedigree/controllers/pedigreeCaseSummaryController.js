@@ -8,11 +8,6 @@ define(
 			pedigreeService
 		) {
 			$scope.findMatches = function(filters) {
-				// var searchObject = {
-				//	caseType: $scope.caseType,
-				//	idCourtCase: $scope.idCourtCase,
-				//	group: $scope.grupoId
-				// };
 				var searchObject = {
 					"caseType": "MPI",
 					"idCourtCase": 7,
@@ -24,41 +19,47 @@ define(
 					"sortField": "date",
 					"ascending": false
 				};
-				pedigreeMatchesService
-					.countMatches(searchObject)
-					.then(
-						function(response) {
-							$scope.totalItems = response.headers('X-MATCHES-LENGTH');
-							return $scope.totalItems;
-						}
-					)
-					.then(
-						function(totalItems) {
-							if ($scope.totalItems === '0') {
-								return;
-							}
-							pedigreeMatchesService
-								.findMatchesPedigree(searchObject)
+				var countTotalItems = function(response) {
+					$scope.totalItems = response.headers('X-MATCHES-LENGTH');
+					return $scope.totalItems;
+				};
+				var findPedigrees = function(totalItems) {
+					if (totalItems === '0') { return; }
+					return pedigreeMatchesService
+						.findMatchesPedigree(searchObject);
+				};
+				var assignSumMatches = function(response) {
+					$scope.sumMatches = response.data;
+					console.log("sumMatches", $scope.sumMatches);
+					return response.data;
+				};
+				var getPedigrees = function(sumMatches){
+					$scope.pedigreesIds = sumMatches
+						.map(function(x){return x.id;});
+					var result = sumMatches.map(
+						function(x) {
+							return pedigreeService
+								.getPedigree(x.id)
 								.then(
-									function(response) {
-										$scope.sumMatches = response.data;
-									}
-								)
-								.then(
-									function(){
-										pedigreeService
-											.getPedigree(17)
-											.then(
-													function(response) {
-														$scope.pedigrees = response.data;
-														console.log($scope.pedigrees);
-													}
-												);
-									}
+									function (r) {return r.data;}
 								);
 						}
 					);
+					return result;
+				};
+				var assignPedigrees = function(response) {
+					$scope.pedigrees = response.data;
+					console.log($scope.pedigrees);
+				};
+				pedigreeMatchesService
+					.countMatches(searchObject)
+					.then(countTotalItems)
+					.then(findPedigrees)
+					.then(assignSumMatches)
+					.then(getPedigrees)
+					.then(assignPedigrees);
 			};
+			$scope.findMatches({});
 			$scope.findMatches({});
 		}
 		return PedigreeMatchesCourtCaseController;
