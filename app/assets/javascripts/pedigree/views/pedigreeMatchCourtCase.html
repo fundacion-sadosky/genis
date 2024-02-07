@@ -318,7 +318,8 @@
   id="report_{{idCourtCase}}"
   ng-show="true"
   ng-controller="pedigreeCaseSummaryController"
-  data-ng-include="'/assets/javascripts/pedigree/views/pedigree-case-summary.html'"
+  data-ng-include="'/assets/javascripts/pedigree/views/pedigree-case-summary.html'",
+  ng-init="initCourtCase(idCourtCase)"
 ></div>
 <footer class="matches-groups-footer-footer">
     <div class="row coincidencia-estado">

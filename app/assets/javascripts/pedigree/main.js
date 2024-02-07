@@ -87,7 +87,7 @@ define(
 			.controller('pedigreeScenarioController',  ['$scope', 'alertService', 'pedigreeService', '$modal', '$timeout','$window','$routeParams', '$location', pedigreeScenarioController])
 			.controller('pedigreeGenotypificationController',  ['$scope', 'matchesService','locusService','$routeParams','pedigreeService','$window', 'alertService', pedigreeGenotypificationController])
 			.controller('pedigreeScenarioReportController',  ['$scope', 'matchesService', pedigreeScenarioReportController])
-			.controller('pedigreeCaseSummaryController', [ '$scope', 'pedigreeMatchesService', 'pedigreeService', pedigreeCaseSummaryController])
+			.controller('pedigreeCaseSummaryController', [ '$scope', 'pedigreeMatchesService', 'pedigreeService', 'profileService', 'matchesService', pedigreeCaseSummaryController])
 			.controller('activarPedigreeModalController',['$scope','$modalInstance','data',activarPedigreeModalController])
 			.controller('metadataModalController',['$scope', 'alertService','$modalInstance','data','pedigreeService',metadataModalController])
 			.controller('courtCaseCloseModalController', [ '$scope', '$modalInstance', 'info', courtCaseCloseModalController])
