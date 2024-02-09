@@ -93,8 +93,6 @@
 									'mt-comparison':!showCalculation && (matchingAlleles.indexOf(allele) != -1)
 								}"
 							>
-								{{item.p2.indexOf(allele)}}
-								{{allele}} /
 								{{allele | mt: item.locus: results.type: analysisTypes}}
 								<span
 									ng-if="shouldShowMinAlelle(allele,results.allelesRanges[item.locus])"
@@ -123,7 +121,6 @@
 										'mt-comparison':!showCalculation && (matchingAlleles.indexOf(allele) != -1)
 									}"
 							>
-								{{item.p1.indexOf(allele)}}
 								{{allele | mt : item.locus : results.type : analysisTypes}}
 								<span ng-if="shouldShowMinAlelle(allele,results.allelesRanges[item.locus])">/<{{results.allelesRanges[item.locus].min}}</span>
 								<span ng-if="shouldShowMaxAlelle(allele,results.allelesRanges[item.locus])">/>{{results.allelesRanges[item.locus].max}}</span>
@@ -175,6 +172,12 @@
 	<!--</div>-->
 <!--</div>-->
 </div>
+Comparision: {{comparision}}
+<div
+  id="report"
+  ng-show="true"
+  data-ng-include="'/assets/javascripts/matches/views/comparison-report.html'"
+></div>
 
 </div>
 <footer>
@@ -199,6 +202,8 @@
 	</div>
 </div>
 
+
+
 <div class="text-right noprint" ng-class="{'col-md-9': mixF || mixM} padding-right-0">
 	
 	<ui-select ng-if="showCalculation" id="kits" ng-model="kitId" ng-change="sortLoci(kitId.id)" ng-disabled="status == 'dblCheck'" style="float:left; width:150px;">
@@ -209,7 +214,18 @@
 	</ui-select>
 
 	<button id="viewElect" type="button" class="btn btn-secondary-action" data-ng-click="showElectropherograms()" ng-disabled="epg.length === 0 && matchedepg.length === 0">Ver electroferogramas</button>
-	<button id="printReport" type="button" class="btn btn-secondary-action" data-ng-click="printReport()">Imprimir reporte!!!</button>
+	<button
+			id="printReportNP"
+			type="button"
+			class="btn btn-secondary-action"
+			data-ng-click="printReportNP()"
+	>Imprimir reporte</button>
+	<button
+		id="printReport"
+		type="button"
+		class="btn btn-secondary-action"
+		data-ng-click="printReport()"
+		>Imprimir reporte</button>
 	<button id="doHit" ng-if="!isCollapsingMatch && !isScreening" ng-disabled="matchAg||(profileData.isExternal && matchedProfileData.isExternal)" pdg-confirm pdg-confirm-title="Confirmar Coincidencia" pdg-confirm-content="¿Está seguro?" type="button" class="btn btn-primary-action" pdg-on-confirm="doHit" data-ng-disabled="closedMatch" ng-show="!isPedigreeMatch">Confirmar Coincidencia</button>
 	<button id="doDescart" ng-if="!isCollapsingMatch && !isScreening" ng-disabled="profileData.isExternal && matchedProfileData.isExternal"  pdg-confirm pdg-confirm-title="Descartar Coincidencia" pdg-confirm-content="¿Está seguro?" type="button" class="btn btn-secondary-action" pdg-on-confirm="doDiscard" data-ng-disabled="closedMatch" ng-show="!isPedigreeMatch">Descartar Coincidencia</button>
 

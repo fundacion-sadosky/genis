@@ -5,6 +5,7 @@
     border-bottom-color: silver;
     border-bottom-width: 2px;
     font-size: x-large;
+    margin-bottom: 1em;
 }
 
 .report-title {
@@ -101,4 +102,50 @@
     font-weight: normal;
     font-size: small;
     text-align: right;
+}
+
+.summary-subtitle {
+    font-weight: bold;
+    font-size: larger;
+    text-align: right;
+    padding-bottom: 0.5em;
+}
+
+.summary-title {
+    font-weight: bold;
+    font-size: large;
+    text-align: right;
+    margin-bottom: 1em;
+}
+
+.summary-table-title {
+    font-weight: bold;
+    font-size: medium;
+    text-align: right;
+    border-bottom-style: solid;
+    border-bottom-color: silver;
+    border-bottom-width: 2px;
+}
+
+.summary-table-elem {
+    font-weight: normal;
+    font-size: medium;
+    text-align: right;
+    border-bottom-style: solid;
+    border-bottom-color: gainsboro;
+    border-bottom-width: 1px;
+}
+
+.summary-table-index {
+    font-weight: bold;
+    font-size: small;
+    text-align: right;
+    border-bottom-style: solid;
+    border-bottom-color: gainsboro;
+    border-bottom-width: 1px;
+}
+
+.summary-table {
+    margin-bottom: 2em;
+    width: 100%;
 }

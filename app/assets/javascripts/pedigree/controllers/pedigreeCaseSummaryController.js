@@ -4,6 +4,7 @@ define(
 		'use strict';
 		function PedigreeMatchesCourtCaseController(
 			$scope,
+			$rootScope,
 			pedigreeMatchesService,
 			pedigreeService,
 			profileService,
@@ -267,6 +268,9 @@ define(
 							}
 						);
 				};
+				var sendSummaryReadyEvent = function() {
+					$rootScope.$broadcast('summaryReady');
+				};
 				pedigreeMatchesService
 					.countMatches(searchObject)
 					.then(countTotalItems)
@@ -279,7 +283,8 @@ define(
 					.then(assignProfiles)
 					.then(collectMarkers)
 					.then(collectMitoMarkers)
-					.then(prepareProfilesForRender);
+					.then(prepareProfilesForRender)
+					.then(sendSummaryReadyEvent);
 			};
 			$scope.findMatches({});
 		}

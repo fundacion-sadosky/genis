@@ -41,7 +41,7 @@ define([ 'angular','lodash' ], function(angular,_) {
 		};
 		var modalInstanceHit = null;
 		var modalInstanceEpg = null;
-        $scope.associations = {};
+		$scope.associations = {};
 
 		profileService.getStrKits().then(function (data) {
 			$scope.strkits = data.data;
@@ -235,6 +235,7 @@ define([ 'angular','lodash' ], function(angular,_) {
 		analysisTypeService.listById().then(function(response) {
 			$scope.analysisTypes = response;
 			getResults();
+			$scope.$apply();
 		});
 		profiledataService.getProfilesData([$scope.profileId, $scope.matchedProfileId]).then(
 			function(response) {
@@ -246,17 +247,20 @@ define([ 'angular','lodash' ], function(angular,_) {
 				if(!_.isUndefined(matchedProfileDataTemp)){
 					$scope.matchedProfileData = matchedProfileDataTemp;
 				}
-		});
+				$scope.$apply();
+			});
 		
 		$scope.labeledGenotypifications = {};
 		$scope.labels = {};
 		profileService.getProfile($scope.profileId).then(
 			function(response) {
 				$scope.assignProfile($scope.profileId,response.data);
-		});
+				$scope.$apply();
+			});
 		profileService.getProfile($scope.matchedProfileId).then(
 			function(response) {
 				$scope.assignProfile($scope.matchedProfileId,response.data);
+				$scope.$apply();
 			}
 		);
 		$scope.assignProfile = function (profileId, profile){
@@ -280,6 +284,7 @@ define([ 'angular','lodash' ], function(angular,_) {
 				localProfileData.sampleEntryDate = superiorProfileData.sampleEntryDate;
 				localProfileData.sampleDate = superiorProfileData.sampleDate;
 				localProfileData.profileExpirationDate = superiorProfileData.profileExpirationDate;
+				$scope.$apply();
 			}
 		};
 		
@@ -310,6 +315,7 @@ define([ 'angular','lodash' ], function(angular,_) {
 					}
 					$scope.comparision = _.sortBy(response.data.map(mtConvert), ['locusSort']);
 					console.log('comparision',$scope.comparision);
+					$scope.$apply();
 			}
 		);
 		function encryptedEpgs(profile, epgs) {
@@ -327,7 +333,10 @@ define([ 'angular','lodash' ], function(angular,_) {
 			function(response) {
 				$scope.matchedepg = encryptedEpgs($scope.matchedProfileId, response.data);
 			});
-		
+
+		$scope.printReportNP = function() {
+
+		};
 		$scope.printReport = function() {
 			var rowBackground = true;
 			var createEmptyReport = function (){
