@@ -4,7 +4,7 @@ import javax.inject.{Inject, Singleton}
 import configdata.CategoryService
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.iteratee.Enumerator
-import play.api.libs.json.{JsError, JsValue, Json}
+import play.api.libs.json.{JsError, JsString, JsValue, Json, Writes}
 import play.api.mvc._
 import play.modules.reactivemongo.MongoController
 import profile.GenotypificationByType._
@@ -60,6 +60,35 @@ class Profiles @Inject()(
     }
   }
 
+  def profilesCategories(categories: List[String]):Action[AnyContent] = Action.async {
+    request =>
+      profileService
+        .profilesCategories(categories)
+        .map(r => Ok(Json.toJson(r)))
+    
+  }
+  
+  /**
+   * Return the globalCode of all profiles.
+   * @return All the profiles
+   */
+  def profilesAll():  Action[JsValue] = Action.async(BodyParsers.parse.json) {
+    _ => {
+      implicit def sampleCodeAndCategory: Writes[(SampleCode, String)] = new Writes[(SampleCode, String)] {
+        def writes(tuple: (SampleCode, String)): JsValue = {
+          val (sampleCode, string) = tuple
+          Json.obj(
+            "sampleCode" -> Json.toJson(sampleCode),
+            "categoryId" -> JsString(string)
+          )
+        }
+      }
+      profileService
+        .profilesAll()
+        .map(response => Ok(Json.toJson(response)))
+    }
+  }
+  
   def addElectropherograms(token: String, globalCode: SampleCode, idAnalysis: String, name: String) = Action.async { req =>
     profileService.saveElectropherograms(token, globalCode, idAnalysis,name) map { l =>
       val (right, left) = l.partition(elem => elem.isRight)

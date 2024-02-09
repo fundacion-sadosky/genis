@@ -114,6 +114,7 @@ POST     /profile-exportToLims                                @controllers.Profi
 GET      /get-profile-export/:user                            @controllers.Profiles.getExportFile(user: String)
 GET      /get-alta-file-export                                @controllers.Profiles.getLimsAltaFile()
 GET      /get-match-file-export                               @controllers.Profiles.getLimsMatchFile()
+GET      /profiles-categoryId                                 @controllers.Profiles.profilesCategories(categories:List[String])
 
 # BulkUpload
 POST     /bulkuploader                                        @controllers.BulkUpload.uploadProtoProfiles(label: Option[String], analysisType: String)

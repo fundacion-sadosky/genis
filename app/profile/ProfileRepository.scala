@@ -101,6 +101,9 @@ abstract class ProfileRepository {
 
   def getProfileOwnerByEpgId(id: String): Future[(String,SampleCode)]
 
+  def getAllProfiles(): Future[List[(SampleCode, String)]]
+  
+  def getProfilesForCategories(categories: List[String]) : Future[List[Profile]]
 }
 
 class MongoProfileRepository extends ProfileRepository {
@@ -605,5 +608,24 @@ class MongoProfileRepository extends ProfileRepository {
       FutureUtils.swap(optDoc.map(doc => this.get(SampleCode(doc.getAs[String]("profileId").get))
         .map(res => res.map( x => (x.assignee, x.globalCode) )))).map(_.flatten)
     })).map( x => x.getOrElse(("",SampleCode(""))))
+  }
+  
+  override def getAllProfiles() : Future[List[(SampleCode, String)]]= {
+    profiles
+      .find(Json.obj())
+      .cursor[Profile]()
+      .collect[List](-1, Cursor.FailOnError[List[Profile]]())
+      .map(
+        ps => ps.map(
+          p => (p.globalCode, p.categoryId.text)
+        )
+      )
+  }
+  
+  def getProfilesForCategories(categories: List[String]) : Future[List[Profile]] = {
+    profiles
+      .find(Json.obj("categoryId" -> Json.obj("$in" -> categories)))
+      .cursor[Profile]()
+      .collect[List](-1, Cursor.FailOnError[List[Profile]]())
   }
 }

@@ -95,7 +95,7 @@ define(
 			.controller('matchesController', ['$scope', '$routeParams', 'matchesService',  'profileDataService','alertService','laboratoriesService', 'profileService', 'locusService', 'helper', '$anchorScroll','$timeout', matchesController])
 			.controller('matchesGroupsController', ['$scope', '$routeParams', 'matchesService', 'profileService', 'profileDataService', '$filter', '$location', 'scenarioService', 'analysisTypeService', 'locusService', 'helper', 'alertService', 'userService', matchesGroupsController])
 			.controller('pedigreeConsistencyController',  ['$scope', 'matchesService','locusService','$routeParams','pedigreeService','$window', 'alertService','$timeout','$filter', pedigreeConsistencyController])
-			.controller('pedigreeMatchesCourtCaseController', ['$scope', 'pedigreeMatchesService', 'matchesService','alertService','profileDataService','$routeParams','pedigreeService','pedigreeMatchesGroupsService','userService', pedigreeMatchesCourtCaseController])
+			.controller('pedigreeMatchesCourtCaseController', ['$scope', 'pedigreeMatchesService', 'matchesService','alertService','profileDataService','$routeParams','pedigreeService','pedigreeMatchesGroupsService','userService', 'profileService', pedigreeMatchesCourtCaseController])
 			.config(
 				[
 					'$routeProvider',

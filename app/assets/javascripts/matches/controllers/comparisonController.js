@@ -359,10 +359,6 @@ define([ 'angular','lodash' ], function(angular,_) {
 			$scope.categories = response.data;
 		});
 		
-		$scope.getSubcatName2 = function(catId){
-			return matcherService.getSubCatName($scope.categories, catId);
-		};
-		
 		$scope.getSubcatName = function(catId){
 			return matcherService.getSubCatName($scope.categories, catId);
 		};
