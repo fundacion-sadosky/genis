@@ -8,6 +8,8 @@ define([ 'angular','lodash' ], function(angular,_) {
 		$scope,
 		$routeParams,
 		$modal,
+		$timeout,
+		$filter,
 		matcherService,
 		profiledataService,
 		profileService,
@@ -39,7 +41,7 @@ define([ 'angular','lodash' ], function(angular,_) {
 		};
 		var modalInstanceHit = null;
 		var modalInstanceEpg = null;
-        $scope.associations = {};
+		$scope.associations = {};
 
 		profileService.getStrKits().then(function (data) {
 			$scope.strkits = data.data;
@@ -53,11 +55,11 @@ define([ 'angular','lodash' ], function(angular,_) {
 		});
         
 		$scope.showLocus = function(locus) {
-				if ($scope.locusById && $scope.results) {
-						return $scope.locusById[locus].analysisType === $scope.results.type;
-				} else {
-						return false;
-				}
+			if ($scope.locusById && $scope.results) {
+				return $scope.locusById[locus].analysisType === $scope.results.type;
+			} else {
+				return false;
+			}
 		};
 
 		$scope.sortLoci = function (id) {
@@ -132,18 +134,24 @@ define([ 'angular','lodash' ], function(angular,_) {
 		};
 
 		var loadCalculation = function() {
-				$scope.showCalculation = $scope.analysisTypes[$scope.results.type].name === 'Autosomal';
-				if ($scope.showCalculation) {
-						statsService.getDefaultOptions($scope.profileId).then(function (opts) {
-								$scope.selectedOptions = opts;
-								getRandomMatchProbabilitiesByLocus();
+			$scope.showCalculation = $scope.analysisTypes[$scope.results.type].name === 'Autosomal';
+			if ($scope.showCalculation) {
+				statsService
+					.getDefaultOptions($scope.profileId)
+					.then(
+						function (opts) {
+							$scope.selectedOptions = opts;
+							getRandomMatchProbabilitiesByLocus();
 						}, function () {
-								statsService.getDefaultOptions($scope.matchedProfileId).then(function (opts) {
+							statsService
+								.getDefaultOptions($scope.matchedProfileId)
+								.then(
+									function (opts) {
 										$scope.selectedOptions = opts;
 										getRandomMatchProbabilitiesByLocus();
-			});
+									});
 						});
-				}
+			}
 		};
 
 		var getResults = function() {
@@ -169,7 +177,6 @@ define([ 'angular','lodash' ], function(angular,_) {
 									return value.replace(",",".") ;
 								}
 							);
-						console.log("matchingAlleles",$scope.matchingAlleles);
 						var statusProfileId = $scope.results.status[$scope.profileId];
 						var statusMatched = $scope.results.status[$scope.matchedProfileId];
 						if(
@@ -225,33 +232,35 @@ define([ 'angular','lodash' ], function(angular,_) {
 				}
 			);
 		};
-
 		analysisTypeService.listById().then(function(response) {
 			$scope.analysisTypes = response;
 			getResults();
+			$scope.$apply();
 		});
-		
 		profiledataService.getProfilesData([$scope.profileId, $scope.matchedProfileId]).then(
 			function(response) {
 				var profileDataTemp = response.data.filter(function(x){return x.globalCode === $scope.profileId;})[0];
-                var matchedProfileDataTemp = response.data.filter(function(x){return x.globalCode === $scope.matchedProfileId;})[0];
+					var matchedProfileDataTemp = response.data.filter(function(x){return x.globalCode === $scope.matchedProfileId;})[0];
 				if(!_.isUndefined(profileDataTemp)){
-                    $scope.profileData = profileDataTemp;
+					$scope.profileData = profileDataTemp;
 				}
-                if(!_.isUndefined(matchedProfileDataTemp)){
-                    $scope.matchedProfileData = matchedProfileDataTemp;
-                }
-		});
+				if(!_.isUndefined(matchedProfileDataTemp)){
+					$scope.matchedProfileData = matchedProfileDataTemp;
+				}
+				$scope.$apply();
+			});
 		
 		$scope.labeledGenotypifications = {};
 		$scope.labels = {};
 		profileService.getProfile($scope.profileId).then(
 			function(response) {
 				$scope.assignProfile($scope.profileId,response.data);
-		});
+				$scope.$apply();
+			});
 		profileService.getProfile($scope.matchedProfileId).then(
 			function(response) {
 				$scope.assignProfile($scope.matchedProfileId,response.data);
+				$scope.$apply();
 			}
 		);
 		$scope.assignProfile = function (profileId, profile){
@@ -275,36 +284,40 @@ define([ 'angular','lodash' ], function(angular,_) {
 				localProfileData.sampleEntryDate = superiorProfileData.sampleEntryDate;
 				localProfileData.sampleDate = superiorProfileData.sampleDate;
 				localProfileData.profileExpirationDate = superiorProfileData.profileExpirationDate;
+				$scope.$apply();
 			}
 		};
 		
-		matcherService.getComparedGenotyfications($scope.profileId,
-			$scope.matchedProfileId,
-			$scope.matchingId,
-			$scope.isCollapsingMatch,
-			$scope.isScreening
-		).then(
-			function(response) {
-				function mtConvert(item) {
-					item.locusSort = item.locus;
-					if(item.locus === 'HV1'){
-							item.locusSort = 'HV1_VAR';
+		matcherService
+			.getComparedGenotyfications(
+				$scope.profileId,
+				$scope.matchedProfileId,
+				$scope.matchingId,
+				$scope.isCollapsingMatch,
+				$scope.isScreening
+			).then(
+				function(response) {
+					function mtConvert(item) {
+						item.locusSort = item.locus;
+						if(item.locus === 'HV1'){
+								item.locusSort = 'HV1_VAR';
+						}
+						if(item.locus === 'HV2'){
+								item.locusSort = 'HV2_VAR';
+						}
+						if(item.locus === 'HV3'){
+								item.locusSort = 'HV3_VAR';
+						}
+						if(item.locus === 'HV4'){
+								item.locusSort = 'HV4_VAR';
+						}
+						return item;
 					}
-					if(item.locus === 'HV2'){
-							item.locusSort = 'HV2_VAR';
-					}
-					if(item.locus === 'HV3'){
-							item.locusSort = 'HV3_VAR';
-					}
-					if(item.locus === 'HV4'){
-							item.locusSort = 'HV4_VAR';
-					}
-					return item;
-				}
-				$scope.comparision = _.sortBy(response.data.map(mtConvert), ['locusSort']);
+					$scope.comparision = _.sortBy(response.data.map(mtConvert), ['locusSort']);
 					console.log('comparision',$scope.comparision);
-		});
-		
+					$scope.$apply();
+			}
+		);
 		function encryptedEpgs(profile, epgs) {
 			return epgs.map(function(e){
 				return cryptoService.encryptBase64("/profiles/" + profile + "/epg/" + e.fileId);
@@ -320,12 +333,35 @@ define([ 'angular','lodash' ], function(angular,_) {
 			function(response) {
 				$scope.matchedepg = encryptedEpgs($scope.matchedProfileId, response.data);
 			});
-		
-		$scope.printReport = function() {window.print();};
+
+		$scope.printReport = function() {
+			var head = '<head><title>Comparación</title>';
+			$("link").each(function () {
+				head += '<link rel="stylesheet" href="' + $(this)[0].href + '" />';
+			});
+			head += "</head>";
+			$scope.$apply();
+			var report = window.open('', '_blank');
+			report.document.write(
+				'<html>' + head +
+				'<body>' +
+				$('#report').html() +
+				'</body></html>'
+			);
+			report.document.close();
+			$(report).on('load', function(){
+				report.print();
+				report.close();
+			});
+		};
 		
 		profiledataService.getCategories().then(function(response){
 			$scope.categories = response.data;
 		});
+		
+		$scope.getSubcatName2 = function(catId){
+			return matcherService.getSubCatName($scope.categories, catId);
+		};
 		
 		$scope.getSubcatName = function(catId){
 			return matcherService.getSubCatName($scope.categories, catId);
@@ -346,10 +382,9 @@ define([ 'angular','lodash' ], function(angular,_) {
 			var statHeader = '<div class="form-group"><label>lblTitle:</label> ';
 			var statFooter = '</div>';
 			var selOpt = $scope.selectedOptions;
-			
-			return statHeader.replace('lblTitle', 'Base de datos de frecuencia') + 
+			return statHeader.replace('lblTitle', 'Base de datos de frecuencia') +
 				((selOpt.frequencyTable)? selOpt.frequencyTable: '')  + statFooter + 
-				statHeader.replace('lblTitle', 'Modelo estadístico') + 
+				statHeader.replace('lblTitle', 'Modelo estadístico') +
 				((selOpt.probabilityModel)? selOpt.probabilityModel: '') + statFooter + 
 				statHeader.replace('lblTitle', '&Theta;') + 
 				((selOpt.theta)? selOpt.theta: '') + statFooter;
@@ -386,18 +421,17 @@ define([ 'angular','lodash' ], function(angular,_) {
 					selectedOptions: function() {
 						return $scope.selectedOptions;
 					},
-                    mix: function() {
-                        return $scope.mixF && $scope.mixM;
-                    },
-                    profileData: function() {
-                        var obj = {};
-                        obj[$scope.profileId] = $scope.profileData;
-                        obj[$scope.matchedProfileId] = $scope.matchedProfileData;
-                        return obj;
-                    }
+          mix: function() {
+              return $scope.mixF && $scope.mixM;
+          },
+          profileData: function() {
+              var obj = {};
+              obj[$scope.profileId] = $scope.profileData;
+              obj[$scope.matchedProfileId] = $scope.matchedProfileData;
+              return obj;
+          }
 				}
 			});
-			
 			modalStatInstance.result.then(
 				function (statsOptions) {
 					$scope.selectedOptions = statsOptions;

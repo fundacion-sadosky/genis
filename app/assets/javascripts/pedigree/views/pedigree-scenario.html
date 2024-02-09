@@ -99,7 +99,12 @@
     </div>
 </div>
 
-<div id="report_{{$index}}" ng-show="false" ng-controller="pedigreeScenarioReportController" data-ng-include="'/assets/javascripts/pedigree/views/pedigree-scenario-report.html'"></div>
+<div
+  id="report_{{$index}}"
+  ng-show="false"
+  ng-controller="pedigreeScenarioReportController"
+  data-ng-include="'/assets/javascripts/pedigree/views/pedigree-scenario-report.html'"
+></div>
 
 <footer class="pedigree-genogram-footer">
     <div class="col-md-2">
@@ -112,7 +117,7 @@
 
     <button type="button" class="btn btn-secondary-action" ng-if="scenario.status !== 'Validated'"
             ng-click="getLR()" ng-disabled="disableCalculate()">Calcular LR</button>
-    <button type="button" class="btn btn-secondary-action" ng-click="printReport()">Imprimir</button>
+    <button type="button" class="btn btn-secondary-action" ng-click="printReport()">Imprimir reporte del escenario</button>
     <span id="processingSpan" class="icon-refresh" data-ng-class="{'spinner': processing()}" data-ng-show="processing()"></span>
     <span id="calculationWarning" data-ng-if="processing()">Este escenario tiene un cálculo en proceso...</span>
 

@@ -1,0 +1,119 @@
+<div class="coincidencia-estado row">
+	<div class="scenarios-section scenarios-with-padding">
+		<h1 class="report-title">GENIS - Resumen del caso {{getCaseName()}}</h1>
+		<div class="report-table-title">Pedigrís</div>
+		<table class="summary-table" ng-repeat="matchPed in sumMatches track by $index">
+			<tr>
+				<td class="summary-table-index"><div>Pedigrí:</div></td>
+				<td class="summary-table-elem"><div>{{matchPed.matchCard.title}}</div></td>
+			</tr>
+			<tr>
+				<td class="summary-table-index"><div>Categoría:</div></td>
+				<td class="summary-table-elem"><div>{{matchPed.matchCard.category}}</div></td>
+			</tr>
+			<tr>
+				<td class="summary-table-index"><div>Genetista Asignado:</div></td>
+				<td class="summary-table-elem"><div>{{matchPed.matchCard.assignee}}</div></td>
+			</tr>
+			<tr>
+				<td class="summary-table-index"><div>Cantidad de coincidencias:</div></td>
+				<td class="summary-table-elem"><div>{{matchPed.matchCard.count}}</div></td>
+			</tr>
+			<tr>
+				<td class="summary-table-index"><div>Cantidad de coincidencias confirmadas:</div></td>
+				<td class="summary-table-elem"><div>{{matchPed.matchCard.hit}}</div></td>
+			</tr>
+			<tr>
+				<td class="summary-table-index"><div>Cantidad de coincidencias pendientes:</div></td>
+				<td class="summary-table-elem"><div>{{matchPed.matchCard.pending}}</div></td>
+			</tr>
+			<tr>
+				<td class="summary-table-index"><div>Cantidad de coincidencias descartadas:</div></td>
+				<td class="summary-table-elem"><div>{{matchPed.matchCard.discarded}}</div></td>
+			</tr>
+		</table>
+		<!-- Coindicidencias -->
+		<div class="report-table-title">Coincidencias</div>
+		<div ng-repeat="matchPed in sumMatches track by $index">
+			<table class="summary-table" ng-repeat="match in matchPed.matchCardPed track by $index">
+				<tr>
+					<td class="summary-table-index"><div>Pedigrí:</div></td>
+					<td class="summary-table-elem"><div>{{matchPed.matchCard.title}}</div></td>
+				</tr>
+				<tr>
+					<td class="summary-table-index"><div>Perfil:</div></td>
+					<td class="summary-table-elem"><div>{{match.internalCode}}</div></td>
+				</tr>
+				<tr>
+					<td class="summary-table-index"><div>Codigo Interno:</div></td>
+					<td class="summary-table-elem"><div>{{match.sampleCode}}</div></td>
+				</tr>
+				<tr>
+					<td class="summary-table-index"><div>Likelihood ratio:</div></td>
+					<td class="summary-table-elem"><div>{{match.lr | likelihoodratioComp: true: true}}</div></td>
+				</tr>
+				<tr>
+					<td class="summary-table-index"><div>Estado:</div></td>
+					<td class="summary-table-elem"><div>{{matchPStatus[match.estado]}}</div></td>
+				</tr>
+				<tr>
+					<td class="summary-table-index"><div>Fecha de la última coincidencia:</div></td>
+					<td class="summary-table-elem"><div>{{match.lastMatchDate | date:'dd / MM / yyyy'}}</div></td>
+				</tr>
+				<tr>
+					<td class="summary-table-index"><div>Categoria:</div></td>
+					<td class="summary-table-elem"><div>{{match.categoryId}}</div></td>
+				</tr>
+			</table>
+		</div>
+	</div>
+	<!-- Profiles -->
+	<div class="report-table-title">Perfiles</div>
+	<div ng-repeat="matchData in profilesForRender track by $index">
+		<div class="summary-title">Coincidencia {{matchData[0]}}/{{matchData[1]}} en pedigrí {{matchData[2]}}</div>
+		<div class="summary-subtitle">Marcadores cromosómicos</div>
+		<table class="summary-table" ng-repeat="chunk in matchData[5]">
+			<tr>
+				<td class="summary-table-title">Marcador</td>
+				<td class="summary-table-title" ng-repeat="profileData in chunk">
+					{{profileData[0]}}<br>
+					{{profileData[1].alias}}
+				</td>
+			</tr>
+			<tr ng-repeat="marker in markers">
+				<td class="summary-table-index">{{marker}}</td>
+				<td class="summary-table-elem" ng-repeat="profileData in chunk">
+					{{markerMap[profileData[0]][marker].join(" / ")}}
+				</td>
+			</tr>
+		</table>
+		<div ng-if="matchData[3]._id">
+			<div class="summary-subtitle">Marcadores mitocondriales</div>
+			<table class="summary-table" ng-repeat="chunk in matchData[5]">
+				<tr>
+					<td class="summary-table-title"></td>
+					<td class="summary-table-title" ng-repeat="profileData in chunk">
+						{{profileData[0]}}<br>
+						{{profileData[1].alias}}
+					</td>
+				</tr>
+				<tr>
+					<td class="summary-table-index">Rangos definidos:</td>
+					<td class="summary-table-elem" ng-repeat="profileData in chunk">
+						<span ng-repeat="range in mitoRanges[profileData[0]]">
+							{{range.join("-")}}<br>
+						</span>
+					</td>
+				</tr>
+				<tr>
+					<td class="summary-table-index">Alelos:</td>
+					<td class="summary-table-elem" ng-repeat="profileData in chunk">
+						<span ng-repeat="allele in mitoAlleles[profileData[0]]">
+							{{allele | mitochondrial : ""}}<br>
+						</span>
+					</td>
+				</tr>
+			</table>
+		</div>
+	</div>
+</div>
