@@ -2,11 +2,11 @@
   <div class="scenarios-section scenarios-with-padding">
     <h1 class="report-title">GENIS - Reporte de comparación {{$parent.profileId}}/{{$parent.matchedProfileId}}</h1>
     <div class="report-table-title">Resumen de perfiles</div>
-    {{profileData}}
+    
     <table class="summary-table">
       <tr>
-        <td class="summary-table-index"><div>Código Genis:</div></td>
-        <td class="summary-table-elem"><div>{{profileId}}</div></td>
+        <td class="summary-table-index w30"><div>Código Genis:</div></td>
+        <td class="summary-table-elem w70"><div>{{profileId}}</div></td>
       </tr>
       <tr>
         <td class="summary-table-index"><div>Codigo Laboratorio:</div></td>
@@ -14,7 +14,7 @@
       </tr>
       <tr>
         <td class="summary-table-index"><div>Categoria:</div></td>
-        <td class="summary-table-elem"><div>{{profileData.category}}</div></td>
+        <td class="summary-table-elem"><div>{{getSubCatName(categories, profileData.category)}}</div></td>
       </tr>
       <tr>
         <td class="summary-table-index"><div>Gen. Asignado:</div></td>
@@ -51,8 +51,8 @@
     </table>
     <table class="summary-table">
       <tr>
-        <td class="summary-table-index"><div>Código Genis:</div></td>
-        <td class="summary-table-elem"><div>{{$parent.matchedProfileId}}</div></td>
+        <td class="summary-table-index w30"><div>Código Genis:</div></td>
+        <td class="summary-table-elem w70"><div>{{$parent.matchedProfileId}}</div></td>
       </tr>
       <tr>
         <td class="summary-table-index"><div>Codigo Laboratorio:</div></td>
@@ -60,7 +60,7 @@
       </tr>
       <tr>
         <td class="summary-table-index"><div>Categoria:</div></td>
-        <td class="summary-table-elem"><div>{{$parent.getSubCatName(parent.matchedProfileData.category)}}</div></td>
+        <td class="summary-table-elem"><div>{{getSubCatName(categories, matchedProfileData.category)}}</div></td>
       </tr>
       <tr>
         <td class="summary-table-index"><div>Gen. Asignado:</div></td>
@@ -95,7 +95,121 @@
         <td class="summary-table-elem"><div>{{$parent.results.status[$parent.matchedProfileId].toUpperCase()|translatematchstatus}}</div></td>
       </tr>
     </table>
-    <!-- Coindicidencias -->
+    <!-- Estadística -->
+    <div ng-if="showCalculation" class="report-table-title">Estadística</div>
+    <table ng-if="showCalculation" class="summary-table">
+      <tr>
+        <td class="summary-table-index w30"><div>LR:</div></td>
+        <td class="summary-table-elem w70"><div>{{pvalue|likelihoodratioComp:true:statsResolved}}</div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index w30"><div>Base de datos de frecuencias:</div></td>
+        <td class="summary-table-elem w70"><div>{{selectedOptions.frequencyTable||"-"}}</div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index w30"><div>Modelo estadístico:</div></td>
+        <td class="summary-table-elem w70"><div>{{selectedOptions.probabilityModel||"-"}}</div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index w30"><div>Valor &Theta;:</div></td>
+        <td class="summary-table-elem w70"><div>{{selectedOptions.theta||"-"}}</div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index w30"><div>Estrictez:</div></td>
+        <td class="summary-table-elem w70"><div>{{stringency[results.stringency].text}}</div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index w30"><div>Alelos:</div></td>
+        <td class="summary-table-elem w70"><div>{{stringencyAlleles()}}</div></td>
+      </tr>
+    </table>
+    <!-- Analisis mitocondrial -->
+    <div ng-if="results.type===4" class="report-table-title">Análisis mitocondrial</div>
+    <table ng-if="results.type===4" class="summary-table">
+      <tr>
+        <td class="summary-table-index"><div>Rangos definidos:</div></td>
+        <td class="summary-table-elem"><div>{{profileId}}</div></td>
+        <td class="summary-table-elem"><div>
+          <span ng-repeat="range in selectRanges(profileId)">{{rangeAsString(range)}}<br></span>
+        </div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index"><div></div></td>
+        <td class="summary-table-elem"><div>{{matchedProfileId}}</div></td>
+        <td class="summary-table-elem"><div>
+          <span ng-repeat="range in selectRanges(matchedProfileId)">{{rangeAsString(range)}}<br></span>
+        </div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index"><div>Alelos coincidentes::</div></td>
+        <td class="summary-table-elem"><div>{{profileId}}</div></td>
+        <td class="summary-table-elem"><div>
+          <span ng-repeat="alelle in selectMatchingAlleles(profileId, matchingAlleles)">
+            {{alelle|mt:"":results.type:analysisTypes}}<br>
+          </span>
+        </div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index"><div></div></td>
+        <td class="summary-table-elem"><div>{{matchedProfileId}}</div></td>
+        <td class="summary-table-elem"><div>
+          <span ng-repeat="alelle in selectMatchingAlleles(matchedProfileId, matchingAlleles)">
+            {{alelle|mt:"":results.type:analysisTypes}}<br>
+          </span>
+        </div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index"><div>Alelos no coincidentes::</div></td>
+        <td class="summary-table-elem"><div>{{profileId}}</div></td>
+        <td class="summary-table-elem"><div>
+          <span ng-repeat="alelle in selectNonMatchingAlleles(profileId, matchingAlleles)">
+            {{alelle|mt:"":results.type:analysisTypes}}<br>
+          </span>
+        </div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index"><div></div></td>
+        <td class="summary-table-elem"><div>{{matchedProfileId}}</div></td>
+        <td class="summary-table-elem"><div>
+          <span ng-repeat="alelle in selectNonMatchingAlleles(matchedProfileId, matchingAlleles)">
+            {{alelle|mt:"":results.type:analysisTypes}}<br>
+          </span>
+        </div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index"><div>Total de diferencias:</div></td>
+        <td class="summary-table-elem"><div></div></td>
+        <td class="summary-table-elem"><div>{{totalNumberOfDifferences(profileId, matchedProfileId, matchingAlleles)}}</div></td>
+      </tr>
+    </table>
+    
+    <div ng-if="showCalculation" class="report-table-title">Análisis de marcadores cromosómicos</div>
+    <table ng-if="showCalculation" class="summary-table">
+      <tr>
+        <td class="summary-table-index"><div>Marcadores</div></td>
+        <td class="summary-table-index" colspan="2"><div>Perfiles</div></td>
+        <td class="summary-table-index"><div>LR</div></td>
+        <td class="summary-table-index"><div>Estrictez</div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index"><div></div></td>
+        <td class="summary-table-index"><div>{{profileId}}</div></td>
+        <td class="summary-table-index"><div>{{matchedProfileId}}</div></td>
+        <td class="summary-table-index"><div></div></td>
+        <td class="summary-table-index"><div></div></td>
+      </tr>
+      <tr ng-repeat="marker in markers()">
+        <td class="summary-table-index">{{marker}}</td>
+        <td class="summary-table-elem">{{getMarker(marker, profileId)}}</td>
+        <td class="summary-table-elem">{{getMarker(marker, matchedProfileId)}}</td>
+        <td class="summary-table-elem">
+          {{statsResolved[marker]|likelihoodratioComp:results.matchingAlleles[marker]:statsResolved}}
+        </td>
+        <td class="summary-table-elem">
+          {{stringency[results.matchingAlleles[marker]].text || stringency.NoMatch.text}}
+        </td>
+      </tr>
+    </table>
 <!--    <div class="report-table-title">Coincidencias</div>-->
 <!--    <div ng-repeat="matchPed in sumMatches track by $index">-->
 <!--      <table class="summary-table" ng-repeat="match in matchPed.matchCardPed track by $index">-->

@@ -164,7 +164,7 @@ define(['angular', 'jquery'], function(angular, $) {
         };
 
         $scope.printReport = function() {
-            network.fit();
+            // network.fit(); // Center and adjust network size to canvas size.
             network.selectNodes([]);
 
             var head = '<head><title>Resultados caso ' + $scope.courtcase.internalSampleCode + '</title>';

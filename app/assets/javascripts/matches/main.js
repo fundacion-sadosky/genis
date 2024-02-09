@@ -56,6 +56,7 @@ define(
 				'comparisonReportController',
 				[
 					'$scope',
+					'matchesService',
 					comparisonReportController
 				]
 			)

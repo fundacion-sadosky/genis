@@ -46,7 +46,6 @@ define(['angular','lodash','jquery'], function(angular,_,$) {
         var userName = user.name;
         
         $scope.printSummaryReport = function(){
-          // alertService.info("Hay que imprimir!!!");
           var head = '<head><title>Resumen caso ' + $scope.idCourtCase + '</title>';
           $("link").each(function () {
             head += '<link rel="stylesheet" href="' + $(this)[0].href + '" />';
