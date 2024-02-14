@@ -81,7 +81,6 @@ trait ProfileService {
   def removeEpg(id: String,user:String):Future[Either[String,String]]
   
   def profilesAll(): Future[List[(SampleCode, String)]]
-  def profilesCategories(categories: List[String]) : Future[List[Profile]]
 
 }
 
@@ -1082,7 +1081,4 @@ class ProfileServiceImpl @Inject() (
     this.profileRepository.getAllProfiles()
   }
   
-  def profilesCategories(categories: List[String]) : Future[List[Profile]] = {
-    this.profileRepository.getProfilesForCategories(categories)
-  }
 }

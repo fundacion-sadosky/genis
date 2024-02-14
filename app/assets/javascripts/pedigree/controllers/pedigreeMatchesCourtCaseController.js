@@ -322,14 +322,6 @@ define(['angular','lodash','jquery'], function(angular,_,$) {
           }
 
           };
-
-      profileService
-        .profilesCategories(["IR"])
-        .then(
-          function(response){
-            $scope.allProfiles = response.data;
-          }
-        );
     }
 	
 	return PedigreeMatchesCourtCaseController;

@@ -88,7 +88,7 @@ PUT      /geneticist                                          @controllers.Genet
 
 # Profiles
 
-GET		 /profiles/:id			                              @controllers.Profiles.findByCode(id: types.SampleCode)
+GET      /profiles/:id                                        @controllers.Profiles.findByCode(id: types.SampleCode)
 GET      /profiles/full/:globalCode                           @controllers.Profiles.getFullProfile(globalCode: types.SampleCode)
 GET      /profiles                                            @controllers.Profiles.findByCodes(globalCodes: List[types.SampleCode])
 POST     /profiles                                            @controllers.Profiles.create
@@ -114,7 +114,6 @@ POST     /profile-exportToLims                                @controllers.Profi
 GET      /get-profile-export/:user                            @controllers.Profiles.getExportFile(user: String)
 GET      /get-alta-file-export                                @controllers.Profiles.getLimsAltaFile()
 GET      /get-match-file-export                               @controllers.Profiles.getLimsMatchFile()
-GET      /profiles-categoryId                                 @controllers.Profiles.profilesCategories(categories:List[String])
 
 # BulkUpload
 POST     /bulkuploader                                        @controllers.BulkUpload.uploadProtoProfiles(label: Option[String], analysisType: String)
@@ -141,8 +140,6 @@ GET      /protoprofiledata-editable/:id                       @controllers.Proto
 GET      /resources/proto/static/:type/:id                    @controllers.ProtoProfileData.getResources(type:String, id: Long)
 
 # Matching
-GET      /matching                                            @controllers.Matching.findMatchesByCode(globalCode: types.SampleCode)
-POST     /user-matches                                        @controllers.Matching.getMatches
 POST     /user-total-matches                                  @controllers.Matching.getTotalMatches
 POST     /user-matches-group                                  @controllers.Matching.getMatchesByGroup
 POST     /user-total-matches-group                            @controllers.Matching.getTotalMatchesByGroup
@@ -222,6 +219,7 @@ PUT      /pedigree/court-cases/:courtCaseId                   @controllers.Pedig
 POST     /pedigree/create-genogram                            @controllers.Pedigrees.createGenogram
 GET      /pedigree/genogram/:pedigreeId                       @controllers.Pedigrees.getPedigree(pedigreeId: Long)
 GET      /pedigree/full/:courtCaseId                          @controllers.Pedigrees.getCourtCaseFull(courtCaseId: Long)
+GET      /pedigree/by/:courtCaseId                            @controllers.Pedigrees.getByCourtCase(courtCaseId: Long)
 GET      /search/profileDataForPedigree                       @controllers.SearchProfileDatas.searchProfilesForPedigree(input: String)
 GET      /filter/profileDataForPedigree                       @controllers.Pedigrees.filterProfilesForPedigree(input: String,idCase:Long, tab: Boolean, tipo: Int,page:Int,pageSize:Int)
 GET      /filter/profileDataForPedigree/count                 @controllers.Pedigrees.countProfilesForPedigree(input: String,idCase:Long, tab: Boolean, tipo: Int)

@@ -103,7 +103,6 @@ abstract class ProfileRepository {
 
   def getAllProfiles(): Future[List[(SampleCode, String)]]
   
-  def getProfilesForCategories(categories: List[String]) : Future[List[Profile]]
 }
 
 class MongoProfileRepository extends ProfileRepository {
@@ -620,12 +619,5 @@ class MongoProfileRepository extends ProfileRepository {
           p => (p.globalCode, p.categoryId.text)
         )
       )
-  }
-  
-  def getProfilesForCategories(categories: List[String]) : Future[List[Profile]] = {
-    profiles
-      .find(Json.obj("categoryId" -> Json.obj("$in" -> categories)))
-      .cursor[Profile]()
-      .collect[List](-1, Cursor.FailOnError[List[Profile]]())
   }
 }

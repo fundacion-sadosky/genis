@@ -59,35 +59,6 @@ class Profiles @Inject()(
       case profiles => Ok(Json.toJson(profiles))
     }
   }
-
-  def profilesCategories(categories: List[String]):Action[AnyContent] = Action.async {
-    request =>
-      profileService
-        .profilesCategories(categories)
-        .map(r => Ok(Json.toJson(r)))
-    
-  }
-  
-  /**
-   * Return the globalCode of all profiles.
-   * @return All the profiles
-   */
-  def profilesAll():  Action[JsValue] = Action.async(BodyParsers.parse.json) {
-    _ => {
-      implicit def sampleCodeAndCategory: Writes[(SampleCode, String)] = new Writes[(SampleCode, String)] {
-        def writes(tuple: (SampleCode, String)): JsValue = {
-          val (sampleCode, string) = tuple
-          Json.obj(
-            "sampleCode" -> Json.toJson(sampleCode),
-            "categoryId" -> JsString(string)
-          )
-        }
-      }
-      profileService
-        .profilesAll()
-        .map(response => Ok(Json.toJson(response)))
-    }
-  }
   
   def addElectropherograms(token: String, globalCode: SampleCode, idAnalysis: String, name: String) = Action.async { req =>
     profileService.saveElectropherograms(token, globalCode, idAnalysis,name) map { l =>

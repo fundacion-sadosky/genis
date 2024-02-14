@@ -118,6 +118,14 @@ class Pedigrees @Inject() (
     })
   }
 
+  
+  def getByCourtCase(courtCaseId: Long): Action[AnyContent] = Action.async {
+    request =>
+      pedigreeService
+        .getPedigreeByCourtCase(courtCaseId)
+        .map(x => Ok(Json.toJson(x)))
+  }
+
 
   def getMetadata(input: String,pageSize: Int,page : Int, idCourtCase: Long) = Action.async { request =>
     pedigreeService.getMetadata(PersonDataSearch(page,pageSize,idCourtCase,input)).map (f => Ok(Json.toJson(f)))

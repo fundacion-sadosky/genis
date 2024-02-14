@@ -307,7 +307,19 @@
    
     
 </div>
+<div
+    id="report"
+    ng-show="false"
+    data-ng-include="'/assets/javascripts/pedigreeMatches/views/pedigree-matches-summary.html'"
+></div>
 <footer class="matches-groups-footer-footer">
+    <div class="row coincidencia-estado">
+        <button
+            type="button"
+            class="btn btn-secondary-action"
+            ng-click="printSummaryReport()"
+        >Imprimir resumen</button>
+    </div>
     <div>
         <pagination boundary-links="true" ng-change="changePage()" items-per-page="{{pageSize}}" max-size="10" total-items="totalItems" ng-model="currentPage" class="pagination-sm" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;"  rotate="false"></pagination>
     </div>
