@@ -65,6 +65,18 @@ function ProfileService(playRoutes, $log, $q, userService) {
 		return deferred.promise;
 	};
 
+	/**
+	 * returns all the profiles global codes.
+	 * @returns All the profiles global codes.
+	 */
+	this.profilesAll = function() {
+		return playRoutes.controllers.Profiles.profilesAll().get();
+	};
+	
+	this.profilesCategories = function(categories) {
+		return playRoutes.controllers.Profiles.profilesCategories(categories).get();
+	};
+
 	this.findByCode = function(globalCode) {
 		return playRoutes.controllers.Profiles.findByCode(globalCode).get();
 	};

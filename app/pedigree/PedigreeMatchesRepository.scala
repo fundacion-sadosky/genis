@@ -271,6 +271,7 @@ class MongoPedigreeMatchesRepository extends PedigreeMatchesRepository {
           _.headOption
             .map(
               x=> MatchCardMejorLrPed(
+                x.pedigree.idPedigree.toString,
                 x.profile.globalCode.text,
                 x.profile.globalCode.text,
                 Some(x.profile.categoryId.text),
@@ -298,6 +299,7 @@ class MongoPedigreeMatchesRepository extends PedigreeMatchesRepository {
         _.headOption
           .map(
             x=> MatchCardMejorLrPed(
+              x.pedigree.idPedigree.toString,
               x.pedigree.idPedigree.toString,
               x.pedigree.idPedigree.toString,
               Some(x.pedigree.caseType),
@@ -553,6 +555,8 @@ override def  countProfilesHitPedigrees(globalCodes:String):Future[Int]={
               pd.pedigree.assignee,
               pd.matchingDate.date,
               pd._id,
+              "",
+              "",
               pd.pedigree.unknown,
               pd.mtProfile,
               pd.matchingId
@@ -571,6 +575,8 @@ override def  countProfilesHitPedigrees(globalCodes:String):Future[Int]={
               pd.pedigree.assignee,
               pd.matchingDate.date,
               pd._id,
+              "",
+              "",
               pd.pedigree.unknown,
               pd.mtProfile,
               pd.matchingId,

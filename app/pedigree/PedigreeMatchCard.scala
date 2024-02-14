@@ -29,12 +29,13 @@ object PedigreeMatchCard {
 
 
 case class MatchCardMejorLrPed(
-                                internalCode: String,
-                                sampleCode: String,
-                                categoryId: Option[String] = None,
-                                lr: Double,
-                                estado: MatchStatus.Value
-                           )
+  id: String,
+  internalCode: String,
+  sampleCode: String,
+  categoryId: Option[String] = None,
+  lr: Double,
+  estado: MatchStatus.Value
+)
 
 object MatchCardMejorLrPed {
   implicit val matchCardMejorLrFormat = Json.format[MatchCardMejorLrPed]
@@ -58,6 +59,8 @@ case class MatchCardPed(
                                 assigne : String,
                                 lastMatchDate: Date,
                                 id: MongoId,
+                                courtCaseId: String,
+                                courtCaseName: String,
                                 unknown: NodeAlias,
                                 mtProfile : String = "",
                                 matchingId: String = "",

@@ -37,7 +37,7 @@ var PedigreeService = function(playRoutes, userService) {
 	};
 	
 	this.getPedigreesByCourtCase = function(id){
-		return playRoutes.controllers.Pedigrees.getPedigreesByCourtCase(id).get();
+		return playRoutes.controllers.Pedigrees.getByCourtCase(id).get();
 	};
 	
 	this.createCourtCase = function(courtCase){
@@ -70,7 +70,11 @@ var PedigreeService = function(playRoutes, userService) {
 	this.getCourtCaseFull = function(courtcaseId) {
 		return playRoutes.controllers.Pedigrees.getCourtCaseFull(courtcaseId).get();
 	};
-	
+
+  this.getCourtCaseBy = function(courtcaseId) {
+    return playRoutes.controllers.Pedigrees.getCourtCaseBy(courtcaseId).get();
+  };
+
 	this.search = function(input) {
 		return playRoutes.controllers.SearchProfileDatas.searchProfilesForPedigree(input).get();
 	};

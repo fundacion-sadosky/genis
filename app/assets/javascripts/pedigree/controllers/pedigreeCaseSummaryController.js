@@ -2,7 +2,7 @@ define(
 	['angular','lodash','jquery'],
 	function(angular,_,$) {
 		'use strict';
-		function PedigreeMatchesCourtCaseController(
+		function pedigreeCaseSummaryController(
 			$scope,
 			$rootScope,
 			pedigreeMatchesService,
@@ -288,6 +288,6 @@ define(
 			};
 			$scope.findMatches({});
 		}
-		return PedigreeMatchesCourtCaseController;
+		return pedigreeCaseSummaryController;
 	}
 );

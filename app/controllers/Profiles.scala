@@ -4,7 +4,7 @@ import javax.inject.{Inject, Singleton}
 import configdata.CategoryService
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.iteratee.Enumerator
-import play.api.libs.json.{JsError, JsValue, Json}
+import play.api.libs.json.{JsError, JsString, JsValue, Json, Writes}
 import play.api.mvc._
 import play.modules.reactivemongo.MongoController
 import profile.GenotypificationByType._
@@ -59,7 +59,7 @@ class Profiles @Inject()(
       case profiles => Ok(Json.toJson(profiles))
     }
   }
-
+  
   def addElectropherograms(token: String, globalCode: SampleCode, idAnalysis: String, name: String) = Action.async { req =>
     profileService.saveElectropherograms(token, globalCode, idAnalysis,name) map { l =>
       val (right, left) = l.partition(elem => elem.isRight)
