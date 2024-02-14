@@ -90,7 +90,7 @@ define(
         markers.sort();
         return markers;
       };
-  }
+    }
     return ComparisonReportController;
   }
 );
