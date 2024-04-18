@@ -4,9 +4,9 @@ define(['lodash'], function(_) {
 	function BulkuploadService(playRoutes) {
 
 		this.getStatusMap = function() {
-			return {'Invalid': 'Inválido', 'Incomplete': 'Incompleto', 
-					'ReadyForApproval': 'Listo para aprobación', 'Approved': 'Aprobado', 
-					'Disapproved': 'Desaprobado', 'Imported': 'Aceptado', 'Rejected': 'Rechazado'};
+			return {'Invalid': $.i18n.t('bulk.batchStatus.invalid'), 'Incomplete': $.i18n.t('bulk.batchStatus.incomplete'),
+					'ReadyForApproval': $.i18n.t('bulk.batchStatus.readyForApproval'), 'Approved': $.i18n.t('bulk.batchStatus.approved'),
+					'Disapproved': $.i18n.t('bulk.batchStatus.disapproved'), 'Imported': $.i18n.t('bulk.batchStatus.accepted'), 'Rejected': $.i18n.t('bulk.batchStatus.rejected')};
 		};
         this.getSubcategories = function() {
             return playRoutes.controllers.Categories.list().get();

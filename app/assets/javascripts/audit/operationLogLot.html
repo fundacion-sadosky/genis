@@ -9,7 +9,7 @@
 							<span  class="icon-atras" title="Volver"></span>
 						</div>
 					</li>
-					<li class="active">Registro de eventos</li>
+					<li class="active">{{'generics.eventLog' | i18next}}</li>
 				</ol>
 			</div>
 		</div>
@@ -23,19 +23,19 @@
 				<div class="row padding-0" >
 					<!-- usuario -->
 					<div class="form-group col-md-4  vertical-align">
-						<label for="search-user" class="col-md-2 padding-left-0">Usuario</label>
+						<label for="search-user" class="col-md-2 padding-left-0">{{'generics.user' | i18next}}</label>
 						<input id="search-user" type="text" data-ng-model="filters.user" class="col-md-10 form-control"/>
 					</div>
 					<div class="form-group col-md-4">
 						<div class="col-md-2 padding-left-0">
-								<label for="hourFrom" class=" " >Fecha </label>
+								<label for="hourFrom" class=" " >{{'generics.date' | i18next}} </label>
 							</div>
 							<div class="col-md-10">
 								<div class="row padding-0">
 									<div class="col-md-6">
 									<!-- fecha desde -->
 								<input type="text" name="hourFrom" id="hourFrom"
-							placeholder="Desde" data-datepicker-popup="dd/MM/yyyy"
+							placeholder="{{'generics.from' | i18next}}" data-datepicker-popup="dd/MM/yyyy"
 							data-ng-model="filters.hourFrom"
 							data-is-open="datepickers.hourFrom"
 							data-datepicker-options="dateOptions" data-close-text="Close" data-ng-click="toggleDatePicker($event,'hourFrom')" class="col-md-5 form-control"/>
@@ -43,11 +43,11 @@
 							<div class="col-md-6">
 							<!-- fecha hasta -->
 								<input type="text" name="hourUntil" id="hourUntil"
-								placeholder="Hasta" data-datepicker-popup="dd/MM/yyyy"
+								placeholder="{{'generics.to' | i18next}}" data-datepicker-popup="dd/MM/yyyy"
 								data-ng-model="filters.hourUntil"
 								data-is-open="datepickers.hourUntil"
 								data-datepicker-options="dateOptions" data-close-text="Close"
-									data-ng-click="toggleDatePicker($event,'hourUntil')" class="col-md-5 form-control"/>
+									   data-ng-click="toggleDatePicker($event,'hourUntil')" class="col-md-5 form-control"/>
 								</div>
 </div>
 						</div>
@@ -64,13 +64,13 @@
 				<div class="row padding-0">
 					<!-- operacion -->
 					<div class="form-group col-md-5 vertical-align" >
-						<label class="col-md-2 padding-left-0" for="search-operation">Operación</label>
+						<label class="col-md-2 padding-left-0" for="search-operation">{{'generics.operation' | i18next}}</label>
 						<input id="search-operation" ng-init="getOperations()"
 						ng-model="filters.operation" class="col-md-10 form-control">
 					</div>
 					<div class="form-group col-md-4 vertical-align">
 						<div class="col-md-2">
-							<label for="search-result">Resultado</label>
+							<label for="search-result">{{'generics.result' | i18next}}</label>
 						</div>
 						<div class="item-input col-md-3">
 							<select id="search-result" data-ng-model="filters.result"
@@ -84,10 +84,10 @@
 						</button> -->
 						<div class="col-md-6 padding-right-0" ng-click="clean()">
 								<span id="processingSpan" class="icon-refresh" ng-class="{'spinner': isProcessing}" data-ng-show="isProcessing"></span>
-								<a  title="Limpiar filtros" ng-click="logLotInit()" ng-disabled="isProcessing"  class="cancel-link" >Limpiar</a>
+								<a  title="Limpiar filtros" ng-click="logLotInit()" ng-disabled="isProcessing"  class="cancel-link" >{{'buttons.clean' | i18next}}</a>
 						</div>
 						<div class="col-md-6 padding-right-0" >
-							<button id="search-button" type="submit" class="btn btn-default btn-primary-action">Buscar</button>
+							<button id="search-button" type="submit" class="btn btn-default btn-primary-action">{{'buttons.search' | i18next}}</button>
 						</div>
 					</div>
 				</div>
@@ -108,14 +108,14 @@
 						</a>
 					</th>
 					<th class="text-center">
-						<a href="" ng-click="sortBy('timestamp')">Fecha <span ng-show="sortField == 'timestamp'" class="caret" ng-class="{'caret-reversed': !ascending}"></span></a>
+						<a href="" ng-click="sortBy('timestamp')">{{'generics.date' | i18next}} <span ng-show="sortField == 'timestamp'" class="caret" ng-class="{'caret-reversed': !ascending}"></span></a>
 					</th>
 					<th class="text-center">
-						<a href="" ng-click="sortBy('userId')">Usuario <span ng-show="sortField == 'userId'" class="caret" ng-class="{'caret-reversed': !ascending}"></span></a>
+						<a href="" ng-click="sortBy('userId')">{{'generics.user' | i18next}} <span ng-show="sortField == 'userId'" class="caret" ng-class="{'caret-reversed': !ascending}"></span></a>
 					</th>
-					<th class="text-center">Operación</th>
-					<th class="text-center">Recurso</th>
-					<th class="text-center">Resultado</th>
+					<th class="text-center">{{'generics.operation' | i18next}}</th>
+					<th class="text-center">{{'generics.resource' | i18next}}</th>
+					<th class="text-center">{{'generics.result' | i18next}}</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -138,6 +138,6 @@
 	<div style="width: 100%;">
 		<pagination boundary-links="true" ng-change="changePage()" items-per-page="{{pageSizeLog}}" max-size="10" total-items="totalItemsLog" ng-model="currentPageLog" class="pagination-sm" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;"  rotate="false"></pagination>
 		
-		<button style="float:right;" class="btn btn-default" ng-click="doTheBack()" style="float: right;">Atras</button>
+		<button style="float:right;" class="btn btn-default" ng-click="doTheBack()" style="float: right;">{{'buttons.back' | i18next}}</button>
 	</div>
 </footer>

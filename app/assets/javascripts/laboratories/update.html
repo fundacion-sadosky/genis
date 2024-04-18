@@ -1,7 +1,7 @@
 <form name="labForm">
 	<div ng-controller="laboratoriesSaveController">
 		<div class="modal-header">
-			<h2>Laboratorio: <b>{{laboratory.name}}</b></h2>
+			<h2>{{ 'generics.laboratory' | i18next }}: <b>{{laboratory.name}}</b></h2>
 		</div>
 		<div class="modal-body">
 			<div id="tab-1" class="tab-pane active tab-format">
@@ -18,9 +18,9 @@
 			   	<span title="Cerrar">
 			   		<span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
 			   	</span>
-				<span class="btn-link-action">Cerrar</span>
+				<span class="btn-link-action">{{ 'buttons.close' | i18next }}</span>
 			</div>
-			<button id="saveUpd" type="button" class="btn btn-primary-action" data-ng-click="saveLaboratory(false)" ng-disabled="labForm.$invalid">Guardar</button>
+			<button id="saveUpd" type="button" class="btn btn-primary-action" data-ng-click="saveLaboratory(false)" ng-disabled="labForm.$invalid">{{ 'buttons.save' | i18next }}</button>
 		</div>
 	</div>
 </form>

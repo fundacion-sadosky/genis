@@ -7,10 +7,10 @@
 			<div class="desk-align-right inside-right">
 				<div class="btn btn-link-action" ng-click="cancelForm()">
 					
-					<span title="Limpiar pantalla" class="btn-link-action">Limpiar</span>
+					<span title="Limpiar pantalla" class="btn-link-action">{{ 'buttons.clean' | i18next }}</span>
 				</div>
 
-				<button id="save" type="button" class="btn btn-primary-action" data-ng-click="saveLaboratory(true)" data-ng-disabled="labForm.$invalid">Guardar</button>
+				<button id="save" type="button" class="btn btn-primary-action" data-ng-click="saveLaboratory(true)" data-ng-disabled="labForm.$invalid">{{ 'buttons.save' | i18next }}</button>
 			</div>
 		</footer>
 	</div>

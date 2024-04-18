@@ -11,7 +11,7 @@
 								<span  class="icon-atras" title="Volver"></span>
 							</div>
 						</li>
-					<li class="active">Grupos y categorías</li>
+					<li class="active">{{ 'category.groups' | i18next }}</li>
 					
 				</ol>
 			</div>
@@ -22,7 +22,7 @@
 <div class="container-top">
 	<div class="row content">
 		<div class="col-md-3 padding-left-0">
-			<label class="title-4">Forense</br></label>
+			<label class="title-4">{{ 'category.forensic' | i18next }}</br></label>
 			<accordion close-others="true">
 		    	<accordion-group ng-repeat="(groupId, group) in forense" is-open="group.isOpen" ng-click="selectGrp(groupId)" class="accordion-item">
 					<accordion-heading>
@@ -37,10 +37,10 @@
 					<ul class="list-group" style="margin-bottom: 0px">
 					  <li class="list-group-block">
 						  <div ng-show="group.pedigreeAssociation === false" class="item-link-action" ng-click="addCategory($event)">
-							 <span title="Agregar categoría">
+							 <span title="{{ 'category.add' | i18next }}">
 								  <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>
 							  </span>
-							  <span>Agregar categoría</span>
+							  <span>{{ 'category.add' | i18next }}</span>
 						  </div>
 					  </li>
 						<li
@@ -60,7 +60,7 @@
 						type="button"
 						class="btn btn-block btn-secondary-action"
 						ng-click="addGroup()"
-				>Agregar grupo </button>
+				>{{ 'buttons.addGroup' | i18next }} </button>
 
 
 
@@ -91,7 +91,7 @@
 					</accordion-group>
 
 
-				</br><label class="title-4">DVI</label></br>
+				</br><label class="title-4">{{ 'generics.dvi' | i18next }}</label></br>
 				<accordion-group ng-repeat="(groupId, group) in dvi" is-open="group.isOpen" ng-click="selectGrp(groupId)" class="accordion-item">
 					<accordion-heading>
 						<i class="glyphicon glyphicon-pencil"
@@ -129,27 +129,27 @@
             <div class="col-md-12 category-section">
                 <div class="col-md-6 category-section-alias">
                     <div class="col-md-12">
-                        <label>Alias</label>
+                        <label>{{ 'generics.alias' | i18next }}</label>
                     </div>
                     <div class="col-md-10">
-                        <tags-input class="tags-input" ng-model="categories[currCatId].aliases" placeholder="Ingrese un alias"
+                        <tags-input class="tags-input" ng-model="categories[currCatId].aliases" placeholder="{{ 'generics.enterAlias' | i18next }}"
                                     help-tip="aliases" help-tip-placement="left"></tags-input>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="col-md-12">
                             <label class="checkbox">
-                                <input type="checkbox" help-tip="category.analyses.filiationDataRequired" help-tip-placement="top" data-ng-model="categories[currCatId].filiationDataRequired" /><b>Habilitar ingreso de datos filiatorios</b>
+                                <input type="checkbox" help-tip="category.analyses.filiationDataRequired" help-tip-placement="top" data-ng-model="categories[currCatId].filiationDataRequired" /><b>{{ 'category.enableFilialDataEntry' | i18next }}</b>
                             </label>
                     </div>
                     <div class="col-md-12">
                         <label class="checkbox">
-                            <input help-tip="category.analyses.replicate" help-tip-placement="bottom" type="checkbox" data-ng-model="categories[currCatId].replicate" />Réplica contra instancias superiores
+                            <input help-tip="category.analyses.replicate" help-tip-placement="bottom" type="checkbox" data-ng-model="categories[currCatId].replicate" />{{ 'category.replicateUpperInstance' | i18next }}
                         </label>
                     </div>
 					<div class="col-md-12">
 						<label class="checkbox">
-							<input help-tip="category.analyses.allowManualLoading" help-tip-placement="bottom" type="checkbox" data-ng-model="categories[currCatId].manualLoading" />Admite carga manual
+							<input help-tip="category.analyses.allowManualLoading" help-tip-placement="bottom" type="checkbox" data-ng-model="categories[currCatId].manualLoading" />{{ 'category.manualLoadAllowed' | i18next }}
 						</label>
 					</div>
                 </div>
@@ -166,19 +166,19 @@
 				</div>
                 <div class="content-wrap">
                     <tabset class="tabset-section" data-ng-show="categories[currCatId].name" id="categories-tabs">
-                        <tab active="tabs[0].active" heading="Alta de Análisis" ng-show="!analysisTypes[activeAnalysis].mitochondrial">
+                        <tab active="tabs[0].active" heading="{{ 'category.headings.registerAnalysis' | i18next }}" ng-show="!analysisTypes[activeAnalysis].mitochondrial">
 							<form name="profileValidationForm">
 								<div ng-include="'/assets/javascripts/categories/profile-validation.html'"
 									 help-tip="category.analyses.general" help-tip-placement="left"
 									 class="animated fadeIn"/>
 							</form>
                         </tab>
-                        <tab ng-if="!categories[currCatId].pedigreeAssociation " active="tabs[1].active" heading="Asociación de Perfiles" ng-show="analysisTypes[activeAnalysis].name == 'Autosomal' && !categories[currCatId].isReference">
+                        <tab ng-if="!categories[currCatId].pedigreeAssociation " active="tabs[1].active" heading="{{ 'category.headings.association' | i18next }}" ng-show="analysisTypes[activeAnalysis].name == 'Autosomal' && !categories[currCatId].isReference">
                             <div ng-include="'/assets/javascripts/categories/associations.html'"
 								 help-tip="category.associations.general" help-tip-placement="left"
 								 class="animated fadeIn"/>
                         </tab>
-                        <tab active="tabs[2].active" heading="Reglas de Búsqueda">
+                        <tab active="tabs[2].active" heading="{{ 'category.headings.searchRules' | i18next }}">
                             <div ng-include="'/assets/javascripts/categories/matching-rules.html'"
 								 help-tip="category.matching.general" help-tip-placement="left"
 								 class="animated fadeIn"/>
@@ -192,13 +192,13 @@
 					
 					<div class="btn btn-link-action" ng-click="cancel()">
 						
-						<span  title="Limpiar pantalla" class="btn-link-action">Limpiar</span>
+						<span  title="{{ 'generics.cleanScreen' | i18next }}" class="btn-link-action">{{ 'buttons.clean' | i18next }}</span>
 					</div>
 
 					<button help-tip="category.general.save" help-tip-placement="left" type="button"
 							class="btn btn-primary-action"
                             ng-disabled="profileValidationForm.$invalid"
-							data-ng-click="save()">Guardar todo</button>
+							data-ng-click="save()">{{ 'buttons.saveAll' | i18next }}</button>
 				</div>
 			</footer>
 

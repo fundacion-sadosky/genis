@@ -2,14 +2,14 @@
 	style="color: rgb(255, 255, 255); background-color: #333333; opacity: 1.9; position: fixed; bottom: 0px; left: 0px; right: 0px; z-index: 2000; overflow: auto;">
 	<form name="totpForm">
 	<div class="modal-header">
-		<h5>Por favor ingrese su código token para dar curso al pedido</h5>
+		<h5>{{ 'totpPrompt.message' | i18next }}</h5>
 	</div>
 	<div class="modal-body">
 		<input type="text" class="form-control" ng-model="totp" required>
 	</div>
 	<div class="modal-footer">
-		<button class="btn btn-success" data-ng-disabled="totpForm.$invalid" ng-click="sendTotp()" >Aceptar</button>
-		<button class="btn btn-danger" ng-click="cancelTotp()">Cancelar</button>
+		<button class="btn btn-success" data-ng-disabled="totpForm.$invalid" ng-click="sendTotp()" >{{ 'buttons.accept' | i18next }}</button>
+		<button class="btn btn-danger" ng-click="cancelTotp()">{{ 'buttons.cancel' | i18next }}</button>
 	</div>
 	</form>
 </div>

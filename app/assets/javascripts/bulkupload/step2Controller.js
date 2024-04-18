@@ -15,8 +15,8 @@ define(['jquery','lodash'], function($,_) {
         $scope.editedSubcats = {};
         $scope.batches = [];
         $scope.protoProfiles = {};
-        $scope.showOptions = [{label: 'Pendientes', filters: {pending: true}, placement: 'bottom'},
-            {label: 'Todo', filters: {}, placement: 'top'}];
+        $scope.showOptions = [{label: $.i18n.t('buttons.pending'), filters: {pending: true}, placement: 'bottom'},
+            {label: $.i18n.t('buttons.all'), filters: {}, placement: 'top'}];
         $scope.activeOption = 1;
 
             bulkuploadService.getSubcategories().then(function(response){
@@ -129,7 +129,7 @@ define(['jquery','lodash'], function($,_) {
                 function(response){
 //				alert('Hubo un error: ' + response.data);
                 batch.isProcessing = false;
-				alertService.error({message: ' Hubo un error: ' + response.data});
+				alertService.error({message: $.i18n.t('error.common2') + ' ' + response.data});
 				$log.log(response);
 			});
 		};
@@ -153,7 +153,7 @@ define(['jquery','lodash'], function($,_) {
 			function(response){
 //				alert('Hubo un error: ' + response.data);
                 batch.isProcessing = false;
-                alertService.error({message: ' Hubo un error: ' + response.data});
+                alertService.error({message: $.i18n.t('error.common4') + ' ' + response.data});
 				$log.log(response);
 			});
 		};
@@ -215,9 +215,9 @@ define(['jquery','lodash'], function($,_) {
 				}
 			});
             $q.all(promises).then(function() {
-                alertService.success({message: 'Se ha realizado el cambio de estado satisfactoriamente'});
+                alertService.success({message: $.i18n.t('alerts.bulk.stateUpdated')});
             }, function(response) {
-                alertService.error({message: ' Hubo un error: ' + response.toString()});
+                alertService.error({message: $.i18n.t('error.common4') + ' ' + response.toString()});
             });
 		};
 
@@ -236,11 +236,11 @@ define(['jquery','lodash'], function($,_) {
             bulkuploadService.changeBatchStatus(batch.id, 'Imported',idsToReplicate,replicateAll).then(function() {
                 batch.isProcessing = false;
                 getBatchProtoProfiles(batch);
-                alertService.success({message: 'Se ha importado el lote exitosamente.'});
+                alertService.success({message: $.i18n.t('alerts.bulk.batchImported')});
             }, function(response) {
                 batch.isProcessing = false;
                 getBatchProtoProfiles(batch);
-                alertService.error({message: ' Hubo un error: ' + response.data});
+                alertService.error({message: $.i18n.t('error.common4') + ' ' + response.data});
             });
         };
         $scope.deleteBatch = function(batch){
@@ -248,10 +248,10 @@ define(['jquery','lodash'], function($,_) {
             bulkuploadService.deleteBatch(batch.id).then(function() {
                 $scope.isProcessing = false;
                 getAllBatches();
-                alertService.success({message: 'Se ha eliminado el lote.'});
+                alertService.success({message: $.i18n.t('alerts.bulk.batchDeleted')});
             }, function(response) {
                 $scope.isProcessing = false;
-                alertService.error({message: ' Hubo un error: ' + response.data.message});
+                alertService.error({message: $.i18n.t('error.common4') + ' ' + response.data.message});
             });
         };
         $scope.doDeleteBatch = function (confirmRes,batch) {
@@ -293,7 +293,7 @@ define(['jquery','lodash'], function($,_) {
 					}
 					else {
 //						alert('Hubo un error: ' + response.data);
-						alertService.error({message: ' Hubo un error: ' + response.data});
+						alertService.error({message: $.i18n.t('error.common4') + ' ' + response.data});
 					}
 				});
 				
@@ -324,7 +324,7 @@ define(['jquery','lodash'], function($,_) {
 
                     $scope.edit = '';
                 }, function(response) {
-                    alertService.error({message: 'Hubo un error: ' + response.data.message});
+                    alertService.error({message: $.i18n.t('error.common4') + ' ' + response.data.message});
                 });
 
 

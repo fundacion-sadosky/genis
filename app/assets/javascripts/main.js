@@ -83,7 +83,7 @@ require([ 'angular', 'angular-cookies', 'angular-route', 'jquery',
 	
 	angular.module('jm.i18next').config(['$i18nextProvider', function ($i18nextProvider) {
 		$i18nextProvider.options = {
-			lng: 'es-AR',
+			lng: 'en',
 			useCookie: false,
 			useLocalStorage: false,
 			fallbackLng: 'en',

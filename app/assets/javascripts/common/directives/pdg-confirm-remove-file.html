@@ -5,6 +5,6 @@
 	<p>{{content}}</p>
 </div>
 <div class="modal-footer">
-    <div id="cancel" type="button" class="btn btn-secondary-action" data-ng-click="closeRemoveEpg(false)">Cancelar</div>
-    <button id="ok" type="button" class="btn btn-primary-action" data-ng-click="closeRemoveEpg(true)">Aceptar</button>
+    <div id="cancel" type="button" class="btn btn-secondary-action" data-ng-click="closeRemoveEpg(false)">{{ 'buttons.cancel' | i18next }}</div>
+    <button id="ok" type="button" class="btn btn-primary-action" data-ng-click="closeRemoveEpg(true)">{{ 'buttons.accept' | i18next }}</button>
 </div>

@@ -3,8 +3,8 @@
 <table class="table  table-striped" data->
     <thead>
         <tr>
-            <th class="text-center">Categoría</th>
-            <th class="text-center">Marcadores No Coincidentes Tolerados</th>
+            <th class="text-center">{{ 'generics.category' | i18next }}</th>
+            <th class="text-center">{{ 'category.associations.maxNotMatchingLocus' | i18next }}</th>
             <th>#</th>
         </tr>
     </thead>
@@ -15,7 +15,7 @@
                 <input type="number" min="0" class="form-control form-select" data-ng-model="assoc.mismatches" default-value="0">
             </td>
             <td>
-                <button class="btn" title="Eliminar" data-ng-click="removeAssociation(assoc)">
+                <button class="btn" title="{{ 'buttons.delete' | i18next }}" data-ng-click="removeAssociation(assoc)">
                     <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
                 </button>
             </td>

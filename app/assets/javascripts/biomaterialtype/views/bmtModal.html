@@ -1,6 +1,6 @@
 <div class="modal-header">
-	<h4 ng-show="mode == 'add'">Nuevo Tipo de Material Biológico</h4>
-	<h4 ng-show="mode == 'edit'">Modificar Tipo de Material Biológico</h4>
+	<h4 ng-show="mode == 'add'">{{ 'biomaterial.add' | i18next }}</h4>
+	<h4 ng-show="mode == 'edit'">{{ 'biomaterial.edit' | i18next }}</h4>
 </div>
 <div class="modal-body">
 
@@ -9,19 +9,19 @@
 	    <label for="rolId" class="col-sm-2 control-label">Id</label>
 	    <div class="col-sm-10">
 	      <input ng-model="bmt.id" name="id" type="text" class="form-control form-select" id="rolId" required ng-pattern=rolIdRegex
-	      	placeholder="Ingrese identificador único" ng-disabled="mode==='edit'" />
+	      	placeholder="{{ 'generics.enterUniqueIdentifier' | i18next }}" ng-disabled="mode==='edit'" />
             <form-validation input="roleForm.id" pattern="a-z|A-Z|0-9|_ desde 4 caracteres"></form-validation>
 	    </div>
 	  </div>
 	  <div class="form-group">
-	    <label class="col-sm-2 control-label" for="rolName">Nombre</label>
+	    <label class="col-sm-2 control-label" for="rolName">{{"generics.name"|i18next}}</label>
 	    <div class="col-sm-10">
-	        <input ng-model="bmt.name" name="name" type="text" class="form-control form-select" id="rolName" placeholder="Ingrese nombre único" required/>
+	        <input ng-model="bmt.name" name="name" type="text" class="form-control form-select" id="rolName" placeholder="{{ 'generics.enterUniqueName' | i18next }}" required/>
             <form-validation input="roleForm.name"></form-validation>
 	    </div>
 	  </div>
 	  <div class="form-group">
-	    <label for="descritpion_id" class="col-sm-2 control-label">Descripcion</label>
+	    <label for="descritpion_id" class="col-sm-2 control-label">{{"generics.description"|i18next}}</label>
 	    <div class="col-sm-10">
 	    <textarea ng-model="bmt.description" class="form-control form-select" rows="3" id="descritpion_id"></textarea>
 	    </div>
@@ -30,13 +30,13 @@
 	
 </div>
 <div class="modal-footer">
-    <button class="btn btn-secondary-action pull-left" ng-click="remove()" ng-show="mode == 'edit'">Eliminar</button>
+    <button class="btn btn-secondary-action pull-left" ng-click="remove()" ng-show="mode == 'edit'">{{"buttons.delete"|i18next}}</button>
 	<div class="btn btn-link-action" ng-click="cancel()">
         <span title="Cerrar">
             <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
         </span>
-		<span class="btn-link-action">Cerrar</span>
+		<span class="btn-link-action">{{"buttons.close"|i18next}}</span>
 	</div>
-    <button class="btn btn-primary-action" ng-disabled="roleForm.$invalid" ng-click="update()" ng-show="mode == 'edit'">Guardar</button>
-    <button class="btn btn-primary-action" ng-disabled="roleForm.$invalid" ng-click="add()" ng-show="mode == 'add'">Agregar</button>
+    <button class="btn btn-primary-action" ng-disabled="roleForm.$invalid" ng-click="update()" ng-show="mode == 'edit'">{{"buttons.save"|i18next}}</button>
+    <button class="btn btn-primary-action" ng-disabled="roleForm.$invalid" ng-click="add()" ng-show="mode == 'add'">{{"buttons.add"|i18next}}</button>
 </div>

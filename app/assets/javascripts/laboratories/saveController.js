@@ -32,9 +32,9 @@ define([], function() {
 			if (isAnInsertion) {
 				laboratoriesService.createLaboratory($scope.laboratory).then(function (response) {
 					if (response.data.length > 0) {
-						alertService.success({message: 'Fue dado de alta con exito'});
+						alertService.success({message: $.i18n.t('alerts.laboratory.addSuccess')});
 					} else {
-						alertService.error({message: 'No pudo ser dado de alta'});
+						alertService.error({message: $.i18n.t('alerts.laboratory.addError')});
 					}
 
 					$scope.clearLaboratory();
@@ -46,16 +46,16 @@ define([], function() {
                         $log.log(response);
 
                         var e = response.data;
-                        var errores = (e.indexOf("duplicate key") > -1 && e.indexOf("CODE_NAME") > -1) ? "El código del laboratorio ya existe" : e;
-                        alertService.error({message: ' No pudo ser dado de alta: ' + errores});
+                        var errores = (e.indexOf("duplicate key") > -1 && e.indexOf("CODE_NAME") > -1) ? $.i18n.t('alerts.laboratory.existingCode') : e;
+                        alertService.error({message: $.i18n.t('alerts.laboratory.addError') +': ' + errores});
                     }
 				});
 			} else{
 				laboratoriesService.updateLaboratory($scope.laboratory).then(function (response) {
 						if (response.data.length > 0) {
-							alertService.success({message: 'El laboratorio se ha actualizado correctamente'});
+							alertService.success({message: $.i18n.t('alerts.laboratory.updateSuccess')});
 						} else {
-							alertService.error({message: ' El laboratorio no pudo ser actualizado'});
+							alertService.error({message: $.i18n.t('alerts.laboratory.updateError')});
 						}
 
 						$scope.laboratory = undefined;
@@ -68,8 +68,8 @@ define([], function() {
                             $log.log(response);
 
                             var e = response.data;
-                            var errores = (e.indexOf("duplicate key") > -1 && e.indexOf("CODE_NAME") > -1) ? "El código del laboratorio ya existe" : e;
-                            alertService.error({message: ' El laboratorio no pudo ser actualizado: ' + errores});
+                                var errores = (e.indexOf("duplicate key") > -1 && e.indexOf("CODE_NAME") > -1) ? $.i18n.t('alerts.laboratory.existingCode') : e;
+                            alertService.error({message: $.i18n.t('alerts.laboratory.updateError') + ': ' + errores});
                         }
 					});
 			}

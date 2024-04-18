@@ -1,35 +1,35 @@
 <div class="modal-header">
-	<h4 ng-show="mode == 'add'">Nuevo rol</h4>
-	<h4 ng-show="mode == 'edit'">Modificar rol</h4>
+	<h4 ng-show="mode == 'add'">{{"roles.new"|i18next}}</h4>
+	<h4 ng-show="mode == 'edit'">{{"roles.modify"|i18next}}</h4>
 </div>
 <div class="modal-body">
 	<form class="form-horizontal" name="roleForm">
-	  <div class="form-group">
-	    <label for="rolId" class="col-sm-2 control-label">Id</label>
-	    <div class="col-sm-10">
-	        <input name="id" ng-model="role.id" type="text" class="form-control form-select" id="rolId" required ng-pattern=rolIdRegex
-	      	    placeholder="Ingrese identificador único" ng-disabled="mode==='edit'" />
-            <form-validation input="roleForm.id" pattern="a-z|A-Z|0-9|_ desde 4 caracteres"></form-validation>
-	    </div>
-	  </div>
-	  <div class="form-group">
-	    <label class="col-sm-2 control-label">Nombre</label>
-	    <div class="col-sm-10">
-            <input name="name" ng-model="role.roleName" type="text" class="form-control form-select" id="rolName" placeholder="Ingrese nombre único" required />
-            <form-validation input="roleForm.name"></form-validation>
-	    </div>
-	  </div>
+		<div class="form-group">
+			<label for="rolId" class="col-sm-2 control-label">Id</label>
+			<div class="col-sm-10">
+				<input name="id" ng-model="role.id" type="text" class="form-control form-select" id="rolId" required ng-pattern=rolIdRegex
+					   placeholder="{{ 'generics.enterUniqueIdentifier' | i18next }}" ng-disabled="mode==='edit'" />
+				<form-validation input="roleForm.id" pattern="a-z|A-Z|0-9|_ desde 4 caracteres"></form-validation>
+			</div>
+		</div>
+		<div class="form-group">
+			<label class="col-sm-2 control-label">{{"generics.name"|i18next}}</label>
+			<div class="col-sm-10">
+				<input name="name" ng-model="role.roleName" type="text" class="form-control form-select" id="rolName" placeholder="{{ 'generics.enterUniqueName' | i18next }}" required />
+				<form-validation input="roleForm.name"></form-validation>
+			</div>
+		</div>
 	</form>
 </div>
 <div class="modal-footer">
 	<div>{{error}}</div>
-   	<button class="btn btn-secondary-action pull-left" ng-click="remove()" ng-show="mode == 'edit'">Eliminar</button>
+	<button class="btn btn-secondary-action pull-left" ng-click="remove()" ng-show="mode == 'edit'">{{"buttons.delete"|i18next}}</button>
 	<div class="btn btn-link-action" ng-click="cancel()">
         <span title="Cerrar">
             <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
         </span>
-		<span class="btn-link-action">Cerrar</span>
+		<span class="btn-link-action">{{"buttons.close"|i18next}}</span>
 	</div>
-   	<button class="btn btn-primary-action" ng-disabled="roleForm.$invalid" ng-click="update()" ng-show="mode == 'edit'">Guardar</button>
-   	<button class="btn btn-primary-action" ng-disabled="roleForm.$invalid" ng-click="add()" ng-show="mode == 'add'">Agregar</button>
+	<button class="btn btn-primary-action" ng-disabled="roleForm.$invalid" ng-click="update()" ng-show="mode == 'edit'">{{"buttons.save"|i18next}}</button>
+	<button class="btn btn-primary-action" ng-disabled="roleForm.$invalid" ng-click="add()" ng-show="mode == 'add'">{{"buttons.add"|i18next}}</button>
 </div>

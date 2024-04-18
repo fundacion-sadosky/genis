@@ -1,6 +1,6 @@
 <div class="modal-header">
-	<h4 ng-show="mode == 'add'">Nueva categoría</h4>
-	<h4 ng-show="mode == 'edit'">Modificar categoría</h4>
+	<h4 ng-show="mode == 'add'">{{ 'category.add' | i18next }}</h4>
+	<h4 ng-show="mode == 'edit'">{{ 'category.modify' | i18next }}</h4>
 </div>
 <div class="modal-body">
 	<form class="form-horizontal" name="catForm">
@@ -9,20 +9,20 @@
 	    <div class="col-sm-10">
 	      <input ng-disabled="category.pedigreeAssociation === true || mode === 'edit'" name="id"
 				 ng-model="category.id" type="text" class="form-control form-select" id="catId"
-				 placeholder="Ingrese identificador único" data-ng-pattern="catIdRegex" required>
+				 placeholder="{{ 'generics.enterUniqueIdentifier' | i18next }}" data-ng-pattern="catIdRegex" required>
 		 <form-validation input="catForm.id" pattern="a-z|A-Z|0-9|_ desde 4 caracteres"></form-validation>
 	    </div>
 	  </div>
 	  <div class="form-group">
-	    <label for="catName" class="col-sm-2 control-label">Nombre</label>
+	    <label for="catName" class="col-sm-2 control-label">{{ 'generics.name' | i18next }}</label>
 	    <div class="col-sm-10">
 	      <input ng-disabled="category.pedigreeAssociation === true" ng-model="category.name" type="text" class="form-control form-select"
-				 id="catName" placeholder="Ingrese nombre único" name="name" required>
+				 id="catName" placeholder="{{ 'generics.enterUniqueName' | i18next }}" name="name" required>
 		  <form-validation input="catForm.name"></form-validation>
 	    </div>
 	  </div>
 	  <div class="form-group">
-	    <label for="catDesc" class="col-sm-2 control-label">Descripción</label>
+	    <label for="catDesc" class="col-sm-2 control-label">{{ 'generics.description' | i18next }}</label>
 	    <div class="col-sm-10">
 	      <textarea ng-disabled="category.pedigreeAssociation === true" id="catDesc" ng-model="category.description" class="form-control  form-select" rows="3"></textarea>
 	    </div>
@@ -31,24 +31,24 @@
           <span class="col-sm-1"></span>
           <input class="col-sm-1 text-right" type="radio" ng-model="category.isReference" ng-disabled="mode != 'add'"
                  ng-value="false" name="evidence-radio" ng-required="mode == 'add'">
-          <span class="col-sm-10">Evidencia</span>
+          <span class="col-sm-10">{{ 'generics.evidence' | i18next }}</span>
 
           <span class="col-sm-1"></span>
           <input class="col-sm-1 text-right" type="radio" ng-model="category.isReference" ng-disabled="mode != 'add'"
                  ng-value="true" name="reference-radio" ng-required="mode == 'add'">
-          <span class="col-sm-10">Referencia</span>
+          <span class="col-sm-10">{{ 'generics.reference' | i18next }}</span>
       </div>
 
 	</form>
 </div>
 <div class="modal-footer" style="margin-top: 0px;">
-   <button class="btn btn-secondary-action pull-left" ng-click="remove()" ng-show="mode == 'edit' && category.pedigreeAssociation === false">Eliminar</button>
+   <button class="btn btn-secondary-action pull-left" ng-click="remove()" ng-show="mode == 'edit' && category.pedigreeAssociation === false">{{ 'buttons.delete' | i18next }}</button>
    <div class="btn btn-link-action" ng-click="cancel()">
        <span title="Cerrar">
            <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
        </span>
-       <span class="btn-link-action">Cerrar</span>
+       <span class="btn-link-action">{{ 'buttons.close' | i18next }}</span>
    </div>
-   <button class="btn btn-primary-action" ng-disabled="catForm.$invalid" ng-click="update()" ng-show="mode == 'edit' && category.pedigreeAssociation === false">Guardar</button>
-   <button class="btn btn-primary-action" ng-disabled="catForm.$invalid" ng-click="add()" ng-show="mode == 'add'">Agregar</button>
+   <button class="btn btn-primary-action" ng-disabled="catForm.$invalid" ng-click="update()" ng-show="mode == 'edit' && category.pedigreeAssociation === false">{{ 'buttons.save' | i18next }}</button>
+   <button class="btn btn-primary-action" ng-disabled="catForm.$invalid" ng-click="add()" ng-show="mode == 'add'">{{ 'buttons.add' | i18next }}</button>
 </div>

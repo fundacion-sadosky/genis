@@ -10,7 +10,7 @@
 								<span  class="icon-atras" title="Volver"></span>
 							</div>
 						</li>
-						<li class="active">Lote {{batchId}} - Detalles</li>
+						<li class="active">{{'generics.batch' | i18next}} {{batchId}} - {{'generics.details' | i18next}}</li>
 						
 					</ol>
 				</div>
@@ -27,10 +27,10 @@
 	<thead>
 		<tr>
 			<th></th>
-			<th class="text-center">Código Laboratorio</th>
-			<th class="text-center">Genetista asignado</th>
-			<th class="text-center">Subcategoría</th>
-			<th class="text-center">Kit</th>
+			<th class="text-center">{{'generics.labCode' | i18next}}</th>
+			<th class="text-center">{{'profileApproval.assignedGeneticist' | i18next}}</th>
+			<th class="text-center">{{'generics.subcategory' | i18next}}</th>
+			<th class="text-center">{{'generics.kit' | i18next}}</th>
 			<th></th>
 		</tr>
 	</thead>
@@ -46,7 +46,7 @@
 			<td class="text-center">{{r.subcategory}}</td>
 			<td class="text-center">{{r.kit}}</td>
 			<td class="text-center" ng-show="r.status === 'Valid'">
-				<button class="btn" title="Editar datos antes de guardar" >
+				<button class="btn" title="{{'bulk.editBeforeSaving' | i18next}}" >
 					<span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
 				</button>
 

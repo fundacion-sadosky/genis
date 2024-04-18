@@ -1,6 +1,6 @@
 <div class="modal-header">
 	<h2>
-		Rechazo de Perfil</b>
+		{{'generics.profileRejection' | i18next}} </b>
 	</h2>
 	<button class="btn btn-close-modal" data-ng-click="closeModal(false)">x</button>
 </div>
@@ -9,7 +9,7 @@
 		<fieldset data-ng-disabled="editMode">
 
 			<div class="form-group col-lg-12">
-				<label>Motivo</label>
+				<label>{{'motives.name' | i18next}}</label>
 				<select class="form-control form-select" name="repeatSelect" id="repeatSelect" ng-model="selectedMotive" ng-change="onChangeMotive(selectedMotive)" required>
 					<option ng-repeat="motive in motives" value="{{motive.id}}">{{motive.description}}</option>
 				</select>
@@ -21,8 +21,8 @@
 	</form>
 	<div class="clearfix">&nbsp;</div>
 	<div class="desk-align-right">
-		<button class="btn btn-success" data-ng-click="closeModal(motiveText,selectedMotive)" data-ng-disabled="!selectedMotive  || genDelForm.$invalid">Aceptar</button>
-		<button class="btn btn-danger" data-ng-click="closeModal(false,0)">Cancelar</button>
+		<button class="btn btn-success" data-ng-click="closeModal(motiveText,selectedMotive)" data-ng-disabled="!selectedMotive  || genDelForm.$invalid">{{'buttons.accept' | i18next}}</button>
+		<button class="btn btn-danger" data-ng-click="closeModal(false,0)">{{'buttons.cancel' | i18next}}</button>
 	</div>
 
 </div>

@@ -1,0 +1,1477 @@
+{
+  "login": {
+    "label": {
+      "enterSystem" : "Enter the system"
+    },
+    "input" : {
+      "userName" : "Enter your username",
+      "password" : "Enter your password",
+      "topt": "Enter token code which is available in the application Google Authenticator on your cellphone"
+    },
+    "forgotPassword" : "Forgot my password",
+    "requestAccount" : "Request an account",
+    "tokenCode" : "Google Authenticator token code",
+    "unauthorizedAccess" : "Unauthorized Access"
+  },
+  "menu": {
+    "audit" : "Audit support",
+    "bulkAcceptance" : "Analysis Bulk Acceptance",
+    "bulkUpload" : "Analysis Bulk Creation",
+    "configuration" : "Settings",
+    "dvi" : "DVI",
+    "forensic" : "Forensic",
+    "inferiorInstances" : "Inferior instances",
+    "inferiorInstanceProfileApproval" : "Inferior instance profile approval",
+    "logout" : "Log out",
+    "matches" : "Matches",
+    "monitoring" : "Monitoring",
+    "mpi" : "MPI",
+    "mpiDvi" : "MPI/DVI",
+    "operationLog" : "Operations History",
+    "profileComparison" : "Profiles Comparison",
+    "profileExporter" : "Profiles Exporter",
+    "profiles" : "Profiles",
+    "profilesList" : "Profile list",
+    "profileLIMSExporter" : "Profiles LIMS exporter",
+    "reports" : "Reports",
+    "interconnection" : {
+      "configuration" : "Instance interconnection configuration",
+      "inferiorInstances" : "Inferior Instances",
+      "profileApproval" : "Profile Approval",
+      "upperInstance" : "Superior Instance"
+    }
+  },
+  "error" : {
+    "checkLog" : "There was an error, please verify the log",
+    "cantBlank" : "The user cannot reset the password. Consult with an administrator",
+    "common" : "Error",
+    "common2" : "An error has occurred ",
+    "common3" : "Error: ",
+    "common4" : "An error has occurred: ",
+    "commonPlural" : "Errors have occurred. ",
+    "existingLabCode" : "That laboratory's code already exists",
+    "header" : "Intense radiation can break DNA Strands and links",
+    "invalidCode" : "The code is invalid",
+    "message" : "There was an error: ",
+    "noPermission" : "You do not have the permissions necessary to access the resource",
+    "saving" : "There was an error while saving the changes: "
+  },
+  "configuration" : {
+    "title" : "Settings",
+    "categories" : {
+      "title" : "Categories",
+      "categories" : "Categories",
+      "kits" : "Kits",
+      "locus" : "Loci",
+      "mapping" : "Category mapping"
+    },
+    "instance" : {
+      "title" : "Instance Interconnection",
+      "upperInstance" : "Superior Instance"
+    },
+    "statisticalParameters" : {
+      "title" : "Statistical parameters",
+      "allelicFrequencies" : "Allele Frequencies",
+      "mutationalModels" : "Mutational Models"
+    },
+    "security" : {
+      "title" : "Security",
+      "users" : "Users",
+      "roles" : "Roles"
+    },
+    "catalogs" : {
+      "title" : "Catalogs",
+      "laboratories" : "Laboratories",
+      "geneticists" : "Geneticist",
+      "biomaterialType" : "Biological Material Type",
+      "motives" : "Motives"
+    }
+  },
+  "biomaterial" : {
+    "add" : "New biomaterial type",
+    "edit" : "Modify biomaterial type",
+    "alert" : {
+      "addFail" : "An error occurred while saving the changes: ",
+      "addSuccess" : "The biomaterial type has been correctly saved",
+      "deleteFail" : "An error occurred while deleting the biological material type. ",
+      "deleteSuccess" : "The biological material type has been correctly deleted",
+      "updateFail" : "An error occurred while updating the changes: ",
+      "updateSuccess" : "The biological material type has been correctly updated"
+    },
+    "type" : "Biological Material Type"
+  },
+  "about" : {
+    "version" : "Version"
+  },
+  "exit" : {
+    "close" : "Close"
+  },
+  "buttons" : {
+    "accept" : "Accept",
+    "acceptAll" : "Accept all",
+    "acceptSelected" : "Accept selected",
+    "activate" : "Activate",
+    "activationParameters" : "View activation parameters",
+    "approveAll" : "Approve all",
+    "approveSelected" : "Approve Selected",
+    "add" : "Add",
+    "addBiomaterial" : "Add biological material",
+    "addGroup" : "Add Group",
+    "addNode" : "Add node",
+    "addRange" : "Add Range",
+    "addRole" : "Add Role",
+    "all" : "All",
+    "autoconfigure" : "Autoconfigure",
+    "back" : "Back",
+    "calculate" : "Calculate",
+    "calculateLR" : "Calculate LR",
+    "cancel" : "Cancel",
+    "checkConnectivity" : "Check Connectivity",
+    "clean" : "Clean",
+    "close" : "Close",
+    "confirm" : "Confirm",
+    "confirmMatch" : "Confirm match",
+    "confirmRequest" : "Confirm request",
+    "connect" : "Connect",
+    "copy" : "Copy",
+    "delete" : "Delete",
+    "discard" : "Discard",
+    "discardAll" : "Discard all",
+    "discardMatch" : "Discard match",
+    "edit" : "Edit",
+    "enter" : "Enter",
+    "erase" : "Erase",
+    "export" : "Export",
+    "generateReport" : "Generate Report",
+    "goBack" : "Go back",
+    "group" : {
+      "manual" : "Manual collapsing",
+      "automatic" : "Automatic collapsing"
+    },
+    "groupAll" : "Group all",
+    "groupProfiles" : "Associate profiles",
+    "label" : {
+      "change" : "Change labels",
+      "save" : "Save labels"
+    },
+    "newScenario" : "New scenario",
+    "no" : "No",
+    "orderBy" : "Order by",
+    "pending" : "Pending",
+    "print" : "Print",
+    "printReport" : "Print report",
+    "reject" : "Reject",
+    "replicateUpperInstance" : "Replicate to superior instance",
+    "requestClearPass" : "Request password reset",
+    "requestRegistration" : "Request Registration",
+    "save" : "Save",
+    "saveAll" : "Save all",
+    "search" : "Search",
+    "selectAll" : "Select all",
+    "show" : {
+      "matches" : "Display matches",
+      "differences" : "Display differences"
+    },
+    "updateList" : "Update list",
+    "upload" : {
+      "electropherogram" : "Upload electropherogram",
+      "file" : "Upload file",
+      "image" : "Upload image",
+      "print" : "Upload print",
+      "signature" : "Upload signature"
+    },
+    "validate" : "Validate",
+    "validateAndSave" : "Validate and save",
+    "verifyLoad" : "Verify uploading",
+    "viewAll" : "View all",
+    "viewElect" : "View electropherogram",
+    "viewMore" : "View more",
+    "yes" : "Yes",
+    "title" : {
+      "editBeforeSaving" : "Edit data before saving",
+      "saveAnalysis" : "Save analysis"
+    }
+  },
+  "generics" : {
+    "accepted" : "Accepted",
+    "actions" : "Actions",
+    "addAnalysis" : "Add Analysis",
+    "addScenario" : "Add scenario",
+    "alias" : "Alias",
+    "allele" : "Allele",
+    "alleles" : "Alleles",
+    "analysisType" : "Analysis type",
+    "and" : "and",
+    "askConfirmation" : "Are you sure?",
+    "assignedGeneticist" : "Assigned Geneticist",
+    "batch" : "Batch",
+    "batchApproved" : "Batch approved.",
+    "batchDeleted" : "Batch deleted.",
+    "batchImported" : "Batch imported.",
+    "calcOptions" : "Calculation options",
+    "calculationScenario" : "Calculation Scenario",
+    "case" : "Case",
+    "caseResults" : "Case results",
+    "category" : "Category",
+    "cellphone" : "Mobile phone",
+    "changeStateSuccess" : "The status change was successful",
+    "characters" : "characters",
+    "chromosome" : "Chromosome",
+    "clean" : "Clean",
+    "cleanData" : "Clean data",
+    "cleanFilters" : "Clean filters",
+    "cleanScreen" : "Clean screen",
+    "code" : "Code",
+    "codeCategoryLab" : "Code, category or laboratory",
+    "compare" : "Compare",
+    "comparisonNotMade" : "Comparison cannot be made",
+    "commentary" : "Commentary",
+    "configuration" : "Configuration",
+    "confirmPassword" : "Confirm password",
+    "conflicts" : "Conflicts",
+    "contributors" : "Contributors",
+    "date" : "Date",
+    "default" : "Default",
+    "delete" : "Delete",
+    "deleteSelected" : "Delete selected items",
+    "description" : "Description",
+    "details" : "Details",
+    "directLinks" : "Direct links",
+    "discard" : "Discard",
+    "discarded" : "Discarded",
+    "dnaProfile" : "DNA Profile",
+    "dropIn" : "Drop-in",
+    "dropOut" : "Drop-out",
+    "dvi" : "DVI",
+    "edition" : "Edit",
+    "electropherogram" : "Electropherogram",
+    "email" : "Email",
+    "enterAlias" : "Enter an alias",
+    "enterUniqueIdentifier" : "Enter a unique identifier",
+    "enterUniqueName" : "Enter a unique name",
+    "erase" : "Erase",
+    "eventLog" : "Event log",
+    "evidence" : "Evidence",
+    "father" : "Father",
+    "fatherDash" : "Father-",
+    "files" : "Files",
+    "fieldRespectPattern": "Field must follow the pattern ",
+    "from": "Desde",
+    "geneMapperUser" : "GeneMapper Username",
+    "geneticist" : "Geneticist",
+    "GENisCode" : "GENis Code",
+    "GENisLabCode" : "GENis or Laboratory code",
+    "hit" : "Hit",
+    "home" : "Home",
+    "hypothesis" : "Hypothesis",
+    "id" : "Id",
+    "inbox" : "Inbox",
+    "kit" : "Kit",
+    "labCode" : "Laboratory Code",
+    "laboratory" : "Laboratory",
+    "lastCoincidence" : "Last match",
+    "lastName" : "Last name",
+    "loading" : "This operation can take a few minutes...",
+    "loadingClient" : "Please wait a few moments",
+    "locus" : "Locus",
+    "locusPlural" : "Loci",
+    "lr" : "LR",
+    "manual" : "Manual",
+    "marked" : "Flagged",
+    "minFreq" : "Minimum frequencies",
+    "missingInfo" : "Missing information",
+    "model" : "Model",
+    "modify" : "Modify",
+    "modifyUserData" : "Modify user data",
+    "mother" : "Mother",
+    "motherDash" : "Mother-",
+    "mutations" : "Mutations",
+    "name" : "Name",
+    "nameAndLastName" : "Name and Last name",
+    "new" : "New",
+    "newAnalysis" : "New analysis",
+    "newScenario" : "New scenario",
+    "noResult" : "No data found based on your search",
+    "nonOperative" : "Not operative",
+    "of" : "of",
+    "older" : "Oldest",
+    "onBehalfOf" : "on behalf of",
+    "operation" : "Operation",
+    "operative" : "Operative",
+    "password" : "Password",
+    "pedigree" : "Pedigree",
+    "pedigreeTrace" : "Pedigree traceability",
+    "pending" : "Pending",
+    "phone" : "Phone",
+    "pluralAll" : "All",
+    "pluralAllFem" : "All",
+    "popupTitle" : "Popup Title",
+    "profile" : "Profile",
+    "profileRejection" : "Profile rejection",
+    "profiles" : "Profiles",
+    "range" : "Range",
+    "rangePlural" : "Range",
+    "recent" : "Most recent",
+    "reference" : "Reference",
+    "regions" : "Regions",
+    "removalSolicitor" : "Deletion solicitor",
+    "replicateUpperInstance" : "Replicate to superior instance",
+    "required" : "Required",
+    "resource" : "Resource",
+    "responsible" : "Responsible",
+    "result": "Result",
+    "sampleData" : "Sample Data",
+    "scenario" : "Scenario",
+    "scenarios" : "Scenarios",
+    "searchPermission" : "Search permission by name or description",
+    "select" : "Select",
+    "sex" : "Sex",
+    "shortName" : "Short name",
+    "singleAll" : "All",
+    "singleMarked" : "Marked",
+    "startDate" : "Start Date",
+    "state" : "Status",
+    "statsOptions": "Statistical options",
+    "stringency" : "Stringency",
+    "subcategory" : "Subcategory",
+    "system" : "Locus",
+    "the" : "The",
+    "theta" : "Theta",
+    "timeAndDate" : "Time and Date",
+    "to": "Hasta",
+    "traceDescription" : "Traceability detail",
+    "type" : "Type",
+    "uppercaseNo" : "NO",
+    "uppercaseYes": "YES",
+    "user" : "User",
+    "userName" : "Username",
+    "userResponsible" : "User responsible",
+    "validated" : "Validated",
+    "value" : "Value",
+    "verify" : "Verify",
+    "view" : "View",
+    "viewAlleles" : "View alleles",
+    "viewAnalysis" : "View Analysis",
+    "viewBy" : "View by",
+    "viewMitochondrialAnalysis" : "View mitochondrial analysis",
+    "viewSingleAllele" : "View allele",
+    "welcome" : "Welcome to GENis."
+  },
+  "alerts" : {
+    "bulk": {
+      "stateUpdated" : "The change of state has been done successfully",
+      "batchApproved" : "The batch was approved successfully",
+      "batchImported" : "The batch was imported successfully",
+      "batchDeleted" : "Batch deleted",
+      "errorVerifyLog": "There was an error, please verify the log"
+    },
+    "case" : {
+      "closeSuccess" : "The case was closed successfully",
+      "deletedError" : "The case cannot be eliminated due to having matches",
+      "pendingMatch" : "It has pending matches"
+    },
+    "category" : {
+      "cantObtainError" : "Cannot obtain the superior instance categories",
+      "created" : "The category has been created",
+      "updated" : "The category has been updated",
+      "deleted" : "The category has been deleted"
+    },
+    "changes" : {
+      "updated" : "The changes have been updated"
+    },
+    "connect" : {
+      "jsFail" : "Js couldn't connect",
+      "success" : "Connects correctly"
+    },
+    "date" : {
+      "after" : "The date must be after the From date",
+      "afterDisappearance" : "The date is past the disappearance",
+      "before" : "The date must be before today",
+      "toFrom" : "You must complete the dates From and To"
+    },
+    "file" : {
+      "insert" : "New file inserted",
+      "saveError" : "Error saving the file: "
+    },
+    "genericDelete" : {
+      "success" : "Successfully eliminated",
+      "success2" : "Delete successful"
+    },
+    "genericSuccess" :{
+      "executed" : "Executed correctly",
+      "operation" : "The operation has been successful",
+      "operation2" : "The operation was carried out successfully"
+    },
+    "generics" : {
+      "connected" : "It connected correctly",
+      "dbName" : "You must specify the DB name",
+      "dbNameError" : "A database with the same name has already been entered",
+      "registers" : " registers",
+      "setAsDefault" : ": was set as default",
+      "setAsDefaultError" : ": could not be set as default",
+      "wereInserted" : ": were inserted "
+    },
+    "genotyping" : {
+      "cantRepeatAlleleEvidenceError" : "Cannot repeat existing alleles",
+      "comparisonError" : "Error in the comparison with existing values in the genotyping ",
+      "invalidRange" : "Range is invalid",
+      "invalidVariations" : "There are invalid variations",
+      "minimumVariationError" : "You must complete at least one variation",
+      "rangeMinimumError" : "The range must have two values",
+      "repeatAlleleError1" : "The allele",
+      "repeatAlleleError2" : " repeats more than twice",
+      "repeatedVariations" : "There are repeated variations",
+      "variationsNotInRange" : "The variations are not included in the range"
+    },
+    "group" : {
+      "confirmed" : "The group has been confirmed",
+      "confirmedError" : "An error occurred while confirming the group",
+      "created" : "The group has been created",
+      "deleted" : "The group has been eliminated",
+      "discarded" : "The group has been discarded",
+      "discardedError" : "An error occurred while discarding the group",
+      "selectProfile" : "You must select a grouping profile.",
+      "tooManyError" : " Could not be saved, there is more than one grouping profile: ",
+      "updated" : "The group has been updated"
+    },
+    "image": {
+      "insert" : "The new images were inserted",
+      "saveError" : "Error saving the images ",
+      "sentError" : "error sending the images"
+    },
+    "kit" : {
+      "deleted" : "The kit has been removed successfully",
+      "saved" : "The kit has been saved successfully"
+    },
+    "laboratory" : {
+      "updateError" : " The laboratory could not be updated: ",
+      "updateFail" : " The laboratory could not be updated",
+      "updateSuccess" : "The laboratory has been updated correctly",
+      "addError": "The laboratory could not be added",
+      "addSuccess": "The laboratory was added successfully",
+      "existingCode": "The laboratory code already exists"
+    },
+    "locus" : {
+      "deleted" : "The locus has been removed successfully",
+      "saved" : "The locus has been saved successfully",
+      "updated" : "The locus has been saved successfully"
+    },
+    "match" : {
+      "discardSuccess" : "The match was discarded successfully.",
+      "inProgress" : "The analysis was saved successfully. Match processing in progress ...",
+      "noBaseFrequency" : "There is no selected or default base frequency. Please, select a base frequency.",
+      "noLRParameters" : "There are no parameters to calculate the LR",
+      "noMatches" : "There are no matches to discard in the group",
+      "noMatchesError" : "Some matches from the group could not be discarded",
+      "noProbabilityModel" : "There is no selected or associated model. Please select a statistical model."
+    },
+    "modify" : {
+      "fail" : "It could not be modified",
+      "success" : "Modified successfully"
+    },
+    "node" : {
+      "parentError" : "Cannot delete the father or mother node from another node",
+      "unknownError" : "Cannot delete the unknown node"
+    },
+    "notification" : {
+      "deleteError" : "There was an error deleting notifications",
+      "deleteSuccess" : "The notifications were successfully deleted",
+      "modifySuccess" : "The notification was modified successfully."
+    },
+    "pedigree" : {
+      "closeError" : "Pedigree can not be closed due to having undiscarded matches.",
+      "confirmSingleDisassociation" : "Confirm disassociation of pedigree ",
+      "confirmSingleDisassociationQuestion" : "Are you sure you want to disassociate pedigree",
+      "consistent" : "The pedigree is consistent",
+      "deleteActivatedError" : "The pedigree can not be deleted because it was activated at least once.",
+      "editMatchError" : "The pedigree can not be edited since it has matches that have not been discarded.",
+      "editModeError" : "You can only delete node/s of a pedigree being edited",
+      "editScenarioError" : "The pedigree can not be edited since it has valid scenarios.",
+      "groupingError" : "Error grouping",
+      "inconsistent" : "The pedigree is not consistent",
+      "parentError" : "All people of interest must have a mother and father",
+      "searchStarted" : "The search process has started, and you will receive a notification when it finishes."
+    },
+    "profile" : {
+      "approve" : "The profile was approved",
+      "associateSuccess" : "The profiles were associated",
+      "codeError" : "A valid profile code has not been selected",
+      "compareOnlyTwoError" : "Only up to 2 profiles can be compared",
+      "confirmDisassociation" : "Confirm disassociation of selected profiles",
+      "confirmDisassociationQuestion" : "Are you sure you want to disassociate the selected profiles?",
+      "confirmSingleDisassociation" : "Confirm profile disassociation",
+      "confirmSingleDisassociationQuestion" : "Are you sure you want to disassociate the profile",
+      "consultError" : "Failed to check profiles",
+      "disassociateSuccess" : "The profile was disassociated",
+      "disassociateError" : "Failed to disassociate a profile",
+      "exported" : "The profiles were exported",
+      "filialData" : "You must complete either all filial data or none",
+      "massApprove" : "The profiles were approved",
+      "noneFoundError" : "No profile found for ",
+      "notFoundError" : "Profile not found",
+      "rejected" : "The profile was rejected",
+      "rejectedError" : "Failed to reject the profile",
+      "responsibleGeneticist" : "The Geneticist in charge has not been entered",
+      "search" : "Search profiles",
+      "ungroupSuccess" : "The profile/s has/have been ungrouped",
+      "update" : "The profile has been updated: ",
+      "upload" : "The profile was uploaded"
+    },
+    "register" : {
+      "deleted" : "The record has been removed successfully",
+      "deletedError" : "Error deleting the record",
+      "error" : " It could not be added: ",
+      "fail" : "It could not be added",
+      "success" : "Added successfully"
+    },
+    "role" : {
+      "add" : "The role was generated, you must add the permission(s) and save to finish the operation.",
+      "deleted" : "The role has been successfully deleted",
+      "save" : "The role has been saved correctly"
+    },
+    "sample" : {
+      "codeGenerated" : "Sample code generated: "
+    },
+    "save" : {
+      "success" : "Saved correctly"
+    },
+    "scenario" : {
+      "deleted" : "The scenario was successfully eliminated",
+      "registered" : "The scenario was successfully registered",
+      "saved" : "The stage was saved successfully",
+      "unregister" : "The scenario was deleted successfully",
+      "unregisterError" : "The scenario could not be deleted",
+      "updated" : "The scenario was updated successfully",
+      "validated" : "The scenario was successfully validated",
+      "validatedAndSaved" : "The scenario was validated and saved successfully"
+	}
+  },
+  "totpPrompt" : {
+    "message" : "Please enter your token code to complete the request"
+  },
+  "bulk" : {
+    "addBatchBtn" : {
+      "download1" : "D",
+      "download2" : "ownload file",
+      "file1" : "F",
+      "file2" : "ile examples with obligatory fields",
+      "mitochondrial" : "Mitochondrial"
+    },
+    "analysis" : {
+      "accept" : "Accept analysis",
+      "approve" : "Approve analysis",
+      "disapprove" : "Reject analysis",
+      "reject" : "Reject analysis"
+    },
+    "analysisTotal" : "Total analysis",
+    "batchStatus" : {
+      "accepted" : "Accepted",
+      "approved" : "Approved",
+      "disapproved" : "Rejected",
+      "incomplete" : "Incomplete",
+      "invalid" : "Invalid",
+      "readyForApproval" : "Ready for approval",
+      "rejected" : "Rejected"
+    },
+    "bulkAnalysisBatch" : "Analysis bulk creation  - Batch",
+    "bulkAnalysisGeneticist" : "Analysis bulk creation  - Geneticist",
+    "deleteBatchAsk" : "¿Are you sure you want to delete the batch?",
+    "deleteBatchConfirm" : "Confirm batch deletion",
+    "editBeforeApproving" : "Edit data before approving",
+    "editBeforeSaving" : "Edit data before saving",
+    "loadDate" : "Load date",
+    "newBatch" : "New Batch",
+    "profileLinkedTo" : "Profile linked to",
+    "searchBatch" : "Search for batch",
+    "searchByIdAnalysis" : "Search by analysis ID",
+    "searchByIdName" : "Search by ID or batch name",
+    "seeGenotypification" : "View genotypification",
+    "status" : {
+      "accepted" : "Accepted",
+      "inProgress" : "In progress",
+      "rejected" : "Rejected"
+    },
+    "statusAnalysis" : "Analysis in state",
+    "viewErros" : "See errors",
+    "viewRejectionMotive" : "View Rejection Motive"
+  },
+  "group" : {
+    "edit" : "Modify group",
+    "new" : "New group"
+  },
+  "inferiorInstanceConfiguration" : {
+    "title" : "Inferior instances configuration",
+    "updateList" : "Update list",
+    "laboratory" : "Laboratory",
+    "url" : "URL",
+    "connectivity" : "Connectivity",
+    "state" : "State",
+    "approve" : "Approve",
+    "reject" : "Reject",
+    "checkConnectivity" : "Check connectivity"
+  },
+  "kit" : {
+    "add" : "Add Kit",
+    "title" : "Kits",
+    "representativeParameter" : "Representative parameter",
+    "locus" : "Locus",
+    "listKit" : {
+      "locusQuantity" : "Locus quantity"
+    },
+    "newKit" : {
+      "analysisType" : "Analysis type",
+      "pickLocus" : "Choose a locus",
+      "locus" : "Locus",
+      "fluorescence" : "Fluorescence"
+    },
+    "select" : "Select Kit"
+  },
+  "profileData" : {
+    "category" : "Select the categories and subcategory to proceed with the data registration",
+    "tab1" : "Court case data",
+    "tab2" : "Sample data",
+    "tab3" : "Personal data",
+    "filiation" : {
+      "address" : "Address",
+      "birthDate" : "Birthdate",
+      "birthPlace" : "Birthplace",
+      "fullName" : "Full name",
+      "identification" : "Identification or Passport",
+      "issuingAuthority" : "Issuing authority",
+      "nationality" : "Nationality",
+      "nicknames" : "Nicknames or pseudonyms"
+    },
+    "nonObligatedInfo" : "To enable the Criminal case information, Sample data and\n\t\t\t\t\t\t\tfiliation data fields, first complete the fields\n\t\t\t\t\t\t\tmarked with",
+    "sampleData" : "Profile - Sample data"
+  },
+  "stringency": {
+    "HighStringency": "High",
+    "ModerateStringency": "Moderate",
+    "LowStringency": "Low",
+    "Mismatch": "Mismatch",
+    "NoMatch": "No intersection"
+  },
+  "matchingAlgorithm": {
+    "ENFSI": "Enfsi",
+    "GENIS_MM": "Mixture-Mixture"
+  },
+  "userStatus": {
+    "active": "Active",
+    "pending": "Pending Activation",
+    "blocked": "Blocked",
+    "inactive":"Inactive",
+    "pending_reset":"Pending reset"
+  },
+  "sexPedigree": {
+    "Female": "XX",
+    "Male": "XY",
+    "Unknown": "I"
+  },
+  "sexFull": {
+    "Female": "Female",
+    "Male": "Male",
+    "Unknown": "Unknown"
+  },
+  "analysisTypes": {
+    "Autosomal": "Autosomal",
+    "Cx": "Chromosome X",
+    "Cy": "Chromosome Y",
+    "MT": "Mitochondrial"
+  },
+  "permission": {
+    "MUTATION_MODELS_CRUD": {"name": "Mutation model management", "description": "Mutation model management"},
+    "PROFILE_COMPARISON": {"name": "Profile comparison", "description": "Genetic profiles comparison"},
+    "DNA_PROFILE_CRUD": {"name": "Profile management", "description": "Genetic profiles management"},
+    "PROFILE_DATA_CRUD": {"name": "Sample data management", "description": "Sample data creation and update"},
+    "PROFILE_EXPORTER": {"name": "Profile exporter", "description": "Export profiles to a file with bulk upload format"},
+    "PROFILE_EXPORTER_TO_LIMS": {"name": "Profile exporter for Lims", "description": "Export added, deleted and matches for Lims"},
+	"PROFILE_DATA_SEARCH": {"name": "Profile search", "description": "Searches of all existing profiles"},
+    "LABORATORY_CRUD": {"name": "Laboratory setup", "description": "Laboratory data creation and update"},
+    "GENETICIST_CRUD": {"name": "Geneticist setup", "description": "Geneticists creation and update"},
+    "ALLELIC_FREQ_DB_CRUD": {"name": "Allelic frequency database setup", "description": "Allelic frequency database management"},
+    "ALLELIC_FREQ_DB_VIEW": {"name": "Allelic frequency database view", "description": "Allelic frequency database contents view"},
+    "OPERATION_LOG_READ": {"name": "Operation log read", "description": "Operation log access"},
+    "MATCHES_MANAGER": {"name": "Matches manager", "description": "Matches listing and management"},
+    "PROTOPROFILE_BULK_UPLOAD": {"name": "Bulk upload", "description": "Bulk upload from GeneMapper"},
+    "PROTOPROFILE_BULK_ACCEPTANCE": {"name": "Bulk upload - Analysis acceptance", "description": "Acceptance of created analyzes with bulk load from GeneMapper"},
+    "USER_CRUD": {"name": "Users setup", "description": "Users and assigned roles management"},
+    "CATEGORY_CRUD": {"name": "Categories setup", "description": "Groups and categories creation, update and delete"},
+    "ROLE_CRUD": {"name": "Roles setup", "description": "Roles and its permits management"},
+    "PEDIGREE_CRUD": {"name": "Persons search", "description": "Persons search and pedigree setup management"},
+    "BIO_MAT_CRUD": {"name":"Biological material types setup","description": "Biological material types creation and update"},
+    "SCENARIO_CRUD": {"name":"Scenarios management","description": "LRMix calculation scenarios creation and management"},
+    "LOCUS_CRUD": {"name":"Locus setup","description": "Locus creation and management"},
+    "LOCUS_UPDATE": {"name":"Locus update","description": "Locus update"},
+    "ADD_MANUAL_LOCUS": {"name":"Add single locus","description": "Add single locus manually to a profile"},
+    "KIT_CRUD": {"name":"Kits setup","description": "Kits creation and management"},
+    "SUP_INS_CRUD": {"name":"Superior instance setup","description": "Connection setup with superior instance and category mapping"},
+    "INF_INS_CRUD": {"name":"Inferior instances setup","description": "Inferior instances supervision and management"},
+    "INTERCON_NOTIF": {"name":"Instances interconnection notifications","description": "Instances interconnection notification receipt"},
+    "IMP_PERF_INS": {"name":"Approve inferior instances profiles","description": "Approve inferior instances profiles"},
+    "INSTANCE_INTERCONNECTION": {"name":"Instances interconnection management","description": "Instances interconnection management"},
+    "MOTIVE_CRUD": {"name":"Motives setup","description": "Motives creation and management"},
+    "REPORTING_VIEW": {"name": "Reports view", "description": "System reports view"}
+  },
+  "resource": {
+    "CategoryTreeRead": "Groups and categories read",
+    "ProfilesRead": "Genetic profiles read",
+    "ProfilesCreate": "Genetic profiles creation",
+    "AnalysisCreate": "Genetic analysis creation",
+    "EpgCreate": "Electropherograms creation",
+    "FileCreate": "Files creation",
+	"FileDelete": "Files deletion",
+	"EpgDelete": "Electropheograms deletion",
+    "ProfileAssociation": "Genetic profiles association",
+    "StrKitsAll": "Kits read",
+    "NotificationsAll": "Notifications read",
+    "MutationModelsGet": "Get mutation models",
+    "MutationModelsDelete": "Delete mutation models",
+    "MutationModelsInsert": "All mutation models",
+    "MutationModelsUpdate": "Update mutation models",
+    "ProfiledataRead": "Sample data read",
+    "ProfiledataExport": "Export profiles",
+	"ProfileToLimsdataExport": "Export files for Lims",
+    "CollapsingDiscard": "Collapsing discard",
+    "CollapsingCreate": "Collapsing validation",
+    "PedigreeConsistencyView": "Pedigree consistency view",
+    "PedigreeConsistencyGenerate": "Generate Pedigree consistency",
+    "CaseTypeRead": "Case type read",
+    "CourCaseDeleteable": "Delete case",
+    "CourtCaseChangeStatus": "Change case status",
+    "CourtCaseCloseable": "Close case",
+    "PedigreeCourtCaseGet": "Get case pedigree",
+    "PedigreeDelete": "Delete pedigí",
+    "PedigreeMetadataSave": "Save pedigrí metadata",
+    "PedigreeScenarioConfirm": "Confirm pedigree scenario",
+    "ProfiledataCreate": "Sample data registration",
+    "ProfiledataUpdate": "Sample data update",
+    "ProfiledataDelete": "Profiles delete",
+    "ProfiledataSearch": "Profiles search",
+    "MatchAll": "Match view",
+    "UploadImageAll": "Metadata images upload",
+    "CategoryRead": "Categories description view",
+    "CategoryUpdate": "Categories update",
+    "CategoryCreate": "Categories creation",
+    "CategoryDelete": "Categories delete",
+    "CrimeTypesRead": "Crime types read",
+    "LaboratoryRead": "Laboratories read",
+    "LaboratoryUpdate": "Laboratories update",
+    "LaboratoryCreate": "Laboratories registration",
+    "CountryRead": "Countries read",
+    "ProvincesRead": "Provinces read",
+    "GeneticistRead": "Geneticists read",
+    "GeneticistCreate": "Geneticists registration",
+    "GeneticistUpdate": "Geneticists updates",
+    "PopulationBaseFreqRead": "Allelic frequency databases read",
+    "PopulationBaseFreqCreate": "Allelic frequency databases creation",
+    "PopulationBaseFreqUpdate": "Allelic frequency databases update",
+    "OperationLogAll": "Operations log read",
+    "MatchHit": "Match hit",
+    "MatchDiscard": "Matches discard",
+    "BulkuploaderCreate": "Bulk uploaded profiles creation",
+    "BulkuploaderBatches": "Bulk uploaded profiles read and search",
+    "BulkuploaderBatchesSearch": "Bulk uploaded batches search",
+    "BulkuploaderBatchesDelete": "Bulk uploaded profiles delete",
+    "ProtoprofileRead": "Bulk uploaded profiles search",
+    "ProtoprofileCreate": "Bulk uploaded profiles creation",
+    "ProtoprofileUpdate": "Bulk uploaded profiles metadata updating",
+    "ProtoprofileUpdateStatus": "Bulk uploaded profiles acceptance and rejection",
+    "UserRead": "Users read",
+    "UserUpdate": "Users update",
+    "UserUpdateStatus": "User status update",
+    "GroupCreate": "Category groups creation",
+    "GroupUpdate": "Category groups update",
+    "GroupDelete": "Category groups delete",
+    "RolesRead": "Roles read",
+    "RolesCreate": "Roles creation",
+    "RolesUpdate": "Roles update",
+    "RolesDelete": "Roles delete",
+    "PermissionAll": "Permits read",
+    "PedigreeAll": " Court cases and pedigree read and searches",
+    "PedigreeProfileAsocRead": "Profiles search for association in searches by pedigree",
+    "PedigreeCourtCaseCreate": "Court case creation for pedigree",
+    "PedigreeCourtCaseProfilesGet": "Get profiles associated to the court case",
+    "PedigreeCourtCaseProfilesPost": "Associate a profile to a court case",
+    "PedigreeCourtCaseProfilesDelete": "Delete a profile associated to a court case",
+    "GetBatchModal": "Search batch for a court case association",
+    "PostBatchModal": "Associate batch to a court case",
+    "PedigreeCourtCaseUpdate": "Court case update for pedigree",
+    "PedigreeGenogramCreate": "Pedigree genogram creation and upgrade",
+    "PedigreeChangeStatus": "Pedigree status update",
+    "PedigreeMatchesRead": "Pedigree matches read",
+    "PedigreeScenarioCreate": "Pedigree scenario creation",
+    "PedigreeScenarioUpdate": "Pedigree scenario update",
+    "PedigreeScenarioRead": "Pedigree scenario read",
+    "PedigreeScenarioStatusChange": "Pedigree scenario status upgrade",
+    "PedigreeMatchDiscard": "Persons search matches discard",
+    "PedigreeScenarioLR": "Pedigree scenario LR calculation",
+    "GetRangesLocus": "Get locus ranges",
+    "BioMaterialTypesRead": "Biological material types read",
+    "BioMaterialTypesCreate": "Biological material types creation",
+    "BioMaterialTypesUpdate": "Biological material types update",
+    "BioMaterialTypesDelete": "Biological material types delete",
+    "Login": "Login",
+    "UserCreate": "Users creation",
+    "ClearPassword": "Password clearing",
+    "ScenarioUpdate": "Scenarios update",
+    "ScenarioValidate": "Scenarios validation",
+    "ScenarioCreate": "Scenarios creation",
+    "ScenarioRead": "Scenarios read",
+    "ScenarioDelete": "Scenarios delete",
+    "ScenarioNCorrection": "N correction calculation",
+    "LocusCreate": "Locus creation",
+    "LocusUpdate": "Locus update",
+    "LocusRead": "Locus read",
+    "AnalysisTypeRead": "Analysis types read",
+    "LocusDelete": "Locus delete",
+    "StrKitCreate": "Kits creation",
+    "StrKitUpdate": "Kits update",
+	"StrKitDelete": "Kits delete",
+    "TraceRead": "Profile trace read",
+    "UploadProfile": "Upload profile to a superior instance",
+    "GetCategoryTreeCombo": "Get superior instance categories tree",
+    "GetSupInstConf": "Get superior instance connection urls",
+    "PutSupInstConf": "Superior instance connection urls update",
+    "CheckInstConf": "Check instance urls connection",
+    "GetCatMapping": "Get categories mapping",
+    "PutCatMapping": "Categories mapping update",
+    "PostConnection": "Connect with the superior instance",
+    "PostIIProfile": "Add inferior instance profile",
+    "DeleteIIProfile": "Delete inferior instance profile",
+    "ReceiveMatchFromSuperior": "Receive superior instance match",
+    "MatchUpdateInterconnection": "Update match with hit or discard from another instance",
+    "GetInfIns": "Get inferior instances setup",
+    "GetPenProfApp": "Get pending approval profiles from inferior instances",
+    "PostPenProfApp": "Approve pending approval profiles from inferior instances",
+    "DelPenProfApp": "Reject pending approval profiles from inferior instances",
+    "PutInfIns": "Update inferior instances settings",
+    "GetInfInsStatus": "Get different possible inferior instances status",
+    "MotiveTypesRead":"Read motive types",
+    "GetMotives":"Get motives",
+    "InsertMotives":"Insert motives",
+    "DeleteMotives":"Delete motives",
+    "UpdateMotives":"Update motives",
+	"CategoryTreeRead": "Read groups and catgories",
+    "GetProfileComparison":"Profiles comparison"
+  },
+  "category": {
+    "analyses": {
+      "general" : "Setup for the validity and quality of profiles according to the category to which they belong",
+      "minLocusPerProfile": "Number of loci that must have allelic values. It can be specified according to K (representative parameter of the kit)",
+      "maxAllelesPerLocus": "Maximum number of alleles in a locus. Limit contributors.",
+      "maxOverageDeviatedLoci": "Number of loci with excessive allelic values",
+      "mixture": "Shows that the category is evidence from more than one contributor",
+      "filiationDataRequired": "Shows that the category enables personal data of the person to with the profile belongs",
+      "pedigreeAssociation": "Shows that the association in a pedigree is allowed",
+      "replicate": "Show that these profiles are sent to superior instances",
+      "allowManualLoading": "Show that the category allows manual upload of profiles belonging to that category"
+    },
+    "associations": {
+      "general": "The association rules specify the category to which the profiles that can be associated with the profiles whose category is being edited belong. Profiles whose category has association rules will not participate in the match search until they are associated to a profile that complies with the association rules",
+      "maxNotMatchingLocus": "Non-Matching Locus Tolerated"
+    },
+    "matching": {
+      "general": "The rules specify what type of profiles are searched for matches, the minimum level of stringency, the algorithm,  the minimum number of loci that it must have in common and the maximum number of mismatches accepted"
+    },
+    "alias": {
+      "general": "Setup of the aliases belonging to this category. These aliases are those used in the ''Specimen Category'' column of the GeneMapper® file in the bulk import"
+    },
+    "general": {
+      "save": "Save changes made to the 4 sections",
+      "add": "Add the rule to be effectively saved",
+      "delete": "Delete rule "
+    },
+    "headings" : {
+      "registerAnalysis" : "Register Analysis",
+      "searchRules" : "Search Rules",
+      "association" : "Profiles Association"
+    },
+    "add" : "Add category",
+    "enableFilialDataEntry": "Enabling personal data entry",
+    "forensic" : "Fornesic",
+    "groups" : "Groups and categories",
+    "manualLoadAllowed" : "Supports manual loading",
+    "modify" : "Modify category",
+    "new" : "New category",
+    "replicateUpperInstance" : "Replication against superior instances"
+  },
+  "header" : {
+    "database" : "Frecuency database",
+    "help" : "Help",
+    "matchSearchState" : "Status of the match search process",
+    "notifications" : "Notifications",
+    "personSearchState" : "Status of the person search process",
+    "statisticalModel" : "Statistical model",
+    "systemInfo" : "System information"
+  },
+  "geneticists" : {
+    "new" : "New Geneticist",
+    "responsible" : "Geneticist responsible for the investigation",
+    "responsible2" : "Responsible for the investigation"
+  },
+  "laboratory" : {
+    "data" : "Laboratory Data",
+    "new" : "New Laboratory"
+  },
+  "location" : {
+    "address" : "Address",
+    "country" : "Country",
+    "province" : "State"
+  },
+  "lot" : {
+    "analysis" : "Choose the analysis type",
+    "create" : "Batch creation",
+    "name" : "Batch name",
+    "optionalName" : "Optional batch name",
+    "pickFile" : "Pick file",
+    "searchByIdName" : "Search batch by id or name"
+  },
+  "lotLog" : {
+    "consistent" : "The batch log is consistent and does not present alterations.",
+    "error" : {
+      "header" : "Error verifying batch",
+      "entry1" : "Entry",
+      "entry2" : "returned the signature",
+      "entry3" : "And instead the following signature was expected: "
+    },
+    "eventGroupLog" : "Operation history - Event group",
+    "verification" : "Batch verification",
+    "startDate" : "Start date"
+  },
+  "matches": {
+    "associatedLabelProfiles" : "Associated Labels / Profiles",
+    "comparison" : "Comparison",
+    "confirm" : "Confirm Match",
+    "contributorInCommon" : "Contributor in common",
+    "dateLast" : "Date of last match",
+    "discard" : "Discard Matches",
+    "discardConfirmation" : "By confirming this action, all matches from the group will be discarded. Are you sure?",
+    "discardSingle" : "Discard Match",
+    "discardSingleConfirmation" : "By confirming this action, you will discard the match. Are you sure?",
+    "forensic" : "Forensic Matches",
+    "groupStatus": "Grouper profile status validation",
+    "independentMixtures" : "Independent mixtures",
+    "match" : "Match",
+    "matchStatus": "Matching profile status validation",
+    "mismatch" : "No match",
+    "mpi" : "MPI Matches",
+    "notRegistered" : "was not registered",
+    "notify" : "Notify Matches",
+    "pending" : "Pending Matches",
+    "registered" : "was registered",
+    "sample" : "sample",
+    "sharedAlleles" : "Shared Alleles",
+    "sharedLocus" : "Shared Locus",
+    "statisticalOptions" : "Statistical options",
+    "statusGrouper" : "Grouper State",
+    "statusGrouperFull" : "Grouper State",
+    "statusMatches" : "Matching State",
+    "statusMatchesFull" : "Matching State",
+    "date" : {
+      "labEntry" : "Lab entry date",
+      "profileExpiration" : "Profile expiration date ",
+      "sample" : "Date sample was taken"
+    },
+    "rules" : {
+      "considerNCorrection" : "Consider for correction by N",
+      "minAmount" : "Minimum number of matches",
+      "maxLocusMismatch" : "Maximum amount of mismatched locus"
+    },
+    "state" : {
+      "conflict" : "CONFLICT",
+      "deleted" : "DELETED",
+      "discarded" : "DISCARDED",
+      "hit" : "HIT",
+      "pending" : "PENDING",
+      "noMatch" : "No match"
+    }
+  },
+  "matchesGroup" : {
+    "matchDetail" : "Match detail",
+    "discardAll" : "Discard all",
+    "addScenario" : "Add new scenario",
+    "viewScenarios" : "View scenarios",
+    "titles" : {
+      "evidence" : "Evidence",
+      "evidenceEqualTwo" : "Evidence Number of Inferred Contributors = 2",
+      "evidenceOverOne" : "Evidence Number of Inferred Contributors > 1",
+      "evidenceOverTwo" : "Evidence Number of Inferred Contributors > 2",
+      "referenceEvidenceEqualOne" : "References or Evidence Number of Inferred Contributors = 1",
+      "references" : "References"
+    }
+  },
+  "motives" : {
+    "add" : "Add new motive",
+    "askConfirmDelete" : "Are you sure you want to delete the motive?",
+    "confirmDelete" : "Confirm motive elimination",
+    "edit" : "Edit motive",
+    "name" : "Motive",
+    "type" : "Motive type",
+    "motivesConf": "Motives configuration",
+    "upperInstanceConf": "Superior instance configuration"
+  },
+  "mutations" : {
+    "active" : "Active",
+    "editModel" : "Edit Mutation Model",
+    "differentiateBySex" : "Divide By Sex",
+    "models" : "Mutation Models",
+    "newModel" : "New Mutation Model",
+    "range" : "Mutation range",
+    "rate" : "Mutation rate"
+  },
+  "populationBase" : {
+    "frequencies" : "Frequency Population Bases",
+    "frequency" : "Population Frequency Base"
+  },
+  "signUp" :{
+    "acceptTerms1" : "I accept the ",
+    "acceptTerms2" : "terms and conditions",
+    "challenge" : {
+      "chooseUsername" : "Select a username for GENis",
+      "codeWarning1" : "Please be sure to",
+      "codeWarning2" : "scan again",
+      "codeWarning3" : "the code",
+      "configureAuth1" : "Configure Google Authenticator from your smartphone. To do that, scan the following image",
+      "configureAuth2" : "or enter the following provided key",
+      "enterToken" : "Enter the token code given by Google Authenticator in your smartphone",
+      "otpCode" : "OTP code (6 digits)"
+    },
+    "confirmation" : {
+      "pendingApproval" : "To complete the user registration, an administrator of the GENis instance must approve it.",
+      "requestSent" : "The request has been correctly sent."
+    },
+    "changePassword" : "Password and TOTP change request",
+    "newAccount" : "New account request",
+    "newPassword" : "New password",
+    "newPasswordConfirmation" : "Confirm new password",
+    "passwordReset" : "Password reset request",
+    "request" : {
+      "mandatoryField1" : "All the fields with",
+      "mandatoryField2" : "are required."
+    }
+  },
+  "scenario": {
+    "allelicDatabase" : "Allelic frequency database",
+    "calculate": "Calculate LR",
+    "coancestryCoefficient" : "Co-ancestrality coefficient",
+    "contrastedHypothesis" : "Contrasted hypothesis",
+    "dmp" : "DMP",
+    "donnellyBaldwin" : "Donnelly-Baldwin",
+    "dropinProbability" : "Drop-in probability",
+    "dropoutProbability" : "Drop-out probability",
+    "dropouts": "Number of alleles found in the profile but not in the sample",
+    "genotypification": "Alleles comparison",
+    "hypothesis": "Hypotheses and parameters setup",
+    "hypothesisDropoutProbability" : "Hypothesis Drop-out Probability",
+    "individualsInPop" : "Number of individuals in the population of interest",
+    "multipleUnknowns" : " unknowns",
+    "nCorrection" : "N correction",
+    "oneUnknown" : "1 unknown",
+    "percentage": "Percentage of shared alleles",
+    "populationParameters" : "Population parameters",
+    "profilesEvaluated" : "Number of profiles evaluated",
+    "results": "Calculation results view",
+    "save": "Save scenario with its hypotheses, parameters and results",
+    "saveSingle" : "Save scenario",
+    "unknownIndividuals" : "Number of unknown individuals",
+    "validate" : "Validate Scenario",
+    "validateAndSave" : "Validate and Save scenario",
+    "validateHypothesis" : "Validating the scenario will confirm the hypothesis matches. Are you sure you want to perform the operation?",
+    "validateProfileMatch" : "Validating the scenario will confirm the matches between the genetic profiles with the hypothesis given in the corresponding calculation. Are you sure you want to validate?",
+    "comparison": {
+      "profiles": "Select a profile to show in the comparison",
+      "chips": "Hide profile genotyping",
+      "differences": "Highlight alleles present in the profiles but not in the sample",
+      "matches": "Highlight alleles present in the profiles and in the sample"
+    },
+    "marks": {
+      "associated": "Profile associated with the grouper profile",
+      "hit": "Validated evidence match"
+    },
+    "resultsBy" : {
+      "calculation" : "Calculation results",
+      "systemLR" : "LR result by locus"
+    },
+    "state": {
+      "Pending": "Pending",
+      "Validated": "Validated",
+      "Deleted": "Deleted"
+    }
+  },
+  "profiles": {
+    "responsible": "User responsible of the genetic profile and its matches"
+  },
+  "profileApproval" : {
+    "allelesNotIncluded" : "Some alleles are not included in the evidence, please verify the association.",
+    "assignedGeneticist" : "Assigned Geneticist",
+    "associatedVictim" : "Has Associated Profile",
+    "inferiorInstance" : "Approval of profiles from inferior instances",
+    "localCategory" : "Local Category",
+    "viewErrors" : "View Errors"
+  },
+  "profileReport" : {
+    "created" : "Created",
+    "match" : {
+      "confirmed" : "Confirmed Matches",
+      "discarded" : "Discarded Matches",
+      "pending" : "Pending Matches"
+    },
+    "matches" : "Matches",
+    "profileSummary" : "Summary of profiles between",
+    "totalDeleted" : "Total Deleted"
+  },
+  "profileViews" : {
+    "analysis" : {
+      "new" : "New analysis for",
+      "continue" : "Validation completed successfully\n\tDo you want to continue with the analysis?"
+    },
+    "association" : "Profiles association",
+    "caseFile" : "Case file",
+    "comparison" : {
+      "title" : "Profiles comparison",
+      "warn" : "The exact code must be written in order to add the profile"
+    },
+    "court" : "Juzgado",
+    "numberContributors" : "Number of Contributors",
+    "region" : {
+      "add" : "Add a region",
+      "name" : "Region"
+    },
+    "search" : "Search profile",
+    "searchContributing" : "Search contributing profile",
+    "selectTag" : "Select one or more alleles and assign the desired tag by clicking on the corresponding boxes.When you finish tagging click on Save tags so that they are saved in the system.",
+    "stringency" : {
+      "title" : "Search rules for",
+      "level" : "Stringency level",
+      "mismatchedLocus" : "Mismatched locus",
+      "subcategory" : "Subcategory"
+    },
+    "tagInUse" : "Tags already used. If you modify them all associations will be eliminated. Are you sure you want to edit them?",
+    "tags" : "Tags",
+    "verification" : "Verification"
+  },
+  "pedigree": {
+    "boundary": "Minimum likelihood for acceptance of profiles in the match process for compatibility",
+    "frequencyBase": "Frequency base that is used to generate the possible genotyping of persons of interest",
+    "status": {
+      "UnderConstruction": "Under construction",
+      "Active": "Active",
+      "Validated": "Confirmed",
+      "Deleted": "Deleted",
+      "Closed": "Closed",
+      "Open": "Open"
+    },
+    "comparison": {
+      "differences": "Highlight different alleles in selected profiles",
+      "matches": "Highlight matching alleles in selected profiles"
+    },
+    "caseData" : {
+      "code" : "Case code",
+      "new" : "New case",
+      "title" : "Case data",
+      "type" : "Case type",
+      "view" : "View Case"
+    },
+    "causeData" : {
+      "number" : "Criminal case number",
+      "court" : "Court",
+      "crimeInvolved" : "Crime involved",
+      "crimeType" : "Crime type",
+      "information" : "Criminal case information",
+      "prosecutor" : "Attorney",
+      "viewInfo" : "View criminal case information",
+      "wantedPersonInfo" : "Missing person information"
+    },
+    "consistency" : {
+      "title" : "Pedigree Consistency",
+      "check" : "Check Consistency",
+      "consistent" : "Consistent",
+      "inconsistent" : "Inconsistent",
+      "processing" : "This pedigree is running the consistency process"
+    },
+    "copyNodes" : {
+      "confirmCopy" : "Confirm pedigree copy",
+      "confirmation1" : "You are trying to copy a pedigree without saving the changes in the original pedigree.",
+      "confirmation2" : "If you wish to continue copying, you will lose the latest changes.",
+      "confirmation3" : "Do you want to continue?"
+    },
+    "courtCase" : {
+      "caseData" : "Case data",
+      "caseId" : "Case Id",
+      "causeData": "Case data",
+      "enterAlias" : "Enter an alias,name o last name.",
+      "list" : "Case List",
+      "matchManager": "Match manager",
+      "nnProfiles" : "NN Postmortem Profiles",
+      "referenceProfiles": "Reference Profiles",
+      "remainsGroup" : "Collapsing"
+    },
+    "activate" : "Activate Pedigree",
+    "activeQuestion" : "Pedigree is still active in search?",
+    "associate" : "Associate",
+    "associateExisting" : "Associate an existing profile",
+    "baseFrequency" : "Frequency Base",
+    "coincidenceDetail" : "Pedigree match detail for ",
+    "cons" : "Consistency",
+    "creationDate" : "Creation date",
+    "disassociateProfile" : "Are you sure you want to disassociate the profile?",
+    "genotypification" : {
+      "code" : "The exact code must be written in order to add the profile",
+      "displayDifferences": "Display Differences",
+      "displayMatches" : "Display Matches",
+      "selectProfile" : "Select grouper profile"
+    },
+    "groupedProfiles" : {
+      "cantUngroup" : "Cannot ungroup if there are pedigrees in Active status",
+      "GENisCode" : "GENis Code",
+      "grouped" : "Grouped profiles",
+      "labCode" : "Laboratory Code",
+      "ungroup" : "Ungroup",
+      "ungroupAll" : "Ungroup all"
+    },
+    "matches" : "matches",
+    "matchCourtCase" : {
+      "analysis" : "Mitochondrial Analysis",
+      "caseType" : "Case type"
+    },
+    "metadata" : {
+      "clothing" : "Clothing",
+      "dateOfBirth" : "Date of birth",
+      "dateOfBirthRange" : "Date of birth range",
+      "dateOfBirthTo" : "until",
+      "dateMissing" : "Date of disappearance",
+      "hairColor" : "Hair Color",
+      "height" : "Height",
+      "identification" : "Identification number",
+      "nationality" : "Nationality",
+      "particularities" : "Particular characteristics",
+      "searchedPersonInfo" : "Person being searched data",
+      "skinColor" : "Skin color",
+      "weight" : "Weight"
+    },
+    "mitochondrialMismatch" : "Number of mismatches for mitochondrial",
+    "mode" : {
+      "active" : "This pedigree is running the compatibility match process.",
+      "construction" : "This pedigree is Under construction status, therefore it does not participate in searches.",
+      "node" : "To select more than one node press the Ctrl + click keys. To delete the selected nodes press the Ctrl + Del keys"
+    },
+    "mutationModel" : "Mutation model",
+    "name" : "Pedigree name",
+    "new" : "New pedigree",
+    "noMutations" : "No Mutations",
+    "profiles" : {
+      "actives" : "Actives",
+      "amount" : "Number of profiles",
+      "associated" : "Profile associated with the pedigree",
+      "associateLot" : "Associate Batch",
+      "associateProfiles" : "Associate profiles",
+      "associateProfilesLot" : "Associate profiles from a batch",
+      "batchSearch" : {
+        "dvi" : "Reference and nn profiles will be associated\n\t\taccording to the category defined for each profile's batch.\n\t\tIf there is an active pedigree only those of reference will be asociated.",
+        "mpi" : "Only reference profiles from\n\t\tthe batch will be associated."
+      },
+      "candidateProfile" : "Candidate profile",
+      "clusterProfile" : "Grouper Profile",
+      "deleted" : "Deleted",
+      "detachFromCase" : "Disassociate from the Case",
+      "detachSelected" : "Remove selected",
+      "goTo" : "Go to Profile",
+      "grouped" : "Collapsed",
+      "lotId" : "Batch Id",
+      "lotName": "Batch name",
+      "new" : "New profile",
+      "pendingReplication" : "Pending replication",
+      "personOfInterest" : "Person of interest",
+      "seeClusteredProfiles" : "View associated profiles",
+      "seeGenotypification" : "View Genotyping",
+      "seeMitoGenotypification" : "View Mitochondrial genotyping",
+      "toAssociate" : "Profiles to associate"
+    },
+    "runScreening": "Run mitochondrial screening",
+    "scenario" : {
+      "description" : "Scenario description",
+      "processing" : "This scenario has a calculation in progress...",
+      "resultsFrom" : "Results from",
+      "totalLR" : "TOTAL LR",
+      "warning" : "Warning",
+      "warningContinue" : "When editing the pedigree, all associated scenarios will be eliminated. Do you wish to continue?"
+    },
+    "scenarioReport" : {
+      "baseFrequency" : "Allelic frequency base",
+      "individuals" : "Individuals",
+      "genogram" : "Genogram",
+      "results" : "Results",
+      "unknown" : "Unknown"
+    },
+    "sharedSystems" : "Shared systems",
+    "traceability" : "Traceability",
+    "viewEditData" : "View/Edit data"
+  },
+  "reporting" : {
+    "configuration" : "Report configuration",
+    "generateProfile" : "Generate profiles report",
+    "profileSummary" : "Profile summary report"
+  },
+  "roles" : {
+    "modify" : "Modify role",
+    "new" : "New role"
+  },
+  "user" : {
+    "geneMapper" : "GeneMapper User",
+    "super" : "Superuser"
+  },
+  "validation" : {
+    "fieldAllows" : "This filed allows up to ",
+    "fieldGreaterThan" : "This field must be greater than ",
+    "fieldLessThan" : "This field must be less than ",
+    "fieldRequired" : "The field is required",
+    "fieldPattern" : "The field must follow the pattern ",
+    "passwordMismatch" : "Passwords do not match"
+  },
+  "courtCase" : {
+    "close" : {
+      "associatedPedigree" : "The pedigrees associated with the case will be closed automatically.",
+      "deleteAssociatedProfiles": "Delete profiles associated with the case",
+      "warning" : "Warning"
+    }
+  },
+  "CollapsingStatus": {
+    "Active": "Active",
+    "Collapsed": "Collapsed"
+  },
+  "inbox": {
+    "show": {
+      "all": "Show all notifications",
+      "pending": "Show pending notifications",
+      "flagged": "Show notifications flagged as important"
+    },
+    "mark": "Mark notification as important",
+    "delete": "Delete selected notifications",
+    "kind": {
+      "matching": "Matches",
+      "bulkImport": "Bulk uploading",
+      "userNotification": "Users",
+      "profileData": "Profiles",
+      "profileDataAssociation": "Profiles association",
+      "pedigreeMatching": "Pedigree matching",
+      "pedigreeLR": "Pedigree scenario",
+      "inferiorInstancePending": "Inferior instance",
+	  "profileUploaded": "Profiles approval from inferior instance",
+	  "aprovedProfile": "Interconnection",
+	  "rejectedProfile": "Interconnection",
+      "hitMatch": "Match validation",
+      "discardMatch": "Match discard",
+      "deleteProfile": "Profile deletion",
+      "collapsing": "DVI collapsing",
+      "pedigreeConsistency": "Pedigree consistency"
+    }
+  },
+  "locus": {
+    "add": {
+      "chromosome": "Chromosome in which the locus is found (1-22, X, Y, XY, MT)",
+      "minimumAllelesQty": "Minimum number of alleles to enter in a reference analysis",
+      "maximumAllelesQty": "Maximum number of alleles to enter in a reference analysis",
+      "new" : "Add Locus",
+      "alias": {
+        "add": "Add alias for bulk upload",
+        "remove": "Remove alias"
+      },
+      "links": {
+        "check": "Link locus with other loci of the same type",
+        "add": "Link a locus",
+        "remove": "Remove linked locus",
+        "select": "Select a locus of the same chromosome link"
+      },
+      "save": "Save the locus with its aliases and possible linked loci"
+    },
+    "list": {
+      "alias": "Alias for bulk upload",
+      "links": "Linked loci"
+    },
+    "helpTip" : {
+      "addAllele" : "Add allele",
+      "addMutation" : "Add mutation",
+      "deleteAllele" : "Delete allele",
+      "deleteVariation" : "Delete variation",
+      "minimumAlleles" : "Minimum alleles",
+      "maximumAlleles" : "Maximum alleles",
+      "links" : "Links",
+      "minimumAllelesQuantity" : "Minimum number of alleles",
+      "maximumAllelesQuantity": "Maximum number of alleles"
+    },
+    "label" : {
+      "locus" : "Locus",
+      "minAlleleValue": "Minimum allele value",
+      "maxAlleleValue": "Maximum allele value",
+      "factor" : "Factor",
+      "distance" : "Distance",
+      "pickLocus" : "Pick a locus",
+      "editLocus" : "Edit locus",
+      "enterChromosome" : "The chromosome must be entered"
+    },
+    "maxAllelesPer" : "Maximum number of alleles per locus",
+    "maxWithTrisomies" : "Maximum number of markers with trisomies",
+    "minWithAlleles" : "Minimum number of markers with alleles",
+    "nonMatchingTolerated" : "Non-Matching Locus Tolerated",
+    "view" : "View loci"
+  },
+  "mt":{
+    "discard":"Discard range",
+    "HV1":"Mutations",
+    "HV2":"Mutations",
+    "HV3":"Mutations",
+    "HV4":"Mutations",
+    "HV1_RANGE":"Range 1",
+    "HV2_RANGE":"Range 2",
+    "HV3_RANGE":"Range 3",
+    "HV4_RANGE":"Range 4",
+    "rangeFrom":"From",
+    "rangeTo":"To",
+    "mutation":"\nEx. Insert: 239.1C \nEj. Sustitution: A73G \nEj. Deletion: A249DEL"
+  },
+  "kits": {
+    "alias": {
+      "add": "Add alias for bulk upload",
+      "remove": "Remove alias",
+      "list": "Alias for bulk upload"
+    },
+    "locus": {
+      "add": "Add locus",
+      "remove": "Remove locus"
+    },
+    "representativeParameter": "Represents K in the categories setup",
+    "lociQuantity": "Represents N in the categories setup",
+    "save": "Save the kit with aliases and loci"
+  },
+  "format": {
+    "bulkUpload": "MITOCHONDRIAL en: Mutation nomenclatures:\nInserts: 239.1C\nSubstitution or nucleotide change: A73G\nDeletions: A249DEL\n ",
+    "baseFrequency": "Header example:\nallele,TH01,D21S11\nExample row:\n4,0.00006,\nSeparate with comma. Do not use 0.\nAn fmin that will be used in calculations can be specified:\nfmin,0.00006,0.00005"
+  },
+  "aliases": "Write the alias and then press tab or enter. To erase it use the keyboard or the x. Does not support repeated aliases.",
+  "trace": {
+    "type": {
+      "analysis": "Analysis",
+      "matchProcess": "Match process",
+      "match": "Match",
+      "hit": "Validation",
+      "discard": "Discard",
+      "profileData": "Metadata",
+      "association": "Association",
+      "delete": "Delete",
+      "pedigreeMatchProcess": "Pedigree match process",
+      "pedigreeMatch": "Pedigree match",
+      "pedigreeDiscard": "Pedigree discard",
+      "pedigreeConfirm": "Pedigree confirmation",
+      "pedigreeMatch2": "Pedigree match",
+      "pedigreeDiscard2": "Pedigree discard",
+      "pedigreeConfirm2": "Pedigree confirmation",
+      "pedigreeStatusChange": "Status change",
+      "pedigriCopy":"Copy",
+      "pedigriEdit":"Edit",
+      "pedigriNewScenario":"Pedigree scenario",
+	  "interconectionUpdload": "Interconnection",
+	  "interconectionAproved": "Interconnection",
+	  "interconectionRejected": "Interconnection"
+    }
+  }
+}
