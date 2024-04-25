@@ -41,7 +41,7 @@ define(['lodash'], function(_) {
         $scope.remove = function(id) {
             $scope.isProcessing = true;
             locusService.delete(id).then(function() {
-                alertService.success({message: 'Se ha eliminado el marcador satisfactoriamente'});
+                alertService.success({message: $.i18n.t('alerts.locus.deleted')});
                 $scope.loadLocus();
                 $scope.isProcessing = false;
             }, function(response) {

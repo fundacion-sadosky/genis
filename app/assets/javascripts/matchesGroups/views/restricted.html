@@ -9,9 +9,9 @@
             </h4>
             <div class="text-right buttons-group-escenarios col-md-6" >
                 
-                <a id="goto-scenarios-button" class="btn btn-round" href="" pdg-confirm pdg-confirm-title="Descartar Coincidencias"
-                   pdg-confirm-content="Al confirmar esta acción se descartarán todas las coincidencias del grupo. ¿Está seguro?"
-                   pdg-on-confirm="descarteMasivo" param="{{restricted}}" >Descartar todo</a>
+                <a id="goto-scenarios-button" class="btn btn-round" href="" pdg-confirm pdg-confirm-title="{{ 'buttons.discardMatch' | i18next }}"
+                   pdg-confirm-content="{{ 'alerts.match.discardSure' | i18next }}"
+                   pdg-on-confirm="descarteMasivo" param="{{restricted}}" >{{ 'buttons.discardAll' | i18next }}</a>
             </div>
             <a data-toggle="collapse" href="#restricted" class="a-icon-arrow-down" ><span class="icon-arrow-down" ></span></a>
         </div>
@@ -27,38 +27,38 @@
                                 &nbsp;
                             </th>
                             <th class="text-center head-column">
-                                <pdg-sortable name="Código Laboratorio" predicate="restricted.predicate" reverse="restricted.reverse"
+                                <pdg-sortable name="{{ 'generics.labCode' | i18next }}" predicate="restricted.predicate" reverse="restricted.reverse"
                                 sort-action="sortBy(restricted, 'globalCode')" sort-field="globalCode"></pdg-sortable>
                             </th>
                             <th class="text-center head-column">
                                 Categoría
                             </th>
                             <th class="text-center head-column">
-                                    <pdg-sortable name="Sistemas comp." predicate="restricted.predicate" reverse="restricted.reverse"
+                                    <pdg-sortable name="{{ 'matches.sharedLocus' | i18next }}" predicate="restricted.predicate" reverse="restricted.reverse"
                                     sort-action="sortBy(restricted, 'totalAlleles')" sort-field="totalAlleles" numeric="true"></pdg-sortable>
                             </th>
                             <th class="text-center head-column">
-                                    <pdg-sortable name="Alelos comp." predicate="restricted.predicate" reverse="restricted.reverse"
+                                    <pdg-sortable name="{{ 'matches.sharedAlleles' | i18next }}" predicate="restricted.predicate" reverse="restricted.reverse"
                                     sort-action="sortBy(restricted, 'sharedAllelePonderation')" sort-field="sharedAllelePonderation" numeric="true"></pdg-sortable>
                             </th>
                             
                             <th class="text-center head-column">
-                                LR
+                                {{ 'generics.lr' | i18next }}
                                 <!-- <a href="" class="btn" ng-if="restricted.matches !== undefined && restricted.matches.length > 0"  title="Calcular todos los LR" ng-click="getAllLR(restricted)">
                                     <span class="glyphicon glyphicon-play-circle btn-icon-action" aria-hidden="true"></span>
                                 </a> -->
                             </th>
                             <th class="text-center head-column">
-                                <pdg-sortable name="No coincid." predicate="restricted.predicate" reverse="restricted.reverse"
+                                <pdg-sortable name="{{ 'matches.noMatch' | i18next }}" predicate="restricted.predicate" reverse="restricted.reverse"
                                 sort-action="sortBy(restricted, 'type')" sort-field="type"></pdg-sortable> <!-- VARIALBE SIN DEFINIR -->
                             </th>
                             <th class="text-center head-column">
-                                    <pdg-sortable name="E. agrupador" predicate="restricted.predicate" reverse="restricted.reverse"
+                                    <pdg-sortable name="{{ 'matches.statusGrouper' | i18next }}" predicate="restricted.predicate" reverse="restricted.reverse"
                                     sort-action="sortBy(restricted, 'ownerStatus')" sort-field="ownerStatus"
                                     help-tip="matches.groupStatus" help-tip-placement="left"></pdg-sortable>
                             </th>
                             <th class="text-center head-column">
-                                    <pdg-sortable name="E. coincidente" predicate="restricted.predicate" reverse="restricted.reverse"
+                                    <pdg-sortable name="{{ 'matches.statusMatches' | i18next }}" predicate="restricted.predicate" reverse="restricted.reverse"
                                     sort-action="sortBy(restricted, 'otherStatus')" sort-field="otherStatus"
                                     help-tip="matches.matchStatus" help-tip-placement="top"></pdg-sortable>
                             </th>
@@ -76,7 +76,7 @@
                                 &nbsp;
                             </th>
 
-                            <th class="head-column">Comparar</th>
+                            <th class="head-column">{{ 'generics.compare' | i18next }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -118,13 +118,13 @@
                             <td class="text-center">{{ matchStatus[d.otherStatus] }}</td>
 
                             <td show-permissions="SCENARIO_CRUD" class="text-center">
-                                <a class="btn " title="Ver escenarios" href="" ng-click="!d.viewScenarios || getScenarios(d)" ng-disabled="!{{d.viewScenarios}}">
+                                <a class="btn " title="{{ 'matchesGroup.viewScenarios' | i18next }}" href="" ng-click="!d.viewScenarios || getScenarios(d)" ng-disabled="!{{d.viewScenarios}}">
                                     <span class="icon-ver" aria-hidden="true"></span>
                                 </a>
                             </td>
                             
                             <td show-permissions="SCENARIO_CRUD" class="text-center">
-                                <a class="btn " title="Nuevo escenario" href="" ng-click="addScenario(d)">
+                                <a class="btn " title="{{ 'buttons.newScenario' | i18next }}" href="" ng-click="addScenario(d)">
                                     <span class="icon-agregar-escenario" aria-hidden="true"></span>
                                 </a>
                             </td>
@@ -134,18 +134,18 @@
                                    class="btn">
                                 <span class="icon-descartar" aria-hidden="true"></span>
                             </a>
-                                <a href="" class="btn" title="Descartar" id="doDescard"  ng-show="!(d.ownerStatus==='hit' && d.otherStatus==='hit')"
+                                <a href="" class="btn" title="{{ 'buttons.discard' | i18next }}" id="doDescard"  ng-show="!(d.ownerStatus==='hit' && d.otherStatus==='hit')"
                                    prueba="{{ d.ownerStatus === 'pending'}}"
-                                   pdg-confirm pdg-confirm-title="Descartar Coincidencia" pdg-confirm-content="Al confirmar esta acción se descartará la coincidencia. ¿Está seguro?" param="{{d}}"
+                                   pdg-confirm pdg-confirm-title="{{ 'matches.discard' | i18next }}" pdg-confirm-content="{{ 'alerts.match.discardMatchSure' | i18next }}" param="{{d}}"
                                    data-ng-disabled="closedMatch || {{d.ownerStatus !== 'pending'}} " class="btn" pdg-on-confirm="discardMatch" ><span class="icon-descartar"></span></a>
                                 </td>
                             <td class="text-center">
-                                <a href="" class="btn" title="Actualizar estado de la coincidencia en instancia superior" id="doUpload" pdg-confirm pdg-confirm-title="Subir estado de la coincidencia a la instancia superior" pdg-confirm-content="Al confirmar esta acción se subira el estado de la coincidencia a la instancia superior. ¿Está seguro?"
+                                <a href="" class="btn" title="{{ 'buttons.replicateMatchUpperInstance' | i18next }}" id="doUpload" pdg-confirm pdg-confirm-title="{{ 'matchesGroup.uploadMatchState' | i18next }}" pdg-confirm-content="{{ 'alerts.match.uploadMatchSure' | i18next }}"
                                    param="{{d}}"  class="btn" pdg-on-confirm="uploadMatch" ng-if="d.isInterconnectionMatch" ><span class="icon-arrow-up"></span></a>
                             </td>
 
 
-                            <td title="Ver alelos">
+                            <td title="{{ 'generics.viewAlleles' | i18next }}">
                                         <a id="go_evidencia_{{$index}}" href="{{getHref(profile, d)}}" class="btn">
                                         <span class="icon-arrow-right"></span>
                                         

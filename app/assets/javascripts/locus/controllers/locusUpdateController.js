@@ -22,7 +22,7 @@ define([], function() {
             fullLocus.links = [];
             locusService.update(fullLocus).then(function() {
                 $scope.closeModal();
-                alertService.success({message: 'Se ha guardado el marcador satisfactoriamente'});
+                alertService.success({message: $.i18n.t('alerts.locus.updated')});
                 $scope.loadLocus();
                 $scope.isProcessing = false;
             }, function(response) {

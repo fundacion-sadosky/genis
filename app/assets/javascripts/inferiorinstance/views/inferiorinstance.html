@@ -9,7 +9,7 @@
                                 <span  class="icon-atras" title="Volver"></span>
                             </div>
                         </li>
-                    <li class="active">Configuración de instancias inferiores</li>
+                    <li class="active">{{ 'inferiorInstanceConfiguration.title' | i18next }}</li>
                         
                 </ol>
             </div>
@@ -18,16 +18,16 @@
 </div>
 <div class="container-top" >
     <section class="extended-section">
-        <button class="btn btn-secondary-action boton" data-ng-click="init()"><i class="icon-refresh fa-1x" aria-hidden="true"></i> Actualizar lista</button>
+        <button class="btn btn-secondary-action boton" data-ng-click="init()"><i class="icon-refresh fa-1x" aria-hidden="true"></i> {{ 'inferiorInstanceConfiguration.updateList' | i18next }}</button>
         <br/>
         <div class="content-wrap-small">
             <table class="table table-bordered table-category-mapping" style="table-layout:fixed;">
                 <thead>
                     <tr>
-                        <th class="text-center">Laboratorio</th>
-                        <th class="text-center">URL</th>
-                        <th class="text-center">Conectividad</th>
-                        <th class="text-center">Estado</th>
+                        <th class="text-center">{{ 'inferiorInstanceConfiguration.laboratory' | i18next }}</th>
+                        <th class="text-center">{{ 'inferiorInstanceConfiguration.url' | i18next }}</th>
+                        <th class="text-center">{{ 'inferiorInstanceConfiguration.connectivity' | i18next }}</th>
+                        <th class="text-center">{{ 'inferiorInstanceConfiguration.state' | i18next }}</th>
                         <th class="text-center"></th>
                         <th class="text-center"></th>
                     </tr>
@@ -42,14 +42,14 @@
                     </td>
                     <td class="text-center">
                         <button id="aprobar-{{x.id}}" type="button" class="btn btn-secondary-action" data-ng-click="aprobar(x.id)" ng-show="x.idStatus!==2">
-                            Aprobar
+                            {{ 'inferiorInstanceConfiguration.approve' | i18next }}
                         </button>
                         <button id="desaprobar-{{x.id}}" type="button" class="btn btn-secondary-action" data-ng-click="desaprobar(x.id)" ng-show="x.idStatus!==3">
-                            Desaprobar
+                            {{ 'inferiorInstanceConfiguration.reject' | i18next }}
                         </button>
                     </td>
                     <td>
-                        <button id="check" type="button"  class="btn btn-secondary-action" data-ng-click="checkConnection(x.url,true)" >Chequear conectividad</button>
+                        <button id="check" type="button"  class="btn btn-secondary-action" data-ng-click="checkConnection(x.url,true)" >{{ 'inferiorInstanceConfiguration.checkConnectivity' | i18next }}</button>
                     </td>
                 </tr>
 

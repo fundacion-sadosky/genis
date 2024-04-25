@@ -19,9 +19,9 @@ define([], function() {
             kitService.updateKit($scope.selectedKit).then(
                 function (response) {
                     if (response.data.length > 0) {
-                        alertService.success({message: 'El kit se ha actualizado correctamente'});
+                        alertService.success({message: $.i18n.t('alerts.kit.updateSuccess')});
                     } else {
-                        alertService.error({message: ' El kit no pudo ser actualizado'});
+                        alertService.error({message: $.i18n.t('alerts.kit.updateError')});
                     }
                     $scope.selectedKit = undefined;
                     $scope.kitForm2.$setPristine();
@@ -31,7 +31,7 @@ define([], function() {
                 function (response) {
                     if (response.status !== 499) {
                         $log.log(response);
-                        alertService.error({message: ' El kit no pudo ser actualizado: ' + response.data});
+                        alertService.error({message: $.i18n.t('alerts.kit.updateError') + ': ' + response.data});
                     }
                 }
             );

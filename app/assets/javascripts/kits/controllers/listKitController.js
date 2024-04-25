@@ -35,7 +35,7 @@ define([], function() {
         $scope.remove = function(id) {
             $scope.isProcessing = true;
             kitService.delete(id).then(function() {
-                alertService.success({message: 'Se ha eliminado el kit satisfactoriamente'});
+                alertService.success({message: $.i18n.t('alerts.kit.deleted')});
                 $scope.loadKits();
                 $scope.isProcessing = false;
             }, function(response) {

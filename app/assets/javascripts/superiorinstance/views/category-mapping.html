@@ -6,8 +6,8 @@
             <table class="table table-bordered table-category-mapping">
                     <thead>
                     <tr>
-                        <th>Categoría</th>
-                        <th>Instancia superior</th>
+                        <th>{{ 'generics.category' | i18next }}</th>
+                        <th>{{ 'generics.superiorInstance' | i18next }}</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -26,10 +26,10 @@
                 </table>
                 <div class="desk-align-right" style="background-color: #f5f5f5">
                     <button id="autoconfigurar" type="button" class="btn btn-secondary-action" data-ng-click="autoConfigurar()">
-                        Autoconfigurar
+                        {{ 'buttons.autoconfigure' | i18next }}
                     </button>
                     <button id="saveM" type="button" class="btn btn-primary-action" data-ng-click="saveMappings()">
-                        Guardar
+                        {{ 'buttons.save' | i18next }}
                     </button>
                 </div>
         </div>

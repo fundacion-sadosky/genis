@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <div class="modal-header">
-	<h2>Coincidencia</h2>
+	<h2>{{ 'generics.matches' | i18next }}</h2>
 </div>
 <div class="modal-body">
-	<div data-ng-if="modalSuccess">El {{opt}} fue registrado</div>
-	<div data-ng-if="!modalSuccess">El {{opt}} no fue registrado</div>
+	<div data-ng-if="modalSuccess">{{ 'generics.the' | i18next }} {{opt}} {{ 'generics.registered' | i18next }}</div>
+	<div data-ng-if="!modalSuccess">{{ 'generics.the' | i18next }} {{opt}} {{ 'generics.notRegistered' | i18next }}</div>
 </div>
 <div class="modal-footer">
-   <button id="closeHit" class="btn btn-success" data-ng-click="closeModal()">Cerrar</button>
+   <button id="closeHit" class="btn btn-success" data-ng-click="closeModal()">{{ 'buttons.close' | i18next }}</button>
 </div>

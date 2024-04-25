@@ -4,8 +4,8 @@
 	<img src="/assets/images/sadosky-logo.png" style="float:right;" />
 </div>
 <div class="modal-body" style="padding-left:20px;">
-	<strong>Versión</strong>: {{version}}
+	<strong>{{ 'about.version' | i18next }}</strong>: {{version}}
 </div>
 <div class="modal-footer">
-	<button class="btn btn-success" data-ng-click="closeModal()">Cerrar</button>
+	<button class="btn btn-success" data-ng-click="closeModal()">{{ 'generics.close' | i18next }}</button>
 </div>

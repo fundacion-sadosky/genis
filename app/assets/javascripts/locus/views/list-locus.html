@@ -10,7 +10,7 @@
         <span id="processingSpan" class="icon-refresh" ng-class="{'spinner': isProcessing}" data-ng-show="isProcessing"></span>
     </div>
 
-    <div data-ng-show="noResult && !isProcessing">No se encontraron datos según su busqueda</div>
+    <div data-ng-show="noResult && !isProcessing">{{ 'generics.noResult' | i18next }}</div>
 
     <div data-ng-show="!noResult"  name="locus_result">
         <table class="table table-bordered">
@@ -20,17 +20,17 @@
                               sort-action="predicate='locus.id';reverse=!reverse"
                               ng-init="predicate='locus.id'; reverse= false;"></pdg-sortable>
             </th>
-            <th>Nombre</th>
-            <th>Tipo</th>
-            <th>Cromosoma</th>
-            <th><div help-tip="locus.add.minimumAllelesQty" help-tip-placement="bottom">Alelos mínimos</div></th>
-            <th><div help-tip="locus.add.maximumAllelesQty" help-tip-placement="top">Alelos máximos</div></th>
+            <th>{{ 'generics.name' | i18next }}</th>
+            <th>{{ 'generics.type' | i18next }}</th>
+            <th>{{ 'generics.chromosome' | i18next }}</th>
+            <th><div help-tip="locus.add.minimumAllelesQty" help-tip-placement="bottom">{{ 'locus.helpTip.minimumAlleles' | i18next }}</div></th>
+            <th><div help-tip="locus.add.maximumAllelesQty" help-tip-placement="top">{{ 'locus.helpTip.maximumAlleles' | i18next }}</div></th>
             <th>Alias</th>
-            <th><div help-tip="locus.list.links" help-tip-placement="top">Ligas</div></th>
-            <th>Requerido</th>
-            <th>Rango</th>
-            <th show-permissions="LOCUS_UPDATE">Modificar</th>
-            <th>Eliminar</th>
+            <th><div help-tip="locus.list.links" help-tip-placement="top">{{ 'locus.helpTip.links' | i18next }}</div></th>
+            <th>{{ 'locus.label.required' | i18next }}</th>
+            <th>{{ 'locus.label.range' | i18next }}</th>
+            <th show-permissions="LOCUS_UPDATE">{{ 'generics.modify' | i18next }}</th>
+            <th>{{ 'generics.delete' | i18next }}</th>
             </thead>
             <tbody>
             <tr data-ng-repeat="l in locusSearch | orderBy:predicate:reverse" ng-if="!analysisTypes[l.locus.analysisType].mitochondrial">
@@ -60,8 +60,8 @@
                 </td>
                 <td>
                     <div>
-                        <div ng-show="l.locus.required">Requerido</div>
-                        <div ng-show="!l.locus.required">Aceptado</div>
+                        <div ng-show="l.locus.required">{{ 'locus.label.required' | i18next }}</div>
+                        <div ng-show="!l.locus.required">{{ 'locus.label.accepted' | i18next }}</div>
                     </div>
                 </td>
                 <td>

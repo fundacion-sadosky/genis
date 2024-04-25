@@ -61,6 +61,7 @@
     "categories" : {
       "title" : "Categories",
       "categories" : "Categories",
+      "connectivity" : "Connectivity",
       "kits" : "Kits",
       "locus" : "Loci",
       "mapping" : "Category mapping"
@@ -82,7 +83,7 @@
     "catalogs" : {
       "title" : "Catalogs",
       "laboratories" : "Laboratories",
-      "geneticists" : "Geneticist",
+      "geneticists" : "Geneticists",
       "biomaterialType" : "Biological Material Type",
       "motives" : "Motives"
     }
@@ -138,6 +139,7 @@
     "discard" : "Discard",
     "discardAll" : "Discard all",
     "discardMatch" : "Discard match",
+    "discardMatchPlural" : "Discard matches",
     "edit" : "Edit",
     "enter" : "Enter",
     "erase" : "Erase",
@@ -161,6 +163,7 @@
     "print" : "Print",
     "printReport" : "Print report",
     "reject" : "Reject",
+    "replicateMatchUpperInstance" : "Update the superior instance's match status",
     "replicateUpperInstance" : "Replicate to superior instance",
     "requestClearPass" : "Request password reset",
     "requestRegistration" : "Request Registration",
@@ -196,8 +199,9 @@
     "accepted" : "Accepted",
     "actions" : "Actions",
     "addAnalysis" : "Add Analysis",
-    "addScenario" : "Add scenario",
+    "addScenario" : "Add Scenario",
     "alias" : "Alias",
+    "all" : "All",
     "allele" : "Allele",
     "alleles" : "Alleles",
     "analysisType" : "Analysis type",
@@ -227,6 +231,8 @@
     "comparisonNotMade" : "Comparison cannot be made",
     "commentary" : "Commentary",
     "configuration" : "Configuration",
+    "confirmed": "Confirmed",
+    "confirmedPlural": "Confirmed",
     "confirmPassword" : "Confirm password",
     "conflicts" : "Conflicts",
     "contributors" : "Contributors",
@@ -238,6 +244,7 @@
     "details" : "Details",
     "directLinks" : "Direct links",
     "discard" : "Discard",
+    "discardedPlural" : "Discarded",
     "discarded" : "Discarded",
     "dnaProfile" : "DNA Profile",
     "dropIn" : "Drop-in",
@@ -245,6 +252,7 @@
     "dvi" : "DVI",
     "edition" : "Edit",
     "electropherogram" : "Electropherogram",
+    "electropherogramPlural" : "Electropherograms",
     "email" : "Email",
     "enterAlias" : "Enter an alias",
     "enterUniqueIdentifier" : "Enter a unique identifier",
@@ -259,6 +267,7 @@
     "from": "Desde",
     "geneMapperUser" : "GeneMapper Username",
     "geneticist" : "Geneticist",
+    "geneticists" : "Geneticists",
     "GENisCode" : "GENis Code",
     "GENisLabCode" : "GENis or Laboratory code",
     "hit" : "Hit",
@@ -278,6 +287,7 @@
     "lr" : "LR",
     "manual" : "Manual",
     "marked" : "Flagged",
+    "matches" : "Matches",
     "minFreq" : "Minimum frequencies",
     "missingInfo" : "Missing information",
     "model" : "Model",
@@ -302,6 +312,7 @@
     "pedigree" : "Pedigree",
     "pedigreeTrace" : "Pedigree traceability",
     "pending" : "Pending",
+    "pendingPlural" : "Pending",
     "phone" : "Phone",
     "pluralAll" : "All",
     "pluralAllFem" : "All",
@@ -320,13 +331,16 @@
     "resource" : "Resource",
     "responsible" : "Responsible",
     "result": "Result",
+    "sample" : "Sample",
     "sampleData" : "Sample Data",
     "scenario" : "Scenario",
     "scenarios" : "Scenarios",
     "searchPermission" : "Search permission by name or description",
     "select" : "Select",
+    "selectKit" : "Select Kit",
     "sex" : "Sex",
     "shortName" : "Short name",
+    "since" : "Desde",
     "singleAll" : "All",
     "singleMarked" : "Marked",
     "startDate" : "Start Date",
@@ -334,6 +348,7 @@
     "statsOptions": "Statistical options",
     "stringency" : "Stringency",
     "subcategory" : "Subcategory",
+    "superiorInstance" : "Superior instance",
     "system" : "Locus",
     "the" : "The",
     "theta" : "Theta",
@@ -354,6 +369,7 @@
     "viewAnalysis" : "View Analysis",
     "viewBy" : "View by",
     "viewMitochondrialAnalysis" : "View mitochondrial analysis",
+    "viewScenario" : "View Scenario",
     "viewSingleAllele" : "View allele",
     "welcome" : "Welcome to GENis."
   },
@@ -381,7 +397,11 @@
     },
     "connect" : {
       "jsFail" : "Js couldn't connect",
-      "success" : "Connects correctly"
+      "success" : "Connects correctly",
+      "fail" : "Could not connect",
+      "saveSuccess" : "It' s been saved successfully",
+      "noCategoriesSuperiorInstance": "Could not get categories from superior instance",
+      "error": "There was an error"
     },
     "date" : {
       "after" : "The date must be after the From date",
@@ -410,6 +430,10 @@
       "setAsDefault" : ": was set as default",
       "setAsDefaultError" : ": could not be set as default",
       "wereInserted" : ": were inserted "
+    },
+    "geneticist" : {
+      "nameAlreadyUsed" : "Geneticist ame already used",
+      "databaseError" : "Unexpected database error"
     },
     "genotyping" : {
       "cantRepeatAlleleEvidenceError" : "Cannot repeat existing alleles",
@@ -441,7 +465,9 @@
     },
     "kit" : {
       "deleted" : "The kit has been removed successfully",
-      "saved" : "The kit has been saved successfully"
+      "saved" : "The kit has been saved successfully",
+      "updateSuccess" : "The kit has been updates successfully",
+      "updateError" : "The kit could not be updated"
     },
     "laboratory" : {
       "updateError" : " The laboratory could not be updated: ",
@@ -454,16 +480,19 @@
     "locus" : {
       "deleted" : "The locus has been removed successfully",
       "saved" : "The locus has been saved successfully",
-      "updated" : "The locus has been saved successfully"
+      "updated" : "The locus has been updated successfully"
     },
     "match" : {
       "discardSuccess" : "The match was discarded successfully.",
+      "discardSure" : "By confirming this action you will discard all the matches in the group. ¿Are you sure?",
+      "discardMatchSure" : "By confirming this action you will discard the match. ¿Are you sure?",
       "inProgress" : "The analysis was saved successfully. Match processing in progress ...",
       "noBaseFrequency" : "There is no selected or default base frequency. Please, select a base frequency.",
       "noLRParameters" : "There are no parameters to calculate the LR",
       "noMatches" : "There are no matches to discard in the group",
       "noMatchesError" : "Some matches from the group could not be discarded",
-      "noProbabilityModel" : "There is no selected or associated model. Please select a statistical model."
+      "noProbabilityModel" : "There is no selected or associated model. Please select a statistical model.",
+      "uploadMatchSure" : "By confirming this action you will upload the match state to the superior instance. ¿Are you sure?"
     },
     "modify" : {
       "fail" : "It could not be modified",
@@ -612,6 +641,18 @@
   },
   "kit" : {
     "add" : "Add Kit",
+    "alias" : "Enter an alias",
+    "color" : {
+      "YFP": "Yellow",
+      "RFP": "Red",
+      "GFP": "Green",
+      "CFP": "Cyan",
+      "BFP": "Blue",
+      "VFP": "Violet",
+      "NFP": "Black"
+    },
+    "data" : "Kit data",
+    "id" : "ID",
     "title" : "Kits",
     "representativeParameter" : "Representative parameter",
     "locus" : "Locus",
@@ -624,7 +665,8 @@
       "locus" : "Locus",
       "fluorescence" : "Fluorescence"
     },
-    "select" : "Select Kit"
+    "select" : "Select Kit",
+    "seeLoci" : "See Loci"
   },
   "profileData" : {
     "category" : "Select the categories and subcategory to proceed with the data registration",
@@ -907,7 +949,11 @@
   "geneticists" : {
     "new" : "New Geneticist",
     "responsible" : "Geneticist responsible for the investigation",
-    "responsible2" : "Responsible for the investigation"
+    "responsible2" : "Responsible for the investigation",
+    "newSuccess" : "The geneticist was created successfully",
+    "newError" : "The geneticist could not be created",
+    "modifySuccess": "The geneticist was modified successfully",
+    "modifyError": "The geneticist could not be modified"
   },
   "laboratory" : {
     "data" : "Laboratory Data",
@@ -955,6 +1001,7 @@
     "matchStatus": "Matching profile status validation",
     "mismatch" : "No match",
     "mpi" : "MPI Matches",
+    "noMatch" : "No match",
     "notRegistered" : "was not registered",
     "notify" : "Notify Matches",
     "pending" : "Pending Matches",
@@ -984,15 +1031,19 @@
       "hit" : "HIT",
       "pending" : "PENDING",
       "noMatch" : "No match"
-    }
+    },
+    "viewCaseInfo" : "View case information"
   },
   "matchesGroup" : {
     "matchDetail" : "Match detail",
     "discardAll" : "Discard all",
     "addScenario" : "Add new scenario",
+    "lastMatch" : "Last match",
+    "uploadMatchState" : "Upload match state to superior instance",
     "viewScenarios" : "View scenarios",
     "titles" : {
       "evidence" : "Evidence",
+      "evidences" : "Evidences",
       "evidenceEqualTwo" : "Evidence Number of Inferred Contributors = 2",
       "evidenceOverOne" : "Evidence Number of Inferred Contributors > 1",
       "evidenceOverTwo" : "Evidence Number of Inferred Contributors > 2",
@@ -1400,6 +1451,7 @@
       "maximumAllelesQuantity": "Maximum number of alleles"
     },
     "label" : {
+      "accepted": "Accepted",
       "locus" : "Locus",
       "minAlleleValue": "Minimum allele value",
       "maxAlleleValue": "Maximum allele value",
@@ -1407,7 +1459,9 @@
       "distance" : "Distance",
       "pickLocus" : "Pick a locus",
       "editLocus" : "Edit locus",
-      "enterChromosome" : "The chromosome must be entered"
+      "enterChromosome" : "The chromosome must be entered",
+      "range": "Range",
+      "required" : "Required"
     },
     "maxAllelesPer" : "Maximum number of alleles per locus",
     "maxWithTrisomies" : "Maximum number of markers with trisomies",

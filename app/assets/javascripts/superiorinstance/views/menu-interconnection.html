@@ -9,7 +9,7 @@
                                 <span  class="icon-atras" title="Volver"></span>
                             </div>
                         </li>
-                        <li class="active">Configuración de interconexión de instancias</li>
+                        <li class="active">{{ 'menu.interconnection.configuration' | i18next }}</li>
                             
                         </ol>
                     </div>
@@ -20,9 +20,9 @@
     <section class="extended-section">
         <div class="content-wrap-small">
             <ul >
-                <li show-permissions="SUP_INS_CRUD"><a href="#/superior-instance">Instancia Superior</a></li>
-                <li show-permissions="INF_INS_CRUD"><a href="#/inferior-instances">Instancias Inferiores</a></li>
-                <li show-permissions="IMP_PERF_INS"><a href="#/profile-approval">Aprobación Perfiles</a></li>
+                <li show-permissions="SUP_INS_CRUD"><a href="#/superior-instance">{{ 'permission.SUP_INS_CRUD.name' | i18next }}</a></li>
+                <li show-permissions="INF_INS_CRUD"><a href="#/inferior-instances">{{ 'permission.INF_INS_CRUD.name' | i18next }}</a></li>
+                <li show-permissions="IMP_PERF_INS"><a href="#/profile-approval">{{ 'permission.IMP_PERF_INS.name' | i18next }}</a></li>
             </ul>
         </div>
     </section>

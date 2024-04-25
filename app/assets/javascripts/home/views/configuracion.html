@@ -9,7 +9,7 @@
                             <span  class="icon-atras" title="Volver"></span>
                         </div>
                     </li>
-                    <li class="active">Configuraciones</li>
+                    <li class="active">{{ 'configuration.categories.title' | i18next }}</li>
                     
                 </ol>
             </div>
@@ -26,13 +26,13 @@
 
                 <div  show-permissions="CATEGORY_CRUD,KIT_CRUD,LOCUS_CRUD" class="panel panel-default">
                     <!-- Default panel contents -->
-                    <div class="panel-heading vertical-align"><i class="icon-categorias icon-conf" ></i> Categorías</div>
+                    <div class="panel-heading vertical-align"><i class="icon-categorias icon-conf" ></i> {{ 'configuration.categories.categories' | i18next }}</div>
                     
                     <!-- List group -->
                     <ul class="list-group">
-                            <li class="list-group-item" show-permissions="CATEGORY_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/categories">Categorias</a></li>
-                            <li class="list-group-item" show-permissions="KIT_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/kits">Kits</a></li>
-                            <li class="list-group-item" show-permissions="LOCUS_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/locus">Marcadores</a></li>
+                            <li class="list-group-item" show-permissions="CATEGORY_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/categories">{{ 'configuration.categories.categories' | i18next }}</a></li>
+                            <li class="list-group-item" show-permissions="KIT_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/kits">{{ 'configuration.categories.kits' | i18next }}</a></li>
+                            <li class="list-group-item" show-permissions="LOCUS_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/locus">{{ 'configuration.categories.locus' | i18next }}</a></li>
                       
                     </ul>
                   </div>
@@ -46,11 +46,11 @@
 
                   <div show-permissions="SUP_INS_CRUD" class="panel panel-default">
                         <!-- Default panel contents -->
-                        <div class="panel-heading vertical-align"><i class="icon-instancia-superior  icon-conf"></i> Interconexión de Instancias</div>
+                        <div class="panel-heading vertical-align"><i class="icon-instancia-superior  icon-conf"></i> {{ 'configuration.instance.title' | i18next }}</div>
                         
                         <!-- List group -->
                         <ul class="list-group">
-                                <li class="list-group-item" show-permissions="SUP_INS_CRUD"><a href="#/superior-instance"> Instancia Superior</a></li>
+                                <li class="list-group-item" show-permissions="SUP_INS_CRUD"><a href="#/superior-instance"> {{ 'configuration.instance.upperInstance' | i18next }}</a></li>
                           
                         </ul>
                       </div>
@@ -66,12 +66,12 @@
 
                 <div show-permissions="ALLELIC_FREQ_DB_VIEW, ALLELIC_FREQ_DB_CRUD" class="panel panel-default">
                         <!-- Default panel contents -->
-                        <div class="panel-heading vertical-align"><i class="icon-mixer icon-conf"></i> Parámetros estadísticos</div>
+                        <div class="panel-heading vertical-align"><i class="icon-mixer icon-conf"></i> {{ 'configuration.statisticalParameters.title' | i18next }}</div>
                         
                         <!-- List group -->
                         <ul class="list-group">
-                                <li class="list-group-item" show-permissions="ALLELIC_FREQ_DB_VIEW, ALLELIC_FREQ_DB_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/stats">Frecuencias Alélicas</a></li>
-                                <li class="list-group-item" show-permissions="MUTATION_MODELS_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/mutation-models">Modelos Mutacionales</a></li>
+                                <li class="list-group-item" show-permissions="ALLELIC_FREQ_DB_VIEW, ALLELIC_FREQ_DB_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/stats">{{ 'configuration.statisticalParameters.allelicFrequencies' | i18next }}</a></li>
+                                <li class="list-group-item" show-permissions="MUTATION_MODELS_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/mutation-models">{{ 'configuration.statisticalParameters.mutationalModels' | i18next }}</a></li>
 
 
                         </ul>
@@ -85,12 +85,12 @@
 
                       <div show-permissions="USER_CRUD,ROLE_CRUD" class="panel panel-default">
                             <!-- Default panel contents -->
-                            <div class="panel-heading vertical-align"><i class="icon-seguridad icon-conf "></i> Seguridad</div>
+                            <div class="panel-heading vertical-align"><i class="icon-seguridad icon-conf "></i> {{ 'configuration.security.title' | i18next }}</div>
                             
                             <!-- List group -->
                             <ul class="list-group">
-                                    <li class="list-group-item" show-permissions="USER_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/users">Usuarios</a></li>
-                                    <li class="list-group-item" show-permissions="ROLE_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/roles">Roles</a></li>
+                                    <li class="list-group-item" show-permissions="USER_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/users">{{ 'configuration.security.users' | i18next }}</a></li>
+                                    <li class="list-group-item" show-permissions="ROLE_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/roles">{{ 'configuration.security.roles' | i18next }}</a></li>
     
     
                             </ul>
@@ -107,14 +107,14 @@
 
                     <div show-permissions="LABORATORY_CRUD,GENETICIST_CRUD,BIO_MAT_CRUD,MOTIVE_CRUD" class="panel panel-default">
                             <!-- Default panel contents -->
-                            <div class="panel-heading vertical-align"><i class="icon-catalogos icon-conf "></i> Catálogos</div>
+                            <div class="panel-heading vertical-align"><i class="icon-catalogos icon-conf "></i> {{ 'configuration.catalogs.title' | i18next }}</div>
                             
                             <!-- List group -->
                             <ul class="list-group">
-                                    <li class="list-group-item" show-permissions="LABORATORY_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/laboratories">Laboratorios</a></li>
-                        <li class="list-group-item" show-permissions="GENETICIST_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/geneticist">Genetistas</a></li>
-                        <li class="list-group-item" show-permissions="BIO_MAT_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/biomaterialtype">Tipo de Material Biológico</a></li>
-                        <li class="list-group-item" show-permissions="MOTIVE_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/motives">Motivos</a></li>
+                                    <li class="list-group-item" show-permissions="LABORATORY_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/laboratories">{{ 'configuration.catalogs.laboratories' | i18next }}</a></li>
+                        <li class="list-group-item" show-permissions="GENETICIST_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/geneticist">{{ 'configuration.catalogs.geneticists' | i18next }}</a></li>
+                        <li class="list-group-item" show-permissions="BIO_MAT_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/biomaterialtype">{{ 'configuration.catalogs.biomaterialType' | i18next }}</a></li>
+                        <li class="list-group-item" show-permissions="MOTIVE_CRUD"><a data-ng-click=" selectedMenu = 'configuration'" href="#/motives">{{ 'configuration.catalogs.motives' | i18next }}</a></li>
     
     
                             </ul>

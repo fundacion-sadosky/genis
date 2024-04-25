@@ -2,14 +2,14 @@
 
     <div class="row m-b-10 m-t-10" style="margin-left:5px;">
         <a role="button" class="btn btn-default m-r-5 list-group-menu-item"
-           ng-class="{'list-group-menu-item-selected': activeOption === -1}" ng-click="show(-1)">Todo</a>
+           ng-class="{'list-group-menu-item-selected': activeOption === -1}" ng-click="show(-1)">{{ 'generics.all' | i18next }}</a>
         <a ng-repeat="option in options" ng-if="!analysisTypes[option].mitochondrial"
            role="button" class="btn btn-default m-r-5 list-group-menu-item"
            ng-class="{'list-group-menu-item-selected': activeOption === $index}" ng-click="show($index)">{{'analysisTypes.' + analysisTypes[option].name | i18next}}</a>
         <span id="processingSpan" class="icon-refresh" ng-class="{'spinner': isProcessing}" data-ng-show="isProcessing"></span>
     </div>
 
-    <div data-ng-show="noResult && !isProcessing">No se encontraron datos según su busqueda</div>
+    <div data-ng-show="noResult && !isProcessing">{{ 'generics.noResult' | i18next }}</div>
 
     <div data-ng-show="!noResult"  name="locus_result">
         <table class="table table-bordered">
@@ -19,14 +19,14 @@
                               sort-action="predicate='id';reverse=!reverse"
                               ng-init="predicate='id'; reverse= false;"></pdg-sortable>
             </th>
-            <th>Nombre</th>
-            <th>Tipo</th>
-            <th><div help-tip="kits.lociQuantity" help-tip-placement="top">Cantidad de marcadores</div></th>
-            <th><div help-tip="kits.representativeParameter" help-tip-placement="bottom">Parámetro representativo</div></th>
-            <th><div help-tip="kits.alias.list" help-tip-placement="top">Alias</div></th>
-            <th>Marcadores</th>
-            <th>Modificar</th>
-            <th>Eliminar</th>
+            <th>{{ 'generics.name' | i18next }}</th>
+            <th>{{ 'generics.type' | i18next }}</th>
+            <th><div help-tip="kits.lociQuantity" help-tip-placement="top">{{ 'kit.listKit.locusQuantity' | i18next }}</div></th>
+            <th><div help-tip="kits.representativeParameter" help-tip-placement="bottom">{{ 'kit.representativeParameter' | i18next }}</div></th>
+            <th><div help-tip="kits.alias.list" help-tip-placement="top">{{ 'generics.alias' | i18next }}</div></th>
+            <th>{{ 'generics.locusPlural' | i18next }}</th>
+            <th>{{ 'generics.modify' | i18next }}</th>
+            <th>{{ 'generics.delete' | i18next }}</th>
             </thead>
             <tbody>
             <tr data-ng-repeat="k in kitSearch | orderBy:predicate:reverse" ng-if="!analysisTypes[k.type].mitochondrial">
@@ -44,7 +44,7 @@
                         </a>
                     </div>
                 </td>
-                <td title="Ver marcadores">
+                <td title="{{ 'kit.seeLoci' | i18next }}">
                     <button pdg-locus-popover locus="k.locus" class="btn btn-default btn-link-action btn-link-border">
                         <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
                     </button>

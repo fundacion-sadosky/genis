@@ -68,15 +68,15 @@ define([], function() {
 		$scope.saveGeneticist = function(){
 			geneticistsService.saveGeneticist($scope.geneticist).then(function(response){
 				if (response.data > 0) {
-					alertService.success({message: 'Fue dado de alta con exito'});
+					alertService.success({message: $.i18n.t('geneticists.newSuccess')});
 				} else {
-					alertService.error({message: 'No pudo ser dado de alta'});
+					alertService.error({message: $.i18n.t('geneticists.newError')});
 				}
 				$scope.geneticist = {};
 				$scope.genForm.$setPristine();
 			},function(error){
 				console.log(error);
-				alertService.error({message: ' No pudo ser dado de alta: ' + error.data.error});
+				alertService.error({message: ' ' + $.i18n.t('geneticists.newError')+': ' + error.data.error});
 			});
 		};
 	}

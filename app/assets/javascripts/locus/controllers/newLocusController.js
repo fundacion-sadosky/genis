@@ -78,7 +78,7 @@ define([], function() {
             }
 
             locusService.add($scope.full).then(function() {
-                alertService.success({message: 'Se ha guardado el marcador satisfactoriamente'});
+                alertService.success({message: $.i18n.t('alerts.locus.saved')});
                 $scope.initialize();
                 $scope.loadLocus();
                 $scope.isProcessing = false;

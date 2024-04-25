@@ -61,6 +61,7 @@
     "categories" : {
       "title" : "Categorías",
       "categories" : "Categorías",
+      "connectivity" : "Conectividad",
       "kits" : "Kits",
       "locus" : "Marcadores",
       "mapping" : "Mapeo de Categorías"
@@ -138,6 +139,7 @@
     "discard" : "Descartar",
     "discardAll" : "Descartar todo",
     "discardMatch" : "Descartar coincidencia",
+    "discardMatchPlural" : "Descartar coincidencias",
     "edit" : "Editar",
     "enter" : "Entrar",
     "erase" : "Borrar",
@@ -161,6 +163,7 @@
     "print" : "Imprimir",
     "printReport" : "Imprimir reporte",
     "reject" : "Rechazar",
+    "replicateMatchUpperInstance" : "Actualizar estado de la coincidencia en instancia superior",
     "replicateUpperInstance" : "Replicar a instancia superior",
     "requestClearPass" : "Solicitud de blanqueo de contraseña",
     "requestRegistration" : "Solicitar una cuenta",
@@ -198,6 +201,7 @@
     "addAnalysis" : "Agregar Análisis",
     "addScenario" : "Agregar Escenario",
     "alias" : "Alias",
+    "all" : "Todos",
     "allele" : "Alelo",
     "alleles" : "Alelos",
     "analysisType" : "Tipo de análisis",
@@ -227,8 +231,10 @@
     "comparisonNotMade" : "La comparación no puede realizarse",
     "commentary" : "Commentario",
     "configuration" : "Configuración",
+    "confirmed": "Confirmado",
+    "confirmedPlural": "Confirmados",
     "confirmPassword" : "Confirmar contraseña",
-    "conflicts" : "Conflicto",
+    "conflicts" : "Conflictos",
     "contributors" : "Aportantes",
     "date" : "Fecha",
     "default" : "Default",
@@ -239,12 +245,14 @@
     "directLinks" : "Ligaduras directas",
     "discard" : "Descartar",
     "discarded" : "Descartado",
+    "discardedPlural" : "Descartados",
     "dnaProfile" : "Perfil de ADN",
     "dropIn" : "Drop-in",
     "dropOut" : "Drop-out",
     "dvi" : "DVI",
     "edition" : "Editar",
     "electropherogram" : "Electroferograma",
+    "electropherogramPlural" : "Electroferogramas",
     "email" : "Email",
     "enterAlias" : "Ingrese un alias",
     "enterUniqueIdentifier" : "Ingrese un identificador único",
@@ -259,6 +267,7 @@
     "from": "From",
     "geneMapperUser" : "Nombre de usuario de GeneMapper",
     "geneticist" : "Genetista",
+    "geneticists" : "Genetistas",
     "GENisCode" : "Código GENis",
     "GENisLabCode" : "Código de GENis o del laboratorio",
     "hit" : "Hit",
@@ -278,6 +287,7 @@
     "lr" : "LR",
     "manual" : "Manual",
     "marked" : "Marcados",
+    "matches" : "Coincidencias",
     "minFreq" : "Frecuencias mínimas",
     "missingInfo" : "Información faltante",
     "model" : "Modelo",
@@ -302,6 +312,7 @@
     "pedigree" : "Pedigí",
     "pedigreeTrace" : "Trazabilidad del pedigí",
     "pending" : "Pendiente",
+    "pendingPlural" : "Pendientes",
     "phone" : "Teléfono",
     "pluralAll" : "Todos",
     "pluralAllFem" : "Todas",
@@ -320,13 +331,16 @@
     "resource" : "Recurso",
     "responsible" : "Responsable",
     "result": "Resultado",
+    "sample" : "Muestra",
     "sampleData" : "Datos de la Muestra",
     "scenario" : "Escenario",
     "scenarios" : "Escenarios",
     "searchPermission" : "Buscar permiso por nombre o descripción",
     "select" : "Seleccionar",
+    "selectKit" : "Seleccionar Kit",
     "sex" : "Sexo",
     "shortName" : "Nombre corto",
+    "since" : "Desde",
     "singleAll" : "Todo",
     "singleMarked" : "Marcado",
     "startDate" : "Fecha de inicio",
@@ -334,6 +348,7 @@
     "statsOptions": "Opciones Estadísticas",
     "stringency" : "Exigencia",
     "subcategory" : "Subcategoría",
+    "superiorInstance" : "Instancia Superior",
     "system" : "Marcador",
     "the" : "El",
     "theta" : "Theta",
@@ -354,6 +369,7 @@
     "viewAnalysis" : "Var Análisis",
     "viewBy" : "Ver por",
     "viewMitochondrialAnalysis" : "Ver anásisis mitocondrial",
+    "viewScenario" : "Ver Escenario",
     "viewSingleAllele" : "Ver alelo",
     "welcome" : "Bienvenido a GENis."
   },
@@ -381,7 +397,11 @@
     },
     "connect" : {
       "jsFail" : "Js no se pudo conectar",
-      "success" : "Se conecta correctamente"
+      "success" : "Se conecta correctamente",
+      "fail" : "No se pudo conectar",
+      "saveSuccess" : "Se ha guardado correctamente",
+      "noCategoriesSuperiorInstance": "No se pudo obtener las categorías de la instancia superior",
+      "error": "Hubo un error"
     },
     "date" : {
       "after" : "La fecha debe ser posterior a la fecha desde",
@@ -411,6 +431,10 @@
       "setAsDefaultError" : ": no pudo ser configurada como default",
       "wereInserted" : ": fue insertado "
     },
+   "geneticist" : {
+     "nameAlreadyUsed" : "Nombre ya utilizado en el Laboratorio",
+     "databaseError" : "Error inesperado en la base de datos"
+   },
     "genotyping" : {
       "cantRepeatAlleleEvidenceError" : "No se pueden repetir alelos existentes",
       "comparisonError" : "Error en la comparación con valores existentes en el genotipado ",
@@ -441,7 +465,9 @@
     },
     "kit" : {
       "deleted" : "El kit fue eliminado exitosamente",
-      "saved" : "El kit fue guardado exitosamente"
+      "saved" : "El kit fue guardado exitosamente",
+      "updateSuccess" : "El kit se ha actualizado correctamente",
+      "updateError" : "El kit no pudo ser actualizado"
     },
     "laboratory" : {
       "updateError" : "El laboratorio no pudo ser actualizado: ",
@@ -454,20 +480,23 @@
     "locus" : {
       "deleted" : "El marcador fue eliminado exitosamente",
       "saved" : "El marcador fue guardado exitosamente",
-      "updated" : "El marcador fue guardado exitosamente"
+      "updated" : "El marcador fue actualizado exitosamente"
     },
     "match" : {
       "discardSuccess" : "La coincidencia fue descartada exitosamente.",
+      "discardSure" : "Al confirmar esta acción se descartarán todas las coincidencias del grupo. ¿Está seguro?",
+      "discardMatchSure" : "Al confirmar esta acción se descartará la coincidencia. ¿Está seguro?",
       "inProgress" : "El análisis fue guardado exitosamente. Proceso de búsquedas en ejecución ...",
       "noBaseFrequency" : "No existe base de frecuencias alélicas seleccionada por default. Por favor, seleccione una base de frecuencias.",
       "noLRParameters" : "No hay parámetros para calcular el LR. Revise la configuración de laboratorios",
       "noMatches" : "No hay coincidencias para descartar en el grupo",
       "noMatchesError" : "Algunas coincidencias del grupo no pudieron ser descartadas",
-      "noProbabilityModel" : "No hay un modelo seleccionado o asociado. Por favor seleccione un modelo estadístico."
+      "noProbabilityModel" : "No hay un modelo seleccionado o asociado. Por favor seleccione un modelo estadístico.",
+      "uploadMatchSure" : "Al confirmar esta acción se subira el estado de la coincidencia a la instancia superior. ¿Está seguro?"
     },
     "modify" : {
       "fail" : "No pudo ser modificado",
-      "success" : "Modofocado exitosamente"
+      "success" : "Modificado exitosamente"
     },
     "node" : {
       "parentError" : "No se puede eliminar el nodo madre o padre desde otro nodo",
@@ -612,6 +641,18 @@
   },
  "kit" : {
     "add" : "Agregar Kit",
+    "alias" : "Ingrese un alias",
+    "color" : {
+     "YFP": "Amarillo",
+     "RFP": "Rojo",
+     "GFP": "Verde",
+     "CFP": "Cyan",
+     "BFP": "Azul",
+     "VFP": "Violeta",
+     "NFP": "Negro"
+     },
+    "data" : "Datos del kit",
+    "id" : "ID",
     "title" : "Kits",
     "representativeParameter" : "Parámetro representativo",
     "locus" : "Marcador",
@@ -624,6 +665,7 @@
       "locus" : "Marcador",
       "fluorescence" : "Fluoresencia"
     },
+    "seeLoci" : "Ver Marcadores",
     "select" : "Seleccionar Kit"
   },
  "profileData" : {
@@ -907,8 +949,12 @@
  "geneticists" : {
     "new" : "Nuevo genetista",
     "responsible" : "Genetista responsable de la investigación",
-    "responsible2" : "Responsable de la investigación"
-  },
+    "responsible2" : "Responsable de la investigación",
+    "newSuccess" : "El genetista fue dado de alta con éxito",
+    "newError" : "El genetista no pudo ser dado de alta",
+    "modifySuccess": "El genetista fue modificao con éxito",
+    "modifyError": "El genetista no pudo ser modificado"
+ },
  "laboratory" : {
     "data" : "Datos del Laboratorio",
     "new" : "Nuevo Laboratorio"
@@ -955,6 +1001,7 @@
     "matchStatus": "Validación del estado del perfil coincidente",
     "mismatch" : "Sin coincidencia",
     "mpi" : "Coincidencias de MPI",
+    "noMatch" : "No coincid.",
     "notRegistered" : "no fue registrado",
     "notify" : "Notificar Coincidencias",
     "pending" : "Coincidencias pendientes",
@@ -984,15 +1031,19 @@
       "hit" : "COINCIDENCIA VALIDA",
       "pending" : "PENDIENTE",
       "noMatch" : "Sin match"
-    }
+    },
+   "viewCaseInfo" : "Ver información de la causa"
 },
  "matchesGroup" : {
     "matchDetail" : "Detalle de coincidencias",
     "discardAll" : "Descartar todo",
     "addScenario" : "Agregar nuevo escenario",
+    "lastMatch" : "Ultima coincidencia",
+    "uploadMatchState" : "Subir estado de la coincidencia a la instancia superior",
     "viewScenarios" : "Ver escenarios",
     "titles" : {
       "evidence" : "Evidencia",
+      "evidences" : "Evidencias",
       "evidenceEqualTwo" : "Evidencias Cantidad de Aportantes Inferidos = 2",
       "evidenceOverOne" : "Evidencias Cantidad de Aportantes Inferidos > 1",
       "evidenceOverTwo" : "Evidencias Cantidad de Aportantes Inferidos > 2",
@@ -1369,7 +1420,7 @@
  "locus": {
     "add": {
       "chromosome": "Cromosoma en el que se encuentra el marcador (1-22, X, Y, XY, MT)",
-      "minimumAllelesQty": "Mínima cantidad de alelos a ingresar en un análisis de referencia",
+      "minimumAllelesQty",: "Mínima cantidad de alelos a ingresar en un análisis de referencia",
       "maximumAllelesQty": "Máxima cantidad de alelos a ingresar en un análisis de referencia",
 	  "new" : "Agregar marcador",
       "alias": {
@@ -1400,6 +1451,7 @@
       "maximumAllelesQuantity": "Cantidad máxima de alelos"
     },
     "label" : {
+      "accepted": "Aceptado",
       "locus" : "Marcador",
       "minAlleleValue": "Valor mínimo de alelo",
       "maxAlleleValue": "Valor máximo de alelo",
@@ -1407,7 +1459,9 @@
       "distance" : "Distancia",
       "pickLocus" : "Seleccione un marcador",
       "editLocus" : "Edite el marcador",
-      "enterChromosome" : "El cromosmoma debe ser ingresado"
+      "enterChromosome" : "El cromosmoma debe ser ingresado",
+      "range": "Rango",
+      "required" : "Requerido"
     },
     "maxAllelesPer" : "Cantidad máxima de alelos por marcador",
     "maxWithTrisomies" : "Cantidad máxima de marcadores con trisomías",

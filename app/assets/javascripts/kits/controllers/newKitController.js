@@ -54,7 +54,7 @@ define([], function() {
                 $scope.kit.locus[i].order = i + 1;
             }
             kitService.add($scope.kit).then(function() {
-                alertService.success({message: 'Se ha guardado el kit satisfactoriamente'});
+                alertService.success({message: $.i18n.t('alerts.kit.saved')});
                 $scope.initialize();
                 $scope.loadKits();
                 $scope.isProcessing = false;

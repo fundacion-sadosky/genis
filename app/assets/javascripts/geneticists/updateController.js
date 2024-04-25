@@ -9,9 +9,9 @@ define([], function() {
 		$scope.updateGeneticist = function(){
 			geneticistsService.updateGeneticist($scope.modalGeneticist).then(function(response){
 				if (response.data > 0) {
-					alertService.success({message: 'Fue modificado con exito'});
+					alertService.success({message: $.i18n.t('geneticists.modifySuccess')});
 				} else {
-					alertService.error({message: 'No pudo ser modificado'});
+					alertService.error({message: $.i18n.t('geneticists.modifyError')});
 				}
 				modalInstance.close();
 			});

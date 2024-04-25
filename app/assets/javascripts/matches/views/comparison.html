@@ -9,7 +9,7 @@
 								<span  class="icon-atras" title="Volver"></span>
 							</div>
 						</li>
-					<li class="active">Comparación</li>
+					<li class="active">{{ 'matches.comparison' | i18next }}</li>
 				</ol>
 			</div>
 		</div>
@@ -30,7 +30,7 @@
 					<tr>
 						<td id="td-comp-gen-1" rowspan="2" class="col-md-2 column">
 						</td>
-						<td id="td-comp-gen-2" class="text-center column" style="padding-bottom: 0px;" title="Ver información de la causa" ng-class="{'col-md-4':showCalculation,'col-md-5':!showCalculation}">
+						<td id="td-comp-gen-2" class="text-center column" style="padding-bottom: 0px;" title="{{ 'matches.viewCaseInfo' | i18next }}" ng-class="{'col-md-4':showCalculation,'col-md-5':!showCalculation}">
 							<div class="comparison-profileID">
 								{{profileData.globalCode}} ({{profileData.internalSampleCode}})
 								<a pdg-profile-data-info-popover profileid="profileId" info="{{profileData}}"></a>
@@ -38,7 +38,7 @@
 							<div style="font-size: small;" class="cat-info">({{getSubcatName(profileData.category)}})</div>
 							<span ng-if="!isCollapsingMatch && !isScreening" class="badge status-{{matchStatus}}"><b>{{results.status[profileId] | uppercase | translatematchstatus }}</b></span>
 						</td>
-						<td id="td-comp-gen-3"  class="text-center column" style="padding-bottom: 0px;" title="Ver información de la causa" ng-class="{'col-md-4':showCalculation,'col-md-5':!showCalculation}">
+						<td id="td-comp-gen-3"  class="text-center column" style="padding-bottom: 0px;" title="{{ 'matches.viewCaseInfo' | i18next }} ng-class="{'col-md-4':showCalculation,'col-md-5':!showCalculation}">
 							<div class="comparison-profileID">
 								{{matchedProfileData.globalCode}} ({{matchedProfileData.internalSampleCode}})
 								<a pdg-profile-data-info-popover profileid="matchedProfileId" info="{{matchedProfileData}}"></a>
@@ -50,9 +50,9 @@
 
 						<div ng-if="showCalculation">
 							<div class="noprint" style="width:90%; float: left;"> 
-								<span class="comparison-profileID">Opciones estadísticas</span>
+								<span class="comparison-profileID">{{ 'generics.statsOptions' | i18next }}</span>
 								<!--<span class="rmp comparison-profileID" ng-if="!mixF && !mixM"> RMP: {{(1.0 / pvalue).toExponential(4)}}</span>-->
-								<span class="comparison-profileID"> LR: {{pvalue | likelihoodratioComp: true: statsResolved}}</span>
+								<span class="comparison-profileID"> {{ 'generics.lr' | i18next }}: {{pvalue | likelihoodratioComp: true: statsResolved}}</span>
 							</div>
 							
 							<div style="width:10%; float: left;" class="comparison-mixture-profileID">
@@ -185,7 +185,7 @@
 <div class="text-left col-md-3 padding-0" ng-if="mixF || mixM">
 
 	<div class="text-center col-md-3 padding-0">
-		<p style="line-height: 1.1;">Etiquetas / Perfiles asociados</p>
+		<p style="line-height: 1.1;">{{ 'matches.associatedLabelProfiles' | i18next }}</p>
 	</div>
 	<div class="text-center col-md-9 padding-0">
 		<span ng-repeat="label in [1,2,3,4]" class="badge mixes-button-{{label}}"
@@ -205,16 +205,16 @@
 <div class="text-right noprint" ng-class="{'col-md-9': mixF || mixM} padding-right-0">
 	
 	<ui-select ng-if="showCalculation" id="kits" ng-model="kitId" ng-change="sortLoci(kitId.id)" ng-disabled="status == 'dblCheck'" style="float:left; width:150px;">
-		<ui-select-match id="select-kit" placeholder="Seleccionar Kit">[{{getAnalysisName($select.selected)}}] {{$select.selected.name}}</ui-select-match>
+		<ui-select-match id="select-kit" placeholder="{{ 'generics.selectKit' | i18next }}">[{{getAnalysisName($select.selected)}}] {{$select.selected.name}}</ui-select-match>
 		<ui-select-choices group-by="getAnalysisName" repeat="kit in strkits | filter: $select.search | orderBy:'type'" position="up" >
   			<div data-ng-bind-html="trustAsHtml((kit.name | highlight: $select.search))"></div>
 		</ui-select-choices>
 	</ui-select>
 
-	<button id="viewElect" type="button" class="btn btn-secondary-action" data-ng-click="showElectropherograms()" ng-disabled="epg.length === 0 && matchedepg.length === 0">Ver electroferogramas</button>
-	<button id="printReport" type="button" class="btn btn-secondary-action" data-ng-click="printReport()">Imprimir reporte</button>
-	<button id="doHit" ng-if="!isCollapsingMatch && !isScreening" ng-disabled="matchAg||(profileData.isExternal && matchedProfileData.isExternal)" pdg-confirm pdg-confirm-title="Confirmar Coincidencia" pdg-confirm-content="¿Está seguro?" type="button" class="btn btn-primary-action" pdg-on-confirm="doHit" data-ng-disabled="closedMatch" ng-show="!isPedigreeMatch">Confirmar Coincidencia</button>
-	<button id="doDescart" ng-if="!isCollapsingMatch && !isScreening" ng-disabled="profileData.isExternal && matchedProfileData.isExternal"  pdg-confirm pdg-confirm-title="Descartar Coincidencia" pdg-confirm-content="¿Está seguro?" type="button" class="btn btn-secondary-action" pdg-on-confirm="doDiscard" data-ng-disabled="closedMatch" ng-show="!isPedigreeMatch">Descartar Coincidencia</button>
+	<button id="viewElect" type="button" class="btn btn-secondary-action" data-ng-click="showElectropherograms()" ng-disabled="epg.length === 0 && matchedepg.length === 0">{{ 'buttons.viewElect' | i18next }}</button>
+	<button id="printReport" type="button" class="btn btn-secondary-action" data-ng-click="printReport()">{{ 'buttons.printReport' | i18next }}</button>
+	<button id="doHit" ng-if="!isCollapsingMatch && !isScreening" ng-disabled="matchAg||(profileData.isExternal && matchedProfileData.isExternal)" pdg-confirm pdg-confirm-title="{{ 'buttons.confirmMatch' | i18next }}" pdg-confirm-content="{{ 'generics.askConfirmation' | i18next }}" type="button" class="btn btn-primary-action" pdg-on-confirm="doHit" data-ng-disabled="closedMatch" ng-show="!isPedigreeMatch">{{ 'buttons.confirmMatch' | i18next }}</button>
+	<button id="doDescart" ng-if="!isCollapsingMatch && !isScreening" ng-disabled="profileData.isExternal && matchedProfileData.isExternal"  pdg-confirm pdg-confirm-title="{{ 'buttons.discardMatch' | i18next }}" pdg-confirm-content="{{ 'generics.askConfirmation' | i18next }}" type="button" class="btn btn-secondary-action" pdg-on-confirm="doDiscard" data-ng-disabled="closedMatch" ng-show="!isPedigreeMatch">{{ 'buttons.discardMatch' | i18next }}</button>
 
 </div>
 </footer>

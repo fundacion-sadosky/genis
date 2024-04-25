@@ -11,7 +11,7 @@ define(['lodash'], function(_) {
             $scope.changed = false;
             $scope.categories = {};
             $scope.categories.data = {};
-            $scope.msgErrorCategorias = "No se pudo obtener las categorías de la instancia superior";
+            $scope.msgErrorCategorias = $.i18n.t('alerts.connect.noCategoriesSuperiorInstance');
             $scope.isProcessing = true;
 
             superiorInstanceService.listCategoriesMapping().then(function(response) {
@@ -76,13 +76,13 @@ define(['lodash'], function(_) {
                 $scope.connections.pki = $scope.connections.superiorInstance;
                 superiorInstanceService.updateConnections($scope.connections).then(function() {
                     $scope.isProcessing = false;
-                    alertService.success({message: 'Se ha guardado correctamente'});
+                    alertService.success({message: $.i18n.t('alerts.connect.saveSuccess')});
                     // $route.reload();
                     $scope.refreshCategoryCombo();
 
                 }, function(response) {
                     $scope.isProcessing = false;
-                    alertService.error({message: 'Hubo un error: ' + response.data.message});
+                    alertService.error({message: $.i18n.t('alerts.connect.error') + ': ' + response.data.message});
                 });
             // }
         };
@@ -104,13 +104,13 @@ define(['lodash'], function(_) {
             if(saveMappingsList.length > 0){
                 superiorInstanceService.insertOrUpdateCategoriesMapping(requestSaveMappings).then(function() {
                     $scope.isProcessing = false;
-                    alertService.success({message: 'Se ha guardado correctamente'});
+                    alertService.success({message: $.i18n.t('alerts.connect.saveSuccess')});
                     for(var i = 0; i < $scope.categoriesMappings.length ; i++){
                         $scope.categoriesMappings[i].changed = false;
                     }
                 }, function(response) {
                     $scope.isProcessing = false;
-                    alertService.error({message: 'Hubo un error: ' + response.data.message});
+                    alertService.error({message: $.i18n.t('alerts.connect.error') + ': ' + response.data.message});
                 });
             }
 
@@ -119,7 +119,7 @@ define(['lodash'], function(_) {
             $scope.isProcessing = true;
             return superiorInstanceService.getConnectionStatus(url).then(function() {
                 $scope.isProcessing = false;
-                alertService.success({message: 'Se conecta correctamente'});
+                alertService.success({message: $.i18n.t('alerts.connect.success')});
             }, function(response) {
                 $scope.isProcessing = false;
                 alertService.error({message: response.data.message});
@@ -141,7 +141,7 @@ define(['lodash'], function(_) {
 
                 superiorInstanceService.connect().then(function() {
                     $scope.isProcessing = false;
-                    alertService.success({message: 'Se conectó correctamente'});
+                    alertService.success({message: $.i18n.t('alerts.connect.success')});
                 }, function(response) {
                     $scope.isProcessing = false;
                     alertService.error({message: response.data.message });
@@ -149,7 +149,7 @@ define(['lodash'], function(_) {
 
             }, function(response) {
                 $scope.isProcessing = false;
-                alertService.error({message: 'Hubo un error: ' + response.data.message});
+                alertService.error({message: $.i18n.t('alerts.connect.error') + ': ' + response.data.message});
             });
 
         };
