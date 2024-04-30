@@ -142,41 +142,9 @@ error.E0960= E0960: Inconsistency between the header size [{0}] and the rest of 
 error.E1000= E1000: Update not allowed.
 error.E2000= E2000: No profiles found with the selected filters.
 
+
 # Wait a moment
-enter.wait= Wait a moment please
-# Login
-login.label.enterSystem= Enter the System
-input.userName= Enter your Username
-input.password= Enter your Password
-input.topt=Enter token code which is available in the application Google Authenticator on your cellphone
-login.forgotPassword= Forgot my Password
-login.requestAccount= Request an Account
-login.tokenCode= Google Authenticator Token Code
-login.unauthorizedAccess= Unauthorized Access
+start.wait= Wait a moment please
 
-#Menu
-menu.bulkAcceptance= Analysis Bulk Acceptance
-menu.bulkUpload= Analysis Bulk Creation
-menu.configuration= Settings
-menu.dvi= DVI
-menu.forensic= Forensic
-menu.inferiorInstances= Inferior instances
-menu.inferiorInstanceProfileApproval= Inferior instance profile approval
-menu.audit= Audit support
-menu.logout= Log out
-menu.matches= Matches
-menu.monitoring= Monitoring
-menu.mpi= MPI
-menu.mpiDvi= MPI/DVI
-menu.operationLog= Operations History
-menu.profileComparison= Profiles Comparison
-menu.profileExporter= Profiles Exporter
-menu.profileLIMSExporter= Profiles LIMS Exporter
-menu.profiles= Profiles
-menu.profilesList= Profile List
-menu.reports= Reports
-menu.interconnection.configuration= Instance Interconnection Configuration
-menu.interconnection.inferiorInstances= Inferior Instances
-menu.interconnection.profileApproval= Profile Approval
-menu.interconnection.upperInstance= Superior Instance
-
+#Inbox
+inbox.theuserpending = The user: {0} is pending for approval.

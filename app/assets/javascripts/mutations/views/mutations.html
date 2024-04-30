@@ -9,7 +9,7 @@
                                     <span  class="icon-atras" title="Volver"></span>
                                 </div>
                             </li>
-                        <li class="active">Modelos de Mutaciones</li>
+                        <li class="active">{{ 'mutations.models' | i18next }}</li>
                         
                                 
                             </ol>
@@ -31,7 +31,7 @@
                                 class="btn btn-primary-action pull-right"
                                 data-ng-click="doInsert()">
                             <!-- <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> -->
-                            <span>Nuevo</span>
+                            <span>{{ 'mutations.new' | i18next }}</span>
                         </button>
                     </div>
                 </div>
@@ -41,10 +41,10 @@
                 <table class="table table-bordered" ng-if="mutationModels.length">
                     <thead>
                     <tr>
-                        <th>Nombre</th>
-                        <th>Tipo</th>
-                        <th>Activo</th>
-                        <th>Modificar</th>
+                        <th>{{ 'generics.name' | i18next }}</th>
+                        <th>{{ 'generics.type' | i18next }}</th>
+                        <th>{{ 'generics.active' | i18next }}</th>
+                        <th>{{ 'generics.modify' | i18next }}</th>
                         <!--<th>Eliminar</th>-->
                     </tr>
                     </thead>

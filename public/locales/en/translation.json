@@ -198,6 +198,7 @@
   "generics" : {
     "accepted" : "Accepted",
     "actions" : "Actions",
+    "active" : "Active",
     "addAnalysis" : "Add Analysis",
     "addScenario" : "Add Scenario",
     "alias" : "Alias",
@@ -301,6 +302,7 @@
     "new" : "New",
     "newAnalysis" : "New analysis",
     "newScenario" : "New scenario",
+    "no" : "NO",
     "noResult" : "No data found based on your search",
     "nonOperative" : "Not operative",
     "of" : "of",
@@ -371,7 +373,8 @@
     "viewMitochondrialAnalysis" : "View mitochondrial analysis",
     "viewScenario" : "View Scenario",
     "viewSingleAllele" : "View allele",
-    "welcome" : "Welcome to GENis."
+    "welcome" : "Welcome to GENis.",
+    "yes" : "YES"
   },
   "alerts" : {
     "bulk": {
@@ -691,7 +694,7 @@
     "ModerateStringency": "Moderate",
     "LowStringency": "Low",
     "Mismatch": "Mismatch",
-    "NoMatch": "No intersection"
+    "NoMatch": "N/A"
   },
   "matchingAlgorithm": {
     "ENFSI": "Enfsi",
@@ -985,7 +988,7 @@
     "startDate" : "Start date"
   },
   "matches": {
-    "associatedLabelProfiles" : "Associated Labels / Profiles",
+    "associatedLabelProfiles" : "Associated Labels - Profiles",
     "comparison" : "Comparison",
     "confirm" : "Confirm Match",
     "contributorInCommon" : "Contributor in common",
@@ -1004,6 +1007,7 @@
     "noMatch" : "No match",
     "notRegistered" : "was not registered",
     "notify" : "Notify Matches",
+    "oneContributorCommon" : "One contributor in common",
     "pending" : "Pending Matches",
     "registered" : "was registered",
     "sample" : "sample",
@@ -1053,9 +1057,13 @@
   },
   "motives" : {
     "add" : "Add new motive",
+    "addSuccess" : "The motive was added successfully",
     "askConfirmDelete" : "Are you sure you want to delete the motive?",
     "confirmDelete" : "Confirm motive elimination",
+    "delete" : "Delete motive",
+    "deleteSuccess" : "The motive was deleted successfully",
     "edit" : "Edit motive",
+    "editSuccess" : "The motive was updated successfully",
     "name" : "Motive",
     "type" : "Motive type",
     "motivesConf": "Motives configuration",
@@ -1063,10 +1071,15 @@
   },
   "mutations" : {
     "active" : "Active",
+    "amountJumps" : "Number of jumps to consider",
     "editModel" : "Edit Mutation Model",
+    "editSuccess" : "The model was updated successfully",
     "differentiateBySex" : "Divide By Sex",
+    "model" : "Mutation Model",
     "models" : "Mutation Models",
+    "new" : "New",
     "newModel" : "New Mutation Model",
+    "newSuccess" : "The model was created successfully",
     "range" : "Mutation range",
     "rate" : "Mutation rate"
   },
@@ -1104,7 +1117,7 @@
   "scenario": {
     "allelicDatabase" : "Allelic frequency database",
     "calculate": "Calculate LR",
-    "coancestryCoefficient" : "Co-ancestrality coefficient",
+    "coancestryCoefficient" : "Co-ancestrality coefficient  (Θ)",
     "contrastedHypothesis" : "Contrasted hypothesis",
     "dmp" : "DMP",
     "donnellyBaldwin" : "Donnelly-Baldwin",
@@ -1145,6 +1158,7 @@
     },
     "state": {
       "Pending": "Pending",
+      "Discarded" : "Discarded",
       "Validated": "Validated",
       "Deleted": "Deleted"
     }

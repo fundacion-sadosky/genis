@@ -9,7 +9,7 @@
                                 <span  class="icon-atras" title="Volver"></span>
                             </div>
                         </li>
-                        <li class="active">Configuración de instancia superior</li>
+                        <li class="active">{{ 'motives.motivesConf' | i18next }}</li>
                          </ol>
                 </div>
             </div>
@@ -23,7 +23,7 @@
 
             <div class="grid">
                 <div class="row">
-                    <div class="col-lg-2 label-motivo"><label for="repeatSelect">Tipo de motivo</label></div>
+                    <div class="col-lg-2 label-motivo"><label for="repeatSelect">{{ 'motives.type' | i18next }}</label></div>
                     <div class="col-lg-3"><select class="form-control form-select" name="repeatSelect" id="repeatSelect" ng-model="selectedMotiveType" ng-change="updateMotiveType()">
                         <option ng-repeat="mtype in motivesTypes" value="{{mtype.id}}">{{mtype.description}}</option>
                     </select></div>
@@ -34,7 +34,7 @@
                                 class="btn btn-primary-action pull-right"
                                 data-ng-click="doInsert(selectedMotiveType)">
                             <!-- <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> -->
-                            <span>Nuevo</span>
+                            <span>{{ 'motives.add' | i18next }}</span>
                         </button>
                     </div>
                 </div>
@@ -48,9 +48,9 @@
                 <table class="table table-bordered" ng-if="motives.length">
                     <thead>
                     <tr>
-                        <th>Motivo</th>
-                        <th>Modificar</th>
-                        <th>Eliminar</th>
+                        <th>{{ 'motives.name' | i18next }}</th>
+                        <th>{{ 'motives.edit' | i18next }}</th>
+                        <th>{{ 'motives.delete' | i18next }}</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -62,7 +62,7 @@
                             </a>
                         </td>
                         <td class="col-md-1 centered" >
-                            <a class="btn btn-default btn-link-action btn-link-border" pdg-confirm pdg-confirm-title="Confirmar eliminación del motivo" pdg-confirm-content="¿Está seguro de eliminar el motivo?" pdg-on-confirm="doDelete" param="{{motivo}}" ng-hide="motivo.freeText">
+                            <a class="btn btn-default btn-link-action btn-link-border" pdg-confirm pdg-confirm-title="{{ 'motives.confirmDelete' | i18next }}" pdg-confirm-content="{{ 'motives.askConfirmDelete' | i18next }}" pdg-on-confirm="doDelete" param="{{motivo}}" ng-hide="motivo.freeText">
                                 <span class="glyphicon glyphicon-floppy-remove" aria-hidden="true"></span>
                             </a>
                         </td>

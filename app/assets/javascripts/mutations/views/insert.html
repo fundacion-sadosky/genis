@@ -8,7 +8,7 @@
                                 <span  class="icon-atras" title="Volver"></span>
                             </div>
 						</li>
-						<li class="active">Nuevo Modelo de Mutaciones</li>
+						<li class="active">{{ 'mutations.newModel' | i18next }}</li>
                         </ol>
                     </div>
                 </div>
@@ -24,7 +24,7 @@
 						</fieldset>
 					</div>
 				<footer class="profile-footer">
-					<button id="saveUpd" type="button" class="btn btn-primary-action pull-right" data-ng-click="saveMutationModel()" ng-disabled="labForm.$invalid">Guardar</button>
+					<button id="saveUpd" type="button" class="btn btn-primary-action pull-right" data-ng-click="saveMutationModel()" ng-disabled="labForm.$invalid">{{ 'buttons.save' | i18next }}</button>
 				</footer>
 		</form>
 </div>

@@ -5,6 +5,7 @@ import java.util.Date
 import pedigree.PedigreeMatchKind
 import play.api.libs.json.{Json, Writes, _}
 import types.SampleCode
+import play.api.i18n.Messages
 
 case class Notification(
   id: Long,
@@ -28,7 +29,8 @@ trait NotificationInfo {
 
 case class UserPendingInfo(userName: String) extends NotificationInfo {
   override val kind = NotificationType.userNotification
-  override val description = s"El usuario: $userName está pendiente de aprobación"
+  override val description = Messages("inbox.theuserpending",userName.toString)
+  //override val description = s"El usuario: $userName está pendiente de aprobación"
   override val url = s"/users"
 }
 

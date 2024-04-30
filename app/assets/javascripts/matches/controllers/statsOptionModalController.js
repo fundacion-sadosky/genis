@@ -16,12 +16,12 @@ define([], function() {
 			$scope.selectedOptions = { 'frequencyTable': freqTable, 'probabilityModel': statModel, 'theta': theta, 'dropIn': dropIn, 'dropOut': dropOut};
 			
 			if (!$scope.selectedOptions.frequencyTable){
-				alertService.error({message: 'No existe ninguna base de frecuencias seleccionada o por default. Por favor, seleccione una base de frecuencias.'});
+				alertService.error({message: $.i18n.t('match.noBaseFrequency')});
 				return;
 			}
 			
 			if (!$scope.selectedOptions.probabilityModel){
-				alertService.error({message: 'No existe ningún modelo seleccionado o asociado. Por favor, seleccione un modelo estadístico.'});
+				alertService.error({message: $.i18n.t('match.noProbabilityModel')});
 				return;
 			}
 			
@@ -41,8 +41,8 @@ define([], function() {
         scenarioService.getDefaultScenario(profiles[0], profiles[1], selectedOptions).then(function(response) {
             $scope.scenario = response.data;
 			if($scope.scenario.isMixMix) {
-				$scope.printableProsecutor = 'Un aportante en comun';
-				$scope.printableDefense = 'Mezclas independientes';
+				$scope.printableProsecutor = $.i18n.t('match.oneContributorCommon');
+				$scope.printableDefense = $.i18n.t('match.independentMixtures');
 			} else {
 				$scope.printableProsecutor = printHypothesis('prosecutor');
 				$scope.printableDefense = printHypothesis('defense');

@@ -198,6 +198,7 @@
  "generics" : {
     "accepted" : "Aceptado",
     "actions" : "Acciones",
+    "active" : "Activo",
     "addAnalysis" : "Agregar Análisis",
     "addScenario" : "Agregar Escenario",
     "alias" : "Alias",
@@ -301,6 +302,7 @@
     "new" : "Nuevo",
     "newAnalysis" : "Nuevo análisis",
     "newScenario" : "Nuevo escenario",
+    "no" : "NO",
     "noResult" : "No se encontraron datos según su busqueda",
     "nonOperative" : "No operativa",
     "of" : "de",
@@ -371,7 +373,8 @@
     "viewMitochondrialAnalysis" : "Ver anásisis mitocondrial",
     "viewScenario" : "Ver Escenario",
     "viewSingleAllele" : "Ver alelo",
-    "welcome" : "Bienvenido a GENis."
+    "welcome" : "Bienvenido a GENis.",
+    "yes" : "SÍ"
   },
  "alerts" : {
     "bulk": {
@@ -691,7 +694,7 @@
 		"ModerateStringency": "Media",
 		"LowStringency": "Baja",
 		"Mismatch": "Sin match",
-		"NoMatch": "Sin interseccion"
+		"NoMatch": "N/A"
 	},
  "matchingAlgorithm": {
 		"ENFSI": "Enfsi",
@@ -948,8 +951,8 @@
   },
  "geneticists" : {
     "new" : "Nuevo genetista",
-    "responsible" : "Genetista responsable de la investigación",
-    "responsible2" : "Responsable de la investigación",
+    "responsible" : "Genetista responsable de la pericia",
+    "responsible2" : "Responsable de la pericia",
     "newSuccess" : "El genetista fue dado de alta con éxito",
     "newError" : "El genetista no pudo ser dado de alta",
     "modifySuccess": "El genetista fue modificao con éxito",
@@ -985,7 +988,7 @@
     "startDate" : "Fecha Inicio"
   },
  "matches": {
-	"associatedLabelProfiles" : "Etiquetas / Perfiles Asociados",
+	"associatedLabelProfiles" : "Etiquetas - Perfiles Asociados",
     "comparison" : "Comparación",
     "confirm" : "Confirmar Coincidencia",
     "contributorInCommon" : "Contribuyente en común",
@@ -1004,6 +1007,7 @@
     "noMatch" : "No coincid.",
     "notRegistered" : "no fue registrado",
     "notify" : "Notificar Coincidencias",
+    "oneContributorCommon" : "Un aportante en común",
     "pending" : "Coincidencias pendientes",
     "registered" : "fue registrado",
     "sample" : "muestra",
@@ -1053,9 +1057,13 @@
   },
  "motives" : {
     "add" : "Agregar nuevo motivo",
+    "addSuccess" : "El motivo fue dado de alta con éxito",
     "askConfirmDelete" : "¿Está seguro de eliminar el motivo?",
     "confirmDelete" : "Confirme la eliminación del motivo",
+    "delete" : "Eliminar motivo",
+    "deleteSuccess" : "El motivo fue eliminado con éxito",
     "edit" : "Editar motivo",
+    "editSuccess" : "El motivo fue modificado con éxito",
     "name" : "Motivo",
     "type" : "Tipo de motivo",
     "motivesConf": "Configuración de motivos",
@@ -1063,10 +1071,15 @@
   },
  "mutations" : {
     "active" : "Activo",
+    "amountJumps" : "Cant. de saltos a considerar",
     "editModel" : "Edición Modelo de Mutaciones",
+    "editSuccess" : "El modelo fue modificado con éxito",
     "differentiateBySex" : "Diferenciar por sexo",
-    "models" : "Modelo de Mutaciones",
+    "model" : "Modelo de Mutaciones",
+    "models" : "Modelos de Mutaciones",
+    "new" : "Nuevo",
     "newModel" : "Nuevo Modelo de Mutaciones",
+    "newSuccess" : "El modelo fue dado de alta con éxito",
     "range" : "Rango de mutación",
     "rate" : "Tasa de mutación"
   },
@@ -1104,7 +1117,7 @@
  "scenario": {
 	"allelicDatabase" : "Base de frecuencias alélicas",
     "calculate": "Calcular LR",
-    "coancestryCoefficient" : "Coeficiente de Co-ancestralidad",
+    "coancestryCoefficient" : "Coeficiente de Co-ancestralidad (Θ)",
     "contrastedHypothesis" : "Hipótesis contrastada",
     "dmp" : "DMP",
     "donnellyBaldwin" : "Donnelly-Baldwin",
@@ -1145,6 +1158,7 @@
     },
     "state": {
 	  "Pending": "Pendiente",
+      "Discarded" : "Descartado",
 	  "Validated": "Confirmado",
 	  "Deleted": "Borrado"
 	}

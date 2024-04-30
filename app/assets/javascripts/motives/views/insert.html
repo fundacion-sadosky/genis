@@ -1,7 +1,7 @@
 <form name="labForm">
 	<div ng-controller="motiveController">
 		<div class="modal-header">
-			<h2>Agregar nuevo Motivo</h2>
+			<h2>{{ 'motives.add' | i18next }}</h2>
 		</div>
 		<div class="modal-body-popup">
 			<div id="tab-1" class="tab-pane active tab-format">
@@ -14,12 +14,12 @@
 		</div>
 		<div class="modal-footer">
 			<div class="btn btn-link-action" ng-click="closeModal()">
-			   	<span title="Cerrar">
+			   	<span title="{{ 'buttons.close' | i18next }}">
 			   		<span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
 			   	</span>
-				<span class="btn-link-action">Cerrar</span>
+				<span class="btn-link-action">{{ 'buttons.close' | i18next }}</span>
 			</div>
-			<button id="saveUpd" type="button" class="btn btn-primary-action" data-ng-click="saveMotive(true)" ng-disabled="labForm.$invalid">Guardar</button>
+			<button id="saveUpd" type="button" class="btn btn-primary-action" data-ng-click="saveMotive(true)" ng-disabled="labForm.$invalid">{{ 'buttons.save' | i18next }}</button>
 		</div>
 	</div>
 </form>

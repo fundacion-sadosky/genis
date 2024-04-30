@@ -10,7 +10,7 @@ define(['lodash'], function(_) {
                     $scope.selectedMotiveType = $scope.motivesTypes[0].id;
                 }
             }, function() {
-                alertService.error({message: 'Error'});
+                alertService.error({message: $.i18n.t('error.common')});
             });
         };
 
@@ -53,17 +53,17 @@ define(['lodash'], function(_) {
                         nuevoMotivo.id = data.data.id;
                         $scope.motives.push(nuevoMotivo);
                     }
-                    alertService.success({message: 'Fue dado de alta con exito'});
+                    alertService.success({message: $.i18n.t('motives.addSuccess')});
                 }, function() {
-                    alertService.error({message: 'Error'});
+                    alertService.error({message: $.i18n.t('error.common')});
                 });
 
             }else{
                 $scope.selectedMotive.description = $scope.selectedMotiveCopy.description;
                 motiveService.updateMotive($scope.selectedMotive).then(function() {
-                    alertService.success({message: 'Fue modificado con exito'});
+                    alertService.success({message: $.i18n.t('motives.editSuccess')});
                 }, function() {
-                    alertService.error({message: 'Error'});
+                    alertService.error({message: $.i18n.t('error.common')});
                 });
             }
 
@@ -87,12 +87,12 @@ define(['lodash'], function(_) {
                         }
                     }
 
-                    alertService.success({message: 'Fue eliminado con exito'});
+                    alertService.success({message: $.i18n.t('motives.deleteSuccess')});
                 }, function() {
-                    alertService.error({message: 'Error'});
+                    alertService.error({message: $.i18n.t('error.common')});
                 });
             }else{
-                alertService.error({message: 'Error'});
+                alertService.error({message: $.i18n.t('error.common')});
             }
         };
         $scope.updateMotiveType = function() {

@@ -1,5 +1,5 @@
 <ol class="breadcrumb">
-	<li class="active">Edición Modelo de Mutaciones</li>
+	<li class="active">{{ 'mutations.editModel' | i18next }}</li>
 </ol>
 <div class="container-top" >
 	<form name="labForm">
@@ -11,7 +11,7 @@
 					</fieldset>
 				</div>
 			<footer class="profile-footer">
-				<button id="saveUpd" type="button" class="btn btn-primary-action pull-right" data-ng-click="saveMutationModel()" ng-disabled="labForm.$invalid" >Guardar</button>
+				<button id="saveUpd" type="button" class="btn btn-primary-action pull-right" data-ng-click="saveMutationModel()" ng-disabled="labForm.$invalid" >{{ 'buttons.save' | i18next }}</button>
 
 			</footer>
 	</form>

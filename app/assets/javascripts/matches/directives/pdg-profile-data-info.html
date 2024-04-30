@@ -2,25 +2,25 @@
 	<h4 class="noscreen">Datos {{profileId}}</h4>
 	<div class="col-md-8 column">
 		<div class="form-group">
-			<label for="inputTipoMatBio">Tipo de material biológico</label> {{profileData.bioMaterialType}}
+			<label for="inputTipoMatBio">{{ 'biomaterial.type' | i18next }}</label> {{profileData.bioMaterialType}}
 		</div>
 		<div class="form-group">
-			<label for="inputFechaTomaMuestra">Fecha de toma de la muestra</label> {{profileData.sampleEntryDate|date:'dd/MM/yyyy'}}
+			<label for="inputFechaTomaMuestra">{{ 'matches.date.sample' | i18next }}</label> {{profileData.sampleEntryDate|date:'dd/MM/yyyy'}}
 		</div>
 		<div class="form-group">
-			<label for="inputFechaIngresoLab">Fecha de ingreso al laboratorio</label> {{profileData.sampleDate|date:'dd/MM/yyyy'}}
+			<label for="inputFechaIngresoLab">{{ 'matches.date.labEntry' | i18next }}</label> {{profileData.sampleDate|date:'dd/MM/yyyy'}}
 		</div>
 		<div class="form-group">
-			<label for="inputFechaCaducidadPerfil">Fecha de caducidad del perfil</label> {{profileData.profileExpirationDate|date:'dd/MM/yyyy'}}
+			<label for="inputFechaCaducidadPerfil">{{ 'matches.date.profileExpiration' | i18next }}</label> {{profileData.profileExpirationDate|date:'dd/MM/yyyy'}}
 		</div>
 		<div class="form-group">
-			<label for="inputGenetistaResponsable">Genetista responsable de la pericia</label> {{profileData.responsibleGeneticist}}
+			<label for="inputGenetistaResponsable">{{ 'geneticists.responsible' | i18next }}</label> {{profileData.responsibleGeneticist}}
 		</div>
 		<div class="form-group">
-			<label for="inputCodIntMuestra">Código Laboratorio</label> {{profileData.internalSampleCode}}
+			<label for="inputCodIntMuestra">{{ 'generics.labCode' | i18next }}</label> {{profileData.internalSampleCode}}
 		</div>
 		<div class="form-group">
-			<label for="inputLaboratorio">Laboratorio</label> {{profileData.laboratory}}
+			<label for="inputLaboratorio">{{ 'generics.laboratory' | i18next }}</label> {{profileData.laboratory}}
 		</div>
 	</div>
 </div>

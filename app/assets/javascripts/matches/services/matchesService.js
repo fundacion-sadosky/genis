@@ -111,15 +111,15 @@ define([], function() {
         //     return playRoutes.controllers.Matching.deleteByLeftAndRightProfile(globalCode,courtCaseId).delete();
         // };
 		this.getStrigencyEnum = function() {
-			return { HighStringency : {key:'HighStringency', text:'Alta', css:'icon-highstringency'}, 
-				ModerateStringency : {key:'ModerateStringency', text:'Media', css:'icon-moderatestringency'}, 
-				LowStringency : {key:'LowStringency', text:'Baja', css:'icon-lowstringency'},
-				Mismatch : {key:'Mismatch', text:'Sin match', css:'icon-mismatch'},
-				NoMatch : {key:'NoMatch', text:'N/A', css:'icon-nomatch'}}; // enums
+			return { HighStringency : {key:'HighStringency', text: $.i18n.t('stringency.HighStringency'), css:'icon-highstringency'},
+				ModerateStringency : {key:'ModerateStringency', text: $.i18n.t('stringency.ModerateStringency'), css:'icon-moderatestringency'},
+				LowStringency : {key:'LowStringency', text: $.i18n.t('stringency.LowStringency'), css:'icon-lowstringency'},
+				Mismatch : {key:'Mismatch', text: $.i18n.t('stringency.Mismatch'), css:'icon-mismatch'},
+				NoMatch : {key:'NoMatch', text: $.i18n.t('match.NoMatch'), css:'icon-nomatch'}}; // enums
 		};
 
 		this.getMatchStatusEnum = function() {
-			return { hit : 'Confirmado', discarded: 'Descartado', pending: 'Pendiente', deleted: 'Borrado'};
+			return { hit : $.i18n.t('scenario.state.Validated'), discarded: $.i18n.t('scenario.state.Discarded'), pending: $.i18n.t('scenario.state.Pending'), deleted: $.i18n.t('scenario.state.Deleted')};
 		};
 
 		this.getSubCatName = function(groups, catId){

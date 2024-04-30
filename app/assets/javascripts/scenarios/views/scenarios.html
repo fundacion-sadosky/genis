@@ -35,7 +35,7 @@
                     </div>
                     <div class="form-group col-md-5 padding-left-0">
                             <input type="text" name="hourFrom" id="hourFrom" class="form-control form-select"
-                             placeholder="Desde" data-datepicker-popup="dd/MM/yyyy"
+                             placeholder="{{ 'generics.since' | i18next }}" data-datepicker-popup="dd/MM/yyyy"
                              data-ng-model="filters.hourFrom"
                              data-is-open="datepickers.hourFrom"
                              data-datepicker-options="dateOptions" data-close-text="Close" data-ng-click="toggleDatePicker($event,'hourFrom')"/>
