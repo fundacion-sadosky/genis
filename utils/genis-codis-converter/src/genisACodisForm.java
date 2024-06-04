@@ -40,6 +40,7 @@ public class genisACodisForm {
     private JTextField outFilenameTextField;
     private JButton outFilenameButton;
     private JLabel outFilenameLabel;
+    private JTextField userTextField;
 
     public genisACodisForm() {
 
@@ -75,10 +76,10 @@ public class genisACodisForm {
 
                 // chequeo que los campos no estén vacíos
                 String[] fieldsToCheck = {inFileName, outFilePath, outFilenameTextField.getText(),
-                        sourceORITextField.getText(), destinationORITextField.getText(), instrumentIDTextField.getText()};
+                        sourceORITextField.getText(), destinationORITextField.getText(), instrumentIDTextField.getText(), userTextField.getText()};
 
                 String[] fieldsDescriptions = {"un archivo de entrada", "una ubicación para el archivo de salida", "un nombre para el archivo de salida",
-                    "el ORI del organismo origen", "el ORI del organismo destinatario", "el ID del instrumento de extracción de ADN",};
+                    "el ORI del organismo origen", "el ORI del organismo destinatario", "el ID del instrumento de extracción de ADN", "el usuario del sistema CODIS asociado a este archivo"};
 
                 boolean fieldsOK = checkFields(fieldsToCheck, convertirButton.getParent(), fieldsDescriptions);
 
@@ -100,15 +101,6 @@ public class genisACodisForm {
                         throw new RuntimeException(e);
                     }
 
-                    // obtengo el user
-                    String user = markers.get(0).user;
-                    for (Marker marker : markers){
-                        if (!marker.user.equals(user)){
-                            JOptionPane.showMessageDialog(convertirButton.getParent(), "Se hallaron distintos usuarios en el archivo GENis, pero el formato CODIS permite un único usuario. \n Se procede a crear un archivo CODIS con el primer usuario que aparece: "+user,
-                                    "Múltiples usuarios", JOptionPane.WARNING_MESSAGE);
-                            break;
-                        }
-                    }
 
                     // Create a new Document
                     Document document = builder.newDocument();
@@ -131,7 +123,7 @@ public class genisACodisForm {
 
                     Element msgID = document.createElement("MESSAGEID");
                     header.appendChild(msgID);
-                    msgID.appendChild(document.createTextNode("1")); //acá debería ser un número que vaya creciendo?
+                    msgID.appendChild(document.createTextNode("1"));
 
                     Element msgDatetime = document.createElement("MESSAGEDATETIME");
                     header.appendChild(msgDatetime);
@@ -139,7 +131,7 @@ public class genisACodisForm {
 
                     Element msgCreator = document.createElement("MSGCREATORUSERID");
                     header.appendChild(msgCreator);
-                    msgCreator.appendChild(document.createTextNode(user));
+                    msgCreator.appendChild(document.createTextNode(userTextField.getText()));
 
                     Element destinationORI = document.createElement("DESTINATIONORI");
                     header.appendChild(destinationORI);
@@ -287,7 +279,10 @@ public class genisACodisForm {
                     } catch (TransformerException e) {
                         throw new RuntimeException(e);
                     }
-
+                    JOptionPane.showMessageDialog(convertirButton.getParent(),
+                            "Archivo convertido con éxito.",
+                            "Éxito",
+                            JOptionPane.PLAIN_MESSAGE);
                     System.out.println("XML file created successfully!");
                 }
 

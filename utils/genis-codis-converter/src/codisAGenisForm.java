@@ -15,18 +15,11 @@ import java.util.List;
 
 /*
 TO-DOs:
-- agregar loguito
-- cartelito de "convertido con exito"
-- specimen form: si pone cancel o cerrar que salga
-- generar .exe
-
-PREGUNTAS:
-- SID es opcional para los arrestees federales, pero obligatorio para los locales/provinciales.
- UCN al revés. livescan unique event identifier es obl. los pongo.
-- ver qué hago con messageID (ahora es siempre 1)
-- cuando hay múltiples usuarios me quedo con el primero
-- fecha y hora "del análisis"? (términos en gral.)
- */
+- resolver error en la linea del breakpoint
+- agregar logo
+- arrancar desde main, no desde este form
+- specimen form: si pone cancel o cerrar que salga del todo
+*/
 
 
 public class codisAGenisForm {
@@ -135,6 +128,10 @@ public class codisAGenisForm {
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
+                    JOptionPane.showMessageDialog(convertButton.getParent(),
+                            "Archivo convertido con éxito.",
+                            "Éxito",
+                            JOptionPane.PLAIN_MESSAGE);
                     System.out.println("Éxito");
                 }
             }
@@ -228,7 +225,7 @@ public class codisAGenisForm {
             genisCategory = (String) JOptionPane.showInputDialog(null,
                     mensaje, "Categoría GENis:",
                     JOptionPane.INFORMATION_MESSAGE, null,
-                    possibleTranslations, possibleTranslations[0]);
+                    null, possibleTranslations[0]);
         }
 
         return genisCategory;
