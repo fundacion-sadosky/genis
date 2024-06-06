@@ -15,8 +15,6 @@ import java.util.List;
 
 /*
 TO-DOs:
-- resolver error en la linea del breakpoint
-- agregar logo
 - arrancar desde main, no desde este form
 - specimen form: si pone cancel o cerrar que salga del todo
 */
@@ -26,6 +24,8 @@ public class codisAGenisForm {
     String inFileName = "";
     String outFilePath = "";
     public codisAGenisForm() {
+        ImageIcon logoIcon = new ImageIcon("logo.png");
+        logoLabel.setIcon(logoIcon);
         convertButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
@@ -100,7 +100,15 @@ public class codisAGenisForm {
                                         kit = jesimoCampo.getTextContent();
                                     } else if (nameJesimoCampo.equals("ALLELE")) {
                                         NodeList camposAlelos = jesimoCampo.getChildNodes();
-                                        String valorAlelo = camposAlelos.item(1).getFirstChild().getTextContent();
+                                        // String valorAlelo = camposAlelos.item(1).getFirstChild().getTextContent();
+                                        String valorAlelo = "";
+                                        int k = 0;
+                                        String nombreCampo = "";
+                                        while (!nombreCampo.equals("ALLELEVALUE")){
+                                            nombreCampo = camposAlelos.item(k).getNodeName();
+                                            k=k+1;
+                                        }
+                                        valorAlelo = camposAlelos.item(k-1).getFirstChild().getTextContent();
                                         valorAlelos.add(valorAlelo);
                                     }
                                 }
@@ -205,28 +213,28 @@ public class codisAGenisForm {
     private JLabel inFilenameLabel;
     private JLabel outFilenameLabel;
     private JTextField outFilenameTextField;
+    private JLabel logoLabel;
 
     private String translateCategoryToGenis(String codisCategory, String specimenID){
         String genisCategory = "";
+        String suggestedCategory = "Evidencia Parcial";
         if (codisCategory.equals("Forensic Partial")){
-            genisCategory = "Evidencia Parcial";
+            suggestedCategory = "Evidencia Parcial";
         } else if (codisCategory.equals("Forensic Unknown") || codisCategory.equals("Forensic, Unknown")) {
-            genisCategory = "Evidencia Completa";
+            suggestedCategory = "Evidencia Completa";
         } else if (codisCategory.equals("Forensic Mixture")) {
-            genisCategory = "Evidencia Mezcla";
+            suggestedCategory = "Evidencia Mezcla";
         } else if (codisCategory.equals("Suspect")) {
-            genisCategory = "Sospechoso";
+            suggestedCategory = "Sospechoso";
         } else if (codisCategory.equals("Convicted Offender")) {
-            genisCategory = "Condenado";
-        } else {
-            Object[] possibleTranslations = { "Evidencia Parcial", "Evidencia Completa", "Evidencia Mezcla", "Sospechoso", "Condenado"};
-
-            String mensaje = "La categoría en CODIS del perfil " + specimenID + " es \""+ codisCategory +"\", ¿a qué categoría de GENis corresponde?";
-            genisCategory = (String) JOptionPane.showInputDialog(null,
-                    mensaje, "Categoría GENis:",
-                    JOptionPane.INFORMATION_MESSAGE, null,
-                    null, possibleTranslations[0]);
+            suggestedCategory = "Condenado";
         }
+
+        String mensaje = "La categoría en CODIS del perfil " + specimenID + " es \""+ codisCategory +"\", ¿a qué categoría de GENis corresponde?";
+        genisCategory = (String) JOptionPane.showInputDialog(null,
+                mensaje, "Categoría GENis:",
+                JOptionPane.INFORMATION_MESSAGE, null,
+                null, suggestedCategory);
 
         return genisCategory;
     }

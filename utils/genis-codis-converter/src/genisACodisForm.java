@@ -41,9 +41,11 @@ public class genisACodisForm {
     private JButton outFilenameButton;
     private JLabel outFilenameLabel;
     private JTextField userTextField;
+    private JLabel logoLabel;
 
     public genisACodisForm() {
-
+        ImageIcon logoIcon = new ImageIcon("logo.png");
+        logoLabel.setIcon(logoIcon);
         inFilenameButton.addActionListener(new ActionListener() {
 
             @Override
