@@ -195,6 +195,18 @@ function searchController($scope, $log, profiledataService, searchService, $moda
 		$location.url('/profile/' + code + '?tab=add' );
 	};
 
+	$scope.getRowColor = function(category) {
+		console.log("search - La categoria en row color es: ", category);
+		switch(category) {
+			case 'CONDENADO':
+				return 'red';
+			case 'EvidenciaParcial':
+				return 'blue';
+			default:
+				return 'green';
+		}
+	};
+
 
 }
 

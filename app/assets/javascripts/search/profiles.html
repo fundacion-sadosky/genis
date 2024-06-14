@@ -111,7 +111,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr data-ng-repeat="pd in results" ng-class="{'profile-deleted': pd.deleted}">
+                <tr data-ng-repeat="pd in results" ng-class="{'profile-deleted': pd.deleted}" ng-style="{'background-color': getRowColor(pd.category)}">
                     <td class="centered">{{pd.globalCode}}</td>
                     <td class="centered">{{pd.category}}</td>
                     <td class="centered">{{pd.internalSampleCode}}</td>
