@@ -318,7 +318,10 @@ object Permission {
   }
   case object PROFILE_COMPARISON extends Permission {
     override val operations: Set[StaticAuthorisationOperation] = Set(
-      StaticAuthorisationOperation("""/profile-comparison""".r,"""GET""".r, "GetProfileComparison")
+      StaticAuthorisationOperation("""/profile-comparison""".r,"""GET""".r, "GetProfileComparison"),
+      StaticAuthorisationOperation("""/modify-forensic-category""".r,"""GET""".r, "GetProfileComparison")
+      // TODO: Change GetProfileComparison to a different description key and then...
+      // TODO: Update translation.json (public/locales/es-AR/translation.json)
     )
   }
   case object LOGIN_SIGNUP extends Permission {
@@ -337,37 +340,39 @@ object Permission {
   }
 
 
-  val list: Set[Permission] = Set(DNA_PROFILE_CRUD,
-      PROFILE_EXPORTER,
-      PROFILE_EXPORTER_TO_LIMS,
-      PROFILE_DATA_CRUD,
-      LABORATORY_CRUD, 
-      GENETICIST_CRUD, 
-      ALLELIC_FREQ_DB_CRUD, 
-      ALLELIC_FREQ_DB_VIEW, 
-      OPERATION_LOG_READ, 
-      MATCHES_MANAGER, 
-      PROTOPROFILE_BULK_UPLOAD, 
-      PROTOPROFILE_BULK_ACCEPTANCE, 
-      USER_CRUD, 
-      CATEGORY_CRUD, 
-      ROLE_CRUD,
-      PEDIGREE_CRUD,
-      BIO_MAT_CRUD,
-      SCENARIO_CRUD,
-      LOCUS_CRUD,
-      LOCUS_UPDATE,
-      KIT_CRUD,
-      SUP_INS_CRUD,
-      INF_INS_CRUD,
-      INTERCON_NOTIF,
-      INSTANCE_INTERCONNECTION,
-      IMP_PERF_INS,
-      MOTIVE_CRUD,
-      ADD_MANUAL_LOCUS,
-      REPORTING_VIEW,
-      MUTATION_MODELS_CRUD,
-    PROFILE_COMPARISON)
+  val list: Set[Permission] = Set(
+    DNA_PROFILE_CRUD,
+    PROFILE_EXPORTER,
+    PROFILE_EXPORTER_TO_LIMS,
+    PROFILE_DATA_CRUD,
+    LABORATORY_CRUD,
+    GENETICIST_CRUD,
+    ALLELIC_FREQ_DB_CRUD,
+    ALLELIC_FREQ_DB_VIEW,
+    OPERATION_LOG_READ,
+    MATCHES_MANAGER,
+    PROTOPROFILE_BULK_UPLOAD,
+    PROTOPROFILE_BULK_ACCEPTANCE,
+    USER_CRUD,
+    CATEGORY_CRUD,
+    ROLE_CRUD,
+    PEDIGREE_CRUD,
+    BIO_MAT_CRUD,
+    SCENARIO_CRUD,
+    LOCUS_CRUD,
+    LOCUS_UPDATE,
+    KIT_CRUD,
+    SUP_INS_CRUD,
+    INF_INS_CRUD,
+    INTERCON_NOTIF,
+    INSTANCE_INTERCONNECTION,
+    IMP_PERF_INS,
+    MOTIVE_CRUD,
+    ADD_MANUAL_LOCUS,
+    REPORTING_VIEW,
+    MUTATION_MODELS_CRUD,
+    PROFILE_COMPARISON
+  )
 
   def fromString(value: String): Option[Permission] = Permission.list.find(_.toString == value)
 

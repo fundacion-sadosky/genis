@@ -1,0 +1,188 @@
+<div class="row padding-0 breadcrumb_column">
+  <div class="col-md-12 padding-0">
+    <div class="row padding-0">
+      <div class="breadcrumb_content">
+        <ol class="breadcrumb">
+          <li>
+            <div class="btn volver" onclick="history.back()">
+              <span  class="icon-atras" title="Volver"></span>
+            </div>
+          </li>
+          <li class="active">Modificar categoria en perfil forense</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="content">
+  <div class="options-header scenarios-section" style="padding-top: 0; margin-top: 37px;">
+    <div class="panel-body">
+      <!-- Search Box  -->
+      <div class="col-md-10 vertical-align">
+        <h6 class="col-md-6 control-label">Buscar un perfil:</h6>
+        <div class="col-md-12 input-group" style="padding-bottom: 10px;">
+          <label for="search"></label>
+          <input
+            type="text" class="form-control form-select"
+            aria-describedby="basic-addon2"
+            id="search" name="search" ng-model="search"
+            placeholder="Código GENis of código de laboratorio"
+            ng-keyup="$event.keyCode == 13 ? searchProfile() : null"
+            help-tip="category.modify.profileSelection"
+            help-tip-placement="bottom"
+            ng-disabled="stage!==1"
+          >
+          <span
+            ng-if="stage===1"
+            class="input-group-addon btn-secondary-action"
+            id="basic-addon2"
+            ng-click="searchProfile()"
+          >
+            <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Show Search Result -->
+  <div
+    class="options-header scenarios-section"
+    style="padding-top: 0; margin-top: 37px;"
+    ng-if="matchingCodes.length > 0 && stage === 2"
+  >
+    <div
+      class="col-md-10 vertical-align"
+    >
+      <h6 class="col-md-6 control-label">Confirmar el perfil seleccionado:</h6>
+      <div
+        class="input-group col-md-12"
+        >
+        <label for="matchingProfiles"></label>
+        <select
+          data-ng-model="models.matchingCodesModel"
+          id="matchingProfiles"
+          name="matchingProfiles"
+          class="form-control form-select"
+          ng-options="item as (item.globalCode + ' | ' + item.internalSampleCode) for item in matchingCodes"
+          >
+        </select>
+        <span
+          class="input-group-addon btn-secondary-action"
+          id="basic-addon3"
+          ng-click="confirmSelectedCode()"
+        >
+          <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+        </span>
+        <span
+          class="input-group-addon btn-secondary-action"
+          id="basic-addon4"
+          ng-click="clearMatchingCodes()"
+        >
+          <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+        </span>
+      </div>
+    </div>
+  </div>
+  <div
+    class="options-header scenarios-section"
+    style="padding-top: 0; margin-top: 37px;"
+    ng-if="stage>=3"
+  >
+    <div class="panel-body">
+      <div class="col-md-10 vertical-align" >
+        <h6 class="col-md-6 control-label">Codigo Seleccionado:</h6>
+        <div class="col-md-12" >
+          {{confirmedCode.globalCode}} | {{confirmedCode.internalSampleCode}}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="options-header scenarios-section"
+    style="padding-top: 0; margin-top: 37px;"
+    ng-if="stage>=3"
+  >
+    <div class="panel-body">
+      <div class="col-md-10 vertical-align" >
+        <h6 class="col-md-6 control-label">Categoría:</h6>
+        <div class="col-md-12">
+          <div>
+            Actual: {{getCagetoryName(confirmedCode.category)}}
+          </div>
+          <div>
+            Nueva Categoría:
+            <div class="input-group">
+              <label for="newCategory"></label>
+              <select
+                  data-ng-model="models.newCategory"
+                  id="newCategory"
+                  name="newCategory"
+                  class="form-control form-select"
+                  ng-options="item as (item.name) for item in categories"
+              >
+              </select>
+              <span
+                  class="input-group-addon btn-secondary-action"
+                  id="select-new-category-ok"
+                  ng-click="categoryOptionChanged()"
+              >
+              <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+            </span>
+              <span
+                  class="input-group-addon btn-secondary-action"
+                  id="select-new-category-cancel"
+                  ng-click="clearNewCategory()"
+              >
+              <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+            </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div
+      class="options-header scenarios-section"
+      style="padding-top: 0; margin-top: 37px;"
+      ng-if="stage==4"
+  >
+    <div class="panel-body">
+      <div class="col-md-10 vertical-align" >
+        <h6 class="col-md-6 control-label">Datos Filiatorios:</h6>
+        <div class="col-md-12">
+          <div
+              data-ng-include="'/assets/javascripts/profiledata/filiation-data.html'"
+              data-ng-controller="filiationDataController"
+          >
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div
+      class="options-header scenarios-section"
+      style="padding-top: 0; margin-top: 37px;"
+      ng-if="(stage==4) || (stage==5)"
+  >
+    <div class="panel-body">
+      <div class="col-md-10 vertical-align" >
+        <h6 class="col-md-6 control-label">Confirmar cambio de categoria:</h6>
+        <div class="col-md-12 desk-align-right">
+          <button
+            type="button"
+            class="btn btn-primary-action"
+            data-ng-click="saveProfile()">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  {{models.newCategory}}
+  {{categories}}
+  <footer>
+    <div class="desk-align-right inside-right">
+    </div>
+  </footer>
+</div>

@@ -238,6 +238,9 @@
 		"matching": {
 			"general": "Las reglas especifican contra qué tipo de perfiles se realizan las búsquedas de coincidencias, en qué nivel mínimo de exigencia, con qué algoritmo, cuál es la cantidad mínima de sistemas que deben tener en común y cuál es la máxima cantidad de no coincidencias toleradas"
 		},
+		"modify": {
+			"profileSelection": "Seleccione el perfil al que desea cambiar la categoría."
+		},
 		"alias": {
 			"general": "Configuración de los alias que esta categoría tiene. Estos alias son los utilizados en la columna “Specimen Category” del fichero de GeneMapper® en la importación masiva"
 		},
