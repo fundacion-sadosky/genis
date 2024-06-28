@@ -105,7 +105,8 @@ function searchController($scope, $log, profiledataService, searchService, $moda
 				$scope.noResult = false;
                 searchService.search(searchObject).then(function(response) {
                     $scope.results = response.data;
-                    $scope.isProcessing = false;
+					$scope.initializeProfileMatches();
+					$scope.isProcessing = false;
                 });
 			}
 			$scope.currentPage=$scope.page+1;
@@ -195,12 +196,32 @@ function searchController($scope, $log, profiledataService, searchService, $moda
 		$location.url('/profile/' + code + '?tab=add' );
 	};
 
-	$scope.getRowColor = function(category) {
-		console.log("Search - La categoria en row color es: ", category);
-		searchService.searchMatchesProfile(category).then(function (response) { //acá estoy pasando globalcode como category para probar
-			console.log("El resultado de search matches profile: ", response);
+	$scope.profileMatches = {};
+
+	$scope.initializeProfileMatches = function (){
+		console.log("## La lista de perfiles: ", $scope.results);
+		$scope.results.forEach(function (profileObj) {
+			searchService.searchMatchesProfile(profileObj.globalCode).then(function (response) {
+				$scope.profileMatches[profileObj.globalCode] = response.data;
+				console.log("El resultado de search matches profile: ", response.data);
+			});
 		});
-		switch(category) {
+	};
+
+	$scope.getRowColor = function(profileCode) {
+		// habrá problema si no hay profiles? porque no lo estoy definiendo en ese caso, pero supongo que no entraría acá tampoco
+		console.log("Search - los matches del perfil son: ", $scope.profileMatches[profileCode]);
+
+		// if (!$scope.profileMatches[profileCode]) {
+		//
+		//searchService.searchMatchesProfile(profileCode).then(function (response) {
+		//$scope.profileMatches[profileCode] = response.data;
+		//$scope.$apply();
+		//console.log("El resultado de search matches profile: ", response.data);
+		//});
+		//}
+
+		switch(profileCode) { // acá iría un if $scope.profileMatches[profileCode] length > 0 entonces verde sino rojo, ponele
 			case 'CONDENADO':
 				return 'red';
 			case 'EvidenciaParcial':
