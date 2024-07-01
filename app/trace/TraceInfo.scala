@@ -19,9 +19,9 @@ case class AnalysisInfo(
   override val kind = TraceType.analysis
   override val description =
     if (kit.isDefined) {
-      s"Alta de análisis del Kit ${kit.get} con Marcadores ${loci.mkString(", ")}."
+      s"Analysis registration with ${kit.get} with Locus ${loci.mkString(", ")}."
     } else {
-      s"Alta de análisis con Marcadores ${loci.mkString(", ")}."
+      s"Analysis registration with locus ${loci.mkString(", ")}."
     }
 }
 
@@ -30,63 +30,63 @@ case class AssociationInfo(
   user: String,
   categoryAssociations: Seq[CategoryAssociation]) extends TraceInfo {
   override val kind = TraceType.association
-  override val description = s"Asociación con el perfil ${profile.text} cuyo responsable es $user."
+  override val description = s"Association with profile ${profile.text} whose responsible is $user."
 }
 
 case object ProfileDataInfo extends TraceInfo {
   override val kind = TraceType.profileData
-  override val description = s"Carga de la metadata."
+  override val description = s"Metadata loading."
 }
 
 case object ProfileAprovedInSuperiorInfo extends TraceInfo {
   override val kind = TraceType.interconectionAproved
-  override val description = s"Aprobado en instancia superior."
+  override val description = s"Approved at superior instance."
 }
 
 case object ProfileRejectedInSuperiorInfo extends TraceInfo {
   override val kind = TraceType.interconectionRejected
-  override val description = s"Rechazado en instancia superior."
+  override val description = s"Rejected at superior instance."
 }
 
 case object ProfileInterconectionUploadInfo extends TraceInfo {
   override val kind = TraceType.interconectionUpdload
-  override val description = s"Replicado a instancia superior."
+  override val description = s"Replicated to superior instance."
 }
 
 case class DeleteInfo(
   solicitor: String,
   motive: String) extends TraceInfo {
   override val kind = TraceType.delete
-  override val description = s"Baja del perfil solicitada por $solicitor con motivo: $motive."
+  override val description = s"Deletion of profile requested by $solicitor with reason: $motive."
 }
 
 case class PedigreeStatusChangeInfo(status:String) extends TraceInfo{
   override val kind = TraceType.pedigreeStatusChange
   def getStatus(s1:String):String = {
     s1 match {
-      case "UnderConstruction" => "En construcción"
-      case "Active"=> "Activo"
-      case "Validated"=> "Confirmado"
-      case "Deleted"=> "Borrado"
-      case "Closed"=> "Cerrado"
-      case "Open"=> "Abierto"
+      case "UnderConstruction" => "Under Construction"
+      case "Active"=> "Active"
+      case "Validated"=> "Validated"
+      case "Deleted"=> "Deleted"
+      case "Closed"=> "Closed"
+      case "Open"=> "Open"
       case _ => s1
     }
   }
   val stat = getStatus(status)
-  override val description = s"Cambio al estado $stat."
+  override val description = s"Change to status $stat."
 }
 case class PedigreeCopyInfo(pedigreeId:Long,name:String) extends TraceInfo{
   override val kind = TraceType.pedigriCopy
-  override val description = s"Copia del pedigrí con el nombre $name."
+  override val description = s"Copy of pedigree with name $name."
 }
 case class PedigreeEditInfo(pedigreeId:Long) extends TraceInfo{
   override val kind = TraceType.pedigriEdit
-  override val description = s"Modificación del pedigrí."
+  override val description = s"Pedigree modification."
 }
 case class PedigreeNewScenarioInfo(id:String,nombre:String) extends TraceInfo{
   override val kind = TraceType.pedigriNewScenario
-  override val description = s"Creación de un nuevo escenario con nombre $nombre."
+  override val description = s"Creating a new scenario named $nombre."
 }
 object TraceInfo {
 

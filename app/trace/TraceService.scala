@@ -93,29 +93,29 @@ class TraceServiceImpl @Inject() (
     def stringifyCategoryAssociation(ca: CategoryAssociation): String = {
       val categoryOpt = categoryService.getCategory(ca.categoryRelated)
       val category = if (categoryOpt.isDefined) categoryOpt.get.name else ca.categoryRelated.toString
-      s"Categoría: $category / No coincidencias toleradas: ${ca.mismatches}"
+      s"Category: $category / Mismatches tolerated: ${ca.mismatches}"
     }
 
     profileRepository.findByCode(ti.profile) map { profileOpt =>
       val profile = profileOpt.get
       val associations = ti.categoryAssociations.map(stringifyCategoryAssociation(_)).mkString("\n")
-      s"Perfil: ${profile.globalCode.text} (${profile.internalSampleCode})\nReglas de asociación:\n$associations"
+      s"Profile: ${profile.globalCode.text} (${profile.internalSampleCode})\nAssociation rules:\n$associations"
     }
   }
 
   private def stringify(ti: AnalysisInfo) = {
 
     def stringifyCategoryConfiguration(cc: CategoryConfiguration): String = {
-      s"Cantidad mínima de marcadores con alelos: ${cc.minLocusPerProfile} / " +
-        s"Cantidad máxima de marcadores con trisomías: ${cc.maxOverageDeviatedLoci} / " +
-        s"Cantidad máxima de alelos por marcador: ${cc.maxAllelesPerLocus}"
+      s"Minimum number of markers with alleles: ${cc.minLocusPerProfile} / " +
+        s"Maximum number of markers with trisomies: ${cc.maxOverageDeviatedLoci} / " +
+        s"Maximum number of alleles per marker: ${cc.maxAllelesPerLocus}"
     }
 
     val future = ti.analysisType.fold[Future[Option[AnalysisType]]](Future.successful(None))({ at => analysisTypeService.getById(at)})
 
     future map { analysisTypeOpt =>
-      val suffix = analysisTypeOpt.fold("")({at => s"Tipo: ${at.name}\n"})
-      s"${suffix}Reglas de validación:\n${stringifyCategoryConfiguration(ti.categoryConfiguration)}"
+      val suffix = analysisTypeOpt.fold("")({at => s"Type: ${at.name}\n"})
+      s"${suffix}Validation rules:\n${stringifyCategoryConfiguration(ti.categoryConfiguration)}"
     }
   }
 
@@ -127,9 +127,9 @@ class TraceServiceImpl @Inject() (
       val profile = profileOpt.get
       val categoryOpt = categoryService.getCategory(profile.categoryId)
       val category = if (categoryOpt.isDefined) categoryOpt.get.name else profile.categoryId.toString
-      s"Tipo: ${analysisTypeOpt.get.name} / " +
-        s"Perfil coincidente: ${profile.globalCode.text} (${profile.internalSampleCode}) / Categoría: $category / " +
-        s"Usuario responsable: ${profile.assignee}"
+      s"Type: ${analysisTypeOpt.get.name} / " +
+        s"Matching profile: ${profile.globalCode.text} (${profile.internalSampleCode}) / Category: $category / " +
+        s"Responsible user: ${profile.assignee}"
     }
 
   }
@@ -152,9 +152,9 @@ class TraceServiceImpl @Inject() (
       analysisTypeOpt <- analysisTypeService.getById(ti.analysisType)
     } yield {
       val pedigree = pedigreeOpt.get
-      s"Tipo: ${analysisTypeOpt.get.name} / " +
-        s"Pedigrí coincidente: ${pedigree.pedigreeMetaData.id} (${pedigree.pedigreeMetaData.name}) / " +
-        s"Usuario responsable: ${pedigree.pedigreeMetaData.assignee}"
+      s"Type: ${analysisTypeOpt.get.name} / " +
+        s"Matching pedigree: ${pedigree.pedigreeMetaData.id} (${pedigree.pedigreeMetaData.name}) / " +
+        s"Responsible user: ${pedigree.pedigreeMetaData.assignee}"
     }
 
   }
@@ -167,23 +167,23 @@ class TraceServiceImpl @Inject() (
       analysisTypeService.getById(mr.`type`) map { analysisTypeOpt =>
         val analysisType = analysisTypeOpt.get
         val category = if (categoryOpt.isDefined) categoryOpt.get.name else mr.categoryRelated.toString
-        s"Categoría: $category / Tipo: ${analysisType.name} / Exigencia: ${stringifyStringency(mr.minimumStringency, mr.matchingAlgorithm)}" +
-          s" / Cant. mínima de coincidencias: ${mr.minLocusMatch} / Cant. máxima de no coincidencias: ${mr.mismatchsAllowed}"
+        s"Category: $category / Type: ${analysisType.name} / Stringency: ${stringifyStringency(mr.minimumStringency, mr.matchingAlgorithm)}" +
+          s" / Minimum matches: ${mr.minLocusMatch} / Maximum mismatches: ${mr.mismatchsAllowed}"
       }
     }
 
     def stringifyStringency(stringency: Stringency.Value, algorithm: Algorithm.Value): String = {
       algorithm match {
-        case Algorithm.GENIS_MM => "Mezcla Mezcla"
+        case Algorithm.GENIS_MM => "Mixture Mixture"
         case Algorithm.ENFSI => stringency match {
-          case Stringency.LowStringency => "Baja"
-          case Stringency.ModerateStringency => "Media"
-          case Stringency.HighStringency => "Alta"
+          case Stringency.LowStringency => "Low"
+          case Stringency.ModerateStringency => "Moderate"
+          case Stringency.HighStringency => "High"
         }
       }
     }
 
-    Future.sequence(ti.matchingRules.map(stringifyMatchingRule(_))) map { seq => "Reglas de búsqueda:\n" + seq.mkString("\n") }
+    Future.sequence(ti.matchingRules.map(stringifyMatchingRule(_))) map { seq => "Matching rules:\n" + seq.mkString("\n") }
 
   }
 
