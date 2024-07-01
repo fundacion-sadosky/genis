@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <div class="modal-header">
-    <h4><b>Advertencia</b></h4>
+    <h4><b>{{ 'pedigree.courtCase.close.warning' | i18next }}</b></h4>
 </div>
 <div class="modal-body">
-    <div>Los pedigrís asociados al caso se cerrarán automáticamente.</div>
+    <div>{{ 'pedigree.courtCase.close.associatedPedigree' | i18next }}</div>
     <div>
         <input id="shouldDeleteAssociatedProfiles" type="checkbox" data-ng-model="shouldDeleteAssociatedProfiles"  />
-        Dar de baja los perfiles asociados al caso
+        {{ 'pedigree.courtCase.close.deleteAssociatedProfiles' | i18next }}
     </div>
 </div>
 
 <div class="modal-footer">
-    <div id="cancel" type="button" class="btn btn-secondary-action" data-ng-click="close(false)">No</div>
-    <button id="confirm" type="button" class="btn btn-primary-action" data-ng-click="close(true)">Si</button>
+    <div id="cancel" type="button" class="btn btn-secondary-action" data-ng-click="close(false)">{{ 'buttons.no' | i18next }}</div>
+    <button id="confirm" type="button" class="btn btn-primary-action" data-ng-click="close(true)">{{ 'buttons.yes' | i18next }}</button>
 </div>

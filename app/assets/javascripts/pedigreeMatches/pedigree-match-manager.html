@@ -8,7 +8,7 @@
                             <span  class="icon-atras" title="Volver"></span>                            
                         </div>
                     </li>
-                    <li class="active">Coincidencias de MPI</li>
+                    <li class="active">{{ 'matches.mpi' | i18next }}</li>
                 </ol>
             </div>
         </div>
@@ -28,17 +28,17 @@
                                 <div class="form-group col-md-4">
                                     <div class="row  m-t-0 m-b-0 vertical-align">
                                         <div class="col-md-2">
-                                            <label class="m-r-10" for="search-profile">Perfil</label>
+                                            <label class="m-r-10" for="search-profile">{{ 'generics.profile' | i18next }}</label>
                                         </div>
                                         <div class="col-md-10">
-                                            <input id="search-profile" type="text" data-ng-model="search.profile" placeholder="Código" class="form-control form-select"/>
+                                            <input id="search-profile" type="text" data-ng-model="search.profile" placeholder="{{ 'generics.code' | i18next }}" class="form-control form-select"/>
                                         </div>
                                     </div>
                                 </div>
                                  <!-- Fecha -->
                                 <div class="item-input col-md-8 vertical-align">
                                     <div class="col-md-1 padding-left-0 ">
-                                        <label class="m-r-10" for="hourFrom">Fecha</label>
+                                        <label class="m-r-10" for="hourFrom">{{ 'generics.date' | i18next }}</label>
                                     </div>
                                     <div class="col-md-10 padding-left-0 padding-right-30">
                                         <div class="row padding-0  m-t-0 m-b-0 ">
@@ -56,7 +56,7 @@
                                             <div class="col-md-6">
 
                                                 <input type="text" name="hourUntil" id="hourUntil"
-                                                       placeholder="Hasta" data-datepicker-popup="dd/MM/yyyy"
+                                                       placeholder="{{ 'generics.until' | i18next }}" data-datepicker-popup="dd/MM/yyyy"
                                                        data-ng-model="search.hourUntil"
                                                        data-is-open="datepickers.hourUntil" class="form-control form-select"
                                                        data-datepicker-options="dateOptions"
@@ -82,7 +82,7 @@
                                 <div class="form-group col-md-4">
                                     <div class="row m-t-0 m-b-0 vertical-align">
                                     <div class="col-md-2">
-                                        <label class="m-r-10" for="search-category">Categoría</label>
+                                        <label class="m-r-10" for="search-category">{{ 'generics.category' | i18next }}</label>
                                     </div>
                                     <div class="item-input col-md-10">
                                         <select id="search-category" data-ng-model="search.category" class="custom-select col-md-8 form-control form-select">
@@ -105,9 +105,9 @@
                                         <span title="Limpiar filtros" class="glyphicon glyphicon-trash" aria-hidden="true">Cancelar</span>
                                     </div> -->
                                     <span id="processingSpan" class="icon-refresh" ng-class="{'spinner': isProcessing}" data-ng-show="isProcessing"></span>
-                                    <a  title="Limpiar filtros" ng-click="clearSearch()" ng-disabled="isProcessing"  class="cancel-link" >Limpiar</a>
+                                    <a  title="{{ 'generics.cleanFilters' | i18next }}" ng-click="clearSearch()" ng-disabled="isProcessing"  class="cancel-link" >{{ 'generics.clean' | i18next }}</a>
                                    
-                                    <button id="search-button" type="submit" class="btn btn-round btn-success selected" data-ng-disabled="isProcessing">Buscar</button>
+                                    <button id="search-button" type="submit" class="btn btn-round btn-success selected" data-ng-disabled="isProcessing">{{ 'buttons.search' | i18next }}</button>
                                 </div>
                             </div>
                         </div>
@@ -126,10 +126,10 @@
                         <div class="row padding-left-30  padding-right-30 ">
                                 <div class="col-md-12">
                                         <div class="row padding-0 tabs-estados" >
-                                            <div class="col-md-3 padding-left-0 text-center tabs-estados-tab tab-estados-tab__todos"> <a ng-click="filtros(status[0])" data-ng-model="filtro" uib-btn-radio="'Todos'" id="all" value="{{undefined}}">Todos</a></div>
-                                            <div class="col-md-3 text-center tabs-estados-tab tab-estados-tab__pendientes"><a class="" ng-click="filtros(status[1])" data-ng-model="filtro" id="pending" value="pending">Pendientes</a></div>
-                                            <div class="col-md-3 padding-left-0 text-center tabs-estados-tab tab-estados-tab__confirmados"><a class=""  ng-click="filtros(status[2])" data-ng-model="filtro" id="hit" value="hit">Confirmados</a></div>
-                                            <div class="col-md-3 text-center tabs-estados-tab tab-estados-tab__descartados"><a  ng-click="filtros(status[3])" data-ng-model="filtro" id="discarded" value="discarded"> Descartados</a></div>
+                                            <div class="col-md-3 padding-left-0 text-center tabs-estados-tab tab-estados-tab__todos"> <a ng-click="filtros(status[0])" data-ng-model="filtro" uib-btn-radio="'Todos'" id="all" value="{{undefined}}">{{ 'generics.all' | i18next }}</a></div>
+                                            <div class="col-md-3 text-center tabs-estados-tab tab-estados-tab__pendientes"><a class="" ng-click="filtros(status[1])" data-ng-model="filtro" id="pending" value="pending">{{ 'generics.pendingPlural' | i18next }}</a></div>
+                                            <div class="col-md-3 padding-left-0 text-center tabs-estados-tab tab-estados-tab__confirmados"><a class=""  ng-click="filtros(status[2])" data-ng-model="filtro" id="hit" value="hit">{{ 'generics.confirmedPlural' | i18next }}</a></div>
+                                            <div class="col-md-3 text-center tabs-estados-tab tab-estados-tab__descartados"><a  ng-click="filtros(status[3])" data-ng-model="filtro" id="discarded" value="discarded"> {{ 'generics.discardedPlural' | i18next }}</a></div>
                                         </div>
                                     </div>
                         </div>
@@ -138,13 +138,13 @@
                             <div class="m-t-10 row">
                                 <div class="form-group col-md-12 vertical-align">
                                     <div class="row padding-0  m-t-0 vertical-align">
-                                        <div class="col-md-offset-6 col-md-3 padding-0"> <label for="group">Visualizar por:</label>
+                                        <div class="col-md-offset-6 col-md-3 padding-0"> <label for="group">{{ 'generics.viewBy' | i18next }}</label>
                                         </div>
 
                                         <div class="col-md-3 item-input padding-right-0">
                                             <select id="group" class="form-control form-select" data-ng-model="groupId" data-ng-change="searchPrevious()">
-                                                <option id="pedigreeGroup" value="pedigree">Pedigrí</option>
-                                                <option id="profileGroup" value="profile">Perfil</option>
+                                                <option id="pedigreeGroup" value="pedigree">{{ 'generics.pedigree' | i18next }}</option>
+                                                <option id="profileGroup" value="profile">{{ 'generics.profile' | i18next }}</option>
                                             </select>
                                         </div>
                                     </div>
@@ -162,8 +162,8 @@
     
    
     <div data-ng-show="noResult && !isProcessing" class="row coincidencia-estado">
-           
-                    No se encontraron datos según su busqueda
+
+                    {{ 'generics.noResult' | i18next }}
              
     </div>
     <div class="row coincidencia-estado"  data-ng-show="!noResult" ng:repeat="match in matches" name="{{'match_' + match.matchCard.id}}">
@@ -176,7 +176,7 @@
                     <h5> <span  ng-show="match.matchCard.groupBy == 'pedigree'" class="small">{{match.matchCard.courtCaseName}} -</span> <span> {{match.matchCard.title}} </span> </h5>
 
                     <!-- <p>Muestra de referencia indubitativa</p> -->
-                    <h6 class="dato">Usuario responsable: <span class="dato laboratorio big-size">{{match.matchCard.assignee}}</span></h6>
+                    <h6 class="dato">{{ 'generics.userResponsible' | i18next }}: <span class="dato laboratorio big-size">{{match.matchCard.assignee}}</span></h6>
                    
                 </div>
                     
@@ -184,24 +184,24 @@
                     <div class="row padding-0 coincidencia-estado-detalle ">
                         
                         <div class="col-md-5 padding-top-7 padding-bottom-7 padding-right-0">
-                            <h6 class="dato categoria" ng-show="match.matchCard.groupBy != 'pedigree'">Categoría: <span class="dato ultimacoincidencia">{{match.matchCard.category}}</span></h6>
-                            <h6 class="dato categoria" ng-show="match.matchCard.groupBy == 'pedigree'">Tipo de caso:  <span class="dato ultimacoincidencia">{{match.matchCard.category}}</span></h6>
+                            <h6 class="dato categoria" ng-show="match.matchCard.groupBy != 'pedigree'">{{ 'generics.category' | i18next }}: <span class="dato ultimacoincidencia">{{match.matchCard.category}}</span></h6>
+                            <h6 class="dato categoria" ng-show="match.matchCard.groupBy == 'pedigree'">{{ 'pedigree.matchCourtCase.caseType' | i18next }}:  <span class="dato ultimacoincidencia">{{match.matchCard.category}}</span></h6>
 
-                            <h6 class="dato ">Ultima coincidencia: <span class="dato">{{match.matchCard.lastMatchDate | date:'yyyy-MM-dd'}}</span></h6>
+                            <h6 class="dato ">{{ 'generics.lastCoincidence' | i18next }}: <span class="dato">{{match.matchCard.lastMatchDate | date:'yyyy-MM-dd'}}</span></h6>
                         </div>
                         <div class="col-md-7  padding-0 coincidencia-estado-detalle ">
                                 <div class="col-md-3 padding-right-0 padding-left-0 padding-top-7 padding-bottom-7">
-                                        <h6>Pendientes</h6>
+                                        <h6>{{ 'generics.pendingPlural' | i18next }}</h6>
                                         <p class="dato laboratorio big-size" ng-if="match.matchCard.pending !== 0">{{match.matchCard.pending}}</p>
                                         <p class="dato laboratorio big-size" ng-if="match.matchCard.pending == 0">&mdash;</p>
                                     </div>
                                 <div class="col-md-3 padding-right-0 padding-left-0 padding-top-7 padding-bottom-7">
-                                        <h6>Confirmados</h6>
+                                        <h6>{{ 'generics.confirmedlural' | i18next }}</h6>
                                         <p class="dato laboratorio big-size" ng-if="match.matchCard.hit !== 0 ">{{match.matchCard.hit}}</p>
                                         <p class="dato laboratorio big-size" ng-if="match.matchCard.hit == 0">&mdash;</p>
                                     </div>
                                 <div class="col-md-3 padding-right-0 padding-left-0 padding-top-7 padding-bottom-7">
-                                    <h6>Descartados</h6>
+                                    <h6>{{ 'generics.discardedPlural' | i18next }}</h6>
                                     <p class="dato laboratorio big-size" ng-if="match.matchCard.discarded !== 0">{{match.matchCard.discarded}}</p>
                                     <p class="dato laboratorio big-size" ng-if="match.matchCard.discarded == 0">&mdash;</p>
                                 </div>
@@ -227,11 +227,11 @@
                                 <div class="col-md-4 padding-right-0">
                                     <div class="row padding-right-0" ng-show="match.matchCard.groupBy == 'pedigree'">
                                         <div class="col-md-6 padding-0">
-                                            <h6>Código laboratorio</h6>
+                                            <h6>{{ 'generics.labCode' | i18next }}</h6>
                                             <p>{{match.matchCardMejorLrPed.sampleCode}}</p>
                                         </div>
                                         <div class="col-md-6 padding-0">
-                                            <h6>Código GENis</h6>
+                                            <h6>{{ 'generics.GENisCode' | i18next }}</h6>
                                             <p>{{match.matchCardMejorLrPed.internalCode}}</p>
                                         </div>
                                     </div>
@@ -242,7 +242,7 @@
                                             <p>{{match.matchCardMejorLrPed.sampleCode}}</p>
                                         </div>
                                         <div class="col-md-6 padding-0">
-                                            <h6>Pedigrí</h6>
+                                            <h6>{{ 'generics.pedigree' | i18next }}</h6>
                                             <p>{{match.matchCardMejorLrPed.internalCode}}</p>
                                         </div>
                                     </div>
@@ -251,15 +251,15 @@
                                 <div class="col-md-6">
                                     <div class="row">
                                          <div class="col-md-4">
-                                            <h6>Fecha</h6>
+                                            <h6>{{ 'generics.date' | i18next }}</h6>
                                             <p >{{match.matchCard.lastMatchDate | date:'yyyy-MM-dd' }}
                                             </p>
 
                                         </div>
                                         <div class="col-md-8 padding-right-0" >
-                                            <h6 ng-show="match.matchCard.groupBy == 'pedigree'">Categoría</h6>
+                                            <h6 ng-show="match.matchCard.groupBy == 'pedigree'">{{ 'generics.category' | i18next }}</h6>
                                                 <p ng-show="match.matchCard.groupBy == 'pedigree'">{{match.matchCardMejorLrPed.categoryId}}</p>
-                                           <h6 ng-show="match.matchCard.groupBy != 'pedigree'">Tipo de caso</h6>
+                                           <h6 ng-show="match.matchCard.groupBy != 'pedigree'">{{ 'pedigree.matchCourtCase.caseType' | i18next }}</h6>
                                             <p ng-show="match.matchCard.groupBy != 'pedigree'">{{match.matchCardMejorLrPed.categoryId}}</p>
                                         </div>
                                     </div>
@@ -277,23 +277,23 @@
                                     <p ng-if="match.matchCardMejorLrPed.lr == 0">-</p>
                                 </div>
                                 <div class="col-md-5">
-                                            <h6>Estado</h6>
+                                            <h6>{{ 'generics.state' | i18next }}</h6>
                                             <p>{{matchPStatus[match.matchCardMejorLrPed.estado]}}</p>
 
                                 </div>
                                 <div class="col-md-3 padding-0">
                                     <div class="row">
                                         <div class="col-md-12 padding-0">
-                                            <a  id="goto-button" href="{{getGroups(match.matchCard)}}" ng-click="filtroLocal(match.matchCard.id)" class="btn btn-round btn-small">Ver todos</a>
+                                            <a  id="goto-button" href="{{getGroups(match.matchCard)}}" ng-click="filtroLocal(match.matchCard.id)" class="btn btn-round btn-small">{{ 'buttons.viewAllPlural' | i18next }}</a>
                                             
                                         </div>
                                     </div>
                                     <div class="row padding-0">
                                         <div class="col-md-12 padding-right-0 padding-left-0 text-center">
                                             
-                                            <a  href="" class="cancel-link descartar"  pdg-confirm pdg-confirm-title="Descartar Coincidencias"
-                                                pdg-confirm-content="Al confirmar esta acción se descartarán todas las coincidencias del grupo. ¿Está seguro?"
-                                                pdg-on-confirm="descarteMasivo" param="{{match.matchCard}}" >Descartar todos</a>
+                                            <a  href="" class="cancel-link descartar"  pdg-confirm pdg-confirm-title="{{ 'matches.discardPlural' | i18next }}"
+                                                pdg-confirm-content="{{ 'matches.discardConfirmation' | i18next }}"
+                                                pdg-on-confirm="descarteMasivo" param="{{match.matchCard}}" >{{ 'matches.discardAll' | i18next }}</a>
                                         </div>
                                     </div>
                                 </div>

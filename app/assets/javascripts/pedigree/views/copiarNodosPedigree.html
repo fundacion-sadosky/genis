@@ -1,20 +1,20 @@
 <!DOCTYPE html>
 <div class="modal-header">
-    <h4 class="active">Confirmar copia de pedigrí</h4>
+    <h4 class="active">{{ 'alerts.pedigree.confirmCopy' | i18next }}</h4>
 </div>
 <div class="modal-body">
     <span>
-        Esta intentando copiar un pedigri sin guardar los cambios en el pedigrí original.<br/>
-    Si desea continuar con la copia, perderá los últimos cambios.<br/><br/>
-    ¿Desea continuar con la operación?</span>
+        {{ 'alerts.pedigree.copyAlert' | i18next }}<br/>
+    {{ 'alerts.pedigree.copyAlert1' | i18next }}<br/><br/>
+    {{ 'alerts.pedigree.copyAlert2' | i18next }}</span>
 </div>
 <div class="modal-footer">
     <div class="btn btn-link-action" ng-click="$dismiss()">
-            <span title="Cerrar">
+            <span title="{{ 'buttons.close' | i18next }}">
                 <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
             </span>
-        <span class="btn-link-action">Cancelar</span>
+        <span class="btn-link-action">{{ 'buttons.cancel' | i18next }}</span>
     </div>
-    <button class="btn btn-primary-action" ng-click="$close()">Aceptar</button>
+    <button class="btn btn-primary-action" ng-click="$close()">{{ 'buttons.accept' | i18next }}</button>
 </div>
 

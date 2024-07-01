@@ -120,12 +120,12 @@ var OriginalCtrl = function($scope, pedigreeService, $log, $routeParams, $modal,
                 function (i) {
                     return (ng.isDefined(i.idMother) && i.idMother === node.alias) || (ng.isDefined(i.idFather) && i.idFather === node.alias);
                 })) {
-            alertService.error({message: 'No se puede eliminar un nodo padre o madre de otro nodo'});
+            alertService.error({message: $.i18n.t('alerts.node.parentError')});
             return;
         }
 
         if (node.unknown) {
-            alertService.error({message: 'No se puede eliminar el nodo incógnita'});
+            alertService.error({message: $.i18n.t('alerts.node.unknownError')});
             return;
         }
 
@@ -181,10 +181,10 @@ var OriginalCtrl = function($scope, pedigreeService, $log, $routeParams, $modal,
                 });
                 $route.reload();
             }
-            alertService.success({message: 'La operación se ha realizado éxitosamente'});
+            alertService.success({message: $.i18n.t('alerts.genericSuccess.operation')});
 
         }, function(response){
-            alertService.error({message: 'Ha ocurrido un error ' + (response.data ? response.data : response)});
+            alertService.error({message: $.i18n.t('error.message') + (response.data ? response.data : response)});
             return;
         });
 
@@ -339,7 +339,7 @@ var OriginalCtrl = function($scope, pedigreeService, $log, $routeParams, $modal,
         $scope.pedigree.status = status;
         $scope.pedigree.processed = false;
         pedigreeService.changePedigreeStatus($scope.pedigree._id, status, $scope.pedigree).then(function() {
-            alertService.success({message: 'La operación se realizó exitosamente'});
+            alertService.success({message: $.i18n.t('alerts.genericSuccess.operation')});
             $scope.pedigree.status = status;
             $scope.pedigree.processed = true;
             $scope.$parent.$parent.$parent.pedigreeStatus= $scope.pedigree.status;
@@ -355,7 +355,7 @@ var OriginalCtrl = function($scope, pedigreeService, $log, $routeParams, $modal,
             var editable = response.data;
 
             if (!editable) {
-                alertService.error({message:"El pedigrí no se puede cerrar dado que tiene matches sin descartar."});
+                alertService.error({message: $.i18n.t('alerts.pedigree.closeError')});
             } else  {
                 changeStatus('Closed');
             }
@@ -369,9 +369,9 @@ var OriginalCtrl = function($scope, pedigreeService, $log, $routeParams, $modal,
             var editable = response.data;
 
             if (!editable) {
-                alertService.error({message:"El pedigrí no se puede editar dado que tiene matches sin descartar."});
+                alertService.error({message: $.i18n.t('alerts.pedigree.editMatchError')});
             } else if ($scope.scenarios.filter(function(s) { return s.status === 'Validated';}).length > 0) {
-                alertService.error({message:"El pedigrí no se puede editar dado que tiene escenarios validados."});
+                alertService.error({message: $.i18n.t('alerts.pedigree.editScenarioError')});
 
             } else if ($scope.scenarios.length > 0) {
                 $modal.open({
@@ -415,7 +415,7 @@ var OriginalCtrl = function($scope, pedigreeService, $log, $routeParams, $modal,
                                 closeActivarModal(response);
                             });
       } else {
-            alertService.error({message: "Todas las personas de interés deben tener padre y madre"});
+            alertService.error({message: $.i18n.t('alerts.pedigree.parentError')});
         }
     };
 
@@ -478,12 +478,12 @@ $scope.isEditable = function() {
                 n.idMother = undefined;
             }
             if (n.unknown && !n.idFather) {
-                var father = {alias: "Padre-" + n.alias, sex: "Male", unknown: false};
+                var father = {alias: $.i18n.t('generics.fatherDash') + n.alias, sex: "Male", unknown: false};
                 n.idFather = father.alias;
                 nodes.push(father);
             }
             if (n.unknown && !n.idMother) {
-                var mother = {alias: "Madre-" + n.alias, sex: "Female", unknown: false};
+                var mother = {alias: $.i18n.t('generics.motherDash') + n.alias, sex: "Female", unknown: false};
                 n.idMother = mother.alias;
                 nodes.push(mother);
             }
@@ -576,12 +576,12 @@ $scope.isEditable = function() {
                     function(i) {
                         return (ng.isDefined(i.idMother) && i.idMother === n.alias) || (ng.isDefined(i.idFather) && i.idFather === n.alias);
                     })){
-                alertService.error({message: 'No se puede eliminar un nodo padre o madre de otro nodo'});
+                alertService.error({message: $.i18n.t('alerts.node.parentError')});
                 return;
             }
 
             if (n.unknown) {
-                alertService.error({message: 'No se puede eliminar el nodo incógnita'});
+                alertService.error({message: $.i18n.t('alerts.node.unknownError')});
                 return;
             }
 
@@ -598,7 +598,7 @@ $scope.isEditable = function() {
         commit();
         toggleCopyButton();
         }else{
-            alertService.error({message: "Solo se puede eliminar nodo/s de un pedigrí en edición"});
+            alertService.error({message: $.i18n.t('alerts.pedigree.editModeError')});
         }
     };
 

@@ -1,15 +1,15 @@
 <div class="modal-header">
  	<button type="button" class="close" data-dismiss="modal" aria-label="Close" ng-click="$close()"><span aria-hidden="true">&times;</span></button>
-	<h4>Solicitud de blanqueo de contraseña</h4>
+	<h4>{{ 'signUp.changePassword' | i18next }}</h4>
 </div>
 
 <div class="modal-body">
     <form id="clearPasswordForm" name="clearPasswordForm" class="form" role="form" novalidate>
         <div class="row">
             <div class="col-md-12">
-                    <p>Todos los campos con<span class="field-obligated">*</span>son obligatorios.</p> 
+                    <p>{{ 'signUp.request.mandatoryField1' | i18next }} <span class="field-obligated">*</span>{{ 'signUp.request.mandatoryField1' | i18next }}</p>
                 <div class="item-input">
-                    <label for="clearUsername">Nombre de Usuario<span class="field-obligated">*</span></label>
+                    <label for="clearUsername">{{ 'generics.userName' | i18next }}<span class="field-obligated">*</span></label>
                     <input type="text"
                             id="clearUsername"
                             name="clearUsername"
@@ -17,7 +17,7 @@
                            help-tip="login.input.userName"
                            ng-model="solicitudClear.userName"
                            autocomplete="off"
-                           placeholder="Nombre de Usuario"
+                           placeholder="{{ 'generics.userName' | i18next }}"
                            required
                            autofocus />
                     <form-validation input="clearPasswordForm.clearUsername"></form-validation>
@@ -26,21 +26,21 @@
 
             <div class="col-md-12">
                 <div class="item-input">
-                    <label for="newPassword">Nueva contraseña<span class="field-obligated">*</span></label>
+                    <label for="newPassword">{{ 'signUp.newAccount' | i18next }}<span class="field-obligated">*</span></label>
                     <input type="password" id="newPassword" name="newPassword"
                         class="form-control login-input form-select" ng-model="solicitudClear.newPassword"
-                        autocomplete="off" placeholder="Nueva contraseña" required>
+                        autocomplete="off" placeholder="{{ 'signUp.newAccount' | i18next }}" required>
                     <form-validation input="clearPasswordForm.newPassword"></form-validation>
                 </div>
             </div>
 
             <div class="col-md-12">
                 <div class="item-input">
-                    <label for="signupRepeatPassword">Confirmar nueva contraseña<span class="field-obligated">*</span></label>
+                    <label for="signupRepeatPassword">{{ 'signUp.newPasswordConfirmation' | i18next }}<span class="field-obligated">*</span></label>
                     <input type="password" name="confirmNewPassword"
                         id="signupRepeatPassword" class="form-control login-input form-select"
                         ng-model="solicitudClear.repeatPassword" autocomplete="off"
-                        placeholder="Confirmar nueva contraseña" required ng-pattern="solicitudClear.newPassword">
+                        placeholder="{{ 'signUp.newPasswordConfirmation' | i18next }}" required ng-pattern="solicitudClear.newPassword">
                     <form-validation input="clearPasswordForm.confirmNewPassword" pattern="password"></form-validation>
                 </div>
             </div>
@@ -54,6 +54,6 @@
 		class="btn btn-primary-action"
 		ng-click="clearPassRequest()"
 		ng-disabled="clearPasswordForm.$invalid">
-		Solicitar blanqueo de contraseña
+        {{ 'signUp.changePasswordRequest' | i18next }}
 	</button>
 </div>

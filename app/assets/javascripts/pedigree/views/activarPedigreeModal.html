@@ -17,7 +17,7 @@
 </style>
 
 <div class="modal-header">
-    <h4>Activar Pedigrí {{pedigreeName}}</h4>
+    <h4>{{ 'pedigree.activate' | i18next }} {{pedigreeName}}</h4>
 </div>
 <div class="modal-body">
     <div class="row">
@@ -25,13 +25,13 @@
             <div class="col-md-1  padding-left-0">
                 <input id="mitocondrial" type="checkbox" ng-disabled="isActive()" ng-model="mito" ng-change="changeSelection(mito.selected)"  />
             </div>
-            <span class="col-md-11 padding-left-0">Correr screening mitocondrial</span>
+            <span class="col-md-11 padding-left-0">{{ 'pedigree.runScreening' | i18next }}</span>
             </br>
             </br>
         </div>
 
         <div class="item-input col-md-12" ng-hide="isDVI">
-            <span class="col-md-8 padding-left-0">Cantidad de no coincidencias para mitocondrial: </span>
+            <span class="col-md-8 padding-left-0">{{ 'pedigree.mitochondrialMismatch' | i18next }}: </span>
             <div class="col-md-2 padding-left-0 ">
                 <input ng-model="mismatchMito" ng-disabled="!mito || isActive()" id="mismatchMito" class="form-control form-select" type="text"/>
             </div>
@@ -49,7 +49,7 @@
         </div>
 
         <div class="item-input col-md-12" help-tip="pedigree.frequencyBase" help-tip-placement="right">
-            <span class="col-md-5 padding-left-0">Base de Frecuencia</span>
+            <span class="col-md-5 padding-left-0">{{ 'pedigree.baseFrequency' | i18next }}</span>
             <div class="col-md-7 padding-left-0">
                 <select id="frequencyTable"
                         data-ng-model="freqTable" class="form-control form-select" required
@@ -60,12 +60,12 @@
             </div>
         </div>
         <div class="item-input col-md-12">
-            <span class="col-md-5 padding-left-0">Modelo de mutaciones</span>
+            <span class="col-md-5 padding-left-0">{{ 'pedigree.mutationModel' | i18next }}</span>
             <div class="col-md-7 padding-left-0">
                 <select id="mutationModel"
                         ng-model="mutationModelId" class="form-control form-select"
                         ng-disabled="status === 'Active'">
-                    <option value="{{undefined}}">Sin Mutaciones</option>
+                    <option value="{{undefined}}">{{ 'pedigree.noMutations' | i18next }}</option>
                     <option ng-repeat="model in activeModels" value="{{model.id}}" ng-selected="mutationModelId === model.id">{{model.name}}</option>
                 </select>
             </div>
@@ -77,11 +77,11 @@
     <div class="col-md-12">
     <div class="btn btn-secondary-action" ng-click="$dismiss()">
         <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
-        <span class="btn-secondary-action">Cancelar</span>
+        <span class="btn-secondary-action">{{ 'buttons.cancel' | i18next }}</span>
     </div>
     <button type="button" class="btn btn-primary-action"
             ng-if="!isActive()"
-            data-ng-click="close()">Activar</button>
+            data-ng-click="close()">{{ 'buttons.activate' | i18next }}</button>
     </div>
 
 

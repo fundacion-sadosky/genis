@@ -21,7 +21,7 @@ define([], function() {
 
         $scope.generarReporte = function () {
             if ($scope.search === undefined  || $scope.search.hourFrom === undefined|| $scope.search.hourUntil === undefined) {
-                alertService.error({message:'Debe completar las fechas desde y hasta'});
+                alertService.error({message: $.i18n.t('alerts.date.toFrom')});
                 return;
             }
             var fechaDesde = $scope.search.hourFrom.getDate() + "-" + $scope.search.hourFrom.getMonth() + "-" + $scope.search.hourFrom.getFullYear();
@@ -41,7 +41,7 @@ define([], function() {
             var today = new Date();
 
             if (today - aux < 0) {
-                alertService.info({message: 'La fecha debe ser anterior a la actual.'});
+                alertService.info({message: $.i18n.t('alerts.date.before')});
                 $scope.search[fieldName] = undefined;
                 $scope.minDateCoin = null;
             } else {
@@ -71,11 +71,11 @@ define([], function() {
                 min = $scope.search.hourFrom;
             }
             if (max - aux < 0) {
-                alertService.info({message: 'La fecha debe ser anterior a la actual.'});
+                alertService.info({message: $.i18n.t('alerts.date.before')});
                 $scope.search[fieldName] = undefined;
             } else {
                 if (min - aux > 0) {
-                    alertService.info({message: 'La fecha  debe ser posterior al campo desde.'});
+                    alertService.info({message:$.i18n.t('alerts.date.after')});
                     $scope.search[fieldName] = undefined;
                 }
             }

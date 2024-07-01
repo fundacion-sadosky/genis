@@ -11,8 +11,8 @@ define(['angular','lodash','jquery'], function(angular,_,$) {
         localStorage.removeItem("searchMatches");
         localStorage.removeItem("nuevo");
 
-        $scope.status = [{label: "todos", value: "", index: 0}, {label: "pendientes", value: "pending", index: 1},
-            { label: "confirmados",value: "hit", index: 2 },{label: "descartados", value: "discarded", index: 3}];
+        $scope.status = [{label: "todos", value: "", index: 0}, {label: "$.i18n.t('generics.pending')", value: "pending", index: 1},
+            { label: "$.i18n.t('generics.confirmedPlural')",value: "hit", index: 2 },{label: "$.i18n.t('generics.discarded')", value: "discarded", index: 3}];
 
         if(localStorage.length > 0 && localStorage.getItem("searchPedigreeMatches")){
             var inicio = JSON.parse(localStorage.getItem("searchPedigreeMatches"));
@@ -188,11 +188,11 @@ define(['angular','lodash','jquery'], function(angular,_,$) {
                 min = $scope.search.hourFrom;
             }
             if(max-aux < 0 ){
-                alertService.info({message: 'La fecha debe ser anterior a la actual.'});
+                alertService.info({message: $.i18n.t('alerts.date.before')});
                 $scope.search[fieldName] = undefined;
             }else{
                 if( min-aux > 0 ){
-                    alertService.info({message: 'La fecha  debe ser posterior al campo desde.'});
+                    alertService.info({message: $.i18n.t('alerts.date.after')});
                     $scope.search[fieldName] = undefined;
                 }
             }
@@ -204,7 +204,7 @@ define(['angular','lodash','jquery'], function(angular,_,$) {
             var today = new Date();
 
             if(today-aux < 0 ){
-                alertService.info({message: 'La fecha debe ser anterior a la actual.'});
+                alertService.info({message: $.i18n.t('alerts.date.before')});
                 $scope.search[fieldName] = undefined;
                 $scope.minDateCoin = null;
             }else{
@@ -233,13 +233,13 @@ define(['angular','lodash','jquery'], function(angular,_,$) {
             if(!confirm) {return;}
             var matchObject = JSON.parse(match);
             pedigreeMatchesService.descarteMasivoByGroup(matchObject.id, matchObject.groupBy).then(function () {
-                alertService.success({message: 'Se ha descartado el grupo'});
+                alertService.success({message: $.i18n.t('alerts.group.discarded')});
                 $scope.searchMatches();
             }, function(response) {
                 if (response.data.message === "Sin matches") {
-                    alertService.error({message: 'No hay matches para descartar en el grupo'});
+                    alertService.error({message: $.i18n.t('alerts.matches.noMatches')});
                 } else {
-                    alertService.error({message: 'Algunos matches del grupo no pudieron ser descartados'});
+                    alertService.error({message: $.i18n.t('alerts.matches.noMatchesError')});
                     $scope.searchMatches();
                 }
             });

@@ -2,9 +2,9 @@
     <div class="panel panel-default" ng-init="searchMatches('DirectLink')" ng-show="totalItems !== '0'">
         <a data-toggle="collapse" href="#direct" style="text-decoration: none; height: 50px;">
             <div class="panel-heading btn-icon-action" style="background-color: #f5f5f5; border-color:#dddddd;">
-                <span class="bold panel-title">Vínculos Directos</span>
+                <span class="bold panel-title">{{ 'generics.directLinks' | i18next }}</span>
                 <span class="pull-right">
-                    <span class="badge match-badge"><b>{{totalItems}} coincidencias</b></span>
+                    <span class="badge match-badge"><b>{{totalItems}} {{ 'generics.matchesLower' | i18next }}</b></span>
                 </span>
             </div>
         </a>
@@ -14,45 +14,45 @@
                     <thead>
                     <tr>
                         <th class="text-center" style="width:10%">
-                            <pdg-sortable name="Fecha" predicate="sortField" reverse="!ascending"
+                            <pdg-sortable name="{{ 'generics.date' | i18next }}" predicate="sortField" reverse="!ascending"
                                           sort-action="sortBy('DirectLink', 'date')" sort-field="date" numeric="true"></pdg-sortable>
                         </th>
                         <th class="text-center" ng-show="groupByProfile()">Pedigrí</th>
                         <th class="text-center" ng-show="groupByPedigree()">
-                            <pdg-sortable name="Perfil candidato" predicate="sortField" reverse="!ascending"
+                            <pdg-sortable name="{{ 'pedigree.profile.candidateProfile' | i18next }}" predicate="sortField" reverse="!ascending"
                                           sort-action="sortBy('DirectLink', 'profile')" sort-field="profile"></pdg-sortable>
                         </th>
                         <th class="text-center">
-                            Tipo de análisis
+                            {{ 'generics.analysisType' | i18next }}
                         </th>
                         <th class="text-center">
-                            Perfil asociado al pedigrí
+                            {{ 'pedigree.profiles.associated' | i18next }}
                         </th>
                         <th class="text-center">
-                            <pdg-sortable name="Persona de interés" predicate="sortField" reverse="!ascending"
+                            <pdg-sortable name="{{ 'pedigree.profiles.personOfInterest' | i18next }}" predicate="sortField" reverse="!ascending"
                                           sort-action="sortBy('DirectLink', 'unknown')" sort-field="unknown"></pdg-sortable>
                         </th>
                         <th class="text-center">
-                            Exigencia
+                            {{ 'generics.stringency' | i18next }}
                         </th>
                         <th class="text-center">
-                            LR
+                            {{ 'generics.lr' | i18next }}
                         </th>
                         <th class="text-center">
-                            <pdg-sortable name="Estado agrupador" predicate="sortField" reverse="!ascending"
+                            <pdg-sortable name="{{ 'matches.statusGrouperFull' | i18next }}" predicate="sortField" reverse="!ascending"
                                           sort-action="sortBy('DirectLink', 'pedigreeStatus')" sort-field="pedigreeStatus"></pdg-sortable>
                         </th>
                         <th class="text-center">
-                            <pdg-sortable name="Estado coincidente" predicate="sortField" reverse="!ascending"
+                            <pdg-sortable name="{{ 'matches.statusMatch' | i18next }}" predicate="sortField" reverse="!ascending"
                                           sort-action="sortBy('DirectLink', 'profileStatus')" sort-field="profileStatus"></pdg-sortable>
                         </th>
                         <th class="text-center">
-                            Agregar escenario
+                            {{ 'generics.addScenario' | i18next }}
                         </th>
                         <th class="text-center">
-                            Descartar
+                            {{ 'generics.discard' | i18next }}
                         </th>
-                        <th style="width: 5%">Comparar</th>
+                        <th style="width: 5%">{{ 'generics.compare' | i18next }}</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -93,7 +93,7 @@
                         <td class="text-center">{{ matchStatus[m.profile.status] }}</td>
 
                         <td class="text-center">
-                            <a class="btn btn-icon-action" title="Nuevo escenario" href="{{goToScenario(m.pedigree, m.profile)}}">
+                            <a class="btn btn-icon-action" title="{{ 'generics.newScenario' | i18next }}" href="{{goToScenario(m.pedigree, m.profile)}}">
                                 <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
                             </a>
                         </td>
@@ -102,14 +102,14 @@
                             <a id="doDiscardDisabled" ng-if="!canDiscard(m)" class="btn btn-icon-action" disabled="disabled">
                                 <span class="glyphicon glyphicon-thumbs-down" aria-hidden="true"></span>
                             </a>
-                            <a id="doDiscard" ng-if="canDiscard(m)" pdg-confirm pdg-confirm-title="Descartar Coincidencia"
-                                    pdg-confirm-content="Al confirmar esta acción se descartará la coincidencia. ¿Está seguro?"
+                            <a id="doDiscard" ng-if="canDiscard(m)" pdg-confirm pdg-confirm-title="{{ 'buttons.discardMatch' | i18next }}"
+                                    pdg-confirm-content="{{ 'alerts.match.discardSure' | i18next }}"
                                     param="{{m}}" class="btn btn-icon-action" pdg-on-confirm="discard">
                                 <span class="glyphicon glyphicon-thumbs-down" aria-hidden="true"></span>
                             </a>
                         </td>
 
-                        <td title="Ver alelos">
+                        <td title="{{ 'generics.viewAlleles' | i18next }}">
                             <a id="go_evidencia_{{$index}}" href="{{goToComparison(m.pedigree.globalCode, m.profile.globalCode, m._id.$oid)}}">
                                 <span class="glyphicon glyphicon-share-alt btn-icon-action"></span>
                             </a>

@@ -8,7 +8,7 @@
                             <span  class="icon-atras" title="Volver"></span>
                         </div>
                     </li>
-                    <li class="active">Comparación de Perfiles</li>
+                    <li class="active">{{ 'profileViews.comparison.title' | i18next }}</li>
 
                 </ol>
             </div>
@@ -21,7 +21,7 @@
     <div class="panel-body">
 
         <div class="col-md-3 vertical-align">
-            <h6 class="col-md-3 control-label">Perfiles:</h6>
+            <h6 class="col-md-3 control-label">{{ 'generics.profiles' | i18next }}:</h6>
             <div class="col-md-12 input-group" style="padding-bottom: 10px;">
                 <input type="text" class="form-control form-select" aria-describedby="basic-addon2"
                        id="search" name="search" ng-model="search"
@@ -43,7 +43,7 @@
             </div>
         </div>
         <div class="col-md-12">
-            <span class="pull-left"> Se debe escribir el código exacto para poder agregar el perfil</span>
+            <span class="pull-left"> {{ 'profileViews.comparison.warn' | i18next }}</span>
         </div>
     </div>
 </div>
@@ -52,9 +52,9 @@
 <div class="row text-right scenario-separator">
     <div class="col-md-pull-12 pull-right" style="margin-top: 5px;">
         <a role="button" class="btn btn-default m-r-5 list-group-menu-item" help-tip="pedigree.comparison.differences" help-tip-placement="left"
-           ng-class="{'list-group-menu-item-selected': showDifferences}" ng-click="displayDifferences()">Mostrar diferencias</a>
+           ng-class="{'list-group-menu-item-selected': showDifferences}" ng-click="displayDifferences()">{{ 'buttons.show.differences' | i18next }}</a>
         <a role="button" class="btn btn-default m-r-5 list-group-menu-item" help-tip="pedigree.comparison.matches" help-tip-placement="top"
-           ng-class="{'list-group-menu-item-selected': showMatches}" ng-click="displayMatches()">Mostrar coincidencias</a>
+           ng-class="{'list-group-menu-item-selected': showMatches}" ng-click="displayMatches()">{{ 'buttons.show.matches' | i18next }}</a>
     </div>
 
     <div class="scenarios-section" ng-if="comparison" style="padding-bottom: 25px;padding-top: 50px;">

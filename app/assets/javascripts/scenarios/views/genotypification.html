@@ -3,7 +3,7 @@
     <div class="panel-body">
 
             <div class="col-md-3 vertical-align">
-                <div class="col-sm-3 control-label">Perfiles:</div>
+                <div class="col-sm-3 control-label">{{ 'generics.profiles' | i18next }}:</div>
                 <div class="col-sm-9">
                     <select id="genotypificationOptions" data-ng-change="show(selectedOption)"
                             data-ng-model="selectedOption" class="form-control form-select" required
@@ -25,9 +25,9 @@
 
 <div class="row text-right scenario-separator">
     <a role="button" class="btn btn-default m-r-5 list-group-menu-item" help-tip="scenario.comparison.differences" help-tip-placement="left"
-            ng-class="{'list-group-menu-item-selected': showDifferences}" ng-click="displayDifferences()">Mostrar diferencias</a>
+            ng-class="{'list-group-menu-item-selected': showDifferences}" ng-click="displayDifferences()">{{ 'pedigree.genotypification.displayDifferences' | i18next }}</a>
     <a role="button" class="btn btn-default m-r-5 list-group-menu-item" help-tip="scenario.comparison.matches" help-tip-placement="top"
-            ng-class="{'list-group-menu-item-selected': showMatches}" ng-click="displayMatches()">Mostrar coincidencias</a>
+            ng-class="{'list-group-menu-item-selected': showMatches}" ng-click="displayMatches()">{{ 'pedigree.genotypification.displayMatches' | i18next }}</a>
 </div>
 
 <div class="scenarios-section" ng-if="comparison" style="padding-bottom: 25px;">
@@ -41,7 +41,7 @@
                     <a pdg-profile-data-info-popover profileid="profile" info="{{profileData[profile]}}"></a>
                 </div>
             </td>
-            <td ng:repeat="p in selectedOptions" id="td-comp-gen-3" class="text-center column col-md-2" title="Ver información de la causa">
+            <td ng:repeat="p in selectedOptions" id="td-comp-gen-3" class="text-center column col-md-2" title="{{ 'matches.viewCaseInfo' | i18next }}">
                 <div class="comparison-profileID">
                     {{profileData[p.globalCode] | showcode | prittyLimitTo: 20: false}}
                     <a pdg-profile-data-info-popover profileid="p.globalCode" info="{{profileData[p.globalCode]}}"

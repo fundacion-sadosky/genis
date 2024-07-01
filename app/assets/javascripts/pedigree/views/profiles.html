@@ -6,7 +6,7 @@
                     <div class="input-group col-md-8" >
                         <input type="text" class="form-control form-select" aria-describedby="basic-addon2"
                         id="searchText" name="searchText" ng-model="$parent.searchText"
-                        placeholder="Buscar perfil"
+                        placeholder="{{ 'profileViews.search' | i18next }}"
                         ng-keyup="$event.keyCode == 13 ? searchProfile() : null">
                         <span class="input-group-addon" id="basic-addon2" ng-click="searchProfile()">
                             <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
@@ -17,18 +17,18 @@
                     <button ng-click="addBatchProfiles()"
                     type="button" ng-if="!isCourtCaseClosed()"
                     class="btn btn-primary-action" >
-                    Asociar Lote
+                        {{ 'pedigree.profiles.associateLot' | i18next }}
                 </button>
                 <button ng-click="addProfile()"
                 type="button" ng-if="!isCourtCaseClosed()"
                 class="btn btn-secondary-action" >
-                Asociar Perfiles
+                    {{ 'pedigree.profiles.associateProfiles' | i18next }}
                 </button>
                 <button class="btn btn-secondary-action" ng-click="disasociateSelected" ng-if="!isCourtCaseClosed()"
-                pdg-confirm pdg-confirm-title="Confirmar desasociar los perfiles seleccionados"
-                pdg-confirm-content="¿Está seguro de desasociar los perfiles seleccionados?"
+                pdg-confirm pdg-confirm-title="{{ 'pedigree.confirmDisassociate' | i18next }}"
+                pdg-confirm-content="{{ 'pedigree.disassociateProfilePlural' | i18next }}"
                 param=""
-                pdg-on-confirm="disasociateSelected">Desasociar seleccionados</button>
+                pdg-on-confirm="disasociateSelected">{{ 'pedigree.disassociateSelected' | i18next }}</button>
                 </td>        
             </tr>
         </table>
@@ -37,7 +37,7 @@
 <div class="row padding-0">
     <div class="content padding-0">
         <span class="ng-binding ng-scope">
-            <b>Cantidad de perfiles:</b> {{totalItems}} <span ng-hide="hideFilterLegend">de {{totalCaseItems}}</span>
+            <b>{{ 'generics.amount' | i18next }}:</b> {{totalItems}} <span ng-hide="hideFilterLegend">de {{totalCaseItems}}</span>
         </span>
     </div>
 </div>
@@ -51,13 +51,13 @@
                             <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
                         </button>
                     </th>
-                    <th>Id Lote</th>
-                    <th>Nombre Lote</th>
-                    <th>Código GENis</th>
-                    <th>Código Laboratorio</th>
-                    <th>Ver Genotipificacion</th>
-                    <th>Ir al Perfil</th>
-                    <th>Desasociar del Caso</th>
+                    <th>{{ 'pedigree.profiles.lotId' | i18next }}</th>
+                    <th>{{ 'pedigree.profiles.lotName' | i18next }}</th>
+                    <th>{{ 'generics.GENisCode' | i18next }}</th>
+                    <th>{{ 'generics.GENisLabCode' | i18next }}</th>
+                    <th>{{ 'pedigree.profiles.seeGenotypification' | i18next }}</th>
+                    <th>{{ 'pedigree.profiles.goTo' | i18next }}</th>
+                    <th>{{ 'pedigree.profiles.detachFromCase' | i18next }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -69,7 +69,7 @@
                     <td class="col-md-1 centered">{{p.batchLabel}}</td>
                     <td class="col-md-2 centered">{{p.globalCode}}</td>
                     <td class="col-md-5 centered">{{p.internalCode}}</td>
-                    <td class="col-md-1 centered" title="Ver genotipificación">
+                    <td class="col-md-1 centered" title="{{ 'pedigree.profiles.seeGenotypification' | i18next }}">
                         <button class="btn btn-default btn-link-action btn-link-border" ng-if="!isCourtCaseClosed()" pdg-gen-popover gen="p.genotypification">
                             <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
                         </button>
@@ -80,7 +80,7 @@
                         </a>
                     </td>
                     <td class="col-md-1 centered">
-                        <a id="desasociate_{{$index}}" ng-if="!isCourtCaseClosed()"  class="btn btn-default btn-link-action btn-link-border" pdg-confirm pdg-confirm-title="Confirmar desasociar el perfil {{p.globalCode}}" pdg-confirm-content="¿Está seguro de desasociar el perfil {{p.globalCode}}?" param="{{p.globalCode}}" pdg-on-confirm="removeProfile" >
+                        <a id="desasociate_{{$index}}" ng-if="!isCourtCaseClosed()"  class="btn btn-default btn-link-action btn-link-border" pdg-confirm pdg-confirm-title="{{ 'pedigree.confirmDisass' | i18next }} {{p.globalCode}}" pdg-confirm-content="{{ 'pedigree.disassociateProfile' | i18next }} {{p.globalCode}}?" param="{{p.globalCode}}" pdg-on-confirm="removeProfile" >
                             <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
                         </a>
                     </td>

@@ -8,7 +8,7 @@
                             <span class="icon-atras" title="Volver"></span>
                         </div>
                     </li>
-                    <li class="active">Exportador de Perfiles</li>
+                    <li class="active">{{ 'menu.profileExporter' | i18next }}</li>
                 </ol>
             </div>
         </div>
@@ -23,11 +23,11 @@
                         <form class="navbar-form  vertical-align padding-0" role="export" name="exportPdForm"
                               novalidate>
                             <div class="col-md-6 padding-left-0 padding-right-0 vertical-align">
-                                <label class="col-md-2 padding-left-0" for="categorySelect">Categoría:</label>
+                                <label class="col-md-2 padding-left-0" for="categorySelect">{{ 'generics.category' | i18next }}:</label>
                                 <div class="col-md-10 padding-left-0">
                                     <select id="categorySelect" data-ng-model="search.categoryId"
                                             class="form-control form-select">
-                                        <option value="{{undefined}}">Todas</option>
+                                        <option value="{{undefined}}">{{ 'generics.allFem' | i18next }}</option>
                                         <optgroup data-ng-repeat="(grpId, group) in categories.data"
                                                   label="{{group.name}}">
                                             <option data-ng-repeat="category in group.subcategories"
@@ -39,11 +39,11 @@
                                 </div>
                             </div>
                             <div class="col-md-6 padding-left-0 padding-right-0 vertical-align">
-                                <label class="col-md-2 padding-left-0" for="categorySelect">Laboratorio:</label>
+                                <label class="col-md-2 padding-left-0" for="categorySelect">{{ 'generics.laboratory' | i18next }}:</label>
                                 <div class="col-md-10 padding-left-0">
                                     <select id="laboratory" data-ng-model="search.laboratory"
                                             class="form-control form-select">
-                                        <option value="{{undefined}}">Todos</option>
+                                        <option value="{{undefined}}">{{ 'generics.all' | i18next }}</option>
                                         <option data-ng-repeat="lab in laboratories" value="{{lab.code}}">{{lab.name}}
                                         </option>
                                     </select>
@@ -57,11 +57,11 @@
                         <form class="navbar-form  vertical-align padding-0" role="export" name="exportPdForm"
                               novalidate>
                             <div class="col-md-12 padding-left-0 padding-right-0 vertical-align">
-                                <label class="col-md-3 padding-left-0" for="categorySelect">Perfil:</label>
+                                <label class="col-md-3 padding-left-0" for="categorySelect">{{ 'generics.profile' | i18next }}:</label>
                                 <div class="col-md-10 padding-left-0">
                                     <input name="internalSampleCode"
                                            class="form-control login-input login-user" id="internalSampleCode"
-                                           type="text" placeholder="Código Laboratorio"
+                                           type="text" placeholder="{{ 'generics.labCode' | i18next }}"
                                            data-ng-model="search.internalSampleCode"
                                            autocomplete="off"/>
                                 </div>
@@ -70,7 +70,7 @@
                     </div>
                     <div class="profile-header-clerk col-md-6 new-load form-group vertical-align">
                         <div class="col-md-1 padding-left-0">
-                            <label class="m-r-10" for="hourFrom">Fecha</label>
+                            <label class="m-r-10" for="hourFrom">{{ 'generics.date' | i18next }}</label>
                         </div>
                         <div class="col-md-10 padding-left-0 padding-right-30">
                             <div class="row padding-0  m-t-0 m-b-0 ">
@@ -108,7 +108,7 @@
                     <div class="row m-b-10">
                         <div show-permissions="PROFILE_EXPORTER" class="pull-right padding-right-0">
                             <button type="button" class="btn btn-primary-action pull-right"
-                                    data-ng-click="exportProfiles()"><span>Exportar</span>
+                                    data-ng-click="exportProfiles()"><span>{{ 'buttons.export' | i18next }}</span>
                             </button>
                         </div>
                     </div>

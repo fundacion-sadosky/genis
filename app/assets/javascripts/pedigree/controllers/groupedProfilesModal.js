@@ -80,7 +80,7 @@ define(['lodash'], function() {
             $scope.isProcessing = true;
             pedigreeService.disassociateGroupedProfiles(listRequest).then(function (response) {
                 $scope.pro = response.data;
-                alertService.success({message: 'Se desagrupo el/los perfil/es'});
+                alertService.success({message: $.i18n.t('alerts.profile.ungroupSuccess')});
                 $scope.isProcessing = false;
                 $scope.searchProfiles();
             },function(response){

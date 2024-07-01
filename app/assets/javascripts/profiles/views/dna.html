@@ -3,9 +3,9 @@
         <thead>
             <tr>
                 <th style="width:90%">
-                    <div class="col-md-2">Marcadores</div>
-                    <div class="col-md-7 text-center">Alelos</div>
-                    <div class="col-md-3 text-center">Rango</div>
+                    <div class="col-md-2">{{ 'generics.locusPlural' | i18next }}</div>
+                    <div class="col-md-7 text-center">{{ 'generics.alleles' | i18next }}</div>
+                    <div class="col-md-3 text-center">{{ 'generics.range' | i18next }}</div>
                 </th>
                 <th style="width:10%"></th>
             </tr>
@@ -54,8 +54,8 @@
         <thead>
         <tr>
             <th style="width:97%">
-                <div class="col-md-3" >Rangos</div>
-                <div class="col-md-9 text-center" >Mutaciones</div>
+                <div class="col-md-3" >{{ 'generics.rangePlural' | i18next }}</div>
+                <div class="col-md-9 text-center" >{{ 'generics.mutations' | i18next }}</div>
             </th>
             <th style="width:3%"></th>
         </tr>
@@ -125,11 +125,11 @@
 </form>
 <div class="m-l-10 m-r-10 m-b-10">
     <div ng-show="activeAnalysis!=4" class="loose-locus" data-ng-show="!isDeleted" data-ng-disabled="!subcategory.manualLoading" show-permissions="ADD_MANUAL_LOCUS">
-        <label >Agregar un marcador</label>
+        <label >{{ 'kits.locus.add' | i18next }}</label>
         <select ng-hide="activeAnalysis==4" data-ng-model="newLocus" ng-disabled="((addedLocus.length > 0 && status.current == 'dblCheck') || !subcategory.manualLoading) || profile.readOnly"
                 data-ng-options="item.id as item.name for item in getPossibleLocus() | filter: {analysisType: activeAnalysis} | filter: locusAlreadyAdded | orderBy:'name'"
                 class="form-control form-select" data-ng-change="addLocus(newLocus); newLocus=undefined;">
-            <option value="" selected="selected">Marcador</option>
+            <option value="" selected="selected">{{ 'generics.locus' | i18next }}</option>
         </select>
     </div>
     <div ng-show="activeAnalysis==4" class="loose-locus" data-ng-show="!isDeleted" >
@@ -137,13 +137,13 @@
             <button type="button"  data-ng-disabled="!possibleRegions && possibleRegions.length==0 || status.current == 'dblCheck'" data-ng-click="addRegion()" class="btn btn-secondary-action">Agregar Rango</button>
         </div>
     </div>
-    <h4 ng-hide="electropherograms.length===0">Electroferograma</h4>
+    <h4 ng-hide="electropherograms.length===0">{{ 'generics.electropherogram' | i18next }}</h4>
     <carousel interval="3000">
       <slide ng-repeat="slide in electropherograms">
         <img ng-src="{{slide}}" style="margin:auto; height: 200px;" modal-img>
       </slide>
     </carousel>
-    <h4 ng-hide="files.length===0">Archivos</h4>
+    <h4 ng-hide="files.length===0">{{ 'generics.files' | i18next }}</h4>
     <div class="form-group">
         <div ng-repeat="file in files" style="font-size: 1.1em;">
             <a href="{{file.path}}" download="{{file.name}}">
@@ -158,14 +158,14 @@
 
 <footer class="profile-footer">
 
-    <button type="button" ng-show="profile.associable && isSTR()" title="Asocie un perfil existente" ng-disabled="profile.readOnly"
+    <button type="button" ng-show="profile.associable && isSTR()" title="{{ 'pedigree.associateExisting' | i18next }}" ng-disabled="profile.readOnly"
             class="btn btn-secondary-action" ng-click="associateProfiles()">
-        Asociar perfiles
+        {{ 'buttons.groupProfiles' | i18next }}
     </button>
 
     <button type="button" ng-show="profile.labelable && isSTR()" id="setLabels"
             class="btn btn-secondary-action" ng-click="showLabelsModal()">
-        Cambiar etiquetas
+        {{ 'buttons.label.change' | i18next }}
     </button>
 
     <button type="button" ng-repeat="(labelId, label) in labels track by $index"
@@ -180,30 +180,30 @@
             ng-show="(profile.labelable || profile.associable) && isSTR()" id="saveLabels"
             ng-disabled="(!labelsAreUsed()) || profile.readOnly"
             class="btn btn-secondary-action" ng-click="saveLabels()"
-            title="Seleccione uno o varios alelos y luego asigne la etiqueta deseada haciendo click en los cuadros correspondientes. Cuando termine de etiquetar haga click en Guardar etiquetas para que queden guardados en el sistema.">
-        Guardar etiquetas
+            title="{{ 'profileViews.selectTag' | i18next }}">
+        {{ 'buttons.label.save' | i18next }}
     </button>
 
     <div class="desk-align-right inside-right">
 
         <div class="btn btn-link-action" ng-click="doCancel()" id="cancel" type="button" ng-show="addedLocus.length > 0">
             <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
-            <span>Cancelar</span>
+            <span>{{ 'buttons.cancel' | i18next }}</span>
         </div>
 
         <button type="button" id="verify" ng-show="addedLocus.length > 0 && status.current == 'fill'" ng-disabled="addForm.$invalid || isEmpty(newAnalysis)"
                 class="btn btn-secondary-action" ng-click="verifyNewAnalysis(newAnalysis, chkAnalysis, loci, status)">
-            Verificar carga
+            {{ 'buttons.verifyLoad' | i18next }}
         </button>
 
         <button type="button" id="createAnalysis" ng-show="addedLocus.length > 0 && status.current == 'dblCheck'" ng-disabled="addForm.$invalid || (chkAnalysis.index < loci.length && activeAnalysis!=4) ||(chkAnalysis.index+chkAnalysis.indexCh< loci.length && activeAnalysis==4)  "
                 class="btn btn-secondary-action" ng-click="save(newAnalysis)">
-            Guardar
+            {{ 'buttons.save' | i18next }}
         </button>
 
     </div>
-    <button type="button" title="Replicar a instancia superior"
+    <button type="button" title="{{ 'buttons.replicateUpperInstance' | i18next }}"
             class="btn btn-secondary-action pull-right" ng-disabled="profile.isUploadedToSuperior" ng-click="uploadProfile()" ng-show="subcategory.replicate" >
-        Replicar a instancia superior
+        {{ 'buttons.replicateUpperInstance' | i18next }}
     </button>
 </footer>

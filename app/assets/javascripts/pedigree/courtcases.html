@@ -9,7 +9,7 @@
                             <span  class="icon-atras" title="Volver"></span>
                         </div>
                     </li>
-                    <li class="active">Listado de Casos</li>
+                    <li class="active">{{ 'pedigree.courtCase.list' | i18next }}</li>
                 </ol>
             </div>
         </div>
@@ -26,13 +26,13 @@
                             <div class="form-group">
                                 <form class="navbar-form padding-0" role="search" name="searchForm" novalidate data-ng-submit="search()">
                                     <div class="col-md-3 vertical-align padding-left-0">
-                                        <label class="col-md-3" for="search-code">Código</label>
+                                        <label class="col-md-3" for="search-code">{{ 'pedigree.courtCase.caseId' | i18next }}</label>
                                         <div class="col-md-9">
                                             <input id="search-code" type="text" class="form-control form-select" data-ng-model="filters.code"/>
                                         </div>
                                     </div>
                                     <div class="col-md-3 vertical-align">
-                                        <label class="col-md-4" for="search-status">Estado</label>
+                                        <label class="col-md-4" for="search-status">{{ 'generics.state' | i18next }}</label>
                                         <div class="col-md-8 padding-0">
                                             <select id="search-status" data-ng-model="filters.status" class="form-control form-select"
                                             data-ng-options="item.value as item.label for item in status">
@@ -40,7 +40,7 @@
                                     </div>
                                 </div>
                                 <div class="col-md-3 vertical-align">
-                                    <label class="col-md-5" for="case_type">Tipo de caso</label>
+                                    <label class="col-md-5" for="case_type">{{ 'pedigree.matchCourtCase.caseType' | i18next }}</label>
                                     <div class="col-md-7 padding-0">
                                         <select class="form-control form-select" data-ng-model="filters.caseType"
                                         data-ng-options="item.id as item.name for item in caseTypes" id="case_type">
@@ -53,13 +53,13 @@
                                 
                                 
                                 <div class="col-md-6">
-                                    <a  title="Limpiar filtros" ng-click="cleanFilters()" ng-disabled="isProcessing"  class="cancel-link" >Limpiar</a>
+                                    <a  title="{{ 'generics.cleanFilters' | i18next }}" ng-click="cleanFilters()" ng-disabled="isProcessing"  class="cancel-link" >{{ 'generics.clean' | i18next }}</a>
                                 </div>
                                 
                                 
                                 <div class="col-md-6 padding-right-0"> 
                                     <span id="processingSpan" class="icon-refresh" ng-class="{'spinner': isProcessing}" data-ng-show="isProcessing"></span>
-                                    <button title="Buscar"  id="search-button" type="submit" class="btn btn-secondary-action" data-ng-disabled="searchForm.$invalid">Buscar</button>
+                                    <button title="{{ 'buttons.search' | i18next }}"  id="search-button" type="submit" class="btn btn-secondary-action" data-ng-disabled="searchForm.$invalid">{{ 'buttons.search' | i18next }}</button>
                                 </div>
                             </div>
                         </form>
@@ -78,13 +78,13 @@
                     class="btn btn-primary-action pull-right"
                     data-ng-click="goToCourtCase()">
                         <!-- <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> -->
-                        <span>Nuevo caso</span>
+                        <span>{{ 'pedigree.caseData.new' | i18next }}</span>
                     </button>
                 </div>
             </div>
 
             <div data-ng-show="noResult">
-                No se encontraron datos según su busqueda
+                {{ 'generics.noResult' | i18next }}
             </div>
 
             <table class="table  table-bordered" data-ng-show="!noResult">
@@ -92,13 +92,13 @@
                     <tr>
                         <th class="col-md-4"><pdg-sortable name="Código del Caso" predicate="sortField" reverse="!ascending"
                             sort-action="sortBy('code')" sort-field="code"></pdg-sortable></th>
-                            <th class="col-md-1">Tipo de Caso</th>
-                            <th class="col-md-2">Responsable</th>
-                            <th class="col-md-1">Estado</th>
-                            <th class="col-md-1">Coincidencias Pendientes</th>
-                            <th class="col-md-1">Ver Caso</th>
-                            <th class="col-md-1">Cerrar</th>
-                            <th class="col-md-1">Dar de Baja</th>
+                            <th class="col-md-1">{{ 'pedigree.matchCourtCase.caseType' | i18next }}</th>
+                            <th class="col-md-2">{{ 'generics.responsible' | i18next }}</th>
+                            <th class="col-md-1">{{ 'generics.state' | i18next }}</th>
+                            <th class="col-md-1">{{ 'matches.pending' | i18next }}</th>
+                            <th class="col-md-1">{{ 'pedigree.caseData.view' | i18next }}</th>
+                            <th class="col-md-1">{{ 'buttons.close' | i18next }}</th>
+                            <th class="col-md-1">{{ 'buttons.delete' | i18next }}</th>
                         </tr>
                     </thead>
                     <tbody>

@@ -39,7 +39,7 @@ define(['angular', 'jquery'], function(angular, $) {
             }
 
             promise.then(function(response) {
-                    alertService.success({message: 'El escenario fue guardado con éxito'});
+                    alertService.success({message: $.i18n.t('alerts.scenario.saved')});
                     $scope.scenario._id = response.data;
                     $scope.scenario.status = 'Pending';
                 },
@@ -59,7 +59,7 @@ define(['angular', 'jquery'], function(angular, $) {
 
         $scope.delete = function() {
             pedigreeService.changeScenarioStatus($scope.scenario, 'Deleted').then(function() {
-                    alertService.success({message: 'El escenario fue eliminado con éxito'});
+                    alertService.success({message: $.i18n.t('alerts.scenario.unregister')});
                     $scope.scenarios.splice($scope.$index,1);
                     $scope.scenario.genogram.forEach(function(node) {
                         if (node.unknown && node.globalCode) {
@@ -88,7 +88,7 @@ define(['angular', 'jquery'], function(angular, $) {
 
             validateScenarioModalInstance.result.then(function(operationResult) {
                 if (operationResult.status === "Success") {
-                    alertService.success({message: 'El escenario fue validado con éxito'});
+                    alertService.success({message: $.i18n.t('alerts.scenario.validated')});
                     $scope.scenario.status = 'Validated';
                     $scope.validatePedigree();
                 } else if (operationResult.status === "Error") {
@@ -162,7 +162,7 @@ define(['angular', 'jquery'], function(angular, $) {
             network.fit();
             network.selectNodes([]);
 
-            var head = '<head><title>Resultados caso ' + $scope.courtcase.internalSampleCode + '</title>';
+            var head = '<head><title>' + $.i18n.t('generics.caseResults')  + $scope.courtcase.internalSampleCode + '</title>';
             $("link").each(function () {
                 head += '<link rel="stylesheet" href="' + $(this)[0].href + '" />';
             });

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <div class="modal-header">
-	<h4>Reglas de búsqueda para <b>{{data.profile.globalCode}}</b></h4>
+	<h4>{{ 'profileViews.stringency.title' | i18next }} <b>{{data.profile.globalCode}}</b></h4>
 	<h5>{{data.subcategory.name}}</h5>
 </div>
 <div class="modal-body">
@@ -8,9 +8,9 @@
 	<table class="table  table-striped">
 		<thead>
 			<tr>
-				<th class="text-center">Subcategoría</th>
-				<th class="text-center" width="30%">Nivel de exigencia</th>
-				<th class="text-center" width="20%">Marcadores no coincidentes</th>
+				<th class="text-center">{{ 'profileViews.stringency.subcategory' | i18next }}</th>
+				<th class="text-center" width="30%">{{ 'profileViews.stringency.level' | i18next }}</th>
+				<th class="text-center" width="20%">{{ 'profileViews.stringency.mismatchedLocus' | i18next }}</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -33,6 +33,6 @@
 </div>
 
 <div class="modal-footer">
-   <button id="aceptStringency" class="btn btn-success" data-ng-click="closeModal(true)">Aceptar</button>
-   <button id="cancelStringency" class="btn btn-danger" data-ng-click="closeModal(false)">Cancelar</button>
+   <button id="aceptStringency" class="btn btn-success" data-ng-click="closeModal(true)">{{ 'buttons.accept' | i18next }}</button>
+   <button id="cancelStringency" class="btn btn-danger" data-ng-click="closeModal(false)">{{ 'buttons.cancel' | i18next }}</button>
 </div>

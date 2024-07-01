@@ -1,16 +1,16 @@
 <div class="modal-header">
-	<h4>Escenario {{scenario.name}}</h4>
+	<h4>{{ 'generics.scenario' | i18next }} {{scenario.name}}</h4>
 </div>
 <div class="modal-body">
 	<form class="form-horizontal" name="validateForm">
 		<div class="form-group">
-			<label for="comment" class="col-sm-3 control-label">Comentario</label>
+			<label for="comment" class="col-sm-3 control-label">{{ 'generics.commentary' | i18next }}</label>
 			<div class="col-sm-8">
 				<textarea ng-model="scenario.validationComment" class="text-area-4-lines form-control form-select" id="comment" required></textarea>
 			</div>
 		</div>
 		<div class="form-group">
-			<label for="comment" class="col-sm-7 control-label">Pedigree sigue activo en búsqueda?</label>
+			<label for="comment" class="col-sm-7 control-label">{{ 'pedigree.activeQuestion' | i18next }}?</label>
 			<div class="col-sm-4">
 				<input id="pedAct" type="checkbox" ng-model="pedigreeActivo" ng-change="changePedigreeSelection(pedigreeActivo)"  />
 			</div>
@@ -22,10 +22,10 @@
     <div class="desk-align-right inside-right">
 		<div class="btn btn-link-action" ng-click="close()">
 			<span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
-			<span class="btn-link-action">Cancelar</span>
+			<span class="btn-link-action">{{ 'buttons.cancel' | i18next }}</span>
 		</div>
 		<button id="validate" type="button" class="btn btn-primary-action"
-				ng-disabled="validateForm.$invalid" data-ng-click="validate()">Validar</button>
+				ng-disabled="validateForm.$invalid" data-ng-click="validate()">{{ 'buttons.validate' | i18next }}</button>
 
     </div>
 

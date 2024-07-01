@@ -2,7 +2,7 @@
 
 <div class="modal-header">
 	<button type="button" class="close" data-dismiss="modal" aria-label="Close" ng-click="$dismiss()"><span aria-hidden="true">&times;</span></button>
-	<h4>Búsqueda de perfiles
+	<h4>{{ 'resource.ProfiledataSearch' | i18next }}
 	<span id="processingSpan" class="icon-refresh" ng-class="{'spinner': isProcessing}" ng-show="isProcessing"></span>
 	</h4>
 </div>
@@ -10,7 +10,7 @@
 	<div class="input-group" style="padding-bottom: 10px;">
 	  	<input type="text" class="form-control form-select" aria-describedby="basic-addon2"
 	  		id="searchText" name="searchText" ng-model="searchText"
-			placeholder="Buscar perfil"
+			placeholder="{{ 'profileViews.search' | i18next }}"
 			ng-keyup="$event.keyCode == 13 ? searchProfile() : null">
 	  <span class="input-group-addon" id="basic-addon2" ng-click="searchProfile()">
   		<span class="glyphicon glyphicon-search" aria-hidden="true"></span>
@@ -19,12 +19,12 @@
 	<table class="table  table-striped" data-ng-show="results" style="font-size:x-small;">
 	<thead>
 		<tr>
-			<th class="text-center col-md-2">Nombre del Lote</th>
-			<th class="text-center col-md-2">Código GENis</th>
-			<th class="text-center col-md-2">Código Laboratorio</th>
-			<th class="text-center col-md-3">Categoria</th>
-			<th class="text-center col-md-2">Responsable</th>
-			<th class="text-center col-md-1">Seleccionar</th>
+			<th class="text-center col-md-2">{{ 'pedigree.profiles.lotName' | i18next }}</th>
+			<th class="text-center col-md-2">{{ 'generics.GENisCode' | i18next }}</th>
+			<th class="text-center col-md-2">{{ 'generics.GENisLabCode' | i18next }}</th>
+			<th class="text-center col-md-3">{{ 'generics.category' | i18next }}</th>
+			<th class="text-center col-md-2">{{ 'generics.responsible' | i18next }}</th>
+			<th class="text-center col-md-1">{{ 'generics.select' | i18next }}</th>
 		</tr>
 	</thead>
 	<tbody>

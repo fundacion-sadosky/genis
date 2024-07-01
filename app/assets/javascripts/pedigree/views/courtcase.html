@@ -9,7 +9,7 @@
 								<span  class="icon-atras" title="Volver"></span>
 							</div>
 						</li>
-						<li class="active">Datos del caso {{courtcase.internalSampleCode}}</li>
+						<li class="active">{{ 'pedigree.caseData.title' | i18next }} {{courtcase.internalSampleCode}}</li>
                     
                 </ol>
             </div>
@@ -24,22 +24,22 @@
 					<nav class="padding-0"  ng-class="{'col-md-12': true}">
 						<ul>
 							<li ng-class="{'tab-current': activeTab === tabCaseData}">
-								<a href="" ng-click="selectTab(tabCaseData)" ><span>Datos de la causa</span></a>
+								<a href="" ng-click="selectTab(tabCaseData)" ><span>{{ 'pedigree.caseData.title' | i18next }}</span></a>
 							</li>
 							<li ng-class="{'tab-current': activeTab === tabProfiles}">
-								<a href="" ng-click="selectTab(tabProfiles)" ><span>Perfiles de Referencia</span></a>
+								<a href="" ng-click="selectTab(tabProfiles)" ><span>{{ 'pedigree.courtCase.referenceProfiles' | i18next }}</span></a>
 							</li>
 							<li ng-class="{'tab-current': activeTab === tabProfilesNN}" ng-if="courtcase.caseType == 'DVI'">
-								<a href="" ng-click="selectTab(tabProfilesNN)" ><span>Perfiles NN Post Mortem</span></a>
+								<a href="" ng-click="selectTab(tabProfilesNN)" ><span>{{ 'pedigree.courtCase.nnProfiles' | i18next }}</span></a>
 							</li>
 							<li ng-class="{'tab-current': activeTab === tabCollapsing}" ng-if="courtcase.caseType == 'DVI'">
-								<a href="" ng-click="selectTab(tabCollapsing)" ><span>Agrupaciones de Restos</span></a>
+								<a href="" ng-click="selectTab(tabCollapsing)" ><span>{{ 'pedigree.courtCase.remainsGroup' | i18next }}</span></a>
 							</li>
 							<li ng-class="{'tab-current': activeTab === tabPedigree}" >
-								<a href="" ng-click="selectTab(tabPedigree)" ><span>Pedigrí</span></a>
+								<a href="" ng-click="selectTab(tabPedigree)" ><span>{{ 'generics.pedigree' | i18next }}</span></a>
 							</li>
 							<li ng-class="{'tab-current': activeTab === tabComparacion}" >
-								<a href="" ng-click="selectTab(tabComparacion)" ><span>Gestor de Coincidencias</span></a>
+								<a href="" ng-click="selectTab(tabComparacion)" ><span>{{ 'pedigree.courtCase.matchManager' | i18next }}</span></a>
 							</li>
 						</ul>
 					</nav>

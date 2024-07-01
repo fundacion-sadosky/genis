@@ -6,7 +6,7 @@ define(['lodash'], function(_) {
         $scope.search = {};
 
         $scope.forense = {};
-        $scope.tipos = [{label: "alta", name: "Alta"}, {label: "match", name: "Match"}]; //{label: "baja", name: "Baja"},
+        $scope.tipos = [{label: "alta", name: $.i18n.t('generics.add')}, {label: "match", name: "Match"}]; //{label: "baja", name: "Baja"},
 
 
         $scope.datepickers = {
@@ -26,17 +26,17 @@ define(['lodash'], function(_) {
                 $scope.search.hourUntil === undefined || $scope.search.hourUntil === null ||
                 $scope.search.tipo === undefined || $scope.search.tipo === null) {
 
-                alertService.error({message: "Debe completar el tipo de archivo y ambas fechas"});
+                alertService.error({message: $.i18n.t('alerts.file.mustComplete')});
                 return;
             }
 
             profileExporterToLimsService.exporterArchivesLims($scope.search).then(function () {
-                alertService.info({message: 'Se exportaron los archivos'});
+                alertService.info({message: $.i18n.t('alerts.file.filesExported')});
 
                 var file_name = "";
                 var url = "";
                 if($scope.search.tipo === "alta") {
-                    file_name = "IngresoPerfiles.txt";
+                    file_name = "InputProfiles.txt";
                     url = cryptoService.encryptBase64("/get-alta-file-export");
                 } else if ($scope.search.tipo === "match") {
                     file_name = "MatchesFile.txt";
@@ -64,7 +64,7 @@ define(['lodash'], function(_) {
             var today = new Date();
 
             if (today - aux < 0) {
-                alertService.info({message: 'La fecha debe ser anterior a la actual.'});
+                alertService.info({message: $.i18n.t('alerts.date.before')});
                 $scope.search[fieldName] = undefined;
                 $scope.minDateCoin = null;
             } else {
@@ -101,7 +101,7 @@ define(['lodash'], function(_) {
 
             } else {*/
                 if (min - aux > 0) {
-                    alertService.info({message: 'La fecha  debe ser posterior al campo desde.'});
+                    alertService.info({message: $.i18n.t('alerts.date.after')});
                     $scope.search[fieldName] = undefined;
                 }
             //}

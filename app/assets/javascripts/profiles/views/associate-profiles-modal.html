@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <div class="modal-header">
-	<h4>Asociación de perfiles
+	<h4>{{ 'profileViews.association' | i18next }}
 	<span id="processingSpan" class="icon-refresh" ng-class="{'spinner': isProcessing}" ng-show="isProcessing"></span>
 	</h4>
 </div>
@@ -19,12 +19,12 @@
 	<table class="table  table-striped" data-ng-show="results" style="font-size:x-small;">
 		<thead>
 			<tr>
-				<th class="text-center">Código GENis</th>
-				<th class="text-center">Código Laboratorio</th>
-				<th class="text-center">Categoria</th>
-				<th class="text-center">Juzgado</th>
-				<th class="text-center">Expediente</th>
-				<th class="text-center">Laboratorio</th>
+				<th class="text-center">{{ 'generics.GENisCode' | i18next }}</th>
+				<th class="text-center">{{ 'generics.labCode' | i18next }}</th>
+				<th class="text-center">{{ 'generics.category' | i18next }}</th>
+				<th class="text-center">{{ 'profileViews.court' | i18next }}</th>
+				<th class="text-center">{{ 'profileViews.caseFile' | i18next }}Expediente</th>
+				<th class="text-center">{{ 'generics.laboratory' | i18next }}</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -45,7 +45,7 @@
 	
 </div>
 <div class="modal-footer">
-   <button id="verify" type="button" class="btn btn-success" ng-click="verify()" ng-disabled="profilesList.length === 0" ng-show="!mergedLoci">Aceptar</button>
-   <button id="acceptLowStringency" type="button" class="btn btn-success" ng-click="$close(labels)" ng-show="mergedLoci">Aceptar</button>
-   <button id="cancel" class="btn btn-danger" data-ng-click="$dismiss()">Cancelar</button>
+   <button id="verify" type="button" class="btn btn-success" ng-click="verify()" ng-disabled="profilesList.length === 0" ng-show="!mergedLoci">{{ 'buttons.accept' | i18next }}</button>
+   <button id="acceptLowStringency" type="button" class="btn btn-success" ng-click="$close(labels)" ng-show="mergedLoci">{{ 'buttons.accept' | i18next }}</button>
+   <button id="cancel" class="btn btn-danger" data-ng-click="$dismiss()">{{ 'buttons.cancel' | i18next }}</button>
 </div>

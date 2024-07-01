@@ -8,7 +8,7 @@
               <span  class="icon-atras" title="Volver"></span>
             </div>
           </li>
-          <li class="active">Bases Poblacionales de Frecuencia</li>
+          <li class="active">{{ 'populationBase.frequencies' | i18next }}</li>
         </ol>
       </div>
     </div>
@@ -28,7 +28,7 @@
               type="text"
               class="form-control form-select"
               data-ng-model="popBaseFreq.name"
-              placeholder="Nombre:"
+              placeholder="{{ 'generics.name' | i18next }}:"
               data-ng-required="true"
               required
             />
@@ -42,7 +42,7 @@
               min="0"
               max="1"
               data-ng-model="popBaseFreq.theta"
-              placeholder="Theta:"
+              placeholder="{{ 'generics.theta' | i18next }}:"
               data-ng-required="true"
               required
             />
@@ -58,7 +58,7 @@
             </select>
           </div>
           <div class="btn btn-secondary-action btn-file">
-            Seleccionar
+            {{ 'generics.select' | i18next }}
             <input
               id="inputCsvFile"
               class="form-control"
@@ -78,14 +78,14 @@
             data-ng-disabled="nameForm.$invalid"
             help-tip="format.baseFrequency"
             help-tip-placement="right"
-          >Guardar
+          >{{ 'buttons.save' | i18next }}
           </button>
           <span
             ng-if="(csvFile.length > 0)"
           >
             <span class="bold">
               <br>
-              Archivo seleccionado:
+              { 'buttons.save' | i18next }}Archivo seleccionado:
             </span>
             {{csvFile[0].name | prittyLimitTo : 15: true }}
           </span>
@@ -95,12 +95,12 @@
     <table class="table  table-bordered">
       <thead>
       <tr>
-        <th>Default</th>
-        <th>Nombre</th>
-        <th>Theta</th>
-        <th>Modelo</th>
-        <th class="centered">Estado</th>
-        <th class="centered">Ver</th>
+        <th>{{ 'generics.default' | i18next }}</th>
+        <th>{{ 'generics.name' | i18next }}</th>
+        <th>{{ 'generics.theta' | i18next }}</th>
+        <th>{{ 'generics.model' | i18next }}</th>
+        <th class="centered">{{ 'generics.state' | i18next }}</th>
+        <th class="centered">{{ 'generics.view' | i18next }}</th>
       </tr>
       </thead>
       <tbody>

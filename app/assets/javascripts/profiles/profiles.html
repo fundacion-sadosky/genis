@@ -6,10 +6,10 @@
                 <ol class="breadcrumb">
                         <li>
                             <div class="btn volver" onclick="history.back()">
-                                <span  class="icon-atras" title="Volver"></span>
+                                <span  class="icon-atras" title="{{ 'buttons.back' | i18next }}"></span>
                             </div>
                         </li>
-                        <li class="active">Perfil: {{profile.internalSampleCode}} [{{profile.globalCode}}]</li>
+                        <li class="active">{{ 'generics.profile' | i18next }}: {{profile.internalSampleCode}} [{{profile.globalCode}}]</li>
                 </ol>
             </div>
         </div>
@@ -35,7 +35,7 @@
                         class="btn btn-primary-action pull-right"
                         data-ng-click="!showAdd && goToNewAnalysis()" data-ng-disabled="(!subcategory.manualLoading) || profile.readOnly">
                     <!-- <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> -->
-                    <span>Nuevo análisis</span>
+                    <span>{{ 'generics.newAnalysis' | i18next }}</span>
                 </button>
             </div>
 		</div>
@@ -45,7 +45,7 @@
                      ng-include="'/assets/javascripts/profiles/views/new-analysis.html'"></div>
             </div>
             <tabset class="tabset-section" ng-show="showDna" id="profile-tabs">
-                <tab active="analysisType.active" heading="Perfil ADN" ng-repeat="analysisType in analysisTypes"
+                <tab active="analysisType.active" heading="{{ 'generics.dnaProfile' | i18next }}" ng-repeat="analysisType in analysisTypes"
                      ng-show="activeAnalysis===analysisType.id">
                     <div    ng-controller="dnaController" class="tab-content"
                             ng-include="'/assets/javascripts/profiles/views/dna.html'" class="animated fadeIn"/>

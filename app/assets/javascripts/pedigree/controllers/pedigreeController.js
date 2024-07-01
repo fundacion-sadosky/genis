@@ -209,7 +209,7 @@ var PedigreeCtrl = function($scope, $filter, pedigreeService, $routeParams, $mod
                 }
 
                 if (!pedigree.frequencyTable) {
-                    alertService.info({message: 'No existe ninguna base de frecuencias seleccionada o por default. Por favor, seleccione una base de frecuencias.'});
+                    alertService.info({message: $.i18n.t('alerts.match.noBaseFrequency')});
                 }
             });
         }

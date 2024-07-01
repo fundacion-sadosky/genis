@@ -1,20 +1,20 @@
 <div class="modal-header">
  	<button type="button" class="close" data-dismiss="modal" aria-label="Close" ng-click="$close()"><span aria-hidden="true">&times;</span></button>
-	<h4>Solicitud de nueva cuenta</h4>
+	<h4>{{ 'signUp.newAccount' | i18next }}</h4>
 </div>
 
 <div class="modal-body">
 	<form id="signupRequestForm" name="signupRequestForm" class="form-horizontal" role="form" novalidate>
         <div class="row">
             <div class="col-md-12">
-                    <p>Todos los campos con <span class="field-obligated">*</span> son obligatorios.</p> 
+                    <p>{{ 'signUp.request.mandatoryField1' | i18next }} <span class="field-obligated">*</span> {{ 'signUp.request.mandatoryField2' | i18next }}</p>
             </div>
         </div>
         <div class="row">
             <div class="col-md-6">
                 <div class="item-input" style="margin-bottom: 0">
-                    <label for="signupName">Nombre<span class="field-obligated">*</span></label>
-                    <input id="signupName" name="name" placeholder="Nombre"
+                    <label for="signupName">{{ 'generics.name' | i18next }}<span class="field-obligated">*</span></label>
+                    <input id="signupName" name="name" placeholder="{{ 'generics.name' | i18next }}"
                         class="form-control login-input form-select" type="text"
                         ng-model="solicitude.firstName" autocomplete="off" required />
                     <form-validation input="signupRequestForm.name"></form-validation>
@@ -23,8 +23,8 @@
             </div>
             <div class="col-md-6">
                 <div class="item-input" style="margin-bottom: 0">
-                    <label for="signupLastname">Apellido<span class="field-obligated">*</span></label>
-                    <input id="signupLastname" name="lastName" placeholder="Apellido"
+                    <label for="signupLastname">{{ 'generics.lastName' | i18next }}<span class="field-obligated">*</span></label>
+                    <input id="signupLastname" name="lastName" placeholder="{{ 'generics.lastName' | i18next }}"
                            class="form-control login-input form-select" type="text"
                            ng-model="solicitude.lastName" autocomplete="off" required />
                     <form-validation input="signupRequestForm.lastName"></form-validation>
@@ -34,8 +34,8 @@
         <div class="row">
             <div class="col-md-6">
                 <div class="item-input" style="margin-bottom: 0">
-                    <label for="signupEmail">Email<span class="field-obligated">*</span></label>
-                    <input id="signupEmail" name="mail" placeholder="Email"
+                    <label for="signupEmail">{{ 'generics.email' | i18next }}<span class="field-obligated">*</span></label>
+                    <input id="signupEmail" name="mail" placeholder="{{ 'generics.email' | i18next }}"
                            class="form-control login-input form-select" type="text"
                            ng-model="solicitude.email" autocomplete="off"
                            required ng-pattern="regexEmail" />
@@ -44,8 +44,8 @@
             </div>
             <div class="col-md-6">
                 <div class="item-input" style="margin-bottom: 0">
-                    <label for="signupGeneMapperId">Nombre de Usuario GeneMapper<span class="field-obligated">*</span></label>
-                    <input id="signupGeneMapperId" name="geneMapper" placeholder="Nombre de Usuario GeneMapper"
+                    <label for="signupGeneMapperId">{{ 'generics.geneMapperUser' | i18next }}<span class="field-obligated">*</span></label>
+                    <input id="signupGeneMapperId" name="geneMapper" placeholder="{{ 'generics.geneMapperUser' | i18next }}"
                            class="form-control login-input form-select" type="text"
                            ng-model="solicitude.geneMapperId" autocomplete="off" required />
                     <form-validation input="signupRequestForm.geneMapper"></form-validation>
@@ -55,8 +55,8 @@
         <div class="row">
             <div class="col-md-6">
                 <div class="item-input" style="margin-bottom: 0">
-                    <label for="signupPhone1">Teléfono<span class="field-obligated">*</span></label>
-                    <input id="signupPhone1" name="phone" placeholder="Teléfono"
+                    <label for="signupPhone1">{{ 'generics.phone' | i18next }}<span class="field-obligated">*</span></label>
+                    <input id="signupPhone1" name="phone" placeholder="{{ 'generics.phone' | i18next }}"
                            class="form-control login-input form-select" type="text"
                            ng-model="solicitude.phone1" autocomplete="off" required
                            ng-pattern="regexTelNum" />
@@ -65,8 +65,8 @@
             </div>
             <div class="col-md-6">
                 <div class="item-input" style="margin-bottom: 0">
-                    <label for="signupPhone2">Teléfono móvil o celular</label>
-                    <input id="signupPhone2" name="cellPhone" placeholder="Teléfono móvil o celular"
+                    <label for="signupPhone2">{{ 'generics.cellphone' | i18next }}</label>
+                    <input id="signupPhone2" name="cellPhone" placeholder="{{ 'generics.cellphone' | i18next }}"
                            class="form-control login-input form-select" type="text"
                            ng-model="solicitude.phone2" autocomplete="off"
                            ng-pattern="regexTelNum" />
@@ -76,7 +76,7 @@
         </div>
         <div class="row">
             <div class="col-md-12 item-input">
-                <label for="superusuariocheck">Superusuario</label>
+                <label for="superusuariocheck">{{ 'user.super' | i18next }}</label>
                 <input type="checkbox" ng-model="solicitude.superuser" id="superusuariocheck" style="display:inline; height: 1em; margin-top: 0; vertical-align: middle;" >
             </div>
             <div class="col-md-12">
@@ -94,21 +94,21 @@
         <div class="row">
             <div class="col-md-6">
                 <div class="item-input">
-                    <label for="signupPassword">Contraseña<span class="field-obligated">*</span></label>
+                    <label for="signupPassword">{{ 'generics.password' | i18next }}<span class="field-obligated">*</span></label>
                     <input type="password" id="signupPassword" name="password"
                         class="form-control login-input form-select" ng-model="solicitude.password"
-                        autocomplete="off" placeholder="Contraseña" required>
+                        autocomplete="off" placeholder="{{ 'generics.password' | i18next }}" required>
                     <form-validation input="signupRequestForm.password"></form-validation>
                 </div>
             </div>
 
             <div class="col-md-6">
                 <div class="item-input">
-                    <label for="signupRepeatPassword">Confirmar contraseña<span class="field-obligated">*</span></label>
+                    <label for="signupRepeatPassword">{{ 'generics.confirmPassword' | i18next }}<span class="field-obligated">*</span></label>
                     <input type="password" name="confirmPassword"
                         id="signupRepeatPassword" class="form-control login-input form-select"
                         ng-model="solicitude.repeatPassword" autocomplete="off"
-                        placeholder="Confirmar contraseña" required ng-pattern="solicitude.password">
+                        placeholder="{{ 'generics.confirmPassword' | i18next }}" required ng-pattern="solicitude.password">
                     <form-validation input="signupRequestForm.confirmPassword" pattern="password"></form-validation>
                 </div>
             </div>
@@ -117,7 +117,7 @@
             <div class="col-md-12">
                 <input type="checkbox" ng-model="disclaimer" id="aceptotyc"/>
                 <label for="aceptotyc">
-                <span class="field-obligated">*</span>Acepto los <a ng-click="showDisclaimer()" >terminos y condiciones</a></label>
+                <span class="field-obligated">*</span>{{ 'signUp.acceptTerms1' | i18next }} <a ng-click="showDisclaimer()" >{{ 'signUp.acceptTerms2' | i18next }}</a></label>
             </div>
         </div>
 	</form>
@@ -129,6 +129,6 @@
 		class="btn btn-primary-action"
 		ng-click="signupRequest()" 
 		ng-disabled="signupRequestForm.$invalid || !disclaimer">
-		Solicitar alta
+        {{ 'login.requestAccount' | i18next }}
 	</button>
 </div>

@@ -2,7 +2,7 @@ define(['angular'], function(angular) {
     'use strict';
     function ScenariosController($scope, $routeParams, $location, scenarioService, alertService) {
         $scope.profile = $routeParams.p;
-        $scope.states = [{value: undefined, label: ''},{value: true, label: 'Validado'},{value: false, label: 'Pendiente'}];
+        $scope.states = [{value: undefined, label: ''},{value: true, label: $.i18n.t('generics.validated')},{value: false, label: $.i18n.t('generics.pending')}];
         var initialize = function() {
             $scope.datepickers = {
                 hourFrom : false,
@@ -97,9 +97,9 @@ define(['angular'], function(angular) {
                 function(response) {
                     if (response.data.length > 0) {
                         searchScenarios($scope.previousFilters);
-                        alertService.success({message: 'El escenario fue dado de baja con éxito'});
+                        alertService.success({message: $.i18n.t('alerts.scenario.deleted')});
                     } else {
-                        alertService.error({message: 'El escenario no pudo ser dado de baja'});
+                        alertService.error({message: $.i18n.t('alerts.scenario.unregisterError')});
                     }
                 },
                 function(response) {

@@ -70,7 +70,7 @@ define([], function() {
 			$scope.fileName="";
 			$scope.selectedFiles = undefined;
 			$scope.nameForm.$setPristine();
-			alertService.success({message: name+": se insertaron "+data.inserts+" registros"});
+			alertService.success({message: name+$.i18n.t('populationBase.nRecordsInserted')+data.inserts+$.i18n.t('populationBase.records')});
 			$scope.csvFile = undefined;
 		}
 		
@@ -121,8 +121,8 @@ define([], function() {
 			populationBaseService.setAsDefault(name).then(function(response){
 				$log.log(response);
 				
-				if (response.data > 0) { alertService.success({message: name + ": fue seteada como default"}); }
-				else { alertService.error({message: name + ": no pudo ser seteada como default"}); }
+				if (response.data > 0) { alertService.success({message: name + $.i18n.t('alerts.generics.setAsDefault')}); }
+				else { alertService.error({message: name + $.i18n.t('alerts.generics.setAsDefaultError')}); }
 
 				refreshBases();
 			});
@@ -144,7 +144,7 @@ define([], function() {
 			populationBaseService.toggleStateBase(name).then(function(response){
 				$log.log('deleted' + response);
 				var normState = (state) ? "activado" : "desactivado";
-				$scope.responseAction = name+" :se cambio el estado a "+normState;
+				$scope.responseAction = name+$.i18n.t('populationBase.stateChangedTo')+normState;
 				refreshBases();
 			});
 		};
@@ -161,17 +161,17 @@ define([], function() {
 		$scope.saveFileCSV = function() {
 			
 			if(!$scope.popBaseFreq || !$scope.popBaseFreq.name) {
-				alertService.error({message: 'Debe especificar el nombre de la BD'});
+				alertService.error({message: $.i18n.t('alerts.generics.dbName')});
 				return;
 			}
 			
 			if($scope.popBaseFreq.theta === 0 && $scope.popBaseFreq.model !== 'HardyWeinberg'){
-				alertService.error({message: 'Debe especificar el nombre de la BD'});
+				alertService.error({message: $.i18n.t('alerts.generics.dbName')});
 				return;
 			}
 			
 			if(!isUniqueName($scope.popBaseFreq.name)){
-				alertService.error({message: 'Ya fue ingresada una base el mismo nombre'});
+				alertService.error({message: $.i18n.t('alerts.generics.dbNameError')});
 				return;
 			}
 			

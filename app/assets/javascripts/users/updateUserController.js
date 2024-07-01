@@ -15,11 +15,11 @@ define([], function() {
 			userService.updateUser($scope.selectedUser).then(function(response){
 				console.log(response);
 				if (response.data.status) {
-					alertService.success({message: 'Fue modificado con exito'});
+					alertService.success({message: $.i18n.t('alerts.modify.success')});
 					$scope.updateSuccess = true;
 					$scope.closeModal();
 				} else {
-					alertService.error({message: 'No pudo ser modificado'});
+					alertService.error({message: $.i18n.t('alerts.modify.fail')});
 				}
 			});
 		};

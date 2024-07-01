@@ -69,7 +69,7 @@ function CourtCasesDataController ($scope, userService, pedigreeService, $routeP
 	});
 
 	function afterSave(id){
-		alertService.success({message: 'La operación se ha realizado exitosamente'});
+		alertService.success({message: $.i18n.t('alerts.genericSuccess.operation')});
         $location.path('/court-case/' + id);
         }
 	
@@ -124,11 +124,11 @@ function CourtCasesDataController ($scope, userService, pedigreeService, $routeP
             pedigreeService.removeMetadata(parseInt($scope.courtcaseId),person).then(function(response){
                 console.log('delet Metadata response',response);
 				getCourtCase(parseInt($scope.courtcaseId));
-                alertService.success({message: 'Se ha eliminado el registro satisfactoriamente'});
+                alertService.success({message: $.i18n.t('alerts.register.deleted')});
 
                 },function(response){
             console.log('delet Profiles response',response);
-            alertService.error({message: 'Error al borrar el registro'});
+            alertService.error({message: $.i18n.t('alerts.register.deletedError')});
         });
 
     };

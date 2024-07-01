@@ -49,7 +49,7 @@ define(['lodash'], function(_) {
                         }
                     });
                 }, function() {
-                    alertService.error({message: 'Error al consultar los perfiles'});
+                    alertService.error({message:  $.i18n.t('alerts.profile.consultError')});
                 });
 
             });
@@ -69,7 +69,7 @@ define(['lodash'], function(_) {
                 }
             }
             profileApprovalService.approveProfiles(request).then(function() {
-                alertService.success({message: 'Se aprobaron los perfiles'});
+                alertService.success({message: $.i18n.t('alerts.profile.approvePlural')});
                 if($scope.profiles!==undefined){
                     for (var i = 0; i < $scope.profiles.length; i++) {
                         if ($scope.profiles[i].selected) {
@@ -102,7 +102,7 @@ define(['lodash'], function(_) {
                     }
                 }
                 profileApprovalService.approveProfiles(request).then(function() {
-                    alertService.success({message: 'Se aprobó el perfil'});
+                    alertService.success({message: $.i18n.t('alerts.profile.approve')});
                     if($scope.profiles!==undefined){
                         for (var i = 0; i < $scope.profiles.length; i++) {
                             if ($scope.profiles[i].globalCode === profile.globalCode) {
@@ -120,11 +120,11 @@ define(['lodash'], function(_) {
             console.log(res);
             var deferred = $q.defer();
             profileApprovalService.rejectPendingProfile(profile.globalCode,res).then(function() {
-                alertService.success({message: 'Se rechazó el perfil'});
+                alertService.success({message: $.i18n.t('alerts.profile.rejected')});
                 deferred.resolve();
                 $scope.deleteFromTable(profile);
             }, function() {
-                alertService.error({message: 'Error al rechazar el perfil'});
+                alertService.error({message: $.i18n.t('alerts.profile.rejectedError')});
                 deferred.reject();
             });
 

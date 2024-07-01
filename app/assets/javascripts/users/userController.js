@@ -20,9 +20,9 @@ function UserController($scope, userService, appConf, $modal, roleService, alert
 	
 	$scope.updateUserStatus = function(userName, status) {
 		userService.updateUserSatus(userName, status).then(function(){
-			alertService.success({message: 'Fue modificado con exito'});
+			alertService.success({message: $.i18n.t('alerts.modify.success')});
 		}, function(data){
-			alertService.error({message: 'No pudo ser modificado' + ((data.data)? ': ' + data.data: '')});
+			alertService.error({message: $.i18n.t('alerts.modify.fail') + ((data.data)? ': ' + data.data: '')});
 		});
 	};
 	

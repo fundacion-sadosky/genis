@@ -43,8 +43,8 @@ define([ 'angular','appConf' ], function(angular,appConf) {
 	});
 	
 	// var alertMsgNoIntersection = 'N/A';
-	var alertMsgNoFreqValue = 'Sin frecuencia';
-	var alertMsgNotUsed = 'No usado';
+	var alertMsgNoFreqValue = $.i18n.t('scenario.withoutFrecuency');
+	var alertMsgNotUsed = $.i18n.t('scenario.notUsed');
 
 	mod.filter('likelihoodratio', function() {
 		return function(input, alleleMatching, statsResolved) {

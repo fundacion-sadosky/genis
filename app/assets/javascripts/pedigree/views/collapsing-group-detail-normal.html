@@ -7,8 +7,8 @@
             <div class="row" style="margin-bottom: 20px">
                 <span class="match-title col-md-7">{{profile.profileData | showcode}}</span>
                 <span class="col-md-2"><a data-ng-disabled="confirmDisabled" class="btn btn-secondary-action" ng-click="!confirmDisabled && confirmSelectedCollapsing()">Confirmar</a></span>
-                <span class="col-md-2"><a class="btn btn-secondary-action" ng-click="discardCollapsingGroup()">Descartar</a></span>
-                <span class="badge match-tag col-md-1 pull-right"><b>{{normal.totalItems}} coincidencias</b></span>
+                <span class="col-md-2"><a class="btn btn-secondary-action" ng-click="discardCollapsingGroup()">{{ 'buttons.discard' | i18next }}</a></span>
+                <span class="badge match-tag col-md-1 pull-right"><b>{{normal.totalItems}} {{ 'pedigree.matches' | i18next }}</b></span>
             </div>
         </div>
         <!--</a>-->
@@ -25,7 +25,7 @@
                                     <input type="checkbox" ng-init="selectAll=false" data-ng-model="selectAll" data-ng-change="changeSelection(selectAll);checkActivation();">
                                 </th>
                                 <th class="text-center">
-                                    <pdg-sortable name="Código Laboratorio" predicate="normal.predicate" reverse="normal.reverse" sort-action="sortBy(normal, 'globalCode')" sort-field="globalCode"></pdg-sortable>
+                                    <pdg-sortable name="{{ 'generics.labCode' | i18next }}" predicate="normal.predicate" reverse="normal.reverse" sort-action="sortBy(normal, 'globalCode')" sort-field="globalCode"></pdg-sortable>
                                 </th>
                                 <!--<th class="text-center">
                                     <pdg-sortable name="Tipo de análisis" predicate="normal.predicate" reverse="normal.reverse" sort-action="sortBy(normal, 'type')" sort-field="type"></pdg-sortable>
@@ -33,20 +33,20 @@
                                 <th class="text-center">Categoría
                                 </th>-->
                                 <th class="text-center">
-                                    <pdg-sortable name="Sistemas compartidos" predicate="normal.predicate" reverse="normal.reverse"
+                                    <pdg-sortable name="{{ 'pedigree.sharedLocus' | i18next }}" predicate="normal.predicate" reverse="normal.reverse"
                                     sort-action="sortBy(normal, 'totalAlleles')" sort-field="totalAlleles" numeric="true"></pdg-sortable>
                                 </th>
                                 <th class="text-center">
-                                    <pdg-sortable name="Porcentaje de alelos compartidos" predicate="normal.predicate" reverse="normal.reverse"
+                                    <pdg-sortable name="{{ 'pedigree.sharedAllelesPercentaje' | i18next }}" predicate="normal.predicate" reverse="normal.reverse"
                                     sort-action="sortBy(normal, 'sharedAllelePonderation')" sort-field="sharedAllelePonderation" numeric="true"></pdg-sortable>
                                 </th>
                                 <th class="text-center">
-                                    <pdg-sortable name="LR" predicate="normal.predicate" reverse="normal.reverse"
+                                    <pdg-sortable name="{{ 'generics.lr' | i18next }}" predicate="normal.predicate" reverse="normal.reverse"
                                                   sort-action="sortBy(normal, 'lr')" sort-field="lr" numeric="true"></pdg-sortable>
 
                                 </th>
 
-                                <th style="width: 5%">Comparar</th>
+                                <th style="width: 5%">{{ 'generics.compare' | i18next }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -72,7 +72,7 @@
                                 </td>
                                 
 
-                                <td title="Ver alelos">
+                                <td title="{{ 'generics.viewAlleles' | i18next }}">
                                     <a id="go_referencia_{{$index}}" href="{{getHref(profile, d)}}">
                                         <span class="glyphicon glyphicon-share-alt btn-icon-action"></span>
                                     </a>

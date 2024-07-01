@@ -102,7 +102,7 @@ define(['lodash','jquery'], function(_,$) {
         $scope.exportarMatches = function () {
             var searchObject = createSearchObjectForReport('Compatibility');
             pedigreeMatchesGroupsService.exportMatchesByGroup(searchObject).then(function () {
-                alertService.info({message: 'Se exportaron los archivos'});
+                alertService.info({message: $.i18n.t('alerts.profile.exported')});
 
                  var file_name = "MatchesMPIFile.csv";
                  var url = cryptoService.encryptBase64("/get-pedigreeMatches-export");
@@ -149,7 +149,7 @@ define(['lodash','jquery'], function(_,$) {
                     match.profile.status = 'discarded';
                     match.pedigree.status = 'discarded';
                 }
-                alertService.success({message: 'El match se descartó exitosamente.'});
+                alertService.success({message: $.i18n.t('alerts.match.discardSuccess')});
                 $scope.inicio();
             }, function(response) {
                 alertService.error(response.data);

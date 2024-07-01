@@ -9,7 +9,7 @@
 							<span  class="icon-atras" title="Volver"></span>
 						</div>
 					</li>
-					<li class="active">Bases Poblacionales de Frecuencia</li>
+					<li class="active">{{ 'populationBase.frequencies' | i18next }}</li>
 				</ol>
 			</div>
 		</div>
@@ -17,7 +17,7 @@
 </div>
 
 <div data-ng-init="getBase(dest)">
-	<h3>Base Poblacional De Frecuencia: {{dest}}</h3>
+	<h3>{{ 'populationBase.frequency' | i18next }}: {{dest}}</h3>
 
 <div style="position: fixed; left:5px; right: 5px; bottom: 0px; top: 150px;">
 
@@ -25,8 +25,8 @@
 <table class="table  table-bordered table-condensed" style="table-layout: fixed;">
 	<thead>
 		<tr>
-			<th class="centered" style="padding:0px;">Alelo</th>
-			<th colspan="{{populationBase.markers.length}}" class="centered" style="padding:0px;">Marcador</th>
+			<th class="centered" style="padding:0px;">{{ 'generics.allele' | i18next }}</th>
+			<th colspan="{{populationBase.markers.length}}" class="centered" style="padding:0px;">{{ 'generics.locus' | i18next }}</th>
 		</tr>
 		<tr>
 			<th></th>

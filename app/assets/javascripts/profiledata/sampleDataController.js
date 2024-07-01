@@ -15,7 +15,7 @@ define([ 'jquery' ], function() {
 			var today = new Date();
 
 			if(today-aux < 0 ){
-                alertService.error({message: 'La fecha debe ser anterior a la actual.'});
+                alertService.error({message: $.i18n.t('alerts.date.before')});
 				$scope.$parent.profileData[fieldName] = undefined;
 
             }
@@ -26,7 +26,7 @@ define([ 'jquery' ], function() {
             var today = new Date();
 
 			if(today-aux > 0){
-                alertService.error({message: 'La fecha debe ser posterior a la actual.'});
+                alertService.error({message: $.i18n.t('alerts.date.afterNow')});
 				$scope.$parent.profileData[fieldName] = undefined;
                 }
         };

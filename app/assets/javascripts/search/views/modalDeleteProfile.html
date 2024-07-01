@@ -9,12 +9,12 @@
 	<fieldset data-ng-disabled="editMode">
 
 		<div class="form-group col-xs-10">
-			<label>Solicitante de la Baja</label> <input class="form-control" id="solicitor" type="text"
+			<label>{{ 'generics.removalSolicitor' | i18next }}</label> <input class="form-control" id="solicitor" type="text"
 				data-ng-model="deleted.solicitor" required/>
 		</div>
 
 		<div class="form-group col-lg-12">
-		<label>Motivo</label>
+		<label>{{ 'motives.name' | i18next }}</label>
 			<select class="form-control form-select" name="repeatSelect" id="repeatSelect" ng-model="deleted.selectedMotive" ng-change="onChangeMotive(deleted.selectedMotive)" required>
 				<option ng-repeat="motive in motives" value="{{motive.id}}">{{motive.description}}</option>
 			</select>
@@ -27,7 +27,7 @@
 			<div class="desk-align-right">
 				<button id="del" type="button" class="btn btn-success"
 					data-ng-disabled="editMode || genDelForm.$invalid || !deleted.selectedMotive"
-					data-ng-click="deleteProfile(deleted)">Dar de Baja</button>
+					data-ng-click="deleteProfile(deleted)">{{ 'generics.deleteProfile' | i18next }}</button>
 			</div>
 	
 </div>

@@ -10,7 +10,7 @@ function AssociateProfilesModalController($scope, $modalInstance, $log, data, se
 	$scope.verify = function() {
 		var re = new RegExp(appConf.sampleCodeRegex);
 		if (!re.test($scope.profileId)) {
-			alertService.error({message: 'No se ha seleccionado un código de perfil válido'});
+			alertService.error({message:  $.i18n.t('alerts.profile.codeError')});
 			return;
 		}
 		
@@ -33,7 +33,7 @@ function AssociateProfilesModalController($scope, $modalInstance, $log, data, se
 				$scope.isProcessing = false;
 			}, 
 			function() {
-				alertService.error({message: 'Ha ocurrido un error'});
+				alertService.error({message: $.i18n.t('error.common2')});
 				$scope.isProcessing = false;
 			});
 	};

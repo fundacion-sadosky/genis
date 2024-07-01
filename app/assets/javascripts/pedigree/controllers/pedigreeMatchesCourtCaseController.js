@@ -12,8 +12,8 @@ define(['angular','lodash','jquery'], function(angular,_,$) {
         localStorage.removeItem("searchPedigreeMatches");
         localStorage.removeItem("nuevo");
 
-        $scope.status = [{label: "todos", value: "", index: 0}, {label: "pendientes", value: "pending", index: 1},
-            { label: "confirmados",value: "hit", index: 2 },{label: "descartados", value: "discarded", index: 3}];
+        $scope.status = [{label: "todos", value: "", index: 0}, {label: $.i18n.t('generics.pendingPlural'), value: "pending", index: 1},
+            { label: $.i18n.t('generics.confirmedPlural'),value: "hit", index: 2 },{label: $.i18n.t('generics.discardedPlural'), value: "discarded", index: 3}];
         $scope.tabFiltro = $scope.status[1].value;
         $scope.indexFiltro = $scope.status[1].index;
         $scope.clase = "tab-estados-tab__pendientes";
@@ -159,11 +159,11 @@ define(['angular','lodash','jquery'], function(angular,_,$) {
                 min = $scope.search.hourFrom;
             }
             if(max-aux < 0 ){
-                alertService.info({message: 'La fecha debe ser anterior a la actual.'});
+                alertService.info({message: $.i18n.t('alerts.date.afterNow')});
                 $scope.search[fieldName] = undefined;
             }else{
                 if( min-aux > 0 ){
-                    alertService.info({message: 'La fecha  debe ser posterior al campo desde.'});
+                    alertService.info({message: $.i18n.t('alerts.date.after')});
                     $scope.search[fieldName] = undefined;
                 }
             }
@@ -175,7 +175,7 @@ define(['angular','lodash','jquery'], function(angular,_,$) {
             var today = new Date();
 
             if(today-aux < 0 ){
-                alertService.info({message: 'La fecha debe ser anterior a la actual.'});
+                alertService.info({message: $.i18n.t('alerts.date.before')});
                 $scope.search[fieldName] = undefined;
                 $scope.minDateCoin = null;
             }else{
@@ -248,7 +248,7 @@ define(['angular','lodash','jquery'], function(angular,_,$) {
                     match.matchCard.estado = 'discarded';
                     match.matchCardPed[0].estado = 'discarded';
                 }
-                alertService.success({message: 'El match se descartó exitosamente.'});
+                alertService.success({message: $.i18n.t('alerts.match.discardSuccess')});
                 $scope.searchMatches();
             }, function(response) {
                 alertService.error(response.data);

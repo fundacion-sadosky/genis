@@ -151,9 +151,9 @@ var ProfileCourtcaseCtrl = function($scope, $filter, pedigreeService, $routePara
         var request = {};
         request.courtcaseId = parseInt($scope.courtcaseId);
         pedigreeService.collapse(request).then(function(){
-            alertService.success({message: 'Se ha lanzado el proceso de búsqueda y recibirá una notificación cuando este finalice.'});
+            alertService.success({message: $.i18n.t('alerts.pedigree.searchStarted')});
         },function(){
-            alertService.error({message: 'Error al collapsar'});
+            alertService.error({message: $.i18n.t('alerts.collapsing.collapsingError')});
         });
     };
     $scope.addBatchProfiles = function() {
@@ -185,7 +185,7 @@ var ProfileCourtcaseCtrl = function($scope, $filter, pedigreeService, $routePara
 
             if(batchesToImport.length>0){
                 pedigreeService.addBatches(importBatchReq).then(function(){
-                    alertService.success({message: 'La operación fue realizada con éxito'});
+                    alertService.success({message: $.i18n.t('alerts.genericSuccess.operation')});
                     $scope.initTotalCaseProfiles();
                     $scope.initProfiles();
                 },function(response){
@@ -225,7 +225,7 @@ var ProfileCourtcaseCtrl = function($scope, $filter, pedigreeService, $routePara
                 request.isReference = $scope.activeTab === 2;
 
                 pedigreeService.addProfiles(request).then(function(){
-                    alertService.success({message: 'Se asociaron los perfiles'});
+                    alertService.success({message: $.i18n.t('alerts.profile.associateSuccess')});
                     $scope.initTotalCaseProfiles();
                     $scope.initProfiles();
                 },function(response){
@@ -239,12 +239,12 @@ var ProfileCourtcaseCtrl = function($scope, $filter, pedigreeService, $routePara
     $scope.dissasociate = function(listRequest) {
         pedigreeService.removeProfiles(listRequest).then(function(response){
             console.log('addProfiles response',response);
-            alertService.success({message: 'Se desasoció el perfil'});
+            alertService.success({message: $.i18n.t('alerts.profile.disassociateSuccess')});
             $scope.initTotalCaseProfiles();
             $scope.initProfiles();
         },function(response){
             console.log('addProfiles response',response);
-            alertService.error({message: 'Error al desasociar un perfil'});
+            alertService.error({message: $.i18n.t('alerts.profile.disassociateError')});
         });
     };
     $scope.removeProfile = function(confirmed,globalCode) {

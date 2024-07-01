@@ -30,7 +30,7 @@ define(['angular','lodash'], function(angular,_) {
                         if(response.data.error){
                             alertService.error({message: response.data.error});
                         }else{
-                            alertService.success({message: 'Se ejecutó correctamente'});
+                            alertService.success({message: $.i18n.t('alerts.genericSuccess.executed')});
 
                             if ($routeParams.profileId){
                                 $rootScope.f = true;
@@ -46,14 +46,14 @@ define(['angular','lodash'], function(angular,_) {
                     $scope.disableLabels();
                 },
                 function() {
-                    alertService.error({message: 'Ha ocurrido un error'});
+                    alertService.error({message: $.i18n.t('alerts.error.common2')});
                 });
         };
 
         $scope.showLabelsModal = function() {
 
             if ($scope.labelsAreUsed()) {
-                var c = confirm("Etiquetas ya utilizadas. Si las modifica se eliminarán todas las asociaciones. Está seguro que desea editarlas?)");
+                var c = confirm("$.i18n.t('alerts.profileViews.tagInUse')");
                 if (!c) { return; }
             }
 

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 
 <div class="modal-header" id="grouped-modal">
-	<h4>Perfiles Agrupados
+	<h4>{{ 'pedigree.groupedProfiles.grouped' | i18next }}
 	<span id="processingSpan" class="glyphicon glyphicon-refresh" ng-class="{'spinner': isProcessing}" ng-show="isProcessing"></span>
 	</h4>
 </div>
@@ -9,7 +9,7 @@
 	<div class="input-group" style="padding-bottom: 10px;">
 	  	<input type="text" class="form-control form-select" aria-describedby="basic-addon2"
 	  		id="profileGrouped" name="profileGrouped" ng-model="profileGrouped"
-			placeholder="Buscar perfil"
+			placeholder="{{ 'profileViews.search' | i18next }}"
 			ng-keyup="$event.keyCode == 13 ? searchProfile() : null">
 
 		<span class="input-group-addon" id="basic-addon2" ng-click="searchProfiles()">
@@ -19,15 +19,15 @@
 
 	<div>
 		<button type="button" class="btn btn-secondary-action pull-right" ng-click="dissasociateGrouped()" data-ng-disabled="activePedigrees">
-			Desagrupar todos</button>
+			{{ 'pedigree.groupedProfiles.ungroupAll' | i18next }}</button>
 	</div>
 
 		<table class="table  table-striped" data-ng-show="profiles" style="font-size:x-small;">
 	<thead>
 		<tr>
-			<th class="text-center col-md-2">Código GENis</th>
-			<th class="text-center col-md-2">Código Laboratorio</th>
-			<th class="text-center col-md-1">Desagrupar</th>
+			<th class="text-center col-md-2">{{ 'pedigree.groupedProfiles.GENisCode' | i18next }}</th>
+			<th class="text-center col-md-2">{{ 'pedigree.groupedProfiles.labCode' | i18next }}</th>
+			<th class="text-center col-md-1">{{ 'pedigree.groupedProfiles.ungroup' | i18next }}</th>
 			<!--<th class="text-right col-md-1">
 				<button class="btn btn-secondary-action" ng-click="dissasociateGrouped()">Desagrupar todos</button>
 			</th>-->
@@ -65,13 +65,13 @@
 <div class="modal-footer" >
 
 	<div class="pull-left">
-		<span>No se puede desagrupar si hay pedigris en estado Activo</span>
+		<span>{{ 'pedigree.groupedProfiles.cantUngroup' | i18next }}</span>
 	</div>
 	<div class="btn btn-link-action" ng-click="$close()">
-		<span title="Cerrar">
+		<span title="{{ 'buttons.close' | i18next }}">
                 <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
             </span>
-		<span class="btn-link-action">Cerrar</span>
+		<span class="btn-link-action">{{ 'buttons.close' | i18next }}</span>
 	</div>
 </div>
 
