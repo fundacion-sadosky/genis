@@ -1,0 +1,150 @@
+#Profiles
+error.E0100= E0100: It was expected to hit with only one registry and hit {0}.
+error.E0101= E0101: Profile not found.
+error.E0102= E0102: Error inserting rejection reason.
+error.E0103= E0103: Some profiles could not be updated.
+error.E0104= E0104: Unable to change from status {0} to status {1}.
+error.E0105= E0105: Non-existent profile: {0}.
+error.E0106= E0106: Unable tu update a profile in status {0}.
+error.E0107= E0107: Code must be unique for each profile.
+error.E0108= E0108: The responsible geneticist must always be the same for {0}.
+error.E0109= E0109: Profile does not exist.
+error.E0110= E0110: The profile selected does not have analyzes uploaded.
+error.E0111= E0111: The profile is associated with another profile. No more analyzes can be added.
+error.E0112= E0112: Unable to add analyzes to a profile in a confirmed or pending status.
+error.E0113= E0113: There is no a profile with the code: {0}.
+error.E0114= E0114: Error in image.
+error.E0115= E0115: Profile {0} does not match with the evidence .
+error.E0116= E0116: Unable to perform the association, an associated profile already exists.
+error.E0117= E0117: Profile data cannot be changed.
+error.E0118= E0118: Profile {0} is part of a pending scenario.
+error.E0119= E0119: The profile could not be added.
+error.E0120= E0120: The number of individuals in the population of interest ({0}) must be greater than the number of profiles assessed ({1}).
+error.E0121= E0121: Error making type {0} trace for profile {1}.
+error.E0122= E0122: Error importing profile {0}.
+error.E0123= E0123: Value of invalid allele/s.
+error.E0124= E0124: Duplicated Alleles {0}.
+error.E0125= E0125: Profile {0} is associated with a case.
+error.E0126= E0126: Profile {0} is associated with an active or under construction pedigree.
+error.E0127= E0127: Profile {0} cannot be deleted.
+error.E0128= E0128: Profile {0} is associated with a pending pedigree scenario.
+error.E0129= E0129: Profile{0} has pending MPI/DVI matches.
+error.E0130= E0130: Profile {0} is in a pedigree with pending matches.
+error.E0131= E0131: Error making trace of type {0} for pedigree {1}.
+
+
+#Pedigree
+error.E0200= E0200: There is no GeneMapper user:{0}.
+error.E0201= E0201: Pegigree has not a frequency base associated.
+error.E0202= E0202: Analysis can not be added to a profile that is participating in an active or validated pedigree.
+error.E0203= E0203: No profiles were found to import.
+error.E0204= E0204: User does not have permits to confirm the match..
+error.E0205= E0205: Profile cannot be disassociated.
+error.E0206= E0206: There was an error saving the grouping.
+error.E0207= E0207: Profiles {0} are associated with active or under construction pedigrees.
+error.E0208= E0208: Profile {0} is associated with active or under construction pedigrees.
+error.E0209= E0209: Profiles {0} have pending matches.
+error.E0210= E0210: Profile {0} has pending matches.
+error.E0211= E0211: The case contains active pedigrees.
+
+#Bulk upload
+error.E0301= E0301: Error importing the batch.
+error.E0302= E0302: The format of the lines does not match   the header.
+error.E0303= E0303: Profile cannot be imported.
+error.E0304= E0304: The batch cannot be deleted because it contains accepted samples.
+error.E0305= E0305: Parameters missing in the file header.
+error.E0306= E0306: Profile ''{0}'' is pending approval in batch #{1}.
+error.E0307= E0307: The position of some of the variations does not belong to the range.
+error.E0308= E0308: Ranges must be between 1 and 16569.
+error.E0309= E0309: The upper limit must be greater than the range loweest.
+error.E0310= E0310: Profile cannot have more than 4 ranges.
+error.E03011= E0311: Variation does not belong to D-loop (1-576, 16024-16569).
+error.E03012= E0312: Range does not belong to D-loop(1-576, 16024-16569).
+error.E0313= E0313: The base does not belong to the position : {0}.
+error.E0314= E0314: Position {0} not existent.
+error.E0315= E0315: The profile already has a mitochondrial analysis.
+#
+error.E0400= E0400: Values{0} cannot be changed for {1}.
+error.E0500= E0500: Error updating motive setup.
+
+#Setups
+error.E0600= E0600: Category {0} does not exist.
+error.E0610= E0610: The statistics options are not setup by default.
+error.E0611= E0611: Invalid or non-existent range in the minimum frequencies [{0}].
+error.E0612= E0612: Wrongly formed frequencies {0}.
+error.E0630= E0630: Unexpected error in the database.
+error.E0640= E0640: Alias {0} duplicated.
+error.E0641= E0641: User does not exist.
+error.E0642= E0642: User does not have permits to discard the match.
+error.E0643= E0643: User {0} does not have permits to update the pedigree.
+error.E0644= E0644: User {0} does not have permits to delete.
+error.E0645= E0645: User des not have permits on the scenario.
+error.E0646= E0646: User cannot change from status {0} to status {1}.
+error.E0650= E0650: Responsible person ''{0}'' is not a geneticist user of the system.
+error.E0654= E0654: There are users associated to the role.
+error.E0660= E0660: Incorrect category update:  {0} registries were updated.
+error.E0661= E0661: Category must always be the same for {0}.
+error.E0662= E066: The assigned {0} does not match.
+error.E0663= E0663: Profile category {0} does not match with {1}.
+error.E0664= E0664: Duplicated Id or category name.
+error.E0665= E0665: The category can not be deleted because it is related to other categories.
+error.E0666= E0666: Category does not exist.
+error.E0667= E0667: Category {0} cannot be associated.
+error.E0670= E0670: Duplicated Id or group name.
+error.E0671= E0671: The group can not be deleted because it has associated categories.
+error.E0680= E0680: Locus ''{0}'' is not defined in the system.
+error.E0681= E0681: Locus''{0}'' does not belong to the kit ''{1}''.
+error.E0682= E0682: Loci {0} not contained in kit.
+error.E0683= E0683: Alanysis must contain at least {0} required loci.
+error.E0684= E0684: Alanysis cannot contain loci with more than  {0} alleles.
+error.E0685= E0685: Analysis cannot contain more than {0} loci with trisomies.
+error.E0686= E0686: Locus {0} invalid. {1}.
+error.E0687= E0687: Locus {0} cannot be deleted because it is linked with another locus.
+error.E0688= E0688: Locus Id: {0} duplicated.
+error.E0689= E0689: One or more loci [{0}] were not found in the system.
+error.E0690= E0690: Kit for {0}must always be the same.
+error.E0691= E0691: Kit ''{0}'' is not defined in the system.
+error.E0692= E0692: Kit {0} does not exist.
+error.E0693= E0693: Locus{0} cannot be deleted because it is included in a kit.
+error.E0694= E0694: Kit {0} Id duplicated.
+error.E0695= E0695: Kit {0} cannot be deleted beacause it is being used in a profile.
+error.E0696= E0696: Kit {0} cannot be deleted because it is being used in a bulk upload batch.
+error.E0697= E0697: The representative parameter cannot be greater than the number of loci.
+
+#Interconnection
+error.E0701= E0701: Error updating inferior instance settings.
+error.E0702= E0702: Connection error.
+error.E0707= E0707: Could not be connected.
+error.E0708= E0708: The url could not be saved because there is not connectivity.
+error.E0710= E0710: The status to the inferior instance could not be notidfied.
+error.E0720=     E0720: The superior instance has already saved the connection.
+error.E0721= E0721: Category of the superior instance is not mapped.
+error.E0722= E0722: Superior instance is not setup.
+error.E0723= E0723: Connection error with the superior instance.
+error.E0724= E0724: The superior instance rejected the profile.
+error.E0725= E0725: Profile does not belong to a category that can be replicated to the superior instance.
+error.E0726= E0726: A match that does not belong to the current instance cannot be confirmed or discarded.
+error.E0727= E0727: Profile could not be updated because it belongs to another laboratory.
+error.E0728= E0728: Profile cannot be updated because it was replicated to a superior instance.
+error.E0729= E0729: The profile is not editable.
+error.E0730= E0730: Time out.
+#
+error.E0802= E0802: The session is invalid or has expired.
+error.E0803= E0803: Invalid token.
+error.E0900= E0900: Profile {0} does not exist.
+error.E0901= E0901: Name already used.
+error.E0902= E0902: Match is being used in a    pending scenario.
+error.E0930= E0930: The transition from {0} to {1} is invalid.
+error.E0940= E0940: Global code does not exist. *
+error.E0950= E0950: An error occurred deleting matches.
+error.E0951= E0951: Image of profile {0} could not be obtained because the token is invalid or has expired.
+error.E0960= E0960: Inconsistency between the header size [{0}] and the rest of the rows [{1}].
+error.E1000= E1000: Update not allowed.
+error.E2000= E2000: No profiles found with the selected filters.
+
+
+# Wait a moment
+start.wait= Wait a moment please
+
+#Inbox
+inbox.theuserpending = The user: {0} is pending for approval.
