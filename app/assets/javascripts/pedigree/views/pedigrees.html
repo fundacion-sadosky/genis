@@ -7,7 +7,7 @@
                         <form class="navbar-form padding-0" role="search" name="searchForm" novalidate data-ng-submit="search()">
                             <div class="row padding-0">
                                 <div class="col-md-4 verical-align">
-                                    <label class="col-md-3 padding-left-0" for="searchText">Nombre</label>
+                                    <label class="col-md-3 padding-left-0" for="searchText">{{ 'generics.name' | i18next }}</label>
                                     <div class="col-md-9">
                                         <input id="searchText" name="searchText" ng-model="$parent.searchText" type="text" class="form-control form-select" />
                                     </div>
@@ -19,7 +19,7 @@
                                     </div>
                                 </div>-->
                                 <div class="col-md-4 vertical-align">
-                                    <label class="col-md-3" for="search-status">Estado</label>
+                                    <label class="col-md-3" for="search-status">{{ 'generics.state' | i18next }}</label>
                                     <div class="col-md-9 padding-0">
                                         <select id="search-status" ng-model="$parent.searchStatus" class="form-control form-select" data-ng-options="item.value as item.label for item in status">
                                         </select>
@@ -39,7 +39,7 @@
                                                 <input type="text" name="hourFrom" id="hourFrom" placeholder="{{ 'generics.since' | i18next }}" data-datepicker-popup="dd/MM/yyyy" data-ng-model="$parent.hourFrom" data-is-open="datepickers.hourFrom" class="form-control form-select" data-datepicker-options="dateOptions" ng-blur="checkMax('hourFrom')" max-date="maxDate" data-close-text="Close"  data-ng-click="toggleDatePicker($event,'hourFrom')"  />
                                                 </div>
                                                 <div class="col-md-6 item-input padding-right-0">
-                                                <input type="text" name="hourUntil" id="hourUntil" placeholder="{{ 'generics.until' | i18next }}" data-datepicker-popup="dd/MM/yyyy" data-ng-model="$parent.hourUntil" data-is-open="datepickers.hourUntil" class="form-control form-select" data-datepicker-options="dateOptions" ng-blur="checkMaxMin('hourUntil','hourFrom')" max-date="maxDate" min-date="minDatePed" data-close-text="Close"  data-ng-click="toggleDatePicker($event,'hourUntil')" />
+                                                <input type="text" name="hourUntil" id="hourUntil" placeholder="{{ 'generics.to' | i18next }}" data-datepicker-popup="dd/MM/yyyy" data-ng-model="$parent.hourUntil" data-is-open="datepickers.hourUntil" class="form-control form-select" data-datepicker-options="dateOptions" ng-blur="checkMaxMin('hourUntil','hourFrom')" max-date="maxDate" min-date="minDatePed" data-close-text="Close"  data-ng-click="toggleDatePicker($event,'hourUntil')" />
                                                 </div>
                                             </div>
                                         </div>

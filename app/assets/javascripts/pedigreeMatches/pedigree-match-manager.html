@@ -196,7 +196,7 @@
                                         <p class="dato laboratorio big-size" ng-if="match.matchCard.pending == 0">&mdash;</p>
                                     </div>
                                 <div class="col-md-3 padding-right-0 padding-left-0 padding-top-7 padding-bottom-7">
-                                        <h6>{{ 'generics.confirmedlural' | i18next }}</h6>
+                                        <h6>{{ 'generics.confirmedPlural' | i18next }}</h6>
                                         <p class="dato laboratorio big-size" ng-if="match.matchCard.hit !== 0 ">{{match.matchCard.hit}}</p>
                                         <p class="dato laboratorio big-size" ng-if="match.matchCard.hit == 0">&mdash;</p>
                                     </div>
@@ -293,7 +293,7 @@
                                             
                                             <a  href="" class="cancel-link descartar"  pdg-confirm pdg-confirm-title="{{ 'matches.discardPlural' | i18next }}"
                                                 pdg-confirm-content="{{ 'matches.discardConfirmation' | i18next }}"
-                                                pdg-on-confirm="descarteMasivo" param="{{match.matchCard}}" >{{ 'matches.discardAll' | i18next }}</a>
+                                                pdg-on-confirm="descarteMasivo" param="{{match.matchCard}}" >{{ 'matches.discardAllPlural' | i18next }}</a>
                                         </div>
                                     </div>
                                 </div>

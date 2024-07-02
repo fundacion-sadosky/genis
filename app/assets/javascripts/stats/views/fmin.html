@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <div class="modal-header">
-	<h4>Frecuencias mínimas</h4>
+	<h4>{{ 'generics.minFreq' | i18next }}</h4>
 </div>
 <div class="modal-body">
 	
 	<form name="fminForm" id="fminForm">
 		<div class="form-group">
-			<label style="display: inline;">Opciones de cálculo</label>
+			<label style="display: inline;">{{ 'generics.statsOptions' | i18next }}</label>
 			<select id="calcOptions" data-ng-model="result.calcOption" required class="form-control"
 				data-ng-options="calcId as calc.description for (calcId, calc) in calcOptions">
 			</select>
@@ -33,6 +33,6 @@
 	</form>
 </div>
 <div class="modal-footer">
-   <button id="ok" class="btn btn-success" data-ng-click="closeModal(true)" ng-disabled="fminForm.$invalid">Aceptar</button>
-   <button id="cancel" class="btn btn-danger" data-ng-click="closeModal(false)">Cancelar</button>
+   <button id="ok" class="btn btn-success" data-ng-click="closeModal(true)" ng-disabled="fminForm.$invalid">{{ 'buttons.accept' | i18next }}</button>
+   <button id="cancel" class="btn btn-danger" data-ng-click="closeModal(false)">{{ 'buttons.cancel' | i18next }}</button>
 </div>

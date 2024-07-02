@@ -108,10 +108,10 @@ function StatsService(playRoutes, $q) {
 	};
 	
 	this.getFminCalcOptions = function(){
-		return {'FminValue': {id: 'value', description: 'Valor', config: ['fmin']}, 
-				'NRCII': {id: 'NRCII', description: 'NRC II', config: ['N']}, 
-				'Weir': {id: 'Weir', description: 'Weir', config: ['N', 'alpha']},
-				'BudowleMonsonChakraborty': {id: 'BudowleMonsonChakraborty', description: 'Budowle, Monson, Chakraborty', config: ['N', 'alpha', 'C']}};
+		return {'FminValue': {id: 'value', description:  $.i18n.t('generics.value'), config: ['fmin']},
+				'NRCII': {id: 'NRCII', description: $.i18n.t('generics.ncrII'), config: ['N']},
+				'Weir': {id: 'Weir', description: $.i18n.t('generics.weir'), config: ['N', 'alpha']},
+				'BudowleMonsonChakraborty': {id: $.i18n.t('generics.budowleMonsonChakraborty'), description: 'Budowle, Monson, Chakraborty', config: ['N', 'alpha', 'C']}};
 	};
 	
 	this.insertFmin = function(cacheId, fmin) {

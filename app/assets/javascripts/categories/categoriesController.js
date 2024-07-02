@@ -165,7 +165,7 @@ function CategoriesCtrl ($scope, categoriesService, $modal, alertService, analys
 	
 	function updateCategory(category) {
 		$scope.categories[category.id] = category;
-		alertService.success({message: $.i18n.t('alerts.category.upated')});
+		alertService.success({message: $.i18n.t('alerts.category.updated')});
 	}
 	
 	function removeCategory(catId) {
