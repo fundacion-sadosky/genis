@@ -22,32 +22,32 @@
                         <th>
                             &nbsp;
                         </th>
-                        <th class="text-center col-md-2 head-column"><p ng-show="groupByProfile()">Caso </p>
-                            <pdg-sortable ng-show="groupByPedigree()" name="Código Laboratorio" predicate="sortField" reverse="!ascending"
+                        <th class="text-center col-md-2 head-column"><p ng-show="groupByProfile()">{{ 'generics.case' | i18next }} </p>
+                            <pdg-sortable ng-show="groupByPedigree()" name="{{ 'generics.labCode' | i18next }}" predicate="sortField" reverse="!ascending"
                                           sort-action="sortBy('Compatibility', 'profile')" sort-field="profile"></pdg-sortable>
                         </th>
 
-                        <th class="text-center col-md-2 head-column"> <p  ng-show="groupByProfile()">Pedigrí</p>
-                            <pdg-sortable ng-show="groupByPedigree()" name="Código GENis" predicate="sortField" reverse="!ascending"
+                        <th class="text-center col-md-2 head-column"> <p  ng-show="groupByProfile()">{{ 'generics.pedigree' | i18next }}</p>
+                            <pdg-sortable ng-show="groupByPedigree()" name="{{ 'generics.GENisCode' | i18next }}" predicate="sortField" reverse="!ascending"
                                           sort-action="sortBy('Compatibility', 'profileg')" sort-field="profileg"></pdg-sortable>
                         </th>
 
                         <th class="text-center col-md-2 head-column" ng-if="groupByPedigree()" style="width:45%">
-                            <pdg-sortable name="Categoría" predicate="sortField" reverse="!ascending"
+                            <pdg-sortable name="{{ 'generics.category' | i18next }}" predicate="sortField" reverse="!ascending"
                                           sort-action="sortBy('Compatibility', 'category')" sort-field="category"></pdg-sortable>
                         </th>
                         
                         <th class="text-center col-md-1 head-column" style="width:5%">
-                            <pdg-sortable name="Fecha" predicate="sortField" reverse="!ascending"
+                            <pdg-sortable name="{{ 'generics.date' | i18next }}" predicate="sortField" reverse="!ascending"
                                           sort-action="sortBy('Compatibility', 'date')" sort-field="date"></pdg-sortable>
                         </th>
 
                         <th class="text-center col-md-1 head-column">
-                            <pdg-sortable name="LR" predicate="sortField" reverse="!ascending"
+                            <pdg-sortable name="{{ 'generics.lr' | i18next }}" predicate="sortField" reverse="!ascending"
                                           sort-action="sortBy('Compatibility', 'compatibility')" sort-field="compatibility"></pdg-sortable>
                         </th>
                         <th class="text-center col-md-1 head-column">
-                            <pdg-sortable name="Estado " predicate="sortField" reverse="!ascending"
+                            <pdg-sortable name="{{ 'generics.state' | i18next }} " predicate="sortField" reverse="!ascending"
                                           sort-action="sortBy('Compatibility', 'pedigreeStatus')" sort-field="pedigreeStatus"></pdg-sortable>
                         </th>
                         <th class="text-center col-md-1 head-column" style="width:2%">

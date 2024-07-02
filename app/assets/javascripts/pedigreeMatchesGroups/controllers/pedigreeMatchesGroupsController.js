@@ -24,8 +24,8 @@ define([], function() {
         }else{
             $scope.filtroAnt = 1;
         }
-        $scope.status = [{label: "todos", value: null, index: 0}, {label: "$.i18n.t('generics.pending')", value: "pending", index: 1},
-            {label: "$.i18n.t('generics.confirmedPlural')", value: "hit", index: 2}, { label: "$.i18n.t('generics.discarded')",value: "discarded",index: 3}];
+        $scope.status = [{label: "todos", value: null, index: 0}, {label: "pendientes", value: "pending", index: 1},
+            {label: "confirmados", value: "hit", index: 2}, { label: "descartados",value: "discarded",index: 3}];
 
         $scope.inicio = function () {
 
