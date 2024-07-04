@@ -180,10 +180,10 @@
     "updateList": "Actualizar lista",
     "upload": {
       "electropherogram": "Cargar electroferograma",
-      "file": "Cargar archivo",
-      "image": "Cargar imagen",
-      "print": "Cargar huella",
-      "signature": "Cargar firma"
+      "file": "Subir archivo",
+      "image": "Subir imagen",
+      "print": "Subir huella",
+      "signature": "Subir firma"
     },
     "validate": "Validar",
     "validateAndSave": "Validar y guardar",

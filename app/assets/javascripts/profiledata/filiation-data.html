@@ -1,21 +1,20 @@
 <div ng-controller="filiationDataController" class="filiationdata">
 
 	<h5 class="display-block">{{ 'profileData.tab3' | i18next }}</h5>
-
 	<div class="item-input col-md-5">
-		<label>{{ 'profileData.profileData.identification' | i18next }}</label>
+		<label>{{ 'profileData.filiation.identification' | i18next }}</label>
 		<input type="text" id="identification" data-ng-disabled="mode == 'readonly'"
-			data-ng-model="$parent.profileData.dataFiliation.identification" class="form-control form-select" default-value="undefined" />
+			   data-ng-model="$parent.profileData.dataFiliation.identification" class="form-control form-select" default-value="undefined" />
 	</div>
-	
+
 	<div class="item-input col-md-7">
 		<label>{{ 'profileData.filiation.issuingAuthority' | i18next }}</label>
 		<input type="text" id="identificationIssuingAuthority" data-ng-disabled="mode == 'readonly'"
-			data-ng-model="$parent.profileData.dataFiliation.identificationIssuingAuthority" class="form-control form-select" default-value="undefined" />
+			   data-ng-model="$parent.profileData.dataFiliation.identificationIssuingAuthority" class="form-control form-select" default-value="undefined" />
 	</div>
 
-	<div class="item-input col-md-12">
-		<label>{{ 'profileData.profileData.fullName' | i18next }}</label>
+		<div class="item-input col-md-12">
+		<label>{{ 'profileData.filiation.fullName' | i18next }}</label>
 		<input type="text" id="name" data-ng-disabled="mode == 'readonly'"
 			data-ng-model="$parent.profileData.dataFiliation.fullName" class="form-control form-select" default-value="undefined" />
 	</div>
@@ -70,7 +69,8 @@
 			ng-repeat="slide in pictures"> <img ng-src="{{slide}}"
 			style="margin: auto; height: 50px;"></slide> </carousel>
 		<span class="btn btn-link-action btn-link-border btn-block btn-file"  ng-disabled="mode == 'readonly'">
-			<span class="glyphicon glyphicon-upload"></span> Subir imagen 
+			<span class="glyphicon glyphicon-upload"></span> {{ 'buttons.upload.file' | i18next }}
+
 			<input data-ng-disabled="mode == 'readonly'" type="file" ngf-select
                    ngf-change="onFileSelect($files, 'picture')" multiple accept="image/*">
 		</span>
@@ -81,7 +81,7 @@
 			ng-repeat="slide in inprints"> <img ng-src="{{slide}}"
 			style="margin: auto; height: 50px;"></slide> </carousel>
 		<span class="btn btn-link-action btn-link-border btn-block btn-file"  ng-disabled="mode == 'readonly'">
-			<span class="glyphicon glyphicon-upload"></span> Subir huella 
+			<span class="glyphicon glyphicon-upload"></span> {{ 'buttons.upload.print' | i18next }}
 			<input data-ng-disabled="mode == 'readonly'" type="file" ngf-select ngf-change="onFileSelect($files, 'inprint')" multiple accept="image/*">
 		</span>
 	</div>
@@ -91,7 +91,7 @@
 			<slide ng-repeat="slide in signatures"> <img ng-src="{{slide}}" style="margin: auto; height: 50px;"></slide> 
 		</carousel>
 		<span class="btn btn-link-action btn-link-border btn-block btn-file"  ng-disabled="mode == 'readonly'">
-			<span class="glyphicon glyphicon-upload"></span> Subir firma 
+			<span class="glyphicon glyphicon-upload"></span> {{ 'buttons.upload.signature' | i18next }}
 			<input data-ng-disabled="mode == 'readonly'" type="file" ngf-select ngf-change="onFileSelect($files, 'signature')" multiple accept="image/*">
 		</span>
 	</div>

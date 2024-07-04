@@ -50,10 +50,10 @@ define(['angular','lodash','jquery'], function(angular,_,$) {
         $scope.dateOptions = {
             initDate : new Date()
         };
-        
+
         $scope.currentPage = 1;
         $scope.pageSize = 30;
-        
+
         $scope.groupId = 'pedigree';
 
         $scope.toggleDatePicker = function($event, witch) {
@@ -134,7 +134,7 @@ define(['angular','lodash','jquery'], function(angular,_,$) {
                     }, function() { $scope.isProcessing = false; });
                 } else {
                     $scope.noResult = true;
-                    $scope.isProcessing = false; 
+                    $scope.isProcessing = false;
                 }
 
             }, function() { $scope.isProcessing = false; });
@@ -166,7 +166,7 @@ define(['angular','lodash','jquery'], function(angular,_,$) {
             });
         });
         $scope.findMatches({});
-        
+
         $scope.searchPrevious = function() {
             $scope.findMatches($scope.previousSearch);
         };
@@ -252,7 +252,7 @@ define(['angular','lodash','jquery'], function(angular,_,$) {
 
 
     }
-	
+
 	return PedigreeMatchesController;
 });
 

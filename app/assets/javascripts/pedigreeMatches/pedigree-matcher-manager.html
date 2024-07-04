@@ -1,4 +1,3 @@
-
 <div class="row padding-0 breadcrumb_column">
     <div class="col-md-12 padding-0">
         <div class="row padding-0">
@@ -10,7 +9,7 @@
                         </div>
                     </li>
                     <li class="active">{{ 'generics.matches' | i18next }}</li>
-                    
+
                 </ol>
             </div>
         </div>
@@ -18,12 +17,12 @@
 </div>
 
 <div class="container-top">
-    
+
     <div class="row">
-        
+
         <div class="options-header match-group-search">
             <form class="navbar-form" role="search" name="searchMatchForm" novalidate data-ng-submit="searchMatches()">
-                
+
                 <div class="row padding-0">
                     <div class="col-md-12  match-group-search">
                         <div class="row padding-0">
@@ -40,27 +39,27 @@
                                             </div>
                                         </div>
                                     </div>
-                                    
-                                    
-                                    
-                                    
+
+
+
+
                                     <div class="col-md-7 padding-0 vertical-align">
                                         <!-- fecha desde -->
                                         <div class="col-md-1">
                                             <label class="m-r-10" for="hourFrom">{{ 'generics.date' | i18next }} </label>
                                         </div>
                                         <div class="col-md-10 ">
-                                            <div class="row m-t-0 m-b-0 ">  
+                                            <div class="row m-t-0 m-b-0 ">
                                                 <div class="col-md-6">
-                                                    
+
                                                     <input type="text" name="hourFrom" id="hourFrom"
-                                                    placeholder="{{ 'generics.since' | i18next }}" data-datepicker-popup="dd/MM/yyyy"
-                                                    data-ng-model="search.hourFrom"
-                                                    data-is-open="datepickers.hourFrom" class="form-control form-select"
-                                                    data-datepicker-options="dateOptions"
-                                                    ng-blur="checkMax('hourFrom')"
-                                                    max-date="maxDate"
-                                                    data-close-text="Close" data-ng-click="toggleDatePicker($event,'hourFrom')"/>
+                                                           placeholder="{{ 'generics.since' | i18next }}" data-datepicker-popup="dd/MM/yyyy"
+                                                           data-ng-model="search.hourFrom"
+                                                           data-is-open="datepickers.hourFrom" class="form-control form-select"
+                                                           data-datepicker-options="dateOptions"
+                                                           ng-blur="checkMax('hourFrom')"
+                                                           max-date="maxDate"
+                                                           data-close-text="Close" data-ng-click="toggleDatePicker($event,'hourFrom')"/>
                                                     <!--  <span class="input-group-btn">
                                                         <button type="button" class="btn btn-link-action btn-link-border btn-calendar" data-ng-click="toggleDatePicker($event,'hourFrom')" >
                                                             <i class="glyphicon glyphicon-genis-calendar glyphicon-calendar vertical-align"></i>
@@ -69,113 +68,113 @@
                                                 </div>
                                                 <!-- fecha hasta -->
                                                 <div class="col-md-6 ">
-                                                 
-                                                        <input type="text" name="hourUntil" id="hourUntil"
-                                                        placeholder="{{ 'generics.until' | i18next }}" data-datepicker-popup="dd/MM/yyyy"
-                                                        data-ng-model="search.hourUntil"
-                                                        data-is-open="datepickers.hourUntil" class="form-control form-select"
-                                                        data-datepicker-options="dateOptions"
-                                                        ng-blur="checkMaxMin('hourUntil','hourFrom')"
-                                                        max-date="maxDate"
-                                                        min-date="minDateCoin"
-                                                        data-close-text="Close" data-ng-click="toggleDatePicker($event,'hourUntil')" />
-                                                        <!--   <span class="input-group-btn">
-                                                            <button type="button" class="btn btn-link-action btn-link-border btn-calendar"  >
-                                                                <i class="glyphicon glyphicon-genis-calendar glyphicon-calendar vertical-align"></i>
-                                                            </button>
-                                                        </span> -->
-                                                    </div>
+
+                                                    <input type="text" name="hourUntil" id="hourUntil"
+                                                           placeholder="{{ 'generics.to' | i18next }}" data-datepicker-popup="dd/MM/yyyy"
+                                                           data-ng-model="search.hourUntil"
+                                                           data-is-open="datepickers.hourUntil" class="form-control form-select"
+                                                           data-datepicker-options="dateOptions"
+                                                           ng-blur="checkMaxMin('hourUntil','hourFrom')"
+                                                           max-date="maxDate"
+                                                           min-date="minDateCoin"
+                                                           data-close-text="Close" data-ng-click="toggleDatePicker($event,'hourUntil')" />
+                                                    <!--   <span class="input-group-btn">
+                                                        <button type="button" class="btn btn-link-action btn-link-border btn-calendar"  >
+                                                            <i class="glyphicon glyphicon-genis-calendar glyphicon-calendar vertical-align"></i>
+                                                        </button>
+                                                    </span> -->
                                                 </div>
-                                                
                                             </div>
-                                        </div>
-                                        <div class="desk-align-right inside-right">
-                                            <span id="processingSpan" class="icon-refresh" ng-class="{'spinner': isProcessing}" data-ng-show="isProcessing"></span>
-                                            <!--  <div class="btn btn-link-action" ng-click="clearSearch()" ng-disabled="isProcessing">
-                                                <span title="Limpiar filtros" class="glyphicon glyphicon-trash" aria-hidden="true"></span></div> -->
-                                                
-                                                <a  title="{{ 'generics.cleanFilters' | i18next }}"  ng-click="clearSearch()" ng-disabled="isProcessing"  class="cancel-link" >{{ 'generics.clean' | i18next }}</a>
-                                                
-                                                
-                                                <button id="search-button" type="submit" class="btn btn-primary-action" data-ng-disabled="isProcessing">{{ 'buttons.search' | i18next }}</button>
-                                            </div>
-                                            
+
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="row">
-                    
-                    <div class="col-md-12 text-right">
-                        <div class="m-t-10 row">
-                            <div class="form-group vertical-align filtro_container">
-                                <div class="col-md-offset-6 col-md-3 padding-0">
-                                    <label for="group">{{ 'generics.viewBy' | i18next }}:</label>
-                                    
-                                </div>
-                                <div class="col-md-3 item-input padding-right-0">
-                                    <select id="group" class="form-control form-select" data-ng-model="groupId" data-ng-change="searchPrevious()">
-                                        <option id="pedigreeGroup" value="pedigree">{{ 'generics.pedigree' | i18next }}</option>
-                                        <option id="profileGroup" value="profile">{{ 'generics.profile' | i18next }}</option>
-                                    </select>
+                                    <div class="desk-align-right inside-right">
+                                        <span id="processingSpan" class="icon-refresh" ng-class="{'spinner': isProcessing}" data-ng-show="isProcessing"></span>
+                                        <!--  <div class="btn btn-link-action" ng-click="clearSearch()" ng-disabled="isProcessing">
+                                            <span title="Limpiar filtros" class="glyphicon glyphicon-trash" aria-hidden="true"></span></div> -->
+
+                                        <a  title="{{ 'generics.cleanFilters' | i18next }}"  ng-click="clearSearch()" ng-disabled="isProcessing"  class="cancel-link" >{{ 'generics.clean' | i18next }}</a>
+
+
+                                        <button id="search-button" type="submit" class="btn btn-primary-action" data-ng-disabled="isProcessing">{{ 'buttons.search' | i18next }}</button>
+                                    </div>
+
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            
-            <!--  <di<!-- v class="filtro_container text-right">
-                <div class="form-group padding-right-0">
-                    <label class="col-md-1 padding-0" for="group">Visualizar por:</label>
-                </div>
-                <div class="col-md-3 item-input padding-right-0">
-                    <select id="group" class="form-control form-select" data-ng-model="groupId" data-ng-change="searchPrevious()">
-                        <option id="pedigreeGroup" value="pedigree">Pedigrí</option>
-                        <option id="profileGroup" value="profile">Perfil</option>
-                    </select>
-                </div>
-            </div> -->
+            </form>
         </div>
-        
-        <div data-ng-show="noResult && !isProcessing">{{ 'generics.noResult' | i18next }}</div>
-        <div data-ng-show="!noResult" ng:repeat="match in matches" name="{{'match_' + match.id}}">
-            <div class="match-group">
-                <a id="{{'focus_' + match.id}}" name="{{'focus_' + match.id}}" />
-                
-                <div class="row" style="margin-bottom: 20px">
+        <div class="row">
+
+            <div class="col-md-12 text-right">
+                <div class="m-t-10 row">
+                    <div class="form-group vertical-align filtro_container">
+                        <div class="col-md-offset-6 col-md-3 padding-0">
+                            <label for="group">{{ 'generics.viewBy' | i18next }}:</label>
+
+                        </div>
+                        <div class="col-md-3 item-input padding-right-0">
+                            <select id="group" class="form-control form-select" data-ng-model="groupId" data-ng-change="searchPrevious()">
+                                <option id="pedigreeGroup" value="pedigree">{{ 'generics.pedigree' | i18next }}</option>
+                                <option id="profileGroup" value="profile">{{ 'generics.profile' | i18next }}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--  <di<!-- v class="filtro_container text-right">
+        <div class="form-group padding-right-0">
+            <label class="col-md-1 padding-0" for="group">Visualizar por:</label>
+        </div>
+        <div class="col-md-3 item-input padding-right-0">
+            <select id="group" class="form-control form-select" data-ng-model="groupId" data-ng-change="searchPrevious()">
+                <option id="pedigreeGroup" value="pedigree">Pedigrí</option>
+                <option id="profileGroup" value="profile">Perfil</option>
+            </select>
+        </div>
+    </div> -->
+</div>
+
+<div data-ng-show="noResult && !isProcessing">{{ 'generics.noResult' | i18next }}</div>
+<div data-ng-show="!noResult" ng:repeat="match in matches" name="{{'match_' + match.id}}">
+    <div class="match-group">
+        <a id="{{'focus_' + match.id}}" name="{{'focus_' + match.id}}" />
+
+        <div class="row" style="margin-bottom: 20px">
                     <span class="col-md-8">
                         <span class="match-title">
-                            <span ng-show="match.groupBy == 'pedigree'">{{match.courtCaseName}} - </span> {{match.title}}  <span ng-hide="match.groupBy == 'pedigree'"> ( {{match.id}} )</span> 
+                            <span ng-show="match.groupBy == 'pedigree'">{{match.courtCaseName}} - </span> {{match.title}}  <span ng-hide="match.groupBy == 'pedigree'"> ( {{match.id}} )</span>
                         </span>
                     </span>
-                    <span class="text-right col-md-4 padding-right-0">
+            <span class="text-right col-md-4 padding-right-0">
                         <span class="badge match-badge"><b>{{match.count}} {{ 'pedigree.matches' | i18next }}</b></span>
                     </span>
-                </div>
-                <div class="row">
-                    <div class="col-md-5 padding-left-0">
-                        <span class="col-md-6 bold">{{ 'matches.dateLast' | i18next }}:</span>
-                        <span class="col-md-6">{{match.lastMatchDate | date:'yyyy-MM-dd HH:mm:ss'}}</span>
-                    </div>
-                    <div class="col-md-5 padding-left-0">
-                        <span class="col-md-6 bold">{{ 'generics.userResponsible' | i18next }}:</span>
-                        <span class="col-md-6">{{match.assignee}}</span>
-                    </div>
-                    <div class="text-right">
-                        <a id="goto-button" class="btn btn-secondary-action" href="{{getGroups(match)}}">{{ 'buttons.viewMore' | i18next }}</a>
-                    </div>
-                </div>
+        </div>
+        <div class="row">
+            <div class="col-md-5 padding-left-0">
+                <span class="col-md-6 bold">{{ 'matches.dateLast' | i18next }}:</span>
+                <span class="col-md-6">{{match.lastMatchDate | date:'yyyy-MM-dd HH:mm:ss'}}</span>
+            </div>
+            <div class="col-md-5 padding-left-0">
+                <span class="col-md-6 bold">{{ 'generics.userResponsible' | i18next }}:</span>
+                <span class="col-md-6">{{match.assignee}}</span>
+            </div>
+            <div class="text-right">
+                <a id="goto-button" class="btn btn-secondary-action" href="{{getGroups(match)}}">{{ 'buttons.viewMore' | i18next }}</a>
             </div>
         </div>
-        <!--   <div style="padding-top: 25px; text-align: center;">
-            <pagination style="position: initial; transform: translate(0, 0);" boundary-links="true" ng-change="searchPrevious()" items-per-page="{{pageSize}}" max-size="10" total-items="totalItems" ng-model="currentPage" class="pagination-sm" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;"  rotate="false"></pagination>
-        </div> -->
-        
     </div>
+</div>
+<!--   <div style="padding-top: 25px; text-align: center;">
+    <pagination style="position: initial; transform: translate(0, 0);" boundary-links="true" ng-change="searchPrevious()" items-per-page="{{pageSize}}" max-size="10" total-items="totalItems" ng-model="currentPage" class="pagination-sm" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;"  rotate="false"></pagination>
+</div> -->
+
+</div>
 </div>
 <footer class="matches-groups-footer-footer">
     <div>
