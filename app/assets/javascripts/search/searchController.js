@@ -202,7 +202,7 @@ function searchController($scope, $log, profiledataService, searchService, $moda
 		console.log("## La lista de perfiles: ", $scope.results);
 		$scope.results.forEach(function (profileObj) {
 			searchService.searchMatchesProfile(profileObj.globalCode).then(function (response) {
-				$scope.profileMatches[profileObj.globalCode] = response.data;
+				$scope.profileMatches[profileObj.globalCode] = response.data.length > 0;
 				console.log("El resultado de search matches profile: ", response.data);
 			});
 		});
@@ -210,25 +210,14 @@ function searchController($scope, $log, profiledataService, searchService, $moda
 
 	$scope.getRowColor = function(profileCode) {
 		// habrá problema si no hay profiles? porque no lo estoy definiendo en ese caso, pero supongo que no entraría acá tampoco
-		console.log("Search - los matches del perfil son: ", $scope.profileMatches[profileCode]);
+		console.log("Search - los matches del perfil", profileCode ," son: ", $scope.profileMatches[profileCode]);
 
-		// if (!$scope.profileMatches[profileCode]) {
-		//
-		//searchService.searchMatchesProfile(profileCode).then(function (response) {
-		//$scope.profileMatches[profileCode] = response.data;
-		//$scope.$apply();
-		//console.log("El resultado de search matches profile: ", response.data);
-		//});
-		//}
-
-		switch(profileCode) { // acá iría un if $scope.profileMatches[profileCode] length > 0 entonces verde sino rojo, ponele
-			case 'CONDENADO':
-				return 'red';
-			case 'EvidenciaParcial':
-				return 'blue';
-			default:
-				return 'green';
+		if($scope.profileMatches[profileCode]){
+			return '#d500f9';
+		} else {
+			return '#e4e7ec';
 		}
+
 	};
 
 
