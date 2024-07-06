@@ -6,7 +6,7 @@
         <div class="panel-heading btn-icon-action" style="background-color: #f5f5f5; border-color:#dddddd;">
             <div class="row" style="margin-bottom: 20px">
                 <span class="match-title col-md-7">{{profile.profileData | showcode}}</span>
-                <span class="col-md-2"><a data-ng-disabled="confirmDisabled" class="btn btn-secondary-action" ng-click="!confirmDisabled && confirmSelectedCollapsing()">Confirmar</a></span>
+                <span class="col-md-2"><a data-ng-disabled="confirmDisabled" class="btn btn-secondary-action" ng-click="!confirmDisabled && confirmSelectedCollapsing()"> {{ 'buttons.confirm' | i18next }}</a></span>
                 <span class="col-md-2"><a class="btn btn-secondary-action" ng-click="discardCollapsingGroup()">{{ 'buttons.discard' | i18next }}</a></span>
                 <span class="badge match-tag col-md-1 pull-right"><b>{{normal.totalItems}} {{ 'pedigree.matches' | i18next }}</b></span>
             </div>

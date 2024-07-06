@@ -10,7 +10,7 @@
     </head>
     <body>
         <div class="report-title" >
-            Resumen de perfiles entre @fechaDesde y @fechaHasta:
+            {{ 'generics.profileReport.profileSummary' | i18next }} @fechaDesde y @fechaHasta:
         </div>
         <br/><br/>
         <div class="report-heading" >
@@ -20,27 +20,27 @@
                         <td> Ultimos 30 dias </td>
                     </tr>-->
                 <tr>
-                    <td class="report-heading"> Altas </td>
+                    <td class="report-heading"> {{ 'profileReport.created' | i18next }} </td>
                     <td class="report-body">@cantPerfilesCreados</td>
                 </tr>
                 <tr>
-                    <td class="report-heading" > Coincidencias </td>
+                    <td class="report-heading" >  {{ 'profileReport.matches' | i18next }} </td>
                     <td class="report-body"> @cantMatches </td>
                 </tr>
                 <tr>
-                    <td class="report-heading" > Coincidencias Confirmadas </td>
+                    <td class="report-heading" > {{ 'profileReport.match.confirmed' | i18next }} </td>
                     <td class="report-body"> @cantHits </td>
                 </tr>
                 <tr>
-                    <td class="report-heading" > Coincidencias Descartadas </td>
+                    <td class="report-heading" > {{ 'profileReport.match.discarded' | i18next }} </td>
                     <td class="report-body"> @cantDescartes </td>
                 </tr>
                 <tr>
-                    <td class="report-heading" > Coincidencias Pendientes </td>
+                    <td class="report-heading" > {{ 'profileReport.match.pending' | i18next }} </td>
                     <td class="report-body"> @cantPendientes </td>
                 </tr>
                 <tr>
-                    <td class="report-heading"> Bajas Totales </td>
+                    <td class="report-heading"> {{ 'profileReport.totalDeleted' | i18next }} </td>
                     <td class="report-body">@cantPerfilesBorrados</td>
                 </tr>
             </table>
