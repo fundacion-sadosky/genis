@@ -264,7 +264,7 @@ Para obtener el password a partir del TOPT puede utilizar https://gauth.apps.gbr
 Se incluyen dos scripts útiles para desarrollo que borran los contenidos de las tablas de perfiles y matches en las bases de datos, se pueden correr con:
 
 ```
-docker exec -i genis_mongo sh < "uitls/clean-mongo-db.sh"
+docker exec -i genis_mongo sh < "utils/clean-mongo-db.sh"
 docker exec -i genis_postgres sh < "utils/clean-pgsql-db.sh"
 ```
 
