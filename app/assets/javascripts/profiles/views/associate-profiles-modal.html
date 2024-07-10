@@ -9,7 +9,7 @@
 	<div class="input-group" style="padding-bottom: 10px;">
 	  	<input type="text" class="form-control" aria-describedby="basic-addon2"
 			ng-model="profileId"
-			placeholder="Buscar perfil aportante"
+			placeholder="{{ 'profileViews.searchContributing' | i18next }}"
 			ng-keyup="$event.keyCode == 13 ?searchProfile() : null">
 	  <span class="input-group-addon" id="basic-addon2" ng-click="searchProfile()">
   		<span class="glyphicon glyphicon-search" aria-hidden="true"></span>

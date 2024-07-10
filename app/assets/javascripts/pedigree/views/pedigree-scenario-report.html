@@ -32,7 +32,7 @@
     <!-- Pedigree -->
     <div class="scenarios-section" style="page-break-after:always;">
 
-        <h3 class="m-b-10"> {{ 'generics.pedigree' | i18next }}</h3>
+        <h3 class="m-b-10">{{ 'generics.pedigree' | i18next }}</h3>
 
         <div class="m-l-10 m-r-10">
             <h4 class="row">{{ 'pedigree.scenarioReport.individuals' | i18next }}</h4>
@@ -47,7 +47,7 @@
             </div>
 
             <div ng-repeat="individual in scenario.genogram track by $index" class="row">
-                <div class="text-center col-xs-2 col-sm-2 col-md-2 col-lg-2 border-black">{{individual.unknown?'{{ 'generics.yes' | i18next }}':'{{ 'generics.no' | i18next }}'}}</div>
+                <div class="text-center col-xs-2 col-sm-2 col-md-2 col-lg-2 border-black">{{individual.unknown?'Yes':'No'}}</div>
                 <div class="col-xs-2 col-sm-2 col-md-2 col-lg-2 border-black">{{individual.alias}}</div>
                 <div class="text-center col-xs-1 col-sm-1 col-md-1 col-lg-1 border-black">{{'sexPedigree.' + individual.sex | i18next}}</div>
                 <div class="col-xs-2 col-sm-2 col-md-2 col-lg-2 border-black">{{individual.idFather || '-'}}</div>

@@ -1362,6 +1362,7 @@
     },
     "search": "Buscar perfil",
     "searchContributing": "Buscar perfil contribuyente",
+    "searchCriteria": "Criterio de búsqueda",
     "selectTag": "Seleccione uno o más alelos y asigne la etiqueta deseada seleccionando los ítems correspondientes. Cuando concluya el etiquetadi haga click en Guardar etiquetas para que sean almacenadas en el sistema.",
     "stringency": {
       "title": "Reglas de búsqueda para",
@@ -1465,7 +1466,7 @@
       "clothing": "Vestimenta",
       "dateOfBirth": "Fecha de nacimiento",
       "dateOfBirthRange": "Rango de fecha de nacimiento",
-      "dateOfBirthTo": "hasta",
+      "dateOfBirthTo": "Hasta",
       "dateMissing": "Fecha de desaparición",
       "hairColor": "Color de pelo",
       "height": "Altura",

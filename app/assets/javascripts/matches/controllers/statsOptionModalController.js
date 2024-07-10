@@ -41,8 +41,8 @@ define([], function() {
         scenarioService.getDefaultScenario(profiles[0], profiles[1], selectedOptions).then(function(response) {
             $scope.scenario = response.data;
 			if($scope.scenario.isMixMix) {
-				$scope.printableProsecutor = $.i18n.t('match.oneContributorCommon');
-				$scope.printableDefense = $.i18n.t('match.independentMixtures');
+				$scope.printableProsecutor = $.i18n.t('matches.oneContributorCommon');
+				$scope.printableDefense = $.i18n.t('matches.independentMixtures');
 			} else {
 				$scope.printableProsecutor = printHypothesis('prosecutor');
 				$scope.printableDefense = printHypothesis('defense');

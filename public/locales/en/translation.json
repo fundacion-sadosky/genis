@@ -620,7 +620,7 @@
     "scenario": {
       "deleted": "The scenario was successfully eliminated",
       "registered": "The scenario was successfully registered",
-      "saved": "The stage was saved successfully",
+      "saved": "The scenario was saved successfully",
       "unregister": "The scenario was deleted successfully",
       "unregisterError": "The scenario could not be deleted",
       "updated": "The scenario was updated successfully",
@@ -1362,6 +1362,7 @@
     },
     "search": "Search profile",
     "searchContributing": "Search contributing profile",
+    "searchCriteria": "Search criteria",
     "selectTag": "Select one or more alleles and assign the desired tag by clicking on the corresponding boxes.When you finish tagging click on Save tags so that they are saved in the system.",
     "stringency": {
       "title": "Search rules for",
@@ -1465,7 +1466,7 @@
       "clothing": "Clothing",
       "dateOfBirth": "Date of birth",
       "dateOfBirthRange": "Date of birth range",
-      "dateOfBirthTo": "until",
+      "dateOfBirthTo": "Until",
       "dateMissing": "Date of disappearance",
       "hairColor": "Hair Color",
       "height": "Height",

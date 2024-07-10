@@ -115,7 +115,7 @@ define([], function() {
 				ModerateStringency : {key:'ModerateStringency', text: $.i18n.t('stringency.ModerateStringency'), css:'icon-moderatestringency'},
 				LowStringency : {key:'LowStringency', text: $.i18n.t('stringency.LowStringency'), css:'icon-lowstringency'},
 				Mismatch : {key:'Mismatch', text: $.i18n.t('stringency.Mismatch'), css:'icon-mismatch'},
-				NoMatch : {key:'NoMatch', text: $.i18n.t('match.NoMatch'), css:'icon-nomatch'}}; // enums
+				NoMatch : {key:'NoMatch', text: $.i18n.t('matches.noMatch'), css:'icon-nomatch'}}; // enums
 		};
 
 		this.getMatchStatusEnum = function() {

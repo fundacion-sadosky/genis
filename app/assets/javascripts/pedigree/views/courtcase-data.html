@@ -93,7 +93,7 @@
                     <label for="busquedaAlias" class="pull-left" style="padding-right: 10px">{{ 'buttons.search' | i18next }} </label>
                     <div class="input-group input-search-a">
                         <input data-ng-model="busquedaInput.busquedaAlias" ng-keyup="$event.keyCode == 13 ? filtrar() : null" type="text" class="form-control form-select" aria-describedby="basic-addon2"
-                               placeholder="Ingrese alias,nombre o apellido."  id="busquedaAlias" name="busquedaAlias"/>
+                               placeholder="{{ 'pedigree.courtCase.enterAlias' | i18next }}"  id="busquedaAlias" name="busquedaAlias"/>
                     </div>
                         <a class="btn btn-default btn-link-action btn-link-border" id="basic-addon2" ng-click="filtrar()">
                             <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
