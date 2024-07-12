@@ -83,9 +83,9 @@ function ScenarioService(playRoutes, $q, $filter) {
         var unknownsString = "";
         if (unknowns>0) {
             if (unknowns === 1) {
-                unknownsString = "$.i18n.t('scenario.oneUnknown')";
+                unknownsString =  $.i18n.t('scenario.oneUnknown');
             } else {
-                unknownsString = unknowns + " $.i18n.t('scenario.multipleUnknowns')";
+                unknownsString = unknowns +  $.i18n.t('scenario.multipleUnknowns');
             }
         }
         return unknownsString;
