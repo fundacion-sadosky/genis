@@ -35,39 +35,143 @@ import trace.ProfileDataInfo
 
 object Stubs {
 
-  val catA1 = Category(AlphanumericId("SOSPECHOSO"), AlphanumericId("GRUPO_A"), "Subcategory A1", true, Option("description of subcategory A1"))
-  val catA2 = Category(AlphanumericId("SUBCAT_A2"), AlphanumericId("GRUPO_A"), "Subcategory A2", false, Option("description of subcategory A2"))
-  val catA3 = Category(AlphanumericId("SUBCAT_A3"), AlphanumericId("GRUPO_A"), "Subcategory A3", false, Option("description of subcategory A3"))
-  val catMixture = Category(AlphanumericId("MULTIPLE"), AlphanumericId("FORENSE"), "Aportantes múltiples", false, None)
-  val catMixtureVictim = Category(AlphanumericId("MULTIPLE_VICTIMA"), AlphanumericId("FORENSE"), "Aportantes múltiples con victima asociada", false, None)
+  val catA1 = Category(
+    AlphanumericId("SOSPECHOSO"),
+    AlphanumericId("GRUPO_A"),
+    "Subcategory A1",
+    true,
+    Option("description of subcategory A1")
+  )
+  val catA2 = Category(
+    AlphanumericId("SUBCAT_A2"),
+    AlphanumericId("GRUPO_A"),
+    "Subcategory A2",
+    false,
+    Option("description of subcategory A2")
+  )
+  val catA3 = Category(
+    AlphanumericId("SUBCAT_A3"),
+    AlphanumericId("GRUPO_A"),
+    "Subcategory A3",
+    false,
+    Option("description of subcategory A3")
+  )
+  val catMixture = Category(
+    AlphanumericId("MULTIPLE"),
+    AlphanumericId("FORENSE"),
+    "Aportantes múltiples",
+    false,
+    None
+  )
+  val catMixtureVictim = Category(
+    AlphanumericId("MULTIPLE_VICTIMA"),
+    AlphanumericId("FORENSE"),
+    "Aportantes múltiples con victima asociada",
+    false,
+    None
+  )
 
-  val fullCatA1 = FullCategory(catA1.id, catA1.name, catA1.description, catA1.group, true, true, true, false,manualLoading=true,
-    Map(1 -> CategoryConfiguration("", "", "K", "2", 2)), Seq.empty, Seq.empty, Seq.empty,Some(1))
-  val fullCatA2 = FullCategory(catA2.id, catA2.name, catA2.description, catA2.group, false, true, true, false,manualLoading=true,
-    Map(1 -> CategoryConfiguration("", "", "K", "0", 4)), Seq.empty, Seq.empty, Seq.empty,Some(1))
+  val fullCatA1 = FullCategory(
+    catA1.id,
+    catA1.name,
+    catA1.description,
+    catA1.group,
+    true,
+    true,
+    true,
+    false,
+    manualLoading = true,
+    Map(1 -> CategoryConfiguration("", "", "K", "2", 2)),
+    Seq.empty,
+    Seq.empty,
+    Seq.empty,
+    Some(1)
+  )
+  val fullCatA2 = FullCategory(
+    catA2.id,
+    catA2.name,
+    catA2.description,
+    catA2.group,
+    false,
+    true,
+    true,
+    false,
+    manualLoading = true,
+    Map(1 -> CategoryConfiguration("", "", "K", "0", 4)),
+    Seq.empty,
+    Seq.empty,
+    Seq.empty,
+    Some(1)
+  )
 
   val fullCatMixture =
-    FullCategory(catMixture.id, catMixture.name, catMixture.description, catMixture.group,
-      false, false, true, false,manualLoading=true,
-      Map(1 -> CategoryConfiguration("", "", "K", "3", 6)), Seq.empty, Seq("mezcla", "multiples"), Seq.empty,Some(1))
+    FullCategory(
+      catMixture.id,
+      catMixture.name,
+      catMixture.description,
+      catMixture.group,
+      false,
+      false,
+      true,
+      false,
+      manualLoading = true,
+      Map(1 -> CategoryConfiguration("", "", "K", "3", 6)),
+      Seq.empty,
+      Seq("mezcla", "multiples"),
+      Seq.empty,
+      Some(1)
+    )
 
   val fullCatMixtureVictim =
-    FullCategory(catMixtureVictim.id, catMixtureVictim.name, catMixtureVictim.description, catMixtureVictim.group,
-      false, false, true, false,manualLoading=true,
-      Map(1 -> CategoryConfiguration("", "", "K", "3", 6)), Seq(CategoryAssociation(1, AlphanumericId("VICTIMA"), 0)), Seq.empty, Seq.empty,Some(1))
+    FullCategory(
+      catMixtureVictim.id,
+      catMixtureVictim.name,
+      catMixtureVictim.description,
+      catMixtureVictim.group,
+      false,
+      false,
+      true,
+      false,
+      manualLoading = true,
+      Map(1 -> CategoryConfiguration("", "", "K", "3", 6)),
+      Seq(CategoryAssociation(1, AlphanumericId("VICTIMA"), 0)),
+      Seq.empty,
+      Seq.empty,
+      Some(1)
+    )
 
   val groupA = Group(
     AlphanumericId("INDUBITADA"),
     "Group A",
-    Option("Description catgeroria A"))
+    Option("Description catgeroria A")
+  )
 
-  val catB1 = Category(AlphanumericId("SUBCAT_B1"), AlphanumericId("GRUPO_B"), "Category B1", true, Option("description of subcategory B1"))
-  val catB2 = Category(AlphanumericId("SUBCAT_B2"), AlphanumericId("GRUPO_B"), "Category B2", true, Option("description of subcategory B2"))
-  val catB3 = Category(AlphanumericId("SUBCAT_B3"), AlphanumericId("GRUPO_B"), "Category B3", true, Option("description of subcategory B3"))
+  val catB1 = Category(
+    AlphanumericId("SUBCAT_B1"),
+    AlphanumericId("GRUPO_B"),
+    "Category B1",
+    true,
+    Option("description of subcategory B1")
+  )
+  val catB2 = Category(
+    AlphanumericId("SUBCAT_B2"),
+    AlphanumericId("GRUPO_B"),
+    "Category B2",
+    true,
+    Option("description of subcategory B2")
+  )
+  val catB3 = Category(
+    AlphanumericId("SUBCAT_B3"),
+    AlphanumericId("GRUPO_B"),
+    "Category B3",
+    true,
+    Option("description of subcategory B3")
+  )
   val groupB = Group(
     AlphanumericId("CATEGORY_B"),
     "Group B",
-    Option("Description catgeroria B"))
+    Option("Description catgeroria B")
+  )
 
   val analyses: Option[List[Analysis]] = Some(List[Analysis]())
   val sampleCode = new SampleCode("AR-B-LAB-1")
@@ -78,40 +182,90 @@ object Stubs {
     (groupA, catA3),
     (groupB, catB1),
     (groupB, catB2),
-    (groupB, catB3))
+    (groupB, catB3)
+  )
 
   val categoryTree: Category.CategoryTree = Map(
     groupA -> Seq(catA1, catA2, catA3),
-    groupB -> Seq(catB1, catB2, catB3))
+    groupB -> Seq(catB1, catB2, catB3)
+  )
 
   val categoryMap = Map(fullCatA1.id -> fullCatA1, fullCatA2.id -> fullCatA2)
 
-  val fullCategoryMap = Map(fullCatA1.id -> fullCatA1, fullCatA2.id -> fullCatA2, fullCatMixture.id -> fullCatMixture, fullCatMixtureVictim.id -> fullCatMixtureVictim)
+  val fullCategoryMap = Map(
+    fullCatA1.id -> fullCatA1,
+    fullCatA2.id -> fullCatA2,
+    fullCatMixture.id -> fullCatMixture,
+    fullCatMixtureVictim.id -> fullCatMixtureVictim
+  )
 
-  val fullLocus = List(FullLocus(Locus("LOCUS 1", "LOCUS 1", Some("1"), 1, 2, 1), List.empty[String], List.empty[LocusLink]),
-                      FullLocus(Locus("LOCUS 2", "LOCUS 2", Some("2"), 2, 3, 1), List.empty[String], List.empty[LocusLink]))
+  val fullLocus = List(
+    FullLocus(
+      Locus("LOCUS 1", "LOCUS 1", Some("1"), 1, 2, 1),
+      List.empty[String],
+      List.empty[LocusLink]
+    ),
+    FullLocus(
+      Locus("LOCUS 2", "LOCUS 2", Some("2"), 2, 3, 1),
+      List.empty[String],
+      List.empty[LocusLink]
+    )
+  )
 
-  val locus = List(Locus("LOCUS 1", "LOCUS 1", Some("1"), 2, 3, 1),
+  val locus = List(
+    Locus("LOCUS 1", "LOCUS 1", Some("1"), 2, 3, 1),
     Locus("LOCUS 2", "LOCUS 2", Some("1"), 2, 3, 1),
     Locus("LOCUS 3", "LOCUS 3", Some("1"), 2, 3, 1),
     Locus("LOCUS 4", "LOCUS 4", Some("1"), 2, 3, 1),
     Locus("LOCUS 5", "LOCUS 5", Some("1"), 2, 3, 1),
     Locus("LOCUS 6", "LOCUS 6", Some("1"), 2, 3, 1),
-    Locus("LOCUS 7", "LOCUS 7", Some("1"), 2, 3, 1))
+    Locus("LOCUS 7", "LOCUS 7", Some("1"), 2, 3, 1)
+  )
 
-  val analysisTypes = List(AnalysisType(1, "Autosomal"),
-                          AnalysisType(2, "Cx"),
-                          AnalysisType(3, "Cy"),
-                          AnalysisType(4, "MT", true))
+  val analysisTypes = List(
+    AnalysisType(1, "Autosomal"),
+    AnalysisType(2, "Cx"),
+    AnalysisType(3, "Cy"),
+    AnalysisType(4, "MT", true)
+  )
 
-  val opLogRecord = new OperationLogEntry(1, "user1", None, new Date(), "GET", "/some", "controller.Action()", "developbuild", Some("Ok"), 200, 1L, "Obtener algo")
-  val signedOpLogRecord = new SignedOperationLogEntry(1, "user1", None, new Date(), "GET", "/some", "controller.Action()", "developbuild", Some("Ok"), 200, 1L, Key("03d98620-eacc4bbd"), "ObtenerAlgo")
+  val opLogRecord = new OperationLogEntry(
+    1,
+    "user1",
+    None,
+    new Date(),
+    "GET",
+    "/some",
+    "controller.Action()",
+    "developbuild",
+    Some("Ok"),
+    200,
+    1L,
+    "Obtener algo"
+  )
+  val signedOpLogRecord = new SignedOperationLogEntry(
+    1,
+    "user1",
+    None,
+    new Date(),
+    "GET",
+    "/some",
+    "controller.Action()",
+    "developbuild",
+    Some("Ok"),
+    200,
+    1L,
+    Key("03d98620-eacc4bbd"),
+    "ObtenerAlgo"
+  )
 
-  val ldapUser = LdapUser("user", "username", "lastname",
+  val ldapUser = LdapUser(
+    "user", "username", "lastname",
     "usl@example.com", Seq("clerk", "geneticist"),
     "genId", "41188080", None, UserStatus.active,
     Array.emptyByteArray, Array.emptyByteArray,
-    Array.emptyByteArray)
+    Array.emptyByteArray
+  )
 
   val requestToken = new RequestToken("123")
   val totpToken = new TotpToken("123456")
@@ -119,23 +273,92 @@ object Stubs {
   val keyAp = "9e3ba370183beccf7df540ca812b3985"
   val verifierAp = "d59b81ea658b20e4d3a1712b75bb21d5"
 
-  val laboratory = new Laboratory("nombre", "NME", "AR", "C", "address 123", "541112345678", Email("mail@example.com"), 0.6, 0.4, Some(false))
-  val instanceLaboratory = new Laboratory("nombre", "SHDG", "AR", "C", "address 123", "541112345678", Email("mail@example.com"), 0.6, 0.4)
+  val laboratory = new Laboratory(
+    "nombre",
+    "NME",
+    "AR",
+    "C",
+    "address 123",
+    "541112345678",
+    Email("mail@example.com"),
+    0.6,
+    0.4,
+    Some(false)
+  )
+  val instanceLaboratory = new Laboratory(
+    "nombre",
+    "SHDG",
+    "AR",
+    "C",
+    "address 123",
+    "541112345678",
+    Email("mail@example.com"),
+    0.6,
+    0.4
+  )
 
-  val geneticist = new Geneticist("Siebert", "SHDG", "Caroline", Email("mail@example.com"), "123412345", None)
+  val geneticist = new Geneticist(
+    "Siebert",
+    "SHDG",
+    "Caroline",
+    Email("mail@example.com"),
+    "123412345",
+    None
+  )
 
   val authPair = new AuthenticatedPair(verifierAp, keyAp, ivAp)
 
   val userPassword = UserPassword("user", "pass", totpToken)
 
-  val pmdf = new DataFiliation(Some("Juan Perez"), Some("Don Juan"), Some(new Date(0)), Some("Morón"), Some("Argentina"), Some("DNI XX.XXX.XXX"), Some("R.C.P."), Some("direccion"), List(), List(), List())
-  val pmdfa = new DataFiliationAttempt(pmdf.fullName, pmdf.nickname, pmdf.birthday, pmdf.birthPlace, pmdf.nationality, pmdf.identificationIssuingAuthority, pmdf.identification, pmdf.address, "inprints", "pictures", "signatures")
+  val pmdf = new DataFiliation(
+    Some("Juan Perez"),
+    Some("Don Juan"),
+    Some(new Date(0)),
+    Some("Morón"),
+    Some("Argentina"),
+    Some("DNI XX.XXX.XXX"),
+    Some("R.C.P."),
+    Some("direccion"),
+    List(),
+    List(),
+    List()
+  )
+  val pmdfa = new DataFiliationAttempt(
+    pmdf.fullName,
+    pmdf.nickname,
+    pmdf.birthday,
+    pmdf.birthPlace,
+    pmdf.nationality,
+    pmdf.identificationIssuingAuthority,
+    pmdf.identification,
+    pmdf.address,
+    "inprints",
+    "pictures",
+    "signatures"
+  )
 
-  val userPermissions: Set[Permission] = Set(Permission.DNA_PROFILE_CRUD, Permission.MATCHES_MANAGER)
+  val userPermissions: Set[Permission] = Set(
+    Permission.DNA_PROFILE_CRUD,
+    Permission.MATCHES_MANAGER
+  )
 
-  val user = new User("user", "user", "lastname", "mail@example.com", "user", Seq("geneticist"), userPermissions, UserStatus.active, "41188080")
+  val user = new User(
+    "user",
+    "user",
+    "lastname",
+    "mail@example.com",
+    "user",
+    Seq("geneticist"),
+    userPermissions,
+    UserStatus.active,
+    "41188080"
+  )
 
-  val userCredentials = UserCredentials(Array.emptyByteArray, Array.emptyByteArray, "CRII5DCIVF4WPP2R")
+  val userCredentials = UserCredentials(
+    Array.emptyByteArray,
+    Array.emptyByteArray,
+    "CRII5DCIVF4WPP2R"
+  )
 
   val fullUser = FullUser(user, userCredentials, authPair)
 
@@ -145,41 +368,210 @@ object Stubs {
 
   val mismatches: Profile.Mismatch = Map("MULTIPLE" -> 0, "SOSPECHOSO" -> 0)
 
-  val matchGroup = MatchCard(SampleCode("AR-B-SHDG-500"), 2, 0, 0, 1, 2, "muestra", AlphanumericId("SOSPECHOSO"), new Date(), "SHDG", "jerkovicm")
+  val matchGroup = MatchCard(
+    SampleCode("AR-B-SHDG-500"),
+    2,
+    0,
+    0,
+    1,
+    2,
+    "muestra",
+    AlphanumericId("SOSPECHOSO"),
+    new Date(),
+    "SHDG",
+    "jerkovicm"
+  )
 
-  val matchResult = MatchResult(MongoId("54eb50cc2cdc8a94c6ee794b"),
+  val matchResult = MatchResult(
+    MongoId("54eb50cc2cdc8a94c6ee794b"),
     MongoDate(new Date()), 1,
-    MatchingProfile(SampleCode("AR-C-HIBA-500"),"tst-admintist",MatchStatus.pending,None,catA1.id),
-    MatchingProfile(SampleCode("AR-B-IMBICE-500"),"tst-genetist",MatchStatus.pending,None,catA1.id),
-    NewMatchingResult(ModerateStringency,
-      Map("TH01" -> ModerateStringency, "CSF1PO" -> ModerateStringency, "D18S51" -> ModerateStringency, "AMEL" -> HighStringency, "D8S1179" -> ModerateStringency, "D3S1358" -> ModerateStringency, "D7S820" -> ModerateStringency, "FGA" -> ModerateStringency, "D16S539" -> HighStringency, "D13S317" -> ModerateStringency, "vWA" -> ModerateStringency, "D5S818" -> ModerateStringency, "TPOX" -> ModerateStringency, "D21S11" -> ModerateStringency),14,AlphanumericId("SOSPECHOSO"),0.7023809523809523,1.0,Algorithm.ENFSI), 1)
+    MatchingProfile(
+      SampleCode("AR-C-HIBA-500"),
+      "tst-admintist",
+      MatchStatus.pending,
+      None,
+      catA1.id
+    ),
+    MatchingProfile(
+      SampleCode("AR-B-IMBICE-500"),
+      "tst-genetist",
+      MatchStatus.pending,
+      None,
+      catA1.id
+    ),
+    NewMatchingResult(
+      ModerateStringency,
+      Map(
+        "TH01" -> ModerateStringency,
+        "CSF1PO" -> ModerateStringency,
+        "D18S51" -> ModerateStringency,
+        "AMEL" -> HighStringency,
+        "D8S1179" -> ModerateStringency,
+        "D3S1358" -> ModerateStringency,
+        "D7S820" -> ModerateStringency,
+        "FGA" -> ModerateStringency,
+        "D16S539" -> HighStringency,
+        "D13S317" -> ModerateStringency,
+        "vWA" -> ModerateStringency,
+        "D5S818" -> ModerateStringency,
+        "TPOX" -> ModerateStringency,
+        "D21S11" -> ModerateStringency
+      ),
+      14,
+      AlphanumericId("SOSPECHOSO"),
+      0.7023809523809523,
+      1.0,
+      Algorithm.ENFSI
+    ), 1
+  )
 
-  val matchingResult = MatchingResult("54eb50cc2cdc8a94c6ee794b",SampleCode("AR-B-IMBICE-500"),"BI400",ModerateStringency,Map("TH01" -> ModerateStringency, "CSF1PO" -> ModerateStringency, "D18S51" -> ModerateStringency, "AMEL" -> HighStringency, "D8S1179" -> ModerateStringency, "D3S1358" -> ModerateStringency, "D7S820" -> ModerateStringency, "FGA" -> ModerateStringency, "D16S539" -> HighStringency, "D13S317" -> ModerateStringency, "vWA" -> ModerateStringency, "D5S818" -> ModerateStringency, "TPOX" -> ModerateStringency, "D21S11" -> ModerateStringency),14,AlphanumericId("SOSPECHOSO"), MatchStatus.hit, MatchStatus.pending, MatchGlobalStatus.pending,0.7023809523809523,1, true, Algorithm.ENFSI, 1)
+  val matchingResult = MatchingResult(
+    "54eb50cc2cdc8a94c6ee794b",
+    SampleCode("AR-B-IMBICE-500"),
+    "BI400",
+    ModerateStringency,
+    Map(
+      "TH01" -> ModerateStringency,
+      "CSF1PO" -> ModerateStringency,
+      "D18S51" -> ModerateStringency,
+      "AMEL" -> HighStringency,
+      "D8S1179" -> ModerateStringency,
+      "D3S1358" -> ModerateStringency,
+      "D7S820" -> ModerateStringency,
+      "FGA" -> ModerateStringency,
+      "D16S539" -> HighStringency,
+      "D13S317" -> ModerateStringency,
+      "vWA" -> ModerateStringency,
+      "D5S818" -> ModerateStringency,
+      "TPOX" -> ModerateStringency,
+      "D21S11" -> ModerateStringency
+    ),
+    14,
+    AlphanumericId("SOSPECHOSO"),
+    MatchStatus.hit,
+    MatchStatus.pending,
+    MatchGlobalStatus.pending,
+    0.7023809523809523,
+    1,
+    true,
+    Algorithm.ENFSI,
+    1
+  )
 
-  val scenarioOption = ScenarioOption(SampleCode("AR-C-HIBA-500"), "SAMPLE-CODE-500", AlphanumericId("SOSPECHOSO"), 0.7023809523809523, 1, 5, false)
+  val scenarioOption = ScenarioOption(
+    SampleCode("AR-C-HIBA-500"),
+    "SAMPLE-CODE-500",
+    AlphanumericId("SOSPECHOSO"),
+    0.7023809523809523,
+    1,
+    5,
+    false
+  )
 
-//  val profileDataAttempt = ProfileDataAttempt(catA1.id, Option("attorney"), Option("SANGRE"), Option("court"), Option("ASESINATO"), Option("PERSONAS"), Option("criminalCase"), "internalSampleCode", "assignee", Some("SHDG"), Some("responsibleGeneticist"), Some(onlyDate), Some(onlyDate), Option(onlyDate), Some(pmdfa))
-  val profileDataAttempt = ProfileDataAttempt(catA1.id, Option("attorney"), Option("SANGRE"), Option("court"), Option("ASESINATO"), Option("PERSONAS"), Option("criminalCase"), "internalSampleCode", "assignee", Some("SHDG"), Some(1l), Some(onlyDate), Some(onlyDate), Option(onlyDate), Some(pmdfa))
-  val profileData = ProfileData(catA1.id, SampleCode("AR-C-SHDG-1100"),
-    Option("attorney"), Option("SANGRE"), Option("court desc"), Option("ASESINATO"),
-    Option("PERSONAS"), Option("case number"), "internalSampleCode", "assignee", "SHDG",
-    false, None, Some("responsibleGeneticist"), Some(onlyDate), Some(onlyDate),
-    Option(onlyDate), Some(pmdf),false)
-  val profileDataFull = ProfileDataFull(catA1.id, SampleCode("AR-C-SHDG-1100"),
-    Option("attorney"), Option("SANGRE"), Option("court desc"), Option("ASESINATO"),
-    Option("PERSONAS"), Option("case number"), "internalSampleCode", "assignee", "SHDG",
-    false, None, Some("responsibleGeneticist"), Some(onlyDate), Some(onlyDate),
-    Option(onlyDate), Some(pmdf),false,false)
-  val profileData2nd = ProfileData(catA1.id, SampleCode("AR-C-SHDG-1101"),
-    Option("attorney"), Option("SANGRE"), Option("court desc"), Option("ASESINATO"),
-    Option("PERSONAS"), Option("case number"), "internalSampleCode", "assignee", "SHDG",
-    false, None, Some("responsibleGeneticist"), Some(onlyDate), Some(onlyDate),
-    Option(onlyDate), Some(pmdf),false)
-  val profileData2ndFull = ProfileDataFull(catA1.id, SampleCode("AR-C-SHDG-1101"),
-    Option("attorney"), Option("SANGRE"), Option("court desc"), Option("ASESINATO"),
-    Option("PERSONAS"), Option("case number"), "internalSampleCode", "assignee", "SHDG",
-    false, None, Some("responsibleGeneticist"), Some(onlyDate), Some(onlyDate),
-    Option(onlyDate), Some(pmdf),false,false)
+  //  val profileDataAttempt = ProfileDataAttempt(catA1.id, Option("attorney"), Option("SANGRE"), Option("court"), Option("ASESINATO"), Option("PERSONAS"), Option("criminalCase"), "internalSampleCode", "assignee", Some("SHDG"), Some("responsibleGeneticist"), Some(onlyDate), Some(onlyDate), Option(onlyDate), Some(pmdfa))
+  val profileDataAttempt = ProfileDataAttempt(
+    catA1.id,
+    Option("attorney"),
+    Option("SANGRE"),
+    Option("court"),
+    Option("ASESINATO"),
+    Option("PERSONAS"),
+    Option("criminalCase"),
+    "internalSampleCode",
+    "assignee",
+    Some("SHDG"),
+    Some(1l),
+    Some(onlyDate),
+    Some(onlyDate),
+    Option(onlyDate),
+    Some(pmdfa)
+  )
+  val profileData = ProfileData(
+    catA1.id,
+    SampleCode("AR-C-SHDG-1100"),
+    Option("attorney"),
+    Option("SANGRE"),
+    Option("court desc"),
+    Option("ASESINATO"),
+    Option("PERSONAS"),
+    Option("case number"),
+    "internalSampleCode",
+    "assignee",
+    "SHDG",
+    false,
+    None,
+    Some("responsibleGeneticist"),
+    Some(onlyDate),
+    Some(onlyDate),
+    Option(onlyDate),
+    Some(pmdf),
+    false
+  )
+  val profileDataFull = ProfileDataFull(
+    catA1.id,
+    SampleCode("AR-C-SHDG-1100"),
+    Option("attorney"),
+    Option("SANGRE"),
+    Option("court desc"),
+    Option("ASESINATO"),
+    Option("PERSONAS"),
+    Option("case number"),
+    "internalSampleCode",
+    "assignee",
+    "SHDG",
+    false,
+    None,
+    Some("responsibleGeneticist"),
+    Some(onlyDate),
+    Some(onlyDate),
+    Option(onlyDate),
+    Some(pmdf),
+    false,
+    false
+  )
+  val profileData2nd = ProfileData(
+    catA1.id,
+    SampleCode("AR-C-SHDG-1101"),
+    Option("attorney"),
+    Option("SANGRE"),
+    Option("court desc"),
+    Option("ASESINATO"),
+    Option("PERSONAS"),
+    Option("case number"),
+    "internalSampleCode",
+    "assignee",
+    "SHDG",
+    false,
+    None,
+    Some("responsibleGeneticist"),
+    Some(onlyDate),
+    Some(onlyDate),
+    Option(onlyDate),
+    Some(pmdf),
+    false
+  )
+  val profileData2ndFull = ProfileDataFull(
+    catA1.id,
+    SampleCode("AR-C-SHDG-1101"),
+    Option("attorney"),
+    Option("SANGRE"),
+    Option("court desc"),
+    Option("ASESINATO"),
+    Option("PERSONAS"),
+    Option("case number"),
+    "internalSampleCode",
+    "assignee",
+    "SHDG",
+    false,
+    None,
+    Some("responsibleGeneticist"),
+    Some(onlyDate),
+    Some(onlyDate),
+    Option(onlyDate),
+    Some(pmdf),
+    false,
+    false
+  )
   val seqPopulation: Seq[PopulationSampleFrequency] = List(
     PopulationSampleFrequency("TPOX", 5, BigDecimal("0.00016000")),
     PopulationSampleFrequency("TPOX", 6, BigDecimal("0.00261000")),
@@ -425,26 +817,105 @@ object Stubs {
     PopulationSampleFrequency("D21S11", 35.2, BigDecimal("0.00087000")),
     PopulationSampleFrequency("D21S11", 36, BigDecimal("0.00027000")),
     PopulationSampleFrequency("D21S11", 36.2, BigDecimal("0.00005000")),
-    PopulationSampleFrequency("D21S11", 37, BigDecimal("0.00005000")))
+    PopulationSampleFrequency("D21S11", 37, BigDecimal("0.00005000"))
+  )
 
-  val populationBaseFrequency = new PopulationBaseFrequency("pop freq 1", 0, ProbabilityModel.HardyWeinberg, seqPopulation)
+  val populationBaseFrequency = new PopulationBaseFrequency(
+    "pop freq 1",
+    0,
+    ProbabilityModel.HardyWeinberg,
+    seqPopulation
+  )
 
-  val baseFrequency = PopulationBaseFrequencyNameView("pop freq 1", 0, "HardyWeinberg", true, true)
+  val baseFrequency = PopulationBaseFrequencyNameView(
+    "pop freq 1",
+    0,
+    "HardyWeinberg",
+    true,
+    true
+  )
 
-  val genotypification: GenotypificationByType = Map( 1 -> Map(
+  val genotypification: GenotypificationByType = Map(1 -> Map(
     "LOCUS 1" -> List(Allele(2.1), Allele(3)),
     "LOCUS 2" -> List(Allele(2), Allele(3)),
     "LOCUS 3" -> List(Allele(1), XY('X')),
-    "LOCUS 4" -> List(Mitocondrial('A', 1), Mitocondrial('A', 2.1), Mitocondrial('-', 3)),
-    "LOCUS 5" -> List(Allele(1), Allele(3))))
+    "LOCUS 4" -> List(
+      Mitocondrial('A', 1),
+      Mitocondrial('A', 2.1),
+      Mitocondrial('-', 3)
+    ),
+    "LOCUS 5" -> List(Allele(1), Allele(3))
+  )
+  )
+
+  val emptyGenotypification: GenotypificationByType = Map(
+    1 -> Map(
+      "LOCUS 1" -> List(Allele(0)),
+      "LOCUS 2" -> List(Allele(0))
+    )
+  )
 
   def newProfile = {
     val random = new Random()
     val nextRanInt = Math.abs(random.nextInt)
 
-    val id: String = "AR-B-LAB-" + nextRanInt.toString //UUID.randomUUID().toString() 
-    Profile(SampleCode(id), SampleCode(id), "", "", catA1.id, genotypification, analyses, None, None, None, None, None, false, true, false)
+    val id: String = "AR-B-LAB-" + nextRanInt
+      .toString //UUID.randomUUID().toString() 
+    Profile(
+      SampleCode(id),
+      SampleCode(id),
+      "",
+      "",
+      catA1.id,
+      genotypification,
+      analyses,
+      None,
+      None,
+      None,
+      None,
+      None,
+      false,
+      true,
+      false
+    )
   }
+
+  def emptyProfile: Profile = {
+    val random = new Random()
+    val nextRanInt = Math.abs(random.nextInt)
+
+    val id: String = "AR-B-LAB-" + nextRanInt
+      .toString //UUID.randomUUID().toString() 
+    Profile(
+      SampleCode(id),
+      SampleCode(id),
+      "",
+      "",
+      catA1.id,
+      emptyGenotypification,
+      analyses,
+      None,
+      None,
+      None,
+      None,
+      None,
+      false,
+      true,
+      false
+    )
+  }
+
+  val emptyAnalysis = NewAnalysis(
+    sampleCode,
+    "pdg",
+    "token",
+    Some("Identifiler"),
+    None,
+    emptyGenotypification(1),
+    None,
+    Some(1),
+    None
+  )
 
   val newAnalysis = NewAnalysis(
     sampleCode,
@@ -455,7 +926,8 @@ object Stubs {
     genotypification(1),
     None,
     Some(1),
-    None)
+    None
+  )
 
   val labeledGenotypification: Profile.LabeledGenotypification = Map(
     "label1" ->

@@ -496,7 +496,6 @@ class ScenarioServiceTest extends PdgSpec with MockitoSugar {
 
   "A Scenario Service" must {
     "get lr-mix" in {
-
       val seqPopulation: Seq[PopulationSampleFrequency] = List(
         PopulationSampleFrequency("TPOX", -1, BigDecimal("0.0000000001")),
         PopulationSampleFrequency("TPOX", 5, BigDecimal("0.00016000")),
@@ -758,23 +757,43 @@ class ScenarioServiceTest extends PdgSpec with MockitoSugar {
         PopulationSampleFrequency("D21S11", 36, BigDecimal("0.00027000")),
         PopulationSampleFrequency("D21S11", 36.2, BigDecimal("0.00005000")),
         PopulationSampleFrequency("D21S11", 37, BigDecimal("0.00005000")))
-
-      val baseFrequency = new PopulationBaseFrequency("pop freq 1", 0, ProbabilityModel.HardyWeinberg, seqPopulation)
-
+      val baseFrequency = new PopulationBaseFrequency(
+        name = "pop freq 1",
+        theta = 0,
+        ProbabilityModel.HardyWeinberg,
+        seqPopulation
+      )
       val mockPopulationService = mock[PopulationBaseFrequencyService]
-      when(mockPopulationService.getByName(any[String])).thenReturn(Future.successful(Some(baseFrequency)))
-
+      when(mockPopulationService.getByName(any[String]))
+        .thenReturn(Future.successful(Some(baseFrequency)))
       val mockCalculationTypeService = mock[CalculationTypeService]
-      when(mockCalculationTypeService.filterCodes(any[List[SampleCode]], any[String],any[List[Profile]])).thenReturn(Future.successful(List(Stubs.newProfile.genotypification(1),Stubs.newProfile.genotypification(1))))
-      when(mockCalculationTypeService.getAnalysisTypeByCalculation(any[String])).thenReturn(Future.successful(Stubs.analysisTypes(0)))
-      
-      val scenarioService = new ScenarioServiceImpl(null, null, mockPopulationService, null, mockCalculationTypeService)
-
+      when(
+        mockCalculationTypeService
+          .filterCodes(any[List[SampleCode]], any[String], any[List[Profile]])
+        )
+        .thenReturn(
+          Future.successful(
+            List(
+              Stubs.newProfile.genotypification(1),
+              Stubs.newProfile.genotypification(1)
+            )
+          )
+        )
+      when(
+        mockCalculationTypeService
+          .getAnalysisTypeByCalculation(any[String])
+        )
+        .thenReturn(Future.successful(Stubs.analysisTypes(0)))
+      val scenarioService = new ScenarioServiceImpl(
+        profileService = null,
+        matchingRepository = null,
+        populationBaseFrequencyService = mockPopulationService,
+        scenarioRepository = null,
+        calculationTypeService = mockCalculationTypeService
+      )
       val resultFut = scenarioService.getLRMix(Stubs.calculationScenario)
       val result = Await.result(resultFut, duration)
-
       result mustBe defined
-
     }
 
     "get N Correction dmp 1 and donnelly baldwin 1" in {
