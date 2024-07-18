@@ -168,6 +168,8 @@ class MatchingCalculatorServiceImpl @Inject() (
     (result1, result2) match {
       case (Some(r1), Some(r2)) if r1.total > 0 && r2.total > 0 =>
         Some(LRResult((r1.total + r2.total) / 2, avgDetailed(r1.detailed, r2.detailed)))
+      case (Some(r1), Some(r2)) if r1.total == 0 && r1.total == 0 =>
+        None
       case (Some(r1), Some(_)) if r1.total == 0 =>
         result2
       case (Some(_), Some(r2)) if r2.total == 0 =>
