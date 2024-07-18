@@ -28,8 +28,6 @@ define(
         return profileDataService
           .getProfileData(profileId);
       };
-      // Find forensic categories.
-      // filter found
       $scope.models = {
         matchingCodesModel: "",
         newCategory: undefined,
@@ -77,7 +75,7 @@ define(
         $scope.stage = 1;
       };
       $scope.confirmSelectedCode = function() {
-        // TODO: Check that entered value is noy empty
+        // TODO: Check that entered value is not empty
         $scope.confirmedCode = $scope.models.matchingCodesModel;
         if ($scope.confirmedCode !== undefined) {
           $scope.models.currentCategoryName = $scope.getCategoryName($scope.confirmedCode.category);
@@ -159,13 +157,19 @@ define(
 
         // TODO: Check that the logic here is OK, It is replicated from profileDataController.saveProfile method.
         //       I don't think it works as intended.
-        if (noFiliationData || dataFiliationDefined) {
+        if (noFiliationData || dataFiliationDefined || isFiliationDataFormRequired()) {
+          var updatedProfile = _.cloneDeep($scope.models.selectedProfiledata);
+          updatedProfile.category = $scope.models.newCategory.id;
+          updatedProfile.filiationData = $scope.profileData.dataFiliation;
+          console.log("updatedProfile", updatedProfile);
           profileDataService
-            .updateProfileData($scope.confirmedCode, $scope.profileData)
+            .updateProfileData($scope.confirmedCode.globalCode, updatedProfile)
             .then(
               function (response) {
                 if (response.data) {
-                  alertService.success({message: 'Se ha actualizado el perfil: ' + $scope.confirmedCode});
+                  alertService.success(
+                    { message: 'Se ha actualizado el perfil: ' + $scope.confirmedCode.globalCode }
+                  );
                 } else {
                   return Promise.reject("Ha ocurrido un error al actualizar");
                 }

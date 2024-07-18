@@ -171,6 +171,29 @@
       <div class="col-md-10 vertical-align" >
         <h6 class="col-md-6 control-label">Confirmar cambio de categoria:</h6>
         <div class="col-md-12 desk-align-right">
+          <div>
+          Profile data: {{profileData}}
+          </div>
+          <div>
+          Selected profile: {{models.selectedProfiledata}}
+          </div>
+          <div>
+          Updated profile: {{updatedProfile}}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div
+      class="options-header scenarios-section"
+      style="padding-top: 0; margin-top: 37px;"
+      ng-if="(stage==4) || (stage==5)"
+  >
+    <div class="panel-body">
+      <div class="col-md-10 vertical-align" >
+        <h6 class="col-md-6 control-label">Confirmar cambio de categoria:</h6>
+        <div class="col-md-12 desk-align-right">
           <button
             type="button"
             class="btn btn-primary-action"
@@ -179,7 +202,6 @@
       </div>
     </div>
   </div>
-  {{profileData}}
   <footer>
     <div class="desk-align-right inside-right">
     </div>
