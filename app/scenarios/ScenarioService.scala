@@ -13,8 +13,6 @@ import probability._
 import profile.{Profile, ProfileService}
 import stats.PopulationBaseFrequencyService
 
-import scala.collection.mutable.ArrayBuffer
-
 import play.api.i18n.Messages
 
 abstract class ScenarioService {
@@ -43,16 +41,20 @@ class ScenarioServiceImpl @Inject() (
 
   val calculation = LRMixCalculator.name
 
-  override def getLRMix(scenario: CalculationScenario,allelesRanges:Option[NewMatchingResult.AlleleMatchRange] = None) = {
-    val frequencyTableFuture = populationBaseFrequencyService.getByName(scenario.stats.frequencyTable).map { maybeFrequencyTable =>
-      PValueCalculator.parseFrequencyTable(maybeFrequencyTable.get)
-    }
+  override def getLRMix(
+    scenario: CalculationScenario,
+    allelesRanges: Option[NewMatchingResult.AlleleMatchRange] = None
+  ): Future[Option[LRResult]] = {
+    val frequencyTableFuture = populationBaseFrequencyService
+      .getByName(scenario.stats.frequencyTable)
+      .map {
+        maybeFrequencyTable => PValueCalculator.parseFrequencyTable(maybeFrequencyTable.get)
+      }
     val fullScenarioFuture = convertFullScenario(scenario)
-
     for {
       frequencyTable <- frequencyTableFuture
       fullScenario <- fullScenarioFuture
-      lr <- LRMixCalculator.calculateLRMix(fullScenario, frequencyTable,allelesRanges)
+      lr <- LRMixCalculator.calculateLRMix(fullScenario, frequencyTable, allelesRanges)
     } yield {
       Some(lr)
     }
