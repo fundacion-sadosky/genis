@@ -140,6 +140,8 @@ GET      /protoprofiledata-editable/:id                       @controllers.Proto
 GET      /resources/proto/static/:type/:id                    @controllers.ProtoProfileData.getResources(type:String, id: Long)
 
 # Matching
+GET      /matching                                            @controllers.Matching.findMatchesByCode(globalCode: types.SampleCode)
+POST     /user-matches                                        @controllers.Matching.getMatches
 POST     /user-total-matches                                  @controllers.Matching.getTotalMatches
 POST     /user-matches-group                                  @controllers.Matching.getMatchesByGroup
 POST     /user-total-matches-group                            @controllers.Matching.getTotalMatchesByGroup
