@@ -11,19 +11,19 @@ class PdgSpec extends PlaySpec with OneAppPerSuite {
   val configurations: Map[String, String] = {
     //Helpers.inMemoryDatabase(options = Map("MODE"->"PostgreSQL")) ++
     val map = Map(
-      "db.default.url" -> "jdbc:postgresql://localhost:5432/pdgdb-test",
+      "db.default.url" -> "jdbc:postgresql://genis_postgres:5432/genisdb",
       "db.default.driver" -> "org.postgresql.Driver",
       "db.default.slickdriver" -> "pdgconf.ExtendedPostgresDriver",
-      "db.default.user" -> "pdg",
-      "db.default.password" -> "pdg"
+      "db.default.user" -> "genissqladmin",
+      "db.default.password" -> "genissqladminp"
     ) ++
-    Helpers.inMemoryDatabase("logDb") ++
-    Map(
-      "ldap.default.url" -> "memserver:test/import.ldif",
-      "ldap.default.adminDn" -> "uid=esurijon,ou=Users,dc=pdg,dc=org",
-      "ldap.default.adminPassword" -> "sarasa",
-      "mongodb.uri" -> "mongodb://localhost:27017/pdgdb-unit-test",
-      "mongodb.connection.strictUri" -> "true")
+      Helpers.inMemoryDatabase("logDb") ++
+      Map(
+        "ldap.default.url" -> "genis_ldap",
+        "ldap.default.adminDn" -> "cn=admin,dc=genis,dc=local",
+        "ldap.default.adminPassword" -> "adminp",
+        "mongodb.uri" -> "mongodb://genis_mongo:27017/pdgdb",
+        "mongodb.connection.strictUri" -> "true")
     map
   }
 
