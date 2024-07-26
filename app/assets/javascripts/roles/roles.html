@@ -60,7 +60,7 @@
                         </tr>
                         </thead>
                         <tbody>
-                        <tr data-ng-repeat="p in permissions | filter:search:premissionComparator | orderBy: translatePermission">
+                        <tr data-ng-repeat="p in permissions | filter:search:permissionComparator | orderBy: translatePermission">
                             <td>
                                 <input type="checkbox" checklist-model="current.permissions" checklist-value="p.id" ng-change="verificarCheckbox()"/>
                             </td>

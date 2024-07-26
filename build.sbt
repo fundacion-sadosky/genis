@@ -7,7 +7,7 @@ import RjsKeys._
 name := """genis"""
 
 // Scala Version, Play supports both 2.10 and 2.11
-scalaVersion := "2.11.11"
+scalaVersion := "2.11.12"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
@@ -142,7 +142,7 @@ libraryDependencies ++= Seq(
   "org.webjars" % "jquery" % "3.7.1",
   "org.webjars" % "jquery-ui" % "1.13.2",
   "org.webjars" % "bootstrap" % "3.4.1" exclude("org.webjars", "jquery"),
-  "org.webjars" % "angularjs" % "1.8.3" exclude("org.webjars", "jquery"),
+  "org.webjars" % "angularjs" % "1.5.11" exclude("org.webjars", "jquery"),
   "org.webjars" % "angular-ui-bootstrap" % "0.14.3",
   "org.webjars" % "angular-ui-select" % "0.19.8",
   "org.webjars" % "angular-ui-sortable" % "0.13.0",

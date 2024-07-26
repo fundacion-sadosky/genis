@@ -66,11 +66,14 @@ function RolesCtrl ($scope, roleService, $modal, alertService, $filter) {
 		$scope.permissions = response.data;
 	});
 	getRoles();
-	
-	$scope.premissionComparator = function(p, search) {
-		var s = angular.lowercase(search);
-		return angular.lowercase($.i18n.t('permission.' + p +'.name')).indexOf(s) > -1 || 
-			angular.lowercase($.i18n.t('permission.' + p +'.description')).indexOf(s) > -1;
+
+	$scope.permissionComparator = function(permission, search) {
+		var lowerCaseSearch = search.toLowerCase();
+		var permissionName = $.i18n.t('permission.' + permission + '.name').toLowerCase();
+		var permissionDescription = $.i18n.t('permission.' + permission + '.description').toLowerCase();
+		console.log('Comparing permissions');
+
+		return permissionName.includes(lowerCaseSearch) || permissionDescription.includes(lowerCaseSearch);
 	};
 
 	$scope.addRole = function(){

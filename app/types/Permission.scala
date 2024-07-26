@@ -173,7 +173,7 @@ object Permission {
   }
   case object PEDIGREE_CRUD extends Permission {
     override val operations: Set[StaticAuthorisationOperation] = Set(
-        StaticAuthorisationOperation("""/pedigree|/pedigree/court-cases|/pedigree/caseTypes|/pedigree/total-court-cases|/pedigree/full.*|/pedigree/genogram.*|/pedigree/editable.*|/pedigree/deleteable.*|/mutation-models/active""".r, """.*""".r, "PedigreeAll"),
+        StaticAuthorisationOperation("""/pedigree|/pedigree/by/.*|/pedigree/court-cases|/pedigree/caseTypes|/pedigree/total-court-cases|/pedigree/full.*|/pedigree/genogram.*|/pedigree/editable.*|/pedigree/deleteable.*|/mutation-models/active""".r, """.*""".r, "PedigreeAll"),
         StaticAuthorisationOperation("""/pedigree/court-cases.*|/pedigree/update-metadata|/pedigree/remove-metadata""".r,"""PUT""".r, "PedigreeCourtCaseUpdate"),
         StaticAuthorisationOperation("""/pedigree/create-court-cases|/pedigree/metadata|/pedigree-matches-courtcase/search""".r,"""POST""".r, "PedigreeCourtCaseCreate"),
         StaticAuthorisationOperation("""/pedigree/create-genogram""".r,"""POST""".r, "PedigreeGenogramCreate"),

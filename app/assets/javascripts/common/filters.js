@@ -120,7 +120,7 @@ define([ 'angular','appConf' ], function(angular,appConf) {
       }
 		};
 	}]);
-
+	
     mod.filter('mitochondrial', ['profileHelper', function (profileHelper) {
         return function(allele, locus) {
             if (!locus.endsWith("RANGE")) {

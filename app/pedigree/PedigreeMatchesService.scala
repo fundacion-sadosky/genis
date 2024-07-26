@@ -93,53 +93,82 @@ class PedigreeMatchesServiceImpl @Inject()(
       matches => {
         Future.sequence(matches.map { m =>
           m._id match {
-            case Right(globalCode) => { this.profileDataRepo.get(SampleCode(globalCode)).flatMap{
-              profileOpt => {
-              val pd = profileOpt.get
-                (for{
-                  hit <- pedigreeMatchesRepository.countProfilesHitPedigrees(pd.globalCode.text)
-                  dis <- pedigreeMatchesRepository.countProfilesDiscardedPedigrees(pd.globalCode.text)
-                  pending <- pedigreeMatchesRepository.profileNumberOfPendingMatches(pd.globalCode.text)
-                  mejorLr <- pedigreeMatchesRepository.getMejorLrProf(pd.globalCode.text)
-                  mejorLrData <- pedigreeDataRepository.getPedigreeMetaData(mejorLr.get.internalCode.toLong)
-                }yield (hit,dis,pending,mejorLr, mejorLrData))
-                .map{
-                  case (hiit,diss,pendingg, mejorLr, mejorLrData)=>{
-                    var mejor = MatchCardMejorLrPed(mejorLrData.get.pedigreeMetaData.courtCaseName, mejorLrData.get.pedigreeMetaData.name, Some(mejorLr.get.categoryId.get),
-                      mejorLr.get.lr,mejorLr.get.estado)
-                val categoria =  categoryService.getCategory(pd.category)
-                    var prof = PedigreeMatchCard(pd.internalSampleCode, globalCode, m.assignee, m.lastMatchDate.date, m.count, "profile", "","",Some(categoria.get.name),hiit,pendingg,diss)
-                    MatchCardPedigree(prof, mejor)
-                  }
-                }
-                }
-              } }
-            case Left(idPedigree) => { pedigreeDataRepository.getPedigreeMetaData(idPedigree).flatMap {
-              pedigreeOpt => {
-                val pedigree = pedigreeOpt.get
-                (for {
-                  dis <- pedigreeMatchesRepository.numberOfDiscardedMatches(idPedigree)
-                  pending <- pedigreeMatchesRepository.numberOfPendingMatches(idPedigree)
-                  hit <- pedigreeMatchesRepository.numberOfHitMatches(idPedigree)
-                  caseType <- pedigreeMatchesRepository.getTypeCourtCasePedigree(idPedigree)
-                  mejorLr <- pedigreeMatchesRepository.getMejorLrPedigree(idPedigree)
-                  mejorLrData <- this.profileDataRepo.get(SampleCode(mejorLr.get.internalCode))
-                } yield (dis, pending, hit,caseType,mejorLr, mejorLrData))
+          case Right(globalCode) => {
+            this
+              .profileDataRepo
+              .get(SampleCode(globalCode))
+              .flatMap {
+                profileOpt => {
+                  val pd = profileOpt.get
+                  (
+                    for {
+                      hit <- pedigreeMatchesRepository.countProfilesHitPedigrees(pd.globalCode.text)
+                      dis <- pedigreeMatchesRepository.countProfilesDiscardedPedigrees(pd.globalCode.text)
+                      pending <- pedigreeMatchesRepository.profileNumberOfPendingMatches(pd.globalCode.text)
+                      mejorLr <- pedigreeMatchesRepository.getMejorLrProf(pd.globalCode.text)
+                      mejorLrData <- pedigreeDataRepository.getPedigreeMetaData(mejorLr.get.internalCode.toLong)
+                    } yield (hit, dis, pending, mejorLr, mejorLrData)
+                  )
                   .map {
-                    case (dis, pen, hit ,caseType,mejorLr,mejorLrData) => {
-                      val categoria =  categoryService.getCategory(AlphanumericId(mejorLr.get.categoryId.get))
-                      var mejor = MatchCardMejorLrPed(mejorLr.get.internalCode, mejorLrData.get.internalSampleCode, Some(categoria.get.name),
-                        mejorLr.get.lr,mejorLr.get.estado)
-                      var pedi = PedigreeMatchCard(pedigree.pedigreeMetaData.name, idPedigree.toString, pedigree.pedigreeMetaData.assignee,
-                        m.lastMatchDate.date, m.count, "pedigree", pedigree.pedigreeMetaData.courtCaseId.toString,
-                        pedigree.pedigreeMetaData.courtCaseName,caseType, hit, pen, dis)
-                      MatchCardPedigree(pedi,mejor)
+                    case (hiit,diss,pendingg, mejorLr, mejorLrData) => {
+                      val mejor = MatchCardMejorLrPed(
+                        mejorLrData.get.pedigreeMetaData.id.toString,
+                        mejorLrData.get.pedigreeMetaData.courtCaseName,
+                        mejorLrData.get.pedigreeMetaData.name,
+                        Some(mejorLr.get.categoryId.get),
+                        mejorLr.get.lr,mejorLr.get.estado
+                      )
+                      val categoria =  categoryService.getCategory(pd.category)
+                      val prof = PedigreeMatchCard(
+                        pd.internalSampleCode,
+                        globalCode,
+                        m.assignee,
+                        m.lastMatchDate.date,
+                        m.count,
+                        "profile",
+                        mejorLrData.get.pedigreeMetaData.courtCaseId.toString,
+                        mejorLrData.get.pedigreeMetaData.courtCaseName,
+                        Some(categoria.get.name),
+                        hiit,
+                        pendingg,
+                        diss
+                      )
+                      MatchCardPedigree(prof, mejor)
                     }
                   }
+                }
               }
+          }
+          case Left(idPedigree) => { pedigreeDataRepository.getPedigreeMetaData(idPedigree).flatMap {
+          pedigreeOpt => {
+            val pedigree = pedigreeOpt.get
+            (for {
+              dis <- pedigreeMatchesRepository.numberOfDiscardedMatches(idPedigree)
+              pending <- pedigreeMatchesRepository.numberOfPendingMatches(idPedigree)
+              hit <- pedigreeMatchesRepository.numberOfHitMatches(idPedigree)
+              caseType <- pedigreeMatchesRepository.getTypeCourtCasePedigree(idPedigree)
+              mejorLr <- pedigreeMatchesRepository.getMejorLrPedigree(idPedigree)
+              mejorLrData <- this.profileDataRepo.get(SampleCode(mejorLr.get.internalCode))
+            } yield (dis, pending, hit,caseType,mejorLr, mejorLrData))
+              .map {
+                case (dis, pen, hit ,caseType,mejorLr,mejorLrData) => {
+                  val categoria =  categoryService.getCategory(AlphanumericId(mejorLr.get.categoryId.get))
+                  var mejor = MatchCardMejorLrPed(
+                    mejorLr.get.id.toString,
+                    mejorLr.get.internalCode,
+                    mejorLrData.get.internalSampleCode,
+                    Some(categoria.get.name),
+                    mejorLr.get.lr,mejorLr.get.estado)
+                  var pedi = PedigreeMatchCard(pedigree.pedigreeMetaData.name, idPedigree.toString, pedigree.pedigreeMetaData.assignee,
+                    m.lastMatchDate.date, m.count, "pedigree", pedigree.pedigreeMetaData.courtCaseId.toString,
+                    pedigree.pedigreeMetaData.courtCaseName,caseType, hit, pen, dis)
+                  MatchCardPedigree(pedi,mejor)
                 }
-                }
+              }
+          }
             }
+            }
+        }
           })
       }
     }
@@ -166,13 +195,36 @@ class PedigreeMatchesServiceImpl @Inject()(
                   matchP <- pedigreeMatchesRepository.getMatchesByGroupPedigree(searchCardGroup)
                 }yield (hit,dis,pending,matchP)).flatMap{
                     case (hiit,diss,pendingg, matchP)=>{
-                       Future.sequence(matchP.map { m =>
-                        pedigreeDataRepository.getPedigreeMetaData(m.internalCode.toLong).map { x =>
-                          m.copy(sampleCode = x.map(_.pedigreeMetaData.name).getOrElse(""),internalCode = x.map(_.pedigreeMetaData.courtCaseName).getOrElse(""))
-                        }
-                      }).map(matchs => {
+                       Future.sequence(
+                          matchP.map {
+                            m =>
+                              pedigreeDataRepository.getPedigreeMetaData(m.internalCode.toLong)
+                                .map {
+                                  x =>
+                                    m.copy(
+                                      sampleCode = x.map(_.pedigreeMetaData.name).getOrElse(""),
+                                      internalCode = x.map(_.pedigreeMetaData.courtCaseName).getOrElse(""),
+                                      courtCaseId = x.map(_.pedigreeMetaData.courtCaseId.toString).getOrElse(""),
+                                      courtCaseName = x.map(_.pedigreeMetaData.courtCaseName).getOrElse("")
+                                    )
+																	}
+													}
+                      ).map(
+                        matchs => {
                         val categoria =  categoryService.getCategory(pd.category)
-                        var prof = PedigreeMatchCard(pd.internalSampleCode, globalCode, m.assignee, m.lastMatchDate.date, m.count, "profile", "","",Some(categoria.get.name),hiit,pendingg,diss)
+                        var prof = PedigreeMatchCard(
+                          pd.internalSampleCode,
+                          globalCode,
+                          m.assignee,
+                          m.lastMatchDate.date,
+                          m.count,
+                          "profile",
+                          "",
+                          "",
+                          Some(categoria.get.name),
+                          hiit,
+                          pendingg,diss
+                        )
                         MatchCardPedigrees(prof, matchs)
                       })
                   }

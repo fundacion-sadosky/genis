@@ -24,6 +24,7 @@ abstract class PedigreeRepository {
   def countByProfile(globalCode: String): Future[Int]
   def countByProfileIdPedigrees(globalCode: String,idsPedigrees: Seq[String]): Future[Int]
   def getActivePedigreesByCaseType(caseType: String): Future[Seq[PedigreeGenogram]]
+  def getPedigreeByCourtCaseId(courtCaseId: Long): Future[List[PedigreeGenogram]]
 
 }
 
@@ -115,5 +116,15 @@ class MongoPedigreeRepository extends PedigreeRepository {
     pedigrees.find(query)
       .cursor[PedigreeGenogram]()
       .collect[Seq](Int.MaxValue, Cursor.FailOnError[Seq[PedigreeGenogram]]()).map(_.size)
+  }
+
+  override def getPedigreeByCourtCaseId(courtCaseId: Long): Future[List[PedigreeGenogram]] = {
+    val query = Json.obj(
+      "idCourtCase" -> courtCaseId.toString
+    )
+    pedigrees
+      .find(query)
+      .cursor[PedigreeGenogram]()
+      .collect[List](-1, Cursor.FailOnError[List[PedigreeGenogram]]())
   }
 }

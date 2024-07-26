@@ -88,7 +88,7 @@ PUT      /geneticist                                          @controllers.Genet
 
 # Profiles
 
-GET		 /profiles/:id			                              @controllers.Profiles.findByCode(id: types.SampleCode)
+GET      /profiles/:id                                        @controllers.Profiles.findByCode(id: types.SampleCode)
 GET      /profiles/full/:globalCode                           @controllers.Profiles.getFullProfile(globalCode: types.SampleCode)
 GET      /profiles                                            @controllers.Profiles.findByCodes(globalCodes: List[types.SampleCode])
 POST     /profiles                                            @controllers.Profiles.create
@@ -221,6 +221,7 @@ PUT      /pedigree/court-cases/:courtCaseId                   @controllers.Pedig
 POST     /pedigree/create-genogram                            @controllers.Pedigrees.createGenogram
 GET      /pedigree/genogram/:pedigreeId                       @controllers.Pedigrees.getPedigree(pedigreeId: Long)
 GET      /pedigree/full/:courtCaseId                          @controllers.Pedigrees.getCourtCaseFull(courtCaseId: Long)
+GET      /pedigree/by/:courtCaseId                            @controllers.Pedigrees.getByCourtCase(courtCaseId: Long)
 GET      /search/profileDataForPedigree                       @controllers.SearchProfileDatas.searchProfilesForPedigree(input: String)
 GET      /filter/profileDataForPedigree                       @controllers.Pedigrees.filterProfilesForPedigree(input: String,idCase:Long, tab: Boolean, tipo: Int,page:Int,pageSize:Int)
 GET      /filter/profileDataForPedigree/count                 @controllers.Pedigrees.countProfilesForPedigree(input: String,idCase:Long, tab: Boolean, tipo: Int)

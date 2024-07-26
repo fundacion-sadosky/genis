@@ -76,6 +76,7 @@ class PedigreeMatchesServiceTest extends PdgSpec with MockitoSugar {
       val pedigreeMatches = Seq[PedigreeMatch](pedigreeMatch1, pedigreeMatch2)
       when(mockPedigreeMatchesRepository.getMatches(pedigreeMatchCardSearch)).thenReturn(Future.successful(pedigreeMatches))
       when(mockPedigreeMatchesRepository.getMejorLrPedigree(any[Long])).thenReturn(Future.successful(Some(MatchCardMejorLrPed(
+        "id",
         "AR-C-SHDG-1101",
         "AR-C-SHDG-1101",
         Some("UNICO"),
@@ -159,6 +160,7 @@ class PedigreeMatchesServiceTest extends PdgSpec with MockitoSugar {
 
       when(mockProfileDataRepo.get(any[SampleCode])).thenReturn(Future.successful(None))
       when(mockPedigreeMatchesRepository.getMejorLrPedigree(any[Long])).thenReturn(Future.successful(Some(MatchCardMejorLrPed(
+        "id",
         "1",
         "sampleCode",
         Some("UNICO"),
@@ -184,6 +186,7 @@ class PedigreeMatchesServiceTest extends PdgSpec with MockitoSugar {
       when(mockPedigreeMatchesRepository.countProfilesDiscardedPedigrees(any[String])).thenReturn(Future.successful(1))
       when(mockPedigreeMatchesRepository.profileNumberOfPendingMatches(any[String])).thenReturn(Future.successful(1))
       when(mockPedigreeMatchesRepository.getMejorLrProf(any[String])).thenReturn(Future.successful(Some(MatchCardMejorLrPed(
+        "id",
         "1",
         "sampleCode",
         Some("categoryId"),
