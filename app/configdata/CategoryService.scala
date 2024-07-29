@@ -41,6 +41,15 @@ abstract class CategoryService {
   def getCategoriesMappingReverseById(id:AlphanumericId): Future[Option[AlphanumericId]]
   def getCategoryType(categoryId: AlphanumericId): Option[String]
   def getCategoryTypeFromFullCategory(fullCategory: FullCategory): Option[String]
+  def registerCategoryModification(
+    from: AlphanumericId,
+    to: AlphanumericId
+  ): Option[Int]
+  
+  def deleteCategoryModification(
+    from: AlphanumericId,
+    to: AlphanumericId
+  ): Int
 }
 
 @Singleton
@@ -215,4 +224,34 @@ class CachedCategoryService @Inject() (cache: CacheService, categoryRepository: 
     }
   }
   def isPedigreeAssociation(id:AlphanumericId):Boolean = listCategories(id).pedigreeAssociation
+  
+  override def registerCategoryModification(
+    from: AlphanumericId,
+    to: AlphanumericId
+  ): Option[Int] = {
+    if (from == to) { None } else {
+      val future = categoryRepository
+        .categoryModificationExists(from, to)
+        .flatMap {
+          case true => Future.successful(None)
+          case false =>
+            categoryRepository
+              .addCategoryModification(from, to)
+              .map(Some(_))
+        }
+      Await
+        .result(future, Duration(300, SECONDS))
+    }
+  }
+
+  override def deleteCategoryModification(
+    from: AlphanumericId,
+    to: AlphanumericId
+  ): Int = {
+    val future = categoryRepository
+      .removeCategoryModification(from, to)
+    Await
+      .result(future, Duration(300, SECONDS))
+  }
+  
 }

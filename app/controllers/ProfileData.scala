@@ -24,12 +24,14 @@ import play.api.mvc.{Action, AnyContent, BodyParsers, Controller, ResponseHeader
 import profile.ProfileService
 import profile.Profile
 import profiledata._
+import configdata.CategoryService
 import types._
 
 @Singleton
 class ProfileData @Inject() (
   profiledataService: ProfileDataService,
-  profileService: ProfileService
+  profileService: ProfileService,
+  categoryService: CategoryService
 ) extends Controller {
 
   def update(globalCode: SampleCode): Action[JsValue] = Action.async(BodyParsers.parse.json) {
@@ -58,62 +60,77 @@ class ProfileData @Inject() (
     .async(BodyParsers.parse.json) {
       request =>
         val profileDataJson = request.body.validate[ProfileDataAttempt]
-        profileDataJson
-          .fold(
-            errors => {
-              Future
-                .successful(
-                  BadRequest(Json
-                    .obj(
-                      "status" -> "KO",
-                      "message" -> JsError.toFlatJson(errors)
-                    )
-                  )
-                )
-            },
-            profileData =>
-              profiledataService
-                .updateProfileCategoryData(globalCode, profileData)
-                .map {
-                  case None => Right(globalCode)
-                  case Some(error) => Left(error)
-                }
-                .flatMap {
-                  case Left(error) => Future.successful(Left(error))
-                  case Right(code) =>
-                    val x = profileService
-                      .get(code)
-                      .map {
-                        case None => Left(Messages("error.E0101"))
-                        case Some(profile) => Right(profile)
-                      }
-                    x
-                }
-                .map {
-                  x => x.right.map(
-                    _.copy(categoryId = profileData.category)
-                  )
-                }
-                .flatMap {
-                  case Left(error) => Future.successful(Left(error))
-                  case Right(profile) => {
-                    try {
-                      profileService
-                        .updateProfile(profile)
-                        .map(_ => Right(profile))
-                    } catch {
-                      case e: Exception => Future.successful(Left(Messages("error.E0132")))
-                    }
-                  }
-                }
-                .map {
-                  case Left(error) => Json.obj("status" -> "error", "message" -> error)
-                  case Right(_) => Json.obj("status" -> "OK", "message" -> Messages("success.S0100"))
-                }
-                .map {
-                  result => Ok(result)
-                }
+        val x = categoryService
+          .registerCategoryModification(AlphanumericId("VICTIMA"), AlphanumericId("SOSPECHOSO"))
+          .map(_.toString)
+          .getOrElse("La modificación de categoría ya fue registrada previamente")
+        val z = Future.successful(
+          Ok(
+              Json.obj("status" -> "error", "message" -> x)
+            )
           )
+//        val y = profileDataJson
+//          .fold(
+//            errors => {
+//              Future
+//                .successful(
+//                  BadRequest(Json
+//                    .obj(
+//                      "status" -> "KO",
+//                      "message" -> JsError.toFlatJson(errors)
+//                    )
+//                  )
+//                )
+//            },
+//            profileData =>
+//              profiledataService
+//                .updateProfileCategoryData(globalCode, profileData)
+//                .map {
+//                  case None => Right(globalCode)
+//                  case Some(error) => Left(error)
+//                }
+//                .flatMap {
+//                  case Left(error) => Future.successful(Left(error))
+//                  case Right(code) =>
+//                    val x = profileService
+//                      .get(code)
+//                      .map {
+//                        case None => Left(Messages("error.E0101"))
+//                        case Some(profile) => Right(profile)
+//                      }
+//                    x
+//                }
+//                .map {
+//                  x => x.right.map(
+//                    _.copy(categoryId = profileData.category)
+//                  )
+//                }
+//                .flatMap {
+//                  case Left(error) => Future.successful(Left(error))
+//                  case Right(profile) =>
+//                    try {
+//                      profileService
+//                        .updateProfile(profile)
+//                        .map(_ => Right(profile))
+//                    } catch {
+//                      case e: Exception => Future.successful(Left(Messages("error.E0132")))
+//                    }
+//                }
+//                .map {
+//                  case Left(error) => Json.obj(
+//                    "status" -> "error",
+//                    "message" -> error
+//                  )
+//                  case Right(_) => Json.obj(
+//                    "status" -> "OK",
+//                    "message" -> Messages("success.S0100")
+//                  )
+//                }
+//                .map {
+//                  result => Ok(result)
+//                }
+//          )
+        z
     }
 
   def getByCode(sampleCode: SampleCode) = Action.async { request =>
