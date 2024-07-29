@@ -122,8 +122,8 @@ class ProfileServiceImpl @Inject() (
       case e: IllegalArgumentException => Left(e.getMessage())
     }
   }
-  override def isReadOnly(profileOpt:Option[Profile]):Future[(Boolean,String)] = {
-    profileOpt.fold(Future.successful((false,""))){
+  override def isReadOnly(profileOpt:Option[Profile]):Future[(Boolean, String)] = {
+    profileOpt.fold(Future.successful((false,""))) {
       profile =>{
         if(!this.interconnectionService.isFromCurrentInstance(profile.globalCode)){
           Future.successful((true,Messages("error.E0727")))
@@ -133,7 +133,8 @@ class ProfileServiceImpl @Inject() (
             yield(uploadStatus,isDeleted))
           .map{
             case (_,Some(true)) => (true,Messages("error.E0729"))
-            case (None,_) => (false,"")
+            case (
+                None,_) => (false,"")
             case (Some(status),_) => (true,Messages("error.E0728"))
           }
         }
@@ -158,10 +159,10 @@ class ProfileServiceImpl @Inject() (
       }
     }
   }
-  override def isReadOnlySampleCode(globalCode:SampleCode):Future[(Boolean,String)] = {
-      this.findByCode(globalCode).flatMap(p => {
-        this.isReadOnly(p)
-      })
+  override def isReadOnlySampleCode(globalCode:SampleCode):Future[(Boolean, String)] = {
+      this
+        .findByCode(globalCode)
+        .flatMap(this.isReadOnly)
   }
   override def existProfile(globalCode: SampleCode): Future[Boolean] = {
     profileRepository.existProfile(globalCode)

@@ -10,7 +10,6 @@ GET      /status                                              @controllers.Statu
 GET      /categoryTree                                        @controllers.Categories.categoryTree
 GET      /categories                                          @controllers.Categories.list
 GET      /categoriesWithProfiles                              @controllers.Categories.listWithProfiles
-
 GET      /categoryTreeManualLoading                           @controllers.Categories.categoryTreeManualLoading
 
 POST     /categories                                          @controllers.Categories.addCategory
@@ -54,7 +53,9 @@ POST     /profiledata                                         @controllers.Profi
 GET      /profiles-deleted/motive/:id                         @controllers.ProfileData.getDeleteMotive(id: types.SampleCode)
 PUT      /profiledata-deleted/:id                             @controllers.ProfileData.deleteProfile(id: types.SampleCode)
 GET      /profiledataWithAssociations                         @controllers.ProfileData.findByCodeWithAssociations(globalCode: types.SampleCode)
-PUT      /profiledata/:id                                     @controllers.ProfileData.update(id: types.SampleCode)
+PUT      /profiledata/:id/                                    @controllers.ProfileData.update(id: types.SampleCode)
+PUT      /profiledata/modify-category/:id/                    @controllers.ProfileData.modifyCategory(id: types.SampleCode)
+GET      /profiledata-readonly                                @controllers.ProfileData.isReadOnly(globalCode: types.SampleCode)
 GET      /profiledata-complete/:id                            @controllers.ProfileData.getByCode(id: types.SampleCode)
 GET      /profiledata-editable/:id                            @controllers.ProfileData.isEditable(id: types.SampleCode)
 GET      /profilesdata                                        @controllers.ProfileData.findByCodes(globalCode: List[types.SampleCode])
@@ -108,7 +109,7 @@ GET      /profiles/:profileId/file/:fileId                    @controllers.Profi
 POST     /profiles-file                                       @controllers.Profiles.addFiles(token: String, globalCode: types.SampleCode, idAnalysis: String,name:String)
 DELETE   /profiles-file/file/:fileId                          @controllers.Profiles.removeFile(fileId:String)
 DELETE   /profiles-file/epg/:fileId                           @controllers.Profiles.removeEpg(fileId:String)
-GET      /profiles/readOnly                                   @controllers.Profiles.isReadOnly(globalCode: types.SampleCode)
+GET      /profiles-readOnly                                   @controllers.Profiles.isReadOnly(globalCode: types.SampleCode)
 POST     /profile-export                                      @controllers.Profiles.exporterProfiles
 POST     /profile-exportToLims                                @controllers.Profiles.exporterLimsFiles
 GET      /get-profile-export/:user                            @controllers.Profiles.getExportFile(user: String)

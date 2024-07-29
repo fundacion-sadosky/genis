@@ -31,6 +31,8 @@ error.E0128= E0128: El perfil {0} está asociado a un escenario de pedigri pendi
 error.E0129= E0129: El perfil {0} tiene matches de MPI/DVI pendientes.
 error.E0130= E0130: El perfil {0} se encuentra en un pedigri con matches pendientes.
 error.E0131= E0131: Error realizando traza de tipo {0} para el pedigree {1}.
+error.E0132= E0132: No se pudo actualizar la categoría del perfil.
+success.S0100= S0100: Se ha actualizado el perfil {0} correctamente.
 
 
 #Pedigree

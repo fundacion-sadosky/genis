@@ -865,49 +865,49 @@ class SlickProfileDataRepository @Inject() (
                   case number => number
                 }
               imageList.foreach {
-                                  imageListFile =>
-                                  imageListFile
-                                  .foreach(
-                                  file => {
-                                  val is: InputStream = new FileInputStream(file)
-                                  val byteArray: Array[Byte] = Stream.continually(is.read).takeWhile(-1 !=).map(_.toByte).toArray
-                                  val blob: SerialBlob = new SerialBlob(byteArray)
-                                  val resourceRow = ProfileDataFiliationResourcesRow(
-                                  0, globalCode.text, blob, "I"
-                                  )
-                                  profileMetaDataFiliationResources += resourceRow
-                                  }
-                                  )
-                                  }
+                imageListFile =>
+                  imageListFile
+                    .foreach(
+                      file => {
+                        val is: InputStream = new FileInputStream(file)
+                        val byteArray: Array[Byte] = Stream.continually(is.read).takeWhile(-1 !=).map(_.toByte).toArray
+                        val blob: SerialBlob = new SerialBlob(byteArray)
+                        val resourceRow = ProfileDataFiliationResourcesRow(
+                          0, globalCode.text, blob, "I"
+                        )
+                        profileMetaDataFiliationResources += resourceRow
+                      }
+                    )
+              }
               pictureList.foreach {
-                                    picturesListFile =>
-                                    picturesListFile.foreach(
-                                    file => {
-                                    val is: InputStream = new FileInputStream(file)
-                                    val byteArray: Array[Byte] = Stream.continually(is.read).takeWhile(-1 !=).map(_.toByte).toArray
-                                    val blob: SerialBlob = new SerialBlob(byteArray)
-                                    val resourceRow = ProfileDataFiliationResourcesRow(
-                                    0, globalCode.text, blob, "P"
-                                    )
-                                    profileMetaDataFiliationResources += resourceRow
-                                    }
-                                    )
-                                    }
+                picturesListFile =>
+                  picturesListFile.foreach(
+                    file => {
+                      val is: InputStream = new FileInputStream(file)
+                      val byteArray: Array[Byte] = Stream.continually(is.read).takeWhile(-1 !=).map(_.toByte).toArray
+                      val blob: SerialBlob = new SerialBlob(byteArray)
+                      val resourceRow = ProfileDataFiliationResourcesRow(
+                        0, globalCode.text, blob, "P"
+                      )
+                      profileMetaDataFiliationResources += resourceRow
+                    }
+                  )
+              }
               signatureList.foreach {
-                                      signaturesListFile =>
-                                      signaturesListFile
-                                      .foreach(
-                                      file => {
-                                      val is: InputStream = new FileInputStream(file)
-                                      val byteArray: Array[Byte] = Stream.continually(is.read).takeWhile(-1 !=).map(_.toByte).toArray
-                                      val blob: SerialBlob = new SerialBlob(byteArray)
-                                      val resourceRow = ProfileDataFiliationResourcesRow(
-                                      0, globalCode.text, blob, "S"
-                                      )
-                                      profileMetaDataFiliationResources += resourceRow
-                                      }
-                                      )
-                                      }
+                signaturesListFile =>
+                  signaturesListFile
+                    .foreach(
+                      file => {
+                        val is: InputStream = new FileInputStream(file)
+                        val byteArray: Array[Byte] = Stream.continually(is.read).takeWhile(-1 !=).map(_.toByte).toArray
+                        val blob: SerialBlob = new SerialBlob(byteArray)
+                        val resourceRow = ProfileDataFiliationResourcesRow(
+                          0, globalCode.text, blob, "S"
+                        )
+                        profileMetaDataFiliationResources += resourceRow
+                      }
+                    )
+              }
               resultPdf
           }
         )

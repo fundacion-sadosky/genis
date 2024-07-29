@@ -21,6 +21,7 @@ define(
           'searchService',
           'categoriesService',
           'profileDataService',
+          'profileService',
           modifyForensicCategoryController
         ]
       )

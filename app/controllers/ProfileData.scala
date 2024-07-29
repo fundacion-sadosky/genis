@@ -3,7 +3,6 @@ package controllers
 import scala.concurrent.Future
 import scala.concurrent.duration.MINUTES
 import scala.concurrent.duration.SECONDS
-
 import javax.inject.Inject
 import javax.inject.Singleton
 import models.Tables
@@ -20,24 +19,102 @@ import play.api.libs.json.Json.toJsFieldJsValueWrapper
 import play.api.libs.json.Reads
 import play.api.libs.json.Writes
 import play.api.libs.json.__
-import play.api.mvc.Action
-import play.api.mvc.BodyParsers
-import play.api.mvc.Controller
-import play.api.mvc.ResponseHeader
-import play.api.mvc.Result
-import play.api.mvc.Results
+import play.api.i18n.Messages
+import play.api.mvc.{Action, AnyContent, BodyParsers, Controller, ResponseHeader, Result, Results}
+import profile.ProfileService
+import profile.Profile
 import profiledata._
 import types._
 
 @Singleton
-class ProfileData @Inject() (profiledataService: ProfileDataService) extends Controller {
+class ProfileData @Inject() (
+  profiledataService: ProfileDataService,
+  profileService: ProfileService
+) extends Controller {
 
-  def update(globalCode: SampleCode) = Action.async(BodyParsers.parse.json) { request =>
-    val profileDataJson = request.body.validate[ProfileDataAttempt]
-
-    profileDataJson.fold(errors => { Future.successful(BadRequest(Json.obj("status" -> "KO", "message" -> JsError.toFlatJson(errors)))) },
-      profileData => profiledataService.updateProfileData(globalCode, profileData) map { result => Ok(Json.toJson(result)) })
+  def update(globalCode: SampleCode): Action[JsValue] = Action.async(BodyParsers.parse.json) {
+    request =>
+      val profileDataJson = request.body.validate[ProfileDataAttempt]
+      profileDataJson
+        .fold(
+          errors => {
+            Future
+              .successful(
+                BadRequest(Json.obj("status" -> "KO", "message" -> JsError.toFlatJson(errors)))
+              )
+          },
+          profileData =>
+            profiledataService
+              .updateProfileData(globalCode, profileData) map { result => Ok(Json.toJson(result)) }
+        )
   }
+
+  def isReadOnly(globalCode: SampleCode): Action[AnyContent] =
+    Action.async {
+      request => Future.successful(Ok(Json.obj("data" -> true)));
+    }
+
+  def modifyCategory(globalCode: SampleCode): Action[JsValue] = Action
+    .async(BodyParsers.parse.json) {
+      request =>
+        val profileDataJson = request.body.validate[ProfileDataAttempt]
+        profileDataJson
+          .fold(
+            errors => {
+              Future
+                .successful(
+                  BadRequest(Json
+                    .obj(
+                      "status" -> "KO",
+                      "message" -> JsError.toFlatJson(errors)
+                    )
+                  )
+                )
+            },
+            profileData =>
+              profiledataService
+                .updateProfileCategoryData(globalCode, profileData)
+                .map {
+                  case None => Right(globalCode)
+                  case Some(error) => Left(error)
+                }
+                .flatMap {
+                  case Left(error) => Future.successful(Left(error))
+                  case Right(code) =>
+                    val x = profileService
+                      .get(code)
+                      .map {
+                        case None => Left(Messages("error.E0101"))
+                        case Some(profile) => Right(profile)
+                      }
+                    x
+                }
+                .map {
+                  x => x.right.map(
+                    _.copy(categoryId = profileData.category)
+                  )
+                }
+                .flatMap {
+                  case Left(error) => Future.successful(Left(error))
+                  case Right(profile) => {
+                    try {
+                      profileService
+                        .updateProfile(profile)
+                        .map(_ => Right(profile))
+                    } catch {
+                      case e: Exception => Future.successful(Left(Messages("error.E0132")))
+                    }
+                  }
+                }
+                .map {
+                  case Left(error) => Json.obj("status" -> "error", "message" -> error)
+                  case Right(_) => Json.obj("status" -> "OK", "message" -> Messages("success.S0100"))
+                }
+                .map {
+                  result => Ok(result)
+                }
+          )
+    }
 
   def getByCode(sampleCode: SampleCode) = Action.async { request =>
     profiledataService.get(sampleCode) map { result =>

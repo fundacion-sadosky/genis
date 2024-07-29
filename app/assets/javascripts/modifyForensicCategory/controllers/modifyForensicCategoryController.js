@@ -10,7 +10,8 @@ define(
       alertService,
       searchService,
       categoriesService,
-      profileDataService
+      profileDataService,
+      profileService
     ) {
       var buildSearchObject = function(profileId) {
         return {
@@ -77,20 +78,41 @@ define(
       $scope.confirmSelectedCode = function() {
         // TODO: Check that entered value is not empty
         $scope.confirmedCode = $scope.models.matchingCodesModel;
+
         if ($scope.confirmedCode !== undefined) {
-          $scope.models.currentCategoryName = $scope.getCategoryName($scope.confirmedCode.category);
-          getProfileData($scope.confirmedCode.globalCode)
+          // TODO: Should check that the current category can be modified to the new category.
+          profileService
+            .isReadOnly($scope.confirmedCode.globalCode)
+            .then(
+              function(response) {
+                $scope.isReadOnly = response;
+                if (response.isReadOnly) {
+                  alertService.error(response.message);
+                  return Promise.reject(response.message);
+                }
+              }
+            )
+            .then(
+              function() {
+                $scope.models.currentCategoryName = $scope.getCategoryName($scope.confirmedCode.category);
+                return profileDataService
+                  .getProfileData($scope.confirmedCode.globalCode);
+              }
+            )
             .then(
                function(response) {
                  $scope.models.selectedProfiledata = response.data;
                  $scope.stage = 3;
                }
+            )
+            .catch(
+              function(error) {
+                alertService.error({message: error});
+              }
             );
         }
       };
       $scope.categoryOptionChanged = function() {
-        // TODO: If new category requires filiatory data and the previous category doesn't then
-        //       ask for the filiatory data. Change to stage 4 os 5.
         $scope.requiresFiliationData = isFiliationDataFormRequired();
         if ($scope.requiresFiliationData) {
           $scope.stage = 4;
@@ -160,18 +182,17 @@ define(
         if (noFiliationData || dataFiliationDefined || isFiliationDataFormRequired()) {
           var updatedProfile = _.cloneDeep($scope.models.selectedProfiledata);
           updatedProfile.category = $scope.models.newCategory.id;
-          updatedProfile.filiationData = $scope.profileData.dataFiliation;
-          console.log("updatedProfile", updatedProfile);
+          updatedProfile.dataFiliation = $scope.profileData.dataFiliation;
           profileDataService
-            .updateProfileData($scope.confirmedCode.globalCode, updatedProfile)
+            .updateProfileCategoryData($scope.confirmedCode.globalCode, updatedProfile)
             .then(
               function (response) {
-                if (response.data) {
+                if (response.data.status === "OK") {
                   alertService.success(
                     { message: 'Se ha actualizado el perfil: ' + $scope.confirmedCode.globalCode }
                   );
                 } else {
-                  return Promise.reject("Ha ocurrido un error al actualizar");
+                  return Promise.reject(response.data.message);
                 }
               }
             )
@@ -186,10 +207,11 @@ define(
           .categories
           .filter(function(x){return x.id === category;});
         if (filtered.length !== 1) {
-          alertService.error({message:"The category " + category + " is not unique or doesn't exists."});
+          alertService.error({message:"La categoría " + category + " no es única o no existe."});
         }
         return filtered[0].name;
       };
+
       $scope.clearNewCategory = function () {
         $scope.newCategory = undefined;
         $scope.stage = 2;

@@ -24,6 +24,7 @@ import play.api.test.Helpers.defaultAwaitTimeout
 import play.api.test.Helpers.status
 import java.util.Date
 import profiledata.ProfileDataService
+import profile.ProfileService
 import types._
 import profiledata.ProfileDataAttempt
 
@@ -53,11 +54,12 @@ class ProfileDataTest extends PdgSpec with MockitoSugar with Results {
         "sampleDate" -> pda.sampleDate,
         "sampleEntryDate" -> pda.sampleEntryDate)
 
-      val mockProfileService = mock[ProfileDataService]
-      when(mockProfileService.create(any[ProfileDataAttempt])).thenReturn(eitherCodigoMuestra)
+      val mockProfileService = mock[ProfileService]
+      val mockProfileDataService = mock[ProfileDataService]
+      when(mockProfileDataService.create(any[ProfileDataAttempt])).thenReturn(eitherCodigoMuestra)
 
       val request = FakeRequest().withBody(jsRequest)
-      val target = new ProfileData(mockProfileService)
+      val target = new ProfileData(mockProfileDataService, mockProfileService)
 
       val result: Future[Result] = target.create().apply(request)
 
@@ -70,12 +72,13 @@ class ProfileDataTest extends PdgSpec with MockitoSugar with Results {
 
     "reject a json if it doesn't have the expected format" in {
 
-      val mockProfileService = mock[ProfileDataService]
-      when(mockProfileService.create(any[ProfileDataAttempt])).thenReturn(eitherCodigoMuestra)
+      val mockProfileDataService = mock[ProfileDataService]
+      val mockProfileService = mock[ProfileService]
+      when(mockProfileDataService.create(any[ProfileDataAttempt])).thenReturn(eitherCodigoMuestra)
 
       val request = FakeRequest().withBody(Json.obj("categoryBadJSon" -> pda.category, "category" -> pda.category))
 
-      val target = new ProfileData(mockProfileService)
+      val target = new ProfileData(mockProfileDataService, mockProfileService)
       val result: Future[Result] = target.create().apply(request)
 
       status(result) mustBe 400 //BadRequest
@@ -85,10 +88,11 @@ class ProfileDataTest extends PdgSpec with MockitoSugar with Results {
     "return a profileData with the valid format" in {
 
       val pd = Stubs.profileData
-      val mockProfileService = mock[ProfileDataService]
-      when(mockProfileService.findByCode(any[SampleCode])).thenReturn(Future.successful(Some(pd)))
+      val mockProfileDataService = mock[ProfileDataService]
+      val mockProfileService = mock[ProfileService]
+      when(mockProfileDataService.findByCode(any[SampleCode])).thenReturn(Future.successful(Some(pd)))
 
-      val target = new ProfileData(mockProfileService)
+      val target = new ProfileData(mockProfileDataService, mockProfileService)
       val result: Future[Result] = target.findByCode(pd.globalCode).apply(FakeRequest())
 
       status(result) mustBe OK

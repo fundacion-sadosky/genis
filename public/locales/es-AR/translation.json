@@ -111,6 +111,8 @@
 		"PedigreeConsistencyGenerate": "Generar Consistencia de pedigree",
 		"ProfiledataCreate": "Alta de los datos de la muestra",
 		"ProfiledataUpdate": "Modificación de los datos de la muestra",
+		"ProfiledataCategoryModification": "Modificación de la categoria de un perfil",
+		"ProfiledataIsReadOnly": "Verifica que un perfil es de solo lectura",
 		"ProfiledataDelete": "Baja de perfiles",
         "ProfiledataSearch": "Búsqueda de perfiles",
 		"MatchAll": "Lectura de coincidencias",
