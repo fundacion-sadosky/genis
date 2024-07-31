@@ -3,18 +3,16 @@ package controllers
 import javax.inject.Inject
 import javax.inject.Singleton
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import play.api.libs.json.Json
-import play.api.mvc.Action
-import play.api.mvc.Controller
+import play.api.libs.json.{JsError, JsValue, Json, __}
+import play.api.mvc.{Action, AnyContent, BodyParsers, Controller}
 import types.AlphanumericId
-import play.api.libs.json.JsValue
 
 import scala.collection.immutable.Map
 import configdata._
+import play.api.i18n.Messages
 
 import scala.concurrent.Future
-import play.api.mvc.BodyParsers
-import play.api.libs.json.JsError
+import profiledata.ProfileDataAttempt
 
 import scala.util.{Left, Right}
 
@@ -138,9 +136,10 @@ class Categories @Inject() (categoryService: CategoryService) extends Controller
   }
 
   def listCategoriesMapping = Action.async {
-    categoryService.listCategoriesMapping map {
+    val x = categoryService.listCategoriesMapping map {
       result => Ok(Json.toJson(result))
     }
+    x
   }
 
   def insertOrUpdateCategoriesMapping =  Action.async(BodyParsers.parse.json) { request =>
@@ -169,10 +168,49 @@ class Categories @Inject() (categoryService: CategoryService) extends Controller
             "subcategories" -> categories.map(x => CategoryCombo(x.id,x.name)) )
           group.id.text -> grp
       }
-
       Ok(Json.toJson(treeMap))
     }
   }
 
-
+  
+  def unregisterCategoryModification(
+    from: AlphanumericId,
+    to: AlphanumericId
+  ): Action[AnyContent] = Action
+    .async {
+      Future {
+        categoryService
+          .unregisterCategoryModification(from, to)
+            match {
+              case x if x == 0 => ("error", Messages("error.E0602"))
+              case _ => ("success", Messages("success.S0601"))
+            }
+        }
+        .map {
+          case (status, message) =>
+            Json.obj("status" -> status, "message" -> message)
+        }
+        .map(x => Ok(x))
+    }
+  
+  
+  def registerCategoryModification(
+    from: AlphanumericId,
+    to: AlphanumericId
+  ): Action[AnyContent] = Action
+    .async {
+      Future {
+        categoryService
+          .registerCategoryModification(from, to)
+            match {
+              case None | Some(0) => ("error", Messages("error.E0601"))
+              case _ => ("success", Messages("success.S0600"))
+            }
+        }
+        .map {
+          case (status, message) =>
+            Json.obj("status" -> status, "message" -> message)
+        }
+        .map(x => Ok(x))
+  }
 }

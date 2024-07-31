@@ -16,6 +16,8 @@ POST     /categories                                          @controllers.Categ
 PUT      /categories/:catId                                   @controllers.Categories.updateCategory(catId: types.AlphanumericId)
 PUT      /categories/:catId/details                           @controllers.Categories.updateFullCategory(catId: types.AlphanumericId)
 DELETE   /categories/:catId                                   @controllers.Categories.removeCategory(catId: types.AlphanumericId)
+POST     /catmodification                                     @controllers.Categories.registerCategoryModification(from: types.AlphanumericId, to: types.AlphanumericId)
+DELETE   /catmodification                                     @controllers.Categories.unregisterCategoryModification(from: types.AlphanumericId, to: types.AlphanumericId)
 
 GET      /categories-mapping                                  @controllers.Categories.listCategoriesMapping
 PUT      /categories-mapping                                  @controllers.Categories.insertOrUpdateCategoriesMapping
@@ -136,7 +138,6 @@ GET      /bulkupload/batches                                  @controllers.BulkU
 GET      /protoprofiledata-complete/:id                       @controllers.ProtoProfileData.getByCode(id: types.SampleCode)
 POST     /protoprofiledata                                    @controllers.ProtoProfileData.create
 PUT      /protoprofiledata/:id                                @controllers.ProtoProfileData.update(id: types.SampleCode)
-GET      /protoprofiledata-complete/:id                       @controllers.ProtoProfileData.getByCode(id: types.SampleCode)
 GET      /protoprofiledata-editable/:id                       @controllers.ProtoProfileData.isEditable(id: types.SampleCode)
 GET      /resources/proto/static/:type/:id                    @controllers.ProtoProfileData.getResources(type:String, id: Long)
 
@@ -350,15 +351,8 @@ POST     /motive                                              @controllers.Motiv
 PUT      /motive                                              @controllers.MotiveController.update
 DELETE   /motive/:id                                          @controllers.MotiveController.deleteMotiveById(id:Long)
 
-# def getMotives(motiveType: Long): Future[List[Motive]]
-#  def getMotivesTypes(): Future[List[MotiveType]]
-#  def deleteMotiveById(id: Long): Future[Either[String, Unit]]
-#  def insert(row: Motive): Future[Either[String, Long]]
-#  def update(row: Motive): Future[Either[String, Unit]]
 
 # Static
-# ~~~~
-
 # Map static resources from the /public folder to the /assets URL path
 GET      /assets/*file                                        controllers.Assets.versioned(path="/public", file: Asset)
 

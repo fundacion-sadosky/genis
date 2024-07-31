@@ -57,7 +57,8 @@ object Permission {
       StaticAuthorisationOperation("""/uploadImage|/getFilesId|/uploadFile""".r, """.*""".r, "UploadImageAll"),
       StaticAuthorisationOperation("""/laboratory""".r, """GET""".r, "LaboratoryRead"),
       StaticAuthorisationOperation("""/geneticist.*""".r, """GET""".r, "GeneticistRead"),
-      StaticAuthorisationOperation("""/trace.*""".r, """.*""".r, "TraceRead"))
+      StaticAuthorisationOperation("""/trace.*""".r, """.*""".r, "TraceRead")
+    )
   }
   case object PROFILE_DATA_SEARCH extends Permission {
      override val operations: Set[StaticAuthorisationOperation] = Set(
@@ -163,7 +164,10 @@ object Permission {
       StaticAuthorisationOperation("""/group.*""".r,"""POST""".r, "GroupCreate"),
       StaticAuthorisationOperation("""/group.*""".r,"""PUT""".r, "GroupUpdate"),
       StaticAuthorisationOperation("""/group.*""".r,"""DELETE""".r, "GroupDelete"),
-      StaticAuthorisationOperation("""/analysistypes""".r, """GET""".r, "AnalysisTypeRead"))
+      StaticAuthorisationOperation("""/analysistypes""".r, """GET""".r, "AnalysisTypeRead"),
+      StaticAuthorisationOperation("""/catmodification""".r, """POST""".r, "CategoryUpdate"),
+      StaticAuthorisationOperation("""/catmodification""".r, """DELETE""".r, "CategoryDelete")
+    )
   }
   case object ROLE_CRUD extends Permission {
     override val operations: Set[StaticAuthorisationOperation] = Set(

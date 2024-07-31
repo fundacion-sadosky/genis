@@ -41,12 +41,29 @@ abstract class CategoryService {
   def getCategoriesMappingReverseById(id:AlphanumericId): Future[Option[AlphanumericId]]
   def getCategoryType(categoryId: AlphanumericId): Option[String]
   def getCategoryTypeFromFullCategory(fullCategory: FullCategory): Option[String]
+
+  /**
+   * Register a new allowed category modification for undoubted profiles.
+   *
+   * @param from The category id of the category that will be modified.
+   * @param to   The category id of the category that will be the result
+   *             of the modification.
+   * @return The number of new modifications registered.
+   */
   def registerCategoryModification(
     from: AlphanumericId,
     to: AlphanumericId
   ): Option[Int]
-  
-  def deleteCategoryModification(
+
+  /**
+   * Delete a registration of a category modification.
+   *
+   * @param from The category id of the category that will be modified.
+   * @param to   The category id of the category that will be the result
+   *             of the modification.
+   * @return The number of modifications deleted.
+   */
+  def unregisterCategoryModification(
     from: AlphanumericId,
     to: AlphanumericId
   ): Int
@@ -224,7 +241,7 @@ class CachedCategoryService @Inject() (cache: CacheService, categoryRepository: 
     }
   }
   def isPedigreeAssociation(id:AlphanumericId):Boolean = listCategories(id).pedigreeAssociation
-  
+
   override def registerCategoryModification(
     from: AlphanumericId,
     to: AlphanumericId
@@ -244,7 +261,7 @@ class CachedCategoryService @Inject() (cache: CacheService, categoryRepository: 
     }
   }
 
-  override def deleteCategoryModification(
+  override def unregisterCategoryModification(
     from: AlphanumericId,
     to: AlphanumericId
   ): Int = {

@@ -78,9 +78,22 @@ define(
       $scope.confirmSelectedCode = function() {
         // TODO: Check that entered value is not empty
         $scope.confirmedCode = $scope.models.matchingCodesModel;
-
+        categoriesService
+          .registerCategoryModification("CONDENADO", "VICTIMA")
+          .then(
+            function(response) {
+              var status = response.data.status;
+              if (status === "error") {
+                alertService.error({message: response.data.message});
+              }
+              if (status === "success") {
+                alertService.info({message: response.data.message});
+              }
+            }
+          );
         if ($scope.confirmedCode !== undefined) {
-          // TODO: Should check that the current category can be modified to the new category.
+          // TODO: Should check that the current category can be modified to
+          //       the new category.
           profileService
             .isReadOnly($scope.confirmedCode.globalCode)
             .then(
@@ -94,7 +107,8 @@ define(
             )
             .then(
               function() {
-                $scope.models.currentCategoryName = $scope.getCategoryName($scope.confirmedCode.category);
+                $scope.models.currentCategoryName = $scope
+                  .getCategoryName($scope.confirmedCode.category);
                 return profileDataService
                   .getProfileData($scope.confirmedCode.globalCode);
               }
@@ -121,10 +135,13 @@ define(
         }
       };
       var isFiliationDataFormRequired = function() {
-        var profileHasFiliationData = $scope.models.selectedProfiledata.dataFiliation;
+        var profileHasFiliationData = $scope.models
+          .selectedProfiledata.dataFiliation;
         var newCategoryAcceptsFiliation = $scope
           .categories
-          .filter(function(x) { return x.id === $scope.models.newCategory.id; })[0]
+          .filter(
+            function(x) { return x.id === $scope.models.newCategory.id; }
+          )[0]
           .filiationDataRequired;
         return newCategoryAcceptsFiliation && !profileHasFiliationData;
       };
@@ -162,9 +179,18 @@ define(
 
       var isDataFiliationImages = function() {
         return (
-          ($scope.pictures[0] !== undefined && $scope.pictures[0] !== $scope.picturePlaceHolderImage) ||
-          ($scope.inprints[0] !== undefined && $scope.inprints[0] !== $scope.inprintPrintPlaceHolderImage) ||
-          ($scope.signatures[0] !== undefined && $scope.signatures[0] !== $scope.signaturePlaceHolderImage)
+          (
+            $scope.pictures[0] !== undefined &&
+            $scope.pictures[0] !== $scope.picturePlaceHolderImage
+          ) ||
+          (
+            $scope.inprints[0] !== undefined &&
+            $scope.inprints[0] !== $scope.inprintPrintPlaceHolderImage
+          ) ||
+          (
+            $scope.signatures[0] !== undefined &&
+            $scope.signatures[0] !== $scope.signaturePlaceHolderImage
+          )
         );
       };
 
@@ -175,30 +201,47 @@ define(
         } else {
           $scope.profileData.dataFiliation = undefined;
         }
-        var noFiliationData = (!dataFiliationDefined && !isDataFiliationImages());
+        var noFiliationData = (
+          !dataFiliationDefined && !isDataFiliationImages()
+        );
 
-        // TODO: Check that the logic here is OK, It is replicated from profileDataController.saveProfile method.
+        // TODO: Check that the logic here is OK, It is replicated from 
+        //       profileDataController.saveProfile method.
         //       I don't think it works as intended.
-        if (noFiliationData || dataFiliationDefined || isFiliationDataFormRequired()) {
+        if (
+          noFiliationData ||
+          dataFiliationDefined ||
+          isFiliationDataFormRequired()
+        ) {
           var updatedProfile = _.cloneDeep($scope.models.selectedProfiledata);
           updatedProfile.category = $scope.models.newCategory.id;
           updatedProfile.dataFiliation = $scope.profileData.dataFiliation;
           profileDataService
-            .updateProfileCategoryData($scope.confirmedCode.globalCode, updatedProfile)
+            .updateProfileCategoryData(
+              $scope.confirmedCode.globalCode,
+              updatedProfile
+            )
             .then(
               function (response) {
                 if (response.data.status === "OK") {
                   alertService.success(
-                    { message: 'Se ha actualizado el perfil: ' + $scope.confirmedCode.globalCode }
+                    {
+                      message: 'Se ha actualizado el perfil: ' +
+                        $scope.confirmedCode.globalCode
+                    }
                   );
                 } else {
                   return Promise.reject(response.data.message);
                 }
               }
             )
-            .catch( function (error) { alertService.error({message: error}); } );
+            .catch(
+              function (error) { alertService.error({message: error}); }
+            );
         } else {
-          alertService.error({message: 'Debe completar todos los datos filiatorios o ninguno'});
+          alertService.error(
+            {message: 'Debe completar todos los datos filiatorios o ninguno'}
+          );
         }
       };
 
@@ -207,7 +250,9 @@ define(
           .categories
           .filter(function(x){return x.id === category;});
         if (filtered.length !== 1) {
-          alertService.error({message:"La categoría " + category + " no es única o no existe."});
+          alertService.error(
+            {message:"La categoría " + category + " no es única o no existe."}
+          );
         }
         return filtered[0].name;
       };

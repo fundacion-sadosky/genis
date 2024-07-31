@@ -115,6 +115,10 @@ error.E0695= E0695: No se puede eliminar el kit {0} ya que se está utilizando e
 error.E0696= E0696: No se puede eliminar el kit {0} ya que se está utilizando en un lote de carga masiva.
 error.E0697= E0697: El parámetro representativo no puede ser mayor a la cantidad de marcadores.
 error.E0698= E0698: El analisis no contiene al menos 1 de los marcadores requeridos.
+error.E0601= E0601: La modificación de categoría ya fue registrada previamente.
+error.E0602= E0602: La modificación de categoría no fue encontrada.
+success.S0600= S0600: La modificación de categoría fue registrada exitosamente.
+success.S0601= S0601: La modificación de categoría fue eliminada correctamente.
 
 #Interconexión
 error.E0701= E0701: Error al actualizar la configuración de instancia inferior.
