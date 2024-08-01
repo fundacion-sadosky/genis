@@ -18,6 +18,8 @@ PUT      /categories/:catId/details                           @controllers.Categ
 DELETE   /categories/:catId                                   @controllers.Categories.removeCategory(catId: types.AlphanumericId)
 POST     /catmodification                                     @controllers.Categories.registerCategoryModification(from: types.AlphanumericId, to: types.AlphanumericId)
 DELETE   /catmodification                                     @controllers.Categories.unregisterCategoryModification(from: types.AlphanumericId, to: types.AlphanumericId)
+GET      /catmodification                                     @controllers.Categories.getCategoryModifications(catId: types.AlphanumericId)
+GET      /catmodifications                                    @controllers.Categories.allCategoryModifications
 
 GET      /categories-mapping                                  @controllers.Categories.listCategoriesMapping
 PUT      /categories-mapping                                  @controllers.Categories.insertOrUpdateCategoriesMapping

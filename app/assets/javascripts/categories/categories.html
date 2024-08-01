@@ -24,7 +24,12 @@
     <div class="col-md-3 padding-left-0">
       <label class="title-4">Forense</br></label>
       <accordion close-others="true">
-        <accordion-group ng-repeat="(groupId, group) in forense" is-open="group.isOpen" ng-click="selectGrp(groupId)" class="accordion-item">
+        <accordion-group
+          ng-repeat="(groupId, group) in forense"
+          is-open="group.isOpen"
+          ng-click="selectGrp(groupId)"
+          class="accordion-item"
+        >
           <accordion-heading>
             <i class="glyphicon glyphicon-pencil"
                ng-click="editGroup(groupId, $event)"></i>
@@ -131,78 +136,91 @@
     
     <div
       class="col-md-9 padding-right-0"
-      data-ng-show="currGrpId==null"
+      data-ng-show="isCatModVisible"
     >
       <table
         class="table table-bordered table-hover"
       >
         <thead>
           <tr>
-            <th>Categoría Desde</th>
-            <th>Categoría Destino</th>
+            <th class="col-md-6">Categoría Desde</th>
+            <th class="col-md-6">Categoría Destino</th>
+            <th class="col-md-1">Remover</th>
           </tr>
         </thead>
         <tbody>
-          <tr
-            ng-repeat="to in categoryModifications"
-          >
-            <td>{{to[0]}}</td>
-            <td>{{to[1]}}</td>
+          <tr data-ng-show="categoryModifications.length == 0">
+            <td colspan="2">No hay cambios de categoría</td>
           </tr>
           <tr
-            data-ng-show="addingCategoryModification"
+            ng-repeat="mod in categoryModifications"
+          >
+            <td>{{mod[0]}}</td>
+            <td>{{mod[1]}}</td>
+            <td class="entered">
+              <a
+                class="btn btn-default btn-link-action btn-link-border"
+                ng-click="deleteModification(mod)"
+              >
+                <span class="glyphicon glyphicon-minus" aria-hidden="true"></span>
+              </a>
+            </td>
+          </tr>
+          <tr
+            data-ng-show="isCategoryModificationRowVisible"
           >
             <td>
-              <select
-                class="form-control"
-                data-ng-model="categoryModificationFrom"
-              >
-                <option
-                  data-ng-repeat="catId in innvCategories"
-                  value="{{catId}}"
-                >{{catId}}
-                </option>
-              </select>
+              <label>Seleccionar categoria
+                <select
+                  class="form-control"
+                  data-ng-model="categoryModificationValues.from"
+                >
+                  <option
+                    data-ng-repeat="cat in innvCategories"
+                    value="{{cat.id}}"
+                  >{{cat.id}}
+                  </option>
+                </select>
+              </label>
             </td>
             <td>
-              <select
-                class="form-control"
-                data-ng-model="categoryModificationTo"
-              >
-                <option
-                  data-ng-repeat="catId in innvCategories"
-                  value="{{catId}}"
-                >{{catId}}
-                </option>
-              </select>
+              <label>Seleccionar categoria
+                <select
+                  class="form-control"
+                  data-ng-model="categoryModificationValues.to"
+                >
+                  <option
+                    data-ng-repeat="cat in innvCategories"
+                    value="{{cat.id}}"
+                  >{{cat.id}}
+                  </option>
+                </select>
+              </label>
             </td>
-            <td>
-              <button
-                type="button"
-                class="btn"
-                ng-click="setCategoryModification()"
-              >+
-              </button>
           </tr>
         </tbody>
       </table>
-      <button
-        type="button"
-        class="btn btn-primary-action"
-        ng-click="addCategoryModifications()"
-      >Agregar cambio de categoría
-      </button>
-      <button
-        type="button"
-        class="btn btn-primary-action"
-        ng-click="saveCategoryModifications()"
-      >Guardar cambios
-      </button>
+      <div class="desk-align-right inside-right">
+        <button
+          data-ng-show="!isCategoryModificationRowVisible"
+          type="button"
+          class="btn btn-primary-action"
+          ng-click="setCategoryModification()"
+        >Agregar cambio de categoría
+        </button>
+        <button
+          data-ng-show="isCategoryModificationRowVisible"
+          type="button"
+          class="btn btn-primary-action"
+          ng-click="addCategoryModification()"
+        >Guardar Cambio
+        </button>
+      </div>
     </div>
 
     <div
       class="col-md-9 padding-right-0"
-      data-ng-show="currGrpId"
+      data-ng-show="isCatGrpEditVisible"
     >
       <div data-ng-show="groups[currGrpId].name">
         <h4>{{groups[currGrpId].name}} / {{categories[currCatId].name}}</h4>

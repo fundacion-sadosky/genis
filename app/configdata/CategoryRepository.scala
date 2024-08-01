@@ -58,6 +58,8 @@ abstract class CategoryRepository extends DefaultDb with Transaction {
   def getCategoryModificationsAllowed(categoryId: AlphanumericId): Future[Seq[AlphanumericId]]
   
   def removeCategoryModification(from: AlphanumericId, to: AlphanumericId): Future[Int]
+
+  def getAllCategoryModificationsAllowed: Future[Seq[(AlphanumericId, AlphanumericId)]]
 }
 
 @Singleton
@@ -533,8 +535,7 @@ class SlickCategoryRepository @Inject() (implicit app: Application) extends Cate
           fromId.text,
           to.text
         )
-        val res = categoriesModifications += subCatRow
-        res
+        categoriesModifications += subCatRow
     }
   }
   
@@ -573,9 +574,9 @@ class SlickCategoryRepository @Inject() (implicit app: Application) extends Cate
       implicit session =>
         categoriesModifications
           .filter(row => row.from === categoryId.text)
-          .map(row => row.to.toString)
+          .map(row => row.to)
           .list
-          .map(AlphanumericId(_))
+          .map( AlphanumericId(_) )
     }
   }
 
@@ -600,5 +601,22 @@ class SlickCategoryRepository @Inject() (implicit app: Application) extends Cate
         catModQuery((from.text, to.text))
           .delete
     }
+  }
+
+  /**
+   * Get all allowed category modifications for undoubted forensic profiles.
+   *
+   * @return A list of AlphanumericId of the categories that can be modified to.
+   */
+  override def getAllCategoryModificationsAllowed:
+    Future[Seq[(AlphanumericId, AlphanumericId)]] = Future {
+    DB
+      .withSession {
+        implicit session =>
+          categoriesModifications
+            .map( row => (row.from, row.to) )
+            .list
+            .map { case (from, to) => (AlphanumericId(from), AlphanumericId(to)) }
+      }
   }
 }

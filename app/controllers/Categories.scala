@@ -203,7 +203,8 @@ class Categories @Inject() (categoryService: CategoryService) extends Controller
         categoryService
           .registerCategoryModification(from, to)
             match {
-              case None | Some(0) => ("error", Messages("error.E0601"))
+              case None => ("error", Messages("error.E0603"))
+              case Some(0) => ("error", Messages("error.E0601"))
               case _ => ("success", Messages("success.S0600"))
             }
         }
@@ -213,4 +214,26 @@ class Categories @Inject() (categoryService: CategoryService) extends Controller
         }
         .map(x => Ok(x))
   }
+
+  def allCategoryModifications : Action[AnyContent] = Action
+    .async {
+      categoryService
+        .retrieveAllCategoryModificationAllowed
+        .map(
+          mods => mods
+            .map { case (from, to) => (from.text, to.text) }
+            .map { case (from, to) => Json.obj("from" -> from, "to" -> to) }
+        )
+        .map(x => Json.toJson(x))
+        .map(x => Ok(x))
+    }
+
+  def getCategoryModifications(catId: AlphanumericId): Action[AnyContent] = Action
+    .async {
+      categoryService
+        .getCategoryModificationAllowed(catId)
+        .map { x => x.map(_.text) }
+        .map { x => Json.toJson(x) }
+        .map { x => Ok(x) }
+    }
 }

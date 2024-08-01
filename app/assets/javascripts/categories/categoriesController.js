@@ -10,37 +10,84 @@ define(['angular', 'jquery','lodash'], function(ng, $,_) {
     localStorage.removeItem("searchPedigreeMatches");
     localStorage.removeItem("nuevo");
 
-    analysisTypeService.listById().then(function(response) {
+    analysisTypeService.listById().then(function (response) {
       $scope.analysisTypes = response;
       $scope.activeAnalysis = parseInt(Object.keys($scope.analysisTypes)[0]);
     });
-    $scope.categoryModificationFrom = undefined;
-    $scope.categoryModificationTo = undefined;
-    $scope.categoryModifications = [
-      ["Asd", "asda"],
-      ["Asd1", "asda"],
-      ["Asd2", "asda"],
-      ["Asd3", "asda"],
-      ["Asd4", "asda"]
-    ];
-    $scope.innvCategories = [
-      "ASD", "asdasd", "asd"
-    ];
-    $scope.addingCategoryModification = false;
-    $scope.addCategoryModifications = function() {
-      $scope.addingCategoryModification = true;
+    $scope.isCatModVisible = false;
+    $scope.isCatGrpEditVisible = true;
+    $scope.categoryModificationValues = {};
+    $scope.categoryModifications = [];
+    $scope.innvCategories = [];
+    function loadCategoryModifications() {
+      categoriesService
+        .getCategoryModifications()
+        .then(
+          function(response) {
+            $scope.categoryModifications = response.data.map(
+              function (mod) {
+                return [mod.from, mod.to];
+              }
+            );
+          }
+        );
+    }
+    function getUndoubtedlyCategories() {
+      $scope.innvCategories = Object
+        .entries($scope.categories)
+        .map(function(x) {return x[1];})
+        .filter( function(cat) { return cat.tipo === 1 && cat.isReference; } );
+    }
+    $scope.isCategoryModificationRowVisible = false;
+    $scope.showCategoryModifications = function() {
+      loadCategoryModifications();
+      getUndoubtedlyCategories();
+      $scope.isCatModVisible = true;
+      $scope.isCatGrpEditVisible = false;
+      $scope.isCategoryModificationRowVisible = false;
     };
     $scope.setCategoryModification = function() {
-      $scope.categoryModifications.push(
-        [$scope.categoryModificationFrom, $scope.categoryModificationTo]
-      );
-      $scope.addingCategoryModification = false;
+      $scope.isCategoryModificationRowVisible = true;
+    };
+    $scope.addCategoryModification = function() {
+      categoriesService
+        .registerCategoryModification(
+          $scope.categoryModificationValues.from,
+          $scope.categoryModificationValues.to
+        )
+        .then(
+          function(response) {
+            if (response.data.status === "success") {
+              alertService.success({message: response.data.message});
+              loadCategoryModifications();
+            } else {
+              alertService.error({message: response.data.message});
+            }
+          }
+        );
+      $scope.isCategoryModificationRowVisible = false;
+    };
+    $scope.deleteModification = function(mod) {
+      categoriesService
+        .unregisterCategoryModification(mod[0], mod[1])
+        .then(
+          function(response) {
+            if (response.data.status === "success") {
+              alertService.success({message: response.data.message});
+              loadCategoryModifications();
+            } else {
+              alertService.error({message: response.data.message});
+            }
+          }
+        );
     };
     function firstKey(obj) {
       for (var k in obj) {return k;}
     }
 
     $scope.selectGrp = function(grpId) {
+      $scope.isCatGrpEditVisible = true;
+      $scope.isCatModVisible = false;
       if(grpId){
         $scope.currGrpId = grpId;
         $scope.groups[$scope.currGrpId].isOpen = true;
@@ -104,6 +151,8 @@ define(['angular', 'jquery','lodash'], function(ng, $,_) {
     }
 
     function selectCat(catId) {
+      $scope.isCatGrpEditVisible = true;
+      $scope.isCatModVisible = false;
       formReset();
       $scope.currCatId = catId;
       if ($scope.analysisTypes) {
@@ -301,9 +350,6 @@ define(['angular', 'jquery','lodash'], function(ng, $,_) {
       $("#" + id).fadeIn();
     };
     
-    $scope.showCategoryModifications = function() {
-      $scope.currGrpId = null;
-    };
   }
 
   return CategoriesCtrl;

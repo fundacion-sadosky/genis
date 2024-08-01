@@ -33,7 +33,8 @@ define(
         matchingCodesModel: "",
         newCategory: undefined,
         currentCategoryName: undefined,
-        selectedProfiledata: {}
+        selectedProfiledata: {},
+        allowedNewCategories: []
       };
       $scope.matchingCodes = [];
       $scope.categories = [];
@@ -78,19 +79,6 @@ define(
       $scope.confirmSelectedCode = function() {
         // TODO: Check that entered value is not empty
         $scope.confirmedCode = $scope.models.matchingCodesModel;
-        categoriesService
-          .registerCategoryModification("CONDENADO", "VICTIMA")
-          .then(
-            function(response) {
-              var status = response.data.status;
-              if (status === "error") {
-                alertService.error({message: response.data.message});
-              }
-              if (status === "success") {
-                alertService.info({message: response.data.message});
-              }
-            }
-          );
         if ($scope.confirmedCode !== undefined) {
           // TODO: Should check that the current category can be modified to
           //       the new category.
@@ -109,6 +97,19 @@ define(
               function() {
                 $scope.models.currentCategoryName = $scope
                   .getCategoryName($scope.confirmedCode.category);
+                return categoriesService
+                  .getCategoryModificationsAllowed(
+                    $scope.confirmedCode.category
+                  );
+              }
+            )
+            .then(
+              function(response) {
+                if (response.data.length === 0) {
+                  return Promise
+                    .reject("La categoría de este perfil no está habilidata para modificarse.");
+                }
+                $scope.models.allowedNewCategories = response.data;
                 return profileDataService
                   .getProfileData($scope.confirmedCode.globalCode);
               }

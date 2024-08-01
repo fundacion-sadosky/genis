@@ -117,6 +117,7 @@ error.E0697= E0697: El parámetro representativo no puede ser mayor a la cantida
 error.E0698= E0698: El analisis no contiene al menos 1 de los marcadores requeridos.
 error.E0601= E0601: La modificación de categoría ya fue registrada previamente.
 error.E0602= E0602: La modificación de categoría no fue encontrada.
+error.E0603= E0603: Las categorias de origin y destino deben ser diferentes.
 success.S0600= S0600: La modificación de categoría fue registrada exitosamente.
 success.S0601= S0601: La modificación de categoría fue eliminada correctamente.
 

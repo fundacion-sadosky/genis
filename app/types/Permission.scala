@@ -165,8 +165,10 @@ object Permission {
       StaticAuthorisationOperation("""/group.*""".r,"""PUT""".r, "GroupUpdate"),
       StaticAuthorisationOperation("""/group.*""".r,"""DELETE""".r, "GroupDelete"),
       StaticAuthorisationOperation("""/analysistypes""".r, """GET""".r, "AnalysisTypeRead"),
-      StaticAuthorisationOperation("""/catmodification""".r, """POST""".r, "CategoryUpdate"),
-      StaticAuthorisationOperation("""/catmodification""".r, """DELETE""".r, "CategoryDelete")
+      StaticAuthorisationOperation("""/catmodification""".r, """POST""".r, "CategoryModificationCreate"),
+      StaticAuthorisationOperation("""/catmodification""".r, """DELETE""".r, "CategoryModificationDelete"),
+      StaticAuthorisationOperation("""/catmodification""".r, """GET""".r, "CategoryModificationRead"),
+      StaticAuthorisationOperation("""/catmodifications""".r, """GET""".r, "CategoryModificationRead")
     )
   }
   case object ROLE_CRUD extends Permission {

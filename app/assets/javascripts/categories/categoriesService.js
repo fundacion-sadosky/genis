@@ -69,6 +69,18 @@ function CategoriesService($q, playRoutes) {
       .unregisterCategoryModification(from, to)
       .delete();
   };
+
+  this.getCategoryModifications = function () {
+    return playRoutes.controllers.Categories
+      .allCategoryModifications()
+      .get();
+  };
+  
+  this.getCategoryModificationsAllowed = function (catId) {
+    return playRoutes.controllers.Categories
+      .getCategoryModifications(catId)
+      .get();
+  };
 }
   
 return CategoriesService;
