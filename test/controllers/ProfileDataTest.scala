@@ -28,6 +28,8 @@ import play.api.test.Helpers.status
 import java.util.Date
 import profiledata.ProfileDataService
 import profile.ProfileService
+import matching.MatchingService
+import connections.InterconnectionService
 import types._
 import profiledata.ProfileDataAttempt
 
@@ -58,6 +60,8 @@ class ProfileDataTest extends PdgSpec with MockitoSugar with Results {
         "sampleEntryDate" -> pda.sampleEntryDate)
 
       val mockCategoryService = mock[CategoryService]
+      val mockMatchingService= mock[MatchingService]
+      val mockInterconnectionService = mock[InterconnectionService]
       val mockProfileService = mock[ProfileService]
       val mockProfileDataService = mock[ProfileDataService]
       when(mockProfileDataService.create(any[ProfileDataAttempt])).thenReturn(eitherCodigoMuestra)
@@ -66,7 +70,9 @@ class ProfileDataTest extends PdgSpec with MockitoSugar with Results {
       val target = new ProfileData(
         mockProfileDataService,
         mockProfileService,
-        mockCategoryService
+        mockCategoryService,
+        mockMatchingService,
+        mockInterconnectionService
       )
 
       val result: Future[Result] = target.create().apply(request)
@@ -81,6 +87,7 @@ class ProfileDataTest extends PdgSpec with MockitoSugar with Results {
     "reject a json if it doesn't have the expected format" in {
 
       val mockCategoryService = mock[CategoryService]
+      val mockMatchingService = mock[MatchingService]
       val mockProfileDataService = mock[ProfileDataService]
       val mockProfileService = mock[ProfileService]
       when(mockProfileDataService.create(any[ProfileDataAttempt])).thenReturn(eitherCodigoMuestra)
@@ -90,7 +97,8 @@ class ProfileDataTest extends PdgSpec with MockitoSugar with Results {
       val target = new ProfileData(
         mockProfileDataService,
         mockProfileService,
-        mockCategoryService
+        mockCategoryService,
+        mockMatchingService
       )
       val result: Future[Result] = target.create().apply(request)
 
@@ -102,6 +110,7 @@ class ProfileDataTest extends PdgSpec with MockitoSugar with Results {
 
       val pd = Stubs.profileData
       val mockCategoryService = mock[CategoryService]
+      val mockMatchingService = mock[MatchingService]
       val mockProfileDataService = mock[ProfileDataService]
       val mockProfileService = mock[ProfileService]
       when(mockProfileDataService.findByCode(any[SampleCode])).thenReturn(Future.successful(Some(pd)))
@@ -109,7 +118,8 @@ class ProfileDataTest extends PdgSpec with MockitoSugar with Results {
       val target = new ProfileData(
         mockProfileDataService,
         mockProfileService,
-        mockCategoryService
+        mockCategoryService,
+        mockMatchingService
       )
       val result: Future[Result] = target.findByCode(pd.globalCode).apply(FakeRequest())
 

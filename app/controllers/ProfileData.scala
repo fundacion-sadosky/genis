@@ -25,13 +25,17 @@ import profile.ProfileService
 import profile.Profile
 import profiledata._
 import configdata.CategoryService
+import matching.MatchingService
+import connections.InterconnectionService
 import types._
 
 @Singleton
 class ProfileData @Inject() (
   profiledataService: ProfileDataService,
   profileService: ProfileService,
-  categoryService: CategoryService
+  categoryService: CategoryService,
+  matchingService: MatchingService,
+  interconnectionService: InterconnectionService
 ) extends Controller {
 
   def update(globalCode: SampleCode): Action[JsValue] = Action.async(BodyParsers.parse.json) {
@@ -73,54 +77,136 @@ class ProfileData @Inject() (
                   )
                 )
             },
-            profileData =>
-              profiledataService
+            profileData => {
+              val actionResult = profiledataService
                 .updateProfileCategoryData(globalCode, profileData)
                 .map {
                   case None => Right(globalCode)
                   case Some(error) => Left(error)
                 }
                 .flatMap {
-                  case Left(error) => Future.successful(Left(error))
+                  case Left(error) => Future
+                    .successful(Left(error))
                   case Right(code) =>
-                    val x = profileService
+                    profileService
                       .get(code)
                       .map {
                         case None => Left(Messages("error.E0101"))
                         case Some(profile) => Right(profile)
                       }
-                    x
                 }
                 .map {
-                  x => x.right.map(
-                    _.copy(categoryId = profileData.category)
-                  )
+                  x =>
+                    x
+                      .right
+                      .map(
+                        _
+                          .copy(categoryId = profileData
+                            .category
+                          )
+                      )
                 }
                 .flatMap {
-                  case Left(error) => Future.successful(Left(error))
+                  case Left(error) => Future
+                    .successful(Left(error))
                   case Right(profile) =>
                     try {
                       profileService
                         .updateProfile(profile)
                         .map(_ => Right(profile))
                     } catch {
-                      case e: Exception => Future.successful(Left(Messages("error.E0132")))
+                      case e: Exception => Future
+                        .successful(Left(Messages("error.E0132")))
                     }
                 }
                 .map {
-                  case Left(error) => Json.obj(
-                    "status" -> "error",
-                    "message" -> error
-                  )
-                  case Right(_) => Json.obj(
-                    "status" -> "OK",
-                    "message" -> Messages("success.S0100")
-                  )
+                  case Left(error) => Json
+                    .obj(
+                      "status" -> "error",
+                      "message" -> error
+                    )
+                  case Right(_) => Json
+                    .obj(
+                      "status" -> "OK",
+                      "message" -> Messages("success.S0100")
+                    )
                 }
+                .map { result => Ok(result) }
+              val x = profileService
+                .get(globalCode)
                 .map {
-                  result => Ok(result)
+                  case None => Left(Messages("error.E0101"))
+                  case Some(p) => {
+                    matchingService
+                      .findMatches(
+                        p.globalCode,
+                        categoryService
+                          .getCategory(profileData.category)
+                          .flatMap(
+                            cat => categoryService
+                              .getCategoryTypeFromFullCategory(cat)
+                          )
+                      )
+                    Right(p)
+                  }
                 }
-          )
+                .onSuccess {
+                  case Right(p) => {
+                    if (true) {
+                      profiledataService
+                        .get(globalCode)
+                        .map {
+                        case Some(pdata) =>
+                          interconnectionService
+                            .uploadProfileToSuperiorInstance(p, pdata)
+                      }
+                    }
+                  }
+                }
+              actionResult
+            }
+//                .onSuccess {
+//                  case p =>
+//                    if (true) {
+//                      interconnectionService
+//                        .uploadProfileToSuperiorInstance(profile, profileData)
+//                    }
+//                  }
+//                }
+
+
+//                .onSuccess {
+//                  case Right(profile) => {
+//                    if (true) {
+//                      interconnectionService
+//                        .uploadProfileToSuperiorInstance(profile, profileData)
+//                    }
+//                  }
+//                }
+      //                matchingService
+//          .findMatches(
+//            p
+//              .globalCode,
+//            categoryService
+//              .getCategoryTypeFromFullCategory(category)
+//          )
+//    }
+//
+//  createEither
+//}
+//}
+//}
+//}
+//if (replicate) {
+//  newfut
+//    .onSuccess {
+//      case Right(profile) => {
+//        interconnectionService
+//          .uploadProfileToSuperiorInstance(profile, profileData)
+//      }
+//    }
+//}
+)
     }
 
   def getByCode(sampleCode: SampleCode) = Action.async { request =>

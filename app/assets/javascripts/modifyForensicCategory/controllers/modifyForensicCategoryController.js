@@ -109,7 +109,16 @@ define(
                   return Promise
                     .reject("La categoría de este perfil no está habilidata para modificarse.");
                 }
-                $scope.models.allowedNewCategories = response.data;
+                $scope.models.allowedNewCategories = response.data.map(
+                  function(x) { return $scope.getCategoryById(x); }
+                );
+                if ($scope.models.allowedNewCategories.length === 1) {
+                  $scope.models.newCategory = $scope.models.allowedNewCategories[0];
+                }
+              }
+            )
+            .then(
+              function() {
                 return profileDataService
                   .getProfileData($scope.confirmedCode.globalCode);
               }
@@ -246,16 +255,20 @@ define(
         }
       };
 
-      $scope.getCategoryName = function(category) {
+      $scope.getCategoryById = function(categoryId) {
         var filtered = $scope
           .categories
-          .filter(function(x){return x.id === category;});
+          .filter(function(x){return x.id === categoryId;});
         if (filtered.length !== 1) {
           alertService.error(
-            {message:"La categoría " + category + " no es única o no existe."}
+            {message:"La categoría " + categoryId + " no es única o no existe."}
           );
         }
-        return filtered[0].name;
+        return filtered[0];
+      };
+
+      $scope.getCategoryName = function(categoryId) {
+        return $scope.getCategoryById(categoryId).name;
       };
 
       $scope.clearNewCategory = function () {
