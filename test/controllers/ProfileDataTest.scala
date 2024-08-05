@@ -87,6 +87,7 @@ class ProfileDataTest extends PdgSpec with MockitoSugar with Results {
     "reject a json if it doesn't have the expected format" in {
 
       val mockCategoryService = mock[CategoryService]
+      val mockInterconnectioService = mock[InterconnectionService]
       val mockMatchingService = mock[MatchingService]
       val mockProfileDataService = mock[ProfileDataService]
       val mockProfileService = mock[ProfileService]
@@ -98,7 +99,8 @@ class ProfileDataTest extends PdgSpec with MockitoSugar with Results {
         mockProfileDataService,
         mockProfileService,
         mockCategoryService,
-        mockMatchingService
+        mockMatchingService,
+        mockInterconnectioService
       )
       val result: Future[Result] = target.create().apply(request)
 
@@ -111,6 +113,7 @@ class ProfileDataTest extends PdgSpec with MockitoSugar with Results {
       val pd = Stubs.profileData
       val mockCategoryService = mock[CategoryService]
       val mockMatchingService = mock[MatchingService]
+      val mockInterconnectionService = mock[InterconnectionService]
       val mockProfileDataService = mock[ProfileDataService]
       val mockProfileService = mock[ProfileService]
       when(mockProfileDataService.findByCode(any[SampleCode])).thenReturn(Future.successful(Some(pd)))
@@ -119,7 +122,8 @@ class ProfileDataTest extends PdgSpec with MockitoSugar with Results {
         mockProfileDataService,
         mockProfileService,
         mockCategoryService,
-        mockMatchingService
+        mockMatchingService,
+        mockInterconnectionService
       )
       val result: Future[Result] = target.findByCode(pd.globalCode).apply(FakeRequest())
 

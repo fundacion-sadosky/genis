@@ -128,22 +128,20 @@
                   ng-click="categoryOptionChanged()"
               >
               <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
-            </span>
+              </span>
               <span
                   class="input-group-addon btn-secondary-action"
                   id="select-new-category-cancel"
                   ng-click="clearNewCategory()"
               >
               <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
-            </span>
+              </span>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-
-  {{isReadOnly}}
 
   <div
       class="options-header scenarios-section"
@@ -172,32 +170,28 @@
     <div class="panel-body">
       <div class="col-md-10 vertical-align" >
         <h6 class="col-md-6 control-label">Confirmar cambio de categoria:</h6>
-        <div class="col-md-12 desk-align-right">
-          <div>
-          Profile data: {{profileData}}
-          </div>
-          <div>
-          Selected profile: {{models.selectedProfiledata}}
-          </div>
-          <div>
-          Updated profile: {{updatedProfile}}
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div
-      class="options-header scenarios-section"
-      style="padding-top: 0; margin-top: 37px;"
-      ng-if="(stage==4) || (stage==5)"
-  >
-    <div class="panel-body">
-      <div class="col-md-10 vertical-align" >
-        <h6 class="col-md-6 control-label">Confirmar cambio de categoria:</h6>
-        <div class="col-md-12 desk-align-right">
+        <div
+          class="col-md-4 desk-align-left"
+        >
           <button
             type="button"
+            class="btn btn-link-action"
+            data-ng-click="clearMatchingCodes()"
+          >Borrar formulario</button>
+        </div>
+        <div
+          class="col-md-8 desk-align-right"
+        >
+          <input
+            type="checkbox"
+            id="uploadToSuperior"
+            data-ng-disabled="!saveEnabled"
+            data-ng-model="models.uploadToSuperior"
+          >
+          <label for="uploadToSuperior">Replicar a instancia superior</label>
+          <button
+            type="button"
+            data-ng-disabled="!saveEnabled"
             class="btn btn-primary-action"
             data-ng-click="saveProfile()">Guardar</button>
         </div>

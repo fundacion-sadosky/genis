@@ -1,8 +1,7 @@
 package controllers
 
-import scala.concurrent.Future
-import scala.concurrent.duration.MINUTES
-import scala.concurrent.duration.SECONDS
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration.{Duration, MINUTES, SECONDS}
 import javax.inject.Inject
 import javax.inject.Singleton
 import models.Tables
@@ -11,14 +10,8 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.functional.syntax.functionalCanBuildApplicative
 import play.api.libs.functional.syntax.toFunctionalBuilderOps
 import play.api.libs.iteratee.Enumerator
-import play.api.libs.json.Format
-import play.api.libs.json.JsError
-import play.api.libs.json.JsValue
-import play.api.libs.json.Json
+import play.api.libs.json.{Format, JsError, JsPath, JsValue, Json, Reads, Writes, __}
 import play.api.libs.json.Json.toJsFieldJsValueWrapper
-import play.api.libs.json.Reads
-import play.api.libs.json.Writes
-import play.api.libs.json.__
 import play.api.i18n.Messages
 import play.api.mvc.{Action, AnyContent, BodyParsers, Controller, ResponseHeader, Result, Results}
 import profile.ProfileService
@@ -27,6 +20,7 @@ import profiledata._
 import configdata.CategoryService
 import matching.MatchingService
 import connections.InterconnectionService
+import play.api.data.validation.ValidationError
 import types._
 
 @Singleton
@@ -60,153 +54,156 @@ class ProfileData @Inject() (
       request => Future.successful(Ok(Json.obj("data" -> true)));
     }
 
-  def modifyCategory(globalCode: SampleCode): Action[JsValue] = Action
+  def modifyCategory(
+    globalCode: SampleCode,
+    replicate: Boolean
+  ): Action[JsValue] = Action
     .async(BodyParsers.parse.json) {
       request =>
         val profileDataJson = request.body.validate[ProfileDataAttempt]
+        val errorWhileReadingBody = (error: Seq[(JsPath, Seq[ValidationError])]) =>
+          Future
+            .successful(
+              BadRequest(Json
+                .obj(
+                  "status" -> "KO",
+                  "message" -> JsError.toFlatJson(error)
+                )
+              )
+            )
+        val getProfileId = (updateResult: Option[String]) => {
+          updateResult
+            match {
+              case None => Right(globalCode)
+              case Some(error) => Left(error)
+          }
+        }
+        val getProfile = (profileIdOrError: Either[String, SampleCode]) => {
+          profileIdOrError
+            match {
+              case Left(error) => Future
+                .successful(Left(error))
+              case Right(profileId) =>
+                profileService
+                  .get(profileId)
+                  .map {
+                    case None => Left(Messages("error.E0101"))
+                    case Some(profile) => Right(profile)
+                  }
+            }
+        }
+        val copyAndModifyProfile = (profileData: ProfileDataAttempt) =>
+          (profileOrError: Either[String, Profile]) => {
+            profileOrError
+              .right
+              .map( _.copy(categoryId = profileData.category))
+          }
+        val updateProfile = (newProfileOrError: Either[String, Profile]) => {
+          newProfileOrError match {
+            case Left(error) => Future
+              .successful(Left(error))
+            case Right(prof) =>
+              try {
+                profileService
+                  .updateProfile(prof)
+                  .map(_ => Right(prof))
+              } catch {
+                case e: Exception => Future
+                  .successful(Left(Messages("error.E0132")))
+              }
+          }
+        }
+        val updateResultToJson = (updateResult: Either[String, Profile]) => {
+          updateResult match {
+            case Left(error) => Json
+              .obj(
+                "status" -> "error",
+                "message" -> error
+              )
+            case Right(p) => Json
+              .obj(
+                "status" -> "OK",
+                "message" -> Messages("success.S0100", p.globalCode.text)
+              )
+          }
+        }
+        val launchFindMatches = (profileData: ProfileDataAttempt) =>
+          (profileOpt: Option[Profile]) => {
+            profileOpt match {
+              case None => Left(Messages("error.E0101"))
+              case Some(p) =>
+                matchingService
+                  .findMatches(
+                    p.globalCode,
+                    categoryService
+                      .getCategory(profileData.category)
+                      .flatMap(
+                        cat => categoryService
+                          .getCategoryTypeFromFullCategory(cat)
+                      )
+                  )
+                Right(p)
+            }
+          }
+        val uploadModifiedProfile:
+          PartialFunction[Either[String, Profile], Unit] = {
+          case findMatchesResult =>
+            findMatchesResult.right.map {
+              p =>
+                profiledataService
+                  .get(globalCode)
+                  .map {
+                    case Some(pdata) =>
+                      interconnectionService
+                        .uploadProfileToSuperiorInstance(p, pdata)
+                  }
+            }
+        }
+        val findMatchestoJson =
+          (findMatchesResult: Either[String, Profile]) => {
+            findMatchesResult match {
+              case Left(error) => Json
+                .obj(
+                  "status" -> "error",
+                  "message" -> error
+                )
+              case Right(p) => Json
+                .obj(
+                  "status" -> "OK",
+                  "message" -> Messages("success.S0602", p.globalCode.text)
+                )
+            }
+          }
+        val updateCategoryInProfile = (profileData: ProfileDataAttempt) => {
+          val catModificationResult = profiledataService
+            .updateProfileCategoryData(globalCode, profileData)
+            .map(getProfileId)
+            .flatMap(getProfile)
+            .map(copyAndModifyProfile(profileData))
+            .flatMap(updateProfile)
+            .map(updateResultToJson)
+          val futFindMatches = profileService
+            .get(globalCode)
+            .map(launchFindMatches(profileData))
+          if (replicate) {
+            futFindMatches
+              .onSuccess(uploadModifiedProfile)
+          }
+          val findMatchesResult = futFindMatches
+            .map(findMatchestoJson)
+          catModificationResult
+            .flatMap(
+              catModificationResult =>
+                findMatchesResult
+                  .map(Json.arr(catModificationResult, _))
+            )
+            .map(Ok(_))
+        }
         profileDataJson
           .fold(
-            errors => {
-              Future
-                .successful(
-                  BadRequest(Json
-                    .obj(
-                      "status" -> "KO",
-                      "message" -> JsError.toFlatJson(errors)
-                    )
-                  )
-                )
-            },
-            profileData => {
-              val actionResult = profiledataService
-                .updateProfileCategoryData(globalCode, profileData)
-                .map {
-                  case None => Right(globalCode)
-                  case Some(error) => Left(error)
-                }
-                .flatMap {
-                  case Left(error) => Future
-                    .successful(Left(error))
-                  case Right(code) =>
-                    profileService
-                      .get(code)
-                      .map {
-                        case None => Left(Messages("error.E0101"))
-                        case Some(profile) => Right(profile)
-                      }
-                }
-                .map {
-                  x =>
-                    x
-                      .right
-                      .map(
-                        _
-                          .copy(categoryId = profileData
-                            .category
-                          )
-                      )
-                }
-                .flatMap {
-                  case Left(error) => Future
-                    .successful(Left(error))
-                  case Right(profile) =>
-                    try {
-                      profileService
-                        .updateProfile(profile)
-                        .map(_ => Right(profile))
-                    } catch {
-                      case e: Exception => Future
-                        .successful(Left(Messages("error.E0132")))
-                    }
-                }
-                .map {
-                  case Left(error) => Json
-                    .obj(
-                      "status" -> "error",
-                      "message" -> error
-                    )
-                  case Right(_) => Json
-                    .obj(
-                      "status" -> "OK",
-                      "message" -> Messages("success.S0100")
-                    )
-                }
-                .map { result => Ok(result) }
-              val x = profileService
-                .get(globalCode)
-                .map {
-                  case None => Left(Messages("error.E0101"))
-                  case Some(p) => {
-                    matchingService
-                      .findMatches(
-                        p.globalCode,
-                        categoryService
-                          .getCategory(profileData.category)
-                          .flatMap(
-                            cat => categoryService
-                              .getCategoryTypeFromFullCategory(cat)
-                          )
-                      )
-                    Right(p)
-                  }
-                }
-                .onSuccess {
-                  case Right(p) => {
-                    if (true) {
-                      profiledataService
-                        .get(globalCode)
-                        .map {
-                        case Some(pdata) =>
-                          interconnectionService
-                            .uploadProfileToSuperiorInstance(p, pdata)
-                      }
-                    }
-                  }
-                }
-              actionResult
-            }
-//                .onSuccess {
-//                  case p =>
-//                    if (true) {
-//                      interconnectionService
-//                        .uploadProfileToSuperiorInstance(profile, profileData)
-//                    }
-//                  }
-//                }
-
-
-//                .onSuccess {
-//                  case Right(profile) => {
-//                    if (true) {
-//                      interconnectionService
-//                        .uploadProfileToSuperiorInstance(profile, profileData)
-//                    }
-//                  }
-//                }
-      //                matchingService
-//          .findMatches(
-//            p
-//              .globalCode,
-//            categoryService
-//              .getCategoryTypeFromFullCategory(category)
-//          )
-//    }
-//
-//  createEither
-//}
-//}
-//}
-//}
-//if (replicate) {
-//  newfut
-//    .onSuccess {
-//      case Right(profile) => {
-//        interconnectionService
-//          .uploadProfileToSuperiorInstance(profile, profileData)
-//      }
-//    }
-//}
-)
+            errorWhileReadingBody,
+            updateCategoryInProfile
+          )
     }
 
   def getByCode(sampleCode: SampleCode) = Action.async { request =>

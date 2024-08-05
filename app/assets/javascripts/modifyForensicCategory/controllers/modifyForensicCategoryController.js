@@ -34,14 +34,14 @@ define(
         newCategory: undefined,
         currentCategoryName: undefined,
         selectedProfiledata: {},
-        allowedNewCategories: []
+        allowedNewCategories: [],
+        uploadToSuperior: false
       };
       $scope.matchingCodes = [];
       $scope.categories = [];
       $scope.stage = 1;
       $scope.confirmedCode = undefined;
       $scope.profileData = {};
-
       $scope.picturePlaceHolderImage = 'assets/images/default-user.png';
       $scope.inprintPrintPlaceHolderImage = 'assets/images/fingerprint.jpg';
       $scope.signaturePlaceHolderImage = 'assets/images/signature.jpg';
@@ -49,6 +49,7 @@ define(
       $scope.inprints = [];
       $scope.signatures = [];
       $scope.token = {};
+      $scope.saveEnabled = true;
 
       $scope.searchProfile = function() {
         if (!$scope.search) {
@@ -112,9 +113,7 @@ define(
                 $scope.models.allowedNewCategories = response.data.map(
                   function(x) { return $scope.getCategoryById(x); }
                 );
-                if ($scope.models.allowedNewCategories.length === 1) {
-                  $scope.models.newCategory = $scope.models.allowedNewCategories[0];
-                }
+                $scope.models.newCategory = $scope.models.allowedNewCategories[0];
               }
             )
             .then(
@@ -229,25 +228,35 @@ define(
           profileDataService
             .updateProfileCategoryData(
               $scope.confirmedCode.globalCode,
-              updatedProfile
+              updatedProfile,
+              $scope.replicate
             )
             .then(
               function (response) {
-                if (response.data.status === "OK") {
-                  alertService.success(
-                    {
-                      message: 'Se ha actualizado el perfil: ' +
-                        $scope.confirmedCode.globalCode
+                if (Array.isArray(response.data)) {
+                  for (var i = 0; i < response.data.length; i++) {
+                    var taskResponse = response.data[i];
+                    if (taskResponse.status === "error") {
+                      return Promise.reject(
+                        {"message": taskResponse.message}
+                      );
+                    } else {
+                      alertService.success(
+                        {"message": taskResponse.message}
+                      );
                     }
-                  );
+                  }
                 } else {
-                  return Promise.reject(response.data.message);
+                  return Promise.reject(
+                    "La respuesta del servidor no es válida."
+                  );
                 }
               }
             )
             .catch(
               function (error) { alertService.error({message: error}); }
-            );
+            )
+            .finally( function() { $scope.saveEnabled = false; } );
         } else {
           alertService.error(
             {message: 'Debe completar todos los datos filiatorios o ninguno'}

@@ -18,8 +18,8 @@ define([], function() {
       return playRoutes.controllers.ProfileData.update(globalCode).put(profileData);
     };
 
-    this.updateProfileCategoryData = function(globalCode, profileData){
-      return playRoutes.controllers.ProfileData.modifyCategory(globalCode).put(profileData);
+    this.updateProfileCategoryData = function(globalCode, profileData, replicate){
+      return playRoutes.controllers.ProfileData.modifyCategory(globalCode, replicate).put(profileData);
     };
 
     this.isReadOnly = function(globalCode) {

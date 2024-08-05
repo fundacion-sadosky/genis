@@ -120,6 +120,7 @@ error.E0602= E0602: La modificación de categoría no fue encontrada.
 error.E0603= E0603: Las categorias de origin y destino deben ser diferentes.
 success.S0600= S0600: La modificación de categoría fue registrada exitosamente.
 success.S0601= S0601: La modificación de categoría fue eliminada correctamente.
+success.S0602= S0602: La búsqueda de coincidencias fue relanzada con el perfil modificado: {0}.
 
 #Interconexión
 error.E0701= E0701: Error al actualizar la configuración de instancia inferior.

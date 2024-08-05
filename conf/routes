@@ -58,7 +58,7 @@ GET      /profiles-deleted/motive/:id                         @controllers.Profi
 PUT      /profiledata-deleted/:id                             @controllers.ProfileData.deleteProfile(id: types.SampleCode)
 GET      /profiledataWithAssociations                         @controllers.ProfileData.findByCodeWithAssociations(globalCode: types.SampleCode)
 PUT      /profiledata/:id/                                    @controllers.ProfileData.update(id: types.SampleCode)
-PUT      /profiledata/modify-category/:id/                    @controllers.ProfileData.modifyCategory(id: types.SampleCode)
+PUT      /profiledata/modify-category/:id/                    @controllers.ProfileData.modifyCategory(id: types.SampleCode, replicate: Boolean)
 GET      /profiledata-readonly                                @controllers.ProfileData.isReadOnly(globalCode: types.SampleCode)
 GET      /profiledata-complete/:id                            @controllers.ProfileData.getByCode(id: types.SampleCode)
 GET      /profiledata-editable/:id                            @controllers.ProfileData.isEditable(id: types.SampleCode)
