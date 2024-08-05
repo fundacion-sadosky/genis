@@ -132,6 +132,55 @@ trait Tables {
   /** Collection-like TableQuery object for table Category */
   lazy val Category = new TableQuery(tag => new Category(tag, Some("APP"), "CATEGORY"))
 
+  /**
+   * Row definition for CategoryModifications table.
+   * 
+   * @param from an Category ID
+   * @param to an Category ID.
+   */
+  case class CategoryModificationsRow(
+    from: String,
+    to: String
+  )
+
+  implicit def GetResultCategoryModificationsRow(implicit e0: GR[String]): GR[CategoryModificationsRow] = GR {
+    prs =>
+      import prs._
+      CategoryModificationsRow(
+        <<[String], // Read the 'from' column
+        <<[String]  // Read the 'to' column
+      )
+  }
+  class CategoryModifications(_tableTag: Tag, schema: Option[String], tableName: String)
+    extends Table[CategoryModificationsRow](_tableTag, schema, tableName) {
+    def * = (from, to) <> (
+      CategoryModificationsRow.tupled,
+      CategoryModificationsRow.unapply
+    )
+    
+    val from: Column[String] = column[String]("From", O.Length(50, varying=true))
+    val to: Column[String] = column[String]("To", O.Length(50, varying=true))
+
+    /** Foreign keys referencing Category*/
+    lazy val fromFk = foreignKey("fk_from", from, Category)(
+      r => r.id,
+      onUpdate = ForeignKeyAction.Cascade,
+      onDelete = ForeignKeyAction.Restrict
+    )
+    lazy val toFk = foreignKey("fk_to", from, Category)(
+      r => r.id,
+      onUpdate = ForeignKeyAction.Cascade,
+      onDelete = ForeignKeyAction.Restrict
+    )
+  }
+  lazy val CategoryModifications = new TableQuery(
+    tag => new CategoryModifications(
+      tag,
+      Some("APP"),
+      "CATEGORY_MODIFICATIONS"
+    )
+  )
+
   /** Entity class storing rows of table Category_Configuration
     *
     *  @param id Database column ID DBType(BIGINT), AutoInc, PrimaryKey

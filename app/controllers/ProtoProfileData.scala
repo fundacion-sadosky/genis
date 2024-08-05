@@ -37,7 +37,9 @@ class ProtoProfileData @Inject() (@Named("stashed") protoProfiledataService: Pro
     val profileDataJson = request.body.validate[ProfileDataAttempt]
 
     profileDataJson.fold(errors => { Future.successful(BadRequest(Json.obj("status" -> "KO", "message" -> JsError.toFlatJson(errors)))) },
-      profileData => protoProfiledataService.updateProfileData(globalCode, profileData) map { result => Ok(Json.toJson(result)) })
+      profileData => protoProfiledataService.updateProfileData
+        
+      (globalCode, profileData) map { result => Ok(Json.toJson(result)) })
   }
 
   def getResources(imageType: String, id: Long) = Action.async { request =>

@@ -23,24 +23,83 @@ import play.api.i18n.Messages
 abstract class CategoryService {
 
   def categoryTree: Category.CategoryTree
+
   def listCategories: Map[AlphanumericId, FullCategory]
-  def listCategoriesWithProfiles: Map[AlphanumericId,String]
+
+  def listCategoriesWithProfiles: Map[AlphanumericId, String]
+
   def categoryTreeManualLoading: Category.CategoryTree
+
   def addCategory(category: Category): Future[Either[String, FullCategory]]
+
   def removeCategory(categoryId: AlphanumericId): Future[Either[String, Int]]
+
   def updateCategory(category: FullCategory): Future[Either[String, Int]]
+
   def addGroup(group: Group): Future[Either[String, AlphanumericId]]
+
   def removeGroup(groupId: AlphanumericId): Future[Either[String, Int]]
+
   def updateGroup(group: Group): Future[Either[String, Int]]
+
   def updateCategory(category: Category): Future[Either[String, Int]]
+
   def getCategory(categoryId: AlphanumericId): Option[FullCategory]
 
   def insertOrUpdateMapping(categoryMapping: CategoryMappingList): Future[Either[String, Unit]]
+
   def listCategoriesMapping: Future[List[FullCategoryMapping]]
-  def getCategoriesMappingById(id:AlphanumericId): Future[Option[String]]
-  def getCategoriesMappingReverseById(id:AlphanumericId): Future[Option[AlphanumericId]]
+
+  def getCategoriesMappingById(id: AlphanumericId): Future[Option[String]]
+
+  def getCategoriesMappingReverseById(id: AlphanumericId): Future[Option[AlphanumericId]]
+
   def getCategoryType(categoryId: AlphanumericId): Option[String]
+
   def getCategoryTypeFromFullCategory(fullCategory: FullCategory): Option[String]
+
+  /**
+   * Register a new allowed category modification for undoubted profiles.
+   *
+   * @param from The category id of the category that will be modified.
+   * @param to   The category id of the category that will be the result
+   *             of the modification.
+   * @return The number of new modifications registered.
+   */
+  def registerCategoryModification(
+    from: AlphanumericId,
+    to: AlphanumericId
+  ): Option[Int]
+
+  /**
+   * Delete a registration of a category modification.
+   *
+   * @param from The category id of the category that will be modified.
+   * @param to   The category id of the category that will be the result
+   *             of the modification.
+   * @return The number of modifications deleted.
+   */
+  def unregisterCategoryModification(
+    from: AlphanumericId,
+    to: AlphanumericId
+  ): Int
+
+  /**
+   * Retrieve all the allowed category modifications for any undoubted profile.
+   *
+   * @return A sequence of tuples with the source and distination categories of each modification.
+   */
+  def retrieveAllCategoryModificationAllowed: Future[Seq[(AlphanumericId, AlphanumericId)]]
+
+  /**
+   * Retrieve the allowed categories modifications for a given undoubted profile.
+   *
+   * @param categoryId The undoubted profile category Id.
+   * @return A sequence of tuples with the source and distination categories of each modification.
+   */
+  def getCategoryModificationAllowed(
+    categoryId: AlphanumericId)
+  : Future[Seq[AlphanumericId]]
 }
 
 @Singleton
@@ -215,4 +274,47 @@ class CachedCategoryService @Inject() (cache: CacheService, categoryRepository: 
     }
   }
   def isPedigreeAssociation(id:AlphanumericId):Boolean = listCategories(id).pedigreeAssociation
+
+  override def registerCategoryModification(
+    from: AlphanumericId,
+    to: AlphanumericId
+  ): Option[Int] = {
+    if (from == to) { None } else {
+      val future = categoryRepository
+        .categoryModificationExists(from, to)
+        .flatMap {
+          case true => Future.successful(None)
+          case false =>
+            categoryRepository
+              .addCategoryModification(from, to)
+              .map(Some(_))
+        }
+      Await
+        .result(future, Duration(300, SECONDS))
+    }
+  }
+
+  override def unregisterCategoryModification(
+    from: AlphanumericId,
+    to: AlphanumericId
+  ): Int = {
+    val future = categoryRepository
+      .removeCategoryModification(from, to)
+    Await
+      .result(future, Duration(300, SECONDS))
+  }
+
+  override def retrieveAllCategoryModificationAllowed:
+    Future[Seq[(AlphanumericId, AlphanumericId)]] = {
+      categoryRepository
+        .getAllCategoryModificationsAllowed
+    }
+
+  override def getCategoryModificationAllowed(
+    categoryId: AlphanumericId
+  )
+  : Future[Seq[AlphanumericId]] = {
+    categoryRepository
+      .getCategoryModificationsAllowed(categoryId)
+  }
 }

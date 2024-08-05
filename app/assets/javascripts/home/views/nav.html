@@ -4,7 +4,7 @@
 
 			<ul show-permissions="PROFILE_DATA_CRUD, DNA_PROFILE_CRUD, PROTOPROFILE_BULK_UPLOAD,PROTOPROFILE_BULK_ACCEPTANCE, IMP_PERF_INS" class="nav navbar-nav menu-item">
 				<li class="profile" data-ng-class="{itemselected: selectedMenu == 'profile'}">
-					<a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false" class="menu-item">
+					<a class="dropdown-toggle menu-item" data-toggle="dropdown" aria-expanded="false">
 						<p><i class="icon-perfiles icon-lg"></i>
 							Perfiles<b class="caret"></b></p>
 					</a>
@@ -23,6 +23,9 @@
 						</li>
 						<li show-permissions="PROFILE_COMPARISON">
 							<a data-ng-click=" selectedMenu = 'profile'" href="#/profile-comparison">Comparación de Perfiles</a>
+						</li>
+						<li show-permissions="PROFILE_COMPARISON">
+							<a data-ng-click=" selectedMenu = 'profile'" href="#/modify-forensic-category">Actualización de categoría forense</a>
 						</li>
 						<li show-permissions="PROFILE_EXPORTER">
 							<a  data-ng-click="selectedMenu = 'profile'" href="#/profile-exporter" aria-expanded="false"  class="menu-item">Exportador de Perfiles</a>

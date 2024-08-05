@@ -99,7 +99,15 @@ define(['lodash'], function(_) {
                 return;
             }
             $scope.profilesSearch.pageSize = $scope.pageSize;
-            $scope.searchObj = {input: $scope.search, active: true, inactive: false,page:0,pageSize:2};
+            $scope.searchObj = {
+                input: $scope.search,
+                active: true,
+                inactive: false,
+                page:0,
+                pageSize:2,
+                category:"",
+                notUploaded: null
+            };
 
             if($scope.search){
 
@@ -111,9 +119,7 @@ define(['lodash'], function(_) {
                             var r = {};
                             r.internalCode = first.internalSampleCode;
                             r.globalCode = first.globalCode;
-
                             var existing = _.find($scope.selectedOptions, function(o) { return o.internalCode === r.internalCode || o.globalCode === r.globalCode; });
-
                             if(!existing){
                                 $scope.show(r);
                             }

@@ -7,6 +7,7 @@ import matching.{Algorithm, Stringency}
 import models.Tables
 import models.Tables._
 import play.api.Application
+
 import play.api.db.slick.Config.driver.simple._
 import play.api.db.slick.DB
 import play.api.i18n.Messages
@@ -14,9 +15,6 @@ import types.AlphanumericId
 import util.{DefaultDb, Transaction}
 
 import scala.concurrent.Future
-import scala.slick.jdbc.{StaticQuery => Q}
-import Q.interpolation
-import scala.slick.jdbc.StaticQuery.staticQueryToInvoker
 
 abstract class CategoryRepository extends DefaultDb with Transaction {
 
@@ -52,6 +50,16 @@ abstract class CategoryRepository extends DefaultDb with Transaction {
   def getCategoriesMappingById(id:AlphanumericId): Future[Option[String]]
   def getCategoriesMappingReverseById(id:AlphanumericId): Future[Option[AlphanumericId]]
   def deleteCategoryMappingById(id: String): Future[Either[String, String]]
+  
+  def addCategoryModification(fromId: AlphanumericId, to: AlphanumericId): Future[Int]
+  
+  def categoryModificationExists(fromId: AlphanumericId, to: AlphanumericId): Future[Boolean]
+  
+  def getCategoryModificationsAllowed(categoryId: AlphanumericId): Future[Seq[AlphanumericId]]
+  
+  def removeCategoryModification(from: AlphanumericId, to: AlphanumericId): Future[Int]
+
+  def getAllCategoryModificationsAllowed: Future[Seq[(AlphanumericId, AlphanumericId)]]
 }
 
 @Singleton
@@ -59,6 +67,7 @@ class SlickCategoryRepository @Inject() (implicit app: Application) extends Cate
 
   val groups: TableQuery[Tables.Group] = Tables.Group
   val categories: TableQuery[Tables.Category] = Tables.Category
+  val categoriesModifications: TableQuery[Tables.CategoryModifications] = Tables.CategoryModifications
 
   val categoriesAlias: TableQuery[Tables.CategoryAlias] = Tables.CategoryAlias
   val categoryAssoc: TableQuery[Tables.CategoryAssociation] = Tables.CategoryAssociation
@@ -67,11 +76,10 @@ class SlickCategoryRepository @Inject() (implicit app: Application) extends Cate
   val categoryMappingTable: TableQuery[Tables.CategoryMapping] = Tables.CategoryMapping
 
   val analysisTypes: TableQuery[Tables.AnalysisType] = Tables.AnalysisType
-
   val profilesData: TableQuery[Tables.ProfileData] = Tables.ProfileData // Tables.ProtoProfileData
 
   private def queryGetCategoriesWithProfiles() = for (
-    (category,pd) <- categories join profilesData on (_.id === _.category) //groupBy(row=>(row._1.id,row._1.name,row._1.isReference,row._1.description))
+    (category, pd) <- categories join profilesData on (_.id === _.category) //groupBy(row=>(row._1.id,row._1.name,row._1.isReference,row._1.description))
   ) yield (category)
 
   override def listCategoriesWithProfiles: Future[List[Category]] = Future{
@@ -389,6 +397,8 @@ class SlickCategoryRepository @Inject() (implicit app: Application) extends Cate
   }
 
   override def removeCategory(categoryId: AlphanumericId): Future[Int] = Future {
+    // TODO check if there is a CategoryModification associated with this category
+    //      if so, remove it
     DB.withTransaction { implicit session =>
       getMappingById(categoryId.text).delete
       val res = queryGetCategory(categoryId.text).delete
@@ -507,5 +517,106 @@ class SlickCategoryRepository @Inject() (implicit app: Application) extends Cate
       getMappingReverseById(id.text).firstOption.map(_.id).map(AlphanumericId(_))
       }
     }
+  }
+
+  /**
+   * Register that a profile can change its category to another category.
+   * @param fromId The category that can be modified
+   * @param to The target new category
+   * @return true if the category modification registry was successful
+   */
+  override def addCategoryModification(
+    fromId: AlphanumericId,
+    to: AlphanumericId
+  ): Future[Int] = Future {
+    DB.withSession {
+      implicit session =>
+        val subCatRow = CategoryModificationsRow(
+          fromId.text,
+          to.text
+        )
+        categoriesModifications += subCatRow
+    }
+  }
+  
+  /**
+   * Check if a category modification exists.
+   * @param fromId The category that can be modified in a forensic analysis
+   *               profile.
+   * @param to The target new category
+   * @return true if the category modification is registered.
+   */
+  override def categoryModificationExists(
+    fromId: AlphanumericId,
+    to: AlphanumericId
+  ): Future[Boolean] = {
+    Future {
+      DB.withSession {
+        implicit session =>
+          categoriesModifications
+            .filter(row => row.from === fromId.text && row.to === to.text)
+            .firstOption
+            .isDefined
+      }
+    }
+  }
+
+  /**
+   * Get the categories that a forensic analysis profiles can modify to a new
+   * category.
+   * @param categoryId The AlphanumericId of a category.
+   * @return A list of AlphanumericId of the categories that can be modified to.
+   */
+  override def getCategoryModificationsAllowed(
+    categoryId: AlphanumericId
+  ): Future[Seq[AlphanumericId]] = Future {
+    DB.withSession {
+      implicit session =>
+        categoriesModifications
+          .filter(row => row.from === categoryId.text)
+          .map(row => row.to)
+          .list
+          .map( AlphanumericId(_) )
+    }
+  }
+
+  private def queryCatMod(id1: Column[String], id2: Column[String]) =
+    categoriesModifications
+      .filter(row => row.from === id1 && row.to === id2)
+  private val catModQuery = Compiled(
+    (id1: Column[String], id2: Column[String]) => queryCatMod(id1, id2)
+  )
+  /**
+   * Remove a category modification.
+   * @param from The category that can be modified in a forensic analysis profile.
+   * @param to The target category
+   * @return The number of modified registers.
+   */
+  override def removeCategoryModification(
+    from: AlphanumericId,
+    to: AlphanumericId
+  ): Future[Int] = Future {
+    DB.withSession {
+      implicit session =>
+        catModQuery((from.text, to.text))
+          .delete
+    }
+  }
+
+  /**
+   * Get all allowed category modifications for undoubted forensic profiles.
+   *
+   * @return A list of AlphanumericId of the categories that can be modified to.
+   */
+  override def getAllCategoryModificationsAllowed:
+    Future[Seq[(AlphanumericId, AlphanumericId)]] = Future {
+    DB
+      .withSession {
+        implicit session =>
+          categoriesModifications
+            .map( row => (row.from, row.to) )
+            .list
+            .map { case (from, to) => (AlphanumericId(from), AlphanumericId(to)) }
+      }
   }
 }

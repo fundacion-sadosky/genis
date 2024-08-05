@@ -28,6 +28,7 @@ function FiliationDataController($scope, $log, profileDataService, $upload,crypt
     $scope.datepickers = {
         birthday : false
 	};
+	console.log($scope);
 
 	if($scope.pictures.length === 0){
 		$scope.pictures.push($scope.picturePlaceHolderImage);
@@ -94,13 +95,15 @@ function FiliationDataController($scope, $log, profileDataService, $upload,crypt
 			$log.log($files, $upload);
 			for (var i = 0; i < $files.length; i++) {
 				var file = $files[i];
-				$scope.upload = $upload.upload({
+				var uploadResults = $upload.upload({
 					url: ss, 
 					method: 'POST',
 					fields: {filesId: $scope.token[type]},
 					file: file
-				}).success( sucessImagePost(type) )//.success(type === 'picture' ? sucessPicturePost : (type === 'inprint' ? sucessInprintPost : sucessSignaturesPost))
-				.error(errorImagePost);
+				});
+				uploadResults
+					.success( sucessImagePost(type) )//.success(type === 'picture' ? sucessPicturePost : (type === 'inprint' ? sucessInprintPost : sucessSignaturesPost))
+					.error(errorImagePost);
 			}
 		}
 	};
