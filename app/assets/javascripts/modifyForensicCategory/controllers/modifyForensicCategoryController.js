@@ -76,6 +76,7 @@ define(
       $scope.clearMatchingCodes = function() {
         $scope.matchingCodes = [];
         $scope.stage = 1;
+        $scope.saveEnabled = true;
       };
       $scope.confirmSelectedCode = function() {
         // TODO: Check that entered value is not empty
