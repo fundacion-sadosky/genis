@@ -130,30 +130,30 @@ libraryDependencies ++= Seq(
 // Dependency Injection
 libraryDependencies ++= Seq(
     "com.google.inject" % "guice" % "3.0",
-    "com.google.inject.extensions" % "guice-multibindings" % "4.2.3",
+    "com.google.inject.extensions" % "guice-multibindings" % "3.0",
     "javax.inject" % "javax.inject" % "1"
 )
 
 // web assets (i.e. client-side) 
 libraryDependencies ++= Seq(
   "org.webjars.npm" % "lodash" % "4.17.21",
-  "org.webjars" % "requirejs" % "2.3.7",
+  "org.webjars" % "requirejs" % "2.1.22",
   "org.webjars" % "underscorejs" % "1.13.0-2",
   "org.webjars" % "jquery" % "3.7.1",
   "org.webjars" % "jquery-ui" % "1.13.2",
-  "org.webjars" % "bootstrap" % "3.3.7-1" exclude("org.webjars", "jquery"),
+  "org.webjars" % "bootstrap" % "3.4.1" exclude("org.webjars", "jquery"),
   "org.webjars" % "angularjs" % "1.4.0" exclude("org.webjars", "jquery"),
-  "org.webjars" % "angular-ui-bootstrap" % "0.13.3",
+  "org.webjars" % "angular-ui-bootstrap" % "0.14.3",
   "org.webjars" % "angular-ui-select" % "0.19.8",
   "org.webjars" % "angular-ui-sortable" % "0.13.0",
   "org.webjars" % "cryptojs" % "3.1.2",
   "org.webjars" % "angular-file-upload" % "12.2.13",
   "org.webjars" % "angular-hotkeys" % "1.4.5",  
-  "org.webjars" % "i18next" % "1.7.3",
+  "org.webjars" % "i18next" % "1.10.1",
   "org.webjars" % "ng-i18next" % "0.3.2",
   "org.webjars" % "qrcodejs" % "07f829d",
-  "org.webjars" % "font-awesome" % "4.4.0",
-  "org.webjars" % "d3js" % "6.7.0",
+  "org.webjars" % "font-awesome" % "4.7.0",
+  "org.webjars" % "d3js" % "3.5.17",
   "org.webjars" % "dagre-d3" % "0.6.3",
   "org.webjars" % "animate.css" % "3.7.2"
   )

@@ -25,7 +25,7 @@ object myBuild extends Build {
     id="codegen",
     base=file("codegen"),
     settings = Seq(
-      scalaVersion := "2.11.11",
+      scalaVersion := "2.11.12",
       libraryDependencies ++= List(
         "org.scala-lang" % "scala-reflect" % "2.13.12",
         "com.typesafe.slick" %% "slick" % "2.1.0",
