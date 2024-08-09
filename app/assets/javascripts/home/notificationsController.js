@@ -1,7 +1,7 @@
 define([], function() {
 'use strict';
 
-function NotificationsController($scope, $log, notificationsService, userService, inboxService) {
+function NotificationsController($scope, $log, $i18next, notificationsService, userService, inboxService) {
 
 	$scope.notiCount = 0;
 	$scope.stall = true;
@@ -51,6 +51,21 @@ function NotificationsController($scope, $log, notificationsService, userService
 		}
 		$scope.$apply();	
 	});
+
+	$scope.getLanguage = function(){
+		return $i18next.options.lng;
+	};
+
+	$scope.changeLanguage = function(lang){
+		var nextLang = "";
+		if ($scope.getLanguage() === "en") {
+			nextLang = "es-AR";
+		}
+		if ($scope.getLanguage() === "es-AR") {
+			nextLang = "en";
+		}
+		$i18next.options.lng = nextLang;
+	};
 
 }
 

@@ -1,0 +1,414 @@
+{
+  "login": {
+    "label": {
+      "enterSystem" : "Enter the system"
+    },
+    "input" : {
+      "userName" : "Enter your username",
+      "password" : "Enter your password",
+      "topt": "Enter token code, which is available in the Google Authenticator app on your phone"
+    }
+  },
+  "menu": {
+    "audit" : "Audit Help"
+  },
+  "profileData" : {
+    "category" : "You must select the category and subcategory to proceed with the data entry",
+    "tab1" : "Judicial case data",
+    "tab2" : "Sample data",
+    "tab3" : "Pedigree data"
+  },
+  "stringency": {
+    "HighStringency": "High",
+    "ModerateStringency": "Moderate",
+    "LowStringency": "Low",
+    "Mismatch": "No match",
+    "NoMatch": "No intersection"
+  },
+  "matchingAlgorithm": {
+    "ENFSI": "Enfsi",
+    "GENIS_MM": "Mix Mix"
+  },
+  "userStatus": {
+    "active": "Active",
+    "pending": "Pending Activation",
+    "blocked": "Blocked",
+    "inactive":"Inactive",
+    "pending_reset":"Pending reset"
+  },
+  "sexPedigree": {
+    "Female": "XX",
+    "Male": "XY",
+    "Unknown": "I"
+  },
+  "sexFull": {
+    "Female": "Female",
+    "Male": "Male",
+    "Unknown": "Undefined"
+  },
+  "analysisTypes": {
+    "Autosomal": "Autosomal",
+    "Cx": "Chromosome X",
+    "Cy": "Chromosome Y",
+    "MT": "Mitochondrial"
+  },
+  "permission": {
+    "MUTATION_MODELS_CRUD": {"name": "Mutation Model Management", "description": "Mutation Model Management"},
+    "PROFILE_COMPARISON": {"name": "Profile Comparison", "description": "Profile Comparison"},
+    "DNA_PROFILE_CRUD": {"name": "Profile Management", "description": "Genetic Profile Management"},
+    "PROFILE_DATA_CRUD": {"name": "Sample Data Management", "description": "Creation and modification of sample data"},
+    "PROFILE_EXPORTER": {"name": "Profile Exporter", "description": "Export profiles to a file with the bulk load format"},
+    "PROFILE_EXPORTER_TO_LIMS": {"name": "File Exporter for Lims", "description": "Export files for creation, deletion, and matches for Lims"},
+    "PROFILE_DATA_SEARCH": {"name": "Profile Searches", "description": "Searches for all existing profiles"},
+    "LABORATORY_CRUD": {"name": "Laboratory Configuration", "description": "Creation and modification of laboratory data"},
+    "GENETICIST_CRUD": {"name": "Geneticist Configuration", "description": "Creation and modification of geneticists"},
+    "ALLELIC_FREQ_DB_CRUD": {"name": "Allelic Frequency Database Management", "description": "Allelic Frequency Database Management"},
+    "ALLELIC_FREQ_DB_VIEW": {"name": "Allelic Frequency Database Reading", "description": "Reading the content of the allelic frequency databases"},
+    "OPERATION_LOG_READ": {"name": "Operation Log Reading", "description": "Access to the operation log"},
+    "MATCHES_MANAGER": {"name": "Matches Manager", "description": "Listing and managing matches"},
+    "PROTOPROFILE_BULK_UPLOAD": {"name": "Bulk Upload", "description": "Bulk upload from GeneMapper"},
+    "PROTOPROFILE_BULK_ACCEPTANCE": {"name": "Bulk Upload - Analysis Acceptance", "description": "Acceptance of analyses created with bulk upload from GeneMapper"},
+    "USER_CRUD": {"name": "User Configuration", "description": "User and role management"},
+    "CATEGORY_CRUD": {"name": "Category Configuration", "description": "Creation, modification, and deletion of groups and categories"},
+    "ROLE_CRUD": {"name": "Role Configuration", "description": "Role management and permissions"},
+    "PEDIGREE_CRUD": {"name": "Person Search", "description": "Management of person searches and pedigree creation"},
+    "BIO_MAT_CRUD": {"name":"Biological Material Type Configuration","description": "Creation and modification of biological material types"},
+    "SCENARIO_CRUD": {"name":"Scenario Management","description": "Creation and management of LRMix calculation scenarios"},
+    "LOCUS_CRUD": {"name":"Marker Configuration","description": "Creation and management of markers"},
+    "LOCUS_UPDATE": {"name":"Update Markers","description": "Update markers"},
+    "ADD_MANUAL_LOCUS": {"name":"Add Manual Markers","description": "Manually add loose markers to a profile"},
+    "KIT_CRUD": {"name":"Kit Configuration","description": "Creation and management of kits"},
+    "SUP_INS_CRUD": {"name":"Higher Instance Configuration","description": "Connection configuration with higher instance and category mapping"},
+    "INF_INS_CRUD": {"name":"Lower Instance Configuration","description": "Monitoring and management of lower instances"},
+    "INTERCON_NOTIF": {"name":"Instance Interconnection Notifications","description": "Receiving instance interconnection notifications"},
+    "IMP_PERF_INS": {"name":"Approve Lower Instance Profiles","description": "Approve lower instance profiles"},
+    "INSTANCE_INTERCONNECTION": {"name":"Instance Interconnection Management","description": "Instance interconnection management"},
+    "MOTIVE_CRUD": {"name":"Motive Configuration","description": "Creation and management of motives"},
+    "REPORTING_VIEW": {"name": "Report Viewing", "description": "Viewing system reports"}
+  },
+  "resource": {
+    "CategoryTreeRead": "Reading of groups and categories",
+    "ProfilesRead": "Reading of genetic profiles",
+    "ProfilesCreate": "Creation of genetic profiles",
+    "AnalysisCreate": "Creation of genetic analyses",
+    "EpgCreate": "Creation of electropherograms",
+    "FileCreate": "File creation",
+    "FileDelete": "File deletion",
+    "EpgDelete": "Electropherogram deletion",
+    "ProfileAssociation": "Association of genetic profiles",
+    "StrKitsAll": "Reading of kits",
+    "NotificationsAll": "Reading of notifications",
+    "MutationModelsGet": "Get mutation models",
+    "MutationModelsDelete": "Delete mutation models",
+    "MutationModelsInsert": "Add mutation models",
+    "MutationModelsUpdate": "Update mutation models",
+    "ProfiledataRead": "Reading of sample data",
+    "ProfiledataExport": "Profile export",
+    "ProfileToLimsdataExport": "File export for Lims",
+    "CollapsingDiscard": "Discard remains grouping",
+    "CollapsingCreate": "Confirm remains grouping",
+    "PedigreeConsistencyView": "View pedigree consistency",
+    "PedigreeConsistencyGenerate": "Generate pedigree consistency",
+    "ProfiledataCreate": "Creation of sample data",
+    "ProfiledataUpdate": "Modification of sample data",
+    "ProfiledataCategoryModification": "Modification of a profile's category",
+    "ProfiledataIsReadOnly": "Verify that a profile is read-only",
+    "ProfiledataDelete": "Profile deletion",
+    "ProfiledataSearch": "Profile search",
+    "MatchAll": "Reading of matches",
+    "UploadImageAll": "Upload metadata images",
+    "CategoryRead": "Reading of category descriptions",
+    "CategoryUpdate": "Modification of categories",
+    "CategoryCreate": "Creation of categories",
+    "CategoryDelete": "Category deletion",
+    "CrimeTypesRead": "Reading of crime types",
+    "LaboratoryRead": "Reading of laboratories",
+    "LaboratoryUpdate": "Modification of laboratories",
+    "LaboratoryCreate": "Creation of laboratories",
+    "CountryRead": "Reading of countries",
+    "ProvincesRead": "Reading of provinces",
+    "GeneticistRead": "Reading of geneticists",
+    "GeneticistCreate": "Creation of geneticists",
+    "GeneticistUpdate": "Modification of geneticists",
+    "PopulationBaseFreqRead": "Reading of allelic frequency databases",
+    "PopulationBaseFreqCreate": "Creation of allelic frequency databases",
+    "PopulationBaseFreqUpdate": "Modification of allelic frequency databases",
+    "OperationLogAll": "Reading of operation logs",
+    "MatchHit": "Validation of matches",
+    "MatchDiscard": "Match discard",
+    "BulkuploaderCreate": "Creation of bulk profile upload file",
+    "BulkuploaderBatches": "Reading and searching profiles from bulk upload",
+    "BulkuploaderBatchesSearch": "Batch search in bulk upload",
+    "BulkuploaderBatchesDelete": "Deletion of profiles from bulk upload",
+    "ProtoprofileRead": "Search for profiles from bulk upload",
+    "ProtoprofileCreate": "Creation of profile metadata from bulk upload",
+    "ProtoprofileUpdate": "Modification of profile metadata from bulk upload",
+    "ProtoprofileUpdateStatus": "Acceptance and rejection of profiles from bulk upload",
+    "UserRead": "User reading",
+    "UserUpdate": "User modification",
+    "UserUpdateStatus": "Modification of user status",
+    "GroupCreate": "Creation of category groups",
+    "GroupUpdate": "Modification of category groups",
+    "GroupDelete": "Category group deletion",
+    "RolesRead": "Role reading",
+    "RolesCreate": "Role creation",
+    "RolesUpdate": "Role modification",
+    "RolesDelete": "Role deletion",
+    "PermissionAll": "Permission Reading",
+    "PedigreeAll": "Pedigree Case and Search Reading",
+    "PedigreeProfileAsocRead": "Search Profiles for Association in Pedigree Searches",
+    "PedigreeCourtCaseCreate": "Create Pedigree Case",
+    "PedigreeCourtCaseProfilesGet": "Get Profiles Associated with the Case",
+    "PedigreeCourtCaseProfilesPost": "Associate a Profile with the Case",
+    "PedigreeCourtCaseProfilesDelete": "Remove Profile Association from a Case",
+    "GetBatchModal": "Search Batches to Associate with a Case",
+    "PostBatchModal": "Associate Batches with a Case",
+    "PedigreeCourtCaseUpdate": "Update Pedigree Case",
+    "PedigreeGenogramCreate": "Create and Update Pedigree Genogram",
+    "PedigreeChangeStatus": "Change Pedigree Status",
+    "PedigreeMatchesRead": "Read Pedigree Matches",
+    "PedigreeScenarioCreate": "Create Pedigree Scenario",
+    "PedigreeScenarioUpdate": "Update Pedigree Scenario",
+    "PedigreeScenarioRead": "Read Pedigree Scenarios",
+    "PedigreeScenarioStatusChange": "Change Pedigree Scenario Status",
+    "PedigreeMatchDiscard": "Discard Person Search Matches",
+    "PedigreeScenarioLR": "Calculate Pedigree Scenario LR",
+    "GetRangesLocus": "Get Marker Ranges",
+    "BioMaterialTypesRead": "Read Biological Material Types",
+    "BioMaterialTypesCreate": "Create Biological Material Types",
+    "BioMaterialTypesUpdate": "Update Biological Material Types",
+    "BioMaterialTypesDelete": "Delete Biological Material Types",
+    "Login": "Login",
+    "UserCreate": "Create Users",
+    "ClearPassword": "Password Reset",
+    "ScenarioUpdate": "Update Scenarios",
+    "ScenarioValidate": "Validate Scenarios",
+    "ScenarioCreate": "Create Scenarios",
+    "ScenarioRead": "Read Scenarios",
+    "ScenarioDelete": "Delete Scenarios",
+    "ScenarioNCorrection": "Calculate N Correction",
+    "LocusCreate": "Create Markers",
+    "LocusUpdate": "Update Markers",
+    "LocusRead": "Read Markers",
+    "AnalysisTypeRead": "Read Analysis Types",
+    "LocusDelete": "Delete Markers",
+    "StrKitCreate": "Create Kits",
+    "StrKitUpdate": "Update Kits",
+    "StrKitDelete": "Delete Kits",
+    "TraceRead": "Read Profile Trace",
+    "UploadProfile": "Upload Profile to Higher Instance",
+    "GetCategoryTreeCombo": "Get Higher Instance Category Tree",
+    "GetSupInstConf": "Get Higher Instance Connection URLs",
+    "PutSupInstConf": "Modify Higher Instance Connection URLs",
+    "CheckInstConf": "Check Instance Connection URLs",
+    "GetCatMapping": "Get Category Mapping",
+    "PutCatMapping": "Modify Category Mapping",
+    "PostConnection": "Connect to Higher Instance",
+    "PostIIProfile": "Add Lower Instance Profile",
+    "DeleteIIProfile": "Delete Lower Instance Profile",
+    "ReceiveMatchFromSuperior": "Receive Match from Higher Instance",
+    "MatchUpdateInterconnection": "Update Match with Hit or Discard from Another Instance",
+    "GetInfIns": "Get Lower Instance Configuration",
+    "GetPenProfApp": "Get Pending Approval Profiles from Lower Instances",
+    "PostPenProfApp": "Approve Pending Approval Profiles from Lower Instances",
+    "DelPenProfApp": "Reject Pending Approval Profiles from Lower Instances",
+    "PutInfIns": "Modify Lower Instance Configuration",
+    "GetInfInsStatus": "Get Possible Different Lower Instance Statuses",
+    "MotiveTypesRead": "Read Motive Types",
+    "GetMotives": "Get Motives",
+    "InsertMotives": "Insert Motives",
+    "DeleteMotives": "Delete Motives",
+    "UpdateMotives": "Update Motives",
+    "CategoryTreeRead": "Read Groups and Categories",
+    "GetProfileComparison": "Profile Comparison"
+  },
+  "category": {
+    "analyses": {
+      "general": "Configuration for the validity and quality of profiles according to the category to which they belong",
+      "minLocusPerProfile": "Number of markers that must have allelic values. It can be specified based on K (a parameter representative of the kit).",
+      "maxAllelesPerLocus": "Maximum number of alleles in a marker. Limits the number of contributors.",
+      "maxOverageDeviatedLoci": "Number of markers with excess allelic values",
+      "mixture": "Indicates that the category is evidence of more than one contributor",
+      "filiationDataRequired": "Indicates that the category allows data such as the first and last name of the profiled individual",
+      "pedigreeAssociation": "Indicates that association in a pedigree is allowed",
+      "replicate": "Indicates that these profiles are sent to higher instances",
+      "allowManualLoading": "Indicates that the category allows manual loading of profiles belonging to it"
+    },
+    "associations": {
+      "general": "Association rules specify the category to which profiles must belong in order to be associated with profiles whose category is being edited. Profiles whose category has association rules will not participate in the matching search until they have an associated profile that meets these association rules"
+    },
+    "matching": {
+      "general": "The rules specify against which type of profiles the matching searches are conducted, the minimum level of stringency, the algorithm used, the minimum number of systems they must have in common, and the maximum number of mismatches tolerated"
+    },
+    "modify": {
+      "profileSelection": "Select the profile whose category you want to change."
+    },
+    "alias": {
+      "general": "Configuration of the aliases that this category has. These aliases are used in the “Specimen Category” column of the GeneMapper® file during bulk import"
+    },
+    "general": {
+      "save": "Save the changes made in the 4 sections",
+      "add": "Add the rule to then be effectively saved",
+      "delete": "Delete the rule"
+    }
+  },
+  "matches": {
+    "groupStatus": "Validation of the status of the grouping profile",
+    "matchStatus": "Validation of the status of the matching profile"
+  },
+  "scenario": {
+    "hypothesis": "Configuration of hypotheses and parameters",
+    "genotypification": "Comparison of alleles",
+    "results": "Display of calculation results",
+    "calculate": "Calculate LR (Likelihood Ratio)",
+    "save": "Save the scenario with its hypotheses, parameters, and results",
+    "dropouts": "Number of alleles found in this profile but not in the sample",
+    "percentage": "Percentage of shared alleles",
+    "marks": {
+      "associated": "Profile associated with the grouping profile",
+      "hit": "Validated match of the evidence"
+    },
+    "comparison": {
+      "profiles": "Select a profile to display in the comparison",
+      "chips": "Hide the genotyping of the profile",
+      "differences": "Highlight alleles present in the profiles but not in the sample",
+      "matches": "Highlight alleles present in both the profiles and the sample"
+    },
+    "state": {
+      "Pending": "Pending",
+      "Validated": "Confirmed",
+      "Deleted": "Deleted"
+    }
+  },
+  "profiles": {
+    "responsible": "Administrator user of the genetic profile and its matches"
+  },
+  "pedigree": {
+    "boundary": "Minimum probability for accepting profiles in the match by compatibility process",
+    "frequencyBase": "Frequency base used to generate possible genotypes of the individuals of interest",
+    "status": {
+      "UnderConstruction": "Under construction",
+      "Active": "Active",
+      "Validated": "Confirmed",
+      "Deleted": "Deleted",
+      "Closed": "Closed",
+      "Open": "Open"
+    },
+    "comparison": {
+      "differences": "Highlight different alleles in the selected profiles",
+      "matches": "Highlight matching alleles in the selected profiles"
+    }
+  },
+  "CollapsingStatus": {
+    "Active": "Active",
+    "Collapsed": "Collapsed"
+  },
+  "inbox": {
+    "show": {
+      "all": "View all notifications",
+      "pending": "View pending notifications",
+      "flagged": "View notifications marked as important"
+    },
+    "mark": "Mark the notification as important",
+    "delete": "Delete selected notifications",
+    "kind": {
+      "matching": "Matches",
+      "bulkImport": "Bulk import",
+      "userNotification": "Users",
+      "profileData": "Profiles",
+      "profileDataAssociation": "Profile associations",
+      "pedigreeMatching": "Person matches",
+      "pedigreeLR": "Pedigree scenario",
+      "inferiorInstancePending": "Lower instance",
+      "profileUploaded": "Approval of lower instance profiles",
+      "approvedProfile": "Interconnection",
+      "rejectedProfile": "Interconnection",
+      "hitMatch": "Match confirmation",
+      "discardMatch": "Match discard",
+      "deleteProfile": "Profile deletion",
+      "collapsing": "DVI remains grouping",
+      "pedigreeConsistency": "Pedigree consistency"
+    }
+  },
+  "locus": {
+    "add": {
+      "chromosome": "Chromosome where the marker is located (1-22, X, Y, XY, MT)",
+      "minimumAllelesQty": "Minimum number of alleles to enter in a reference analysis",
+      "maximumAllelesQty": "Maximum number of alleles to enter in a reference analysis",
+      "alias": {
+        "add": "Add an alias for bulk import",
+        "remove": "Remove the alias"
+      },
+      "links": {
+        "check": "Link the marker with other markers of the same type",
+        "add": "Link a marker",
+        "remove": "Remove the linked marker",
+        "select": "Select a marker from the same chromosome to link"
+      },
+      "save": "Save the marker with its aliases and possible linked markers"
+    },
+    "list": {
+      "alias": "Alias for bulk import",
+      "links": "Linked markers"
+    }
+  },
+  "mt": {
+    "discard": "Discard range",
+    "HV1": "Mutations",
+    "HV2": "Mutations",
+    "HV3": "Mutations",
+    "HV4": "Mutations",
+    "HV1_RANGE": "Range 1",
+    "HV2_RANGE": "Range 2",
+    "HV3_RANGE": "Range 3",
+    "HV4_RANGE": "Range 4",
+    "rangeFrom": "From",
+    "rangeTo": "To",
+    "mutation": "\nE.g., Insertion: 239.1C \nE.g., Substitution: A73G \nE.g., Deletion: A249DEL"
+  },
+  "kits": {
+    "alias": {
+      "add": "Add an alias for bulk import",
+      "remove": "Remove the alias",
+      "list": "Alias for bulk import"
+    },
+    "locus": {
+      "add": "Add a marker",
+      "remove": "Remove the marker"
+    },
+    "representativeParameter": "Represents K in category configuration",
+    "lociQuantity": "Represents N in category configuration",
+    "save": "Save the kit with its aliases and markers"
+  },
+  "format": {
+    "bulkUpload": "MITOCHONDRIAL: Mutation nomenclature:\nInsertions: 239.1C\nSubstitution or nucleotide change: A73G\nDeletions: A249DEL\n ",
+    "baseFrequency": "Header example:\nallele,TH01,D21S11\nRow example:\n4,0.00006,\nSeparate with commas. Do not use 0.\nYou can indicate an fmin that will be used in calculations:\nfmin,0.00006,0.00005"
+  },
+  "aliases": "Write the alias and then press tab or enter. To delete it, use the keyboard or the x. No duplicates allowed.",
+  "trace": {
+    "type": {
+      "analysis": "Analysis",
+      "matchProcess": "Match process",
+      "match": "Match",
+      "hit": "Validation",
+      "discard": "Discard",
+      "profileData": "Metadata",
+      "association": "Association",
+      "delete": "Deletion",
+      "pedigreeMatchProcess": "Pedigree match process",
+      "pedigreeMatch": "Pedigree match",
+      "pedigreeDiscard": "Pedigree discard",
+      "pedigreeConfirm": "Pedigree confirmation",
+      "pedigreeMatch2": "Pedigree match",
+      "pedigreeDiscard2": "Pedigree discard",
+      "pedigreeConfirm2": "Pedigree confirmation",
+      "pedigreeStatusChange": "Status change",
+      "pedigreeCopy": "Copy",
+      "pedigreeEdit": "Edit",
+      "pedigreeNewScenario": "Pedigree scenario",
+      "interconnectionUpload": "Interconnection",
+      "interconnectionApproved": "Interconnection",
+      "interconnectionRejected": "Interconnection"
+    }
+  }
+}

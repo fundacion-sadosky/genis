@@ -11,7 +11,7 @@ angular
 	.controller('errorController', ['$scope', 'errorService', 'alertService', ErrorController])
 	.controller('headerController', ['$scope', 'userService', '$location', '$modal', 'hotkeys','appConf', HeaderController])
 	.service('notificationsService', ['$log','$rootScope', 'cryptoService', 'userService', NotificationsService])
-	.controller('notificationsController', [ '$scope', '$log', 'notificationsService', 'userService', 'inboxService', NotificationsController])
+	.controller('notificationsController', [ '$scope', '$log', '$i18next', 'notificationsService', 'userService', 'inboxService', NotificationsController])
     .config(['$routeProvider', function($routeProvider) {
 		$routeProvider
 			.when('/configuracion', {templateUrl: '/assets/javascripts/home/views/configuracion.html'});

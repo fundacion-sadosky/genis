@@ -1,5 +1,14 @@
 <ul class="nav navbar-nav" data-ng-controller="notificationsController">
 
+	<div class="centered-text" title="Cambio de Idioma">
+		<span
+			href="#/home"
+			ng-click="changeLanguage()">
+			<i class="bold" ng-if="getLanguage() === 'en'" title="English">EN</i>
+			<i class="bold" ng-if="getLanguage() === 'es-AR'" title="Español">ES</i>
+		</span>
+	</div>
+
 	<div class="not-profile" title="Notificaciones">
 
 		<a href="#/home" class="dropdown-toggle icon-stack" data-ng-class="{'noti-counter' : notiCount > 0 }">
