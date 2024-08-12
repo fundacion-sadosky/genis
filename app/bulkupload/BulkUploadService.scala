@@ -15,7 +15,7 @@ import search.PaginationSearch
 import services.CacheService
 import types.AlphanumericId
 import user.{UserService, UserView}
-import play.api.i18n.Messages
+import play.api.i18n.{Lang, Messages}
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
@@ -575,6 +575,7 @@ class BulkUploadServiceImpl @Inject() (
       Future.successful(Left(msg))
     }, count =>{
       if(count>0){
+        val l = implicitly[Lang]
         Future.successful(Left(Messages("error.E0304")))
       }else{
         protoRepo.deleteBatch(id)

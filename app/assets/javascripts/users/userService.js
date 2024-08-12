@@ -165,6 +165,10 @@ function UserService(playRoutes, $cookies, $window, $log) {
     this.showNotifications = function() {
         return hasAnyPermission("DNA_PROFILE_CRUD, MATCHES_MANAGER, PROTOPROFILE_BULK_UPLOAD, PROTOPROFILE_BULK_ACCEPTANCE, USER_CRUD, PEDIGREE_CRUD");
     };
+
+    this.setLanguage = function(lang) {
+      var x = playRoutes.controllers.Application.changeLanguage(lang).get();
+    };
 }
 
 return UserService;

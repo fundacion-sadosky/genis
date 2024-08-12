@@ -150,7 +150,9 @@ object Permission {
       StaticAuthorisationOperation("""/users.*""".r, """GET""".r, "UserRead"),
       StaticAuthorisationOperation("""/users""".r, """PUT""".r, "UserUpdate"),
       StaticAuthorisationOperation("""/users/.*""".r, """PUT""".r, "UserUpdateStatus"),
-      StaticAuthorisationOperation("""/notifications.*""".r, """.*""".r, "NotificationsAll"))
+      StaticAuthorisationOperation("""/notifications.*""".r, """.*""".r, "NotificationsAll"),
+      StaticAuthorisationOperation("""/changeLanguage""".r, """GET""".r, "UserUpdate")
+    )
   }
   case object CATEGORY_CRUD extends Permission {
     override val operations: Set[StaticAuthorisationOperation] = Set(

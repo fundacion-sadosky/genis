@@ -57,14 +57,18 @@ function NotificationsController($scope, $log, $i18next, notificationsService, u
 	};
 
 	$scope.changeLanguage = function(lang){
-		var nextLang = "";
+		var nextLangFront = "en";
+		var nextLangBack= "en";
 		if ($scope.getLanguage() === "en") {
-			nextLang = "es-AR";
+			nextLangFront = "es-AR";
+			nextLangBack = "es";
 		}
 		if ($scope.getLanguage() === "es-AR") {
-			nextLang = "en";
+			nextLangFront = "en";
+			nextLangBack = "en";
 		}
-		$i18next.options.lng = nextLang;
+		$i18next.options.lng = nextLangFront;
+		userService.setLanguage(nextLangBack);
 	};
 
 }

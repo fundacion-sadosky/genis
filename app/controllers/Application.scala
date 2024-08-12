@@ -13,7 +13,7 @@ import play.api.Routes
 import play.api.Application
 import play.api.Play.current
 import play.api.cache.Cache
-import play.api.i18n.Lang
+import play.api.i18n.{Lang, Messages}
 import play.api.libs.functional.syntax.functionalCanBuildApplicative
 import play.api.libs.functional.syntax.toFunctionalBuilderOps
 import play.api.libs.json.Json
@@ -34,7 +34,12 @@ import profiledata.ProfileDataService
 import scala.concurrent.Await
 import scala.concurrent.duration.{Duration, SECONDS}
 @Singleton
-class Application @Inject() (app: play.api.Application, @Named("genisManifest") manifest: Map[String, String], mode: Mode,profileData:ProfileDataService) extends Controller {
+class Application @Inject() (
+  app: play.api.Application,
+  @Named("genisManifest") manifest: Map[String, String],
+  mode: Mode,
+  profileData:ProfileDataService
+) extends Controller {
 
   def manifestAsFixedTable(manifest: Map[String, String]): Html = {
     val lineLength = 71
@@ -54,7 +59,7 @@ class Application @Inject() (app: play.api.Application, @Named("genisManifest") 
   }
 
   /** Serves the index page, see views/index.scala.html */
-  def index = Action {
+  def index: Action[AnyContent] = Action {
     val cssFileName = mode match {
       case Mode.Prod => "main"
       case Mode.Sandbox => "mainTest"
@@ -62,10 +67,10 @@ class Application @Inject() (app: play.api.Application, @Named("genisManifest") 
       case Mode.SandboxAmarillo => "mainAmarillo"
       case Mode.SandboxVerde => "mainVerde"
     }
-    Ok(views.html.index(manifestAsFixedTable(manifest),cssFileName))
+    Ok(views.html.index(manifestAsFixedTable(manifest), cssFileName))
   }
 
-  def pedigree = Action {
+  def pedigree: Action[AnyContent] = Action {
     Ok(views.html.pedigree())
   }
 
@@ -176,8 +181,12 @@ class Application @Inject() (app: play.api.Application, @Named("genisManifest") 
   }
 
   def changeLanguage(lang: String): Action[AnyContent] = Action {
-      implicit request =>
+      implicit request => {
+        val pLang = request.cookies.get("PLAY_LANG").map(_.value)
+        val l = implicitly[Lang]
+        val s0 = Messages("error.E0304")
         Redirect("/")
           .withLang(Lang(lang))
+      }
   }
 }
