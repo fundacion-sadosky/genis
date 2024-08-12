@@ -1,8 +1,8 @@
 package controllers
 
 import java.security.MessageDigest
-
 import org.apache.commons.codec.binary.Hex
+
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
@@ -10,7 +10,10 @@ import matching.Algorithm
 import matching.Stringency
 import play.api.Play
 import play.api.Routes
+import play.api.Application
+import play.api.Play.current
 import play.api.cache.Cache
+import play.api.i18n.Lang
 import play.api.libs.functional.syntax.functionalCanBuildApplicative
 import play.api.libs.functional.syntax.toFunctionalBuilderOps
 import play.api.libs.json.Json
@@ -20,9 +23,7 @@ import play.api.libs.json.Reads.functorReads
 import play.api.libs.json.Reads.minLength
 import play.api.libs.json.Writes
 import play.api.libs.json.__
-import play.api.mvc.Action
-import play.api.mvc.Controller
-import play.api.mvc.DiscardingCookie
+import play.api.mvc.{Action, AnyContent, Controller, DiscardingCookie}
 import play.twirl.api.Html
 import security.AuthorisationOperation
 import security.StaticAuthorisationOperation
@@ -174,4 +175,9 @@ class Application @Inject() (app: play.api.Application, @Named("genisManifest") 
     Json.stringify(Json.toJson(permissionToOperationSet))
   }
 
+  def changeLanguage(lang: String): Action[AnyContent] = Action {
+      implicit request =>
+        Redirect("/")
+          .withLang(Lang(lang))
+  }
 }

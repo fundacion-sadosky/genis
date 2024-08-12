@@ -180,6 +180,9 @@ POST     /scenarios/ncorrection                               @controllers.Scena
 # JavaScript routes object
 GET      /jsroutes.js                                         @controllers.Application.jsRoutes()
 
+# Change Language
+GET      /changeLanguage                                      @controllers.Application.changeLanguage(lang: String)
+
 # Routes used by Angular
 # ~~~~
 
