@@ -1,34 +1,16 @@
-// acá intento pasar un route a llamado de api
-define([], function() {
+define([ 'angular' ], function(angular) {
 	'use strict';
 
-	function SearchService(playRoutes, userService){
+	function SearchService(playRoutes, userService, $http){
 
 		this.search = function(search) {
 			var user = userService.getUser();
 			search.userId = user.name;
 			search.isSuperUser = user.superuser;
+			console.log("SEARCH");
 
-			/*try {
-				var response = fetch('/search/profileData/search', {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify(search)
-				});
-
-				if (!response.ok) {
-					throw new Error('Error in request: ' + response.statusText);
-				}
-
-				return response.json();
-			} catch (error) {
-				console.error('Error during search:', error);
-				throw error;
-			}*/
-
-			return playRoutes.controllers.SearchProfileDatas.search().post(search);
+			return  $http.post('/search/profileData/search', search);
+			//return playRoutes.controllers.SearchProfileDatas.search().post(search);
 		};
 
 		this.searchTotal = function(search) {

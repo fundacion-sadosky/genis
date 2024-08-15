@@ -4,7 +4,7 @@ function(angular, searchController, SearchService) {
 
 angular
 	.module('pdg.search', ['pdg.common'])
-     .service('searchService',[ 'playRoutes', 'userService', SearchService ])
+     .service('searchService',[ 'playRoutes', 'userService', '$http', SearchService ])
      .controller('searchController',[ '$scope', '$log', 'profileDataService', 'searchService', '$modal', 'alertService', '$location', 'userService','appConf', searchController ])
      .config([ '$routeProvider', function($routeProvider) {
          $routeProvider.when('/search/profiledata', {
