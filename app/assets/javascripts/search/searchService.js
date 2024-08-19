@@ -17,7 +17,9 @@ define([ 'angular' ], function(angular) {
 			var user = userService.getUser();
 			search.userId = user.name;
 			search.isSuperUser = user.superuser;
-			return playRoutes.controllers.SearchProfileDatas.searchTotal().post(search);
+			console.log('SEARCH TOTAL');
+            return  $http.post('/search/profileData/searchTotal', search);
+			//return playRoutes.controllers.SearchProfileDatas.searchTotal().post(search);
 		};
 
 		this.searchMatches = function(filters) {

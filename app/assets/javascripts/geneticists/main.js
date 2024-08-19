@@ -1,5 +1,5 @@
 define(['angular', './geneticistsService', './geneticistsController', './updateController', 'common'], 
-function(angular, geneticistsService, geneticistsController, updateController) {
+function(angular, geneticistsService, geneticistsController, updateController, $http) {
 'use strict';
 
 angular

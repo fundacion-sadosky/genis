@@ -1,7 +1,7 @@
 define([], function() {
 'use strict';
 
-	function GeneticistsService(playRoutes) {
+	function GeneticistsService(playRoutes, $http) {
 		
 		this.getGeneticists = function(lab) {
 			return playRoutes.controllers.Geneticists.allGeneticist(lab).get();
@@ -16,7 +16,9 @@ define([], function() {
 		};
 		
 		this.saveGeneticist = function(gen){
-			return playRoutes.controllers.Geneticists.addGeneticist().post(gen);
+			console.log('ADD GENETICISTS');
+			return  $http.post('/geneticist', gen);
+			//return playRoutes.controllers.Geneticists.addGeneticist().post(gen);
 		};
 		
 	}

@@ -1,10 +1,12 @@
 define(['angular'], function(angular) {
 'use strict';
 
-function ScenarioService(playRoutes, $q, $filter) {
+function ScenarioService(playRoutes, $q, $filter, $http) {
 	
 	this.getLRMix = function(calculationScenario) {
-        return playRoutes.controllers.Scenarios.calculateLRMix().post(calculationScenario);
+        console.log('LR MIX');
+        return  $http.post('/lr-mix', calculationScenario);
+        //return playRoutes.controllers.Scenarios.calculateLRMix().post(calculationScenario);
     };
 
     this.get = function(id) {
@@ -12,11 +14,15 @@ function ScenarioService(playRoutes, $q, $filter) {
     };
 
     this.search = function(search) {
-        return playRoutes.controllers.Scenarios.search().post(search);
+        console.log('SCENARIOS SEARCH');
+        return  $http.post('/scenarios/search', search);
+        //return playRoutes.controllers.Scenarios.search().post(search);
     };
 
     this.validate = function(scenarioData) {
-        return playRoutes.controllers.Scenarios.validate().post(scenarioData);
+        console.log('SCENARIOS VALIDATE');
+        return  $http.post('/scenarios/validate', scenarioData);
+        //return playRoutes.controllers.Scenarios.validate().post(scenarioData);
     };
 
     this.delete = function(id) {
@@ -38,12 +44,15 @@ function ScenarioService(playRoutes, $q, $filter) {
             result:results,
             description: description
         };
-
-        return playRoutes.controllers.Scenarios.create().post(data);
+        console.log('SCENARIOS CREATE');
+        return  $http.post('/scenarios/create', scenario, restricted, name, description, results, geneticist);
+        //return playRoutes.controllers.Scenarios.create().post(data);
     };
 
     this.update = function(scenario){
-        return playRoutes.controllers.Scenarios.update().post(scenario);
+        console.log('SCENARIOS UPDATE');
+        return  $http.post('/scenarios/update', scenario);
+        //return playRoutes.controllers.Scenarios.update().post(scenario);
     };
 
     this.getProfileData = function(globalCode) {
@@ -96,12 +105,15 @@ function ScenarioService(playRoutes, $q, $filter) {
     };
     
     this.getDefaultScenario = function(firingProfile, matchingProfile, statsOption) {
-        return playRoutes.controllers.Scenarios.getDefaultScenario(firingProfile, matchingProfile).post(statsOption);
+        console.log('SCENARIOS NCORRECTION');
+        return  $http.post('/scenarios/get', firingProfile, matchingProfile, statsOption);
+        //return playRoutes.controllers.Scenarios.getDefaultScenario(firingProfile, matchingProfile).post(statsOption);
     };
     
     this.getNCorrection = function(firingProfile, matchingProfile, bigN, lr) {
         var correctionRequest = {firingCode: firingProfile, matchingCode: matchingProfile, bigN: bigN, lr: lr};
-        return playRoutes.controllers.Scenarios.getNCorrection().post(correctionRequest); 
+        return  $http.post('/scenarios/ncorrection', correctionRequest);
+        //return playRoutes.controllers.Scenarios.getNCorrection().post(correctionRequest); 
     };
 }
 	

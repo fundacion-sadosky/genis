@@ -22,7 +22,8 @@ define(
 		statsOptionModalController,
 		pdgProfileDataInfo,
 		pdgProfileDataInfoPopover,
-		pdgStatisticalOptions
+		pdgStatisticalOptions,
+		$http
 	) {
 		'use strict';
 		angular

@@ -1,7 +1,7 @@
 define([], function() {
 'use strict';
 
-	function LaboratoriesService(playRoutes) {
+	function LaboratoriesService(playRoutes, $http) {
 
 		this.getLaboratory = function(code){
 			return playRoutes.controllers.Laboratories.getLaboratory(code).get();
@@ -24,7 +24,8 @@ define([], function() {
 		};
 		
 		this.createLaboratory = function(laboratory){
-			return playRoutes.controllers.Laboratories.addLab().post(laboratory);
+			return  $http.post('/laboratory', laboratory);
+			//return playRoutes.controllers.Laboratories.addLab().post(laboratory);
 		};
 
 		this.updateLaboratory = function(laboratory){

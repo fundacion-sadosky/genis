@@ -2,7 +2,7 @@ define(['angular', './controllers/scenarioController', './controllers/genotypifi
 	'./controllers/resultsController', './controllers/hypothesisController',
     './controllers/scenariosController','./services/scenarioService',
 	'./controllers/saveModalController', 'common'],
-function(angular, scenarioController, genotypificationController, resultsController, hypothesisController, scenariosController, scenarioService, saveModalController) {
+function(angular, scenarioController, genotypificationController, resultsController, hypothesisController, scenariosController, scenarioService, saveModalController, $http) {
 'use strict';
 
 angular

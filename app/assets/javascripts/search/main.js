@@ -1,5 +1,5 @@
 define(['angular', './searchController', './searchService', 'common'],
-function(angular, searchController, SearchService) {
+function(angular, searchController, SearchService, $http) {
 'use strict';
 
 angular
