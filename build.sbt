@@ -142,7 +142,7 @@ libraryDependencies ++= Seq(
   "org.webjars" % "jquery" % "3.7.1",
   "org.webjars" % "jquery-ui" % "1.13.2",
   "org.webjars" % "bootstrap" % "3.3.7-1" exclude("org.webjars", "jquery"),
-  "org.webjars" % "angularjs" % "1.4.0" exclude("org.webjars", "jquery"),
+  "org.webjars" % "angularjs" % "1.5.11" exclude("org.webjars", "jquery"),
   "org.webjars" % "angular-ui-bootstrap" % "0.13.3",
   "org.webjars" % "angular-ui-select" % "0.19.8",
   "org.webjars" % "angular-ui-sortable" % "0.13.0",
@@ -197,7 +197,7 @@ libraryDependencies += "de.leanovate.play-mockws" %% "play-mockws" % "2.3.2" % T
 
 // Test
 libraryDependencies ++= Seq(
-  "org.scalatestplus" % "play_2.11" % "1.4.0" % "test"
+  "org.scalatestplus" % "play_2.11" % "1.2.0" % "test"
 )
 
 //Reporting
