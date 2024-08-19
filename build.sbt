@@ -113,10 +113,10 @@ libraryDependencies ++= Seq(
 
 // RDBMS
 libraryDependencies ++= Seq(
-  "com.typesafe.play" %% "play-slick" % "0.8.0",
+  "com.typesafe.play" %% "play-slick" % "0.8.1",
   "com.typesafe.slick" %% "slick" % "2.1.0",
   "com.typesafe.slick" %% "slick-codegen" % "2.1.0",
-  "com.github.tminglei" %% "slick-pg" % "0.8.5",
+  "com.github.tminglei" %% "slick-pg" % "0.8.6",
   "postgresql" % "postgresql" % "9.1-901-1.jdbc4"
 )
 
