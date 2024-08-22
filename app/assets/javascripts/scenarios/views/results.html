@@ -15,12 +15,32 @@
                        data-ng-model="bigN" data-ng-required="true" required />
                     <button type="button" class="btn btn-secondary-action" ng-disabled="!bigN"
                             data-ng-click="getNCorrection(bigN)">Corrección por N</button>
-                    <span id="processingSpan" class="icon-refresh" ng-class="{'spinner': isProcessing}" data-ng-show="isProcessing"></span>
+                    <span
+                      id="processingSpan"
+                      class="icon-refresh"
+                      ng-class="{'spinner': isProcessing}"
+                      data-ng-show="isProcessing"
+                    ></span>
                 </div>
-                <div id="divNCorrection" class="row m-t-10" ng-if="nCorrection">
-                    <span id="spanN" class="m-r-10"><span class="bold">Cantidad de perfiles evaluados: </span>{{nCorrection.n}}</span>
-                    <span class="m-r-10"><span class="bold">DMP: </span>{{nCorrection.dmp | likelihoodratio: true: result.detailed}}</span>
-                    <span><span class="bold">Donnelly-Baldwin: </span>{{nCorrection.donnellyBaldwin | likelihoodratio: true: result.detailed}}</span>
+                <div
+                  id="divNCorrection"
+                  class="row m-t-10"
+                  ng-if="nCorrection"
+                >
+                    <span id="spanN" class="m-r-10" >
+                      <span class="bold" >
+                          Cantidad de perfiles evaluados:
+                      </span>
+                      {{nCorrection.n}}
+                    </span>
+                    <span class="m-r-10">
+                        <span class="bold">DMP: </span>
+                        {{nCorrection.dmp | likelihoodratio: true: result.detailed}}
+                    </span>
+                    <span>
+                        <span class="bold">Donnelly-Baldwin: </span>
+                        {{nCorrection.donnellyBaldwin | likelihoodratio: true: result.detailed}}
+                    </span>
                 </div>
             </div>
         </div>

@@ -135,11 +135,12 @@ GET      /bulkupload/batches                                  @controllers.BulkU
 GET      /protoprofiledata-complete/:id                       @controllers.ProtoProfileData.getByCode(id: types.SampleCode)
 POST     /protoprofiledata                                    @controllers.ProtoProfileData.create
 PUT      /protoprofiledata/:id                                @controllers.ProtoProfileData.update(id: types.SampleCode)
-GET      /protoprofiledata-complete/:id                       @controllers.ProtoProfileData.getByCode(id: types.SampleCode)
 GET      /protoprofiledata-editable/:id                       @controllers.ProtoProfileData.isEditable(id: types.SampleCode)
 GET      /resources/proto/static/:type/:id                    @controllers.ProtoProfileData.getResources(type:String, id: Long)
 
 # Matching
+GET      /matching                                            @controllers.Matching.findMatchesByCode(globalCode: types.SampleCode)
+POST     /user-matches                                        @controllers.Matching.getMatches
 POST     /user-total-matches                                  @controllers.Matching.getTotalMatches
 POST     /user-matches-group                                  @controllers.Matching.getMatchesByGroup
 POST     /user-total-matches-group                            @controllers.Matching.getTotalMatchesByGroup
@@ -147,14 +148,14 @@ GET      /mixture/compare                                     @controllers.Match
 POST     /convertHit                                          @controllers.Matching.convertHit(matchingId: String, firingCode: types.SampleCode)
 POST     /convertDiscard                                      @controllers.Matching.convertDiscard(matchId: String, firingCode: types.SampleCode)
 POST     /uploadStatus                                        @controllers.Matching.uploadStatus(matchId: String, firingCode: types.SampleCode)
-GET      /canUploadMatchStatus                                 @controllers.Matching.canUploadMatchStatus(matchId: String)
+GET      /canUploadMatchStatus                                @controllers.Matching.canUploadMatchStatus(matchId: String)
 GET      /getByMatchedProfileId                               @controllers.Matching.getByMatchedProfileId(matchingId: String, isPedigreeMatch: Boolean,isCollapsing:Option[Boolean],isScreening:Option[Boolean])
 #GET      /comparedGenotyfications                             @controllers.Matching.getComparedGenotyfications(globalCode: types.SampleCode, matchedGlobalCode: types.SampleCode)
 POST     /lr                                                  @controllers.Matching.getLR
 #POST     /mixture/lr                                          @controllers.Matching.getMixtureLRByLocus
 DELETE   /collapsing/partial                                  @controllers.Matching.deleteByLeftProfile(globalCode: String,courtCaseId:Long)
 POST     /masiveDiscardByGlobalCode                           @controllers.Matching.masiveDiscardByGlobalCode(firingCode: types.SampleCode)
-POST     /masiveDiscardByMatchesList                           @controllers.Matching.masiveDiscardByMatchesList(firingCode: types.SampleCode, matches: List[String])
+POST     /masiveDiscardByMatchesList                          @controllers.Matching.masiveDiscardByMatchesList(firingCode: types.SampleCode, matches: List[String])
 GET      /matching-profile                                    @controllers.Matching.searchMatchesProfile(globalCode: String)
 
 # Notifications

@@ -70,20 +70,40 @@ define(['jquery','lodash'], function($,_) {
                 }
             });
         };
-        
-        $scope.getNCorrection = function(bigN) {
-            $scope.isProcessing = true;
-            scenarioService.getNCorrection($scope.profile, $scope.options[0].globalCode, 
-                                           bigN, $scope.result.total).then(function(response) {
+
+        $scope.getNCorrection = function (bigN) {
+          $scope.isProcessing = true;
+          var lr = parseFloat($scope.result.total);
+          if (isNaN(lr)) {
+            alertService.error({message: "LR no es un número válido."});
+            return;
+          }
+          scenarioService
+            .getNCorrection(
+              $scope.profile,
+              $scope.options[0].globalCode,
+              bigN,
+              lr
+            )
+            .then(
+              function (response) {
                 $scope.isProcessing = false;
                 $scope.nCorrection = response.data;
-            }, function(response) {
+              },
+              function (response) {
                 $scope.isProcessing = false;
-                alertService.error({ message: response.data });
+                if (Array.isArray(response.data)) {
+                  for (var i = 0; i < response.data.length; i++) {
+                    alertService.error({message: response.data[0].message});
+                  }
+                } else {
+                  alertService.error({message: "No se pudo interpretar la respuesta del servidor."});
+                }
                 $scope.nCorrection = undefined;
-            });
+              }
+            );
         };
-        
+
         $scope.showNCorrection = function() {
             var unvalidated = !$scope.scenarioData || $scope.scenarioData.state.toString() !== 'Validated';
             var onlyOneOption = $scope.options.length === 1;
@@ -207,7 +227,7 @@ define(['jquery','lodash'], function($,_) {
             });
         };
 	}
-	
+
 	return ResultsController;
 });
 
