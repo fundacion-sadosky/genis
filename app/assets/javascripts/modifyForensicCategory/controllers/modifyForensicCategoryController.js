@@ -66,11 +66,24 @@ define(
             function(response) {
               $scope.matchingCodes = response.data;
               if ($scope.matchingCodes.length > 0) {
+                var isUndoubtedCategory = $scope
+                  .categories
+                  .map(function(x) {return x.id;})
+                  .indexOf($scope.matchingCodes[0].category) !== -1;
+                if (!isUndoubtedCategory) {
+                  return Promise.reject("El perfil no es de una categoría indubitada.");
+                }
                 $scope.stage = 2;
                 $scope.models.matchingCodesModel = $scope.matchingCodes[0];
+              } else {
+                return Promise.reject("Perfil no encontrado");
               }
-            },
-            errorMessage
+            }
+          )
+          .catch(
+            function(error) {
+              alertService.error({message: error});
+            }
           );
       };
       $scope.clearMatchingCodes = function() {
@@ -82,8 +95,6 @@ define(
         // TODO: Check that entered value is not empty
         $scope.confirmedCode = $scope.models.matchingCodesModel;
         if ($scope.confirmedCode !== undefined) {
-          // TODO: Should check that the current category can be modified to
-          //       the new category.
           profileService
             .isReadOnly($scope.confirmedCode.globalCode)
             .then(
