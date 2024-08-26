@@ -8,7 +8,7 @@
 								<span  class="icon-atras" title="Volver"></span>
 							</div>
 						</li>
-					<li class="active">Laboratorios</li>
+					<li class="active">{{ 'configuration.catalogs.laboratories' | i18next }}</li>
 				</ol>
 			</div>
 		</div>
@@ -20,10 +20,10 @@
 		<div class="content"> <!-- content-wrap-small -->
 
 			<tabset class="tabset-section">
-				<tab active="true" heading="Nuevo Laboratorio">
+				<tab active="true" heading= "{{'laboratory.new' | i18next }}">
 					<div ng-include="'/assets/javascripts/laboratories/add.html'" class="animated fadeIn"></div>
 				</tab>
-				<tab heading="Laboratorios">
+				<tab heading="{{'generics.laboratory' | i18next }}">
 					<div ng-include="'/assets/javascripts/laboratories/list.html'" class="animated fadeIn tab-container"></div>
 				</tab>
 			</tabset>

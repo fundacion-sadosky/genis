@@ -95,7 +95,7 @@ define(['lodash'], function(_) {
 
         $scope.searchProfile= function(){
             if($scope.selectedOptions.length ===2){
-                alertService.error({'message': 'Solo se pueden comparar hasta 2 perfiles'});
+                alertService.error({'message': $.i18n.t('alerts.profile.compareOnlyTwoError')});
                 return;
             }
             $scope.profilesSearch.pageSize = $scope.pageSize;
@@ -118,13 +118,13 @@ define(['lodash'], function(_) {
                                 $scope.show(r);
                             }
                         }else{
-                            alertService.error({'message': 'Perfil no encontrado'});
+                            alertService.error({'message': $.i18n.t('alerts.profile.notFoundError')});
                         }
                     }else{
-                        alertService.error({'message': 'Perfil no encontrado'});
+                        alertService.error({'message': $.i18n.t('alerts.profile.notFoundError')});
                     }
                 },function () {
-                    alertService.error({'message': 'Perfil no encontrado'});
+                    alertService.error({'message': $.i18n.t('alerts.profile.notFoundError')});
                 });
             }
 

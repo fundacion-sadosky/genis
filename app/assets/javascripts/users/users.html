@@ -13,7 +13,7 @@
 								
 							</div>
 						</li>
-					<li class="active">Usuarios</li>
+					<li class="active">{{ 'generics.users' | i18next}}</li>
                         </ol>
                     </div>
                 </div>
@@ -28,12 +28,12 @@
 		<table class="table  table-bordered">
 			<thead>
 				<tr>
-					<th>Nombre de usuario</th>
-					<th>Nombre</th>
-					<th>Apellido</th>
-					<th>Email</th>
-					<th>Estado</th>
-					<th>Edición</th>
+					<th>{{ 'generics.userName' | i18next}}</th>
+					<th>{{ 'generics.name' | i18next}}</th>
+					<th>{{ 'generics.lastName' | i18next}}</th>
+					<th>{{ 'generics.email' | i18next}}</th>
+					<th>{{ 'generics.state' | i18next}}</th>
+					<th>{{ 'generics.edition2' | i18next}}</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -51,7 +51,7 @@
 						</select>
 					</td>
 					<td>
-						<button class="btn btn-default btn-link-action btn-link-border" title="Modificar datos del usuario" data-ng-click="updateUser(user)">
+						<button class="btn btn-default btn-link-action btn-link-border" title="{{ 'generics.modifyUserData' | i18next}}" data-ng-click="updateUser(user)">
 							<span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
 						</button>
 					</td>

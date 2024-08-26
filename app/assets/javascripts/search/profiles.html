@@ -7,10 +7,10 @@
                 <ol class="breadcrumb">
                     <li>
                         <div class="btn volver" onclick="history.back()">
-                            <span  class="icon-atras" title="Volver"></span>
+                            <span  class="icon-atras" title="{{ 'buttons.back' | i18next }}"></span>
                         </div>
                     </li>
-                    <li class="active">Búsqueda de Perfiles</li>
+                    <li class="active">{{ 'resource.ProfiledataSearch' | i18next }}</li>
                     
                 </ol>
             </div>
@@ -26,14 +26,14 @@
                             <div class="form-group col-md-12 padding-0">
                                 <form class="navbar-form  vertical-align padding-0" role="search" name="searchPdForm" novalidate data-ng-submit="doSearch()">
                                     <div class="col-md-5 padding-left-0 padding-right-0 vertical-align">
-                                        <label class="col-md-1 padding-left-0" for="search-text">Buscar</label>
+                                        <label class="col-md-1 padding-left-0" for="search-text">{{ 'buttons.search' | i18next }}</label>
                                         <div class="col-md-5 padding-left-1">
-                                            <input id="search-text" type="text" class="form-control search-main form-select" data-ng-model="search.input" placeholder="Criterio de búsqueda"/>
+                                            <input id="search-text" type="text" class="form-control search-main form-select" data-ng-model="search.input" placeholder="{{ 'profileViews.searchCriteria' | i18next }}"/>
                                         </div>
-                                        <label class="col-md-2 padding-left-0" for="search-category">Categoría</label>
+                                        <label class="col-md-2 padding-left-0" for="search-category">{{ 'generics.category' | i18next }}</label>
                                         <div class="col-md-4 padding-left-0">
                                             <select id="search-category" data-ng-model="search.category" class="custom-select form-control form-select">
-                                                <option value="{{undefined}}">Todas</option>
+                                                <option value="{{undefined}}">{{ 'generics.allFem' | i18next }}</option>
                                                 <option ng-repeat="categorywp in categoriesWithProfiles" value="{{categorywp.id}}" ng-selected="search.category === categorywp.id">{{categorywp.category}}</option>
                                             </select>
                                         </div>
@@ -43,25 +43,25 @@
                                             <div class="item-input padding-0 col-md-1  text-left">
                                                 <input type="checkbox" data-ng-model="search.active" id="active">
                                             </div>
-                                            <label class="col-md-11 padding-1" for="active">Activos</label>
+                                            <label class="col-md-11 padding-1" for="active">{{ 'generics.activePlural' | i18next }}</label>
                                         </div>
                                         <div class="form-group col-md-4 padding-0 vertical-align">
                                             <div class="item-input padding-0 col-md-1  text-left">
                                                 <input type="checkbox" data-ng-model="search.inactive" id="dadodebaja">
                                             </div>
-                                            <label class="col-md-11 padding-1" for="dadodebaja">Dados de baja</label>
+                                            <label class="col-md-11 padding-1" for="dadodebaja">{{ 'generics.deleted' | i18next }}</label>
                                         </div>
                                         <div class="form-group col-md-5 padding-0 vertical-align">
                                             <div class="item-input padding-0 col-md-1  text-left">
                                                 <input type="checkbox" data-ng-model="search.notUploaded" id="notUploaded">
                                             </div>
-                                            <label class="col-md-11 padding-1" for="notUploaded">Pendientes de replicar</label>
+                                            <label class="col-md-11 padding-1" for="notUploaded">{{ 'generics.replicationPending' | i18next }}</label>
                                         </div>
                                     </div>
                                     <div class="col-md-2 desk-align-right inside-right padding-0">
                                         <span id="processingSpan" class="icon-refresh" ng-class="{'spinner': isProcessing}" data-ng-show="isProcessing"></span>
-                                        <a  title="Limpiar filtros" ng-click="clean()" ng-disabled="isProcessing"  class="cancel-link" >Limpiar</a>
-                                        <button id="search-button" type="submit" class="btn btn-secondary-action" data-ng-disabled="searchForm.$invalid">Buscar</button>
+                                        <a  title="Limpiar filtros" ng-click="clean()" ng-disabled="isProcessing"  class="cancel-link" >{{ 'buttons.clean' | i18next }}</a>
+                                        <button id="search-button" type="submit" class="btn btn-secondary-action" data-ng-disabled="searchForm.$invalid">{{ 'buttons.search' | i18next }}</button>
                                     </div>
                                 </form>
                             </div>
@@ -75,7 +75,7 @@
             <div class="row m-b-10">
                 <div class="padding-0">
                     <span class="ng-binding ng-scope">
-                        <b>Cantidad de perfiles:</b> {{totalItems}} <span ng-hide="hideFilterLegend">de {{totalDataBaseItem}}</span>
+                        <b>{{ 'generics.amount' | i18next }}:</b> {{totalItems}} <span ng-hide="hideFilterLegend">de {{totalDataBaseItem}}</span>
                     </span>
                 </div>
                 <div show-permissions="PROFILE_DATA_CRUD" class="pull-right padding-right-0">
@@ -83,31 +83,31 @@
                     class="btn btn-primary-action pull-right"
                     data-ng-click="goToProfile()">
                     <!-- <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> -->
-                      <span>Nuevo perfil</span>
+                      <span>{{ 'generics.newProfile' | i18next }}</span>
                     </button>
                 </div>
            
         </div>
 
         <div data-ng-show="noResult">
-            No se encontraron datos según su busqueda
+            {{ 'generics.noResult' | i18next }}
         </div>
 
 
         <table class="table  table-bordered table-hover" data-ng-show="!noResult" data-ng-init="getProfiles(search)">
             <thead>
                 <tr>
-                    <th class="head-column">Código GENis</th>
-                    <th class="head-column">Categoría</th>
-                    <th class="head-column">Código Laboratorio</th>
-                    <th class="head-column">Responsable</th>
-                    <th class="head-column">Laboratorio</th>
-                    <th class="head-column">Replicado</th>
-                    <th class="head-column" show-permissions="PROFILE_DATA_CRUD">Datos Muestra</th>
-                    <th class="head-column" show-permissions="DNA_PROFILE_CRUD">Ver Análisis</th>
-                    <th class="head-column" show-permissions="DNA_PROFILE_CRUD">Agregar Análisis</th>
-                    <th class="head-column" show-permissions="PROFILE_DATA_CRUD">Trazabilidad</th>
-                    <th class="head-column" show-permissions="PROFILE_DATA_CRUD">Dar de Baja</th>
+                    <th class="head-column">{{ 'generics.GENisCode' | i18next }}</th>
+                    <th class="head-column">{{ 'generics.category' | i18next }}</th>
+                    <th class="head-column">{{ 'generics.labCode' | i18next }}</th>
+                    <th class="head-column">{{ 'generics.responsible' | i18next }}</th>
+                    <th class="head-column">{{ 'generics.laboratory' | i18next }}</th>
+                    <th class="head-column">{{ 'generics.replicated' | i18next }}</th>
+                    <th class="head-column" show-permissions="PROFILE_DATA_CRUD">{{ 'generics.sampleData' | i18next }}</th>
+                    <th class="head-column" show-permissions="DNA_PROFILE_CRUD">{{ 'generics.viewAnalysis' | i18next }}</th>
+                    <th class="head-column" show-permissions="DNA_PROFILE_CRUD">{{ 'generics.addAnalysis' | i18next }}</th>
+                    <th class="head-column" show-permissions="PROFILE_DATA_CRUD">{{ 'generics.traceability' | i18next }}</th>
+                    <th class="head-column" show-permissions="PROFILE_DATA_CRUD">{{ 'generics.deleteProfile' | i18next }}</th>
                 </tr>
             </thead>
             <tbody>

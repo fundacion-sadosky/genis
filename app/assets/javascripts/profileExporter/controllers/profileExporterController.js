@@ -21,7 +21,7 @@ define(['lodash'], function(_) {
 
         $scope.exportProfiles = function () {
             profileExporterService.exporterProfiles($scope.search).then(function () {
-                alertService.info({message: 'Se exportaron los perfiles'});
+                alertService.info({message: $.i18n.t('alerts.profile.exported')});
 
                 var zip_file_name = "GENisExport.zip";
                 var user = userService.getUser();
@@ -53,7 +53,7 @@ define(['lodash'], function(_) {
             var today = new Date();
 
             if (today - aux < 0) {
-                alertService.info({message: 'La fecha debe ser anterior a la actual.'});
+                alertService.info({message: $.i18n.t('alerts.date.before')});
                 $scope.search[fieldName] = undefined;
                 $scope.minDateCoin = null;
             } else {
@@ -83,11 +83,11 @@ define(['lodash'], function(_) {
                 min = $scope.search.hourFrom;
             }
             if (max - aux < 0) {
-                alertService.info({message: 'La fecha debe ser anterior a la actual.'});
+                alertService.info({message: $.i18n.t('alerts.date.before')});
                 $scope.search[fieldName] = undefined;
             } else {
                 if (min - aux > 0) {
-                    alertService.info({message: 'La fecha  debe ser posterior al campo desde.'});
+                    alertService.info({message: $.i18n.t('alerts.date.after')});
                     $scope.search[fieldName] = undefined;
                 }
             }

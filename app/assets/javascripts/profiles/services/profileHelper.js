@@ -179,7 +179,7 @@ function ProfileHelper() {
               isDblCheckNeeded = true;
               return true; // OK => continue
             }
-            lociList[indx].errorMsg = 'Error en la comparación con valores existentes en la genotipificación';
+            lociList[indx].errorMsg = $.i18n.t('alerts.genotyping.comparisonError');
           }
         } else { // if the locus is not present in the existingGenotypification => a dbl ckeck is needed
           isDblCheckNeeded = true;
@@ -199,10 +199,10 @@ function ProfileHelper() {
                 for (var allele in counts) {
                     if (counts.hasOwnProperty(allele)) {
                         if (isReference && counts[allele] > 2) {
-                            lociList[indx].errorMsg = 'El alelo ' + allele + ' se repite más de dos veces';
+                            lociList[indx].errorMsg = $.i18n.t('alerts.genotyping.repeatAlleleError1') + allele + $.i18n.t('alerts.genotyping.repeatAlleleError2');
                         }
                         if (!isReference && counts[allele] > 1) {
-                            lociList[indx].errorMsg = 'No se pueden repetir alelos en evidencias';
+                            lociList[indx].errorMsg = $.i18n.t('alerts.genotyping.cantRepeatAlleleEvidenceError');
                         }
                     }
                 }
@@ -241,16 +241,16 @@ function ProfileHelper() {
               range = range.filter(function(a){return a.length>0;});
             }
             if(range===undefined || range.length !== 2) {
-                mt[hv+'_RANGE'].errorMsg = 'El rango debe tener dos valores';
+                mt[hv+'_RANGE'].errorMsg = $.i18n.t('alerts.genotyping.rangeMinimumError');
                 isValid = false;
             } else if (parseInt(range[1]) < parseInt(range[0]) ||
                 (range[0] <1 || range[1] > 16569) ||
                 range[1] >576 && range[1] < 16024 ) {
-                mt[hv+'_RANGE'].errorMsg = 'El rango es inválido';
+                mt[hv+'_RANGE'].errorMsg = $.i18n.t('alerts.genotyping.invalidRange');
                 isValid = false;
             } else {
               if (_.uniq(variations).length !== variations.length) {
-                mt[hv].errorMsg = 'Hay variaciones repetidas';
+                mt[hv].errorMsg = $.i18n.t('alerts.genotyping.invalidVariations');
                 isValid = false;
               } else {
                 var outOfRange = variations.filter(
@@ -260,7 +260,7 @@ function ProfileHelper() {
                   }
                 );
                 if (outOfRange.length > 0) {
-                  mt[hv].errorMsg = 'Las variaciones no están comprendidas en el rango (' + range[0] + ',' + range[1] + ')';
+                  mt[hv].errorMsg = $.i18n.t('alerts.genotyping.variationsNotInRange') + '(' + range[0] + ',' + range[1] + ')';
                   isValid = false;
                 } else {
                   var invalidVariation = variations.filter(
@@ -281,7 +281,7 @@ function ProfileHelper() {
                     }
                   );
                   if (invalidVariation.length > 0) {
-                    mt[hv].errorMsg = 'Existen variaciones inválidas '+invalidVariation;
+                    mt[hv].errorMsg = $.i18n.t('alerts.genotyping.invalidVariations') +invalidVariation;
                     isValid = false;
                   }
                 }

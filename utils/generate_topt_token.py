@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# pylint: disable=missing-module-docstring
 
 import argparse
 import json
@@ -7,8 +8,14 @@ import hmac
 import struct
 import sys
 import time
-from typing import Mapping, Optional, List
+from typing import Mapping, Optional, List, cast
 from unittest.mock import patch
+
+# pylint: disable=missing-module-docstring
+# pylint: disable=missing-function-docstring
+# pylint: disable=bad-indentation
+# pylint: disable=unused-import
+
 try:
   import pytest
 except ImportError:
@@ -140,6 +147,7 @@ def test_check_jsonfile_content():
       "secret": "XXXXX"
     }
   ]
+  content = cast(List[Mapping], content)
   # data should content both "user" and "secret" fields.
   assert _check_jsonfile_content(content)
   content = [
@@ -147,12 +155,14 @@ def test_check_jsonfile_content():
       "secret": "XXXXX"
     }
   ]
+  content = cast(List[Mapping], content)
   assert not _check_jsonfile_content(content)
   content = [
     {
       "user": "john_doe",
     }
   ]
+  content = cast(List[Mapping], content)
   assert not _check_jsonfile_content(content)
   # data may have other fields
   content = [
@@ -162,6 +172,7 @@ def test_check_jsonfile_content():
       "pass": "pass"
     }
   ]
+  content = cast(List[Mapping], content)
   assert _check_jsonfile_content(content)
   # data must be a list
   content = {
@@ -169,6 +180,7 @@ def test_check_jsonfile_content():
       "pass": "pass"
     }
   # noinspection PyTypeChecker
+  content = cast(List[Mapping], content)
   assert not _check_jsonfile_content(content)
   # data should be not empty
   content = []

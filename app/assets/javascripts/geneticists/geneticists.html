@@ -9,7 +9,7 @@
 								<span  class="icon-atras" title="Volver"></span>
 							</div>
 						</li>
-					<li class="active">Genetistas</li>
+					<li class="active">{{ 'generics.geneticists' | i18next }}</li>
 						
 					</ol>
 				</div>
@@ -22,10 +22,10 @@
 		<div class="content"> <!-- content-wrap-small -->
 
 			<tabset class="tabset-section">
-				<tab active="true" heading="Nuevo Genetista">
+				<tab active="true" heading="{{ 'geneticists.new' | i18next }}">
 					<div ng-include="'/assets/javascripts/geneticists/add.html'" class="animated fadeIn"></div>
 				</tab>
-				<tab heading="Genetistas">
+				<tab heading="{{ 'generics.geneticists' | i18next }}">
 					<div ng-include="'/assets/javascripts/geneticists/list.html'" class="animated fadeIn tab-container"></div>
 				</tab>
 			</tabset>

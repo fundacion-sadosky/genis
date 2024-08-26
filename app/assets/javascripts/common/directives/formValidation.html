@@ -1,8 +1,8 @@
 <div style="padding-top: 5px;">
-    <div class="error-text" ng-if="input.$dirty && input.$error.required">El campo es requerido</div>
-    <div class="error-text" ng-if="input.$dirty && input.$error.pattern && pattern !== 'password'">El campo debe respetar el patrón {{pattern}}</div>
-    <div class="error-text" ng-if="input.$dirty && input.$error.pattern && pattern === 'password'">Las contraseñas no coinciden</div>
-    <div class="error-text" ng-if="input.$dirty && input.$error.min">El campo debe ser mayor a {{min}}</div>
-    <div class="error-text" ng-if="input.$dirty && input.$error.max">El campo debe ser menor a {{max}}</div>
-    <div class="error-text" ng-if="input.$dirty && input.$error.maxlength">Este campo permite hasta {{max}} caracteres</div>
+    <div class="error-text" ng-if="input.$dirty && input.$error.required">{{'validation.fieldRequired' | i18next}}</div>
+    <div class="error-text" ng-if="input.$dirty && input.$error.pattern && pattern !== 'password'">{{'generics.fieldRespectPattern' | i18next}} {{pattern}}</div>
+    <div class="error-text" ng-if="input.$dirty && input.$error.pattern && pattern === 'password'">{{'validation.passwordMismatch' | i18next}}</div>
+    <div class="error-text" ng-if="input.$dirty && input.$error.min">{{'validation.fieldGreaterThan' | i18next}} {{min}}</div>
+    <div class="error-text" ng-if="input.$dirty && input.$error.max">{{'validation.fieldLessThan'  | i18next}} {{max}}</div>
+    <div class="error-text" ng-if="input.$dirty && input.$error.maxlength">{{'validation.fieldAllows'  | i18next}} {{max}} caracteres</div>
 </div>

@@ -1,7 +1,7 @@
 <form name="genForm">
 	<div ng-controller="geneticistsController">
 		<div class="modal-header">
-			<h2>Genetista: <b>{{modalGeneticist.name}} {{modalGeneticist.lastname}}</b></h2>
+			<h2>{{ 'generics.geneticist' | i18next }}: <b>{{modalGeneticist.name}} {{modalGeneticist.lastname}}</b></h2>
 		</div>
 		<div class="modal-body">
 			<div id="tab-1" class="tab-pane active tab-format">
@@ -9,27 +9,27 @@
 					<div class="col-md-12 geneticists-section-big">
 						<div class="geneticists-section">
 							<div class="m-t-10">
-								<h6>Nombre<span class="field-obligated">*</span></h6>
+								<h6>{{ 'generics.name' | i18next }}<span class="field-obligated">*</span></h6>
 								<input type="text" name="name" id="gen-name" data-ng-model="modalGeneticist.name" class="form-control form-select" required />
 								<form-validation input="genForm.name"></form-validation>
 							</div>
 							<div class="m-t-10">
-								<label>Apellido<span class="field-obligated">*</span></label>
+								<label>{{ 'generics.lastName' | i18next }}<span class="field-obligated">*</span></label>
 								<input type="text" id="gen-last-name" data-ng-model="modalGeneticist.lastname" class="form-control form-select" name="lastName"required />
 								<form-validation input="genForm.lastName"></form-validation>
 							</div>
 							<div class="m-t-10">
-								<label>Email<span class="field-obligated">*</span></label>
+								<label>{{ 'generics.email' | i18next }}<span class="field-obligated">*</span></label>
 								<input type="text" id="gen-mail" data-ng-model="modalGeneticist.email" ng-pattern="regexEmail" placeholder="xx@yy.zz" class="form-control form-select" name="mail" required />
 								<form-validation input="genForm.mail" pattern="xx@yy.zz"></form-validation>
 							</div>
 							<div class="m-t-10">
-								<label>Telefono<span class="field-obligated">*</span></label>
+								<label>{{ 'generics.phone' | i18next }}<span class="field-obligated">*</span></label>
 								<input type="text" id="gen-phone" data-ng-model="modalGeneticist.telephone" class="form-control form-select" name="phone" required />
 								<form-validation input="genForm.phone"></form-validation>
 							</div>
 							<div class="m-t-10">
-								<label>Laboratorio<span class="field-obligated">*</span></label>
+								<label>{{ 'generics.laboratory' | i18next }}<span class="field-obligated">*</span></label>
 								<select data-ng-model="modalGeneticist.laboratory" required class="form-control form-select" style="height: 3.5em;"
 										data-ng-options="item.code as item.name for item in laboratories">
 								</select>
@@ -44,10 +44,10 @@
 			   	<span title="Cerrar">
 			   		<span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
 			   	</span>
-				<span class="btn-link-action">Cerrar</span>
+				<span class="btn-link-action">{{ 'buttons.close' | i18next }}</span>
 			</div>
 
-			<button id="saveUpd" type="button" class="btn btn-primary-action" data-ng-click="updateGeneticist()" ng-disabled="genForm.$invalid">Guardar</button>
+			<button id="saveUpd" type="button" class="btn btn-primary-action" data-ng-click="updateGeneticist()" ng-disabled="genForm.$invalid">{{ 'buttons.save' | i18next }}</button>
 		</div>
 	</div>
 </form>

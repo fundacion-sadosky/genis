@@ -1,7 +1,7 @@
 <form name="updateLocus">
     <div ng-controller="locusUpdateController">
         <div class="modal-header">
-            <h2>Editar Marcador</h2>
+            <h2>{{ 'locus.label.editLocus' | i18next }}</h2>
             <div class="m-t-10">
                 <h6>Id:</h6>
                 {{selectedLocusCopy.id}}
@@ -19,12 +19,12 @@
         </div>
         <div class="modal-footer">
             <div class="btn btn-link-action" ng-click="closeModal()">
-           <span title="Cerrar">
+           <span title="{{ 'buttons.close' | i18next }}">
              <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
            </span>
-                <span class="btn-link-action">Cerrar</span>
+                <span class="btn-link-action">{{ 'buttons.close' | i18next }}</span>
             </div>
-            <button id="saveUpd" type="button" class="btn btn-primary-action" data-ng-click="save()" ng-disabled="updateLocus.$invalid">Guardar</button>
+            <button id="saveUpd" type="button" class="btn btn-primary-action" data-ng-click="save()" ng-disabled="updateLocus.$invalid">{{ 'buttons.save' | i18next }}</button>
         </div>
     </div>
 </form>

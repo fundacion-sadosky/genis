@@ -9,7 +9,7 @@
 		</span>
 	</div>
 
-	<div class="not-profile" title="Notificaciones">
+	<div class="not-profile" title="{{ 'header.notifications' | i18next }}">
 
 		<a href="#/home" class="dropdown-toggle icon-stack" data-ng-class="{'noti-counter' : notiCount > 0 }">
 			<i class="icon-notificaciones icon-lg font-color-grey "></i>
@@ -21,7 +21,7 @@
 
 	</div>
 
-	<div class="not-matchStatus" title="Estado del proceso de búsqueda de coincidencias">
+	<div class="not-matchStatus" title="{{ 'header.matchSearchState' | i18next }}">
 		
 		<a id="matchiNoti" class="dropdown-toggle fa-stack noti-counter" data-toggle="dropdown" aria-expanded="false" style="top:-4px;">
 		<b data-ng-if="stall" class="fa-stack font-color-grey">
@@ -39,7 +39,7 @@
 		</a>
 	</div>
 
-	<div class="not-matchStatus" title="Estado del proceso de búsqueda de personas">
+	<div class="not-matchStatus" title="{{ 'header.personSearchState' | i18next }}">
 
 		<a id="pedigreeMatchNoti" class="dropdown-toggle fa-stack noti-counter" data-toggle="dropdown" aria-expanded="false" style="top:-4px;">
 			<i data-ng-if="pedigreeStall" class="fa-stack font-color-grey">

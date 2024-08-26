@@ -16,7 +16,7 @@
                                 <span  class="icon-atras" title="Volver"></span>
                             </div>
                         </li>
-                        <li class="active">Roles</li>
+                        <li class="active">{{"configuration.security.roles"|i18next}}</li>
                         
                     </ol>
                 </div>
@@ -39,7 +39,7 @@
                     type="button"
                     class="btn btn-block btn-secondary-action"
                     ng-click="addRole()"
-            >Agregar rol </button>
+            >{{"buttons.addRole"|i18next}}</button>
         </div>
 
         <div class="col-md-9" ng-if="current">
@@ -48,7 +48,7 @@
                     <label>{{current.roleName}}</label>
 
                     <input id="searchtext" name="searchtext" type="text" class="form-control form-select search-main" ng-model="search"
-                           placeholder="Busque permiso por nombre o descripción">
+                           placeholder="{{ 'generics.searchPermission' | i18next }}">
 
                     <table class="table table-striped">
                         <thead>
@@ -87,12 +87,12 @@
                                     <span title="Limpiar pantalla">
                                         <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
                                     </span>
-                                    <span class="btn-link-action">Limpiar</span>
+                                    <span class="btn-link-action">{{"buttons.clean"|i18next}}</span>
                                 </div>
             
                                 <button type="button"
                                         class="btn btn-primary-action"
-                                        data-ng-click="save()"  data-ng-disabled="!verificaPermisos(current) == true">Guardar</button>
+                                        data-ng-click="save()"  data-ng-disabled="!verificaPermisos(current) == true">{{"buttons.save"|i18next}}</button>
                             </div>
                         </footer>
 

@@ -10,7 +10,7 @@
                                     <span  class="icon-atras" title="Volver"></span>
                                 </div>
                             </li>
-                            <li class="active">Trazabilidad</li>
+                            <li class="active">{{ 'generics.traceability' | i18next }}</li>
                             
                         </ol>
                     </div>
@@ -28,7 +28,7 @@
             <h5 class="m-l-10 m-t-0" style="vertical-align:super">{{profile.internalSampleCode}}</h5>
         </div>
         <div class="col-md-6 text-right">
-            <h5>Usuario responsable</h5>
+            <h5>{{ 'generics.userResponsible' | i18next }}</h5>
             <p class="m-l-10">{{profile.assignee}}</p>
         </div>
     </div>
@@ -37,17 +37,17 @@
 </div>
 <div class="row ">
         <div class="content padding-0">
-    <div data-ng-show="noResult">No se encontraron datos según su busqueda</div>
+    <div data-ng-show="noResult">{{ 'generics.noResult' | i18next }}</div>
 
     <div data-ng-show="!noResult" name="trace_grid">
         <table class="table table-bordered trace-table">
             <thead>
-            <th class="text-center" style="width: 15%;">Fecha</th>
-            <th class="text-center" style="width: 15%;">Tipo</th>
-            <th class="text-center" style="width: 15%;">Usuario</th>
+            <th class="text-center" style="width: 15%;">{{ 'generics.date' | i18next }}</th>
+            <th class="text-center" style="width: 15%;">{{ 'generics.type' | i18next }} </th>
+            <th class="text-center" style="width: 15%;">{{ 'generics.user' | i18next }}</th>
             <th class="text-center">
                 <div class="col-md-11 text-left">
-                    Descripción
+                    {{ 'generics.description' | i18next}}
                 </div>
                 <div class="col-md-1 text-center">
                     Ver más

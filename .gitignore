@@ -58,3 +58,7 @@ public/export/
 # dev conf files 
 application-dev.conf
 logger-dev.xml
+
+# python cache
+/utils/__pycache__/
+.pytest_cache

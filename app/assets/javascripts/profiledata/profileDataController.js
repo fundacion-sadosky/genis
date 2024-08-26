@@ -137,7 +137,7 @@ function ProfileDataController($scope, $log, profileDataService, profileDataComm
 
 		if($scope.inNameOf && !$scope.profileData.responsibleGeneticist){
 
-			alertService.error({message: 'No ha ingresado el Genetista responsable'});
+			alertService.error({message: $.i18n.t('alerts.profile.responsibleGeneticist')});
 			return;
 		}
 
@@ -183,7 +183,7 @@ function ProfileDataController($scope, $log, profileDataService, profileDataComm
                     function (response) {
                         if (response) {
                             $scope.sampleCode = response.data.sampleCode;
-                            alertService.success({message: 'Código de muestra generado: ' + $scope.sampleCode});
+                            alertService.success({message: $.i18n.t('alerts.sample.codeGenerated') + $scope.sampleCode});
                         }
                         $scope.cancel();
                     },
@@ -191,7 +191,7 @@ function ProfileDataController($scope, $log, profileDataService, profileDataComm
                         if (response.data && response.data.message) {
                             alertService.error({message: response.data.message});
                         } else {
-							alertService.error({message: 'Ha ocurrido un error al crear'});
+							alertService.error({message: $.i18n.t('alerts.profile.errorCreating')});
 						}
                     }
                 );
@@ -200,20 +200,20 @@ function ProfileDataController($scope, $log, profileDataService, profileDataComm
                     function (response) {
 						if(response.data){
                             $scope.sampleCode = (response.data === true) ? $routeParams.samplecode : '';
-                            alertService.success({message: 'Se ha actualizado el perfil: ' + $scope.sampleCode});
+                            alertService.success({message: $.i18n.t('alerts.profile.update') + $scope.sampleCode});
                             onSucessUpdate();
                         }else{
-                            alertService.error({message: 'Ha ocurrido un error al actualizar'});
+                            alertService.error({message: $.i18n.t('alerts.profile.updateError')});
 						}
                     },
                     function (response) {
-                        console.log('Error al actualizar el perfil',response);
-                        alertService.error({message: 'Ha ocurrido un error al actualizar'});
+                        console.log($.i18n.t('alerts.profile.updateError'),response);
+                        alertService.error({message: $.i18n.t('alerts.profile.updateError')});
                     }
                 );
             }
         } else {
-            alertService.error({message: 'Debe completar todos los datos filiatorios o ninguno'});
+            alertService.error({message: $.i18n.t('alerts.profile.filialData')});
         }
 	};	
 

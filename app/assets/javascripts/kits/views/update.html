@@ -10,7 +10,7 @@
 					<div class="form-group">
 					<form name="kitForm2" novalidate>
 						<!--<div data-ng-include="'/assets/javascripts/kits/views/save.html'" ></div>-->
-						<h5>Datos del Kit</h5>
+						<h5>{{ 'kit.data' | i18next }}</h5>
 						<div class="m-t-10">
 							<div class="col-md-7 padding-0 m-t-5">
 								<label for="id-kit">
@@ -25,7 +25,7 @@
 						<div class="m-t-10">
 							<div class="col-md-10 padding-0 m-t-5">
 								<label for="loci-minimum">
-									Parámetro representativo<span class="field-obligated">*</span>
+									{{ 'kit.representativeParameter' | i18next }}<span class="field-obligated">*</span>
 								</label>
 							</div>
 							<div class="col-md-2 padding-0">
@@ -35,10 +35,10 @@
 						</div>
 						<div class="m-t-10">
 							<div class="col-md-4 padding-0 m-t-5">
-								<label for="newElement">Alias</label>
+								<label for="newElement">{{ 'generics.alias' | i18next }}</label>
 							</div>
 							<div class="col-md-8 padding-0">
-								<tags-input-modal class="tags-input" ng-model="selectedKit.alias" placeholder="Ingrese un alias" ></tags-input-modal>
+								<tags-input-modal class="tags-input" ng-model="selectedKit.alias" placeholder="{{ 'kit.alias' | i18next }}" ></tags-input-modal>
 							</div>
 						</div>
 					</form>
@@ -48,12 +48,12 @@
 
 			<div class="modal-footer">
 				<div class="btn btn-link-action" ng-click="closeModal()">
-					<span title="Cerrar">
+					<span title="{{ 'buttons.close' | i18next }}">
 						<span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
 					</span>
-					<span class="btn-link-action">Cerrar</span>
+					<span class="btn-link-action">{{ 'buttons.close' | i18next }}</span>
 				</div>
-				<button id="saveUpd" type="button" class="btn btn-primary-action" data-ng-click="updateKit()">Guardar</button>
+				<button id="saveUpd" type="button" class="btn btn-primary-action" data-ng-click="updateKit()">{{ 'buttons.save' | i18next }}</button>
 			</div>
 
 		</div>

@@ -1,12 +1,12 @@
 <div ng-class="{'panel': _panel, 'panel-default': _panel}">
 	
-	<div class="panel-heading" ng-show="_header">Opciones estadísticas</div>
+	<div class="panel-heading" ng-show="_header">{{ 'generics.statsOptions' | i18next }}</div>
 		
 	<div ng-class="{'panel-body': _panel}">
 		<div class="row m-b-10">
 			<div class="col-md-6 column" style="padding-left: 0px;">
 				<div >
-					<label for="statsOptionsStatFreq" class="col-sm-5 control-label" style="padding-right: 0px;">Base de datos de frecuencias alélicas:</label>
+					<label for="statsOptionsStatFreq" class="col-sm-5 control-label" style="padding-right: 0px;">{{ 'scenario.allelicDatabase' | i18next }}:</label>
 					<div class="col-sm-12 padding-right-0">
 						<select id="statsOptionsStatFreq" ng-model="selectedOptions.frequencyTable" class="form-control" required
 						ng-options="dbName as db.name for (dbName, db) in freqTables" style="width:100%">
@@ -25,7 +25,7 @@
 			</div>-->
 
 			<div class="column col-md-6">
-				<label for="statsOptionsStatTheta" class="col-sm-5 control-label" style="padding-top: 5px; padding-left: 0px;padding-right: 0px; width:100%;">Coeficiente de co-ancestralidad (&Theta;):</label>
+				<label for="statsOptionsStatTheta" class="col-sm-5 control-label" style="padding-top: 5px; padding-left: 0px;padding-right: 0px; width:100%;">{{ 'scenario.coancestryCoefficient' | i18next }}:</label>
 				<div class="col-sm-7 padding-left-0" style="margin-top: 5px;">
 					<span id="statsOptionsStatTheta">{{selectedOptions.theta}}</span>
 				</div>
@@ -44,13 +44,13 @@
 		<div class="row" ng-if="!mix">
 			<div class="col-md-6">
 				<p>
-					<label class="control-label">Probabilidad de Drop-in:</label>
+					<label class="control-label">{{ 'scenario.dropinProbability' | i18next }}:</label>
 					<input id="dropIn" class="form-control" type="number" min="0" max="1" step="0.01" data-ng-model="selectedOptions.dropIn" required />
 				</p>
 			</div>
 			<div class="col-md-6">
 				<p>
-					<label class="control-label">Probabilidad de Drop-out:</label>
+					<label class="control-label">{{ 'scenario.dropoutProbability' | i18next }}:</label>
 					<input id="dropOut" class="form-control" type="number" min="0" max="1" step="0.01" data-ng-model="selectedOptions.dropOut" required />
 				</p>
 			</div>

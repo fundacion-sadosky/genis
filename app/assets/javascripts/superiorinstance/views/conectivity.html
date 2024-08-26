@@ -3,7 +3,7 @@
             <div class="section-category-mapping">
                     <div class="m-t-10">
                         <div>
-                            <label for="urlSuperiorInstance">Instancia Superior:</label>
+                            <label for="urlSuperiorInstance">{{ 'menu.interconnection.upperInstance' | i18next }}:</label>
                             <table>
                                 <tr>
                                     <td>
@@ -12,7 +12,7 @@
                                                data-ng-model="connections.superiorInstance"/>
                                     </td>
                                     <td>
-                                        <button id="checkSupIns" type="button"  class="btn btn-secondary-action" data-ng-click="checkConnectionSupIns()" >Chequear conectividad</button>
+                                        <button id="checkSupIns" type="button"  class="btn btn-secondary-action" data-ng-click="checkConnectionSupIns()" >{{ 'buttons.checkConnectivity' | i18next }}</button>
                                     </td>
                                 </tr>
                             </table>
@@ -35,10 +35,10 @@
                         <!--</div>-->
                     <!--</div>-->
                     <div class="desk-align-right">
-                        <button id="connect" type="button"  class="btn btn-secondary-action" data-ng-click="connect()" >Conectar</button>
+                        <button id="connect" type="button"  class="btn btn-secondary-action" data-ng-click="connect()" >{{ 'buttons.connect' | i18next }}</button>
 
                         <button id="save" type="button" class="btn btn-primary-action" data-ng-click="saveConnections()">
-                                Guardar
+                            {{ 'buttons.save' | i18next }}
                             </button>
                     </div>
             </div>

@@ -10,7 +10,7 @@
                                     <span  class="icon-atras" title="Volver"></span>
                                 </div>
                             </li>
-                            <li class="active">Aprobación de perfiles provenientes de instancias inferiores</li>
+                            <li class="active">{{ 'profileApproval.inferiorInstance' | i18next }}</li>
                         
                     </ol>
                 </div>
@@ -26,21 +26,21 @@
         <div class="row">
                 <div class="content m-t-10 padding-0">
     <section class="extended-section">
-       <div> <button class="btn btn-secondary-action boton" data-ng-click="init()"><i class="icon-refresh fa-1x" aria-hidden="true"></i> Actualizar lista</button>
+       <div> <button class="btn btn-secondary-action boton" data-ng-click="init()"><i class="icon-refresh fa-1x" aria-hidden="true"></i> {{ 'buttons.updateList' | i18next }}</button>
         <br> </div>
         <div class="content-wrap-small">
-            <button class="btn btn-link-action" ng-click="selectAll()" ><span class="glyphicon glyphicon-ok"></span><span> Seleccionar todos</span></button>
-            <button class="btn btn-secondary-action" ng-click="approveSelected()" >Aprobar seleccionados</button>
+            <button class="btn btn-link-action" ng-click="selectAll()" ><span class="glyphicon glyphicon-ok"></span><span> {{ 'buttons.selectAll' | i18next }}</span></button>
+            <button class="btn btn-secondary-action" ng-click="approveSelected()" >{{ 'buttons.approveSelected' | i18next }}</button>
             <table class="table table-striped ng-scope" style="table-layout:fixed;">
                 <thead>
                     <tr >
                         <th style="width: 2%"></th>
-                        <th class="text-center col-md-2">Código GENis</th>
-                        <th class="text-center col-md-1">Categoría Local</th>
-                        <th class="text-center col-md-1">Laboratorio</th>
-                        <th class="text-center col-md-2">Fecha y Hora</th>
-                        <th class="text-center col-md-1">Tiene Víctima Asociada</th>
-                        <th class="text-center col-md-1">Genetista Asignado</th>
+                        <th class="text-center col-md-2">{{ 'generics.GENisCode' | i18next }}</th>
+                        <th class="text-center col-md-1">{{ 'profileApproval.localCategory.' | i18next }}</th>
+                        <th class="text-center col-md-1">{{ 'generics.laboratory' | i18next }}</th>
+                        <th class="text-center col-md-2">{{ 'generics.timeAndDate' | i18next }}</th>
+                        <th class="text-center col-md-1">{{ 'generics.hasAssociatedVictim' | i18next }}</th>
+                        <th class="text-center col-md-1">{{ 'profileApproval.assignedGeneticist' | i18next }}</th>
                         <th class="col-md-2" style="text-align:  left;"></th>
                         <th class="text-center col-md-2">
                             <div class="row padding-0">
@@ -68,37 +68,37 @@
                     </td>
                     <td style="text-align:  left;">
 
-                        <button class="btn btn-default btn-link-action btn-link-border" title="Rechazar" ng-click="reject(p)">
+                        <button class="btn btn-default btn-link-action btn-link-border" title="{{ 'buttons.reject' | i18next }}" ng-click="reject(p)">
                             <span class="glyphicon glyphicon-thumbs-down" ></span>
                         </button>
 
-                        <button class="btn btn-default btn-link-action btn-link-border" title="Aprobar" ng-click="import(p)">
+                        <button class="btn btn-default btn-link-action btn-link-border" title="{{ 'buttons.approve' | i18next }}" ng-click="import(p)">
                             <span class="glyphicon glyphicon-thumbs-up" ></span>
                         </button>
 
-                        <a popover="{{p.errors}}" popover-placement="left" ng-show="!!p.errors" >Ver Errores</a>
+                        <a popover="{{p.errors}}" popover-placement="left" ng-show="!!p.errors" >{{ 'profileApproval.viewErrors' | i18next }}</a>
                     </td>
                     <td class="text-center">
                         <div class="row padding-0">
                             <div class="col-md-3 text-center padding-0">
                                 <button  ng-disabled="!p.genotypification" class="btn btn-default btn-link-action btn-link-border" pdg-gen-popover gen="p.genotypification">
-                                 <span ng-disabled="!p.genotypification" class="glyphicon glyphicon-eye-open" aria-hidden="true" title="Ver genotipificación" ></span>
+                                 <span ng-disabled="!p.genotypification" class="glyphicon glyphicon-eye-open" aria-hidden="true" title="{{ 'pedigree.profiles.seeGenotypification' | i18next }}" ></span>
                                 </button>
                             </div>
                             <div class="col-md-3 text-center padding-0">
                                 <button ng-disabled="!p.genotypificationMT" class="btn btn-default btn-link-action btn-link-border" pdg-gen-popover-mt gen="p.genotypificationMT">
-                                    <span ng-disabled="!p.genotypificationMT"  class="glyphicon glyphicon-eye-open" aria-hidden="true" title="Ver genotipificación Mitocondrial"></span>
+                                    <span ng-disabled="!p.genotypificationMT"  class="glyphicon glyphicon-eye-open" aria-hidden="true" title="{{ 'pedigree.profiles.seeMitoGenotypification' | i18next }}"></span>
                                 </button>
                             </div>
                             <div class="col-md-3 text-center padding-0">
                                 <button class="btn btn-default btn-link-action btn-link-border" ng-disabled="!p.hasElectropherogram" data-ng-click="showElectropherograms(p.globalCode)"
-                                                          data-toggle="tooltip" data-placement="top" title="Ver electropherogramas">
+                                                          data-toggle="tooltip" data-placement="top" title="{{ 'buttons.viewElect' | i18next }}">
                                     <span class="glyphicon glyphicon-picture" aria-hidden="true" ng-disabled="!p.hasElectropherogram"></span>
                                 </button>
                             </div>
                             <div class="col-md-3 text-center padding-0">
                                 <button class="btn btn-default btn-link-action btn-link-border" ng-disabled="!p.hasFiles" data-ng-click="showFiles(p.globalCode)"
-                                        data-toggle="tooltip" data-placement="top" title="Ver archivos">
+                                        data-toggle="tooltip" data-placement="top" title="{{ 'buttons.viewFiles' | i18next }}">
                                     <span class="glyphicon glyphicon-file" aria-hidden="true" ng-disabled="!p.hasFiles"></span>
                                 </button>
                             </div>

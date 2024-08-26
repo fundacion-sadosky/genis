@@ -7,7 +7,7 @@
                         <form class="navbar-form padding-0" role="search" name="searchForm" novalidate data-ng-submit="search()">
                             <div class="row padding-0">
                                 <div class="col-md-4 verical-align">
-                                    <label class="col-md-3 padding-left-0" for="searchText">Nombre</label>
+                                    <label class="col-md-3 padding-left-0" for="searchText">{{ 'generics.name' | i18next }}</label>
                                     <div class="col-md-9">
                                         <input id="searchText" name="searchText" ng-model="$parent.searchText" type="text" class="form-control form-select" />
                                     </div>
@@ -19,7 +19,7 @@
                                     </div>
                                 </div>-->
                                 <div class="col-md-4 vertical-align">
-                                    <label class="col-md-3" for="search-status">Estado</label>
+                                    <label class="col-md-3" for="search-status">{{ 'generics.state' | i18next }}</label>
                                     <div class="col-md-9 padding-0">
                                         <select id="search-status" ng-model="$parent.searchStatus" class="form-control form-select" data-ng-options="item.value as item.label for item in status">
                                         </select>
@@ -30,16 +30,16 @@
                                 <!-- fecha desde -->
                                 <div class="item-input col-md-8 vertical-align">
                                         <div class="col-md-2 padding-0 vertical-align">
-                                            <label class="m-r-10" for="hourFrom">Fecha</label>
+                                            <label class="m-r-10" for="hourFrom">{{ 'generics.date' | i18next }}</label>
                                         </div>
                                         <div class="col-md-12 item-input ">
                                             <div class="row padding-0  m-t-0 m-b-0 "> 
 
                                                 <div class="col-md-6 item-input padding-left-0">
-                                                <input type="text" name="hourFrom" id="hourFrom" placeholder="Desde" data-datepicker-popup="dd/MM/yyyy" data-ng-model="$parent.hourFrom" data-is-open="datepickers.hourFrom" class="form-control form-select" data-datepicker-options="dateOptions" ng-blur="checkMax('hourFrom')" max-date="maxDate" data-close-text="Close"  data-ng-click="toggleDatePicker($event,'hourFrom')"  />
+                                                <input type="text" name="hourFrom" id="hourFrom" placeholder="{{ 'generics.since' | i18next }}" data-datepicker-popup="dd/MM/yyyy" data-ng-model="$parent.hourFrom" data-is-open="datepickers.hourFrom" class="form-control form-select" data-datepicker-options="dateOptions" ng-blur="checkMax('hourFrom')" max-date="maxDate" data-close-text="Close"  data-ng-click="toggleDatePicker($event,'hourFrom')"  />
                                                 </div>
                                                 <div class="col-md-6 item-input padding-right-0">
-                                                <input type="text" name="hourUntil" id="hourUntil" placeholder="Hasta" data-datepicker-popup="dd/MM/yyyy" data-ng-model="$parent.hourUntil" data-is-open="datepickers.hourUntil" class="form-control form-select" data-datepicker-options="dateOptions" ng-blur="checkMaxMin('hourUntil','hourFrom')" max-date="maxDate" min-date="minDatePed" data-close-text="Close"  data-ng-click="toggleDatePicker($event,'hourUntil')" />
+                                                <input type="text" name="hourUntil" id="hourUntil" placeholder="{{ 'generics.to' | i18next }}" data-datepicker-popup="dd/MM/yyyy" data-ng-model="$parent.hourUntil" data-is-open="datepickers.hourUntil" class="form-control form-select" data-datepicker-options="dateOptions" ng-blur="checkMaxMin('hourUntil','hourFrom')" max-date="maxDate" min-date="minDatePed" data-close-text="Close"  data-ng-click="toggleDatePicker($event,'hourUntil')" />
                                                 </div>
                                             </div>
                                         </div>
@@ -51,8 +51,8 @@
                                                                 <div class="desk-align-right inside-right">
                                                                     <span id="processingSpan" class="icon-refresh" ng-class="{'spinner': isProcessing}" data-ng-show="isProcessing"></span>
                                                                     
-                                                                    <a  title="Limpiar filtros" ng-click="cleanFilters()" ng-disabled="isProcessing"  class="cancel-link" >Limpiar</a>
-                                                                    <button id="search-button" type="submit" class="btn btn-secondary-action" data-ng-disabled="searchForm.$invalid">Buscar</button>
+                                                                    <a  title="{{ 'generics.cleanFilters' | i18next }}" ng-click="cleanFilters()" ng-disabled="isProcessing"  class="cancel-link" >{{ 'generics.clean' | i18next }}</a>
+                                                                    <button id="search-button" type="submit" class="btn btn-secondary-action" data-ng-disabled="searchForm.$invalid">{{ 'buttons.search' | i18next }}</button>
                                                                 </div>
 
                                                                
@@ -73,7 +73,7 @@
                             class="btn btn-primary-action pull-right" ng-disabled="isCourtCaseClosed()"
                             data-ng-click="goToPedigree(courtcaseId)">
                         <!-- <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> -->
-                        <span>Nuevo Pedigrí</span>
+                        <span>{{ 'pedigree.new' | i18next }}</span>
                     </button>
                 </div>
             </div>
@@ -82,14 +82,14 @@
                     <table class="table  table-bordered" >
                         <thead>
                             <tr>
-                                <th>Nombre del Pedigrí</th>
-                                <th>Fecha Creación</th>
+                                <th>{{ 'pedigree.name' | i18next }}</th>
+                                <th>{{ 'pedigree.creationDate' | i18next }}</th>
                                 <!--        <th>Probabilidad</th>-->
-                                <th>Estado</th>
-                                <th>Pedigrí</th>
-                                <th>Consistencia</th>
-                                <th>Trazabilidad</th>
-                                <th>Borrar</th>
+                                <th>{{ 'generics.state' | i18next }}</th>
+                                <th>{{ 'generics.pedigree' | i18next }}</th>
+                                <th>{{ 'pedigree.cons' | i18next }}</th>
+                                <th>{{ 'pedigree.traceability' | i18next }}</th>
+                                <th>{{ 'generics.erase' | i18next }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -103,24 +103,24 @@
                                         <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
                                     </a>
                                 </td>
-                                <td class="col-md-1 centered" title="Consistencia">
+                                <td class="col-md-1 centered" title="{{ 'pedigree.cons' | i18next }}">
                                     <button class="btn btn-default btn-link-action btn-link-border" ng-disabled="isDeleted(p)||isClosed(p)" ng-click="isDeleted(p) || goToConsistency(p.courtCaseId, p)">
                                         <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
                                     </button>
                                 </td>
-                                <td class="col-md-1 centered" title="Trazabilidad">
+                                <td class="col-md-1 centered" title="{{ 'pedigree.traceability' | i18next }}">
                                     <button class="btn btn-default btn-link-action btn-link-border" ng-click="goToTrace(p.courtCaseId, p)">
                                         <span class="glyphicon glyphicon-book" aria-hidden="true"></span>
                                     </button>
                                 </td>
-                                <td class="col-md-1 centered" title="Baja" ng-if="!(isDeleted(p) || isClosed(p) || isActive(p))">
+                                <td class="col-md-1 centered" title="{{ 'trace.delete' | i18next }}" ng-if="!(isDeleted(p) || isClosed(p) || isActive(p))">
                                     <a id="showdeleted_{{$index}}" ng-disabled="isDeleted(p) || isClosed(p) || isActive(p)"
                                     class="btn btn-default btn-link-action btn-link-border"
-                                       pdg-confirm pdg-confirm-title="Confirmar desasociar el pedigrí {{p.name}}" pdg-confirm-content="¿Está seguro de desasociar el pedigrí {{p.name}}?" param="{{p}}" pdg-on-confirm="deletePedigree">
+                                       pdg-confirm pdg-confirm-title="{{ 'alerts.pedigree.confirmSingleDisassociation' | i18next }} {{p.name}}" pdg-confirm-content="{{ 'alerts.pedigree.confirmSingleDisassociationQuestion' | i18next }} {{p.name}}?" param="{{p}}" pdg-on-confirm="deletePedigree">
                                         <span class="glyphicon glyphicon-floppy-remove" aria-hidden="true"></span>
                                     </a>
                                 </td>
-                                <td class="col-md-1 centered" title="Baja" ng-if="(isDeleted(p) || isClosed(p) || isActive(p))">
+                                <td class="col-md-1 centered" title="{{ 'trace.delete' | i18next }}" ng-if="(isDeleted(p) || isClosed(p) || isActive(p))">
                                     <a id="showdeleted2_{{$index}}" ng-disabled="isDeleted(p) || isClosed(p) || isActive(p)"
                                        class="btn btn-default btn-link-action btn-link-border"
                                        href="" >

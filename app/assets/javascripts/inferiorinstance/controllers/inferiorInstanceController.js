@@ -38,11 +38,11 @@ define([], function() {
             return inferiorInstanceService.getConnectionStatus(url).then(function() {
                 $scope.isProcessing = false;
                 if(showMsg){
-                    alertService.success({message: 'Se conecta correctamente'});
+                    alertService.success({message: $.i18n.t('alerts.connect.success')});
                 }
                 for(var i = 0; i < $scope.inferiorInstances.length; i++) {
                     if($scope.inferiorInstances[i].url===url){
-                        $scope.setConnectivity("Operativa",i);
+                        $scope.setConnectivity($.i18n.t('generics.operative'),i);
                     }
                 }
             }, function(response) {
@@ -52,16 +52,16 @@ define([], function() {
                 }
                 for(var i = 0; i < $scope.inferiorInstances.length; i++) {
                     if($scope.inferiorInstances[i].url===url){
-                        $scope.setConnectivity("No Operativa",i);
+                        $scope.setConnectivity($.i18n.t('generics.nonOperative'),i);
                     }
                 }
             });
         };
         $scope.getConnectivity = function(url) {
             inferiorInstanceService.getConnectionStatus(url).then(function() {
-                return "Operativa";
+                return $.i18n.t('generics.operative');
             }, function() {
-                return "No operativa";
+                return $.i18n.t('generics.nonOperative');
             });
         };
         $scope.aprobar = function(id){
@@ -97,12 +97,12 @@ define([], function() {
         };
         $scope.callBackChangeStatusSuccess = function() {
 
-            alertService.success({message: 'Se ha guardado correctamente'});
+            alertService.success({message: $.i18n.t('alerts.connect.saveSuccess')});
 
         };
         $scope.callBackChangeStatusError = function() {
 
-            alertService.error({message: 'No se pudo conectar js'});
+            alertService.error({message: $.i18n.t('alerts.connect.jsFail')});
 
         };
         $scope.init();

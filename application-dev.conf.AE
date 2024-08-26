@@ -1,0 +1,54 @@
+include "application.conf"
+
+# overwrites conf/storage.conf
+
+# LDAP 
+ldap {
+  default {
+    url = "genis_ldap"
+    port = 1389
+    adminPassword="adminp"	
+  }
+}
+
+# Pgsql
+db {
+  default {
+    url = "jdbc:postgresql://genis_postgres:5432/genisdb"
+    user = "genissqladmin"
+    password = "genissqladminp"
+  }  
+  logDb {
+    url = "jdbc:postgresql://genis_postgres:5432/genislogdb"
+    user= "genissqladmin"
+    password = "genissqladminp"
+  }
+}
+
+# mongodb
+mongodb {
+  uri = "mongodb://genis_mongo:27017/pdgdb"
+}
+
+# overwrites conf/genis-misc.conf
+
+# the laboratory that owns the system must be defined for instance
+laboratory {
+  country = AE
+  province = D
+  code = MYLAB
+}
+
+# exports
+exportProfilesPath="/home/genis-user/profiles/"
+limsArchivesPath = "/home/genis-user/LIMSFiles"
+
+# overwrites conf/interconnect.conf
+
+instanceInterconnection {
+  # local url
+  localUrl="192.168.5.148:9000"
+  retryInterval = "300 seconds"
+}
+# local admin user
+defaultAssignee = "setup"

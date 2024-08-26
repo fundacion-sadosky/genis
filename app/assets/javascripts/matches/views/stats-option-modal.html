@@ -4,16 +4,16 @@
 
     <div ng-if="!mix">
         <div class="row">
-            <span class="bold" style="padding-left: 30px">Muestra:</span>
+            <span class="bold" style="padding-left: 30px">{{ 'generics.sample' | i18next }}:</span>
             {{scenario.sample}}
         </div>
         <div class="row">
-            <span class="bold" style="padding-left: 30px">Hipótesis 1:</span>
+            <span class="bold" style="padding-left: 30px">{{ 'generics.hypothesis' | i18next }} 1:</span>
             {{printableProsecutor}}
         </div>
 
         <div class="row">
-            <span class="bold" style="padding-left: 30px">Hipótesis 2:</span>
+            <span class="bold" style="padding-left: 30px">{{ 'generics.hypothesis' | i18next }} 2:</span>
             {{printableDefense}}
         </div>
     </div>
@@ -21,6 +21,6 @@
 
 <div class="modal-footer">
 	<button class="btn btn-success" 
-		data-ng-click="getRandomMatchProbabilitiesByLocus(selectedOptions.frequencyTable, selectedOptions.probabilityModel, selectedOptions.theta, selectedOptions.dropIn, selectedOptions.dropOut)">Calcular</button>
-   	<button class="btn btn-success" data-ng-click="closeStatModal()">Cerrar</button>
+		data-ng-click="getRandomMatchProbabilitiesByLocus(selectedOptions.frequencyTable, selectedOptions.probabilityModel, selectedOptions.theta, selectedOptions.dropIn, selectedOptions.dropOut)">{{ 'buttons.calculate' | i18next }}</button>
+   	<button class="btn btn-success" data-ng-click="closeStatModal()">{{ 'buttons.close' | i18next }}</button>
 </div>

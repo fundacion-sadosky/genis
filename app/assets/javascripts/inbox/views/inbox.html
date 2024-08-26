@@ -23,7 +23,7 @@
             <div class="row">
             <div class="content m-t-10 padding-0">
 
-                <div data-ng-show="noResult && !isProcessing">No se encontraron datos según su busqueda</div>
+                <div data-ng-show="noResult && !isProcessing">{{ 'generics.noResult' | i18next }}</div>
 
                 <div data-ng-show="!noResult"  name="{{'notification_' + m.globalCode}}">
                     <table class="table inbox-table">
@@ -31,13 +31,13 @@
                         <th style="width:1%"></th>
                         <th></th>
                         <th style="width: 15%">
-                            <a href="" ng-click="sortBy('date')">Fecha
+                            <a href="" ng-click="sortBy('date')">{{ 'generics.date' | i18next }}
                                 <span ng-show="sortField == 'date'" class="caret" ng-class="{'caret-reversed': !ascending}"></span></a>
                         </th>
-                        <th>Tipo</th>
-                        <th>Descripción</th>
+                        <th>{{ 'generics.type' | i18next }}</th>
+                        <th>{{ 'generics.description' | i18next }}</th>
                         <th style="padding: 0px">
-                            <a  title="Borrar seleccionados"  ng-click="deleteSelected()" help-tip="inbox.delete" help-tip-placement="top"  class="cancel-link" >Borrar seleccionados</a>
+                            <a  title="Borrar seleccionados"  ng-click="deleteSelected()" help-tip="inbox.delete" help-tip-placement="top"  class="cancel-link" >{{ 'inbox.delete' | i18next }}</a>
 
 
                         </th>

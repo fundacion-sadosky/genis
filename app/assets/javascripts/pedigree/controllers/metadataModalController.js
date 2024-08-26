@@ -46,11 +46,11 @@ define(['angular'], function(angular) {
             }
 
             if(max-aux < 0 ){
-                alertService.error({message: 'La fecha debe ser anterior a la actual.'});
+                alertService.error({message: $.i18n.t('alerts.date.before')});
                 $scope.metadataProfile[fieldName] = undefined;
             }else{
                 if( min-aux > 0 ){
-                    alertService.error({message: 'La fecha  debe ser posterior al nacimiento.'});
+                    alertService.error({message: $.i18n.t('alerts.date.afterBirth')});
                     $scope.metadataProfile[fieldName] = undefined;
                 }
             }
@@ -62,7 +62,7 @@ define(['angular'], function(angular) {
             var today = new Date();
 
             if(today-aux < 0 ){
-                alertService.error({message: 'La fecha debe ser anterior a la actual.'});
+                alertService.error({message: $.i18n.t('alerts.date.before')});
                 $scope.metadataProfile[fieldName] = undefined;
             }else{
                 if(fieldName === 'dateOfBirthFrom' || fieldName === 'dateOfBirth' ){
@@ -78,7 +78,7 @@ define(['angular'], function(angular) {
             var today = new Date();
 
             if(today-aux > 0){
-                alertService.error({message: 'La fecha debe ser posterior a la actual.'});
+                alertService.error({message: $.i18n.t('alerts.date.afterNow')});
                 $scope.metadataProfile[fieldName] = undefined;
             }
         };
@@ -90,7 +90,7 @@ define(['angular'], function(angular) {
             var min = $scope.metadataProfile[fechaMin];
 
             if(min -aux < 0 && min !== null){
-                alertService.error({message: 'La fecha es posterior a la desaparición.'});
+                alertService.error({message: $.i18n.t('alerts.date.afterDisappearance')});
                 $scope.metadataProfile[fieldName] = undefined;
             }
         };

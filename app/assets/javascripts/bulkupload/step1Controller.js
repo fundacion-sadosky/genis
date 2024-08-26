@@ -87,7 +87,7 @@ define(['lodash'], function(_) {
                     $scope.isProcessing = false;
 			}, function(response) {
 				if (response.status > 0){
-					alertService.error({message: ((response.data && response.data.message)? response.data.message: 'Hubo un error, por favor verifique el log')});
+					alertService.error({message: ((response.data && response.data.message)? response.data.message: $.i18n.t('alerts.bulk.errorVerifyLog') )});
 //					alert(response.status + ': ' + response.data);
 				}
 				$scope.isProcessing = false;
@@ -157,19 +157,19 @@ define(['lodash'], function(_) {
 		
 		$scope.approve = function(sample, batchId) {
 			updateStatus(sample, 'Approved', batchId).then(function() {
-                alertService.success({message: 'Se ha realizado el cambio de estado satisfactoriamente'});
+                alertService.success({message: $.i18n.t('alerts.bulk.stateUpdated')});
                 sample.selected = false;
             }, function(response) {
-                alertService.error({message: 'Hubo un error: ' + response.toString()});
+                alertService.error({message: $.i18n.t('error.common4') + ' ' + response.toString()});
             });
 		};
 		
 		$scope.disapprove = function(sample, batchId) {
 			updateStatus(sample, 'Disapproved', batchId).then(function() {
-                alertService.success({message: 'Se ha realizado el cambio de estado satisfactoriamente'});
+                alertService.success({message: $.i18n.t('alerts.bulk.stateUpdated')});
                 sample.selected = false;
             }, function(response) {
-                alertService.error({message: 'Hubo un error: ' + response.toString()});
+                alertService.error({message: $.i18n.t('error.common4') + ' ' + response.toString()});
             });
 		};
 		
@@ -203,7 +203,7 @@ define(['lodash'], function(_) {
 								
 					$scope.edit = '';
 				}, function(response) {
-                    alertService.error({message: 'Hubo un error: ' + response.data.message});
+                    alertService.error({message: $.i18n.t('error.common4') + ' ' + response.data.message});
                 });
 				
 				
@@ -216,11 +216,11 @@ define(['lodash'], function(_) {
             bulkuploadService.changeBatchStatus(batch.id, 'Approved').then(function() {
                 $scope.isProcessing = false;
                 getBatchProtoProfiles(batch.id, batch.page, batch.pageSize);
-                alertService.success({message: 'Se ha aprobado el lote exitosamente.'});
+                alertService.success({message: $.i18n.t('alerts.bulk.batchApproved')});
             }, function(response) {
                 $scope.isProcessing = false;
                 getBatchProtoProfiles(batch.id, batch.page, batch.pageSize);
-                alertService.error({message: 'Hubo un error: ' + response.data});
+                alertService.error({message: $.i18n.t('error.common4') + ' ' + response.data});
             });
 		};
 
@@ -229,10 +229,10 @@ define(['lodash'], function(_) {
             bulkuploadService.deleteBatch(batch.id).then(function() {
                 $scope.isProcessing = false;
                 getAllBatches();
-                alertService.success({message: 'Se ha eliminado el lote.'});
+                alertService.success({message: $.i18n.t('alerts.bulk.batchDeleted')});
             }, function(response) {
                 $scope.isProcessing = false;
-                alertService.error({message: 'Hubo un error: ' + response.data.message});
+                alertService.error({message: $.i18n.t('error.common4') + ' ' + response.data.message});
             });
         };
         $scope.doDeleteBatch = function (confirmRes,batch) {
@@ -251,9 +251,9 @@ define(['lodash'], function(_) {
                 }
             });
             $q.all(promises).then(function() {
-                alertService.success({message: 'Se ha realizado el cambio de estado satisfactoriamente'});
+                alertService.success({message: $.i18n.t('alerts.bulk.stateUpdated')});
             }, function(response) {
-                alertService.error({message: 'Hubo un error: ' + response.toString()});
+                alertService.error({message: $.i18n.t('error.common4') + ' ' + response.toString()});
             });
         };
 		

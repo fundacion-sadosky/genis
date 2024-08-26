@@ -1,7 +1,7 @@
 <div ng-controller="geneticistsController" class="">
     <div class="row m-t-10 m-b-10">
         <div class="col-md-12 m-t-10 padding-0">
-            <label for="laboratory_id">Laboratorio</label>
+            <label for="laboratory_id">{{ 'generics.laboratory' | i18next }}</label>
             <select id="laboratory_id"
                     data-ng-model="selected.laboratory" class="m-t-10 form-control form-select"
                     data-ng-change="giveGeneticist(selected.laboratory)"
@@ -14,11 +14,11 @@
     <table class="table table-bordered">
         <thead>
         <tr>
-            <th>Nombre y Apellido</th>
-            <th>Laboratorio</th>
-            <th>Email</th>
-            <th>Telefono</th>
-            <th>Modificar</th>
+            <th>{{ 'generics.nameAndLastName' | i18next }}</th>
+            <th>{{ 'generics.laboratory' | i18next }}</th>
+            <th>{{ 'generics.email' | i18next }}</th>
+            <th>{{ 'generics.phone' | i18next }}</th>
+            <th>{{ 'generics.modify' | i18next }}</th>
         </tr>
         </thead>
         <tbody>

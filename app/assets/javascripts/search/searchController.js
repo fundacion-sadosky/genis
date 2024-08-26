@@ -156,13 +156,13 @@ function searchController($scope, $log, profiledataService, searchService, $moda
 
 		profiledataService.deleteProfile($scope.pdToDeleted.globalCode, deletedRequest).then(
 			function(){
-				alertService.success({message: 'La operación se realizó exitosamente'});
+				alertService.success({message: $.i18n.t('alerts.genericSuccess.operation2')});
 				$scope.closeModal();
 				$scope.pdToDeleted.deleted = true;
 			},
 			function(response) {
                 if (response.status !== 499) {
-                    alertService.error({message: 'Ha ocurrido un error ' + response.data.message});
+                    alertService.error({message: $.i18n.t('error.common4') + response.data.message});
                     $scope.closeModal();
                     $scope.pdToDeleted.deleted = false;
                 }
@@ -177,7 +177,7 @@ function searchController($scope, $log, profiledataService, searchService, $moda
 
 	$scope.allowManualLoading = function(pd) {
 
-		console.log('Categoria del perfil: ' + pd.category);
+		console.log($.i18n.t('generics.category') +': ' + pd.category);
 		if( pd && pd.category ){
 			for(var i in $scope.categories){
 				if( $scope.categories[i].id === pd.category ){

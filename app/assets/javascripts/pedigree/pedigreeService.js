@@ -14,9 +14,9 @@ var PedigreeService = function(playRoutes, userService) {
 	this.defaultPedigree = function() {
 		return {
 			_id: "0",
-			genogram: [{alias: "PI1", sex: 'Unknown', unknown: true, idMother: "Madre", idFather: "Padre"},
-				{alias: "Madre", sex: 'Female', unknown: false},
-				{alias: "Padre", sex: 'Male', unknown: false}],
+			genogram: [{alias: "PI1", sex: 'Unknown', unknown: true, idMother: $.i18n.t('generics.mother'), idFather: $.i18n.t('generics.father')},
+				{alias: $.i18n.t('generics.mother'), sex: 'Female', unknown: false},
+				{alias: $.i18n.t('generics.father'), sex: 'Male', unknown: false}],
 			status: 'UnderConstruction',
 			boundary: 1000
 		};

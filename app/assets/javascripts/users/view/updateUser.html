@@ -6,7 +6,7 @@
         <div class="row">
             <div class="col-md-6">
                 <div class="item-input" style="margin-bottom: 0">
-                    <label for="signupName">Nombre<span class="field-obligated">*</span></label>
+                    <label for="signupName">{{ 'generics.name' | i18next }}<span class="field-obligated">*</span></label>
                     <input id="signupName" name="name"
                            class="form-control login-input form-select" type="text"
                            ng-model="selectedUser.firstName" autocomplete="off" required />
@@ -15,7 +15,7 @@
             </div>
             <div class="col-md-6">
                 <div class="item-input" style="margin-bottom: 0">
-                    <label for="signupLastname">Apellido<span class="field-obligated">*</span></label>
+                    <label for="signupLastname">{{ 'generics.lastName' | i18next }}<span class="field-obligated">*</span></label>
                     <input id="signupLastname" name="lastName"
                            class="form-control login-input form-select" type="text"
                            ng-model="selectedUser.lastName" autocomplete="off" required />
@@ -40,7 +40,7 @@
             </div>
             <div class="col-md-6">
                 <div class="item-input" style="margin-bottom: 0">
-                    <label for="signupGeneMapperId">Usuario GeneMapper<span class="field-obligated">*</span></label>
+                    <label for="signupGeneMapperId">{{ 'user.geneMapper' | i18next }}<span class="field-obligated">*</span></label>
                     <input id="signupGeneMapperId" name="geneMapper"
                            class="form-control login-input form-select" type="text"
                            ng-model="selectedUser.geneMapperId" autocomplete="off" required />
@@ -56,7 +56,7 @@
             </div>
             <div class="col-md-6">
                 <div class="item-input" style="margin-bottom: 0">
-                    <label for="signupPhone1">Teléfono<span class="field-obligated">*</span></label>
+                    <label for="signupPhone1">{{ 'generics.phone' | i18next }}<span class="field-obligated">*</span></label>
                     <input id="signupPhone1" name="phone"
                            class="form-control login-input form-select" type="text"
                            ng-model="selectedUser.phone1" autocomplete="off" required
@@ -65,7 +65,7 @@
             </div>
             <div class="col-md-6">
                 <div class="item-input" style="margin-bottom: 0">
-                    <label for="signupPhone2">Teléfono móvil o celular</label>
+                    <label for="signupPhone2">{{ 'generics.cellphone' | i18next }}</label>
                     <input id="signupPhone2" name="cellPhone"
                            class="form-control login-input form-select" type="text"
                            ng-model="selectedUser.phone2" autocomplete="off"
@@ -81,12 +81,12 @@
                 </div>
             </div>
             <div class="col-md-12 item-input">
-                <label for="superusuari_ID">Superusuario</label>
+                <label for="superusuari_ID">{{ 'user.super' | i18next }}</label>
                 <input id="superusuari_ID" type="checkbox" ng-model="selectedUser.superuser" style="width:5%;display:inline; height: 1em; margin-top: 0; vertical-align: middle;" >
             </div>
             <div class="col-md-12">
                 <div class="item-input">
-                    <label>Roles</h6>
+                    <label>{{ 'configuration.security.roles' | i18next }}</h6>
                         <fieldset data-ng-repeat="role in roles">
                             <label class="checkbox-inline">
                                 <input type="checkbox" checklist-model="selectedUser.roles"
@@ -102,10 +102,10 @@
 </div>
 <div class="modal-footer">
     <div class="btn btn-link-action" ng-click="closeModal()">
-        <span title="Cerrar">
+        <span title="{{ 'buttons.close' | i18next }}">
             <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
         </span>
-        <span class="btn-link-action">Cerrar</span>
+        <span class="btn-link-action">{{ 'buttons.close' | i18next }}</span>
     </div>
-	<button id="saveUpd" type="button" class="btn btn-primary-action" data-ng-click="updateUser()" ng-disabled="updateUserForm.$invalid">Guardar</button>
+	<button id="saveUpd" type="button" class="btn btn-primary-action" data-ng-click="updateUser()" ng-disabled="updateUserForm.$invalid">{{ 'buttons.save' | i18next }}</button>
 </div>

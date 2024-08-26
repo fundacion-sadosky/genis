@@ -14,15 +14,15 @@ case class PedigreeMatchInfo(
   pedigreeName:Option[String] = None) extends TraceInfo with PedigreeMatchActionInfo {
   override val kind = TraceType.pedigreeMatch
   val matchTypeDescription = matchType match {
-    case MatchTypeInfo.Insert => "Generación"
-    case MatchTypeInfo.Update => "Actualización"
-    case MatchTypeInfo.Delete => "Baja"
+    case MatchTypeInfo.Insert => "Generation"
+    case MatchTypeInfo.Update => "Update"
+    case MatchTypeInfo.Delete => "Deletion"
   }
 
   override val description = if(courtCase.isDefined && pedigreeName.isDefined)
-    s"$matchTypeDescription de coincidencia con el pedigrí ${pedigreeName.get} del caso ${courtCase.get}"
+    s"$matchTypeDescription of match in pedigree ${pedigreeName.get} of case ${courtCase.get}"
   else {
-    s"$matchTypeDescription de coincidencia con el pedigrí $pedigree"
+    s"$matchTypeDescription dof match with pedigree $pedigree"
   }
 }
 
@@ -34,8 +34,8 @@ case class PedigreeDiscardInfo(matchId: String,
   pedigreeName:Option[String] = None) extends TraceInfo with PedigreeMatchActionInfo {
   override val kind = TraceType.pedigreeDiscard
   override val description = if(courtCase.isDefined && pedigreeName.isDefined)
-    s"Descarte del match del pedigrí ${pedigreeName.get} del caso ${courtCase.get}"
-  else {s"Descarte del match del pedigrí $pedigree cuyo responsable es $user."}
+    s"Discard of match in pedigree ${pedigreeName.get} of case ${courtCase.get}"
+  else {s"Discard of match in pedigree $pedigree whose responsible is $user."}
 }
 
 case class PedigreeConfirmInfo(matchId: String,
@@ -46,8 +46,8 @@ case class PedigreeConfirmInfo(matchId: String,
                                 pedigreeName:Option[String] = None) extends TraceInfo with PedigreeMatchActionInfo {
   override val kind = TraceType.pedigreeConfirm
   override val description = if(courtCase.isDefined && pedigreeName.isDefined)
-    s"Confirmación del match del pedigrí ${pedigreeName.get} del caso ${courtCase.get}"
-  else {s"Confirmación del match del pedigrí $pedigree cuyo responsable es $user."}
+    s"Pedigree math confirmation ${pedigreeName.get} of case ${courtCase.get}"
+  else {s"Pedigree math confirmation $pedigree whose responsible is $user."}
 }
 
 case class PedigreeMatchInfo2(matchId: String,
@@ -57,11 +57,11 @@ case class PedigreeMatchInfo2(matchId: String,
                               matchType: MatchTypeInfo.Value) extends TraceInfo with PedigreeMatchActionInfo {
   override val kind = TraceType.pedigreeMatch2
   val matchTypeDescription = matchType match {
-    case MatchTypeInfo.Insert => "Generación"
-    case MatchTypeInfo.Update => "Actualización"
-    case MatchTypeInfo.Delete => "Baja"
+    case MatchTypeInfo.Insert => "Generation"
+    case MatchTypeInfo.Update => "Update"
+    case MatchTypeInfo.Delete => "Deletion"
   }
-  override val description = s"$matchTypeDescription de coincidencia con el perfil $profile."
+  override val description = s"$matchTypeDescription of match with profile $profile."
 }
 
 case class PedigreeDiscardInfo2(matchId: String,
@@ -70,7 +70,7 @@ case class PedigreeDiscardInfo2(matchId: String,
                                 user: String,
                                 analysisType: Int) extends TraceInfo with PedigreeMatchActionInfo {
   override val kind = TraceType.pedigreeDiscard2
-  override val description = s"Descarte del match con el perfil $profile."
+  override val description = s"Discard of match with profile $profile."
 }
 
 case class PedigreeConfirmInfo2(matchId: String,
@@ -79,5 +79,5 @@ case class PedigreeConfirmInfo2(matchId: String,
                                 user: String,
                                 analysisType: Int) extends TraceInfo with PedigreeMatchActionInfo {
   override val kind = TraceType.pedigreeConfirm2
-  override val description = s"Confirmación del match con el perfil $profile."
+  override val description = s"Confirmation of match with profile $profile."
 }

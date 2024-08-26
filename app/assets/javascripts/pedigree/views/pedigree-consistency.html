@@ -9,7 +9,7 @@
                             <span  class="icon-atras" title="Volver"></span>
                         </div>
                     </li>
-                    <li class="active">Consistencia de Pedigrí</li>
+                    <li class="active">{{ 'pedigree.consistency.title' | i18next }}</li>
                 </ol>
 			</div>
 		</div>
@@ -19,9 +19,9 @@
 
 <div class="row text-right scenario-separator content">
 <div class="col-md-pull-12 " style="margin-top: 37px;">
-    <span ng-show="consistencyRun && isConsistent" class="pull-left"><b>Estado:</b> Consistente</span>
-    <span ng-show="consistencyRun && !isConsistent" class="pull-left"><b>Estado:</b> Inconsistente</span>
-    <button data-ng-disabled="isProcessing || consistencyRun" ng-click="chequearConsistencia()" class="btn btn-primary-action pull-right">Chequear Consistencia</button>
+    <span ng-show="consistencyRun && isConsistent" class="pull-left"><b>{{ 'generics.state' | i18next }}:</b> {{ 'pedigree.consistency.consistent' | i18next }}</span>
+    <span ng-show="consistencyRun && !isConsistent" class="pull-left"><b>{{ 'generics.state' | i18next }}:</b> {{ 'pedigree.consistency.inconsistent' | i18next }}</span>
+    <button data-ng-disabled="isProcessing || consistencyRun" ng-click="chequearConsistencia()" class="btn btn-primary-action pull-right">{{ 'pedigree.consistency.check' | i18next }}</button>
 </div>
 <div id="genogram" class="genogram" style="margin-top: 75px;margin-bottom: 70px;"></div>
 
@@ -58,7 +58,7 @@
 <footer>
 <div class="desk-align-right inside-right">
 <span data-ng-show="isProcessing" >
-    <p class="italic bold">Este pedigrí se encuentra ejecutando el proceso de consistencia</p>
+    <p class="italic bold">{{ 'pedigree.consistency.processing' | i18next }}</p>
     <span id="processingSpan" class="icon-refresh" ng-class="{'spinner': isProcessing}" data-ng-show="isProcessing"></span>
 </span>
 </div>

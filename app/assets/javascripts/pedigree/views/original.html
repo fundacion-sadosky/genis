@@ -5,10 +5,10 @@
             <thead>
             <tr>
                 <th><input type="checkbox" ng-model="selection.allSelected" ng-change="changeAllSelection(selection.allSelected)" /></th>
-                <th>Alias</th>
-                <th>Padre</th>
-                <th>Madre</th>
-                <th widht="10%">Sexo</th>
+                <th>{{ 'generics.alias' | i18next }}</th>
+                <th>{{ 'generics.father' | i18next }}</th>
+                <th>{{ 'generics.mother' | i18next }}</th>
+                <th widht="10%">{{ 'generics.sex' | i18next }}</th>
                 <th>?</th>
                 <th></th>
                 <th ng-if="isEditable()"></th>
@@ -144,21 +144,21 @@
             </tbody>
         </table>
         <button type="button" class="btn btn-secondary-action" style="width: 100%;" ng-if="canCreateScenarios()"
-                ng-disabled="noSelected()" data-ng-click="createScenario()">Nuevo escenario</button>
+                ng-disabled="noSelected()" data-ng-click="createScenario()">{{ 'buttons.newScenario' | i18next }}</button>
     </div>
     <div class="col-md-7 ">
         <div id="genogram" class="genogram"></div>
         <span >
-         <h6>Para seleccionar mas de un nodo presionar las teclas Ctrl + click. Para borrar los nodos seleccionados presionar las teclas Ctrl + Supr</h6>
+         <h6>{{ 'pedigree.mode.node' | i18next }}</h6>
         </span>
     </div>
 </div>
 
 <footer class="pedigree-genogram-footer">
     <div class="desk-align-right inside-right">
-        <p ng-if="isEditable()" class="italic bold">Este pedigrí se encuentra en modo construcción, por lo tanto no participa de las búsquedas.</p>
+        <p ng-if="isEditable()" class="italic bold">{{ 'pedigree.mode.construction' | i18next }}</p>
         <span ng-if="!pedigree.processed && isActive()" >
-            <p class="italic bold">Este pedigrí se encuentra ejecutando el proceso de match por compatibilidad.</p>
+            <p class="italic bold">{{ 'pedigree.mode.active' | i18next }}</p>
             <span id="processingSpan" class="icon-refresh" ng-class="{'spinner': !pedigree.processed}" data-ng-show="!pedigree.processed"></span>
         </span>
 
@@ -166,17 +166,17 @@
 
         <div class="btn btn-link-action" ng-click="cancel()">
             <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
-            <span class="btn-link-action">Cancelar</span>
+            <span class="btn-link-action">{{ 'buttons.cancel' | i18next }}</span>
         </div>
 
         <button type="button" class="btn btn-primary-action" ng-if="isEditable()" data-ng-disabled="!hasName()"
-                data-ng-click="save()">Guardar</button>
+                data-ng-click="save()">{{ 'buttons.save' | i18next }}</button>
 
         <button type="button" class="btn btn-secondary-action"
-                ng-if="exists && isEditable()" data-ng-click="activate()">Activar</button>
+                ng-if="exists && isEditable()" data-ng-click="activate()">{{ 'buttons.activate' | i18next }}</button>
         <button type="button" class="btn btn-primary-action"
-                ng-if="exists && isActive() && !validated" data-ng-disabled="!pedigree.processed" data-ng-click="deactivate()">Editar</button>
+                ng-if="exists && isActive() && !validated" data-ng-disabled="!pedigree.processed" data-ng-click="deactivate()">{{ 'buttons.edit' | i18next }}</button>
         <button type="button" class="btn btn-secondary-action"
-                ng-if="exists && isActive() && !validated" data-ng-disabled="!pedigree.processed" data-ng-click="closePedigree()">Cerrar</button>
+                ng-if="exists && isActive() && !validated" data-ng-disabled="!pedigree.processed" data-ng-click="closePedigree()">{{ 'buttons.close' | i18next }}</button>
     </div>
 </footer>

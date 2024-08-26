@@ -24,7 +24,7 @@ define(['angular'], function(angular) {
                 },
                 function(response) {
                     $log.log(response);
-                    alertService.error({message: 'Han ocurrido errores. ' + response.data.join('. ')});
+                    alertService.error({message: $.i18n.t('error.commonPlural') + response.data.join('. ')});
                 });
         };
         
@@ -75,7 +75,7 @@ define(['angular'], function(angular) {
                     });
                 },
                 function() {
-                    alertService.error({message: 'Ha ocurrido un error'});
+                    alertService.error({message: $.i18n.t('error.common2')});
                 });
         };
 
@@ -103,7 +103,7 @@ define(['angular'], function(angular) {
         }
 
         var errorImagePost=function(){
-            $log.log('error al mandar las imagenes');
+            $log.log($.i18n.t('alerts.image.sentError'));
         };
 
         resourcesHelper.getFilesId().then(
@@ -117,9 +117,9 @@ define(['angular'], function(angular) {
         $scope.addElectropherograms = function(idAnalysis,name){
             profileService.addElectropherograms(filesId, $scope.currentGlobalCode, idAnalysis,name).then(function(response) {
                 if (response.data) {
-                    alertService.error({message: 'Error guardando las imagenes ' + response.data});
+                    alertService.error({message: $.i18n.t('alerts.image.saveError') + response.data});
                 } else {
-                    alertService.success({message: 'Se insertaron las nuevas imagenes'});
+                    alertService.success({message:  $.i18n.t('alerts.image.insert')});
                 }
             });
         };

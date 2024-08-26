@@ -34,7 +34,7 @@ define(['lodash'], function(_) {
             req.parameters = [];
             mutationModelService.updateMutationModel(req).then(function() {
             }, function() {
-                alertService.error({message: 'Error'});
+                alertService.error({message:  $.i18n.t('error.common')});
             });
         };
         $scope.doUpdate = function(mutationModel){

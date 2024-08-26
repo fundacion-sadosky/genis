@@ -9,12 +9,12 @@
             <form-validation input="locusForm.lociId" max="50"></form-validation>
         </div>
         <div class="col-md-3">
-            <label for="lociName-id">Nombre<span class="field-obligated">*</span></label>
+            <label for="lociName-id">{{ 'generics.name' | i18next }}<span class="field-obligated">*</span></label>
             <input id="lociName-id" type="text" class="form-control form-select" name="lociName" data-ng-model="full.locus.name" required ng-maxlength="100" />
             <form-validation input="locusForm.lociName" max="100"></form-validation>
         </div>
         <div class="col-md-2">
-            <label for="lociCromo-id" help-tip="locus.add.chromosome" help-tip-placement="left">Cromosoma</label>
+            <label for="lociCromo-id" help-tip="locus.add.chromosome" help-tip-placement="left">{{ 'generics.chromosome' | i18next }}</label>
             <input id="lociCromo-id" type="text" class="form-control form-select" name="lociChromosome"
                    data-ng-model="full.locus.chromosome"
                    data-ng-change="resetLinks()"
@@ -22,21 +22,21 @@
                 <form-validation input="locusForm.lociChromosome" pattern="1-22|X|Y|XY|MT"></form-validation>
         </div>
         <div class="col-md-4">
-            <label for="newElement" help-tip="aliases" help-tip-placement="top">Alias</label>
-            <tags-input class="tags-input" ng-model="full.alias" placeholder="Ingrese un alias"></tags-input>
+            <label for="newElement" help-tip="aliases" help-tip-placement="top">{{ 'generics.alias' | i18next }}</label>
+            <tags-input class="tags-input" ng-model="full.alias" placeholder="{{ 'locus.add.alias.add' | i18next }}"></tags-input>
         </div>
     </div>
 
     <div class="locus-section-big">
 
         <div class="locus-section col-md-12">
-            <h5>Configuración</h5>
+            <h5>{{ 'generics.configuration' | i18next }}</h5>
 
             <div class="row" style="margin-top: 20px;">
                 <div class="col-md-4 padding-0">
                     <div class="col-md-8">
                         <label help-tip="locus.add.minimumAllelesQty" help-tip-placement="top" for="lociMinimum-id">
-                            Mínima cantidad de alelos<span class="field-obligated">*</span></label>
+                            {{ 'locus.helpTip.minimumAlleles' | i18next }}<span class="field-obligated">*</span></label>
                     </div>
                     <div class="col-md-3 padding-left-0">
                         <input name="lociMinimum" type="number" min="1" max="10" step="1"
@@ -47,7 +47,7 @@
                 <div class="col-md-4 padding-0">
                     <div class="col-md-8">
                         <label help-tip="locus.add.maximumAllelesQty" help-tip-placement="top" for="loci-maximum">
-                            Máxima cantidad de alelos<span class="field-obligated">*</span></lable>
+                            {{ 'locus.helpTip.maximumAlleles' | i18next }}<span class="field-obligated">*</span></lable>
                     </div>
                     <div class="col-md-3 padding-left-0">
                         <input id="loci-maximum" name="lociMaximum" type="number" min="1" max="10" step="1"
@@ -57,7 +57,7 @@
                 </div>
                 <div class="col-md-4 padding-0">
                     <div class="col-md-5">
-                        <label for="loci-type">Tipo de análisis<span class="field-obligated">*</span></label>
+                        <label for="loci-type">{{ 'generics.analysisType' | i18next }}<span class="field-obligated">*</span></label>
                     </div>
                     <div class="col-md-7">
                         <select id="loci-type" data-ng-model="full.locus.analysisType" required
@@ -70,7 +70,7 @@
             <div class="row">
                 <div class="col-md-4 padding-0">
                     <div class="col-md-3">
-                        <label for="requiered-id">Requerido</label>
+                        <label for="requiered-id">{{ 'locus.label.required' | i18next }}</label>
                     </div>
                     <div class="col-md-2">
                         <input type="checkbox" ng-model="full.locus.required" id="requiered-id">
@@ -80,7 +80,7 @@
                 </div>
                 <div class="col-md-4 padding-0" ng-hide="full.locus.chromosome=='XY' || full.locus.chromosome=='MT' || !full.locus.chromosome">
                     <div class="col-md-8">
-                        <label for="minAlleleValue">Valor alelo mínimo</label
+                        <label for="minAlleleValue">{{ 'locus.label.minAlleleValue' | i18next }}</label
                     <div class="col-md-3 padding-left-0">
                         <input name="minAlleleValue" id="minAlleleValue" ng-required="full.locus.chromosome!=='XY' && full.locus.chromosome!=='MT' && full.locus.chromosome" class="form-control form-select " type="number" min="0" step="1" max="99" ng-pattern="/^\d*(\.[1-9]{1,1})?$/" data-ng-model="full.locus.minAlleleValue" />
 
@@ -88,7 +88,7 @@
                 </div>
                 <div class="col-md-4 padding-0" ng-hide="full.locus.chromosome=='XY' || full.locus.chromosome=='MT' || !full.locus.chromosome">
                     <div class="col-md-8">
-                        <label for="maxAlleleValue">Valor alelo máximo</label>
+                        <label for="maxAlleleValue">{{ 'locus.label.maxAlleleValue' | i18next }}</label>
                     </div>
                     <div class="col-md-3 padding-left-0">
                         <input name="maxAlleleValue" id="maxAlleleValue" ng-required="full.locus.chromosome!=='XY' && full.locus.chromosome!=='MT' && full.locus.chromosome" class="form-control form-select" type="number"  min="{{full.locus.minAlleleValue}}" step="1" max="99" ng-pattern="/^\d*(\.[1-9]{1,1})?$/" data-ng-model="full.locus.maxAlleleValue" />
@@ -132,7 +132,7 @@
             <div class="locus-section">
 
                 <div class="col-md-1 padding-0">
-                    <h5>Ligar</h5>
+                    <h5>{{ 'locus.links.add' | i18next }}</h5>
                 </div>
 
                 <div class="col-md-5">
@@ -142,7 +142,7 @@
                             <tr ng-repeat="link in full.links">
                                 <td style="width: 50%">{{link.locus}}</td>
                                 <td style="width: 25%">Factor: {{link.factor}}</td>
-                                <td style="width: 25%">Distancia: {{link.distance}}</td>
+                                <td style="width: 25%">{{ 'locus.label.distance' | i18next }}: {{link.distance}}</td>
                                 <td style="width: 10%">
                                     <button class="btn" ng-click="removeLink($index);"
                                             help-tip="locus.add.links.remove" help-tip-placement="left">
@@ -159,8 +159,8 @@
                     <form name="newLinkForm" novalidate>
                         <div class="col-md-10 padding-left-0">
                             <p class="display-block">
-                                <span>Elegir un marcador</span>
-                                <span class="error-text pull-right" ng-if="!full.locus.chromosome">Debe ingresar el cromosoma</span>
+                                <span>{{ 'locus.label.pickLocus' | i18next }}</span>
+                                <span class="error-text pull-right" ng-if="!full.locus.chromosome">{{ 'locus.label.enterChromosome' | i18next }}</span>
                             </p>
                         </div>
                         <div class="col-md-10 padding-left-0 m-b-10">
@@ -179,11 +179,11 @@
                         </div>
                         <div class="col-md-5 padding-left-0">
                             <input id="loci-new-link-factor" class="form-control form-select" ng-disabled="!full.locus.chromosome"
-                                   data-ng-model="newLink.factor" placeholder="Factor" type="number" required />
+                                   data-ng-model="newLink.factor" placeholder="{{ 'locus.label.factor' | i18next }}" type="number" required />
                         </div>
                         <div class="col-md-5">
                             <input id="loci-new-link-distance" class="form-control form-select" ng-disabled="!full.locus.chromosome"
-                                   data-ng-model="newLink.distance" placeholder="Distancia" type="number" required />
+                                   data-ng-model="newLink.distance" placeholder="{{ 'locus.label.distance' | i18next }}" type="number" required />
                         </div>
                     </form>
                 </div>
@@ -197,13 +197,13 @@
     <div class="desk-align-right inside-right">
 
         <div class="btn btn-link-action" data-ng-click="cancel()">
-            <span title="Limpiar pantalla" class="btn-link-action">Limpiar</span>
+            <span title="Limpiar pantalla" class="btn-link-action">{{ 'buttons.clean' | i18next }}</span>
         </div>
 
         <button id="save" type="button" data-ng-click="save()"
                 class="btn btn-primary-action"
                 ng-disabled="locusForm.$invalid"
-                help-tip="locus.add.save" help-tip-placement="left">Guardar</button>
+                help-tip="locus.add.save" help-tip-placement="left">{{ 'buttons.save' | i18next }}</button>
 
     </div>
 </footer>

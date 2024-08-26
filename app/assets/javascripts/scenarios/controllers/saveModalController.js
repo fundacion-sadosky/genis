@@ -11,7 +11,7 @@ function SaveModalController($scope, scenario, results, validated, restricted, s
 		if (!$scope.validated) {
 			scenarioService.createScenario($scope.scenario, restricted, $scope.name, $scope.description, $scope.results, user).then(
 				function (response) {
-					alertService.success({message: 'El escenario fue dado de alta con éxito'});
+					alertService.success({message: $.i18n.t('alerts.scenario.registered')});
 					$scope.$close(response.data);
 				},
 				function (response) {
@@ -31,7 +31,7 @@ function SaveModalController($scope, scenario, results, validated, restricted, s
 				};
 
 				scenarioService.validate(data).then(function(response) {
-					alertService.success({message: 'El escenario fue validado y guardado con éxito'});
+					alertService.success({message: $.i18n.t('alerts.scenario.validatedAndSaved')});
 					$scope.$close(response.data);
 				},
 				function(response) {

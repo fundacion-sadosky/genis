@@ -30,8 +30,8 @@ define(['jquery', 'lodash'], function($,_) {
 
 		initializeStatus();
 
-        $scope.status = [{label: "todos", value: null, index:0}, {label: "pendientes", value: "pending", index:1},
-            { label: "confirmados",value: "hit", index:2 },{label: "descartados", value: "discarded", index:3}, {label: "conflictos", value: "conflict", index:4 }];
+        $scope.status = [{label: "todos", value: null, index:0}, {label: $.i18n.t('generics.pendingPlural'), value: "pending", index:1},
+            { label: $.i18n.t('generics.confirmedPlural'),value: "hit", index:2 },{label: $.i18n.t('generics.discardedPlural'), value: "discarded", index:3}, {label: $.i18n.t('generics.conflicts'), value: "conflict", index:4 }];
 
         locusService.list().then(function(response) {
             var groupedLocus = helper.groupBy(response.data, 'analysisType');
@@ -197,7 +197,7 @@ define(['jquery', 'lodash'], function($,_) {
 				m.lrs = r.data;
 				m.isProcessing = false;
 			}, function() {
-				alertService.info({message: 'No existen parámetros para el cálculo del LR'});
+				alertService.info({message: $.i18n.t('alerts.match.noLRParameters')});
 				m.isProcessing = false;
 			});
 		};
@@ -212,10 +212,10 @@ define(['jquery', 'lodash'], function($,_) {
 
         $scope.discardCollapsingGroup = function() {
             matchesService.deleteByLeftProfile($scope.globalCode,$scope.idCourtCase).then(function () {
-                alertService.success({message: 'Se ha descartado el grupo'});
+                alertService.success({message: $.i18n.t('alerts.group.discarded')});
                 $scope.backCollapsing();
             }, function() {
-                alertService.error({message: 'Ha ocurrido un error al descartar el grupo'});
+                alertService.error({message: $.i18n.t('alerts.group.discardedError')});
             });
         };
         $scope.confirmSelectedCollapsing = function() {
@@ -225,7 +225,7 @@ define(['jquery', 'lodash'], function($,_) {
                 return element.globalCode;
             });
             matchesService.confirmSelectedCollapsing($scope.globalCode,globalCodesChilds,$scope.idCourtCase).then(function () {
-                alertService.success({message: 'Se ha confirmado el grupo'});
+                alertService.success({message: $.i18n.t('alerts.group.confirmed')});
                 $scope.confirmDisabled = true;
                 $scope.getMatches($scope.normal);
             }, function(error) {
@@ -242,19 +242,19 @@ define(['jquery', 'lodash'], function($,_) {
 
 		$scope.setGroupsTitles = function(){
 			if ($scope.profile.isReference){
-				$scope.normal.title = "Referencias";
-				$scope.restricted.title = "Evidencias";
+				$scope.normal.title = $.i18n.t('matchesGroup.titles.references');
+				$scope.restricted.title = $.i18n.t('matchesGroup.titles.evidences');
 			} else {
 				if ($scope.profile.contributors === 1){
-					$scope.normal.title = "Referencias o Evidencias Cantidad de Aportantes Inferidos = 1";
-					$scope.restricted.title = "Evidencias Cantidad de Aportantes Inferidos > 1";
+					$scope.normal.title = $.i18n.t('matchesGroup.titles.referenceEvidenceEqualOne');
+					$scope.restricted.title = $.i18n.t('matchesGroup.titles.evidenceOverOne');
 				} else if ($scope.profile.contributors === 2){
-					$scope.normal.title = "Referencias o Evidencias Cantidad de Aportantes Inferidos = 1";
-					$scope.mixed.title = "Evidencias Cantidad de Aportantes Inferidos = 2";
-					$scope.other.title = "Evidencias Cantidad de Aportantes Inferidos > 2";
+					$scope.normal.title = $.i18n.t('matchesGroup.titles.referenceEvidenceEqualOne');
+					$scope.mixed.title = $.i18n.t('matchesGroup.titles.evidenceEqualTwo');
+					$scope.other.title = $.i18n.t('matchesGroup.titles.evidenceOverTwo');
 				} else {
-					$scope.normal.title = "Referencias o Evidencias Cantidad de Aportantes Inferidos = 1";
-					$scope.other.title = "Evidencias Cantidad de Aportantes Inferidos > 1";
+					$scope.normal.title = $.i18n.t('matchesGroup.titles.referenceEvidenceEqualOne');
+					$scope.other.title = $.i18n.t('matchesGroup.titles.evidenceOverOne');
 				}
 			}
 		};
@@ -393,15 +393,15 @@ define(['jquery', 'lodash'], function($,_) {
             
             var matchesOid = matchesToDiscard.map(function(m){return m.oid;});
             matchesService.descarteMasivoByList($scope.globalCode, matchesOid).then(function () {
-                alertService.success({message: 'Se ha descartado el grupo'});
+                alertService.success({message: $.i18n.t('alerts.group.discarded')});
                 initializeStatus();
                 inicio();
                 $scope.filtros($scope.status[$scope.filtroAnt]);
             }, function(response) {
                 if (response.data.message === "Sin matches") {
-                    alertService.error({message: 'No hay matches para descartar en el grupo'});
+                    alertService.error({message: $.i18n.t('alerts.match.noMatches')});
                 } else {
-                    alertService.error({message: 'Algunos matches del grupo no pudieron ser descartados'});
+                    alertService.error({message: $.i18n.t('alerts.match.noMatchesError')});
                     initializeStatus();
                     inicio();
                     $scope.filtros($scope.status[$scope.filtroAnt]);

@@ -24,7 +24,8 @@ define(['lodash', 'angular'],function(_,angular) {
         };
 
         this.getFluorophoreEnum = function() {
-            return { YFP: 'Amarillo', RFP: 'Rojo', GFP: 'Verde', CFP: 'Cyan', BFP: 'Azul', VFP: 'Violeta', NFP: 'Negro'};
+            return { YFP: $.i18n.t('kit.color.YFP'), RFP: $.i18n.t('kit.color.RFP'), GFP: $.i18n.t('kit.color.GFP'), CFP: $.i18n.t('kit.color.CFP'), BFP: $.i18n.t('kit.color.BFP'), VFP: $.i18n.t('kit.color.VFP'), NFP: $.i18n.t('kit.color.NFP')};
+            //return { YFP: 'Amarillo', RFP: 'Rojo', GFP: 'Verde', CFP: 'Cyan', BFP: 'Azul', VFP: 'Violeta', NFP: 'Negro'};
         };
 
         this.isOutOfLadder = function(l,allele){

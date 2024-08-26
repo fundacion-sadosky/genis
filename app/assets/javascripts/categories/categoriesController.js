@@ -68,18 +68,18 @@ function CategoriesCtrl ($scope, categoriesService, $modal, alertService, analys
 
 	function addGroup() {
 		getCategories();
-		alertService.success({message: 'El grupo ha sido creado'});
+		alertService.success({message: $.i18n.t('alerts.group.created')});
 	}
 	
 	function updateGroup(group) {
 		$scope.groups[group.id] = group;
-		alertService.success({message: 'El grupo ha sido actualizado'});
+		alertService.success({message: $.i18n.t('alerts.group.updated')});
 	}
 	
 	function removeGroup(groupId) {
 		delete $scope.groups[groupId];
 		$scope.selectGrp(firstKey($scope.groups));
-		alertService.success({message: 'El grupo ha sido eliminado'});
+		alertService.success({message: $.i18n.t('alerts.group.deleted')});
 	}
 
 	function selectCat(catId) {
@@ -137,7 +137,7 @@ function CategoriesCtrl ($scope, categoriesService, $modal, alertService, analys
 		var category = $scope.categories[$scope.currCatId];
 		categoriesService.updateFullCategory(category).then(
 			function(){
-				alertService.success({message: 'Los cambios se han actualizado'});
+				alertService.success({message: $.i18n.t('alerts.group.created')});
 				formReset();
                 refreshCategories();
 			}, 
@@ -160,12 +160,12 @@ function CategoriesCtrl ($scope, categoriesService, $modal, alertService, analys
             $scope.currCatId = category.id;
         });
 
-		alertService.success({message: 'La categoría ha sido creada'});
+		alertService.success({message: $.i18n.t('alerts.category.created')});
 	}
 	
 	function updateCategory(category) {
 		$scope.categories[category.id] = category;
-		alertService.success({message: 'La categoría ha sido actualizada'});
+		alertService.success({message: $.i18n.t('alerts.category.updated')});
 	}
 	
 	function removeCategory(catId) {
@@ -184,7 +184,7 @@ function CategoriesCtrl ($scope, categoriesService, $modal, alertService, analys
 		}
 
         getCategories();
-        alertService.success({message: 'La categoría ha sido eliminada'});
+        alertService.success({message: $.i18n.t('alerts.category.deleted')});
 	}
 
 	function getCategories(){

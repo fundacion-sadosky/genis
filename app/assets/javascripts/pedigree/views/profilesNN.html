@@ -6,7 +6,7 @@
             <td class="col-md-6" style="border-color:transparent;">
                 <div>
                      <div class="col-md-6 pull-left input-group">
-                        <input type="text" class="form-control form-select ng-pristine ng-untouched ng-valid" aria-describedby="basic-addon2" id="searchText" name="searchText" ng-model="$parent.searchText" placeholder="Buscar perfil" ng-keyup="$event.keyCode == 13 ? searchProfile() : null">
+                        <input type="text" class="form-control form-select ng-pristine ng-untouched ng-valid" aria-describedby="basic-addon2" id="searchText" name="searchText" ng-model="$parent.searchText" placeholder="{{ 'profileViews.search' | i18next }}" ng-keyup="$event.keyCode == 13 ? searchProfile() : null">
                         <span class="input-group-addon" id="basic-addon2" ng-click="searchProfile()">
                           <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
                         </span>
@@ -17,7 +17,7 @@
                     
                     <div class="col-md-3 padding-0 pull-right vertical-align">
                         <div class="padding-0 col-md-7  vertical-align" >
-                            <label class="pull-left control-label" for="statusProfileAG">Agrupados</label>
+                            <label class="pull-left control-label" for="statusProfileAG">{{ 'pedigree.groupedProfiles.grouped' | i18next }}</label>
                         </div>
                         <div class="item-input col-md-2 padding-0 text-left  vertical-align">
                             <input type="checkbox" data-ng-model="statusProfile.agrupado" style="height: 1.5em"
@@ -28,7 +28,7 @@
 
                     <div class="col-md-2 padding-0 pull-right vertical-align">
                         <div class="padding-0 col-md-8  vertical-align">
-                            <label class="pull-left control-label" for="statusProfileAC">Activos</label>
+                            <label class="pull-left control-label" for="statusProfileAC">{{ 'pedigree.profiles.actives' | i18next }}</label>
                         </div>
                         <div class="item-input col-md-4 padding-0 text-left">
                             <input type="checkbox" data-ng-model="statusProfile.activo" style="height: 1.5em"
@@ -43,18 +43,18 @@
                 <button ng-click="addBatchProfiles()"
                         type="button" ng-if="!isCourtCaseClosed()"
                         class="btn btn-primary-action" >
-                    Asociar Lote
+                    {{ 'pedigree.profiles.associateLot' | i18next }}
                 </button>
                 <button ng-click="addProfile()"
                         type="button" ng-if="!isCourtCaseClosed()"
                         class="btn btn-secondary-action" >
-                    Asociar Perfiles
+                    {{ 'pedigree.profiles.associateProfiles' | i18next }}
                 </button>
                 <button class="btn btn-secondary-action" ng-click="disasociateSelected" ng-if="!isCourtCaseClosed()"
                         pdg-confirm pdg-confirm-title="Confirmar desasociar los perfiles seleccionados"
                         pdg-confirm-content="¿Está seguro de desasociar los perfiles seleccionados?"
                         param=""
-                        pdg-on-confirm="disasociateSelected">Desasociar seleccionados</button>
+                        pdg-on-confirm="disasociateSelected">{{ 'pedigree.disassociateSelected' | i18next }}</button>
 
               <!--  <div class="col-md-pull-12 pull-right" style="margin-top: 5px;">
                 <button ng-click="collapse()"
@@ -81,7 +81,7 @@
 <div class="row padding-0">
         <div class="content padding-0">
     <span class="ng-binding ng-scope">
-    <b>Cantidad de perfiles:</b> {{totalItems}} <span ng-hide="hideFilterLegend">de {{totalCaseItems}}</span>
+    <b>{{ 'pedigree.profiles.amount' | i18next }}:</b> {{totalItems}} <span ng-hide="hideFilterLegend">de {{totalCaseItems}}</span>
 </span>
 </div>
 </div>
@@ -95,16 +95,16 @@
                     <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
                 </button>
             </th>
-            <th>Id Lote</th>
-            <th>Nombre Lote</th>
-            <th>Código GENis</th>
-            <th>Código Laboratorio</th>
-            <th>Estado</th>
-            <th>Perfil Agrupador</th>
-            <th>Ver Genotipificacion</th>
-            <th>Ver Perfiles Agrupados</th>
-            <th>Ir al Perfil</th>
-            <th>Desasociar del Caso</th>
+            <th>{{ 'pedigree.profiles.lotId' | i18next }}</th>
+            <th>{{ 'pedigree.profiles.lotName' | i18next }}</th>
+            <th>{{ 'generics.GENisCode' | i18next }}</th>
+            <th>{{ 'generics.GENisLabCode' | i18next }}</th>
+            <th>{{ 'generics.state' | i18next }}</th>
+            <th>{{ 'pedigree.profiles.clusterProfile' | i18next }}</th>
+            <th>{{ 'pedigree.profiles.seeGenotypification' | i18next }}</th>
+            <th>{{ 'pedigree.profiles.seeClusteredProfiles' | i18next }}</th>
+            <th>{{ 'pedigree.profiles.goTo' | i18next }}</th>
+            <th>{{ 'pedigree.profiles.detachFromCase' | i18next }}</th>
         </tr>
     </thead>
     <tbody>
@@ -120,12 +120,12 @@
         <td class="col-md-2 centered" >
             <div ng-hide="p.groupedBy == p.globalCode ">{{p.groupedBy}}</div>
         </td>
-            <td class="col-md-1 centered" title="Ver genotipificación">
+            <td class="col-md-1 centered" title="{{ 'pedigree.profiles.seeGenotypification' | i18next }}">
                 <button class="btn btn-default btn-link-action btn-link-border" ng-if="!isCourtCaseClosed()" pdg-gen-popover gen="p.genotypification">
                     <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
                 </button>
             </td>
-        <td class="col-md-1 centered" title="Ver perfiles agrupados">
+        <td class="col-md-1 centered" title="{{ 'pedigree.profiles.seeClusteredProfiles' | i18next }}">
             <button class="btn btn-default btn-link-action btn-link-border"
                     ng-disabled="tieneHijos(p)"
                     ng-if="!isCourtCaseClosed()" ng-click="perfilesAsociados(p.globalCode)">
@@ -138,7 +138,7 @@
                 </a>
             </td>
             <td class="col-md-1 centered">
-                <a id="desasociate_{{$index}}" class="btn btn-default btn-link-action btn-link-border" ng-if="!isCourtCaseClosed()" pdg-confirm pdg-confirm-title="Confirmar desasociar el perfil {{p.globalCode}}" pdg-confirm-content="¿Está seguro de desasociar el perfil {{p.globalCode}}?" param="{{p.globalCode}}" pdg-on-confirm="removeProfile" >
+                <a id="desasociate_{{$index}}" class="btn btn-default btn-link-action btn-link-border" ng-if="!isCourtCaseClosed()" pdg-confirm pdg-confirm-title="{{ 'pedigree.confirmDisass' | i18next }} {{p.globalCode}}" pdg-confirm-content="{{ 'pedigree.disassociateProfile' | i18next }} {{p.globalCode}}?" param="{{p.globalCode}}" pdg-on-confirm="removeProfile" >
                     <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
                 </a>
             </td>

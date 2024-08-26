@@ -136,7 +136,7 @@ define([], function() {
                 });
 
             if (count > 1) {
-                alertService.warning({message: " No se pudo guardar hay mas de un agrupador: " + agrupadores});
+                alertService.warning({message: $.i18n.t('alerts.group.tooManyError') + agrupadores});
 
             } else {
                 var agrupado = [];
@@ -154,10 +154,10 @@ define([], function() {
 
                 pedigreeService.areAssignedToPedigree(request).then(function () {
                     matchesService.confirmSelectedCollapsing($scope.agrupador.globalCode, agrupado, parseInt($scope.courtCaseId)).then(function () {
-                        alertService.success({message: 'Se ha confirmado el grupo'});
+                        alertService.success({message: $.i18n.t('alerts.group.confirmed')});
                         limpiar();
                     }, function () {
-                        alertService.error({message: 'Ha ocurrido un error al confirmar el grupo'});
+                        alertService.error({message: $.i18n.t('alerts.group.confirmedError')});
                     });
                 }, function (response) {
                     alertService.error({message: response.data.message});
@@ -166,7 +166,7 @@ define([], function() {
 
             }
         }else{
-                alertService.success({message: 'Debe seleccionar un perfil como agrupador.'});
+                alertService.success({message: $.i18n.t('alerts.group.selectProfile')});
             }
 
         };

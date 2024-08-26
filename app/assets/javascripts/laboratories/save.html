@@ -1,40 +1,40 @@
 <div class="col-md-12 laboratories-section-big">
     <div class="laboratories-section">
-        <h5>Datos Laboratorio</h5>
+        <h5>{{ "laboratory.data" | i18next }}</h5>
 
         <div class="m-t-10">
-            <label for="labCode">Código<span class="field-obligated">*</span></label>
+            <label for="labCode">{{ 'generics.code' | i18next }}<span class="field-obligated">*</span></label>
             <input id="labCode" name="code" ng-readonly="!isNew" class="form-control form-select" type="text" data-ng-model="laboratory.code" required ng-pattern="/^[A-Z]+$/"/>
             <form-validation input="labForm.code" pattern="A-Z desde 1 caracter"></form-validation>
         </div>
 
         <div class="m-t-10">
-            <label for="labName">Nombre<span class="field-obligated">*</span></label>
+            <label for="labName">{{ 'generics.name' | i18next }}<span class="field-obligated">*</span></label>
             <input name="name" id="labName" class="form-control form-select" type="text" data-ng-model="laboratory.name" required />
             <form-validation input="labForm.name"></form-validation>
         </div>
 
         <div class="m-t-10">
-            <label for="ladAddress">Domicilio<span class="field-obligated">*</span></label>
+            <label for="ladAddress">{{ 'location.address' | i18next }}<span class="field-obligated">*</span></label>
             <input id="ladAddress" name="address" class="form-control form-select" type="text" data-ng-model="laboratory.address" required>
             <form-validation input="labForm.address"></form-validation>
         </div>
 
         <div class="m-t-10">
-            <label for="labPhone">Telefono<span class="field-obligated">*</span></label>
+            <label for="labPhone">{{ 'generics.phone' | i18next }}<span class="field-obligated">*</span></label>
             <input id="labPhone" class="form-control form-select" name="phone" type="text" data-ng-model="laboratory.telephone" required>
             <form-validation input="labForm.phone"></form-validation>
         </div>
 
         <div class="m-t-10">
-            <label for="labMail">Email<span class="field-obligated">*</span></label>
+            <label for="labMail">{{ 'generics.email' | i18next }}<span class="field-obligated">*</span></label>
             <input name="mail" id="labMail" class="form-control form-select" data-ng-model="laboratory.contactEmail" type="text" placeholder="xx@yy.zz" required ng-pattern="regexEmail">
             <form-validation input="labForm.mail" pattern="xx@yy.zz"></form-validation>
         </div>
 
         <div class="m-t-10 col-lg-6 col-md-6 padding-left-0">
             <div>
-                <label for="labCountry">Pais<span class="field-obligated">*</span></label >
+                <label for="labCountry">{{ 'location.country' | i18next }}<span class="field-obligated">*</span></label >
                 <select id="labCountry"  class="form-control form-select" data-ng-model="laboratory.country" required style="height: 3.5em;"
                         data-ng-change="giveProvinces(laboratory.country)"
                         data-ng-options="item.code as item.name for item in countries"
@@ -43,7 +43,7 @@
         </div>
         <div class="m-t-10 col-lg-6 col-md-6 padding-rigth-0">
             <div>
-                <label for="labProv">Provincia<span class="field-obligated">*</span></label>
+                <label for="labProv">{{ 'location.province' | i18next }}<span class="field-obligated">*</span></label>
                 <select id="labProv" required class="form-control form-select"
                         data-ng-model="laboratory.province" style="height: 3.5em;"
                         data-ng-options="item.code as item.name for item in provinces"
@@ -55,18 +55,18 @@
 </div>
 <div class="col-md-12 laboratories-section-big">
     <div class="laboratories-section">
-        <h5>Opciones Estadísticas</h5>
+        <h5>{{ 'generics.statsOptions' | i18next }}</h5>
         <div>
             <div class="m-t-10 col-lg-6 col-md-6 padding-left-0">
                 <div>
-                    <label for="labDropIn">Drop In<span class="field-obligated">*</span></label>
+                    <label for="labDropIn">{{ 'generics.dropIn' | i18next }}<span class="field-obligated">*</span></label>
                     <input name="dropIn" id="labDropIn" class="form-control form-select" type="number" min="0" max="1" step="0.01" data-ng-model="laboratory.dropIn" required />
                     <form-validation input="labForm.dropIn" min="0" max="1"></form-validation>
                 </div>
             </div>
             <div class="m-t-10 col-lg-6 col-md-6 padding-rigth-0">
                 <div>
-                    <label for="labDropOut">Drop Out<span class="field-obligated">*</span></label>
+                    <label for="labDropOut">{{ 'generics.dropOut' | i18next }}<span class="field-obligated">*</span></label>
                     <input name="dropOut" id="labDropOut" class="form-control form-select" type="number" min="0" max="1" step="0.01" data-ng-model="laboratory.dropOut" required />
                     <form-validation input="labForm.dropOut" min="0" max="1"></form-validation>
                 </div>

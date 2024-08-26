@@ -7,12 +7,12 @@
                     <ol class="breadcrumb">
                             <li>
                                 <div class="btn volver" onclick="history.back()">
-                                    <span  class="icon-atras" title="Volver"></span>
+                                    <span  class="icon-atras" title="{{'buttons.back' | i18next }}"></span>
                                 </div>
                             </li>
                             <li class="active">
-                                <span ng-if="!scenarioId">Nuevo escenario {{profileData[profile] | showcode}}</span>
-                                <span ng-if="scenarioId">Edición {{scenarioData.name}} - {{profileData[profile] | showcode}}</span>
+                                <span ng-if="!scenarioId">{{'buttons.newScenario' | i18next }} {{profileData[profile] | showcode}}</span>
+                                <span ng-if="scenarioId">{{'generics.edition' | i18next }} {{scenarioData.name}} - {{profileData[profile] | showcode}}</span>
                             </li>
                         </ol>
                     </div>
@@ -27,13 +27,13 @@
         <div class="content-wrap-small">
 
             <tabset class="tabset-section">
-                <tab heading="Comparación" active="tabs[0].active" help-tip="scenario.genotypification" help-tip-placement="top">
+                <tab heading="{{'matches.comparison' | i18next }}" active="tabs[0].active" help-tip="scenario.genotypification" help-tip-placement="top">
                     <div ng-include="'/assets/javascripts/scenarios/views/genotypification.html'" ng-controller="genotypificationController" class="animated fadeIn"/>
                 </tab>
-                <tab heading="Escenario de Cálculo" active="tabs[1].active" help-tip="scenario.hypothesis" help-tip-placement="bottom">
+                <tab heading="{{'generics.calculationScenario' | i18next }}" active="tabs[1].active" help-tip="scenario.hypothesis" help-tip-placement="bottom">
                     <div ng-include="'/assets/javascripts/scenarios/views/hypothesis.html'" ng-controller="hypothesisController" class="animated fadeIn"/>
                 </tab>
-                <tab ng-if="result" heading="Resultados" active="tabs[2].active" help-tip="scenario.results" help-tip-placement="right">
+                <tab ng-if="result" heading="{{'generics.result' | i18next }}" active="tabs[2].active" help-tip="scenario.results" help-tip-placement="right">
                     <div ng-include="'/assets/javascripts/scenarios/views/results.html'" ng-controller="resultsController" class="animated fadeIn"/>
                 </tab>
             </tabset>

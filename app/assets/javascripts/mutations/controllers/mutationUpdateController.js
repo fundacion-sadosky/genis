@@ -8,7 +8,7 @@ define(['lodash'], function(_) {
             $scope.showR = false;
             $scope.showr = false;
             $scope.showR2 = false;
-            $scope.ignoreSexList = [{"id":1,"description":"SI"},{"id":2,"description":"NO"}];
+            $scope.ignoreSexList = [{"id":1,"description":$.i18n.t('generics.yes')},{"id":2,"description":"NO"}];
             $scope.cantSaltosList = [{"id":1,"description":"1"},{"id":2,"description":"2"},{"id":3,"description":"3"},{"id":4,"description":"4"}];
 
             var parameterGeneric = {};
@@ -28,7 +28,7 @@ define(['lodash'], function(_) {
                     return o.id+"";
                 });
             }, function() {
-                alertService.error({message: 'Error'});
+                alertService.error({message: $.i18n.t('error.common')});
             });
             mutationModelService.getMutationModel(parseInt($routeParams.id)).then(function(response) {
                 $scope.selectedMutationModel = response.data.header;
@@ -99,13 +99,13 @@ define(['lodash'], function(_) {
 
             mutationModelService.updateMutationModelByChunks(requestUpdate).then(function() {
                 mutationModelService.generateMatrix(requestUpdate).then(function() {
-                    alertService.success({message: 'Fue modificado con exito'});
+                    alertService.success({message: $.i18n.t('mutations.editSuccess')});
                     $scope.back();
                 }, function() {
-                    alertService.error({message: 'Error'});
+                    alertService.error({message: $.i18n.t('error.common')});
                 });
             }, function() {
-                alertService.error({message: 'Error'});
+                alertService.error({message: $.i18n.t('error.common')});
             });
 
         };

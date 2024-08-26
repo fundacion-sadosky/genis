@@ -9,7 +9,7 @@
                                 <span  class="icon-atras" title="Volver"></span>
                             </div>
                         </li>
-                    <li class="active">Configuración de instancia superior</li>
+                    <li class="active">{{ 'motives.upperInstanceConf' | i18next }}</li>
                     
                             
                         </ol>
@@ -22,10 +22,10 @@
         <div class="content"> <!-- content-wrap-small -->
 
             <tabset class="tabset-section">
-                <tab active="true" heading="Conectividad">
+                <tab active="true" heading="{{ 'configuration.categories.connectivity' | i18next }}">
                     <div ng-include="'/assets/javascripts/superiorinstance/views/conectivity.html'" class="animated fadeIn tab-container"></div>
                 </tab>
-                <tab heading="Mapeo de categorías" >
+                <tab heading="{{ 'configuration.categories.mapping' | i18next }}" >
                     <div ng-include="'/assets/javascripts/superiorinstance/views/category-mapping.html'" class="animated fadeIn tab-container"></div>
                 </tab>
             </tabset>

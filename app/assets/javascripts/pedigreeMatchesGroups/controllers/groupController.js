@@ -2,13 +2,13 @@ define(['lodash','jquery'], function(_,$) {
     'use strict';
 
     function GroupController($scope, pedigreeMatchesGroupsService, userService, alertService,$location, profiledataService, cryptoService) {
-        
+
         $scope.currentPage = 1;
         $scope.pageSize = 30;
 
         $scope.sortField = 'date';
         $scope.ascending = false;
-        
+
         $scope.totalItems = '0';
 
         var user = userService.getUser();
@@ -65,7 +65,7 @@ define(['lodash','jquery'], function(_,$) {
             var searchObject = createSearchObject(group);
             pedigreeMatchesGroupsService.countMatchesByGroup(searchObject).then(function(response){
                 $scope.totalItems = response.headers('X-MATCHES-LENGTH');
-               
+
                 if ($scope.totalItems !== '0') {
                     pedigreeMatchesGroupsService.getMatchesByGroup(searchObject).then(function(response) {
                         $scope.matches = response.data.map(function (item) {
@@ -95,7 +95,7 @@ define(['lodash','jquery'], function(_,$) {
                         $scope.getPedigrees($scope.matches);
                     }, function() { $scope.isProcessing = false; });
                 } else { $scope.isProcessing = false; }
-                
+
             }, function() { $scope.isProcessing = false; });
         };
 
@@ -155,7 +155,7 @@ define(['lodash','jquery'], function(_,$) {
                 alertService.error(response.data);
             });
         };
-        
+
         $scope.canDiscard = function(match) {
             return pedigreeMatchesGroupsService.canDiscard(match, user);
         };

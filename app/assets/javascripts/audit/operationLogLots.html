@@ -8,7 +8,7 @@
 							<span  class="icon-atras" title="Volver"></span> 
 						</div>
 					</li>
-					<li class="active">Historial de operaciones - Grupo de eventos</li>
+					<li class="active">{{ 'lotLog.eventGroupLog' | i18next }}</li>
 				</ol>
 			</div>
 		</div>
@@ -22,9 +22,9 @@
 				<thead>
 					<tr>
 						<th class="col-md-2 text-center">Id</th>
-						<th class="col-md-6 text-center">Fecha Inicio</th>
-						<th class="col-md-2 text-center">Verificar</th>
-						<th class="col-md-2 text-center">Ver</th>
+						<th class="col-md-6 text-center">{{ 'lotLog.startDate' | i18next }}</th>
+						<th class="col-md-2 text-center">{{ 'lotLog.verification' | i18next }}</th>
+						<th class="col-md-2 text-center">{{ 'generics.view' | i18next }}</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -35,7 +35,7 @@
 							<button 
 							id="checkLot_{{$index}}" 
 							data-ng-click="checkLot(lot.id)"
-							popover-title="Verificación de lote" 
+							popover-title="{{ 'lotLog.verification' | i18next }}"
 							popover-placement="left" 
 							popover-template="'template-check-lot'"
 							popover-trigger="focus"
@@ -60,13 +60,13 @@
 				<div ng-show="showSpinner"><i class="icon-refreshspinner"></i></div>
 				
 				<div ng-show="!showSpinner && verificationResult == ''">
-					El lote de logs es consisitente y no presenta alteraciones.
+					{{ 'lotLog.consistent' | i18next }}
 				</div>
 				<div ng-show="!showSpinner && verificationResult != ''">
-					<h5>Error al verificar el lote</h5>
-					<p>La entrada #{{verificationResult.signedEntry.index}} computó la firma:</p>
+					<h5>{{ 'lotLog.error.header' | i18next }}</h5>
+					<p>{{ 'lotLog.error.entry1' | i18next }} #{{verificationResult.signedEntry.index}} { 'lotLog.error.entry2' | i18next }}:</p>
 					<p class="well well-sm">{{verificationResult.signedEntry.signature}}</p>
-					<p>Y se esperaba obtener la firma:</p>
+					<p>{ 'lotLog.error.entry3' | i18next }}</p>
 					<p class="well well-sm">{{verificationResult.expectedSignature}}</p>
 				</div>
 				

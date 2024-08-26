@@ -8,11 +8,11 @@
             </h4>
             
             <div show-permissions="SCENARIO_CRUD" class="text-right buttons-group-escenarios col-md-6" ng-if="!profile.isReference">
-                <a id="goto-scenario-button" class="btn btn-round btn-success selected" href="" ng-click="addScenario()">Agregar nuevo escenario</a>
-                <a id="goto-scenarios-button" class="btn btn-round" href="" ng-click="!normal.viewScenarios || getScenarios()" ng-disabled="!normal.viewScenarios">Ver escenarios</a>
-                <a id="descarteTodos-button" class="btn btn-round" href="" pdg-confirm pdg-confirm-title="Descartar Coincidencias"
-                   pdg-confirm-content="Al confirmar esta acción se descartarán todas las coincidencias del grupo. ¿Está seguro?"
-                   pdg-on-confirm="descarteMasivo" param="{{normal}}" >Descartar todo</a>
+                <a id="goto-scenario-button" class="btn btn-round btn-success selected" href="" ng-click="addScenario()">{{ 'matchesGroup.addScenario' | i18next }}</a>
+                <a id="goto-scenarios-button" class="btn btn-round" href="" ng-click="!normal.viewScenarios || getScenarios()" ng-disabled="!normal.viewScenarios">{{ 'generics.viewScenario' | i18next }}</a>
+                <a id="descarteTodos-button" class="btn btn-round" href="" pdg-confirm pdg-confirm-title="{{ 'buttons.discardMatchPlural' | i18next }}"
+                   pdg-confirm-content="{{ 'alerts.match.discardSure' | i18next }}"
+                   pdg-on-confirm="descarteMasivo" param="{{normal}}" >{{ 'matchesGroup.discardAll' | i18next }}</a>
             </div>
             
             
@@ -36,7 +36,7 @@
                                 <!-- <input type="checkbox" ng-init="selectAll=false" data-ng-model="selectAll" data-ng-change="changeSelection(selectAll)"> -->
                             </th>
                             <th class="text-center head-column">
-                                <pdg-sortable name="Código Laboratorio" predicate="normal.predicate" reverse="normal.reverse"
+                                <pdg-sortable name="{{ 'generics.labCode' | i18next }}" predicate="normal.predicate" reverse="normal.reverse"
                                 sort-action="sortBy(normal, 'globalCode')" sort-field="globalCode"
                                 ></pdg-sortable>
                             </th>
@@ -44,31 +44,31 @@
                                 Categoría
                             </th>
                             <th class="text-center head-column">
-                                <pdg-sortable name="Sistemas comp." predicate="normal.predicate" reverse="normal.reverse"
+                                <pdg-sortable name="{{ 'matches.sharedLocus' | i18next }}" predicate="normal.predicate" reverse="normal.reverse"
                                 sort-action="sortBy(normal, 'totalAlleles')" sort-field="totalAlleles" 
                                 
                                 ></pdg-sortable>
                             </th>
                             <th class="text-center head-column">
-                                <pdg-sortable name="Alelos comp." predicate="normal.predicate" reverse="normal.reverse"
+                                <pdg-sortable name="{{ 'matches.sharedAlleles' | i18next }}" predicate="normal.predicate" reverse="normal.reverse"
                                 sort-action="sortBy(normal, 'sharedAllelePonderation')" sort-field="sharedAllelePonderation" numeric="true"></pdg-sortable>
                             </th>
                             
                             <th class="text-center head-column">
-                                <pdg-sortable name="LR" predicate="normal.predicate" reverse="normal.reverse"
+                                <pdg-sortable name="{{ 'generics.lr' | i18next }}" predicate="normal.predicate" reverse="normal.reverse"
                                               sort-action="sortBy(normal, 'lr')" sort-field="lr"></pdg-sortable>
                             </th>
                             <th class="text-center head-column">
-                                <pdg-sortable name="No coincid." predicate="normal.predicate" reverse="normal.reverse"
+                                <pdg-sortable name="{{ 'matches.noMatch' | i18next }}" predicate="normal.predicate" reverse="normal.reverse"
                                 sort-action="sortBy(normal, 'type')" sort-field="type"></pdg-sortable> <!-- VARIALBE SIN DEFINIR -->
                             </th>
                             <th class="text-center head-column">
-                                <pdg-sortable name="E. agrupador" predicate="normal.predicate" reverse="normal.reverse"
+                                <pdg-sortable name="{{ 'matches.statusGrouper' | i18next }}" predicate="normal.predicate" reverse="normal.reverse"
                                 sort-action="sortBy(normal, 'ownerStatus')" sort-field="ownerStatus"
                                 help-tip="matches.groupStatus" help-tip-placement="left"></pdg-sortable>
                             </th>
                             <th class="text-center head-column">
-                                <pdg-sortable name="E. coincidente" predicate="normal.predicate" reverse="normal.reverse"
+                                <pdg-sortable name="{{ 'matches.statusMatches' | i18next }}" predicate="normal.predicate" reverse="normal.reverse"
                                 sort-action="sortBy(normal, 'otherStatus')" sort-field="otherStatus"
                                 help-tip="matches.matchStatus" help-tip-placement="top"></pdg-sortable>
                             </th>
@@ -80,7 +80,7 @@
                                 &nbsp;
                             </th>
 
-                            <th class="head-column">Comparar</th>
+                            <th class="head-column">{{ 'generics.compare' | i18next }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -139,22 +139,22 @@
                                            class="btn">
                                         <span class="icon-descartar" aria-hidden="true"></span>
                                     </a>
-                                        <a href="" class="btn" title="Descartar" id="doDescard"  ng-show="!(d.ownerStatus==='hit' && d.otherStatus==='hit')"
+                                        <a href="" class="btn" title="{{ 'buttons.discard' | i18next }}" id="doDescard"  ng-show="!(d.ownerStatus==='hit' && d.otherStatus==='hit')"
                                            prueba="{{ d.ownerStatus === 'pending'}}"
-                                           pdg-confirm pdg-confirm-title="Descartar Coincidencia"
-                                           pdg-confirm-content="Al confirmar esta acción se descartará la coincidencia. ¿Está seguro?" param="{{d}}"
+                                           pdg-confirm pdg-confirm-title="{{ 'matches.discard' | i18next }}"
+                                           pdg-confirm-content="{{ 'matches.discardSingleConfirmation' | i18next }}" param="{{d}}"
                                            data-ng-disabled="closedMatch || {{d.ownerStatus !== 'pending'}} "  class="btn" pdg-on-confirm="discardMatch" >
                                             <span class="icon-descartar"></span></a>
 
                                 </td>
 
                             <td class="text-center">
-                                <a href="" class="btn" title="Actualizar estado de la coincidencia en instancia superior" id="doUpload" pdg-confirm pdg-confirm-title="Subir estado de la coincidencia a la instancia superior" pdg-confirm-content="Al confirmar esta acción se subira el estado de la coincidencia a la instancia superior. ¿Está seguro?"
+                                <a href="" class="btn" title="{{ 'buttons.replicateMatchUpperInstance' | i18next }}" id="doUpload" pdg-confirm pdg-confirm-title="{{ 'matchesGroup.uploadMatchState' | i18next }}" pdg-confirm-content="{{ 'alerts.match.uploadMatchSure' | i18next }}"
                                    param="{{d}}"  class="btn" pdg-on-confirm="uploadMatch" ng-if="d.isInterconnectionMatch" ><span class="icon-arrow-up"></span></a>
                             </td>
 
-                            <td title="Ver alelos">
-                                        <a id="go_referencia_{{$index}}" href="{{getHref(profile, d)}}"  class="btn" title="Ver alelo">
+                            <td title="{{ 'generics.viewAlleles' | i18next }}">
+                                        <a id="go_referencia_{{$index}}" href="{{getHref(profile, d)}}"  class="btn" title="{{ 'generics.viewSingleAllele' | i18next }}">
                                             <span class="icon-arrow-right"></span>
                                             
                                         </a>

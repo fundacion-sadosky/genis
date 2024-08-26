@@ -8,7 +8,7 @@
                             <span  class="icon-atras" title="Volver"></span>                            
                         </div>
                     </li>
-                    <li class="active">Coincidencias de Forense</li>
+                    <li class="active">{{ 'matches.forensic' | i18next }}</li>
                 </ol>
             </div>
         </div>
@@ -28,17 +28,17 @@
                                 <div class="form-group col-md-4">
                                     <div class="row  m-t-0 m-b-0 vertical-align">
                                         <div class="col-md-2">
-                                            <label class="m-r-10" for="search-profile">Perfil</label>
+                                            <label class="m-r-10" for="search-profile">{{ 'generics.profile' | i18next }}</label>
                                         </div>
                                         <div class="col-md-10">
-                                            <input id="search-profile" type="text" data-ng-model="search.profile" placeholder="Código" class="form-control form-select"/>
+                                            <input id="search-profile" type="text" data-ng-model="search.profile" placeholder="{{ 'generics.code' | i18next }}" class="form-control form-select"/>
                                         </div>
                                     </div>
                                 </div>
                                  <!-- Categoria -->
                                  <div class="col-md-4 vertical-align ">
                                         <div class="col-md-3">
-                                            <label for="search-category">Categoría</label>
+                                            <label for="search-category">{{ 'generics.category' | i18next }}</label>
                                         </div>
                                         <div class="item-input col-md-9">
                                             <select id="search-category" data-ng-model="search.category" class="custom-select col-md-8 form-control form-select">
@@ -55,7 +55,7 @@
                                 <!-- laboratorio -->
                                 <div class="col-md-4 vertical-align">
                                     <div class="col-md-3">
-                                        <label for="search-laboratory">Laboratorio</label>
+                                        <label for="search-laboratory">{{ 'generics.laboratory' | i18next }}</label>
                                     </div>
                                     <div class="item-input col-md-9">
                                         <select id="search-laboratory" data-ng-model="search.laboratoryCode" class="custom-select col-md-8 form-control form-select">
@@ -78,13 +78,13 @@
                                  <!-- fecha  -->
                                  <div class="item-input col-md-8 vertical-align">
                                         <div class="col-md-1 padding-left-0">
-                                            <label class="m-r-10" for="hourFrom">Fecha</label>
+                                            <label class="m-r-10" for="hourFrom">{{ 'generics.date' | i18next }}</label>
                                         </div>
                                         <div class="col-md-10 padding-left-0 padding-right-30">
                                             <div class="row padding-0  m-t-0 m-b-0 ">      
                                                 <div class="col-md-6">
                                                     <input type="text" name="hourFrom" id="hourFrom"
-                                                    placeholder="Desde" data-datepicker-popup="dd/MM/yyyy"
+                                                    placeholder="{{ 'generics.since' | i18next }}" data-datepicker-popup="dd/MM/yyyy"
                                                     data-ng-model="search.hourFrom"
                                                     data-is-open="datepickers.hourFrom" class="form-control form-select"
                                                     data-datepicker-options="dateOptions"
@@ -96,7 +96,7 @@
                                                 <div class="col-md-6">                    
                                                     
                                                     <input type="text" name="hourUntil" id="hourUntil"
-                                                    placeholder="Hasta" data-datepicker-popup="dd/MM/yyyy"
+                                                    placeholder="{{ 'generics.to' | i18next }}" data-datepicker-popup="dd/MM/yyyy"
                                                     data-ng-model="search.hourUntil"
                                                     data-is-open="datepickers.hourUntil" class="form-control form-select"
                                                     data-datepicker-options="dateOptions"
@@ -113,9 +113,9 @@
                                         <span title="Limpiar filtros" class="glyphicon glyphicon-trash" aria-hidden="true">Cancelar</span>
                                     </div> -->
                                     <span id="processingSpan" class="icon-refresh" ng-class="{'spinner': isProcessing}" data-ng-show="isProcessing"></span>
-                                    <a  title="Limpiar filtros" ng-click="clearSearch()" ng-disabled="isProcessing"  class="cancel-link" >Limpiar</a>
+                                    <a  title="Limpiar filtros" ng-click="clearSearch()" ng-disabled="isProcessing"  class="cancel-link" >{{ 'generics.clean' | i18next }}</a>
                                    
-                                    <button id="search-button" type="submit" class="btn btn-round btn-success selected" data-ng-disabled="isProcessing">Buscar</button>
+                                    <button id="search-button" type="submit" class="btn btn-round btn-success selected" data-ng-disabled="isProcessing">{{ 'buttons.search' | i18next }}</button>
                                 </div>
                             </div>
                         </div>
@@ -147,21 +147,21 @@
                                         <div class="row padding-0 tabs-estados" >
                                             <div class="col-md-5 padding-left-0">
                                                 <div class="row">
-                                                    <div class="col-md-6  text-center tabs-estados-tab tab-estados-tab__todos "> <a class="" ng-click="filtros(status[0])" data-ng-model="filtro" uib-btn-radio="'Todos'" id="all" value="todos">Todos</a></div>
-                                                    <div class="col-md-6  text-center tabs-estados-tab tab-estados-tab__pendientes"><a class="" ng-click="filtros(status[1])" data-ng-model="filtro" uib-btn-radio="'Pendientes'" id="pending" value="pending">Pendientes</a></div>
+                                                    <div class="col-md-6  text-center tabs-estados-tab tab-estados-tab__todos "> <a class="" ng-click="filtros(status[0])" data-ng-model="filtro" uib-btn-radio="'Todos'" id="all" value="todos">{{ 'generics.all' | i18next }}</a></div>
+                                                    <div class="col-md-6  text-center tabs-estados-tab tab-estados-tab__pendientes"><a class="" ng-click="filtros(status[1])" data-ng-model="filtro" uib-btn-radio="'Pendientes'" id="pending" value="pending">{{ 'generics.pendingPlural' | i18next }}</a></div>
                                                 </div>
                                             </div>
                                             
                                             <div class="col-md-2 padding-0">
                                                 <div class="row padding-left-0  padding-right-0">
-                                                    <div class="col-md-12  text-center tabs-estados-tab tab-estados-tab__confirmados"><a class="" ng-click="filtros(status[2])"  data-ng-model="filtro" uib-btn-radio="'Confirmados'" id="hit" value="hit">Confirmados</a></div>
+                                                    <div class="col-md-12  text-center tabs-estados-tab tab-estados-tab__confirmados"><a class="" ng-click="filtros(status[2])"  data-ng-model="filtro" uib-btn-radio="'Confirmados'" id="hit" value="hit">{{ 'generics.confirmedPlural' | i18next }}</a></div>
                                                 </div>
                                             </div>
 
                                             <div class="col-md-5  padding-right-0">
                                                 <div class="row">
-                                                    <div class="col-md-6  text-center tabs-estados-tab tab-estados-tab__descartados"><a ng-click="filtros(status[3])" data-ng-model="filtro" uib-btn-radio="'Descartados'" id="discarded" value="discarded"> Descartados</a></div>
-                                                    <div class="col-md-6  text-center tabs-estados-tab tab-estados-tab__conflictos"><a  ng-click="filtros(status[4])" data-ng-model="filtro" uib-btn-radio="'Conflictos'" id="conflict" value="conflict"> Conflictos </a></div>
+                                                    <div class="col-md-6  text-center tabs-estados-tab tab-estados-tab__descartados"><a ng-click="filtros(status[3])" data-ng-model="filtro" uib-btn-radio="'Descartados'" id="discarded" value="discarded"> {{ 'generics.discardedPlural' | i18next }}</a></div>
+                                                    <div class="col-md-6  text-center tabs-estados-tab tab-estados-tab__conflictos"><a  ng-click="filtros(status[4])" data-ng-model="filtro" uib-btn-radio="'Conflictos'" id="conflict" value="conflict"> {{ 'generics.conflicts' | i18next }} </a></div>
                                                 </div>
                                             </div>
                                         </div>
@@ -173,7 +173,7 @@
                             <div class="m-t-10 row">
                                 <div class="form-group col-md-12 vertical-align">
                                     <div class="row padding-0  m-t-0 vertical-align">
-                                        <div class="col-md-offset-6 col-md-3 padding-0"><label for="sort">Ordenar por:</label>
+                                        <div class="col-md-offset-6 col-md-3 padding-0"><label for="sort">{{ 'buttons.orderBy' | i18next }}:</label>
                                             
                                         </div>
                                         <div class="col-md-3 item-input padding-right-0">
@@ -195,8 +195,8 @@
     
    
     <div data-ng-show="noResult && !isProcessing" class="row coincidencia-estado">
-           
-                    No se encontraron datos según su busqueda
+
+            {{ 'generics.noResult' | i18next }}
              
     </div>
     <div class="row coincidencia-estado"  data-ng-show="!noResult" ng:repeat="m in matches" name="{{'match_' + m.matchCard.globalCode}}" id="{{'foco'+m.matchCard.globalCode}}">
@@ -218,31 +218,31 @@
                     <div class="row padding-0 coincidencia-estado-detalle ">
                         
                         <div class="col-md-3 padding-top-7 padding-bottom-7 padding-right-0">
-                            <h6 class="dato categoria">Categoría: <span class="dato ultimacoincidencia">{{m.matchCard.categoryId}}</span></h6> 
-                            <h6 class="dato ">Ultima coincidencia: <span class="dato">{{m.matchCard.lastMatchDate | date:'yyyy-MM-dd'}}</span></h6>
+                            <h6 class="dato categoria">{{ 'generics.category' | i18next }}: <span class="dato ultimacoincidencia">{{m.matchCard.categoryId}}</span></h6>
+                            <h6 class="dato ">{{ 'matches.dateLast' | i18next }}: <span class="dato">{{m.matchCard.lastMatchDate | date:'yyyy-MM-dd'}}</span></h6>
                         </div>
                         <div class="col-md-9  padding-0 coincidencia-estado-detalle ">
                                 <div class="col-md-2 padding-top-7 padding-bottom-7">
-                                    <h6>Aportantes</h6>
+                                    <h6>{{ 'generics.contributors' | i18next }}</h6>
                                     <p class="dato numerico">{{m.matchCard.contributors}}</p>
                                 </div>
                                 <div class="col-md-2 padding-right-0 padding-left-0 padding-top-7 padding-bottom-7">
-                                        <h6>Pendientes</h6>
+                                        <h6>{{ 'generics.pendingPlural' | i18next }}</h6>
                                         <p class="dato laboratorio big-size" ng-if="m.matchCard.pending !== 0">{{m.matchCard.pending}}</p>
                                         <p class="dato laboratorio big-size" ng-if="m.matchCard.pending == 0">&mdash;</p>
                                     </div>
                                 <div class="col-md-2 padding-right-0 padding-left-0 padding-top-7 padding-bottom-7">
-                                        <h6>Confirmados</h6>
+                                        <h6>{{ 'generics.confirmedPlural' | i18next }}</h6>
                                         <p class="dato laboratorio big-size" ng-if="m.matchCard.hit !== 0 ">{{m.matchCard.hit}}</p>
                                         <p class="dato laboratorio big-size" ng-if="m.matchCard.hit == 0">&mdash;</p>
                                     </div>
                                 <div class="col-md-2 padding-right-0 padding-left-0 padding-top-7 padding-bottom-7">
-                                    <h6>Descartados</h6>
+                                    <h6>{{ 'generics.discardedPlural' | i18next }}</h6>
                                     <p class="dato laboratorio big-size" ng-if="m.matchCard.discarded !== 0">{{m.matchCard.discarded}}</p>
                                     <p class="dato laboratorio big-size" ng-if="m.matchCard.discarded == 0">&mdash;</p>
                                 </div>
                                 <div class="col-md-2 padding-top-7 padding-bottom-7">
-                                    <h6>Conflictos</h6>
+                                    <h6>{{ 'generics.conflicts' | i18next }}</h6>
                                     <p class="dato laboratorio big-size" ng-if="m.matchCard.conflict !== 0">{{m.matchCard.conflict}}</p>
                                     <p class="dato laboratorio big-size" ng-if="m.matchCard.conflict == 0">&mdash;</p>
                                     <!-- <span class="badge match-tag status-conflict" ng-if="m.matchCard.conflict !== 0"><b>{{m.matchCard.conflict}}</b></span> -->
@@ -269,11 +269,11 @@
                                 <div class="col-md-4 padding-right-0">
                                     <div class="row padding-right-0">
                                         <div class="col-md-6 padding-0">
-                                            <h6>Código laboratorio</h6>
+                                            <h6>{{ 'generics.labCode' | i18next }}</h6>
                                             <p>{{m.matchCardMejorLr.internalSampleCode }}</p>
                                         </div>
                                         <div class="col-md-6">
-                                            <h6>Categoría</h6>
+                                            <h6>{{ 'generics.category' | i18next }}</h6>
                                             <p>{{m.matchCardMejorLr.categoryId }}</p>
                                         </div>
                                     </div>
@@ -281,7 +281,7 @@
                                 <div class="col-md-5">
                                     <div class="row">
                                          <div class="col-md-6">
-                                            <h6>Sistemas comp.</h6>
+                                            <h6>{{ 'matches.sharedLocus' | i18next }}</h6>
                                             <p ng-if="!analysisTypes[d.type].mitochondrial">{{m.matchCardMejorLr.totalAlleles}} / {{m.matchCardMejorLr.totalMarkers}}
 
                                             </p>
@@ -289,7 +289,7 @@
                                         
                                         </div>
                                         <div class="col-md-6 padding-right-0">
-                                            <h6>Alelos comp.</h6>
+                                            <h6>{{ 'matches.sharedAlleles' | i18next }}</h6>
                                             <p>{{m.matchCardMejorLr.sharedAllelePonderation | percentage:2}}</p>
                                         </div>                                    
                                     </div>
@@ -308,18 +308,18 @@
                             <div class="row padding-0">
                                 
                                 <div class="col-md-3">
-                                    <h6>No coincid.</h6>
+                                    <h6>{{ 'matches.noMatch' | i18next }}</h6>
                                     <p>{{m.matchCardMejorLr.mismatches}}</p>
                                     
                                 </div>
                                 <div class="col-md-6">
                                     <div class="row padding-left-0">
                                         <div class="col-md-6">
-                                            <h6>E. Agrupador</h6>
+                                            <h6>{{ 'matches.statusGrouper' | i18next }}</h6>
                                             <p>{{ matchStatus[m.matchCardMejorLr.ownerStatus] }}</p>
                                         </div>
                                         <div class="col-md-6 padding-0">
-                                            <h6>E. Coincidente</h6>
+                                            <h6>{{ 'matches.statusMatches' | i18next }}</h6>
                                             <p>{{ matchStatus[m.matchCardMejorLr.otherStatus] }}</p>
                                         </div>
                                         
@@ -328,15 +328,15 @@
                                 <div class="col-md-2 padding-0">
                                     <div class="row">
                                         <div class="col-md-12 padding-0">
-                                            <a  id="goto-button" href="{{getGroups(m.matchCard)}}" ng-click="filtroLocal(m.matchCard.globalCode)" class="btn btn-round btn-small">Ver todos</a>
+                                            <a  id="goto-button" href="{{getGroups(m.matchCard)}}" ng-click="filtroLocal(m.matchCard.globalCode)" class="btn btn-round btn-small">{{ 'buttons.viewAll' | i18next }}</a>
                                             
                                         </div>
                                     </div>
                                     <div class="row padding-0">
                                         <div class="col-md-12 padding-right-0 padding-left-0 text-center">
-                                            <a  class="cancel-link descartar" pdg-confirm pdg-confirm-title="Descartar Coincidencias"
-                                                pdg-confirm-content="Al confirmar esta acción se descartarán todas las coincidencias del grupo. ¿Está seguro?"
-                                                pdg-on-confirm="descarteMasivo" param="{{m.matchCard}}" >Descartar todos</a>
+                                            <a  class="cancel-link descartar" pdg-confirm pdg-confirm-title="{{ 'buttons.discardMatch' | i18next }}"
+                                                pdg-confirm-content="{{ 'alerts.match.discardSure' | i18next }}"
+                                                pdg-on-confirm="descarteMasivo" param="{{m.matchCard}}" >{{ 'buttons.discardAll' | i18next }}</a>
                                         </div>
                                     </div>
                                 </div>

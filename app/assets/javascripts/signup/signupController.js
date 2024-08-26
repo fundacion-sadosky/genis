@@ -68,7 +68,7 @@ var SignupCtrl = function($scope, userService, roleService, $modal, alertService
 			
 			$scope.step = 'challenge';
 			
-			setSecret('Seleccione un usuario');
+			setSecret($.i18n.t('generics.userSelect'));
             $scope.isUserNameSelected = false;
 		});	
 	};
@@ -89,14 +89,14 @@ var SignupCtrl = function($scope, userService, roleService, $modal, alertService
                 },
                 function (e) {
                     if (e && e.status === 400) {
-                        alertService.error({message: 'El código ingresado es inválido',parent: 'signup-content'});
+                        alertService.error({message:  $.i18n.t('error.invalidCode'),parent: 'signup-content'});
                     } else {
                         alertService.error({message: e.data,parent: 'signup-content'});
                     }
                 }
             );
         } else {
-            alertService.error({message: 'Seleccione un nombre de usuario para GENis',parent: 'signup-content'});
+            alertService.error({message:  $.i18n.t('signup.challenge.chooseUsername'),parent: 'signup-content'});
         }
 	};
 	
@@ -111,7 +111,7 @@ var SignupCtrl = function($scope, userService, roleService, $modal, alertService
 	
 	$scope.getSecret = function() { 
 		return ($scope.challenge  && $scope.challenge.choosenUserName !== undefined) ? 
-				$scope.totpSecret : 'Seleccione un usuario'; 
+				$scope.totpSecret : $.i18n.t('generics.userSelect');
 	};
 
 };

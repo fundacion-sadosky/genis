@@ -9,7 +9,7 @@
                                 <span  class="icon-atras" title="Volver"></span>
                             </div>
                         </li>
-                        <li class="active">Marcadores</li>
+                        <li class="active">{{ 'generics.locusPlural' | i18next }}</li>
                         
                     </ol>
                 </div>
@@ -22,10 +22,10 @@
         <div class="content"><!-- content-wrap-small -->
 
             <tabset class="tabset-section">
-                <tab active="true" heading="Agregar Marcador">
+                <tab active="true" heading="{{ 'locus.add.new' | i18next }}">
                     <div ng-include="'/assets/javascripts/locus/views/new-locus.html'" class="animated fadeIn "></div>
                 </tab>
-                <tab heading="Marcadores">
+                <tab heading="{{ 'generics.locusPlural' | i18next }}">
                     <div ng-include="'/assets/javascripts/locus/views/list-locus.html'" class="animated fadeIn tab-container"></div>
                 </tab>
             </tabset>

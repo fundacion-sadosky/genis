@@ -3,7 +3,7 @@ function(angular, LoadingAppController, TotpPromptService, TotpPromptController,
 'use strict';
 
 angular
-	.module('pdg.home', [])
+	.module('pdg.home', ['jm.i18next'])
 	.controller('loadingAppController', ['$scope', LoadingAppController])
 	.service('totpPromptService', ['$log', '$rootScope', '$q', TotpPromptService])
 	.controller('totpPromptController', ['$scope', 'totpPromptService', TotpPromptController])

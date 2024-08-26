@@ -1,17 +1,17 @@
 <div class="modal-header">
-	<h4>Nuevo escenario</h4>
+	<h4>{{ 'generics.newScenario' | i18next }}</h4>
 </div>
 <div class="modal-body">
 	<form class="form-horizontal" name="nameForm">
 		<div class="form-group">
-			<label for="name" class="col-sm-3 control-label">Nombre corto</label>
+			<label for="name" class="col-sm-3 control-label">{{ 'generics.shortName' | i18next }}</label>
 			<div class="col-sm-8">
 		  		<input ng-model="name" type="text" name="name" class="form-control form-select" id="name" maxlength="10" required>
 				<form-validation max="10" input="nameForm.name"></form-validation>
 			</div>
 	  	</div>
 		<div class="form-group">
-			<label for="description" class="col-sm-3 control-label">Descripción</label>
+			<label for="description" class="col-sm-3 control-label">{{ 'generics.description' | i18next }}</label>
 			<div class="col-sm-8">
 				<textarea ng-model="description" class="text-area-4-lines form-control form-select" id="description" required></textarea>
 			</div>
@@ -24,10 +24,10 @@
 
 		<div class="btn btn-link-action" ng-click="close({ok:false})">
 			<span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
-			<span class="btn-link-action">Cancelar</span>
+			<span class="btn-link-action">{{ 'buttons.cancel' | i18next }}</span>
 		</div>
 		<button id="confirm" type="button" class="btn btn-primary-action"
-				ng-disabled="nameForm.$invalid" data-ng-click="close({ok:true, name: name, description: description})">Aceptar</button>
+				ng-disabled="nameForm.$invalid" data-ng-click="close({ok:true, name: name, description: description})">{{ 'buttons.accept' | i18next }}</button>
 
     </div>
 

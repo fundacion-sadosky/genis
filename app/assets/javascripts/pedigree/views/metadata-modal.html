@@ -8,7 +8,7 @@
 </style>
 
 <div id="metadata" class="modal-header">
-    <h4> Información de la persona buscada {{alias}}
+    <h4> {{ 'pedigree.metadata.searchedPersonInfo' | i18next }} {{alias}}
     </h4>
 </div>
 
@@ -16,40 +16,40 @@
 <div class="input-data-section modal-body">
     <div class="col-md-12">
         <div class="item-input col-md-4">
-            <label for="alias">Alias<span class="field-obligated">*</span></label>
+            <label for="alias">{{ 'generics.alias' | i18next }}<span class="field-obligated">*</span></label>
             <input ng-disabled="modo === 'edit'" class="form-control form-select" id="alias" type="text" data-ng-model="metadataProfile.alias" required/>
         </div>
         
         <div class="item-input col-md-4">
-            <label for="firstName">Nombre</label>
+            <label for="firstName">{{ 'generics.name' | i18next }}</label>
             <input class="form-control form-select" id="firstName" type="text" data-ng-model="metadataProfile.firstName"/>
         </div>
         <div class="item-input col-md-4">
-            <label for="lastName">Apellido</label>
+            <label for="lastName">{{ 'generics.lastName' | i18next }}</label>
             <input class="form-control form-select" id="lastName" type="text" data-ng-model="metadataProfile.lastName"/>
         </div>
     </div>
     <div class="col-md-12">
         <div class="item-input col-md-3">
-            <label for="identification">Número de documento</label>
+            <label for="identification">{{ 'pedigree.metadata.identification' | i18next }}</label>
             <input class="form-control form-select" id="identification" type="text" data-ng-model="metadataProfile.identification"/>
         </div>
         
         
         <div class="item-input col-md-2">
-            <label for="sexoID">Sexo</label>
+            <label for="sexoID">{{ 'generics.sex' | i18next }}</label>
             <select id="sexoID" data-ng-model="metadataProfile.sex" class="form-control form-select"
             ng-options="s as ('sexFull.' + s | i18next) for s in sex">
             </select>
         </div>
     
         <div class="item-input col-md-3">
-            <label for="nationality">Nacionalidad</label>
+            <label for="nationality">{{ 'pedigree.metadata.nationality' | i18next }}</label>
             <input class="form-control form-select" id="nationality" type="text" data-ng-model="metadataProfile.nationality"/>
         </div>
     
         <div class="item-input col-md-4">
-            <label for="dateOfMissing">Fecha de desaparición</label>
+            <label for="dateOfMissing">{{ 'pedigree.metadata.dateMissing' | i18next }}</label>
             <p class="input-group" style="margin-bottom: 0px;">
                 <input id="dateOfMissing" name="dateOfMissing" type="text" class="form-control form-select" datepicker-popup="dd/MM/yyyy"
                 data-ng-model="metadataProfile.dateOfMissing" is-open="status1.opened"
@@ -68,7 +68,7 @@
     <div class="col-md-12">
         
         <div class="item-input col-md-4">
-            <label for="dateOfBirth">Fecha de nacimiento</label>
+            <label for="dateOfBirth">{{ 'pedigree.metadata.dateOfBirth' | i18next }}</label>
             <p class="input-group" style="margin-bottom: 0px;" >
                 <input name="dateOfBirth" id="dateOfBirth" type="text"
                 class="form-control form-select" datepicker-popup="dd/MM/yyyy"
@@ -84,7 +84,7 @@
             </p>
         </div>
         <div class="item-input col-md-4">
-            <label for="dateOfBirthFrom">Rango de fecha de nacimiento</label>
+            <label for="dateOfBirthFrom">{{ 'pedigree.metadata.dateOfBirthRange' | i18next }}</label>
             <p class="input-group" style="margin-bottom: 0px;">
                 <input   name="dateOfBirthFrom" id="dateOfBirthFrom" type="text"
                 class="form-control form-select" datepicker-popup="dd/MM/yyyy"
@@ -100,7 +100,7 @@
             </p>
         </div>
         <div class="item-input col-md-4">
-            <label for="dateOfBirthTo"> hasta </label>
+            <label for="dateOfBirthTo"> {{ 'pedigree.metadata.dateOfBirthTo' | i18next }} </label>
             <p class="input-group" style="margin-bottom: 0px;">
                 <input  name="dateOfBirthTo" id="dateOfBirthTo" type="text"
                 class="form-control form-select" datepicker-popup="dd/MM/yyyy"
@@ -119,32 +119,32 @@
     </div>
     <div class="col-md-12">
         <div class="item-input col-md-3">
-            <label for="height">Altura</label>
+            <label for="height">{{ 'pedigree.metadata.height' | i18next }}</label>
             <input class="form-control form-select" id="height" type="text" data-ng-model="metadataProfile.height"/>
         </div>
         <div class="item-input col-md-3">
-            <label for="weigth">Peso</label>
+            <label for="weigth">{{ 'pedigree.metadata.weight' | i18next }}</label>
             <input class="form-control form-select" id="weigth" type="text" data-ng-model="metadataProfile.weight"/>
         </div>
         <div class="item-input col-md-3">
-            <label for="hairColor">Color de pelo</label>
+            <label for="hairColor">{{ 'pedigree.metadata.hairColor' | i18next }}</label>
             <input class="form-control form-select" id="hairColor" type="text" data-ng-model="metadataProfile.hairColor"/>
         </div>
         <div class="item-input col-md-3">
-            <label for="skinColor">Color de piel</label>
+            <label for="skinColor">{{ 'pedigree.metadata.skinColor' | i18next }}</label>
             <input class="form-control form-select" id="skinColor" type="text" data-ng-model="metadataProfile.skinColor"/>
         </div>
     </div>
     <div class="col-md-12">
         <div class="item-input col-md-12">
-            <label for="clothing">Vestimenta</label>
+            <label for="clothing">{{ 'pedigree.metadata.clothing' | i18next }}</label>
             <textarea class="form-control form-select" id="clothing" type="text" data-ng-model="metadataProfile.clothing"
             dir="auto" style="overflow: hidden; word-wrap: break-word;" ></textarea>
         </div>
     </div>
     <div class="col-md-12">
         <div class="item-input col-md-12">
-            <label for="particularidades">Características particulares</label>
+            <label for="particularidades">{{ 'pedigree.metadata.particularities' | i18next }}</label>
             <textarea class="form-control form-select" id="particularidades" type="text" data-ng-model="metadataProfile.particularities"
             dir="auto" style="overflow: hidden; word-wrap: break-word;"></textarea>
         </div>
@@ -155,15 +155,15 @@
     
     <div class="btn btn-secondary-action" ng-click="cancel()">
         <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
-        <span class="btn-secondary-action">Cancelar</span>
+        <span class="btn-secondary-action">{{ 'buttons.cancel' | i18next }}</span>
     </div>
     <div ng-if="modo == 'add'" class="btn btn-link-action" ng-click="limpiar()">
-        <span title="Limpiar datos">
+        <span title="{{ 'buttons.cleanData' | i18next }}">
             <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
         </span>
-        <span class="btn-link-action">Limpiar</span>
+        <span class="btn-link-action">{{ 'buttons.clean' | i18next }}</span>
     </div>
     <button type="button" class="btn btn-primary-action"
-    data-ng-click="guardar()" ng-disabled="!metadataProfile.alias" ng-if="!isCourtCaseClosed()">Guardar</button>
+    data-ng-click="guardar()" ng-disabled="!metadataProfile.alias" ng-if="!isCourtCaseClosed()">{{ 'buttons.save' | i18next }}</button>
     
 </div>

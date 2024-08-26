@@ -79,7 +79,7 @@ function StatsService(playRoutes, $q) {
                 { 'frequencyTable': response[0].frequencyTable, 'theta': response[0].theta, 'probabilityModel': response[0].probabilityModel,
                     'dropIn': response[1].dropIn, 'dropOut': response[1].dropOut };
             if (!options.frequencyTable || !options.probabilityModel || options.theta === undefined) {
-                 deferred.reject('No está configurada la base de frecuencias.');
+                 deferred.reject($.i18n.t('alerts.generics.dbNotConfigured'));
 			} else if (options.dropIn === undefined || options.dropOut === undefined) {
                 options.dropIn = 0.0;
                 options.dropOut = 0.0;
@@ -108,10 +108,10 @@ function StatsService(playRoutes, $q) {
 	};
 	
 	this.getFminCalcOptions = function(){
-		return {'FminValue': {id: 'value', description: 'Valor', config: ['fmin']}, 
-				'NRCII': {id: 'NRCII', description: 'NRC II', config: ['N']}, 
-				'Weir': {id: 'Weir', description: 'Weir', config: ['N', 'alpha']},
-				'BudowleMonsonChakraborty': {id: 'BudowleMonsonChakraborty', description: 'Budowle, Monson, Chakraborty', config: ['N', 'alpha', 'C']}};
+		return {'FminValue': {id: 'value', description:  $.i18n.t('generics.value'), config: ['fmin']},
+				'NRCII': {id: 'NRCII', description: $.i18n.t('generics.ncrII'), config: ['N']},
+				'Weir': {id: 'Weir', description: $.i18n.t('generics.weir'), config: ['N', 'alpha']},
+				'BudowleMonsonChakraborty': {id: $.i18n.t('generics.budowleMonsonChakraborty'), description: 'Budowle, Monson, Chakraborty', config: ['N', 'alpha', 'C']}};
 	};
 	
 	this.insertFmin = function(cacheId, fmin) {

@@ -38,7 +38,7 @@
 							<span  class="icon-atras" title="Volver"></span>
 						</div>
 					</li>
-					<li class="active">Perfil - Datos muestra {{showFiliationDataSection}}</li>
+					<li class="active">{{ 'profileData.sampleData' | i18next }} {{showFiliationDataSection}}</li>
 				</ol>
 			</div>
 		</div>
@@ -58,9 +58,7 @@
 					
 					<div class="non-obligated-info">
 						<div class="instructions">
-							Para que los campos de Información de la causa, Datos de la muestra y
-							datos filiatorios se habiliten, primero debe completar los campos
-							marcados con <span class="field-obligated">*</span>
+							{{ 'profileData.nonObligatedInfo' | i18next }}</span>
 						</div>
 						<div class="clearfix"></div>
 						
@@ -108,12 +106,12 @@
 				<span title="Limpiar pantalla">
 					<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
 				</span>
-				<span class="btn-link-action">Limpiar</span>
+				<span class="btn-link-action">{{ 'buttons.clean' | i18next }}</span>
 			</div>
 			
 			<button type="button" class="btn btn-primary-action"
 			ng-disabled="pdform.$invalid || mode == 'readonly'"
-			data-ng-click="saveProfile()">Guardar</button>
+			data-ng-click="saveProfile()">{{ 'buttons.save' | i18next }}</button>
 		</div>
 	</footer>
 </div>

@@ -1,22 +1,22 @@
 <!DOCTYPE html>
 <div class="modal-header">
-    <h4 class="active">Alta de Lote</h4>
+    <h4 class="active">{{'lot.create' | i18next}}</h4>
 </div>
 
 <div class="modal-body">
     <div class="row">
         <div class="col-md-4 text-center ">
 
-            <label class="control-label" style="margin-top: 10px">Elija tipo de análisis:</label>
+            <label class="control-label" style="margin-top: 10px">{{'lot.analysis' | i18next}}</label>
             </br></br>
             <span class="btn btn-link-action btn-block btn-file">
                 <span class="glyphicon glyphicon-upload"></span>
-                 Elija archivo
+                 {{'lot.pickFile' | i18next}}
                 <input id="archivo" type="file" name="file" ngf-select=""
                        ng-model="files" help-tip="format.bulkUpload" help-tip-placement="right">
             </span>
                 </br>
-            <label class="control-label">Nombre del Lote:</label>
+            <label class="control-label">{{'lot.name' | i18next}}:</label>
         </div>
 
         <div class="col-md-4 text-center" style="margin-top: 5px">
@@ -28,7 +28,7 @@
         </br>
             <input type="text" ng-disabled='true' placeholder="{{files[0].name| prittyLimitTo : 20: true }}">
         </br></br>
-            <input type="text" ng-model="nombreLote" placeholder="Nombre de lote opcional">
+            <input type="text" ng-model="nombreLote" placeholder="{{'lot.optionalName' | i18next}}">
         </div>
     </div>
 </div>
@@ -37,12 +37,12 @@
             <span title="Cerrar">
                 <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
             </span>
-            <span class="btn-link-action">Cerrar</span>
+            <span class="btn-link-action">{{'buttons.close' | i18next}}</span>
         </div>
         <button
           class="btn btn-primary-action"
           ng-click="closeModal(files, nombreLote, tipoAnalisis)"
           ng-disabled="!files.length > 0"
-        >Agregar
+        >{{'buttons.add' | i18next}}
         </button>
 </div>

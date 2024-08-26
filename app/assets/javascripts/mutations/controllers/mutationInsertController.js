@@ -7,7 +7,7 @@ define(['lodash'], function(_) {
             $scope.showR = false;
             $scope.showr = false;
             $scope.showR2 = false;
-            $scope.ignoreSexList = [{"id":1,"description":"SI"},{"id":2,"description":"NO"}];
+            $scope.ignoreSexList = [{"id":1,"description":$.i18n.t('generics.yes')},{"id":2,"description":$.i18n.t('generics.no')}];
             $scope.cantSaltosList = [{"id":1,"description":"1"},{"id":2,"description":"2"},{"id":3,"description":"3"},{"id":4,"description":"4"}];
             var parameterGeneric = {};
             parameterGeneric.id = 0;
@@ -114,23 +114,23 @@ define(['lodash'], function(_) {
 
                 mutationModelService.updateMutationModelByChunks(newMutationModelRequest).then(function() {
                     mutationModelService.generateMatrix(newMutationModelRequest).then(function() {
-                        alertService.success({message: 'Fue dado de alta con exito'});
+                        alertService.success({message: $.i18n.t('mutations.newSuccess')});
                         $scope.back();
                     }, function() {
-                        alertService.error({message: 'Error'});
+                        alertService.error({message:  $.i18n.t('error.common')});
                     });
 
                 }, function() {
-                    alertService.error({message: 'Error'});
+                    alertService.error({message: $.i18n.t('error.common')});
                     mutationModelService.deleteMutationModelById(newMutationModel.id).then(function() {
-                        alertService.error({message: 'Error'});
+                        alertService.error({message: $.i18n.t('error.common')});
                     }, function() {
-                        alertService.error({message: 'Error'});
+                        alertService.error({message: $.i18n.t('error.common')});
                     });
                 });
 
             }, function() {
-                alertService.error({message: 'Error'});
+                alertService.error({message: $.i18n.t('error.common')});
             });
 
         };

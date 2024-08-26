@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <div class="modal-header">
-	<h4>Nuevo análisis para <b>{{newAnalysis.globalCode}}</b></h4>
+	<h4>{{ 'profileViews.analysis.new' | i18next }} <b>{{newAnalysis.globalCode}}</b></h4>
 </div>
 <div class="modal-body">
-	La validación ha finalizado correctamente.
-	Desea continuar con el alta del análisis?
+	{{ 'profileViews.analysis.continue' | i18next }}
 </div>
 <div class="modal-footer">
-   <button id="new_analysis_confirm" class="btn btn-success" data-ng-click="close(true)">Si</button>
-   <button id="close_analysis_confirm" class="btn btn-danger" data-ng-click="close(false)">No</button>
+   <button id="new_analysis_confirm" class="btn btn-success" data-ng-click="close(true)">{{ 'buttons.yes' | i18next }}</button>
+   <button id="close_analysis_confirm" class="btn btn-danger" data-ng-click="close(false)">{{ 'buttons.no' | i18next }}</button>
 </div>

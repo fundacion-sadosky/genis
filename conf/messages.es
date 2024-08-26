@@ -144,3 +144,9 @@ error.E0951= E0951: No se pudo obtener imagen del perfil {0} debido a que el tok
 error.E0960= E0960: Inconsistencia entre el tamaño de la cabecera [{0}] y el resto de las filas [{1}].
 error.E1000= E1000: Actualización no permitida.
 error.E2000= E2000: No se encontraron perfiles con los filtros seleccionados.
+
+# Wait a moment
+start.wait= Espere un momemto por favor.
+
+#Inbox
+inbox.theuserpending = El usuario: {0} esta pendiente de aprobación

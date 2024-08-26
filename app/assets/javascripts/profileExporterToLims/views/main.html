@@ -8,7 +8,7 @@
                             <span class="icon-atras" title="Volver"></span>
                         </div>
                     </li>
-                    <li class="active">Exportador de Novedades para Lims</li>
+                    <li class="active">{{ 'menu.profileLIMSExporter' | i18next }}</li>
                 </ol>
             </div>
         </div>
@@ -23,7 +23,7 @@
                         <form class="navbar-form  vertical-align padding-0" role="export" name="exportPdForm"
                               novalidate>
                             <div class="col-md-6 padding-left-0 padding-right-0 vertical-align">
-                                <label class="col-md-8 padding-left-0" >Tipo archivo:</label>
+                                <label class="col-md-8 padding-left-0" >{{ 'menu.profileLIMSExporter' | i18next }}</label>
                                 <div class="col-md-7 padding-left-0">
                                     <select id="tipos" data-ng-model="search.tipo"
                                             class="form-control form-select">
@@ -36,13 +36,13 @@
                     </div>
                     <div class="profile-header-clerk col-md-6 new-load form-group vertical-align">
                         <div class="col-md-1 padding-left-0">
-                            <label class="m-r-10" for="hourFrom">Fecha</label>
+                            <label class="m-r-10" for="hourFrom">{{ 'generics.date' | i18next }}</label>
                         </div>
                         <div class="col-md-10 padding-left-0 padding-right-30">
                             <div class="row padding-0  m-t-0 m-b-0 ">
                                 <div class="col-md-6">
                                     <input type="text" name="hourFrom" id="hourFrom"
-                                           placeholder="Desde" data-datepicker-popup="dd/MM/yyyy"
+                                           placeholder="{{ 'generics.since' | i18next }}" data-datepicker-popup="dd/MM/yyyy"
                                            data-ng-model="search.hourFrom"
                                            data-is-open="datepickers.hourFrom" class="form-control form-select"
                                            data-datepicker-options="dateOptions"
@@ -52,7 +52,7 @@
                                 </div>
                                 <div class="col-md-6">
                                     <input type="text" name="hourUntil" id="hourUntil"
-                                           placeholder="Hasta" data-datepicker-popup="dd/MM/yyyy"
+                                           placeholder="{{ 'generics.to' | i18next }}" data-datepicker-popup="dd/MM/yyyy"
                                            data-ng-model="search.hourUntil"
                                            data-is-open="datepickers.hourUntil" class="form-control form-select"
                                            data-datepicker-options="dateOptions"
@@ -74,7 +74,7 @@
                     <div class="row m-b-10">
                         <div show-permissions="PROFILE_EXPORTER" class="pull-right padding-right-0">
                             <button type="button" class="btn btn-primary-action pull-right"
-                                    data-ng-click="exportProfiles()"><span>Exportar</span>
+                                    data-ng-click="exportProfiles()"><span>{{ 'buttons.export' | i18next }}</span>
                             </button>
                         </div>
                     </div>

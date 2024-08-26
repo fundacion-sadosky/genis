@@ -33,14 +33,14 @@ function RolesCtrl ($scope, roleService, $modal, alertService, $filter) {
 			$scope.save();
 		} else { // delete role
 			selectRole(undefined);
-			alertService.success({message: 'El rol se ha eliminado correctamente'});
+			alertService.success({message: $.i18n.t('alerts.role.deleted')});
 			getRoles();
 		}
 	}
 
 	function onModalAddClose(role){
 		selectRole(role);
-        alertService.warning({message: 'El rol fue generado, debe agregar el/los permiso/s y guardar para finalizar la operacion.'});
+        alertService.warning({message: $.i18n.t('alerts.role.add')});
 	}
 
 	function openRoleModal(role, mode, onModalClose) {
@@ -91,11 +91,11 @@ function RolesCtrl ($scope, roleService, $modal, alertService, $filter) {
 		roleService.upsertRole($scope.current, $scope.mode).then(
 			function(){
                 getRoles();
-                     alertService.success({message: 'El rol se ha guardado correctamente'});
+                     alertService.success({message: $.i18n.t('alerts.role.save')});
 
 			},
 			function(response){
-				alertService.error({message: 'Ha ocurrido un error al guardar los cambios: ' + response.data});
+				alertService.error({message: $.i18n.t('error.saving') + response.data});
 			});
 	};
 

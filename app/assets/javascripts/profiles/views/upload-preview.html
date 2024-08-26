@@ -10,8 +10,8 @@
 			<table class="table table-striped">
 				<thead>
 					<tr>
-						<th>Marcadores</th>
-						<th class="text-center">Alelos</th>
+						<th>{{ 'generics.locusPlural' | i18next }}</th>
+						<th class="text-center">{{ 'generics.alleles' | i18next }}</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -24,7 +24,7 @@
 				</tbody>
 			</table>
 
-			<h4>Electroferograma</h4>
+			<h4>{{ 'generics.electropherogram' | i18next }}</h4>
 			<div class="form-group">
 				<div class="col-md-12">
 					<carousel interval="3000">
@@ -42,8 +42,8 @@
 			</div>
 
 			<div class="pull-right clearfix">
-				<button id="cancel" type="button" class="btn btn-danger">Cancelar</button>
-				<button id="save" type="button" class="btn btn-success" ng-click="saveUploaded()">Guardar</button>
+				<button id="cancel" type="button" class="btn btn-danger">{{ 'buttons.cancel' | i18next }}</button>
+				<button id="save" type="button" class="btn btn-success" ng-click="saveUploaded()">{{ 'buttons.save' | i18next }}</button>
 			</div>
 				
 		</div>

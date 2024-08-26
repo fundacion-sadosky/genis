@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <div class="modal-header">
-	<h4><b>Advertencia</b></h4>
+	<h4><b>{{ 'pedigree.scenario.warning' | i18next }}</b></h4>
 </div>
 <div class="modal-body">
-	Al editar el pedigrí, todos los escenarios asociados serán eliminados. ¿Desea continuar?
+    {{ 'pedigree.scenario.warningContinue' | i18next }}
 </div>
 <div class="modal-footer">
-    <div id="cancel" type="button" class="btn btn-secondary-action" data-ng-click="close(false)">No</div>
-    <button id="confirm" type="button" class="btn btn-primary-action" data-ng-click="close(true)">Si</button>
+    <div id="cancel" type="button" class="btn btn-secondary-action" data-ng-click="close(false)">{{ 'buttons.no' | i18next }}</div>
+    <button id="confirm" type="button" class="btn btn-primary-action" data-ng-click="close(true)">{{ 'buttons.yes' | i18next }}</button>
 </div>

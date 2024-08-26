@@ -54,11 +54,11 @@ var ClearPassCtrl = function($scope, userService, roleService, $modal, alertServ
 
             $scope.step = 'challenge';
             $scope.challenge.choosenUserName = $scope.solicitudClear.userName;
-            setSecret('Seleccione un usuario');
+            setSecret($.i18n.t('generics.userSelect'));
             $scope.isUserNameSelected = true;
         },
             function () {
-              alertService.error({message: 'El usuario no se encuentra habilitado para blanquear el password. Consulte con un administrador',parent: 'clear-pass-content'});
+              alertService.error({message: $.i18n.t('error.cantBlank'),parent: 'clear-pass-content'});
             });
     };
 
@@ -77,14 +77,14 @@ var ClearPassCtrl = function($scope, userService, roleService, $modal, alertServ
                 },
                 function (e) {
                     if (e && e.status === 400) {
-                        alertService.error({message: 'El código ingresado es inválido',parent: 'signup-content'});
+                        alertService.error({message:  $.i18n.t('error.invalidCode')});
                     } else {
                         alertService.error({message: e.data,parent: 'signup-content'});
                     }
                 }
             );
         } else {
-            alertService.error({message: 'Seleccione un nombre de usuario para GENis',parent: 'signup-content'});
+            alertService.error({message: $.i18n.t('signup.challenge.chooseUsername'),parent: 'signup-content'});
         }
     };
 	
@@ -99,7 +99,7 @@ var ClearPassCtrl = function($scope, userService, roleService, $modal, alertServ
 	
 	$scope.getSecret = function() { 
 		return ($scope.challenge  && $scope.challenge.choosenUserName !== undefined) ? 
-				$scope.totpSecret : 'Seleccione un usuario'; 
+				$scope.totpSecret : $.i18n.t('generics.userSelect');
 	};
 
 };

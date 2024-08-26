@@ -84,33 +84,33 @@ define(['angular'], function(angular) {
 		$scope.delete = function(id) {
 			bioMaterialTypeService.deleteBioMaterialType(id).then(
 					function(){
-						alertService.success({message: 'El tipo de material biológico se ha borrado correctamente'});
+						alertService.success({message: $.i18n.t('biomaterial.alert.deleteSuccess')});
 						getBmts();
 					}, 
 					function(){
-						alertService.error({message: 'Ha ocurrido un error al borrar el tipo de material biológico. '});
+						alertService.error({message: $.i18n.t('biomaterial.alert.deleteFail')});
 					});
 			};
 		
 		$scope.update = function() {
 			bioMaterialTypeService.updateBioMaterialType($scope.current).then(
 					function(){
-						alertService.success({message: 'El tipo de material biológico se ha actualizado correctamente'});
+						alertService.success({message: $.i18n.t('biomaterial.alert.updateSuccess') });
 						getBmts();
 					}, 
 					function(response){
-						alertService.error({message: 'Ha ocurrido un error al actualizar los cambios: ' + response.data});
+						alertService.error({message: $.i18n.t('biomaterial.alert.updateFail') + response.data});
 					});
 			};
 		
 		$scope.save = function() {
 			bioMaterialTypeService.addBioMaterialType($scope.current).then(
 				function(){
-					alertService.success({message: 'El tipo de material biológico se ha guardado correctamente'});
+					alertService.success({message: $.i18n.t('biomaterial.alert.addSuccess')});
 					getBmts();
 				}, 
 				function(response){
-					$scope.status = 'Ha ocurrido un error al guardar los cambios: ' + response.data.error;
+					$scope.status = $.i18n.t('biomaterial.alert.addFail') + response.data.error;
 				});
 		};
 		

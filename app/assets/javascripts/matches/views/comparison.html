@@ -1,227 +1,296 @@
-
 <div class="row padding-0 breadcrumb_column">
-	<div class="col-md-12 padding-0">
-		<div class="row padding-0">
-			<div class="breadcrumb_content">
-				<ol class="breadcrumb no-print">
-						<li>
-							<div class="btn volver" onclick="history.back()">
-								<span  class="icon-atras" title="Volver"></span>
-							</div>
-						</li>
-					<li class="active">Comparación</li>
-				</ol>
-			</div>
-		</div>
-	</div>
+  <div class="col-md-12 padding-0">
+    <div class="row padding-0">
+      <div class="breadcrumb_content">
+        <ol class="breadcrumb no-print">
+          <li>
+            <div class="btn volver" onclick="history.back()">
+              <span class="icon-atras" title="Volver"></span>
+            </div>
+          </li>
+          <li class="active">{{ 'matches.comparison' | i18next }}</li>
+        </ol>
+      </div>
+    </div>
+  </div>
 </div>
 <!--<h4 class="noscreen text-center">Informe</h4>-->
 
 <div class="panel panel-default container-top">
+  <div class="panel panel-default">
+    <div class="tabbable">
+      <div class="tab-content">
+        <div class="tab-pane active" id="comp-gen-panel-1">
+          <table class="table">
+            <thead>
+            <tr>
+              <td id="td-comp-gen-1" rowspan="2" class="col-md-2 column">
+              </td>
+              <td id="td-comp-gen-2" class="text-center column" style="padding-bottom: 0px;"
+                  title="{{ 'matches.viewCaseInfo' | i18next }}"
+                  ng-class="{'col-md-4':showCalculation,'col-md-5':!showCalculation}">
+                <div class="comparison-profileID">
+                  {{profileData.globalCode}} ({{profileData.internalSampleCode}})
+                  <a pdg-profile-data-info-popover profileid="profileId" info="{{profileData}}"></a>
+                </div>
+                <div style="font-size: small;" class="cat-info">({{getSubcatName(profileData.category)}})</div>
+                <span ng-if="!isCollapsingMatch && !isScreening"
+                      class="badge status-{{matchStatus}}"><b>{{results.status[profileId] | uppercase | translatematchstatus
+                  }}</b></span>
+              </td>
+              <td id="td-comp-gen-3" class="text-center column" style="padding-bottom: 0px;"
+                  title="Ver información de la causa"
+                  ng-class="{'col-md-4':showCalculation,'col-md-5':!showCalculation}">
+                <div class="comparison-profileID">
+                  {{matchedProfileData.globalCode}} ({{matchedProfileData.internalSampleCode}})
+                  <a pdg-profile-data-info-popover profileid="matchedProfileId" info="{{matchedProfileData}}"></a>
+                </div>
+                <div style="font-size: small;" class="cat-info">({{getSubcatName(matchedProfileData.category)}})</div>
+                <span ng-if="!isCollapsingMatch && !isScreening"
+                      class="badge status-{{matchStatus}}"><b>{{results.status[matchedProfileId] | uppercase | translatematchstatus
+                  }}</b></span>
+              </td>
+              <td id="td-comp-gen-4" class="text-center col-md-4 column" style="padding-bottom: 20px;"
+                  ng-class="{'statiscs-comparison': showCalculation}">
 
-<div class="panel panel-default">
+                <div ng-if="showCalculation">
+                  <div class="noprint" style="width:90%; float: left;">
+                    <span class="comparison-profileID">{{ 'generics.statsOptions' | i18next }}</span>
+                    <!--<span class="rmp comparison-profileID" ng-if="!mixF && !mixM"> RMP: {{(1.0 / pvalue).toExponential(4)}}</span>-->
+                    <span class="comparison-profileID"> LR: {{pvalue | likelihoodratioComp: true: statsResolved}}</span>
+                  </div>
 
-<div class="tabbable" >
-	<div class="tab-content">
-		<div class="tab-pane active" id="comp-gen-panel-1">
-			<table class="table">
-				<thead>
-					<tr>
-						<td id="td-comp-gen-1" rowspan="2" class="col-md-2 column">
-						</td>
-						<td id="td-comp-gen-2" class="text-center column" style="padding-bottom: 0px;" title="Ver información de la causa" ng-class="{'col-md-4':showCalculation,'col-md-5':!showCalculation}">
-							<div class="comparison-profileID">
-								{{profileData.globalCode}} ({{profileData.internalSampleCode}})
-								<a pdg-profile-data-info-popover profileid="profileId" info="{{profileData}}"></a>
-							</div>
-							<div style="font-size: small;" class="cat-info">({{getSubcatName(profileData.category)}})</div>
-							<span ng-if="!isCollapsingMatch && !isScreening" class="badge status-{{matchStatus}}"><b>{{results.status[profileId] | uppercase | translatematchstatus }}</b></span>
-						</td>
-						<td id="td-comp-gen-3" class="text-center column" style="padding-bottom: 0px;" title="Ver información de la causa" ng-class="{'col-md-4':showCalculation,'col-md-5':!showCalculation}">
-							<div class="comparison-profileID">
-								{{matchedProfileData.globalCode}} ({{matchedProfileData.internalSampleCode}})
-								<a pdg-profile-data-info-popover profileid="matchedProfileId" info="{{matchedProfileData}}"></a>
-							</div>
-							<div style="font-size: small;" class="cat-info">({{getSubcatName(matchedProfileData.category)}})</div>
-							<span ng-if="!isCollapsingMatch && !isScreening" class="badge status-{{matchStatus}}"><b>{{results.status[matchedProfileId] | uppercase | translatematchstatus }}</b></span>
-						</td>
-						<td id="td-comp-gen-4" class="text-center col-md-4 column" style="padding-bottom: 20px;" ng-class="{'statiscs-comparison': showCalculation}">
-							<div ng-if="showCalculation">
-								<div class="noprint" style="width:90%; float: left;"> 
-									<span class="comparison-profileID">Opciones estadísticas</span>
-									<!--<span class="rmp comparison-profileID" ng-if="!mixF && !mixM"> RMP: {{(1.0 / pvalue).toExponential(4)}}</span>-->
-									<span class="comparison-profileID"> LR: {{pvalue | likelihoodratioComp: true: statsResolved}}</span>
-								</div>
-								<div style="width:10%; float: left;" class="comparison-mixture-profileID">
-									<a tooltip-placement="bottom" tooltip-html-unsafe="{{getStatsInfo()}}" tooltip-trigger="click"><i class="fa fa-info-circle"></i></a>
-									<a ng-click="showStatsOptions()"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></a>
-								</div>
-							</div>
-						</td>
-						<td id="td-comp-gen-5" rowspan="2" class="col-md-2 column results"  ng-if="showCalculation">
-							<div class="text-center">
-								<span class="badge ng-binding results-demanding" data-ng-class=stringency[results.stringency].css>{{stringency[results.stringency].text}}</span>
-							</div>
-							<div ng:repeat="(k, v) in results.reducedStringencies" class="text-center noprint">
-								<span class="badge" ng-class="{'icon-mismatch': k == stringency.Mismatch.key, 'icon-highstringency': k == stringency.HighStringency.key, 'icon-moderatestringency': k == stringency.ModerateStringency.key, 'icon-lowstringency': k == stringency.LowStringency.key}">
-									{{v + ' / ' + results.totalAlleles}}
-								</span>
-							</div>
-						</td>
-					</tr>
-				</thead>
-				<tbody>
-					<tr
-						ng:repeat="item in comparision"
-						ng-show="showLocus(item.locus)"
-						class="{{(showCalculation)?'comparision-' + results.matchingAlleles[item.locus].toLowerCase():''}}"
-					>
-						<td>{{(showCalculation) ? item.locus: 'mt.'+item.locus| i18next}}</td>
-						<td class="text-center">
-							<span
-								ng:repeat="allele in item.g[profileId] track by $index"
-								class="text-center comparision-allele"
-								id="{{'g1' + $parent.$index + '_' + $index}}"
-								name="{{'g1' + $parent.$index + '_' + $index}}"
-								ng-class="{
-									'allele-matched': (item.p2.indexOf(allele) != -1),
-									'mixes-label-1': setLabel(profileId, item.locus, allele, 1) || setLabel(profileId, item.locus, allele, undefined),
-									'mixes-label-2': setLabel(profileId, item.locus, allele, 2),
-									'mixes-label-3': setLabel(profileId, item.locus, allele, 3),
-									'mixes-label-4': setLabel(profileId, item.locus, allele, 4),
-									'brick-allele': !mixM && mixF ,
-									'mt-comparison':!showCalculation && (matchingAlleles.indexOf(allele) != -1)
-								}"
-							>
-								{{allele | mt: item.locus: results.type: analysisTypes}}
-								<span
-									ng-if="shouldShowMinAlelle(allele,results.allelesRanges[item.locus])"
-								>/<{{results.allelesRanges[item.locus].min}}
-								</span>
-								<span
-									ng-if="shouldShowMaxAlelle(allele,results.allelesRanges[item.locus])"
-								>/>{{results.allelesRanges[item.locus].max}}
-								</span>
-							</span>
-						</td>
-						<td class="text-center">
-							<span
-								ng:repeat="allele in item.g[matchedProfileId] track by $index"
-								class="text-center comparision-allele"
-								id="{{'g2' + $parent.$index + '_' + $index}}"
-								name="{{'g2' + $parent.$index + '_' + $index}}"
-								ng-class="
-									{
-										'allele-matched': (item.p1.indexOf(allele) != -1),
-										'mixes-label-1': setLabel(matchedProfileId, item.locus, allele, 1) || setLabel(matchedProfileId, item.locus, allele, undefined),
-										'mixes-label-2': setLabel(matchedProfileId, item.locus, allele, 2),
-										'mixes-label-3': setLabel(matchedProfileId, item.locus, allele, 3),
-										'mixes-label-4': setLabel(matchedProfileId, item.locus, allele, 4),
-										'brick-allele': !mixF && mixM,
-										'mt-comparison':!showCalculation && (matchingAlleles.indexOf(allele) != -1)
-									}"
-							>
-								{{allele | mt : item.locus : results.type : analysisTypes}}
-								<span ng-if="shouldShowMinAlelle(allele,results.allelesRanges[item.locus])">/<{{results.allelesRanges[item.locus].min}}</span>
-								<span ng-if="shouldShowMaxAlelle(allele,results.allelesRanges[item.locus])">/>{{results.allelesRanges[item.locus].max}}</span>
-							</span>
-						</td>
-						<td class="text-center" ng-class="{'statiscs-comparison': showCalculation}"  ng-if="showCalculation">
-							<span class="text-center comparision-allele" ng-if="showCalculation"
-								id="{{'lr' + $parent.$index + '_' + $index}}"
-								name="{{'lr' + $parent.$index + '_' + $index}}"
-							>
-								{{statsResolved[item.locus] | likelihoodratioComp: results.matchingAlleles[item.locus]: statsResolved }}
-							</span>
-						</td>
-						<td class="text-center" --ng-if="showCalculation">
-							<span class="{{'badge icon-' + results.matchingAlleles[item.locus].toLowerCase()}}"
-							ng-class="{'icon-nomatch': !(stringency[results.matchingAlleles[item.locus]].text)}">
-									{{
-										(stringency[results.matchingAlleles[item.locus]].text)?
-										stringency[results.matchingAlleles[item.locus]].text:
-										stringency['NoMatch'].text
-									}}
-							</span>
-						</td>
-					</tr>
-				</tbody>
-			</table>
-		</div>
-	</div>
-</div>
-</div>
+                  <div style="width:10%; float: left;" class="comparison-mixture-profileID">
+                    <a tooltip-placement="bottom" tooltip-html-unsafe="{{getStatsInfo()}}" tooltip-trigger="click"><i
+                      class="fa fa-info-circle"></i></a>
+                    <a ng-click="showStatsOptions()"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></a>
+                  </div>
+                </div>
+              </td>
+              <td id="td-comp-gen-5" rowspan="2" class="col-md-2 column results" ng-if="showCalculation">
+                <div class="text-center">
+                  <span class="badge ng-binding results-demanding"
+                        data-ng-class=stringency[results.stringency].css>{{stringency[results.stringency].text}}</span>
+                </div>
+                <div ng:repeat="(k, v) in results.reducedStringencies" class="text-center noprint">
+                <span class="badge"
+                      ng-class="{'icon-mismatch': k == stringency.Mismatch.key, 'icon-highstringency': k == stringency.HighStringency.key, 'icon-moderatestringency': k == stringency.ModerateStringency.key, 'icon-lowstringency': k == stringency.LowStringency.key}">
+                  {{v + ' / ' + results.totalAlleles}}
+                </span>
+                </div>
+              </td>
+            </tr>
+            </thead>
+            <tbody>
+            <tr
+              ng:repeat="item in comparision"
+              ng-show="showLocus(item.locus)"
+              class="{{(showCalculation)?'comparision-' + results.matchingAlleles[item.locus].toLowerCase():''}}"
+            >
+              <td>{{(showCalculation) ? item.locus : 'mt.' + item.locus | i18next}}</td>
+              <td class="text-center">
+              <span
+                ng:repeat="allele in item.g[profileId] track by $index"
+                class="text-center comparision-allele"
+                id="{{'g1' + $parent.$index + '_' + $index}}"
+                name="{{'g1' + $parent.$index + '_' + $index}}"
+                ng-class="{
+                  'allele-matched': (item.p2.indexOf(allele) != -1),
+                  'mixes-label-1': setLabel(profileId, item.locus, allele, 1) || setLabel(profileId, item.locus, allele, undefined),
+                  'mixes-label-2': setLabel(profileId, item.locus, allele, 2),
+                  'mixes-label-3': setLabel(profileId, item.locus, allele, 3),
+                  'mixes-label-4': setLabel(profileId, item.locus, allele, 4),
+                  'brick-allele': !mixM && mixF ,
+                  'mt-comparison':!showCalculation && (matchingAlleles.indexOf(allele) != -1)
+                }"
+              >
+
+                {{allele | mt: item.locus: results.type: analysisTypes}}
+                <span
+                  ng-if="shouldShowMinAlelle(allele,results.allelesRanges[item.locus])"
+                >/<{{results.allelesRanges[item.locus].min}}
+                </span>
+                <span
+                  ng-if="shouldShowMaxAlelle(allele,results.allelesRanges[item.locus])"
+                >/>{{results.allelesRanges[item.locus].max}}
+                </span>
+              </span>
+              </td>
+              <td class="text-center">
+              <span
+                ng:repeat="allele in item.g[matchedProfileId] track by $index"
+                class="text-center comparision-allele"
+                id="{{'g2' + $parent.$index + '_' + $index}}"
+                name="{{'g2' + $parent.$index + '_' + $index}}"
+                ng-class="
+                  {
+                    'allele-matched': (item.p1.indexOf(allele) != -1),
+                    'mixes-label-1': setLabel(matchedProfileId, item.locus, allele, 1) || setLabel(matchedProfileId, item.locus, allele, undefined),
+                    'mixes-label-2': setLabel(matchedProfileId, item.locus, allele, 2),
+                    'mixes-label-3': setLabel(matchedProfileId, item.locus, allele, 3),
+                    'mixes-label-4': setLabel(matchedProfileId, item.locus, allele, 4),
+                    'brick-allele': !mixF && mixM,
+                    'mt-comparison':!showCalculation && (matchingAlleles.indexOf(allele) != -1)
+                  }"
+              >
+                {{allele | mt: item.locus : results.type : analysisTypes}}
+
+                <span
+                  ng-if="shouldShowMinAlelle(allele,results.allelesRanges[item.locus])">/<{{results.allelesRanges[item.locus].min}}</span>
+                <span
+                  ng-if="shouldShowMaxAlelle(allele,results.allelesRanges[item.locus])">/>{{results.allelesRanges[item.locus].max}}</span>
+              </span>
+              </td>
+              <td class="text-center" ng-class="{'statiscs-comparison': showCalculation}" ng-if="showCalculation">
+              <span class="text-center comparision-allele" ng-if="showCalculation"
+                    id="{{'lr' + $parent.$index + '_' + $index}}"
+                    name="{{'lr' + $parent.$index + '_' + $index}}"
+              >
+                {{statsResolved[item.locus] | likelihoodratioComp: results.matchingAlleles[item.locus]: statsResolved }}
+              </span>
+              </td>
+              <td class="text-center" ng-if="showCalculation">
+              <span class="{{'badge icon-' + results.matchingAlleles[item.locus].toLowerCase()}}"
+                    ng-class="{'icon-nomatch': !(stringency[results.matchingAlleles[item.locus]].text)}">
+                  {{
+                (stringency[results.matchingAlleles[item.locus]].text) ?
+                  stringency[results.matchingAlleles[item.locus]].text :
+                  stringency['NoMatch'].text
+                }}
+              </span>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!--<div class="noscreen" style="margin-top: 30px;">-->
-	<!--<div id="comp-gen-panel-2">-->
-		<!--<pdg-profile-data-info profile-id="profileId" profile-data="profileData"></pdg-profile-data-info>-->
-	<!--</div>-->
-	<!--<div class="noscreen" id="comp-gen-panel-3">-->
-		<!--<pdg-profile-data-info profile-id="matchedProfileId" profile-data="matchedProfileData"></pdg-profile-data-info>-->
-	<!--</div>-->
-	<!--<h6>Opciones estadísticas</h6>-->
-	<!--<div class="form-group">-->
-		<!--<label>Base de datos de frecuencia:</label> {{selectedOptions.frequencyTable}}-->
-	<!--</div>-->
-	<!--<div class="form-group">-->
-		<!--<label>Modelo estadístico:</label> {{selectedOptions.probabilityModel}}-->
-	<!--</div>-->
-	<!--<div class="form-group">-->
-		<!--<label>&Theta;:</label> {{selectedOptions.theta}}-->
-	<!--</div>-->
+<!--<div id="comp-gen-panel-2">-->
+<!--<pdg-profile-data-info profile-id="profileId" profile-data="profileData"></pdg-profile-data-info>-->
+<!--</div>-->
+<!--<div class="noscreen" id="comp-gen-panel-3">-->
+<!--<pdg-profile-data-info profile-id="matchedProfileId" profile-data="matchedProfileData"></pdg-profile-data-info>-->
+<!--</div>-->
+<!--<h6>Opciones estadísticas</h6>-->
+<!--<div class="form-group">-->
+<!--<label>Base de datos de frecuencia:</label> {{selectedOptions.frequencyTable}}-->
+<!--</div>-->
+<!--<div class="form-group">-->
+<!--<label>Modelo estadístico:</label> {{selectedOptions.probabilityModel}}-->
+<!--</div>-->
+<!--<div class="form-group">-->
+<!--<label>&Theta;:</label> {{selectedOptions.theta}}-->
+<!--</div>-->
 <!--</div>-->
 </div>
 <div
   id="report"
   ng-show="false"
   data-ng-include="'/assets/javascripts/matches/views/comparison-report.html'"
-	ng-controller="comparisonReportController"
+  ng-controller="comparisonReportController"
 ></div>
 
 </div>
 <footer>
 
-<div class="text-left col-md-3 padding-0" ng-if="mixF || mixM">
+  <div class="text-left col-md-3 padding-0" ng-if="mixF || mixM">
 
-	<div class="text-center col-md-3 padding-0">
-		<p style="line-height: 1.1;">Etiquetas / Perfiles asociados</p>
-	</div>
-	<div class="text-center col-md-9 padding-0">
-		<span ng-repeat="label in [1,2,3,4]" class="badge mixes-button-{{label}}"
-              ng-if="labeledGenotypifications[profileId] && labeledGenotypifications[profileId][label]">
-            {{getLabelCaption(labels[profileId][label===1 || label === 3 ? 0 : 1])}}
+    <div class="text-center col-md-3 padding-0">
+      <p style="line-height: 1.1;">{{ 'matches.associatedLabelProfiles' | i18next }}</p>
+    </div>
+    <div class="text-center col-md-9 padding-0">
+    <span ng-repeat="label in [1,2,3,4]" class="badge mixes-button-{{label}}"
+          ng-if="labeledGenotypifications[profileId] && labeledGenotypifications[profileId][label]">
+            {{getLabelCaption(labels[profileId][label === 1 || label === 3 ? 0 : 1])}}
         </span>
-        <span class="badge mixes-button-1" ng-init="getProfileLabelCaption(labels[profileId][0], 'first')"
-              ng-if="checkLabel(profileId)" style="margin-bottom: 3px;">{{associations.first}}</span>
-        <span ng-repeat="label in [1,2,3,4]" class="badge mixes-button-{{label}}"
-              ng-if="labeledGenotypifications[matchedProfileId] && labeledGenotypifications[matchedProfileId][label]">
-            {{getLabelCaption(labels[matchedProfileId][label===1 || label === 3 ? 0 : 1])}}
+      <span class="badge mixes-button-1" ng-init="getProfileLabelCaption(labels[profileId][0], 'first')"
+            ng-if="checkLabel(profileId)" style="margin-bottom: 3px;">{{associations.first}}</span>
+      <span ng-repeat="label in [1,2,3,4]" class="badge mixes-button-{{label}}"
+            ng-if="labeledGenotypifications[matchedProfileId] && labeledGenotypifications[matchedProfileId][label]">
+            {{getLabelCaption(labels[matchedProfileId][label === 1 || label === 3 ? 0 : 1])}}
         </span>
-        <span class="badge mixes-button-1" ng-init="getProfileLabelCaption(labels[matchedProfileId][0], 'second')" ng-if="checkLabel(matchedProfileId)">{{associations.second}}</span>
-	</div>
-</div>
+      <span class="badge mixes-button-1" ng-init="getProfileLabelCaption(labels[matchedProfileId][0], 'second')"
+            ng-if="checkLabel(matchedProfileId)">{{associations.second}}</span>
+    </div>
+  </div>
+
+  <<<<<<< HEAD
 
 
+  <div class="text-right noprint" ng-class="{'col-md-9': mixF || mixM} padding-right-0">
 
-<div class="text-right noprint" ng-class="{'col-md-9': mixF || mixM} padding-right-0">
-	
-	<ui-select ng-if="showCalculation" id="kits" ng-model="kitId" ng-change="sortLoci(kitId.id)" ng-disabled="status == 'dblCheck'" style="float:left; width:150px;">
-		<ui-select-match id="select-kit" placeholder="Seleccionar Kit">[{{getAnalysisName($select.selected)}}] {{$select.selected.name}}</ui-select-match>
-		<ui-select-choices group-by="getAnalysisName" repeat="kit in strkits | filter: $select.search | orderBy:'type'" position="up" >
-  			<div data-ng-bind-html="trustAsHtml((kit.name | highlight: $select.search))"></div>
-		</ui-select-choices>
-	</ui-select>
+    <ui-select ng-if="showCalculation" id="kits" ng-model="kitId" ng-change="sortLoci(kitId.id)"
+               ng-disabled="status == 'dblCheck'" style="float:left; width:150px;">
+      <ui-select-match id="select-kit" placeholder="Seleccionar Kit">[{{getAnalysisName($select.selected)}}]
+        {{$select.selected.name}}
+      </ui-select-match>
+      <ui-select-choices group-by="getAnalysisName" repeat="kit in strkits | filter: $select.search | orderBy:'type'"
+                         position="up">
+        <div data-ng-bind-html="trustAsHtml((kit.name | highlight: $select.search))"></div>
+      </ui-select-choices>
+    </ui-select>
 
-	<button id="viewElect" type="button" class="btn btn-secondary-action" data-ng-click="showElectropherograms()" ng-disabled="epg.length === 0 && matchedepg.length === 0">Ver electroferogramas</button>
-	<button
-			id="printReportNP"
-			type="button"
-			class="btn btn-secondary-action"
-			data-ng-click="printReport()"
-	>Imprimir reporte</button>
-	<button id="doHit" ng-if="!isCollapsingMatch && !isScreening" ng-disabled="matchAg||(profileData.isExternal && matchedProfileData.isExternal)" pdg-confirm pdg-confirm-title="Confirmar Coincidencia" pdg-confirm-content="¿Está seguro?" type="button" class="btn btn-primary-action" pdg-on-confirm="doHit" data-ng-disabled="closedMatch" ng-show="!isPedigreeMatch">Confirmar Coincidencia</button>
-	<button id="doDescart" ng-if="!isCollapsingMatch && !isScreening" ng-disabled="profileData.isExternal && matchedProfileData.isExternal"  pdg-confirm pdg-confirm-title="Descartar Coincidencia" pdg-confirm-content="¿Está seguro?" type="button" class="btn btn-secondary-action" pdg-on-confirm="doDiscard" data-ng-disabled="closedMatch" ng-show="!isPedigreeMatch">Descartar Coincidencia</button>
+    <button id="viewElect" type="button" class="btn btn-secondary-action" data-ng-click="showElectropherograms()"
+            ng-disabled="epg.length === 0 && matchedepg.length === 0">Ver electroferogramas
+    </button>
+    <button
+      id="printReportNP"
+      type="button"
+      class="btn btn-secondary-action"
+      data-ng-click="printReport()"
+    >Imprimir reporte
+    </button>
+    <button id="doHit" ng-if="!isCollapsingMatch && !isScreening"
+            ng-disabled="matchAg||(profileData.isExternal && matchedProfileData.isExternal)" pdg-confirm
+            pdg-confirm-title="Confirmar Coincidencia" pdg-confirm-content="¿Está seguro?" type="button"
+            class="btn btn-primary-action" pdg-on-confirm="doHit" data-ng-disabled="closedMatch"
+            ng-show="!isPedigreeMatch">Confirmar Coincidencia
+    </button>
+    <button id="doDescart" ng-if="!isCollapsingMatch && !isScreening"
+            ng-disabled="profileData.isExternal && matchedProfileData.isExternal" pdg-confirm
+            pdg-confirm-title="Descartar Coincidencia" pdg-confirm-content="¿Está seguro?" type="button"
+            class="btn btn-secondary-action" pdg-on-confirm="doDiscard" data-ng-disabled="closedMatch"
+            ng-show="!isPedigreeMatch">Descartar Coincidencia
+    </button>
+    =======
+    <div class="text-right noprint" ng-class="{'col-md-9': mixF || mixM} padding-right-0">
 
-</div>
+      <ui-select ng-if="showCalculation" id="kits" ng-model="kitId" ng-change="sortLoci(kitId.id)"
+                 ng-disabled="status == 'dblCheck'" style="float:left; width:150px;">
+        <ui-select-match id="select-kit" placeholder="{{ 'generics.selectKit' | i18next }}">
+          [{{getAnalysisName($select.selected)}}] {{$select.selected.name}}
+        </ui-select-match>
+        <ui-select-choices group-by="getAnalysisName" repeat="kit in strkits | filter: $select.search | orderBy:'type'"
+                           position="up">
+          <div data-ng-bind-html="trustAsHtml((kit.name | highlight: $select.search))"></div>
+        </ui-select-choices>
+      </ui-select>
+      >>>>>>> origin/Internationalization
+
+      <button id="viewElect" type="button" class="btn btn-secondary-action" data-ng-click="showElectropherograms()"
+              ng-disabled="epg.length === 0 && matchedepg.length === 0">{{ 'buttons.viewElect' | i18next }}
+      </button>
+      <button id="printReport" type="button" class="btn btn-secondary-action" data-ng-click="printReport()">
+        {{ 'buttons.printReport' | i18next }}
+      </button>
+      <button id="doHit" ng-if="!isCollapsingMatch && !isScreening"
+              ng-disabled="matchAg||(profileData.isExternal && matchedProfileData.isExternal)" pdg-confirm
+              pdg-confirm-title="{{ 'buttons.confirmMatch' | i18next }}"
+              pdg-confirm-content="{{ 'generics.askConfirmation' | i18next }}" type="button"
+              class="btn btn-primary-action" pdg-on-confirm="doHit" data-ng-disabled="closedMatch"
+              ng-show="!isPedigreeMatch">{{ 'buttons.confirmMatch' | i18next }}
+      </button>
+      <button id="doDescart" ng-if="!isCollapsingMatch && !isScreening"
+              ng-disabled="profileData.isExternal && matchedProfileData.isExternal" pdg-confirm
+              pdg-confirm-title="{{ 'buttons.discardMatch' | i18next }}"
+              pdg-confirm-content="{{ 'generics.askConfirmation' | i18next }}" type="button"
+              class="btn btn-secondary-action" pdg-on-confirm="doDiscard" data-ng-disabled="closedMatch"
+              ng-show="!isPedigreeMatch">{{ 'buttons.discardMatch' | i18next }}
+      </button>
+
+    </div>
 </footer>

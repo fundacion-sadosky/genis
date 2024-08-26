@@ -16,7 +16,7 @@ define(['jquery','lodash'], function($,_) {
                 $scope.scenarioData.scenario = $scope.scenario;
                 $scope.scenarioData.result = $scope.result;
                 scenarioService.update($scope.scenarioData).then(function() {
-                        alertService.success({message: 'El escenario fue actualizado con éxito'});
+                        alertService.success({message: $.i18n.t('alerts.scenario.updated')});
                     },
                     function(response) {
                         alertService.error({message: response.data});
@@ -35,7 +35,7 @@ define(['jquery','lodash'], function($,_) {
                 $scope.scenarioData.scenario = $scope.scenario;
                 $scope.scenarioData.result = $scope.result;
                 scenarioService.validate($scope.scenarioData).then(function() {
-                        alertService.success({message: 'El escenario fue validado con éxito'});
+                        alertService.success({message: $.i18n.t('alerts.scenario.validated')});
                         $route.reload();
                     },
                     function(response) {
@@ -93,7 +93,7 @@ define(['jquery','lodash'], function($,_) {
         };
 
         $scope.printReport = function() {
-            var head = '<head><title>Resultados ' + $scope.profile + '</title>';
+            var head = '<head><title>' + $.i18n.t('generic.results')  + $scope.profile + '</title>';
             $("link").each(function () {
                 head += '<link rel="stylesheet" href="' + $(this)[0].href + '" />';
             });
@@ -109,7 +109,7 @@ define(['jquery','lodash'], function($,_) {
                 var beginCorrectionResult = '<div class="col-md-6 m-t-10">';
                 var nCorrection = $('#divNCorrection').clone();
                 $(nCorrection).children('#spanN').remove();
-                nCorrection = $(nCorrection).prepend('<div class="m-r-10"><span class="bold">Cantidad de perfiles evaluados: </span>' + $scope.nCorrection.n + '</div>').prepend('<div class="m-r-10"><span class="bold">Cantidad de individuos en la población de interés: </span>' + $('#bigN-input').val() + '</div>').html();
+                nCorrection = $(nCorrection).prepend('<div class="m-r-10"><span class="bold">' + $.i18n.t('scenario.profilesEvaluated') + '</span>' + $scope.nCorrection.n + '</div>').prepend('<div class="m-r-10"><span class="bold">' + $.i18n.t('scenario.individualsInPop') + '</span>' + $('#bigN-input').val() + '</div>').html();
                 var endCorrectionResult = '</div>';
                 correctionResult = beginCorrectionResult + nCorrection + endCorrectionResult;
             }
@@ -124,11 +124,11 @@ define(['jquery','lodash'], function($,_) {
             var endDetail = '</div>';
             var detail = beginDetail + beginScenario + scenario + endScenario + beginPartialResult + partialResult + endPartialResult + endDetail;
 
-            var beginGenotypification = '<div class="scenarios-section" style="page-break-after:always;"><h3 class="m-b-10">Comparación de perfiles</h3>';
+            var beginGenotypification = '<div class="scenarios-section" style="page-break-after:always;"><h3 class="m-b-10">' + $.i18n.t('profileViews.comparison.title')+ '</h3>';
             var otherProfilesHead = '';
             $scope.profiles.forEach(function(p){
                 otherProfilesHead +=
-                    '<td id="td-comp-gen-3" class="text-center column col-md-2" title="Ver información de la causa">' +
+                    '<td id="td-comp-gen-3" class="text-center column col-md-2" title=' + $.i18n.t('matches.viewCaseInfo')+ '>' +
                         '<div class="comparison-profileID m-b-10">' +
                             $filter('prittyLimitTo')($filter('showcode')($scope.profileData[p]), 20, false) +
                         '</div>' +
@@ -141,7 +141,7 @@ define(['jquery','lodash'], function($,_) {
                     '<thead>' +
                         '<tr>' +
                             '<td id="td-comp-gen-1" class="column col-md-1"></td>' +
-                            '<td id="td-comp-gen-2" class="text-center column col-md-3" title="Ver información de la causa">' +
+                            '<td id="td-comp-gen-2" class="text-center column col-md-3" title="' + $.i18n.t('matches.viewCaseInfo')+ '>' +
                                 '<div class="comparison-profileID m-b-10">' +
                                     $filter('prittyLimitTo')($filter('showcode')($scope.profileData[$scope.profile]), 20, false) +
                                 '</div>' +

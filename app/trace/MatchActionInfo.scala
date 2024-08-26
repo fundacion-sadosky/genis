@@ -22,11 +22,11 @@ case class MatchInfo(
   matchType: MatchTypeInfo.Value) extends TraceInfo with MatchActionInfo {
   override val kind = TraceType.`match`
   val matchTypeDescription = matchType match {
-    case MatchTypeInfo.Insert => "Generación"
-    case MatchTypeInfo.Update => "Actualización"
-    case MatchTypeInfo.Delete => "Baja"
+    case MatchTypeInfo.Insert => "Generation"
+    case MatchTypeInfo.Update => "Update"
+    case MatchTypeInfo.Delete => "Delete"
   }
-  override val description = s"$matchTypeDescription de coincidencia $matchId con el perfil ${profile.text}."
+  override val description = s"$matchTypeDescription of match $matchId with profile ${profile.text}."
 }
 
 case class HitInfo(
@@ -35,7 +35,7 @@ case class HitInfo(
   user: String,
   analysisType: Int) extends TraceInfo with MatchActionInfo {
   override val kind = TraceType.hit
-  override val description = s"Validación del match $matchId del perfil ${profile.text} cuyo responsable es $user."
+  override val description = s"Match validation $matchId of profile ${profile.text} whose responsible is $user."
 }
 
 case class DiscardInfo(
@@ -44,5 +44,5 @@ case class DiscardInfo(
   user: String,
   analysisType: Int) extends TraceInfo with MatchActionInfo {
   override val kind = TraceType.discard
-  override val description = s"Descarte del match $matchId del perfil ${profile.text} cuyo responsable es $user."
+  override val description = s"Discarding the match $matchId of profile ${profile.text} whose responsible is $user."
 }

@@ -115,7 +115,7 @@ function CourtCasesController ($scope, pedigreeService, $location, $filter, $mod
             var editable = response.data;
 
             if (!editable) {
-                alertService.error({message: "No se puede eliminar el caso dado que tiene coincidencias."});
+                alertService.error({message: $.i18n.t('alerts.case.deletedError')});
             } else {
 
                 $modal.open({
@@ -132,7 +132,7 @@ function CourtCasesController ($scope, pedigreeService, $location, $filter, $mod
                 }).result.then(function (value) {
                     if (value.goOn) {
                         pedigreeService.changeStatus(cc.id, 'Deleted', value.shouldDeleteAssociatedProfiles, {}).then(function () {
-                            alertService.success({message: 'La baja se realizó exitosamente'});
+                            alertService.success({message: $.i18n.t('alerts.genericDelete.success')});
                             cc.status = 'Deleted';
                         }, function (response) {
                             alertService.error({message: response.data});
@@ -186,7 +186,7 @@ function CourtCasesController ($scope, pedigreeService, $location, $filter, $mod
                 }).result.then(function (value) {
                     if (value.goOn) {
                         pedigreeService.changeStatus(cc.id, 'Closed', value.shouldDeleteAssociatedProfiles, {}).then(function () {
-                        alertService.success({message: 'El caso se cerró exitosamente'});
+                        alertService.success({message: $.i18n.t('alerts.case.closeSuccess')});
                         cc.status = 'Closed';
                         }, function (response) {
                             alertService.error({message: response.data});
@@ -194,7 +194,7 @@ function CourtCasesController ($scope, pedigreeService, $location, $filter, $mod
                     }
                 });
             } else {
-                alertService.error({message: 'Tiene coincidencias pendientes'});
+                alertService.error({message: $.i18n.t('alerts.case.pendingMatch')});
             }
         });
 

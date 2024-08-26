@@ -5,11 +5,11 @@
             <!-- tipo -->
             <div class="col-md-2 padding-0 vertical-align">
                 <div class="col-md-3">
-                    <label for="search-kind">Tipo</label>
+                    <label for="search-kind">{{'generics.type' | i18next}}</label>
                 </div>
                 <div class="item-input col-md-8 padding-0">
                     <select id="search-kind" data-ng-model="filters.kind" class="form-control" style="width: 100%">
-                        <option value="{{undefined}}" selected>Todos</option>
+                        <option value="{{undefined}}" selected>{{'generics.pluralAll' | i18next}}</option>
                         <option data-ng-repeat="type in types" value="{{type}}">{{'inbox.kind.' + type | i18next}}</option>
                     </select>
                 </div>
@@ -18,11 +18,11 @@
             <div class="col-md-5 vertical-align">
                 <div class="row vertical-align">
                     <div class="col-md-1 padding-0  vertical-align" >
-                        <label for="hourFrom">Fecha</label>
+                        <label for="hourFrom">{{'generics.date' | i18next}}</label>
                     </div>
                     <div class="col-md-5">
                         <input class="form-control" type="text" name="hourFrom" id="hourFrom"
-                        placeholder="Desde" data-datepicker-popup="dd/MM/yyyy"
+                        placeholder="{{'generics.from' | i18next}}" data-datepicker-popup="dd/MM/yyyy"
                         data-ng-model="filters.hourFrom"
                         data-is-open="datepickers.hourFrom"
                         data-datepicker-options="dateOptions"
@@ -31,7 +31,7 @@
                        </div>
                     <div class="col-md-5">
                         <input class="form-control" type="text" name="hourUntil" id="hourUntil"
-                        placeholder="Hasta" data-datepicker-popup="dd/MM/yyyy"
+                        placeholder="{{'generics.to' | i18next}}" data-datepicker-popup="dd/MM/yyyy"
                         data-ng-model="filters.hourUntil"
                         data-is-open="datepickers.hourUntil"
                         ng-blur="checkMaxMin('hourUntil','hourFrom')" max-date="maxDate" min-date="minDate"
@@ -46,7 +46,7 @@
             <!-- leidos -->
             <div class="col-md-1 padding-0 vertical-align">
                 <div class="col-md-10 padding-0">
-                    <label for="pending-checkbox">Pendientes</label>
+                    <label for="pending-checkbox">{{'generics.pending' | i18next}}</label>
                 </div>
                 <div class="item-input col-md-2 padding-0 text-left">
                     <input type="checkbox" data-ng-model="filters.pending" style="height: 1.5em" id="pending-checkbox">
@@ -55,7 +55,7 @@
             <!-- marcados -->
             <div class="col-md-1 padding-0 vertical-align">
                 <div class="col-md-10">
-                    <label for="flagged-checkbox">Marcados</label>
+                    <label for="flagged-checkbox">{{'generics.marked' | i18next}}</label>
                 </div>
                 <div class="item-input col-md-2 padding-0 text-left">
                     <input type="checkbox" data-ng-model="filters.flagged" style="height: 1.5em" id="flagged-checkbox">
@@ -68,12 +68,12 @@
               
             <div class="col-md-6">
 
-                    <a  title="Limpiar filtros"  type="reset" ng-click="clean()" ng-disabled="isProcessing"  class="cancel-link" >Limpiar</a>
+                    <a  title="Limpiar filtros"  type="reset" ng-click="clean()" ng-disabled="isProcessing"  class="cancel-link" >{{'buttons.clean' | i18next}}</a>
 
         </div>
             <div class="text-right col-md-6 padding-right-0">
                 <span id="processingSpan" class="icon-refresh" ng-class="{'spinner': isProcessing}" data-ng-show="isProcessing"></span>
-                <button id="search-notifications" type="submit" class="btn btn-primary-action" ng-disabled="isProcessing">Buscar</button>
+                <button id="search-notifications" type="submit" class="btn btn-primary-action" ng-disabled="isProcessing">{{'buttons.search' | i18next}}</button>
             </div>
             </div>
            

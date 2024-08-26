@@ -10,7 +10,7 @@
 								<span  class="icon-atras" title="Volver"></span>
 							</div>
 						</li>
-						<li class="active">Tipo de Material Biológico</li>
+						<li class="active">{{ 'biomaterial.type' | i18next }}</li>
                     
                 </ol>
             </div>
@@ -33,13 +33,13 @@
             <button style="margin-top: 20px;"
                     type="button"
                     class="btn btn-block btn-primary-action"
-                    ng-click="addBmt()">Agregar material biológico</button>
+                    ng-click="addBmt()">{{ 'biomaterial.add' | i18next }}</button>
 		</div>
 
 		<div class="col-md-9 padding-right-0" ng-if="current">
             <div><label>{{current.name}}</label></div>
             <div><strong>Id: </strong>{{current.id}}</div>
-            <div ng-show="current.description"><strong>Descripcion: </strong>{{current.description}}</div>
+            <div ng-show="current.description"><strong>{{ 'generics.description' | i18next }}: </strong>{{current.description}}</div>
 		</div>
 	</div>
 </div>

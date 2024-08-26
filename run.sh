@@ -1,0 +1,1 @@
+sbt run --java-home /usr/lib/jvm/java-8-openjdk-amd64 -Xms512M -Xmx10g -Xss1M -XX:+CMSClassUnloadingEnabled -v -DapplyEvolutions.default=true -DapplyDownEvolutions.default=true -DapplyEvolutions.logDb=true -DapplyDownEvolutions.logDb=true -Dhttp.port=9000 -Dhttps.port=9443 -Dconfig.file=./application-dev.conf -Dlogger.file=./logger-dev.xml &

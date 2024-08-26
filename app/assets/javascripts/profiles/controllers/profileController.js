@@ -203,10 +203,10 @@ function ProfileController(
 			},
 			function(response) {
 				if (response.status === 400 || response.status === 404) {
-					alertService.warning({message: 'No se ha encontrado un perfil para ' + globalCode});
+					alertService.warning({message: $.i18n.t('alerts.profile.noneFoundError') + globalCode});
 				}
 				else {
-					alertService.error({message: 'Ha ocurrido un error'});
+					alertService.error({message: $.i18n.t('error.common2')});
 				}
 				$scope.isProcessing = false;
 			}
@@ -431,7 +431,7 @@ function ProfileController(
 					if(response.data.validationErrors){
 						alertService.error({message: response.data.validationErrors.join('. ')});
 					}else{
-						alertService.success({message: 'El análisis se guardo satisfactoriamente. Proceso de match en progreso...'});
+						alertService.success({message: $.i18n.t('alerts.match.inProgress')});
                         if ($routeParams.profileId){
 							$rootScope.f = true;
 							$rootScope.m = (response.data.matcheable === undefined) ? true: response.data.matcheable;
@@ -506,11 +506,11 @@ function ProfileController(
 
         profileService.uploadProfile($scope.profile._id).then(function() {
             alertService.success({
-                message: 'Se subió el perfil'
+                message: $.i18n.t('alerts.profile.upload')
             });
         }, function(response) {
             alertService.error({
-                message: 'Error: ' + response.data.message
+                message: $.i18n.t('error.common') + response.data.message
             });
         });
     };
@@ -529,8 +529,8 @@ function ProfileController(
     $scope.onAddFileToExistingAnalysis = function($files, analysisId) {
         $scope.onRawFileSelect($files, analysisId);
     };
-    $scope.title = "Confirma eliminar archivo";
-    $scope.content = "¿Realmente desea eliminar el archivo seleccionado?";
+    $scope.title = $.i18n.t('alerts.file.confirmDelete');
+    $scope.content =  $.i18n.t('alerts.file.confirmDelete2');
     $scope.close = function(confirm) {
         console.log("close confirm file");
 
@@ -540,7 +540,7 @@ function ProfileController(
         $scope.confirmRemoveFile.close();
         if(confirm){
             profileService.removeFile(file.fileId).then(function(response) {
-                alertService.success({message: 'Se eliminó el archivo'});
+                alertService.success({message: $.i18n.t('alerts.file.fileDeleted')});
                 console.log("removeFile ok",response);
                 if(analysis && analysis.fileList && analysis.fileList.length){
                     analysis.fileList.splice(analysis.fileList.indexOf(file), 1);
@@ -563,7 +563,7 @@ function ProfileController(
         if(confirm){
             profileService.removeEpg(file.fileId).then(function(response) {
                 console.log("removeEpg ok",response);
-                alertService.success({message: 'Se eliminó el electroferograma'});
+                alertService.success({message: $.i18n.t('alerts.electropherogram.deleted')});
 
                 if(analysis && analysis.electropherogramsList && analysis.electropherogramsList.length){
                     var indexFile = analysis.electropherogramsList.indexOf(file);
@@ -654,7 +654,7 @@ function ProfileController(
             var newCarrouselItem = "/resources/temporary/" + data.substring(5);
                 profileService.addElectropherograms(filesId, $scope.currentGlobalCode, analysisId,name).then(function(response) {
                     if (response.data) {
-                        alertService.error({message: 'Error guardando las imagenes ' + response.data});
+                        alertService.error({message: $.i18n.t('alerts.images.saveError') + response.data});
                     } else {
                         profileService.getElectropherogramsByAnalysisId($scope.currentGlobalCode,analysisId).then(function(response) {
                             var newArrray = response.data.map($scope.epgUploadedToModel);
@@ -666,7 +666,7 @@ function ProfileController(
                                 }
                             }
                         });
-                        alertService.success({message: 'Se insertaron las nuevas imagenes'});
+                        alertService.success({message: $.i18n.t('alerts.images.insert')});
                         addCarouselItem(analysisId, newCarrouselItem);
                     }
                 });
@@ -678,7 +678,7 @@ function ProfileController(
             console.log('sucessFilePost:data,analysisId,filesId,name',data,analysisId,filesId,name);
                 profileService.addFiles(filesId, $scope.currentGlobalCode, analysisId,name).then(function(response) {
                     if (response.data) {
-                        alertService.error({message: 'Error guardando el archivo: ' + response.data});
+                        alertService.error({message: $.i18n.t('alerts.files.saveError') + response.data});
                     } else {
                         profileService.getFilesByAnalysisId($scope.currentGlobalCode,analysisId).then(function(response) {
                             var newArrray = response.data.map($scope.fileUploadedToModel);
@@ -693,16 +693,16 @@ function ProfileController(
                                 }
                             }
                         });
-                        alertService.success({message: 'Se insertó el nuevo archivo'});
+                        alertService.success({message: $.i18n.t('alerts.file.insert')});
                     }
                 });
             };
         }
     var errorImagePost=function(){
-        $log.log('error al mandar las imagenes');
+        $log.log('error sending images');
     };
     var errorFilePost=function(){
-        $log.log('error al mandar los archivos');
+        $log.log('error sending images');
     };
 }
 

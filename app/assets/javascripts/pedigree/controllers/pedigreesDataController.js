@@ -153,11 +153,11 @@ define(['lodash'], function(_) {
                 min = $scope.hourFrom;
             }
             if(max-aux < 0 ){
-                alertService.info({message: 'La fecha debe ser anterior a la actual.'});
+                alertService.info({message: $.i18n.t('alerts.date.before')});
                 $scope[fieldName] = undefined;
             }else{
                 if( min-aux > 0 ){
-                    alertService.info({message: 'La fecha  debe ser posterior al campo desde.'});
+                    alertService.info({message: $.i18n.t('alerts.date.after')});
                     $scope[fieldName] = undefined;
                 }
             }
@@ -169,7 +169,7 @@ define(['lodash'], function(_) {
             var today = new Date();
 
             if(today-aux < 0 ){
-                alertService.info({message: 'La fecha debe ser anterior a la actual.'});
+                alertService.info({message: $.i18n.t('alerts.date.before')});
                 $scope[fieldName] = undefined;
                 $scope.minDatePed = null;
             }else{
@@ -201,10 +201,10 @@ define(['lodash'], function(_) {
                 var editable = response.data;
 
                 if (!editable) {
-                    alertService.error({message:"El pedigrí no se puede borrar dado fue activado al menos una vez."});
+                    alertService.error({message: $.i18n.t('alerts.pedigree.deleteActivatedError')});
                 } else {
                     pedigreeService.fisicalDelete(p.id, {}).then(function() {
-                        alertService.success({message: 'La baja se realizó exitosamente'});
+                        alertService.success({message: $.i18n.t('alerts.genericDelete.success')});
                         $scope.search();
                     }, function(response) {
                         alertService.error({message: response.data});

@@ -8,7 +8,7 @@
                                 <span  class="icon-atras" title="Volver"></span>
                             </div>
                         </li>
-                        <li class="active">Kits</li>
+                        <li class="active">{{ 'kit.title' | i18next }}</li>
                 </ol>
             </div>
         </div>
@@ -21,10 +21,10 @@
         <div class="content"> <!-- content-wrap-small -->
 
             <tabset class="tabset-section">
-                <tab active="true" heading="Agregar Kit">
+                <tab active="true" heading="{{ 'kit.add' | i18next }}">
                     <div ng-include="'/assets/javascripts/kits/views/new-kit.html'" class="animated fadeIn"></div>
                 </tab>
-                <tab heading="Kits">
+                <tab heading="{{ 'kit.title' | i18next }}">
                     <div ng-include="'/assets/javascripts/kits/views/list-kit.html'" class="animated fadeIn tab-container"></div>
                 </tab>
             </tabset>

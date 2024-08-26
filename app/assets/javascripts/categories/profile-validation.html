@@ -2,7 +2,7 @@
 	<form name="profileValidationForm">
 		<div class="col-md-12 m-b-10 m-t-10">
 			<div class="col-md-8">
-				<label>Cantidad mínima de marcadores con alelos</label>
+				<label>{{ 'locus.minWithAlleles' | i18next }}</label>
 			</div>
 			<div class="col-md-4">
 				<input type="text" class="form-control form-select"
@@ -13,7 +13,7 @@
 		</div>
 		<div class="col-md-12 m-b-10">
 			<div class="col-md-8">
-				<label>Cantidad máxima de marcadores con trisomías</label>
+				<label>{{ 'locus.maxWithTrisomies' | i18next }}</label>
 			</div>
 			<div class="col-md-4">
 				<input type="text" class="form-control form-select"
@@ -24,7 +24,7 @@
 		</div>
 		<div class="col-md-12 padding-bottom-20" ng-if="!categories[currCatId].isReference">
 			<div class="col-md-8">
-				<label>Cantidad máxima de alelos por marcador</label>
+				<label>{{ 'locus.maxAllelesPer' | i18next }}</label>
 			</div>
 
 			<div class="col-md-4">

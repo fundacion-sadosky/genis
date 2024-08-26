@@ -13,7 +13,7 @@
 				<fieldset data-ng-disabled="requestToken">
 		
 					<div class="input-group">
-						<label for="nombredeusuario">Nombre de Usuario</label>
+						<label for="nombredeusuario">{{"login.input.userName"|i18next}}</label>
 						<div ng-controller="HelpTipCtrl as ctrl" class="question_box">
 								<!-- <a href="" data-ng-click="ctrl.toggle()" >
 								  <i class="fa fa-question-circle"></i>
@@ -21,18 +21,18 @@
 						  </div>
 							<input name="username"
 								class="form-control login-input login-user" id="nombredeusuario"
-								help-tip="login.input.userName" 
+								help-tip={{"login.input.userName"|i18next}}
 								type="text" 
 								data-ng-model="credentials.userName" 
 								autocomplete="off"  
-								placeholder="Nombre de Usuario" 
-								required 
+								placeholder={{"login.input.userName"|i18next}}
+								   required
 								autofocus />
 							<form-validation input="loginform.username"></form-validation>
 					</div>
 					
 					<div class="input-group">
-						<label for="passwordin">Contraseña</label>
+						<label for="passwordin">{{"login.input.password"|i18next}}</label>
 						<div ng-controller="HelpTipCtrl as ctrl" class="question_box">
 								<!-- <a href="" data-ng-click="ctrl.toggle()" >
 								  <i class="fa fa-question-circle"></i>
@@ -43,14 +43,14 @@
 								class="form-control login-input login-password"
 								data-ng-model="credentials.password" 
 								autocomplete="off" 
-								placeholder="Contraseña"  
-								required
-								help-tip="login.input.password" />
+								placeholder={{"login.input.password"|i18next}}
+								   required
+								help-tip={{"login.input.password"|i18next}} />
                         <form-validation input="loginform.password"></form-validation>
 					</div>
 		
 					<div class="input-group">
-					<label for="totp">Código token de Google Authenticator</label>
+					<label for="totp">{{"login.tokenCode"|i18next}}</label>
 					<div ng-controller="HelpTipCtrl as ctrl" class="question_box">
 							<!-- <a href="" data-ng-click="ctrl.toggle()" >
 							  <i class="fa fa-question-circle"></i>
@@ -61,9 +61,9 @@
 								id="totp" 
 								class="form-control  login-input login-otp"
 								data-ng-model="credentials.otp" 
-								placeholder="Código token de Google Authenticator" 
-								required autocomplete="off"
-								help-tip="login.input.topt"
+								placeholder={{"login.tokenCode"|i18next}}
+							    required autocomplete="off"
+								help-tip={{"login.input.totp"|i18next}}
 								autofocus />
                         <form-validation input="loginform.totp"></form-validation>
 					</div>
@@ -76,12 +76,12 @@
 							data-is-authorized="{{!unauthorized}}" 
 							data-sever-time="{{serverTime}}" 
 							data-ng-show="unauthorized">
-							Acceso no Autorizado</b>
+							{{"login.unauthorizedAccess"|i18next}}</b>
 
-						<button id="btnAuth" name="btnAuth" class="btn btn-primary-action btn-block" ng-disabled="loginform.$invalid" data-ng-click="login(credentials)">Ingresar</button>
+						<button id="btnAuth" name="btnAuth" class="btn btn-primary-action btn-block" ng-disabled="loginform.$invalid" data-ng-click="login(credentials)">{{"login.label.enterSystem"|i18next}}</button>
 	
 						<div class="text-center" ng-controller="clearPassController" style="margin-top: 15px">
-							<a style="cursor:pointer;" class="" ng-click="showClearPasswordForm()">Olvidé mi contraseña  </a>
+							<a style="cursor:pointer;" class="" ng-click="showClearPasswordForm()">{{"login.forgotPassword"|i18next}}</a>
 						</div>
 					</div>
 					
@@ -91,7 +91,7 @@
 			
 		</div>
 				<div class="text-center" ng-controller="signupController" style="margin-top: 15px">
-					<a style="cursor:pointer;" class="" ng-click="showSignupForm()">Solicitar una cuenta </a>
+					<a style="cursor:pointer;" class="" ng-click="showSignupForm()">{{"login.requestAccount"|i18next}} </a>
 				</div>
 
 </div>

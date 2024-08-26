@@ -29,13 +29,13 @@ define([ 'angular','appConf' ], function(angular,appConf) {
 		return function(input){
 			var result = input;
 			if(input === "PENDING"){
-				result = "PENDIENTE";
+				result = $.i18n.t('matches.state.pending');
 			}else if(input === "DISCARDED"){
-				result = "DESCARTADO";
+				result = $.i18n.t('matches.state.discarded');
 			}else if(input === "DELETED"){
-                result = "ELIMINADO";
+                result = $.i18n.t('matches.state.deleted');
             }else{
-				result = "CONFIRMADO";
+				result = $.i18n.t('matches.state.hit');
 			}
 			
 			return result;
@@ -43,8 +43,8 @@ define([ 'angular','appConf' ], function(angular,appConf) {
 	});
 	
 	// var alertMsgNoIntersection = 'N/A';
-	var alertMsgNoFreqValue = 'Sin frecuencia';
-	var alertMsgNotUsed = 'No usado';
+	var alertMsgNoFreqValue = $.i18n.t('scenario.withoutFrecuency');
+	var alertMsgNotUsed = $.i18n.t('scenario.notUsed');
 
 	mod.filter('likelihoodratio', function() {
 		return function(input, alleleMatching, statsResolved) {
@@ -100,7 +100,7 @@ define([ 'angular','appConf' ], function(angular,appConf) {
 				}
 				
 				if (alleleMatching === 'Mismatch') {
-					return 'Sin match';
+					return $.i18n.t('matches.state.noMatch');
 				}
 				
 				return input;
@@ -226,7 +226,7 @@ define([ 'angular','appConf' ], function(angular,appConf) {
                 }
 
                 if (alleleMatching === 'Mismatch') {
-                    return 'Sin match';
+                    return $.i18n.t('matches.state.noMatch');
                 }
 
                 return input;
@@ -284,7 +284,7 @@ define([ 'angular','appConf' ], function(angular,appConf) {
                 }
 
                 if (alleleMatching === 'Mismatch') {
-                    return 'Sin match';
+                    return $.i18n.t('matches.state.noMatch');
                 }
 
                 return input;

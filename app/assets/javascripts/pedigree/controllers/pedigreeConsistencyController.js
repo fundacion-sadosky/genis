@@ -200,9 +200,9 @@ define(['lodash','visjs/vis', 'jquery'], function(_,vis,$) {
             // alertService.success({message: 'Se revisará la consistencia y recibirá una notificación cuando finalice el proceso'});
             pedigreeService.generatePedCheck($scope.pedigreeId,parseInt($scope.courtCaseId)).then(function (response) {
                 if(response.data.isConsistent){
-                    alertService.success({message: 'El pedigrí es consistente'});
+                    alertService.success({message: $.i18n.t('alerts.pedigree.consistent')});
                 }else {
-                    alertService.success({message: 'El pedigrí no es consistente'});
+                    alertService.success({message: $.i18n.t('alerts.pedigree.inconsistent')});
                 }
                 $scope.handleResponse(response);
             },function (response) {

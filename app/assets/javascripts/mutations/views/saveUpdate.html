@@ -1,23 +1,23 @@
 <div class="col-md-12 laboratories-section-big">
     <div class="laboratories-section">
         <div class="m-t-10">
-            <h6>Nombre<span class="field-obligated">*</span></h6>
+            <h6>{{ 'generics.name' | i18next }}<span class="field-obligated">*</span></h6>
             <input name="name" id="name" class="form-control form-select" type="text" data-ng-model="selectedMutationModel.name" required />
         </div>
         <div class="m-t-10">
-            <h6>Tipo<span class="field-obligated">*</span></h6>
+            <h6>{{ 'generics.type' | i18next }}<span class="field-obligated">*</span></h6>
             <select class="form-control form-select" name="repeatSelect" id="repeatSelect" disabled="true">
                 <option>{{mutationModelsTypesDesc[selectedMutationModel.mutationType].description}}</option>
             </select>
         </div>
         <div class="m-t-10">
-            <h6>Diferenciar por sexo<span class="field-obligated">*</span></h6>
+            <h6>{{ 'mutations.differentiateBySex' | i18next }}<span class="field-obligated">*</span></h6>
             <select class="form-control form-select" name="ignoreSex" id="ignoreSex" ng-model="selectedMutationModel.ignoreSex" required >
                 <option ng-repeat="ignore in ignoreSexList" value="{{ignore.id}}" ng-selected="selectedMutationModel.ignoreSex === ignore.id">{{ignore.description}}</option>
             </select>
         </div>
         <div class="m-t-10">
-            <label for="cantSaltos">Cant. de saltos a considerar<span class="field-obligated">*</span></label>
+            <label for="cantSaltos">{{ 'mutations.amountJumps' | i18next }}<span class="field-obligated">*</span></label>
             <select class="form-control form-select" name="cantSaltos" id="cantSaltos" ng-model="selectedMutationModel.cantSaltos" required >
                 <option ng-repeat="salto in cantSaltosList" value="{{salto.id}}" ng-selected="selectedMutationModel.cantSaltos === salto.id">{{salto.description}}</option>
             </select>
@@ -27,10 +27,10 @@
 <table class="table table-bordered" >
     <thead>
     <tr>
-        <th>Marcador</th>
-        <th>Sexo</th>
-        <th ng-show="showR">Tasa de mutación<span class="field-obligated">*</span></th>
-        <th ng-show="showr">Rango de mutación<span class="field-obligated">*</span></th>
+        <th>{{ 'generics.locus' | i18next }}</th>
+        <th>{{ 'generics.sex' | i18next }}</th>
+        <th ng-show="showR">{{ 'mutations.rate' | i18next }}<span class="field-obligated">*</span></th>
+        <th ng-show="showr">{{ 'mutations.range' | i18next }}<span class="field-obligated">*</span></th>
         <!--<th ng-show="showR2">R2<span class="field-obligated">*</span></th>-->
     </tr>
     </thead>

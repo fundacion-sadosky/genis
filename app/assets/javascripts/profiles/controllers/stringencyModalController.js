@@ -23,7 +23,7 @@ function StringencyModalController($scope, $modalInstance, data, profileService,
 		$scope.subcats = response.data;
 	}, 
 	function() {
-		alertService.error({message: 'Ha ocurrido un error'});
+		alertService.error({message: $.i18n.t('error.common2')});
 	});
 	
 	if ($scope.data.subcatsRel && Object.keys($scope.data.subcatsRel).length > 0) {
