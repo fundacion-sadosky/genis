@@ -32,7 +32,6 @@ error.E0129= E0129: El perfil {0} tiene matches de MPI/DVI pendientes.
 error.E0130= E0130: El perfil {0} se encuentra en un pedigri con matches pendientes.
 error.E0131= E0131: Error realizando traza de tipo {0} para el pedigree {1}.
 
-
 #Pedigree
 error.E0200= E0200: No existe usuario de GeneMapper: {0}.
 error.E0201= E0201: El pedigrí no tiene asociada una base de frecuencias.
@@ -65,9 +64,6 @@ error.E0313= E0313: La base no corresponde a la posicion : {0}.
 error.E0314= E0314: Posicion {0} no existente.
 error.E0315= E0315: El perfil ya tiene un análisis mitocondrial.
 error.E0316= E0316: El Kit ''{0}'' No existe en la base de datos.
-#
-error.E0400= E0400: No se pueden cambiar los valores {0} por {1}.
-error.E0500= E0500: Error al actualizar la configuración el motivo.
 
 #Configuraciones
 error.E0600= E0600: No existe la categoría {0}.
@@ -131,7 +127,10 @@ error.E0727= E0727: El perfil no puede ser modificado porque es de otro laborato
 error.E0728= E0728: El perfil no puede ser modificado porque fue replicado a instancia superior.
 error.E0729= E0729: El perfil no es editable.
 error.E0730= E0730: Tiempo agotado.
-#
+
+# Miscelaneos
+error.E0400= E0400: No se pueden cambiar los valores {0} por {1}.
+error.E0500= E0500: Error al actualizar la configuración el motivo.
 error.E0802= E0802: La sesión es inválida o ha expirado.
 error.E0803= E0803: Token inválido.
 error.E0900= E0900: No existe el perfil {0}.
@@ -148,5 +147,5 @@ error.E2000= E2000: No se encontraron perfiles con los filtros seleccionados.
 # Wait a moment
 start.wait= Espere un momemto por favor.
 
-#Inbox
-inbox.theuserpending = El usuario: {0} esta pendiente de aprobación
+# Inbox
+inbox.theuserpending= El usuario: {0} esta pendiente de aprobación

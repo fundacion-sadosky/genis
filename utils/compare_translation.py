@@ -20,8 +20,8 @@ def load_json_file(file: str) -> Mapping:
 class Action(Enum):
   """A class to represent actions"""
   COMPARE_SAME_LANG = 1
-  COMPARE_DIFF_LANG = 1
-  MERGE = 2
+  COMPARE_DIFF_LANG = 2
+  MERGE = 3
 
 def validate_action(argument: str) -> Optional[Action]:
   if argument.lower() == "merge":
