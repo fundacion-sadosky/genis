@@ -1,7 +1,7 @@
 define([], function() {
 'use strict';
 
-function NotificationsController($scope, $log, $i18next, notificationsService, userService, inboxService) {
+function NotificationsController($scope, $rootScope, $log, $timeout, $route, $i18next, notificationsService, userService, inboxService) {
 
 	$scope.notiCount = 0;
 	$scope.stall = true;
@@ -68,7 +68,16 @@ function NotificationsController($scope, $log, $i18next, notificationsService, u
 			nextLangBack = "en";
 		}
 		$i18next.options.lng = nextLangFront;
-		userService.setLanguage(nextLangBack);
+		// userService.setLanguage(nextLangBack);
+		$rootScope.language = nextLangFront;
+		$route.reload();
+		$rootScope.$apply();
+		$timeout(function() {
+			$rootScope.$broadcast('languageChanged');
+			$rootScope.$broadcast('languageChanged');
+			$rootScope.$digest();
+		});
+		$scope.apply();
 	};
 
 }

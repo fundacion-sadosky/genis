@@ -120,7 +120,7 @@ def print_compare_results(results: Mapping):
   for r_type in results_types:
     print(titles[r_type])
     for line in sorted(results[r_type]):
-      print(line)
+      print(f"  - {line}")
 
 def main():
   """

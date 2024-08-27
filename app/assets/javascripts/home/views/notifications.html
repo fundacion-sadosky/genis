@@ -2,10 +2,10 @@
 
 	<div class="centered-text" title="Cambio de Idioma">
 		<span
-			ng-click="changeLanguage()">
-			<i class="bold" ng-if="getLanguage() === 'en'" title="English">EN</i>
-			<i class="bold" ng-if="getLanguage() === 'fr'" title="Frances">EN</i>
-			<i class="bold" ng-if="getLanguage() === 'es-AR'" title="Español">ES</i>
+			ng-click="changeLanguage()"
+		>
+			<a href="#/home" class="bold" ng-if="getLanguage() === 'en'" title="English">EN</a>
+			<a href="#/home" class="bold" ng-if="getLanguage() === 'es-AR'" title="Español">ES</a>
 		</span>
 	</div>
 
