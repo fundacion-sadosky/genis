@@ -1,7 +1,7 @@
 define(['lodash'],function(_) {
     'use strict';
 
-    function MutationService(playRoutes,$q) {
+    function MutationService(playRoutes,$q, $http) {
 
         this.getMutationModelsTypes = function () {
             return playRoutes.controllers.MutationController.getMutationModelsTypes().get();
@@ -41,7 +41,9 @@ define(['lodash'],function(_) {
             return playRoutes.controllers.MutationController.getMutatitionModelParameters(mutationModel).get();
         };
         this.insertMutationModel = function(mutationModel)  {
-            return playRoutes.controllers.MutationController.insert().post(mutationModel);
+            console.log('INSERT MUTATION MODEL');
+            return $http.post('/mutation-model', mutationModel);
+            //return playRoutes.controllers.MutationController.insert().post(mutationModel);
         };
         this.deleteMutationModelById = function(id)  {
             return playRoutes.controllers.MutationController.deleteMutationModelById(id).delete();

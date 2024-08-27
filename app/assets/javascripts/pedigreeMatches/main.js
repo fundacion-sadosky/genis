@@ -7,7 +7,8 @@ define(
 	function(
 		angular,
 		pedigreeMatchesService,
-		pedigreeMatchesController
+		pedigreeMatchesController,
+		$http
 	) {
 		'use strict';
 		angular

@@ -1,5 +1,5 @@
 define(['angular', './controllers/locusController', './services/locusService', './controllers/newLocusController', './services/analysisTypeService', './controllers/listLocusController', './controllers/locusUpdateController'],
-function(angular, locusController, locusService, newLocusController, analysisTypeService, listLocusController,locusUpdateController) {
+function(angular, locusController, locusService, newLocusController, analysisTypeService, listLocusController,locusUpdateController, $http) {
 'use strict';
 
 angular

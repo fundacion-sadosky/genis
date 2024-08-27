@@ -1,7 +1,7 @@
 define([],function() {
     'use strict';
 
-    function KitService(playRoutes) {
+    function KitService(playRoutes, $http) {
 
         this.get = function(id){
             return playRoutes.controllers.StrKits.get(id).get();
@@ -20,7 +20,9 @@ define([],function() {
         };
 
         this.add = function (kit) {
-            return playRoutes.controllers.StrKits.add().post(kit);
+            console.log('CREATE STRKIT');
+            return $http.post('/strkit/create', kit);
+            //return playRoutes.controllers.StrKits.add().post(kit);
         };
 
         this.updateKit = function(kit){

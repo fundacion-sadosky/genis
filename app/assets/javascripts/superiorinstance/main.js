@@ -1,5 +1,5 @@
 define(['angular', './services/superiorInstanceService', './controllers/superiorInstanceController'],
-function(angular, superiorInstanceService, superiorInstanceController) {
+function(angular, superiorInstanceService, superiorInstanceController, $http) {
 'use strict';
 
 angular

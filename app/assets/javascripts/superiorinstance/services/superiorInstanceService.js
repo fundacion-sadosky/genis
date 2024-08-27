@@ -1,7 +1,7 @@
 define([],function() {
     'use strict';
 
-    function SuperiorInstanceService(playRoutes) {
+    function SuperiorInstanceService(playRoutes, $http) {
 
         this.getConnections = function () {
             return playRoutes.controllers.Interconnections.getConnections().get();
@@ -22,6 +22,8 @@ define([],function() {
             return playRoutes.controllers.Interconnections.getCategoryTreeComboConsumer().get();
         };
         this.connect = function() {
+            //console.log('CONNECT');
+            //return $http.post('/connection');
             return playRoutes.controllers.Interconnections.insertConnection().post();
         };
     }

@@ -1,7 +1,7 @@
 define(['angular'], function(ng) {
 'use strict';
 
-function UserService(playRoutes, $cookies, $window, $log) {
+function UserService(playRoutes, $cookies, $window, $log, $http) {
 	
 	var getUserFromSessionStorage = function() {
 		var user;
@@ -60,11 +60,11 @@ function UserService(playRoutes, $cookies, $window, $log) {
 	this.onLogout = function(callback) {
 		logoutListeners.push(callback);
 	};
-
-	this.authenticate = function(credentials) {
-			
+	
+	this.authenticate = function(credentials){
 		var authenticationRequest = credentials;
-
+		//console.log('AUTHENTICATION');
+		//return $http.post('/login', authenticationRequest)
 		return playRoutes.controllers.Authentication.login().post(authenticationRequest)
 				.success(
 					function(response){
@@ -108,13 +108,15 @@ function UserService(playRoutes, $cookies, $window, $log) {
         req.roles = roles;
 
         this.fixPhone2(req);
-
-        return playRoutes.controllers.Users.signupRequest().post(req);
+		console.log('SIGNUP REQUEST');
+		return $http.post('/signup', req);
+        //return playRoutes.controllers.Users.signupRequest().post(req);
     };
     this.clearPassRequest = function(solicitude){
         var req = ng.copy(solicitude);
-
-        return playRoutes.controllers.Users.clearPassRequest().post(req);
+		console.log('CLEAR PASS REQUEST');
+		return $http.post('/clear-password', req);
+		//return playRoutes.controllers.Users.clearPassRequest().post(req);
     };
     this.getDisclaimerHtml = function(){
         return playRoutes.controllers.DisclaimerController.getDisclaimer().get();

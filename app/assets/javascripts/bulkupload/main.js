@@ -1,6 +1,6 @@
 define(['angular', './bulkuploadService', './step1Controller','./step2Controller',
         './protoProfileDataService', '../profiledata/profileDataController', 'common','./addLoteController' ],
-function(angular,BulkuploadService,Step1Controller,Step2Controller, ProtoProfileDataService, ProtoProfileDataController,Common, AddLoteController) {
+function(angular,BulkuploadService,Step1Controller,Step2Controller, ProtoProfileDataService, ProtoProfileDataController,Common, AddLoteController, $http) {
 'use strict';
 
 angular.module('pdg.bulkupload', ['pdg.common','pdg.locus'])

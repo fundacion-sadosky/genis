@@ -1,7 +1,7 @@
 define([], function() {
 'use strict';
 
-	function PedigreeMatchesGroupsService(playRoutes, userService) {
+	function PedigreeMatchesGroupsService(playRoutes, userService, $http) {
 
 		this.getCourtCase = function(courtcaseId) {
 			return playRoutes.controllers.Pedigrees.getCourtCaseFull(courtcaseId).get();
@@ -23,25 +23,33 @@ define([], function() {
             var user = userService.getUser();
             search.user = user.name;
             search.isSuperUser = user.superuser;
-            return playRoutes.controllers.Pedigrees.getMatchesByGroup().post(search);
+            console.log('GET MATCHES BY GROUP');
+            return $http.post('/pedigreeMatches/groups/search', search);
+            //return playRoutes.controllers.Pedigrees.getMatchesByGroup().post(search);
         };
 
         this.countMatchesByGroup = function(search) {
             var user = userService.getUser();
             search.user = user.name;
             search.isSuperUser = user.superuser;
-            return playRoutes.controllers.Pedigrees.countMatchesByGroup().post(search);
+            console.log('COUNT MATCHES BY GROUP');
+            return $http.post('/pedigreeMatches/groups/count', search);
+            //return playRoutes.controllers.Pedigrees.countMatchesByGroup().post(search);
         };
 
         this.exportMatchesByGroup = function(search) {
             var user = userService.getUser();
             search.user = user.name;
             search.isSuperUser = user.superuser;
-            return playRoutes.controllers.Pedigrees.exportMatchesByGroup().post(search);
+            console.log('EXPORT MATCHES BY GROUP');
+            return $http.post('/pedigreeMatches/groups/export', search);
+            //return playRoutes.controllers.Pedigrees.exportMatchesByGroup().post(search);
         };
 
         this.discard = function(oid) {
-          return playRoutes.controllers.Pedigrees.discard(oid).post();  
+            console.log('DISCARD');
+            return $http.post('/pedigree/discard', oid);
+            //return playRoutes.controllers.Pedigrees.discard(oid).post();  
         };
         
         this.canDiscard = function(match, user) {

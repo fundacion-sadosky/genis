@@ -6,7 +6,7 @@ define(['angular', './controllers/profileController', './controllers/labelsModal
 function(angular, ProfileController, LabelsModalController, StringencyModalController,
 		ProfileHelper, ProfileService, AssociationLabelService,
 		AssociateProfilesModalController, NewAnalysisController, DnaController,
-        NewAnalysisConfirmationController,ProfileComparisonController, filters) {
+        NewAnalysisConfirmationController,ProfileComparisonController, filters, $http) {
 'use strict';
 
 angular

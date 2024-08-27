@@ -1,10 +1,12 @@
 define(['lodash', 'angular'],function(_,angular) {
     'use strict';
 
-    function LocusService(playRoutes) {
+    function LocusService(playRoutes, $http) {
 
         this.add = function (locus) {
-            return playRoutes.controllers.Locis.add().post(locus);
+            console.log('ADD LOCUS');
+            return $http.post('/locus/create', locus);
+            //return playRoutes.controllers.Locis.add().post(locus);
         };
 
         this.update = function (locus) {

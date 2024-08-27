@@ -1,5 +1,5 @@
 define(['angular', './loadingAppController', './totpPromptService', './totpPromptController', './errorService', './errorController', './headerController', './notificationsService', './notificationsController'], 
-function(angular, LoadingAppController, TotpPromptService, TotpPromptController, ErrorService, ErrorController, HeaderController, NotificationsService, NotificationsController) {
+function(angular, LoadingAppController, TotpPromptService, TotpPromptController, ErrorService, ErrorController, HeaderController, NotificationsService, NotificationsController, $http) {
 'use strict';
 
 angular

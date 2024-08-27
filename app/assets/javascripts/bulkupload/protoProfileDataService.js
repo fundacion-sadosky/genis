@@ -21,7 +21,9 @@ function ProtoProfileDataService(playRoutes, $log) {
 
 	this.saveProfile = function(profileData) {
 		$log.info('calling service: Profiles.create');
-		return playRoutes.controllers.ProtoProfileData.create().post(profileData);
+		console.log('PROTO PRO FILE DATA');
+		return $http.post('/protoprofiledata', profileData);
+		//return playRoutes.controllers.ProtoProfileData.create().post(profileData);
 	};
 
 	this.getProfileDataBySampleCode = function(profileId){

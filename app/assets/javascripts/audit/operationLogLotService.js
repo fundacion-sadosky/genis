@@ -1,7 +1,7 @@
 define([], function() {
 'use strict';
 
-function OperationLogLotService(playRoutes) {
+function OperationLogLotService(playRoutes, $http) {
 	
 	var remote = playRoutes.controllers.OperationLogs;
 	
@@ -10,7 +10,9 @@ function OperationLogLotService(playRoutes) {
 	};
 
 	this.getTotalLogs = function(search) {
-		return remote.getTotalLogs().post(search);
+		console.log('GET TOTAL LOGS');
+		return $http.post('/operationLogLot', search);
+		//return remote.getTotalLogs().post(search);
 	};
 
 	this.getLotsNames = function(page, pageSize) {
@@ -26,7 +28,9 @@ function OperationLogLotService(playRoutes) {
 	};
 	
 	this.searchLogs = function(search) {
-		return remote.searchLogs().post(search);
+		console.log('SEARCH LOGS');
+		return $http.post('/operationLogSearch', search);		
+		//return remote.searchLogs().post(search);
 	};
 }
 

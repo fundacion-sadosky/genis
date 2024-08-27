@@ -1,7 +1,7 @@
 define([ 'angular' ], function(angular) {
 'use strict';
 
-function ProfileService(playRoutes, $log, $q, userService) {
+function ProfileService(playRoutes, $log, $q, userService, $http) {
 
 	function convertProfileToLabels(labeledGenotypification) {
 		var ret = {}, i = 1;
@@ -101,12 +101,15 @@ function ProfileService(playRoutes, $log, $q, userService) {
 				return !(alelle === null || (alelle.trim && alelle.trim() === "")); 
 			});
 		});
-		
-		return playRoutes.controllers.Profiles.create().post(newAnalysis);
+		console.log('CREATE');
+		return $http.post('/profiles', newAnalysis);
+		//return playRoutes.controllers.Profiles.create().post(newAnalysis);
 	};
 	
 	this.saveUploaded = function(uploadToken) {
-		return playRoutes.controllers.Profiles.storeUploadedAnalysis(uploadToken).post({});
+		console.log('STORE UPLOADED ANALYSIS');
+		return $http.post('/profiles-xxx/:id', uploadToken);
+		//return playRoutes.controllers.Profiles.storeUploadedAnalysis(uploadToken).post({});
 	};
 	
 	this.getLociByStrKitId = function(idKit) {
@@ -129,7 +132,9 @@ function ProfileService(playRoutes, $log, $q, userService) {
 		return playRoutes.controllers.Profiles.getElectropherogramsByAnalysisId(globalCode,analysisId).get();
 	};
 	this.saveLabels = function(labels) {
-		return playRoutes.controllers.Profiles.saveLabels().post(labels);
+		console.log('SAVE LABELS');
+		return $http.post('/profiles-labels', labels);
+		//return playRoutes.controllers.Profiles.saveLabels().post(labels);
 	};
 	
 	this.findSubcategoryRelationships = function(subcatId) {
@@ -141,18 +146,24 @@ function ProfileService(playRoutes, $log, $q, userService) {
 	};
 	
 	this.addElectropherograms = function(token, globalCode, idAnalysis, name) {
-		return playRoutes.controllers.Profiles.addElectropherograms(token, globalCode, idAnalysis, name).post();
+		console.log('ADD ELECTROPHEROGRAMS');
+		return $http.post('/profiles-epg', token, globalCode, idAnalysis, name);
+		//return playRoutes.controllers.Profiles.addElectropherograms(token, globalCode, idAnalysis, name).post();
 	};
 
-    this.addFiles = function(token, globalCode, idAnalysis,name) {
-        return playRoutes.controllers.Profiles.addFiles(token, globalCode, idAnalysis,name).post();
+    this.addFiles = function(token, globalCode, idAnalysis, name) {
+		console.log('ADD FILES');
+		return $http.post('/profiles-file', token, globalCode, idAnalysis, name);
+        //return playRoutes.controllers.Profiles.addFiles(token, globalCode, idAnalysis,name).post();
     };
 	
 	this.getLabels = function(sampleCode) {
 		return playRoutes.controllers.Profiles.getLabels(sampleCode).get();
 	};
     this.uploadProfile = function(globalGlode) {
-        return playRoutes.controllers.Interconnections.uploadProfile(globalGlode).post();
+		console.log('UPLOAD PROFILE');
+		return $http.post('/inferior/profile', globalGlode);
+        //return playRoutes.controllers.Interconnections.uploadProfile(globalGlode).post();
     };
     this.isReadOnly = function(sampleCode) {
         return playRoutes.controllers.Profiles.isReadOnly(sampleCode).get();

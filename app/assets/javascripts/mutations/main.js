@@ -1,5 +1,5 @@
 define(['angular', './controllers/mutationController','./controllers/mutationInsertController','./controllers/mutationUpdateController', './services/mutationService'],
-function(angular, mutationController,mutationInsertController,mutationUpdateController, mutationService) {
+function(angular, mutationController,mutationInsertController,mutationUpdateController, mutationService, $http) {
 'use strict';
 
 angular

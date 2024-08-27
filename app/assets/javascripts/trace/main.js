@@ -1,5 +1,5 @@
 define(['angular', './controllers/traceController', './services/traceService', './controllers/traceModalController', 'common','./controllers/tracePedigreeController'],
-    function(angular, TraceController, TraceService, TraceModalController,common,TracePedigreeModalController) {
+    function(angular, TraceController, TraceService, TraceModalController,common,TracePedigreeModalController, $http) {
         'use strict';
 
         angular

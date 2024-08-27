@@ -61,7 +61,8 @@ define(
 		matchesController,
 		matchesGroupsController,
 		pedigreeConsistencyController,
-		pedigreeMatchesCourtCaseController
+		pedigreeMatchesCourtCaseController,
+		$http
 	) {
 		'use strict';
 		angular

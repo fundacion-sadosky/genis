@@ -1,5 +1,5 @@
 define(['angular', './bioMaterialTypeService', './bioMaterialTypeController', './controllers/bmtModalController', 'common'], 
-function(angular, bioMaterialTypeService, bioMaterialTypeController, bmtModalController) {
+function(angular, bioMaterialTypeService, bioMaterialTypeController, bmtModalController, $http) {
 'use strict';
 
 angular

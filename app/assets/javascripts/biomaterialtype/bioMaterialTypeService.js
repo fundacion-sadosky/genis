@@ -1,14 +1,16 @@
 define([], function() {
 'use strict';
 
-	function BioMaterialTypeService(playRoutes) {
+	function BioMaterialTypeService(playRoutes,$http) {
 		
 		this.getBioMaterialTypes = function() {
 			return playRoutes.controllers.BioMaterialTypes.list().get();
 		};
 		
 		this.addBioMaterialType = function(bmt) {
-			return playRoutes.controllers.BioMaterialTypes.insert().post(bmt);
+			console.log('ADD BIO MATERIAL TYPES');
+			return $http.post('/bioMaterialTypes', bmt);			
+			//return playRoutes.controllers.BioMaterialTypes.insert().post(bmt);
 		};
 		
 		this.updateBioMaterialType = function(bmt) {

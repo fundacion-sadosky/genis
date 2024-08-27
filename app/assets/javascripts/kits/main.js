@@ -1,5 +1,5 @@
 define(['angular', './controllers/newKitController','./controllers/saveController' ,'./services/kitService', './controllers/listKitController', './controllers/kitController', './directives/pdgLocusPopover'],
-function(angular, newKitController,saveController, kitService, listKitController, kitController, pdgLocusPopover) {
+function(angular, newKitController,saveController, kitService, listKitController, kitController, pdgLocusPopover, $http) {
 'use strict';
 
 angular

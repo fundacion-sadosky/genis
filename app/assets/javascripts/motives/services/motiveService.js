@@ -13,7 +13,9 @@ define([],function() {
             return playRoutes.controllers.MotiveController.update().put(motive);
         };
         this.insertMotive = function(motive)  {
-            return playRoutes.controllers.MotiveController.insert().post(motive);
+            console.log('INSERT MOTIVE');
+            return $http.post('/motive', motive);
+            //return playRoutes.controllers.MotiveController.insert().post(motive);
         };
         this.deleteMotiveById = function(id)  {
             return playRoutes.controllers.MotiveController.deleteMotiveById(id).delete();

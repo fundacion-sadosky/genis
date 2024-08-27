@@ -105,13 +105,14 @@ function ScenarioService(playRoutes, $q, $filter, $http) {
     };
     
     this.getDefaultScenario = function(firingProfile, matchingProfile, statsOption) {
-        console.log('SCENARIOS NCORRECTION');
-        return  $http.post('/scenarios/get', firingProfile, matchingProfile, statsOption);
+        console.log('GET DEFAULT SCENARIO');
+        return  $http.post('/default-scenario', firingProfile, matchingProfile, statsOption);
         //return playRoutes.controllers.Scenarios.getDefaultScenario(firingProfile, matchingProfile).post(statsOption);
     };
     
     this.getNCorrection = function(firingProfile, matchingProfile, bigN, lr) {
         var correctionRequest = {firingCode: firingProfile, matchingCode: matchingProfile, bigN: bigN, lr: lr};
+        console.log('SCENARIOS NCORRECTION');
         return  $http.post('/scenarios/ncorrection', correctionRequest);
         //return playRoutes.controllers.Scenarios.getNCorrection().post(correctionRequest); 
     };

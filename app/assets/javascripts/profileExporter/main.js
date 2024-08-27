@@ -1,5 +1,5 @@
 define(['angular', './services/profileExporterService', './controllers/profileExporterController'],
-    function(angular, profileExporterService, profileExporterController) {
+    function(angular, profileExporterService, profileExporterController, $http) {
         'use strict';
         angular
     .module('pdg.profileExporter', ['pdg.common'])

@@ -71,9 +71,9 @@ define([], function() {
 			var user = userService.getUser();
 			search.user = user.name;
 			search.isSuperUser = user.superuser;
-			console.log('GET TOTAL MATCHES');
-			return $http.post('/user-total-matches', search);
-			//return playRoutes.controllers.Matching.getTotalMatches().post(search);
+			//console.log('GET TOTAL MATCHES');
+			//return $http.post('/user-total-matches', search);
+			return playRoutes.controllers.Matching.getTotalMatches().post(search);
 		};
 
 		this.getResults = function(
@@ -105,7 +105,9 @@ define([], function() {
 		this.getLR = function(profileId, matchedProfileId, matchingId, selectedOptions){
 			// TODO: calcular a partir del matchingId
             var lrRequest = {'firingCode': profileId, 'matchingCode': matchedProfileId, 'stats': selectedOptions,'matchingId':matchingId};
-			return playRoutes.controllers.Matching.getLR().post(lrRequest);
+			console.log('GET LR');
+			return $http.post('/lr', lrRequest);			
+			//return playRoutes.controllers.Matching.getLR().post(lrRequest);
 		};
 		
 		this.getComparedMixtureGene = function(profiles,matchId,isCollapsing) {
@@ -119,7 +121,9 @@ define([], function() {
 			request.globalCodeParent = globalCodeParent;
 			request.globalCodeChildren = globalCodeChildren;
 			request.courtCaseId = parseInt(courtCaseId);
-			return playRoutes.controllers.Pedigrees.confirmSelectedCollapsing().post(request);
+			console.log('CONFIRM SELECTED COLLAPSING');
+			return $http.post('/collapsing/groups', request);
+			//return playRoutes.controllers.Pedigrees.confirmSelectedCollapsing().post(request);
         };
         // this.deleteByLeftAndRightProfile = function(globalCode,courtCaseId) {
         //     return playRoutes.controllers.Matching.deleteByLeftAndRightProfile(globalCode,courtCaseId).delete();

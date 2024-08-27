@@ -1,6 +1,6 @@
 define(['angular', './roleService', './roleController', './controllers/roleModalController',
         './directives/pdgOperationsPopover'], 
-function(angular, roleService, roleController, roleModalController, pdgOperationsPopover) {
+function(angular, roleService, roleController, roleModalController, pdgOperationsPopover, $http) {
 'use strict';
 
 angular

@@ -1,7 +1,7 @@
 define(['lodash'], function(_) {
 	'use strict';
 
-	function BulkuploadService(playRoutes) {
+	function BulkuploadService(playRoutes, $http) {
 
 		this.getStatusMap = function() {
 			return {'Invalid': 'Inválido', 'Incomplete': 'Incompleto', 
@@ -28,7 +28,9 @@ define(['lodash'], function(_) {
         };
 		
 		this.changeStatus = function(sampleName, newStatus,replicate) {
-			return playRoutes.controllers.BulkUpload.updateProtoProfileStatus(sampleName, newStatus,replicate).post();
+			console.log('UPDATE PROTO PROFILE STATUS');
+			return $http.post('/protoprofiles/:id/status', sampleName, newStatus,replicate);
+			//return playRoutes.controllers.BulkUpload.updateProtoProfileStatus(sampleName, newStatus,replicate).post();
 		};
 
 		this.changeBatchStatus = function(idBatch, newStatus,idsNotToReplicate,replicateAll) {
@@ -38,7 +40,9 @@ define(['lodash'], function(_) {
             if(replicateAll===undefined){
                 replicateAll = false;
 			}
-			return playRoutes.controllers.BulkUpload.updateBatchStatus(idBatch, newStatus,replicateAll).post(idsNotToReplicate);
+			console.log('UPDATE BATCH STATUS');
+			return $http.post('/protoprofiles/multiple-status', idBatch, newStatus,idsNotToReplicate,replicateAll);
+			//return playRoutes.controllers.BulkUpload.updateBatchStatus(idBatch, newStatus, replicateAll).post(idsNotToReplicate);
 		};
 		
 		this.getProtoProfileBySampleId = function(sampleId) {
@@ -46,7 +50,9 @@ define(['lodash'], function(_) {
 		};
 		
 		this.updateProtoProfileData = function(sampleName, newCat) {
-			return playRoutes.controllers.BulkUpload.updateProtoProfileData(sampleName, newCat).post();
+			console.log('UPDATE PROTO PRO FILE DATA');
+			return $http.post('/protoprofiles/:id/subcategory', sampleName, newCat);			
+			//return playRoutes.controllers.BulkUpload.updateProtoProfileData(sampleName, newCat).post();
 		};
 		
 		this.selectAll = function(batchId, protoProfiles, toogle, status) {
@@ -56,11 +62,15 @@ define(['lodash'], function(_) {
 		};
 		
 		this.rejectProtoProfile = function(id, motive,idMotive) {
-			return playRoutes.controllers.BulkUpload.rejectProtoProfile(id, motive,idMotive).post();
+			console.log('REJECT PROTO PRO FILE');
+			return $http.post('/protoprofiles-reject/:id', id, motive,idMotive);			
+			//return playRoutes.controllers.BulkUpload.rejectProtoProfile(id, motive,idMotive).post();
 		};
 		
 		this.updateProtoProfileRulesMismatch = function(id, subcatsRel, mismatches) {
-			return playRoutes.controllers.BulkUpload.updateProtoProfileRulesMismatch().post({id: id, matchingRules: subcatsRel, mismatches: mismatches});
+			console.log('UPDATE PROTO PRO FILE RULES MISMATCH');
+			return $http.post('/protoprofiles/:id/subcategory', id, subcatsRel, mismatches);			
+			//return playRoutes.controllers.BulkUpload.updateProtoProfileRulesMismatch().post({id: id, matchingRules: subcatsRel, mismatches: mismatches});
 		};
 
         this.deleteBatch = function(idBatch) {

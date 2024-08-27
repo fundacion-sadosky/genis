@@ -1,5 +1,5 @@
 define(['angular', './userService', './userController', './updateUserController', 'common'], 
-function(angular, userService, userController, updateUserCtrl) {
+function(angular, userService, userController, updateUserCtrl, $http) {
 'use strict';
 
 angular

@@ -1,5 +1,5 @@
 define(['angular', './operationLogLotService', './operationLogLotsController', './operationLogLotController', 'common'], 
-function(angular, OperationLogLotService, OperationLogLotsController, OperationLogLotController) {
+function(angular, OperationLogLotService, OperationLogLotsController, OperationLogLotController, $http) {
 'use strict';
 
 angular

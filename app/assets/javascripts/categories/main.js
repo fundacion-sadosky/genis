@@ -1,5 +1,5 @@
 define(['angular', './categoriesService', './categoriesController', './associationsController', './matchingRulesController', './categoryModalController', './groupModalController', 'common'], 
-function(angular, categoriesService, categoriesController, associationsController, matchingRulesController, categoryModalController, groupModalController) {
+function(angular, categoriesService, categoriesController, associationsController, matchingRulesController, categoryModalController, groupModalController, $http) {
 'use strict';
 
 angular

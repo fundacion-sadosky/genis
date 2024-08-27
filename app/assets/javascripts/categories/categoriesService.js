@@ -1,7 +1,7 @@
 define([], function() {
 'use strict';
 
-function CategoriesService($q, playRoutes) {
+function CategoriesService($q, playRoutes, $http) {
 
 	this.getCategories = function() {
 		var groupsPromise = playRoutes.controllers.Categories.categoryTree().get().then(function(response) {
@@ -31,7 +31,9 @@ function CategoriesService($q, playRoutes) {
 	};
 
 	this.createCategory = function(category) {
-		return playRoutes.controllers.Categories.addCategory().post(category);
+		console.log('CREATE CATEGORY');
+		return $http.post('/categories', category);		
+		//return playRoutes.controllers.Categories.addCategory().post(category);
 	};
 
 	this.updateCategory = function(category) {
@@ -47,7 +49,9 @@ function CategoriesService($q, playRoutes) {
 	};
 
 	this.createGroup = function(group) {
-		return playRoutes.controllers.Categories.addGroup().post(group);
+		console.log('CREATE GROUP');
+		return $http.post('/group', group);		
+		//return playRoutes.controllers.Categories.addGroup().post(group);
 	};
 
 	this.updateGroup = function(group) {

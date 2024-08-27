@@ -1,5 +1,5 @@
 define(['angular', './controllers/inboxController', './controllers/advancedSearchController', './services/inboxService', './controllers/homeController'],
-function(angular, inboxController, advancedSearchController, inboxService, homeController) {
+function(angular, inboxController, advancedSearchController, inboxService, homeController, $http) {
 'use strict';
 
 angular

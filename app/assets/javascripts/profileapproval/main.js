@@ -1,5 +1,5 @@
 define(['angular', './services/profileApprovalService', './controllers/profileApprovalController'],
-function(angular, profileApprovalService, profileApprovalController) {
+function(angular, profileApprovalService, profileApprovalController, $http) {
 'use strict';
 angular
     .module('pdg.profileapproval', ['pdg.common', 'jm.i18next', 'ui.sortable'])

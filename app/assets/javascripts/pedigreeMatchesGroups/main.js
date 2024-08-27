@@ -1,6 +1,6 @@
 define(['angular', './services/pedigreeMatchesGroupsService', './controllers/pedigreeMatchesGroupsController',
 	'./controllers/groupController'],
-function(angular, pedigreeMatchesGroupsService, pedigreeMatchesGroupsController, groupController) {
+function(angular, pedigreeMatchesGroupsService, pedigreeMatchesGroupsController, groupController, $http) {
 'use strict';
 
 angular
