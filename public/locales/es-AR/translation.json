@@ -114,7 +114,8 @@
       "registers": " registros",
       "setAsDefault": ": fue configurada como default",
       "setAsDefaultError": ": no pudo ser configurada como default",
-      "wereInserted": ": fue insertado "
+      "wereInserted": ": fue insertado ",
+      "close": "Cerrar"
     },
     "geneticist": {
       "nameAlreadyUsed": "Nombre ya utilizado en el Laboratorio",
@@ -1336,6 +1337,7 @@
     "cleanData": "Limpiar datos",
     "cleanFilters": "Limpiar filtros",
     "cleanScreen": "Limpiar pantalla",
+    "close": "Cerrar",
     "code": "Código",
     "codeCategoryLab": "Código, categoría o laboratorio",
     "compare": "Comparar",
@@ -1380,7 +1382,7 @@
     "fieldRespectPattern": "El campo debe respetar el patrón ",
     "files": "Archivos",
     "fileType": "Tipo archivo",
-    "from": "From",
+    "from": "Desde",
     "geneMapperUser": "Nombre de usuario de GeneMapper",
     "geneticist": "Genetista",
     "geneticists": "Genetistas",
@@ -1478,7 +1480,7 @@
     "the": "El",
     "theta": "Theta",
     "timeAndDate": "´Fecha y Hora",
-    "to": "Until",
+    "to": "Hasta",
     "traceability": "Trazabilidad",
     "traceDescription": "Detalle de trazabilidad",
     "type": "Tipo",

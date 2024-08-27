@@ -5,29 +5,29 @@
 			<ul show-permissions="PROFILE_DATA_CRUD, DNA_PROFILE_CRUD, PROTOPROFILE_BULK_UPLOAD,PROTOPROFILE_BULK_ACCEPTANCE, IMP_PERF_INS" class="nav navbar-nav menu-item">
 				<li class="profile" data-ng-class="{itemselected: selectedMenu == 'profile'}">
 					<a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false" class="menu-item">
-						<p><i class="icon-perfiles icon-lg"></i>{{"menu.profiles"|i18next}}<b class="caret"></b></p>
+						<p><i class="icon-perfiles icon-lg"></i>{{menu_profiles|i18next}}<b class="caret"></b></p>
 					</a>
 					<ul class="dropdown-menu dropdown-main-menu submenu">
 						<li show-permissions="PROFILE_DATA_CRUD, DNA_PROFILE_CRUD">
-							<a  data-ng-click="selectedMenu = 'profile'" href="#/search/profiledata" aria-expanded="false"  class="menu-item">{{"menu.profilesList"|i18next}}</a>
+							<a  data-ng-click="selectedMenu = 'profile'" href="#/search/profiledata" aria-expanded="false"  class="menu-item">{{menu_profilesList|i18next}}</a>
 						</li>
 						<li show-permissions="PROTOPROFILE_BULK_UPLOAD">
-							<a data-ng-click=" selectedMenu = 'profile'" href="#/profiles/bulkupload-step1"  class="menu-item">{{"menu.bulkUpload"|i18next}}</a>
+							<a data-ng-click=" selectedMenu = 'profile'" href="#/profiles/bulkupload-step1"  class="menu-item">{{menu_bulkUpload|i18next}}</a>
 						</li>
 						<li show-permissions="PROTOPROFILE_BULK_ACCEPTANCE">
-							<a data-ng-click=" selectedMenu = 'profile'" href="#/profiles/bulkupload-step2"  class="menu-item">{{"menu.bulkAcceptance"|i18next}}</a>
+							<a data-ng-click=" selectedMenu = 'profile'" href="#/profiles/bulkupload-step2"  class="menu-item">{{menu_bulkAcceptance|i18next}}</a>
 						</li>
 						<li show-permissions="IMP_PERF_INS">
-							<a data-ng-click=" selectedMenu = 'profile'" href="#/profile-approval"  class="menu-item">{{"menu.inferiorInstanceProfileApproval"|i18next}}</a>
+							<a data-ng-click=" selectedMenu = 'profile'" href="#/profile-approval"  class="menu-item">{{menu_inferiorInstanceProfileApproval|i18next}}</a>
 						</li>
 						<li show-permissions="PROFILE_COMPARISON">
-							<a data-ng-click=" selectedMenu = 'profile'" href="#/profile-comparison">{{"menu.profileComparison"|i18next}}</a>
+							<a data-ng-click=" selectedMenu = 'profile'" href="#/profile-comparison">{{menu_profileComparison|i18next}}</a>
 						</li>
 						<li show-permissions="PROFILE_EXPORTER">
-							<a  data-ng-click="selectedMenu = 'profile'" href="#/profile-exporter" aria-expanded="false"  class="menu-item">{{"menu.profileExporter"|i18next}}</a>
+							<a  data-ng-click="selectedMenu = 'profile'" href="#/profile-exporter" aria-expanded="false"  class="menu-item">{{menu_profileExporter|i18next}}</a>
 						</li>
 						<li show-permissions="PROFILE_EXPORTER_TO_LIMS">
-							<a  data-ng-click="selectedMenu = 'profile'" href="#/profile-exporterToLims" aria-expanded="false"  class="menu-item">{{"menu.profileLIMSExporter"|i18next}}</a>
+							<a  data-ng-click="selectedMenu = 'profile'" href="#/profile-exporterToLims" aria-expanded="false"  class="menu-item">{{menu_profileLIMSExporter|i18next}}</a>
 						</li>
 					</ul>
 				</li>
@@ -36,7 +36,7 @@
 			<ul show-permissions="PEDIGREE_CRUD" class="nav navbar-nav menu-item">
 				<li class="pedigree" data-ng-class="{itemselected: selectedMenu == 'courtcases'}"  class="menu-item">
 					<a data-ng-click=" selectedMenu = 'courtcases'" href="#/courtcases" aria-expanded="false">
-						<p><i class="icon-pedigri icon-lg"></i>{{"menu.mpiDvi"|i18next}}</p>
+						<p><i class="icon-pedigri icon-lg"></i>{{menu_mpiDvi|i18next}}</p>
 					</a>
 				</li>
 			</ul>
@@ -44,12 +44,12 @@
 			<ul show-permissions="MATCHES_MANAGER, PEDIGREE_CRUD" class="nav navbar-nav menu-item">
 				<li class="matching" data-ng-class="{itemselected: selectedMenu=='matching'}" class="menu-item">
 					<a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-						<p><i class="icon-coincidencias icon-lg"></i>{{"menu.matches"|i18next}}<b class="caret"></b></p>
+						<p><i class="icon-coincidencias icon-lg"></i>{{menu_matches|i18next}}<b class="caret"></b></p>
 					</a>
 					<ul class="dropdown-menu dropdown-main-menu submenu">
-						<li class="menu-item"><a show-permissions="MATCHES_MANAGER" data-ng-click=" selectedMenu = 'matching'" href="#/matches">{{"menu.forensic"|i18next}}</a></li>
+						<li class="menu-item"><a show-permissions="MATCHES_MANAGER" data-ng-click=" selectedMenu = 'matching'" href="#/matches">{{menu_forensic|i18next}}</a></li>
 						<!--<li class="menu-item"><a show-permissions="MATCHES_MANAGER" data-ng-click=" selectedMenu = 'matching'" href="#/matches?isCollapsingMatch=true">Collapsing</a></li>-->
-						<li class="menu-item"><a show-permissions="PEDIGREE_CRUD" data-ng-click=" selectedMenu = 'matching'" href="#/pedigreeMatches">{{"menu.mpi"|i18next}}</a></li>
+						<li class="menu-item"><a show-permissions="PEDIGREE_CRUD" data-ng-click=" selectedMenu = 'matching'" href="#/pedigreeMatches">{{menu_mpi|i18next}}</a></li>
 						</li>
 					</ul>
 				</li>
@@ -58,17 +58,17 @@
 			<ul show-permissions="OPERATION_LOG_READ,REPORTING_VIEW, INF_INS_CRUD" class="nav navbar-nav menu-item">
 				<li class="menu-item audit" data-ng-class="{itemselected: selectedMenu=='audit'}" >
 					<a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-						<p><i class="icon-auditoria icon-lg"></i>{{"menu.monitoring"|i18next}}<b class="caret"></b></p>
+						<p><i class="icon-auditoria icon-lg"></i>{{menu_monitoring|i18next}}<b class="caret"></b></p>
 					</a>
 					<ul class="dropdown-menu dropdown-main-menu submenu">
 						<li show-permissions="REPORTING_VIEW" class="menu-item">
-							<a data-ng-click=" selectedMenu = 'audit'" href="#/reportes-main">{{"menu.reports"|i18next}}</a>
+							<a data-ng-click=" selectedMenu = 'audit'" href="#/reportes-main">{{menu_reports|i18next}}</a>
 						</li>
 						<li show-permissions="OPERATION_LOG_READ" class="menu-item">
-							<a data-ng-click=" selectedMenu = 'audit'" href="#/audit/operationLogLots">{{"menu.operationLog"|i18next}}</a>
+							<a data-ng-click=" selectedMenu = 'audit'" href="#/audit/operationLogLots">{{menu_operationLog|i18next}}</a>
 						</li>
 						<li show-permissions="INF_INS_CRUD" class="menu-item">
-							<a data-ng-click=" selectedMenu = 'audit'"  href="#/inferior-instances">{{"menu.interconnection.inferiorInstances"|i18next}}</a>
+							<a data-ng-click=" selectedMenu = 'audit'"  href="#/inferior-instances">{{menu_interconnection_inferiorInstances|i18next}}</a>
 						</li>
 
 					</ul>
@@ -79,7 +79,7 @@
 				class="nav navbar-nav menu-item">
 				<li class="menu-item stadistics" data-ng-class="{itemselected: selectedMenu=='configuration'}">
 					<a data-ng-click="selectedMenu = 'configuration'" href="#/configuracion" aria-expanded="false">
-						<p><i class="icon-configuracion icon-lg" ></i>{{"menu.configuration"|i18next}}</p>
+						<p><i class="icon-configuracion icon-lg" ></i>{{menu_configuration|i18next}}</p>
 					</a>
 				</li>
 			</ul>
@@ -123,7 +123,7 @@
 
 					<ul id="userMenuUl" class="dropdown-menu dropdown-main-menu submenu">
 						<li id="userMenuLogoutLi"><a id="userMenuLogoutA" href="" data-ng-click="logout()"> <span
-								class="icon-logout"></span>{{"menu.logout"|i18next}}
+								class="icon-logout"></span>{{menu_logout|i18next}}
 						</a></li>
 					</ul>
 				</li>

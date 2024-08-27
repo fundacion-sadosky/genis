@@ -122,7 +122,8 @@
       "registers": " registers",
       "setAsDefault": ": was set as default",
       "setAsDefaultError": ": could not be set as default",
-      "wereInserted": ": were inserted "
+      "wereInserted": ": were inserted ",
+      "close": "Close"
     },
     "geneticist": {
       "nameAlreadyUsed": "Geneticist ame already used",
@@ -1176,6 +1177,7 @@
     "cleanFilters": "Clean filters",
     "cleanScreen": "Clean screen",
     "code": "Code",
+    "close": "Close",
     "codeCategoryLab": "Code, category or laboratory",
     "compare": "Compare",
     "comparisonNotMade": "Comparison cannot be made",

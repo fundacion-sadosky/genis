@@ -69,15 +69,9 @@ function NotificationsController($scope, $rootScope, $log, $timeout, $route, $i1
 		}
 		$i18next.options.lng = nextLangFront;
 		// userService.setLanguage(nextLangBack);
-		$rootScope.language = nextLangFront;
+		$scope.$emit("i18nextLanguageChange", { lang: nextLangFront });
 		$route.reload();
-		$rootScope.$apply();
-		$timeout(function() {
-			$rootScope.$broadcast('languageChanged');
-			$rootScope.$broadcast('languageChanged');
-			$rootScope.$digest();
-		});
-		$scope.apply();
+
 	};
 
 }
