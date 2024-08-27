@@ -79,14 +79,14 @@ object DataFiliationAttempt {
     (__ \ "token" \ "signature").read[String])(DataFiliationAttempt.apply _)
 
   implicit val dataFiliationAttemptWrites: Writes[DataFiliationAttempt] = (
-    (__ \ "fullName").write[Option[String]] ~
-    (__ \ "nickname").write[Option[String]] ~
-    (__ \ "birthday").write[Option[Date]] ~
-    (__ \ "birthPlace").write[Option[String]] ~
-    (__ \ "nationality").write[Option[String]] ~
-    (__ \ "identification").write[Option[String]] ~
-    (__ \ "identificationIssuingAuthority").write[Option[String]] ~
-    (__ \ "address").write[Option[String]] ~
+    (__ \ "fullName").writeNullable[String] ~
+    (__ \ "nickname").writeNullable[String] ~
+    (__ \ "birthday").writeNullable[Date] ~
+    (__ \ "birthPlace").writeNullable[String] ~
+    (__ \ "nationality").writeNullable[String] ~
+    (__ \ "identification").writeNullable[String] ~
+    (__ \ "identificationIssuingAuthority").writeNullable[String] ~
+    (__ \ "address").writeNullable[String] ~
     (__ \ "idImages").write[String])((dataFiliationAttempt: DataFiliationAttempt) => (
       dataFiliationAttempt.fullName,
       dataFiliationAttempt.fullName,
