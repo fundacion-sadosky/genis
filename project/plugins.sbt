@@ -10,7 +10,7 @@ resolvers += "Typesafe repository" at "https://repo.typesafe.com/typesafe/releas
 addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.1.5")
 
 // Use the Play sbt plugin for Play projects
-addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.3.10")
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.4.11")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-jshint" % "1.0.1")
 
