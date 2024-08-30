@@ -68,12 +68,12 @@ case class ProtoProfileBuilder(
       this.errors)
   }
 
-  def buildWithSampleName(sampleName: String): ProtoProfileBuilder = {
+  def buildWithSampleName(implicit messages: Messages, sampleName: String): ProtoProfileBuilder = {
 
     val (err, preex) = if (this.sampleName == "")
       validator.validateSampleName(sampleName)
     else
-      (cond(this.sampleName != sampleName, Messages("error.E0107")), this.preexistence)
+      (cond(this.sampleName != sampleName, messages("error.E0107")), this.preexistence)
 
     val errors = err.fold(this.errors)(error => this.errors :+ error)
 
@@ -92,11 +92,11 @@ case class ProtoProfileBuilder(
       errors)
   }
 
-  def buildWithAssigne(assignee: String): ProtoProfileBuilder = {
+  def buildWithAssigne(implicit messages: Messages, assignee: String): ProtoProfileBuilder = {
     val err = if (this.assignee == "")
       validator.validateAssignee(assignee)
     else
-      cond(this.assignee != assignee, Messages("error.E0108", this.sampleName))
+      cond(this.assignee != assignee, messages("error.E0108", this.sampleName))
 
     val errors = err.fold(this.errors)(error => this.errors :+ error)
 
@@ -115,14 +115,14 @@ case class ProtoProfileBuilder(
       errors)
   }
 
-  def buildWithCategory(category: String): ProtoProfileBuilder = {
+  def buildWithCategory(implicit messages: Messages, category: String): ProtoProfileBuilder = {
 
     val (cate, err) = if (this.category.isRight) {
       val c = validator.validateCategory(category).fold[Either[String, String]](Left(category))(x => Right(x.text))
       if (this.category.right.get == "") {
         (c, None)
       } else {
-        val err = cond(this.category != c, Messages("error.E0661", this.sampleName))
+        val err = cond(this.category != c, messages("error.E0661", this.sampleName))
         (this.category, err)
       }
     } else {
@@ -145,14 +145,14 @@ case class ProtoProfileBuilder(
       errors)
   }
 
-  def buildWithKit(kit: String): ProtoProfileBuilder = {
+  def buildWithKit(implicit messages: Messages, kit: String): ProtoProfileBuilder = {
 
     val ee = validator.validateKit(kit)
 
     val err = if (this.kit == "")
       ee._1
     else
-      cond(this.kit != ee._2, Messages("error.E0690", this.sampleName))
+      cond(this.kit != ee._2, messages("error.E0690", this.sampleName))
 
     val errors = err.fold(this.errors)(error => this.errors :+ error)
 
@@ -269,8 +269,8 @@ case class ProtoProfileBuilder(
       this.preexistence)
   }
 
-  def buildWithErrors(validacion: Option[String]): ProtoProfileBuilder = {
-    val err = validacion map {x => Messages(s"error.$x")}
+  def buildWithErrors(implicit messages: Messages, validacion: Option[String]): ProtoProfileBuilder = {
+    val err = validacion map {x => messages(s"error.$x")}
     val errors = err.fold(this.errors)(error => this.errors :+ error)
     ProtoProfileBuilder(
       this.validator,
@@ -289,8 +289,9 @@ case class ProtoProfileBuilder(
   }
 
   def buildWithAllelesVal(
-    alelos: List[(Mitocondrial, String)],
-    mito: MtRCRS
+                           implicit messages: Messages,
+                           alelos: List[(Mitocondrial, String)],
+                           mito: MtRCRS
   ): ProtoProfileBuilder = {
     var errores = this.errors
     val pos = alelos
@@ -317,7 +318,7 @@ case class ProtoProfileBuilder(
           error =>
             var err = cond(
               (error._1 != 0),
-              Messages("error.E03" + error._1, error._2)
+              messages("error.E03" + error._1, error._2)
             )
             errores = err.fold(errores)(error => errores :+ error)
       }
@@ -339,7 +340,7 @@ case class ProtoProfileBuilder(
     )
   }
 
-  def buildWithMtExistente(): ProtoProfileBuilder = {
+  def buildWithMtExistente(implicit messages: Messages): ProtoProfileBuilder = {
     var errores = this.errors
     val existe = validator.validarMtExistente(this.sampleName)
     if (existe) {
@@ -358,7 +359,7 @@ case class ProtoProfileBuilder(
       } else {
         "error.E0315"
       }
-      val err = cond((msg != "borrar"), Messages(msg))
+      val err = cond((msg != "borrar"), messages(msg))
       errores = err.fold(errores)(error => errores :+ error)
     }
 

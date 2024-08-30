@@ -15,7 +15,7 @@ import search.PaginationSearch
 import services.CacheService
 import types.AlphanumericId
 import user.{UserService, UserView}
-import play.api.i18n.Messages
+import play.api.i18n.{Messages, MessagesApi}
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
@@ -43,24 +43,26 @@ abstract class BulkUploadService {
 
 @Singleton
 class BulkUploadServiceImpl @Inject() (
-    val protoRepo: ProtoProfileRepository,
-    val userService: UserService,
-    val kitService: StrKitService,
-    val categoryRepo: CategoryRepository,
-    profileService: ProfileService,
-    @Named("stashed") protoProfiledataService: ProfileDataService,
-    profileDataRepo: ProfileDataRepository,
-    notificationService: NotificationService,
-    importToProfileData: ImportToProfileData,
-    @Named("labCode") val labCode: String,
-    @Named("country") val country: String,
-    @Named("province") val province: String,
-    @Named("protoProfileGcDummy") val ppGcD: String,
-    categoryService: CategoryService,
-    cache: CacheService) extends BulkUploadService {
+                                        val protoRepo: ProtoProfileRepository,
+                                        val userService: UserService,
+                                        val kitService: StrKitService,
+                                        val categoryRepo: CategoryRepository,
+                                        profileService: ProfileService,
+                                        @Named("stashed") protoProfiledataService: ProfileDataService,
+                                        profileDataRepo: ProfileDataRepository,
+                                        notificationService: NotificationService,
+                                        importToProfileData: ImportToProfileData,
+                                        @Named("labCode") val labCode: String,
+                                        @Named("country") val country: String,
+                                        @Named("province") val province: String,
+                                        @Named("protoProfileGcDummy") val ppGcD: String,
+                                        categoryService: CategoryService,
+                                        messagesApi: MessagesApi,
+                                        cache: CacheService) extends BulkUploadService {
 
   implicit private def stringToAlphanumericId(s: String) = AlphanumericId(s)
 
+  implicit val messages: Messages = messagesApi.preferred(Seq.empty)
   val logger = Logger(this.getClass())
 
   private val allowTransition = (a: ProtoProfileStatus.Value, b: ProtoProfileStatus.Value) => (a, b) match {
@@ -173,15 +175,15 @@ class BulkUploadServiceImpl @Inject() (
       )
       .recover {
         case e: IndexOutOfBoundsException =>
-          logger.error(Messages("error.E0302"), e)
-          Left(Messages("error.E0302"))
+          logger.error(messages("error.E0302"), e)
+          Left(messages("error.E0302"))
         case error: KitNotExistsException =>
-          val errorMessage = Messages("error.E0316", error.getMessage)
+          val errorMessage = messages("error.E0316", error.getMessage)
           logger.error(errorMessage)
           Left(errorMessage)
         case error => {
           logger.error(error.getMessage)
-          Left(Messages("error.E0301"))
+          Left(messages("error.E0301"))
         }
       }
   }

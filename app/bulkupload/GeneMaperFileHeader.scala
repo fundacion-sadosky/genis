@@ -1,6 +1,7 @@
 package bulkupload
 
-import play.api.i18n.Messages
+import play.api.i18n.{Messages, MessagesApi}
+import play.i18n.MessagesApi
 
 case class GeneMaperFileHeader(
   sampleName: Int,
@@ -53,13 +54,13 @@ case class GeneMaperFileHeaderBuilder(
     }
   }
 
-  def build: Either[String, GeneMaperFileHeader] = {
+  def build (implicit messages: Messages): Either[String, GeneMaperFileHeader] = {
     if (this.sampleName > -1 && this.UD1 > -1 && this.Marker > -1 &&
       this.SpecimenCategory > -1 && this.Allele1 > -1 && this.Allele2 > -1 &&
       this.Allele3 > -1 && this.Allele4 > -1 && this.Allele5 > -1 && this.Allele6 > -1 &&
       this.Allele7 > -1 && this.Allele8 > -1)
       Right(GeneMaperFileHeader(this.sampleName, this.UD1, this.Marker, this.UD2, this.SpecimenCategory, this.Allele1, this.Allele2, this.Allele3, this.Allele4, this.Allele5, this.Allele6, this.Allele7, this.Allele8, this.HeaderLine))
     else
-      Left(Messages("error.E0305"))
+      Left(messages("error.E0305"))
   }
 }

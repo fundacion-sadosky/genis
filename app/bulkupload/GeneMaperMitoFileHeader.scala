@@ -100,7 +100,7 @@ case class GeneMaperFileMitoHeaderBuilder(
     }
   }
 
-  def build: Either[String, GeneMaperMitoFileHeader] = {
+  def build (implicit messages: Messages): Either[String, GeneMaperMitoFileHeader] = {
     if (this.sampleName > -1 && this.UD1 > -1 && this.SpecimenCategory > -1 && this.RangeFrom > -1 && this.RangeTo > -1 &&
       this.Variacion1 > -1 && this.Variacion2 > -1 && this.Variacion3 > -1 && this.Variacion4 > -1 && this.Variacion5 > -1 &&
       this.Variacion6 > -1 && this.Variacion7 > -1 && this.Variacion8 > -1 && this.Variacion9 > -1 && this.Variacion10 > -1 &&
@@ -115,7 +115,7 @@ case class GeneMaperFileMitoHeaderBuilder(
     )
       Right(GeneMaperMitoFileHeader(this.sampleName, this.UD1, this.SpecimenCategory, this.RangeFrom, this.RangeTo,this.Variacion1, this.Variacion2, this.Variacion3, this.Variacion4, this.Variacion5, this.Variacion6, this.Variacion7, this.Variacion8, this.Variacion9, this.Variacion10, this.Variacion11, this.Variacion12, this.Variacion13, this.Variacion14, this.Variacion15, this.Variacion16, this.Variacion17, this.Variacion18, this.Variacion19, this.Variacion20, this.Variacion21, this.Variacion22, this.Variacion23, this.Variacion24, this.Variacion25, this.Variacion26, this.Variacion27, this.Variacion28, this.Variacion29, this.Variacion30, this.Variacion31, this.Variacion32, this.Variacion33, this.Variacion34, this.Variacion35, this.Variacion36, this.Variacion37, this.Variacion38, this.Variacion39, this.Variacion40, this.Variacion41, this.Variacion42, this.Variacion43, this.Variacion44, this.Variacion45, this.Variacion46, this.Variacion47, this.Variacion48, this.Variacion49, this.Variacion50, this.HeaderLine))
     else
-      Left(Messages("error.E0305"))
+      Left(messages("error.E0305"))
   }
 }
 
