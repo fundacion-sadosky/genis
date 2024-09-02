@@ -1,8 +1,10 @@
 package bulkupload
 
 import com.github.tototoshi.csv.DefaultCSVFormat
+
 import java.io.File
 import com.github.tototoshi.csv.CSVReader
+import play.api.i18n.Messages
 
 object GeneMapperFileParser {
 
@@ -10,7 +12,7 @@ object GeneMapperFileParser {
     override val delimiter = '\t'
   }
 
-  private def parseHeader(header: Seq[String]): Either[String, GeneMaperFileHeader] = {
+  private def parseHeader(header: Seq[String])(implicit messages : Messages): Either[String, GeneMaperFileHeader] = {
     header
       .zipWithIndex
       .foldLeft(GeneMaperFileHeaderBuilder(HeaderLine = header)) { case (builder, tup) => builder.buildWith(tup._1, tup._2) }
@@ -22,7 +24,7 @@ object GeneMapperFileParser {
     mapa: GeneMaperFileHeader,
     builder: ProtoProfileBuilder,
     input: Stream[List[String]]
-  ): (ProtoProfile, Stream[List[String]]) = {
+  )(implicit messages : Messages): (ProtoProfile, Stream[List[String]]) = {
     input match {
       case Stream.Empty => (builder.build, Stream.Empty)
       case line #:: tail if (line(mapa.sampleName) == prev(mapa.sampleName)) => {
@@ -52,7 +54,7 @@ object GeneMapperFileParser {
   def parse(
     csvFile: File,
     validator: Validator
-  ): Either[String, Stream[ProtoProfile]] = {
+  )(implicit messages : Messages): Either[String, Stream[ProtoProfile]] = {
     def profileStream(
       source: Stream[List[String]],
       header: GeneMaperFileHeader

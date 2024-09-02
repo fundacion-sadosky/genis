@@ -1,8 +1,8 @@
 package bulkupload
 
 import java.io.File
-
 import com.github.tototoshi.csv.{CSVReader, DefaultCSVFormat}
+import play.api.i18n.Messages
 import profile.{AlleleValue, Mitocondrial, MtRCRS}
 import profiledata.ProfileDataRepository
 
@@ -12,7 +12,7 @@ object GeneMapperFileMitoParser{
     override val delimiter = '\t'
   }
 
-  private def parseHeader(header: Seq[String]): Either[String, GeneMaperMitoFileHeader] = {
+  private def parseHeader(header: Seq[String])(implicit messages : Messages): Either[String, GeneMaperMitoFileHeader] = {
     header
       .zipWithIndex
       .foldLeft(GeneMaperFileMitoHeaderBuilder(HeaderLine = header)) { case (builder, tup) => builder.buildWith(tup._1, tup._2) }
@@ -26,7 +26,7 @@ object GeneMapperFileMitoParser{
     input: Stream[List[String]],
     index : Int,
     mito : MtRCRS
-  ): (ProtoProfile, Stream[List[String]]) = {
+  )(implicit messages : Messages): (ProtoProfile, Stream[List[String]]) = {
     input match {
       case Stream.Empty => (builder.build, Stream.Empty)
       case line #:: tail if (line(mapa.sampleName) == prev(mapa.sampleName)) => {
@@ -89,7 +89,7 @@ object GeneMapperFileMitoParser{
           .buildWithMarker("HV"+index, Mito,true)
           .buildWithErrors(valido)
           .buildWithAllelesVal(posiciones,mito)
-          .buildWithMtExistente()
+          .buildWithMtExistente
         val i= index + 1
         parseLine(line, mapa, bldr, tail, i, mito)
       }
@@ -101,7 +101,7 @@ object GeneMapperFileMitoParser{
     csvFile: File,
     validator: Validator,
     mito : MtRCRS
-  ): Either[String, Stream[ProtoProfile]] = {
+  )(implicit messages : Messages): Either[String, Stream[ProtoProfile]] = {
     val stream = CSVReader.open(csvFile).toStream
     parseCsvStream(stream, validator, mito)
   }
@@ -111,7 +111,7 @@ object GeneMapperFileMitoParser{
     csv: Stream[List[String]],
     validator: Validator,
     mito: MtRCRS
-  ): Either[String, Stream[ProtoProfile]] = {
+  )(implicit messages : Messages): Either[String, Stream[ProtoProfile]] = {
     val index = 1;
     def profileStream(
       source: Stream[List[String]],

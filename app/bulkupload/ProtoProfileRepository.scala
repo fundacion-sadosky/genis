@@ -79,6 +79,7 @@ class SlickProtoProfileRepository @Inject() (
     categoryService: CategoryService,
     @Named("protoProfileGcDummy") val ppGcD: String,
     implicit val app: Application,
+    implicit val messages: Messages,
     profileRepository: ProfileRepository = null) extends ProtoProfileRepository with DefaultDb {
 
   val protoProfiles: TableQuery[Tables.ProtoProfile] = Tables.ProtoProfile
@@ -501,12 +502,12 @@ class SlickProtoProfileRepository @Inject() (
   override def validateAssigneAndCategory(globalCode: SampleCode, assigne: String, category: Option[AlphanumericId] = None): Future[Option[String]] = Future {
     DB.withSession { implicit session =>
       queryCheckAssigne((globalCode.text, assigne)).firstOption match {
-        case None => Some(Messages("error.E0662",assigne ))
+        case None => Some(messages("error.E0662",assigne ))
         case Some(cat) => category.flatMap(cty =>
           if (cat == cty.text)
             None
           else
-            Some(Messages("error.E0663" ,cat ,cty.text)))
+            Some(messages("error.E0663" ,cat ,cty.text)))
       }
     }
   }

@@ -68,7 +68,7 @@ case class ProtoProfileBuilder(
       this.errors)
   }
 
-  def buildWithSampleName(implicit messages: Messages, sampleName: String): ProtoProfileBuilder = {
+  def buildWithSampleName(sampleName: String)(implicit messages: Messages): ProtoProfileBuilder = {
 
     val (err, preex) = if (this.sampleName == "")
       validator.validateSampleName(sampleName)
@@ -92,7 +92,7 @@ case class ProtoProfileBuilder(
       errors)
   }
 
-  def buildWithAssigne(implicit messages: Messages, assignee: String): ProtoProfileBuilder = {
+  def buildWithAssigne(assignee: String)(implicit messages : Messages): ProtoProfileBuilder = {
     val err = if (this.assignee == "")
       validator.validateAssignee(assignee)
     else
@@ -115,7 +115,7 @@ case class ProtoProfileBuilder(
       errors)
   }
 
-  def buildWithCategory(implicit messages: Messages, category: String): ProtoProfileBuilder = {
+  def buildWithCategory(category: String)(implicit messages : Messages): ProtoProfileBuilder = {
 
     val (cate, err) = if (this.category.isRight) {
       val c = validator.validateCategory(category).fold[Either[String, String]](Left(category))(x => Right(x.text))
@@ -145,7 +145,7 @@ case class ProtoProfileBuilder(
       errors)
   }
 
-  def buildWithKit(implicit messages: Messages, kit: String): ProtoProfileBuilder = {
+  def buildWithKit(kit: String)(implicit messages : Messages): ProtoProfileBuilder = {
 
     val ee = validator.validateKit(kit)
 
@@ -175,7 +175,7 @@ case class ProtoProfileBuilder(
     marker: String,
     alleles: Seq[String],
     mitocondrial: Boolean = false
-  ): ProtoProfileBuilder = {
+  )(implicit messages : Messages): ProtoProfileBuilder = {
     val allelesVal = alleles
       .filterNot {
         _.trim.isEmpty()
@@ -269,7 +269,7 @@ case class ProtoProfileBuilder(
       this.preexistence)
   }
 
-  def buildWithErrors(implicit messages: Messages, validacion: Option[String]): ProtoProfileBuilder = {
+  def buildWithErrors(validacion: Option[String])(implicit messages : Messages): ProtoProfileBuilder = {
     val err = validacion map {x => messages(s"error.$x")}
     val errors = err.fold(this.errors)(error => this.errors :+ error)
     ProtoProfileBuilder(
@@ -289,10 +289,9 @@ case class ProtoProfileBuilder(
   }
 
   def buildWithAllelesVal(
-                           implicit messages: Messages,
                            alelos: List[(Mitocondrial, String)],
                            mito: MtRCRS
-  ): ProtoProfileBuilder = {
+  )(implicit messages : Messages): ProtoProfileBuilder = {
     var errores = this.errors
     val pos = alelos
       .map {
@@ -387,10 +386,10 @@ case class Validator(
     val geneticists: List[User],
     val categoryAlias: Map[String, AlphanumericId]) {
 
-  def validateSampleName(sampleName: String): (Option[String], Option[SampleCode]) = {
+  def validateSampleName(sampleName: String)(implicit messages : Messages): (Option[String], Option[SampleCode]) = {
     val (sampleCodeOpt, batchIdOpt) = Await.result(protoRepo.exists(sampleName), Duration(3, SECONDS))
     val res = if (sampleCodeOpt.isEmpty && batchIdOpt.isDefined) {
-      Some(Messages("error.E0306",sampleName ,batchIdOpt.get))
+      Some(messages("error.E0306",sampleName ,batchIdOpt.get))
     } else None
     (res, sampleCodeOpt)
   }
@@ -399,16 +398,16 @@ case class Validator(
    Await.result(protoRepo.validateAssigneAndCategory(globalCode, assigne, category), Duration(3, SECONDS))
   }
 
-  def validateKit(kit: String): (Option[String], String) = {
-    kitAlias.get(kit.toLowerCase).fold((Option(Messages("error.E0691", kit)), kit)) {
+  def validateKit(kit: String)(implicit messages : Messages): (Option[String], String) = {
+    kitAlias.get(kit.toLowerCase).fold((Option(messages("error.E0691", kit)), kit)) {
       alias =>
         (None, alias)
     }
   }
 
-  def validateMarker(kit: String, marker: String,mitocondrial: Boolean = false): (Seq[String], String ) = {
+  def validateMarker(kit: String, marker: String,mitocondrial: Boolean = false)(implicit messages : Messages): (Seq[String], String ) = {
 
-    locusAlias.get(marker.toLowerCase).fold((Seq(Messages(if(mitocondrial){"error.E0310"}else{"error.E0680"}, marker)), marker)) {
+    locusAlias.get(marker.toLowerCase).fold((Seq(messages(if(mitocondrial){"error.E0310"}else{"error.E0680"}, marker)), marker)) {
       mrkr =>
         if (kits.get(kit.toLowerCase) map (!_.contains(mrkr)) getOrElse (false))
           (Seq(Messages(if(mitocondrial){"error.E0310"}else{"error.E0681"}, marker,kit)), marker)
@@ -417,7 +416,7 @@ case class Validator(
     }
   }
 
-  def validateAssignee(assignee: String): Option[String] = {
+  def validateAssignee(assignee: String)(implicit messages : Messages): Option[String] = {
     if (!geneticists.exists(_.geneMapperId == assignee))
       Some(Messages("error.E0650", assignee))
     else
