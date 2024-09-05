@@ -13,7 +13,7 @@ angular
     .controller('hypothesisController', ['$scope', 'statsService', hypothesisController])
     .controller('scenariosController', ['$scope', '$routeParams', '$location', 'scenarioService', 'alertService', scenariosController])
     .controller('saveModalController', ['$scope', 'scenario', 'results', 'validated', 'restricted', 'scenarioService', 'alertService', 'userService', saveModalController])
-    .service('scenarioService', ['playRoutes', '$q', '$filter', scenarioService])
+    .service('scenarioService', ['playRoutes', '$q', '$filter', '$http', scenarioService])
 	.config(['$routeProvider', function($routeProvider) {
 		$routeProvider
 			.when('/scenarios/scenario.html',

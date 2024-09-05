@@ -4,7 +4,8 @@ define(['lodash'], function(_) {
 var PedigreeService = function(playRoutes, userService, $http) {
 	
 	this.getCaseTypes = function () {
-        return playRoutes.controllers.Pedigrees.getCaseTypes().get();
+        return $http.get('/pedigree/caseTypes');
+        //return playRoutes.controllers.Pedigrees.getCaseTypes().get();
     };
 	
 	this.getAvailableSex = function(){
@@ -26,9 +27,9 @@ var PedigreeService = function(playRoutes, userService, $http) {
 		var user = userService.getUser();
         search.user = user.name;
         search.isSuperUser = user.superuser;
-        //console.log('GET TOTAL COURT CASES');
-        //return $http.post('/pedigree/total-court-cases', search);
-		return playRoutes.controllers.Pedigrees.getTotalCourtCases().post(search);
+        console.log('GET TOTAL COURT CASES');
+        return $http.post('/pedigree/total-court-cases', search);
+		//return playRoutes.controllers.Pedigrees.getTotalCourtCases().post(search);
 	};
 
 	this.getCourtCases = function(search){
@@ -41,7 +42,8 @@ var PedigreeService = function(playRoutes, userService, $http) {
 	};
 	
 	this.getPedigreesByCourtCase = function(id){
-		return playRoutes.controllers.Pedigrees.getByCourtCase(id).get();
+        return $http.get('/pedigree/by/' + id);
+		//return playRoutes.controllers.Pedigrees.getByCourtCase(id).get();
 	};
 	
 	this.createCourtCase = function(courtCase){
@@ -55,7 +57,8 @@ var PedigreeService = function(playRoutes, userService, $http) {
 	this.updateCourtCase = function(courtCase){
 		var user = userService.getUser();
 		courtCase.assignee = user.name;
-		return playRoutes.controllers.Pedigrees.updateCourtCase(courtCase.id).put(courtCase);
+        return $http.put('/pedigree/court-cases/' + courtCase.id, courtCase);
+		//return playRoutes.controllers.Pedigrees.updateCourtCase(courtCase.id).put(courtCase);
 	};
 
 	this.createPedigreeMetadata = function(pedigreeMetadata) {
@@ -76,11 +79,13 @@ var PedigreeService = function(playRoutes, userService, $http) {
 	};
 
 	this.getPedigree = function(pedigreeId) {
-		return playRoutes.controllers.Pedigrees.getPedigree(pedigreeId).get();
+        return $http.get('/pedigree/genogram/' + pedigreeId);
+		//return playRoutes.controllers.Pedigrees.getPedigree(pedigreeId).get();
 	};
 	
 	this.getCourtCaseFull = function(courtcaseId) {
-		return playRoutes.controllers.Pedigrees.getCourtCaseFull(courtcaseId).get();
+        return $http.get('/pedigree/full/' + courtcaseId);
+		//return playRoutes.controllers.Pedigrees.getCourtCaseFull(courtcaseId).get();
 	};
 
     this.getCourtCaseBy = function(courtcaseId) {
@@ -88,7 +93,8 @@ var PedigreeService = function(playRoutes, userService, $http) {
     };
 
 	this.search = function(input) {
-		return playRoutes.controllers.SearchProfileDatas.searchProfilesForPedigree(input).get();
+        return $http.get('/search/profileDataForPedigree', { params: { input: input } });
+		//return playRoutes.controllers.SearchProfileDatas.searchProfilesForPedigree(input).get();
 	};
 	
 	this.changePedigreeStatus = function(id, status, genogram) {
@@ -97,35 +103,45 @@ var PedigreeService = function(playRoutes, userService, $http) {
             genogram.mutationModelId = genogram.mutationModelId.toString();
 		}
         console.log('CHANGE PEDIGREE STATUS');
-        return $http.post('/pedigree/status', id, status, genogram);
+        return $http.post('/pedigree/status', genogram, { params: { id: id, status: status } });
 		//return playRoutes.controllers.Pedigrees.changePedigreeStatus(id, status).post(genogram);
 	};
 
 	this.changeStatus = function(id, status, closeProfiles,courtCase) {
         console.log('CHANGE COURT CASE STATUS');
-        return $http.post('/pedigree/courtCaseStatus', id, status, closeProfiles,courtCase);
+        return $http.post('/pedigree/courtCaseStatus', courtCase, {
+            params: {
+                id: id,
+                status: status,
+                closeProfiles: closeProfiles
+            }
+        });
 		//return playRoutes.controllers.Pedigrees.changeCourtCaseStatus(id, status, closeProfiles).post(courtCase);
 	};
 
 	this.canEdit = function(pedigreeId) {
-		return playRoutes.controllers.Pedigrees.canEdit(pedigreeId).get();	
+        return $http.get('/pedigree/editable/' + pedigreeId);
+		//return playRoutes.controllers.Pedigrees.canEdit(pedigreeId).get();	
 	};
 
 	this.canDelete = function(pedigreeId) {
-		return playRoutes.controllers.Pedigrees.canDelete(pedigreeId).get();
+        return $http.get('/pedigree/deleteable/' + pedigreeId);
+		//return playRoutes.controllers.Pedigrees.canDelete(pedigreeId).get();
 	};
 
 	this.canDeleteCourtCase = function(courtCaseId) {
-		return playRoutes.controllers.Pedigrees.canDeleteCourtCase(courtCaseId).get();
+        return $http.get('/court-case/deleteable/' + courtCaseId);
+		//return playRoutes.controllers.Pedigrees.canDeleteCourtCase(courtCaseId).get();
 	};
 
 	this.canCloseCourtCase = function(courtCaseId) {
-		return playRoutes.controllers.Pedigrees.canCloseCourtCase(courtCaseId).get();
+        return $http.get('/court-case/closeable/' + courtCaseId);
+		//return playRoutes.controllers.Pedigrees.canCloseCourtCase(courtCaseId).get();
 	};
 	
 	this.fisicalDelete = function(pedigreeId, pedigree) {
         console.log('FISICAL DELETE PEDIGREE');
-        return $http.post('/pedigree/delete', pedigreeId, pedigree);
+        return $http.post('/pedigree/delete', pedigree, { params: { id: pedigreeId } });
 		//return playRoutes.controllers.Pedigrees.fisicalDeletePedigree(pedigreeId).post(pedigree);
 	};
 
@@ -142,7 +158,8 @@ var PedigreeService = function(playRoutes, userService, $http) {
 		if(!_.isUndefined(scenario.lr)){
             scenario.lr = scenario.lr.toString();
 		}
-        return playRoutes.controllers.Pedigrees.updateScenario().put(scenario);
+        return $http.put('/pedigree/scenario', scenario);
+        //return playRoutes.controllers.Pedigrees.updateScenario().put(scenario);
     };
     
     this.changeScenarioStatus = function(scenario, status) {
@@ -150,7 +167,9 @@ var PedigreeService = function(playRoutes, userService, $http) {
             scenario.lr = scenario.lr.toString();
         }
         console.log('CHANGE SCENARIO STATUS');
-        return $http.post('/pedigree/scenario-status', scenario, status);
+        return $http.post('/pedigree/scenario-status', scenario, {
+            headers: { 'Scenario-Status': status }
+        });
         //return playRoutes.controllers.Pedigrees.changeScenarioStatus(status).post(scenario);
     };
 
@@ -159,16 +178,22 @@ var PedigreeService = function(playRoutes, userService, $http) {
             scenario.lr = scenario.lr.toString();
         }
         console.log('CONFIRM SCENARIO');
-        return $http.post('/pedigree/scenario-validate', scenario, status, pedigreeActivo);
+        return $http.post('/pedigree/scenario-validate', {
+            scenario: scenario,
+            status: status,
+            pedigreeActivo: pedigreeActivo
+        });
 		//return playRoutes.controllers.Pedigrees.confirmEscenarioScenario(status, pedigreeActivo).post(scenario);
 	};
     
     this.getScenarios = function(pedigreeId) {
-        return playRoutes.controllers.Pedigrees.getScenarios(pedigreeId).get();  
+        return $http.get('/pedigree/scenarios/' + encodeURIComponent(pedigreeId));
+        //return playRoutes.controllers.Pedigrees.getScenarios(pedigreeId).get();  
     };
 
 	this.getScenario = function(scenarioId) {
-		return playRoutes.controllers.Pedigrees.getScenario(scenarioId).get();
+        return $http.get('/pedigree/scenario/' + encodeURIComponent(scenarioId));
+		//return playRoutes.controllers.Pedigrees.getScenario(scenarioId).get();
 	};
 	
 	this.getLR = function(scenario) {
@@ -190,39 +215,112 @@ var PedigreeService = function(playRoutes, userService, $http) {
 	};
 
     this.getProfiles = function(search,tab) {
-        return playRoutes.controllers.Pedigrees.getProfiles(search.idCourtCase,search.pageSize,search.page,search.searchText, tab, search.statusProfile).get();
+        var params = {
+            id: search.idCourtCase,
+            pageSize: search.pageSize,
+            page: search.page,
+            input: search.searchText,
+            isReference: tab,
+            statusProfile: search.statusProfile
+        };    
+        return $http.get('/court-case-profiles', { params: params });
+        //return playRoutes.controllers.Pedigrees.getProfiles(search.idCourtCase,search.pageSize,search.page,search.searchText, tab, search.statusProfile).get();
     };
+
     this.getTotalProfilesNodeAssociation = function(search,tab) {
-        return playRoutes.controllers.Pedigrees.getTotalProfilesNodeAssociation(search.idCourtCase,search.pageSize,search.page,search.searchText, tab,search.profilesCod,search.statusProfile).get();
+        var params = {
+            id: search.idCourtCase,
+            pageSize: search.pageSize,
+            page: search.page,
+            input: search.searchText,
+            isReference: tab,
+            profiles: search.profilesCod,
+            statusProfile: search.statusProfile
+        };    
+        return $http.get('/court-case-profiles-node-association', { params: params });
+        //return playRoutes.controllers.Pedigrees.getTotalProfilesNodeAssociation(search.idCourtCase,search.pageSize,search.page,search.searchText, tab,search.profilesCod,search.statusProfile).get();
     };
+
     this.addProfiles = function(profiles) {
         console.log('ADD PROFILES');
         return $http.post('/court-case-profiles', profiles);
         //return playRoutes.controllers.Pedigrees.addProfiles().post(profiles);
     };
+
     this.removeProfiles = function(profiles) {
-        return playRoutes.controllers.Pedigrees.removeProfiles().put(profiles);
+        return $http.put('/court-case-profiles', profiles);
+        //return playRoutes.controllers.Pedigrees.removeProfiles().put(profiles);
     };
+
     this.filter = function(input,idCase,tab,tipo,pages,pageSizes) {
-        return playRoutes.controllers.Pedigrees.filterProfilesForPedigree(input,idCase,tab,tipo,pages,pageSizes).get();
+        return $http.get('/filter/profileDataForPedigree', {
+            params: {
+                input: input,
+                idCase: idCase,
+                tab: tab,
+                tipo: tipo,
+                page: pages,
+                pageSize: pageSizes
+            }
+        });
+        //return playRoutes.controllers.Pedigrees.filterProfilesForPedigree(input,idCase,tab,tipo,pages,pageSizes).get();
     };
+
     this.count = function(input,idCase,tab,tipo) {
-        return playRoutes.controllers.Pedigrees.countProfilesForPedigree(input,idCase,tab,tipo).get();
+        return $http.get('/filter/profileDataForPedigree/count', {
+            params: {
+                input: input,
+                idCase: idCase,
+                tab: tab,
+                tipo: tipo
+            }
+        });
+        //return playRoutes.controllers.Pedigrees.countProfilesForPedigree(input,idCase,tab,tipo).get();
     };
+
     this.getBatchSearchModalViewByIdOrLabel = function(input,idCase) {
-        return playRoutes.controllers.BulkUpload.getBatchSearchModalViewByIdOrLabel(input,idCase).get();
+        return $http.get('/batch-modal', {
+            params: {
+                input: input,
+                idCase: idCase
+            }
+        });
+        //return playRoutes.controllers.BulkUpload.getBatchSearchModalViewByIdOrLabel(input,idCase).get();
     };
+
     this.addBatches = function(req) {
         console.log('ADD BATCHES');
         return $http.post('/batch-modal-import', req);
         //return playRoutes.controllers.Pedigrees.addBatches().post(req);
     };
+
     this.getProfilesNodeAssociation = function(search, tab) {
-        return playRoutes.controllers.Pedigrees.getProfilesNodeAssociation(search.idCourtCase,search.pageSize,search.page,search.searchText,tab, search.profilesCod,search.statusProfile).get();
+        return $http.get('/court-case-profiles-node-association', {
+            params: {
+                id: search.idCourtCase,
+                pageSize: search.pageSize,
+                page: search.page,
+                input: search.searchText,
+                isReference: tab,
+                profiles: search.profilesCod,
+                statusProfile: search.statusProfile
+            }
+        });
+        //return playRoutes.controllers.Pedigrees.getProfilesNodeAssociation(search.idCourtCase,search.pageSize,search.page,search.searchText,tab, search.profilesCod,search.statusProfile).get();
     };
 
     this.getTotalProfiles = function(search, tab) {
-        return playRoutes.controllers.Pedigrees.getTotalProfiles(search.idCourtCase,search.pageSize,search.page,search.searchText,tab,search.statusProfile).get();
+        return $http.get('/court-case-profiles/total', {
+            params: {
+                id: search.idCourtCase,
+                pageSize: search.pageSize,
+                page: search.page,
+                input: search.searchText || null,
+                isReference: tab,
+                statusProfile: search.statusProfile || null
+            }
+        });
+        //return playRoutes.controllers.Pedigrees.getTotalProfiles(search.idCourtCase,search.pageSize,search.page,search.searchText,tab,search.statusProfile).get();
     };
 
     this.getCourtCasePedigrees = function(search) {
@@ -232,58 +330,122 @@ var PedigreeService = function(playRoutes, userService, $http) {
     };
 
     this.getTotalCourtCasePedigrees = function(search) {
-        return playRoutes.controllers.Pedigrees.getTotalCourtCasePedigrees(search.idCourtCase,search.pageSize,search.page,search.searchText, search.status).get();
+        return $http.get('/court-case-pedigrees/total', {
+            params: {
+                id: search.idCourtCase,
+                pageSize: search.pageSize,
+                page: search.page,
+                input: search.searchText || null,
+                status: search.status || null
+            }
+        });
+        //return playRoutes.controllers.Pedigrees.getTotalCourtCasePedigrees(search.idCourtCase,search.pageSize,search.page,search.searchText, search.status).get();
     };
 	
 	this.profileNodo=function (profile) {
-        return playRoutes.controllers.Pedigrees.profileNodo(profile.idCourtCase, profile.globalCode).get();
+        return $http.get('/pedigree/profiles', {
+            params: {
+                idCourtCase: profile.idCourtCase,
+                codigoGlobal: profile.globalCode
+            }
+        });
+        //return playRoutes.controllers.Pedigrees.profileNodo(profile.idCourtCase, profile.globalCode).get();
     };
 
     this.updateMetadata = function(id, personData){
         var user = userService.getUser();
-        return playRoutes.controllers.Pedigrees.updateMetadata(id, user.name).put(personData);
+        return $http.put('/pedigree/update-metadata', personData, {
+            params: {
+                idCourtCase: id,
+                assignee: user.name
+            }
+        });
+        //return playRoutes.controllers.Pedigrees.updateMetadata(id, user.name).put(personData);
     };
 
     this.createMetadata = function(id, personData){
         console.log('CREATE METADATA');
-        return $http.post('/pedigree/metadata', id, personData);
+        return $http.post('/pedigree/metadata', personData, { params: { idCourtCase: id } });
         //return playRoutes.controllers.Pedigrees.createMetadata(id).post(personData);
     };
 
     this.removeMetadata= function(idCourtCase,personData) {
-        return playRoutes.controllers.Pedigrees.removeMetadata(idCourtCase).put(personData);
+        return $http.put('/pedigree/remove-metadata', personData, { params: { idCourtCase: idCourtCase } });
+        //return playRoutes.controllers.Pedigrees.removeMetadata(idCourtCase).put(personData);
     };
 
     this.getMetadata= function(buscar,idCourtCase){
-		return playRoutes.controllers.Pedigrees.getMetadata(buscar.input,buscar.pageSize,buscar.page,idCourtCase).get();
+        return $http.get('/pedigree/filtrar-alias', {
+            params: {
+                input: buscar.input,
+                pageSize: buscar.pageSize,
+                page: buscar.page,
+                idCourtCase: idCourtCase
+            }
+        });
+		//return playRoutes.controllers.Pedigrees.getMetadata(buscar.input,buscar.pageSize,buscar.page,idCourtCase).get();
 	};
 
     this.getTotalMetadata = function (buscar) {
-		return playRoutes.controllers.Pedigrees.getTotalMetadata(buscar.idCourtCase,buscar.pageSize,buscar.page,buscar.input).get();
+        return $http.get('/pedigree/total-alias', {
+            params: {
+                idCourtCase: buscar.idCourtCase,
+                pageSize: buscar.pageSize,
+                page: buscar.page,
+                input: buscar.input
+            }
+        });
+		//return playRoutes.controllers.Pedigrees.getTotalMetadata(buscar.idCourtCase,buscar.pageSize,buscar.page,buscar.input).get();
     };
+
     this.collapse = function(courtCaseId) {
         console.log('COLLAPSE');
         return $http.post('/collapsing', courtCaseId);
         //return playRoutes.controllers.Pedigrees.collapse().post(courtCaseId);
     };
+
     this.getPedCheck = function(pedigreeId,courtCaseId) {
-        return playRoutes.controllers.Pedigrees.getPedCheck(pedigreeId,courtCaseId).get();
+        return $http.get('/pedcheck', { params: { pedigreeId: pedigreeId, idCourtCase: courtCaseId } });
+        //return playRoutes.controllers.Pedigrees.getPedCheck(pedigreeId,courtCaseId).get();
     };
+
     this.generatePedCheck = function(pedigreeId,courtCaseId) {
         console.log('GENERATE PED CHECK');
-        return $http.post('/pedcheck', pedigreeId,courtCaseId);
+        return $http.post('/pedcheck', { pedigreeId: pedigreeId, idCourtCase: courtCaseId });
         //return playRoutes.controllers.Pedigrees.generatePedCheck(pedigreeId,courtCaseId).post();
     };
+
     this.disassociateGroupedProfiles= function(profilesGrouped){
-		return playRoutes.controllers.Pedigrees.disassociateGroupedProfiles().put(profilesGrouped);
+        return $http.put('/grouped-profiles/disassociate', profilesGrouped);
+		//return playRoutes.controllers.Pedigrees.disassociateGroupedProfiles().put(profilesGrouped);
 	};
 
     this.getTotalProfilesInactive = function(search) {
-        return playRoutes.controllers.Pedigrees.getTotalProfilesInactive(search.idCourtCase,search.pageSize,search.page,search.searchText,search.statusProfile,search.groupedBy).get();
+        return $http.get('/grouped-profiles/total-grouped', {
+            params: {
+                id: search.idCourtCase,
+                pageSize: search.pageSize,
+                page: search.page,
+                input: search.searchText,
+                statusProfile: search.statusProfile,
+                groupedBy: search.groupedBy
+            }
+        });
+        //return playRoutes.controllers.Pedigrees.getTotalProfilesInactive(search.idCourtCase,search.pageSize,search.page,search.searchText,search.statusProfile,search.groupedBy).get();
     };
 
     this.getProfilesInactive = function(search) {
-        return playRoutes.controllers.Pedigrees.getProfilesInactive(search.idCourtCase,search.pageSize,search.page,search.searchText,search.statusProfile, search.groupedBy).get();
+        return axios.get('/grouped-profiles', {
+            params: {
+                id: search.idCourtCase,
+                pageSize: search.pageSize,
+                page: search.page,
+                input: search.searchText || undefined,
+                statusProfile: search.statusProfile,
+                groupedBy: search.groupedBy
+            } 
+        });
+        //return playRoutes.controllers.Pedigrees.getProfilesInactive(search.idCourtCase,search.pageSize,search.page,search.searchText,search.statusProfile, search.groupedBy).get();
     };
     
     this.areAssignedToPedigree =function (profilesGrouped) {
@@ -293,10 +455,15 @@ var PedigreeService = function(playRoutes, userService, $http) {
     };
 
     this.doesntHaveActivePedigrees = function (idCourtCase) {
-		return playRoutes.controllers.Pedigrees.doesntHaveActivePedigrees(idCourtCase).get();
+        return $http.get('/grouped-profiles/validation', {
+            params: { idCourtCase: idCourtCase }
+        });
+		//return playRoutes.controllers.Pedigrees.doesntHaveActivePedigrees(idCourtCase).get();
     };
+
     this.getActiveMutationModels = function()  {
-        return playRoutes.controllers.MutationController.getActiveMutationModels().get();
+        return $http.get('/mutation-models/active');
+        //return playRoutes.controllers.MutationController.getActiveMutationModels().get();
     };
 };
 return PedigreeService;

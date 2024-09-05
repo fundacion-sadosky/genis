@@ -6,7 +6,9 @@ function OperationLogLotService(playRoutes, $http) {
 	var remote = playRoutes.controllers.OperationLogs;
 	
 	this.getTotalLots = function() {
-		return remote.getTotalLots().head();
+		console.log('GET TOTAL LOTS');
+		return $http.head('/operationLog');
+		//return remote.getTotalLots().head();
 	};
 
 	this.getTotalLogs = function(search) {
@@ -16,15 +18,20 @@ function OperationLogLotService(playRoutes, $http) {
 	};
 
 	this.getLotsNames = function(page, pageSize) {
-		return remote.getLogLots(page, pageSize).get();
+		console.log('GET LOTS NAMES');
+		return $http.get('/operationLog', {params: {page: page, pageSize: pageSize}});
+		//return remote.getLogLots(page, pageSize).get();
 	};
 
 	this.listLotEntries = function(id, page, pageSize) {
+		console.log('LIST LOT ENTRIES');
 		return remote.listLotEntries(id, page, pageSize).get();
 	};
 
 	this.checkLot= function(lotId) {
-		return remote.checkLogLot(lotId).get();
+		console.log('CHECK LOT');
+		return $http.get('/operationLog/' + lotId + '/verification');
+		//return remote.checkLogLot(lotId).get();
 	};
 	
 	this.searchLogs = function(search) {

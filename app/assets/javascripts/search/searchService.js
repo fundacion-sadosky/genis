@@ -8,7 +8,6 @@ define([ 'angular' ], function(angular) {
 			search.userId = user.name;
 			search.isSuperUser = user.superuser;
 			console.log("SEARCH");
-
 			return  $http.post('/search/profileData/search', search);
 			//return playRoutes.controllers.SearchProfileDatas.search().post(search);
 		};
@@ -27,19 +26,24 @@ define([ 'angular' ], function(angular) {
 		};
 
 		this.searchProfilesAssociable = function(input,category){
-			return playRoutes.controllers.SearchProfileDatas.searchProfilesAssociable(input, category).get();
+			return $http.get('/search/profileData/' + encodeURIComponent(category), { params: { input: input } });
+			//return playRoutes.controllers.SearchProfileDatas.searchProfilesAssociable(input, category).get();
 		};
+
 		this.getMotives = function()  {
 			var motiveTypeReject =  2;
-			return playRoutes.controllers.MotiveController.getMotives(motiveTypeReject,false).get();
+			return $http.get('/motive', { params: { id: motiveTypeReject, abm: false } });
+			//return playRoutes.controllers.MotiveController.getMotives(motiveTypeReject,false).get();
 		};
 
 		this.getCategories = function()  {
-			return playRoutes.controllers.Categories.categoryTree().get();
+			return $http.get('/categoryTree');
+			//return playRoutes.controllers.Categories.categoryTree().get();
 		};
 
 		this.getCategoriesWithProfiles = function(){
-			return playRoutes.controllers.Categories.listWithProfiles().get();
+			return $http.get('/categoriesWithProfiles');
+			//return playRoutes.controllers.Categories.listWithProfiles().get();
 		};
 
 	}

@@ -4,7 +4,7 @@ define(['angular', './controllers/traceController', './services/traceService', '
 
         angular
             .module('pdg.trace', ['pdg.common'])
-            .service('traceService', ['playRoutes', TraceService])
+            .service('traceService', ['playRoutes', '$http', TraceService])
             .controller('traceController', ['$scope', 'traceService', 'userService', '$routeParams', 'profileDataService', '$modal', TraceController])
             .controller('traceModalController', ['$scope', 'trace', 'traceService', TraceModalController])
             .controller('tracePedigreeController', ['$scope', 'traceService', 'userService', '$routeParams', 'profileDataService', '$modal','pedigreeService', TracePedigreeModalController])

@@ -4,7 +4,7 @@ function(angular, categoriesService, categoriesController, associationsControlle
 
 angular
 	.module('pdg.categories', ['pdg.common'])
-	.service('categoriesService', ['$q', 'playRoutes', categoriesService])
+	.service('categoriesService', ['$q', 'playRoutes','$http', categoriesService])
 	.controller('groupModalController', ['$scope', 'categoriesService', 'group', 'mode', 'alertService', groupModalController])
 	.controller('categoryModalController', ['$scope', 'categoriesService', 'category', 'mode', 'alertService', categoryModalController])
 	.controller('associationsController', ['$scope', associationsController])

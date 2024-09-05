@@ -4,19 +4,23 @@ define([], function() {
 	function PedigreeMatchesGroupsService(playRoutes, userService, $http) {
 
 		this.getCourtCase = function(courtcaseId) {
-			return playRoutes.controllers.Pedigrees.getCourtCaseFull(courtcaseId).get();
+            return $http.get('/pedigree/full/' + courtcaseId);
+			//return playRoutes.controllers.Pedigrees.getCourtCaseFull(courtcaseId).get();
 		};
 
         this.getPedigree = function(pedigreeId) {
-            return playRoutes.controllers.Pedigrees.getPedigree(pedigreeId).get();
+            return $http.get('/pedigree/genogram/' + pedigreeId);
+            //return playRoutes.controllers.Pedigrees.getPedigree(pedigreeId).get();
         };
         
         this.getPedigreeCoincidencia = function (id) {
-            return playRoutes.controllers.Pedigrees.getPedigreeCoincidencia(id).get();
+            return $http.get('/pedigree/pedigree-coincidencia', { params: { id: id } });
+            //return playRoutes.controllers.Pedigrees.getPedigreeCoincidencia(id).get();
         };
 
         this.findByCodeCoincidencia = function (globalCodes) {
-            return playRoutes.controllers.Pedigrees.getMatchByProfile(globalCodes).get();
+            return $http.get('/pedigree/perfil-coincidencia', { params: { globalCodes: globalCodes } });
+            //return playRoutes.controllers.Pedigrees.getMatchByProfile(globalCodes).get();
         };
 
         this.getMatchesByGroup = function(search) {
@@ -48,7 +52,7 @@ define([], function() {
 
         this.discard = function(oid) {
             console.log('DISCARD');
-            return $http.post('/pedigree/discard', oid);
+            return $http.post('/pedigree/discard', null, { params: { matchId: oid } });
             //return playRoutes.controllers.Pedigrees.discard(oid).post();  
         };
         

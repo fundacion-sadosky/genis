@@ -68,7 +68,7 @@ define(
 		angular
 			.module('pdg.pedigree', ['pdg.common'])
 			.run(['$anchorScroll',function ($anchorScroll) {$anchorScroll.yOffset = 100;}])
-			.service('pedigreeService', [ 'playRoutes', 'userService', pedigreeService])
+			.service('pedigreeService', [ 'playRoutes', 'userService', '$http', pedigreeService])
 			.filter('isFemale', filters.isFemale)
 			.filter('isMale', filters.isMale)
 			.controller('pedigreeController', ['$scope', '$filter', 'pedigreeService', '$routeParams', '$modal', 'statsService', 'alertService', '$timeout', '$route','$location', pedigreeController])

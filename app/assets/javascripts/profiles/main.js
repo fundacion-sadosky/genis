@@ -11,9 +11,9 @@ function(angular, ProfileController, LabelsModalController, StringencyModalContr
 
 angular
 	.module('pdg.profile', ['pdg.common'])
-	.service('profileHelper', ['profileService',ProfileHelper])
-	.service('profileService', ['playRoutes', '$log', '$q', 'userService', ProfileService])
-	.service('associationLabelService', ['playRoutes', AssociationLabelService])
+	.service('profileHelper', ['profileService', '$http',ProfileHelper])
+	.service('profileService', ['playRoutes', '$log', '$q', 'userService', '$hhtp', ProfileService])
+	.service('associationLabelService', ['playRoutes', '$http', AssociationLabelService])
 	.controller('profileController', ['$scope', '$rootScope','$routeParams', '$log', 'profileService', 'analysisTypeService', '$route', '$location', 'profileHelper', '$modal' ,'cryptoService', 'alertService', 'locusService', 'kitService', 'Upload', 'resourcesHelper','appConf',ProfileController])
 	.controller('newAnalysisController', ['$sce','$scope','$routeParams', '$log', 'profileService', 'Upload', 'resourcesHelper', '$location', '$modal' ,'cryptoService', 'alertService','appConf', NewAnalysisController])
     .controller('newAnalysisConfirmationController', ['$scope', 'newAnalysis', 'controller', NewAnalysisConfirmationController])

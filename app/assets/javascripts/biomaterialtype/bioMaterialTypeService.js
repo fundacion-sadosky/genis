@@ -4,7 +4,9 @@ define([], function() {
 	function BioMaterialTypeService(playRoutes,$http) {
 		
 		this.getBioMaterialTypes = function() {
-			return playRoutes.controllers.BioMaterialTypes.list().get();
+			console.log('GET BIO MATERIAL TYPES');
+			return $http.get('/bioMaterialTypes');
+			//return playRoutes.controllers.BioMaterialTypes.list().get();
 		};
 		
 		this.addBioMaterialType = function(bmt) {
@@ -14,11 +16,15 @@ define([], function() {
 		};
 		
 		this.updateBioMaterialType = function(bmt) {
-			return playRoutes.controllers.BioMaterialTypes.update().put(bmt);
+			console.log('UPDATE BIO MATERIAL TYPES');
+			return $http.put('/bioMaterialTypes', bmt);
+			//return playRoutes.controllers.BioMaterialTypes.update().put(bmt);
 		};
 		
 		this.deleteBioMaterialType = function(id) {
-			return playRoutes.controllers.BioMaterialTypes.remove(id).delete();
+			console.log('DELETE BIO MATERIAL TYPES');
+			return $http.delete('/bioMaterialTypes/' + id);
+			//return playRoutes.controllers.BioMaterialTypes.remove(id).delete();
 		};
 	}
 

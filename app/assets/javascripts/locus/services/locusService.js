@@ -10,19 +10,27 @@ define(['lodash', 'angular'],function(_,angular) {
         };
 
         this.update = function (locus) {
-            return playRoutes.controllers.Locis.update().put(locus);
+            console.log('UPDATE LOCUS');
+            return $http.put('/locus', locus);
+            //return playRoutes.controllers.Locis.update().put(locus);
         };
 
         this.listFull = function () {
-            return playRoutes.controllers.Locis.listFull().get();
+            console.log('LIST FULL LOCUS');
+            return $http.get('/locus-full');
+            //return playRoutes.controllers.Locis.listFull().get();
         };
 
         this.list = function () {
-            return playRoutes.controllers.Locis.list().get();
+            console.log('LIST LOCUS');
+            return $http.get('/locus');
+            //return playRoutes.controllers.Locis.list().get();
         };
         
         this.delete = function (id) {
-            return playRoutes.controllers.Locis.delete(id).delete();
+            console.log('DELETE LOCUS');
+            return $http.delete('/locus/delete/' + id);
+            //return playRoutes.controllers.Locis.delete(id).delete();
         };
 
         this.getFluorophoreEnum = function() {
@@ -36,7 +44,9 @@ define(['lodash', 'angular'],function(_,angular) {
             return l.minAlleleValue>allele || l.maxAlleleValue<allele;
         };
         this.listRanges = function () {
-            return playRoutes.controllers.Locis.ranges().get();
+            console.log('LIST RANGES LOCUS');
+            return $http.get('/locus/ranges');
+            //return playRoutes.controllers.Locis.ranges().get();
         };
 
         this.shouldShowMinAlelle = function(allele,alleleRange){

@@ -1,22 +1,26 @@
 define([], function() {
 'use strict';
 
-function ProtoProfileDataService(playRoutes, $log) {
+function ProtoProfileDataService(playRoutes, $log, $http) {
 
 	this.updateProfileData = function(globalCode, profileData){
-		return playRoutes.controllers.ProtoProfileData.update(globalCode).put(profileData);
+		return $http.put('/protoprofiledata/' + encodeURIComponent(globalCode), profileData);
+		//return playRoutes.controllers.ProtoProfileData.update(globalCode).put(profileData);
 	};
 
 	this.isEditable = function(globalCode){
-		return playRoutes.controllers.ProtoProfileData.isEditable(globalCode).get();
+		return $http.get('/protoprofiledata-editable/' + encodeURIComponent(globalCode));
+		//return playRoutes.controllers.ProtoProfileData.isEditable(globalCode).get();
 	};
 
 	this.getGeneticist = function(lab) {
-		return playRoutes.controllers.Geneticists.allGeneticist(lab).get();
+		return $http.get('/geneticist/' + encodeURIComponent(lab));
+		//return playRoutes.controllers.Geneticists.allGeneticist(lab).get();
 	};
 
 	this.getResource = function(resourceType, id){
-		return playRoutes.controllers.ProtoProfileData.getResources(resourceType, id).get();
+		return $http.get('/resources/static/' + encodeURIComponent(resourceType) + '/' + encodeURIComponent(id));
+		//return playRoutes.controllers.ProtoProfileData.getResources(resourceType, id).get();
 	};
 
 	this.saveProfile = function(profileData) {
@@ -27,7 +31,8 @@ function ProtoProfileDataService(playRoutes, $log) {
 	};
 
 	this.getProfileDataBySampleCode = function(profileId){
-		return playRoutes.controllers.ProtoProfileData.getByCode(profileId).get();
+		return $http.get('/protoprofiledata-complete/' + encodeURIComponent(profileId));
+		//return playRoutes.controllers.ProtoProfileData.getByCode(profileId).get();
 	};
 	
 	this.isModal = function(){return true;};

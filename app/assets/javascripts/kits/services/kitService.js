@@ -4,19 +4,27 @@ define([],function() {
     function KitService(playRoutes, $http) {
 
         this.get = function(id){
-            return playRoutes.controllers.StrKits.get(id).get();
+            console.log('GET KIT');
+            return $http.get('/strkits/' + id);
+            //return playRoutes.controllers.StrKits.get(id).get();
         };
 
         this.getFull = function(id){
-            return playRoutes.controllers.StrKits.getFull(id).get();
+            console.log('GET KIT FULL');
+            return $http.get('/strkits-full/' + id);
+            //return playRoutes.controllers.StrKits.getFull(id).get();
         };
 
         this.listFull = function () {
-            return playRoutes.controllers.StrKits.listFull().get();
+            console.log('GET LIST FULL');
+            return $http.get('/strkits-full');
+            //return playRoutes.controllers.StrKits.listFull().get();
         };
 
         this.list = function () {
-            return playRoutes.controllers.StrKits.list().get();
+            console.log('LIST KITS');
+            return $http.get('/strkits');
+            //return playRoutes.controllers.StrKits.list().get();
         };
 
         this.add = function (kit) {
@@ -26,11 +34,15 @@ define([],function() {
         };
 
         this.updateKit = function(kit){
-            return playRoutes.controllers.StrKits.update().put(kit);
+            console.log('UPDATE KIT');
+            return $http.put('/strkit/update', kit);
+            //return playRoutes.controllers.StrKits.update().put(kit);
         };
 
         this.delete = function (id) {
-            return playRoutes.controllers.StrKits.delete(id).delete();
+            console.log('DELETE KIT');
+            return $http.delete('/strkit/delete/' + id);
+            //return playRoutes.controllers.StrKits.delete(id).delete();
         };
 
     }

@@ -5,7 +5,7 @@ function(angular, motiveController, motiveService) {
 angular
     .module('pdg.motives', ['pdg.common', 'jm.i18next', 'ui.sortable'])
     .controller('motiveController', ['$scope', '$modal','motiveService','alertService', motiveController])
-    .service('motiveService', ['playRoutes', motiveService])
+    .service('motiveService', ['playRoutes','$http', motiveService])
     .config(['$routeProvider', function($routeProvider) {
         $routeProvider.when('/motives',  {templateUrl: '/assets/javascripts/motives/views/motives.html', controller: 'motiveController'});
     }]);

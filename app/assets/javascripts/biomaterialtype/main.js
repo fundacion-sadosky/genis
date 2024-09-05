@@ -4,7 +4,7 @@ function(angular, bioMaterialTypeService, bioMaterialTypeController, bmtModalCon
 
 angular
 	.module('pdg.biomaterialtype', ['pdg.common'])
-	.service('bioMaterialTypeService', ['playRoutes', bioMaterialTypeService])
+	.service('bioMaterialTypeService', ['playRoutes','$http', bioMaterialTypeService])
 	.controller('bioMaterialTypeController', ['$scope', 'bioMaterialTypeService', '$modal', 'alertService', bioMaterialTypeController])
 	.controller('bmtModalController', ['$scope', 'bmt', 'mode', bmtModalController])
 	.config(['$routeProvider', function($routeProvider) {

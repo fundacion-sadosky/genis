@@ -4,27 +4,20 @@
 
 # Home page
 GET      /                                                    @controllers.Application.index
-
 GET      /status                                              @controllers.Status.status
-
 GET      /categoryTree                                        @controllers.Categories.categoryTree
 GET      /categories                                          @controllers.Categories.list
 GET      /categoriesWithProfiles                              @controllers.Categories.listWithProfiles
-
 GET      /categoryTreeManualLoading                           @controllers.Categories.categoryTreeManualLoading
-
 POST     /categories                                          @controllers.Categories.addCategory
 PUT      /categories/:catId                                   @controllers.Categories.updateCategory(catId: types.AlphanumericId)
 PUT      /categories/:catId/details                           @controllers.Categories.updateFullCategory(catId: types.AlphanumericId)
 DELETE   /categories/:catId                                   @controllers.Categories.removeCategory(catId: types.AlphanumericId)
-
 GET      /categories-mapping                                  @controllers.Categories.listCategoriesMapping
 PUT      /categories-mapping                                  @controllers.Categories.insertOrUpdateCategoriesMapping
-
 POST     /group                                               @controllers.Categories.addGroup
 PUT      /group/:groupId                                      @controllers.Categories.updateGroup(groupId: types.AlphanumericId)
 DELETE   /group/:groupId                                      @controllers.Categories.removeGroup(groupId: types.AlphanumericId)
-
 GET      /crimeTypes                                          @controllers.CrimeTypes.list
 GET      /bioMaterialTypes                                    @controllers.BioMaterialTypes.list
 POST	 /bioMaterialTypes									  @controllers.BioMaterialTypes.insert
@@ -58,7 +51,6 @@ PUT      /profiledata/:id                                     @controllers.Profi
 GET      /profiledata-complete/:id                            @controllers.ProfileData.getByCode(id: types.SampleCode)
 GET      /profiledata-editable/:id                            @controllers.ProfileData.isEditable(id: types.SampleCode)
 GET      /profilesdata                                        @controllers.ProfileData.findByCodes(globalCode: List[types.SampleCode])
-
 POST     /uploadImage                                         @controllers.Resources.uploadImage
 POST     /uploadFile                                          @controllers.Resources.uploadFile
 GET      /getFilesId                                          @controllers.Resources.getFilesId
@@ -359,7 +351,8 @@ DELETE   /motive/:id                                          @controllers.Motiv
 # ~~~~
 
 # Map static resources from the /public folder to the /assets URL path
-GET      /assets/*file                                        controllers.Assets.at(path="/public/lib/genis", file: Asset)
+# GET      /assets/*file                                        controllers.Assets.at(path="/public/lib/genis", file: Asset)
+GET      /assets/*file                                        controllers.Assets.versioned(path="/public", file: Asset)
 
 # Reporting
 GET     /reportes/primerReporte                                 @controllers.ReportingController.getPrimerReporte

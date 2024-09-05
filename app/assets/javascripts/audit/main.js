@@ -4,7 +4,7 @@ function(angular, OperationLogLotService, OperationLogLotsController, OperationL
 
 angular
 	.module('pdg.audit', ['pdg.common'])
-	.service('operationLogLotService', ['playRoutes', OperationLogLotService])
+	.service('operationLogLotService', ['playRoutes','$http', OperationLogLotService])
 	.controller('operationLogLotsController',['$scope', '$routeParams', '$q', '$timeout', 'operationLogLotService', OperationLogLotsController])
 	.controller('operationLogLotController', ['$scope', '$routeParams', 'operationLogLotService', 'roleService', '$filter', OperationLogLotController])
 	.config(['$routeProvider', function($routeProvider) {

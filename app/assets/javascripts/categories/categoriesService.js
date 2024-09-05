@@ -37,15 +37,21 @@ function CategoriesService($q, playRoutes, $http) {
 	};
 
 	this.updateCategory = function(category) {
-		return playRoutes.controllers.Categories.updateCategory(category.id).put(category);
+		console.log('UPDATE CATEGORY');
+		return $http.put('/categories/' + category.id, category);
+		//return playRoutes.controllers.Categories.updateCategory(category.id).put(category);
 	};
 
 	this.updateFullCategory = function(category) {
-		return playRoutes.controllers.Categories.updateFullCategory(category.id).put(category);
+		console.log('UPDATE FULL CATEGORY');
+		return $http.put('/categories/' + category.id + '/details', category);
+		//return playRoutes.controllers.Categories.updateFullCategory(category.id).put(category);
 	};
 
 	this.removeCategory = function(category) {
-		return playRoutes.controllers.Categories.removeCategory(category.id).delete();
+		console.log('REMOVE CATEGORY');
+		return $http.delete('/categories/' + category.id);
+		//return playRoutes.controllers.Categories.removeCategory(category.id).delete();
 	};
 
 	this.createGroup = function(group) {
@@ -55,11 +61,15 @@ function CategoriesService($q, playRoutes, $http) {
 	};
 
 	this.updateGroup = function(group) {
-		return playRoutes.controllers.Categories.updateGroup(group.id).put(group);
+		console.log('UPDATE GROUP');
+		return $http.put('/group/' + group.id);
+		//return playRoutes.controllers.Categories.updateGroup(group.id).put(group);
 	};
 
 	this.removeGroup = function(group) {
-		return playRoutes.controllers.Categories.removeGroup(group.id).delete();
+		console.log('REMOVE GROUP');
+		return $http.delete('/group/' + group.id);
+		//return playRoutes.controllers.Categories.removeGroup(group.id).delete();
 	};
 }
 	

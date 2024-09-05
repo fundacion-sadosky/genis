@@ -22,18 +22,28 @@ define([], function() {
 		};
 
 		this.canUpload = function(matchingId){
-			return playRoutes.controllers.Matching.canUploadMatchStatus(matchingId).get();
+			return $http.get('/canUploadMatchStatus', { params: { matchId: matchingId } });
+			//return playRoutes.controllers.Matching.canUploadMatchStatus(matchingId).get();
 		};
 		
 		this.findMatches = function(matchingId) {
-			return playRoutes.controllers.Matching.findMatchesByCode(matchingId).get()
-				.success(function(data/*, status, headers, response*/) {
-					var res = data;
-					fillReducedStringencies(res.results);
-					data = res;
-				}).error(function() {
-					//$log.info('Matching.findByCode :(');
-				});
+			return $http.get('/matching', { params: { globalCode: matchingId } })
+			.then(function(response) {
+				var res = response.data;
+				fillReducedStringencies(res.results);
+				return res;
+			})
+			.catch(function(error) {
+				console.error('Error during findMatches:', error);
+			});
+			//return playRoutes.controllers.Matching.findMatchesByCode(matchingId).get()
+			//.success(function(data/*, status, headers, response*/) {
+			//var res = data;
+			//fillReducedStringencies(res.results);
+			//data = res;
+			//}).error(function() {
+			////$log.info('Matching.findByCode :(');
+			//});
 		};
 
 		this.getTotalMatchesByGroup = function (search) {
@@ -46,7 +56,8 @@ define([], function() {
 		};
 
         this.searchMatchesProfile = function (globalCode) {
-			return playRoutes.controllers.Matching.searchMatchesProfile(globalCode).get();
+			return $http.get('/matching-profile', { params: { globalCode: globalCode } });
+			//return playRoutes.controllers.Matching.searchMatchesProfile(globalCode).get();
 		};
 
 		this.getMatchesByGroup = function (search) {
@@ -71,9 +82,9 @@ define([], function() {
 			var user = userService.getUser();
 			search.user = user.name;
 			search.isSuperUser = user.superuser;
-			//console.log('GET TOTAL MATCHES');
-			//return $http.post('/user-total-matches', search);
-			return playRoutes.controllers.Matching.getTotalMatches().post(search);
+			console.log('GET TOTAL MATCHES');
+			return $http.post('/user-total-matches', search);
+			//return playRoutes.controllers.Matching.getTotalMatches().post(search);
 		};
 
 		this.getResults = function(
@@ -82,20 +93,38 @@ define([], function() {
 			isCollapsing,
 			isScreening
 		) {
-			return playRoutes.controllers.Matching.getByMatchedProfileId(
-				matchingId,
-				isPedigreeMatch,
-				isCollapsing,
-				isScreening
-			).get()
-				.success(
-					function(data/*, status, headers, response*/) {
-						if (data && data.results) {
-							fillReducedStringencies(data.results);
-						}
-					}).error(function() {
-						//$log.info('Matching.getByMatchedProfileId :(');
-					});
+			return $http.get('/getByMatchedProfileId', {
+				params: {
+					matchingId: matchingId,
+					isPedigreeMatch: isPedigreeMatch,
+					isCollapsing: isCollapsing,
+					isScreening: isScreening
+				}
+			})
+			.then(function(response) {
+				var data = response.data;
+				if (data && data.results) {
+					fillReducedStringencies(data.results);
+				}
+				return data;
+			})
+			.catch(function(error) {
+				console.error('Error during getResults:', error);
+			});
+			//return playRoutes.controllers.Matching.getByMatchedProfileId(
+			//matchingId,
+			//isPedigreeMatch,
+			//isCollapsing,
+			//isScreening
+			//).get()
+			//.success(
+			//function(data/*, status, headers, response*/) {
+			//if (data && data.results) {
+			//fillReducedStringencies(data.results);
+			//}
+			//}).error(function() {
+			////$log.info('Matching.getByMatchedProfileId :(');
+			//});
 		};
 		
 		this.getComparedGenotyfications = function(leftGlobalCode, rightGlobalCode,matchId,isCollapsing,isScreening) {
@@ -111,11 +140,26 @@ define([], function() {
 		};
 		
 		this.getComparedMixtureGene = function(profiles,matchId,isCollapsing) {
-			return playRoutes.controllers.Matching.getComparedMixtureGene(profiles,matchId,isCollapsing).get();
+			return $http.get('/mixture/compare', {
+				params: {
+					globalCodes: profiles,  // Asumiendo que profiles es una lista de códigos globales
+					matchId: matchId,
+					isCollapsing: isCollapsing
+				}
+			});
+			//return playRoutes.controllers.Matching.getComparedMixtureGene(profiles,matchId,isCollapsing).get();
 		};
+
         this.deleteByLeftProfile = function(globalCode,courtCaseId) {
-            return playRoutes.controllers.Matching.deleteByLeftProfile(globalCode,courtCaseId).delete();
+			return $http.delete('/collapsing/partial', {
+				params: {
+					globalCode: globalCode,
+					courtCaseId: courtCaseId
+				}
+			});
+            //return playRoutes.controllers.Matching.deleteByLeftProfile(globalCode,courtCaseId).delete();
         };
+
         this.confirmSelectedCollapsing = function(globalCodeParent,globalCodeChildren,courtCaseId) {
 			var request = {};
 			request.globalCodeParent = globalCodeParent;
@@ -125,9 +169,10 @@ define([], function() {
 			return $http.post('/collapsing/groups', request);
 			//return playRoutes.controllers.Pedigrees.confirmSelectedCollapsing().post(request);
         };
-        // this.deleteByLeftAndRightProfile = function(globalCode,courtCaseId) {
-        //     return playRoutes.controllers.Matching.deleteByLeftAndRightProfile(globalCode,courtCaseId).delete();
-        // };
+        //this.deleteByLeftAndRightProfile = function(globalCode,courtCaseId) {
+        //return playRoutes.controllers.Matching.deleteByLeftAndRightProfile(globalCode,courtCaseId).delete();
+        //};
+		
 		this.getStrigencyEnum = function() {
 			return { HighStringency : {key:'HighStringency', text:'Alta', css:'icon-highstringency'}, 
 				ModerateStringency : {key:'ModerateStringency', text:'Media', css:'icon-moderatestringency'}, 
@@ -155,13 +200,13 @@ define([], function() {
 
 		this.descarteMasivoByGlobalCode = function (globalCode) {
 			console.log('MASSIVE DISCARD BY GLOBAL');
-			return $http.post('/masiveDiscardByGlobalCode', globalCode);
+			return $http.post('/masiveDiscardByGlobalCode', { firingCode: globalCode });
 			//return playRoutes.controllers.Matching.masiveDiscardByGlobalCode(globalCode).post();
 		};
 
 		this.descarteMasivoByList = function (globalCode, matches) {
 			console.log('MASSIVE DISCARD BY MATCHES');
-			return $http.post('/masiveDiscardByMatchesList', globalCode, matches);
+			return $http.post('/masiveDiscardByMatchesList', { firingCode: globalCode, matches: matches });
 			//return playRoutes.controllers.Matching.masiveDiscardByMatchesList(globalCode, matches).post();
 		};
 	}

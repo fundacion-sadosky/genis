@@ -26,7 +26,9 @@ define([ 'angular' ], function() {
             //return playRoutes.controllers.Traces.countPedigree().post(search);
         };
         this.getFullDescription = function(id) {
-            return playRoutes.controllers.Traces.getFullDescription(id).get();
+            console.log('GET FULL DESCRIPTION');
+            return $http.get('/trace/full-description/' + id);
+            //return playRoutes.controllers.Traces.getFullDescription(id).get();
         };
 
     }

@@ -7,7 +7,7 @@ angular
     .controller('mutationController', ['$scope','mutationService','alertService','$location', mutationController])
     .controller('mutationInsertController', ['$scope', 'mutationService','alertService','$location','locusService','appConf', mutationInsertController])
     .controller('mutationUpdateController', ['$scope', 'mutationService','alertService','$location','$routeParams','locusService','appConf', mutationUpdateController])
-    .service('mutationService', ['playRoutes','$q', mutationService])
+    .service('mutationService', ['playRoutes','$q', '$http', mutationService])
     .config(['$routeProvider', function($routeProvider) {
         $routeProvider.when('/mutation-models',  {templateUrl: '/assets/javascripts/mutations/views/mutations.html', controller: 'mutationController'})
             .when('/new-mutation-model',  {templateUrl: '/assets/javascripts/mutations/views/insert.html', controller: 'mutationInsertController'})

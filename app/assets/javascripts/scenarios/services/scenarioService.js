@@ -10,7 +10,8 @@ function ScenarioService(playRoutes, $q, $filter, $http) {
     };
 
     this.get = function(id) {
-        return playRoutes.controllers.Scenarios.get().put(id);
+        return $http.put('/scenarios/get', id);
+        //return playRoutes.controllers.Scenarios.get().put(id);
     };
 
     this.search = function(search) {
@@ -26,11 +27,13 @@ function ScenarioService(playRoutes, $q, $filter, $http) {
     };
 
     this.delete = function(id) {
-        return playRoutes.controllers.Scenarios.delete().put(id);
+        return $http.put('/scenarios/delete', id);
+        //return playRoutes.controllers.Scenarios.delete().put(id);
     };
     
     this.findMatches = function(scenarioId, firingCode, matchingCode) {
-        return playRoutes.controllers.Scenarios.findMatches(scenarioId, firingCode, matchingCode).get();
+        return $http.get('/matchesForScenario', { params: { scenarioId: scenarioId, firingCode: firingCode, matchingCode: matchingCode } });
+        //return playRoutes.controllers.Scenarios.findMatches(scenarioId, firingCode, matchingCode).get();
     };
 
     this.createScenario = function(scenario, restricted, name, description, results, geneticist) {
@@ -45,7 +48,7 @@ function ScenarioService(playRoutes, $q, $filter, $http) {
             description: description
         };
         console.log('SCENARIOS CREATE');
-        return  $http.post('/scenarios/create', scenario, restricted, name, description, results, geneticist);
+        return  $http.post('/scenarios/create', data);
         //return playRoutes.controllers.Scenarios.create().post(data);
     };
 
@@ -59,13 +62,15 @@ function ScenarioService(playRoutes, $q, $filter, $http) {
         var deferred = $q.defer();
         
         $q.all({
-            profile: playRoutes.controllers.Profiles.getFullProfile(globalCode).get(),
-            profileData: playRoutes.controllers.ProfileData.getByCode(globalCode).get()
+            profile: $http.get('/profiles/full/' + globalCode),
+            //playRoutes.controllers.Profiles.getFullProfile(globalCode).get(),
+            profileData: $http.get('/profiledata-complete/' + encodeURIComponent(globalCode))
+            //playRoutes.controllers.ProfileData.getByCode(globalCode).get()
         }).then(function(response) {
             response.data = angular.extend(response.profile.data, response.profileData.data);
             deferred.resolve(response);
         });
-        
+
         return deferred.promise;
     };
 
@@ -106,7 +111,7 @@ function ScenarioService(playRoutes, $q, $filter, $http) {
     
     this.getDefaultScenario = function(firingProfile, matchingProfile, statsOption) {
         console.log('GET DEFAULT SCENARIO');
-        return  $http.post('/default-scenario', firingProfile, matchingProfile, statsOption);
+        return $http.post('/default-scenario', statsOption, { params: { firingProfile: firingProfile, matchingProfile: matchingProfile } });
         //return playRoutes.controllers.Scenarios.getDefaultScenario(firingProfile, matchingProfile).post(statsOption);
     };
     

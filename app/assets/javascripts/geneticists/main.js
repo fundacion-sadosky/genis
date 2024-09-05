@@ -4,7 +4,7 @@ function(angular, geneticistsService, geneticistsController, updateController, $
 
 angular
 	.module('pdg.geneticists', ['pdg.common'])
-	.service('geneticistsService', ['playRoutes', geneticistsService])
+	.service('geneticistsService', ['playRoutes','$http', geneticistsService])
 	.controller('geneticistsController', ['$scope', 'geneticistsService', 'laboratoriesService', '$modal', 'alertService', geneticistsController])
 	.controller('geneticistsUpdateController', ['$scope', '$modalInstance', 'geneticistsService', 'modalGeneticist', 'laboratories' , 'parentScope', 'alertService', updateController])
 	.config(['$routeProvider', function($routeProvider) {

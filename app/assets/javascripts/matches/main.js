@@ -34,8 +34,8 @@ define(
 					function ($anchorScroll) { $anchorScroll.yOffset = 100; }
 				]
 			)
-			.service('matchesService', ['playRoutes', 'userService', matchesService])
-			.service('hypothesesService', ['playRoutes', hypothesesService])
+			.service('matchesService', ['playRoutes', 'userService', '$http', matchesService])
+			.service('hypothesesService', ['playRoutes', '$http', hypothesesService])
 			.controller(
 				'matchesController',
 				[

@@ -119,7 +119,9 @@ function UserService(playRoutes, $cookies, $window, $log, $http) {
 		//return playRoutes.controllers.Users.clearPassRequest().post(req);
     };
     this.getDisclaimerHtml = function(){
-        return playRoutes.controllers.DisclaimerController.getDisclaimer().get();
+		console.log('GET DISCLAIMER HTML');
+		return $http.get('/disclaimer');
+        //return playRoutes.controllers.DisclaimerController.getDisclaimer().get();
 
     };
     this.clearPassConfirmation = function(challenge){
@@ -129,28 +131,39 @@ function UserService(playRoutes, $cookies, $window, $log, $http) {
 			confirmationRequest.clearPassRequestId = challenge.clearPassRequestId;
 			confirmationRequest.challengeResponse = challenge.challengeResponse;
 		}
-
-        return playRoutes.controllers.Users.clearPassConfirmation().put(confirmationRequest);
+		console.log('CLEAR PASS CONFIRMATION');
+		return $http.put('/clear-password', confirmationRequest);
+        //return playRoutes.controllers.Users.clearPassConfirmation().put(confirmationRequest);
     };
 	this.signupConfirmation = function(challenge){
-		return playRoutes.controllers.Users.signupConfirmation().put(challenge);
+		console.log('SIGNUP CONFIRMATION');
+		return $http.put('/signup', challenge);
+		//return playRoutes.controllers.Users.signupConfirmation().put(challenge);
 	};
 
 	this.listUsers = function(){
-		return playRoutes.controllers.Users.listUsers().get();
+		console.log('LIST USERS');
+		return $http.get('/users');
+		//return playRoutes.controllers.Users.listUsers().get();
 	};
 
 	this.updateUserSatus = function(userName, status){
-		return playRoutes.controllers.Users.setStatus(userName).put(status);
+		console.log('UPDATE USER STATUS');
+		return $http.put('/users/' + encodeURIComponent(userName) + '/status', status);
+		//return playRoutes.controllers.Users.setStatus(userName).put(status);
 	};
 	
 	this.updateUser = function(user){
         this.fixPhone2(user);
-		return playRoutes.controllers.Users.updateUser().put(user);
+		console.log('UPDATE USER');
+		return $http.put('/users', user);
+		//return playRoutes.controllers.Users.updateUser().put(user);
 	};
 	
 	this.getGeneticistUsers = function() {
-		return playRoutes.controllers.Geneticists.getGeneticistUsers().get();
+		console.log('GET GENETICIST USERS');
+		return $http.get('/geneticist-users');
+		//return playRoutes.controllers.Geneticists.getGeneticistUsers().get();
 	};
     
     var hasPermission =  function(permission) {

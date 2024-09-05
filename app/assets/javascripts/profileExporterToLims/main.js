@@ -3,7 +3,7 @@ define(['angular', './services/profileExporterToLimsService', './controllers/pro
         'use strict';
         angular
     .module('pdg.profileExporterToLims', ['pdg.common'])
-            .service('profileExporterToLimsService', ['playRoutes','userService', profileExporterToLimsService])
+            .service('profileExporterToLimsService', ['playRoutes','userService', '$http', profileExporterToLimsService])
             .controller('profileExporterToLimsController', ['$scope','profileExporterToLimsService','alertService','cryptoService', profileExporterToLimsController])
             .config(['$routeProvider', function($routeProvider) {
                 $routeProvider.when('/profile-exporterToLims',  {templateUrl: '/assets/javascripts/profileExporterToLims/views/main.html', controller: 'profileExporterToLimsController'});

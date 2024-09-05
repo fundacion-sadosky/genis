@@ -1,26 +1,36 @@
 define(['jquery'], function($) {
 	'use strict';
 
-function StatsService(playRoutes, $q) {
+function StatsService(playRoutes, $q, $http) {
 					
 	this.getBaseByName = function(name) {
-		return playRoutes.controllers.PopulationBaseFreq.getByName(name).get();
+		console.log('GET BASE BY NAME');
+		return $http.get('/populationBaseFreq/' + encodeURIComponent(name));
+		//return playRoutes.controllers.PopulationBaseFreq.getByName(name).get();
 	};
 	
 	this.setAsDefault = function(name){
-		return playRoutes.controllers.PopulationBaseFreq.setBaseAsDefault(name).put();
+		console.log('SET AS DEFAULT');
+		return $http.put('/populationBaseFreqDefault/' + encodeURIComponent(name));
+		//return playRoutes.controllers.PopulationBaseFreq.setBaseAsDefault(name).put();
 	};
 	
 	this.toggleStateBase = function(name) {
-		return playRoutes.controllers.PopulationBaseFreq.toggleStateBase(name).put();
+		console.log('TOGGLE STATE BASE');
+		return $http.put('/populationBaseFreq/' + encodeURIComponent(name));
+		//return playRoutes.controllers.PopulationBaseFreq.toggleStateBase(name).put();
 	};
 
 	this.getAllBasesNames = function() {
-		return playRoutes.controllers.PopulationBaseFreq.getAllBaseNames().get();
+		console.log('GET ALL BASE NAMES');
+		return $http.get('/populationBaseFreq');
+		//return playRoutes.controllers.PopulationBaseFreq.getAllBaseNames().get();
 	};
 	
 	this.getAllBasesCharacteristics = function() {
-		return playRoutes.controllers.PopulationBaseFreq.getAllBasesCharacteristics().get();
+		console.log('GET ALL BASES CHARACTERISTICS');
+		return $http.get('/populationBaseFreqCharacteristics');
+		//return playRoutes.controllers.PopulationBaseFreq.getAllBasesCharacteristics().get();
 	};
 		
 	this.getActiveTables = function(){
@@ -118,8 +128,10 @@ function StatsService(playRoutes, $q) {
 		var request = {calcOption: fmin.calcOption, config: {}};	
 		$.each(fmin.config, function(locus, config){
 			request.config[locus] = Object.keys(config).map(function(p){return parseFloat(config[p]);});
-		});		
-		return playRoutes.controllers.PopulationBaseFreq.insertFmin(cacheId).put(request);
+		});
+		console.log('INSERT FMIN');
+		return $http.put('/populationBaseFreq-fmin/' + cacheId, request);		
+		//return playRoutes.controllers.PopulationBaseFreq.insertFmin(cacheId).put(request);
 	};
 	
 }

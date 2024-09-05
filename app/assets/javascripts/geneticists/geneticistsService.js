@@ -4,15 +4,21 @@ define([], function() {
 	function GeneticistsService(playRoutes, $http) {
 		
 		this.getGeneticists = function(lab) {
-			return playRoutes.controllers.Geneticists.allGeneticist(lab).get();
+			console.log('ALL GENETICISTS');
+			return $http.get('/geneticist/' + encodeURIComponent(lab));
+			//return playRoutes.controllers.Geneticists.allGeneticist(lab).get();
 		};
 		
 		this.getGeneticist = function(id) {
-			return playRoutes.controllers.Geneticists.getGeneticist(id).get();
+			console.log('GET GENETICISTS');
+			return $http.get('/geneticist', {params: { geneticistId: id }});
+			//return playRoutes.controllers.Geneticists.getGeneticist(id).get();
 		};
 		
 		this.updateGeneticist = function(gen) {
-			return playRoutes.controllers.Geneticists.updateGeneticist().put(gen);
+			console.log('UPDATE GENETICISTS');
+			return $http.put('/geneticist', gen);
+			//return playRoutes.controllers.Geneticists.updateGeneticist().put(gen);
 		};
 		
 		this.saveGeneticist = function(gen){

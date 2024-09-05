@@ -4,32 +4,45 @@ define([], function() {
 	function LaboratoriesService(playRoutes, $http) {
 
 		this.getLaboratory = function(code){
-			return playRoutes.controllers.Laboratories.getLaboratory(code).get();
+			console.log('GET LABORATORY');
+			return $http.get('/laboratory/' + encodeURIComponent(code));
+			//return playRoutes.controllers.Laboratories.getLaboratory(code).get();
 		};
 
-		this.getLaboratories = function(){
-			return playRoutes.controllers.Laboratories.list().get();
+		this.getLaboratories = function(){	
+			console.log('GET LABORATORIES');
+			return $http.get('/laboratory');
+			//return playRoutes.controllers.Laboratories.list().get();
 		};
 					
 		this.getLaboratoriesDescriptive = function(){
-			return playRoutes.controllers.Laboratories.listDescriptive().get();
+			console.log('GET LABORATORIES DESCRIPTIVE');
+			return $http.get('/laboratory/descriptive');
+			//return playRoutes.controllers.Laboratories.listDescriptive().get();
 		};
 					
 		this.getCountries = function(){
-			return playRoutes.controllers.Laboratories.listCountries().get();
+			console.log('GET COUNTRIES');
+			return $http.get('/country');			
+			//return playRoutes.controllers.Laboratories.listCountries().get();
 		};
 		
 		this.getProvinces = function(country){
-			return playRoutes.controllers.Laboratories.listProvinces(country).get();
+			console.log('GET PROVINCES');
+			return $http.get('/provinces/' + country);
+			//return playRoutes.controllers.Laboratories.listProvinces(country).get();
 		};
 		
 		this.createLaboratory = function(laboratory){
-			return  $http.post('/laboratory', laboratory);
+			console.log('ADD LABORATORY');
+			return $http.post('/laboratory', laboratory);
 			//return playRoutes.controllers.Laboratories.addLab().post(laboratory);
 		};
 
 		this.updateLaboratory = function(laboratory){
-			return playRoutes.controllers.Laboratories.updateLab().put(laboratory);
+			console.log('UPDATE LABORATORY');
+			return $http.put('/laboratory', laboratory);
+			//return playRoutes.controllers.Laboratories.updateLab().put(laboratory);
 		};
 	}
 

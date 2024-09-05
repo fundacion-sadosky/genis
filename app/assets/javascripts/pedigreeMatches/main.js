@@ -16,7 +16,7 @@ define(
 			.run(['$anchorScroll',function ($anchorScroll) {
 						$anchorScroll.yOffset = 100;
 			}])
-			.service('pedigreeMatchesService', ['playRoutes', '$q', 'userService', pedigreeMatchesService])
+			.service('pedigreeMatchesService', ['playRoutes', '$q', 'userService', '$http', pedigreeMatchesService])
 			.controller(
 				'pedigreeMatchesController',
 				[

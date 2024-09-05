@@ -4,7 +4,7 @@ function(angular, userService, userController, updateUserCtrl, $http) {
 
 angular
 	.module('pdg.users', ['pdg.common'])
-	.service('userService', ['playRoutes','$cookies','$window', '$log', userService])
+	.service('userService', ['playRoutes','$cookies','$window', '$log', '$http', userService])
 	.controller('userController', ['$scope', 'userService', 'appConf', '$modal', 'roleService', 'alertService', userController])
 	.controller('userUpdateController',[ '$scope', '$modalInstance', 'userService', 'selectedUser', 'roleService', 'alertService', updateUserCtrl])
 	.config(['$routeProvider', function($routeProvider) {

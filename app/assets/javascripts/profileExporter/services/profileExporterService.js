@@ -11,11 +11,15 @@ define([],function() {
             return $http.post('/profile-export', search);
             //return playRoutes.controllers.Profiles.exporterProfiles().post(search);
         };
+
         this.getCategories = function() {
-            return playRoutes.controllers.Categories.categoryTree().get();
+            return $http.get('/categoryTree');
+            //return playRoutes.controllers.Categories.categoryTree().get();
         };
+
         this.getLaboratories = function(){
-            return playRoutes.controllers.Laboratories.list().get();
+            return $http.get('/laboratory');
+            //return playRoutes.controllers.Laboratories.list().get();
         };
 
     }

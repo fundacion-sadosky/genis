@@ -7,7 +7,7 @@ angular
     .controller('inboxController', ['$scope', '$location', 'inboxService', 'alertService', '$q', 'userService', inboxController])
     .controller('advancedSearchController', ['$scope','alertService', advancedSearchController])
     .controller('homeController', ['$scope', 'userService', homeController])
-    .service('inboxService', ['playRoutes', inboxService])
+    .service('inboxService', ['playRoutes','$http', inboxService])
     .config(['$routeProvider', function($routeProvider) {
         $routeProvider.when('/home',  {templateUrl: '/assets/javascripts/inbox/views/home.html', controller: 'homeController'});
     }]);

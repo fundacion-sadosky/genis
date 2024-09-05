@@ -1,10 +1,12 @@
 define([],function() {
     'use strict';
 
-    function AnalysisTypeService(playRoutes, $q) {
+    function AnalysisTypeService(playRoutes, $q, $http) {
 
         this.list = function() {
-            return playRoutes.controllers.AnalysisTypes.list().get();
+            console.log('LIST ANALYSIS TYPE');
+            return $http.get('/analysistypes');
+            //return playRoutes.controllers.AnalysisTypes.list().get();
         };
         
         this.listById = function() {

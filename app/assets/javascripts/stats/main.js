@@ -1,10 +1,10 @@
 define(['angular','./statsService','./statsController','./statsDbController', './fminController', 'common'], 
-function(angular, StatsService, StatsController, StatsDbController, FminController) {
+function(angular, StatsService, StatsController, StatsDbController, FminController, $http) {
 'use strict';
 
 angular
 	.module('pdg.stats', ['pdg.common'])
-       .service('statsService',['playRoutes', '$q', StatsService])
+       .service('statsService',['playRoutes', '$q', '$http', StatsService])
        .controller('statsController',['$scope', '$location', '$log', 'statsService','Upload','$modal','cryptoService', 'userService', 'alertService', StatsController])
        .controller('statsDbController',['$scope', '$location','statsService',StatsDbController])
        .controller('fminController',['$scope', 'statsService', '$modalInstance', 'data', FminController])

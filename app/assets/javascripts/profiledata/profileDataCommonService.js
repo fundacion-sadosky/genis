@@ -1,7 +1,7 @@
 define([],function() {
 			'use strict';
 
-			function ProfileDataCommonService($q, playRoutes, $log) {
+			function ProfileDataCommonService($q, playRoutes, $log, $http) {
 
 				this.getCategories = function() {
 					var deferred = $q.defer();
@@ -30,34 +30,38 @@ define([],function() {
 
 				this.getCrimeTypes = function() {
 					$log.info('calling service: CrimeTypes.list()');
-					return playRoutes.controllers.CrimeTypes.list().get();
+					return $http.get('/crimeTypes');
+					//return playRoutes.controllers.CrimeTypes.list().get();
 				};
 
 				this.getBioMaterialTypes = function() {
 					$log.info('calling service: BioMaterialTypes.lis()');
-					return playRoutes.controllers.BioMaterialTypes.list().get();
+					return $http.get('/bioMaterialTypes');
+					//return playRoutes.controllers.BioMaterialTypes.list().get();
 				};
 
 				this.getGeneticist = function(lab) {
 					$log.info('calling all geneticist for ' + lab);
-					return playRoutes.controllers.Geneticists
-							.allGeneticist(lab).get();
+					return $http.get('/geneticist/' + lab);
+					//return playRoutes.controllers.Geneticists.allGeneticist(lab).get();
 				};
 
 				this.getGeneticistUsers = function() {
 					$log.info('calling all geneticist users');
-					return playRoutes.controllers.Geneticists
-							.getGeneticistUsers().get();
+					return $http.get('/geneticist-users');
+					//return playRoutes.controllers.Geneticists.getGeneticistUsers().get();
 				};
 
 				this.getLaboratories = function() {
 					$log.info('calling service: all labs');
-					return playRoutes.controllers.Laboratories.list().get();
+					return $http.get('/laboratory');
+					//return playRoutes.controllers.Laboratories.list().get();
 				};
 
 				this.getFilesId = function() {
 					$log.info('calling for token for images');
-					return playRoutes.controllers.Resources.getFilesId().get();
+					return $http.get('/getFilesId');
+					//return playRoutes.controllers.Resources.getFilesId().get();
 				};
 			}
 

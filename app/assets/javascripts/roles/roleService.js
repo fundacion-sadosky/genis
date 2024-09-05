@@ -4,23 +4,28 @@ define([], function() {
 function RoleService(playRoutes, $http) {
 
 	this.getRoles = function() {
-		return playRoutes.controllers.Roles.getRoles().get();
+		return $http.get('/roles');
+		//return playRoutes.controllers.Roles.getRoles().get();
 	};
 
 	this.getRolesForSignUp = function() {
-		return playRoutes.controllers.Roles.getRolesForSignUp().get();
+		return $http.get('/rolesForSU');
+		//return playRoutes.controllers.Roles.getRolesForSignUp().get();
 	};
 
 	this.getPermissions = function() {
-		return playRoutes.controllers.Roles.listPermissions().get();
+		return $http.get('/permissions');
+		//return playRoutes.controllers.Roles.listPermissions().get();
 	};
 
 	this.getOperations = function() {
-		return playRoutes.controllers.Roles.listOperations().get();
+		return $http.get('/operations');
+		//return playRoutes.controllers.Roles.listOperations().get();
 	};
 	
 	this.getFullPermissions = function() {
-		return playRoutes.controllers.Roles.listFullPermissions().get();
+		return $http.get('/permissionsfull');
+		//return playRoutes.controllers.Roles.listFullPermissions().get();
 	};
 	
 	this.upsertRole = function(role, mode) {
@@ -30,12 +35,14 @@ function RoleService(playRoutes, $http) {
 			//return playRoutes.controllers.Roles.addRole().post(role);
 		}
 		if (mode === 'edit') {
-			return playRoutes.controllers.Roles.updateRole().put(role);
+			return  $http.put('/roles', role);
+			//return playRoutes.controllers.Roles.updateRole().put(role);
 		}
 	};
 	
 	this.deleteRole = function(role) {
-		return playRoutes.controllers.Roles.deleteRole(role.id).delete();
+		return $http.delete('/roles/' + role.id);
+		//return playRoutes.controllers.Roles.deleteRole(role.id).delete();
 	};
 }
 	
