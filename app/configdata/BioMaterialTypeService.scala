@@ -21,13 +21,13 @@ abstract class BioMaterialTypeService {
 }
 
 @Singleton
-class CachedBioMaterialTypeService @Inject() (cache: CacheService, bioMatTypeRepo: BioMaterialTypeRepository) extends BioMaterialTypeService {
+class CachedBioMaterialTypeService @Inject() (cache: CacheService, bioMatTypeRepo: BioMaterialTypeRepository, implicit val messages: Messages) extends BioMaterialTypeService {
 
   val errorPf: PartialFunction[Throwable, Int] = {
     case psql: PSQLException => {
       psql.getSQLState match {
-        case "23505" => throw DataAccessException(Messages("error.E0901"), psql)
-        case _       => throw DataAccessException(Messages("error.E0630"), psql)
+        case "23505" => throw DataAccessException(messages("error.E0901"), psql)
+        case _       => throw DataAccessException(messages("error.E0630"), psql)
       }
     }
   }

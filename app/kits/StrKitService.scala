@@ -1,12 +1,10 @@
 package kits
 
 import javax.inject.{Inject, Singleton}
-
 import bulkupload.ProtoProfileRepository
 import profile.ProfileRepository
 import services.{CacheService, Keys}
-
-import play.api.i18n.Messages
+import play.api.i18n.{Messages, MessagesApi}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.{Duration, SECONDS}
@@ -33,7 +31,9 @@ class StrKitServiceImpl @Inject() (
   cache: CacheService,
   strKitRepository: StrKitRepository,
   profileRepository: ProfileRepository,
+  messagesApi: MessagesApi,
   protoProfileRepository: ProtoProfileRepository) extends StrKitService {
+  implicit val messages: Messages = messagesApi.preferred(Seq.empty)
 
   private def cleanCache = {
     cache.pop(Keys.strKits)

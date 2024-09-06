@@ -3,7 +3,6 @@ package matching
 import java.io.File
 import java.util.Date
 import javax.inject.{Inject, Named, Singleton}
-
 import com.github.tototoshi.csv.{CSVWriter, DefaultCSVFormat}
 import profiledata.ProfileData
 import configdata.{CategoryService, QualityParamsProvider}
@@ -20,7 +19,7 @@ import scenarios.{Scenario, ScenarioRepository}
 import trace._
 import types.{AlphanumericId, MongoDate, MongoId, SampleCode}
 import util.EnumJsonUtils.enumWrites
-import play.api.i18n.Messages
+import play.api.i18n.{Messages, MessagesApi}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Await, Future}
@@ -42,12 +41,14 @@ class MatchingServiceSparkImpl @Inject() (
     pedigreeGenotypificationService: PedigreeGenotypificationService,
     interconnectionService: InterconnectionService,
     spark2MatcherCollapsing: Spark2MatcherCollapsing,
-    spark2MatcherScreening: Spark2MatcherScreening
+    spark2MatcherScreening: Spark2MatcherScreening,
+    messagesApi: MessagesApi
     /*,
     /*@Named("limsArchivesPath")*/ exportProfilesPath: String = "",
     /*@Named("generateLimsFiles")*/ exportaALims: Boolean = false
     */
 ) extends MatchingService {
+  implicit val messages: Messages = messagesApi.preferred(Seq.empty)
 
   val discarded = MatchStatus.discarded.toString
   val hit = MatchStatus.hit.toString

@@ -1,7 +1,6 @@
 package connections
 
 import javax.inject.{Inject, Singleton}
-
 import models.Tables
 import models.Tables.ConnectionRow
 import models.Tables.MatchSendStatusRow
@@ -10,8 +9,7 @@ import models.Tables.FileSentRow
 import play.api.Application
 import play.api.db.slick.Config.driver.simple.{Column, Compiled, TableQuery, columnExtensionMethods, longColumnType, runnableCompiledToAppliedQueryInvoker, slickDriver, stringColumnType}
 import util.{DefaultDb, Transaction}
-
-import play.api.i18n.Messages
+import play.api.i18n.{Messages, MessagesApi}
 
 import scala.concurrent.{Await, Future}
 import scala.slick.driver.PostgresDriver.simple._
@@ -46,7 +44,8 @@ abstract class ConnectionRepository extends DefaultDb with Transaction {
 }
 
 @Singleton
-class SlickConnectionRepository @Inject()(implicit val app: Application) extends ConnectionRepository with DefaultDb {
+class SlickConnectionRepository @Inject()(implicit val app: Application, messagesApi: MessagesApi) extends ConnectionRepository with DefaultDb {
+  implicit val messages: Messages = messagesApi.preferred(Seq.empty)
 
   val matchSendStatus: TableQuery[Tables.MatchSendStatus] = Tables.MatchSendStatus
   val matchUpdateSendStatus: TableQuery[Tables.MatchUpdateSendStatus] = Tables.MatchUpdateSendStatus

@@ -224,7 +224,7 @@ class Profiles @Inject()(
     }
   }
 
-  def exporterProfiles() = Action(BodyParsers.parse.json) { request =>
+  def exporterProfiles()(implicit messages: Messages) = Action(BodyParsers.parse.json) { request =>
     val user = request.session("X-USER")
     request.body.validate[ExportProfileFilters].fold(
       errors => {
@@ -233,7 +233,7 @@ class Profiles @Inject()(
       input => {
         Await.result(
           profileExportService.filterProfiles(input).flatMap {
-            case Nil => Future.successful(BadRequest(Messages("error.E2000")))
+            case Nil => Future.successful(BadRequest(messages("error.E2000")))
             case profileList =>
               profileExportService.exportProfiles(profileList, user).map {
                 case Right(resourceName) => {

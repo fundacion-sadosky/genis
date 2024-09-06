@@ -2,14 +2,13 @@ package configdata
 
 import java.sql.SQLException
 import javax.inject.{Inject, Singleton}
-
 import matching.{Algorithm, Stringency}
 import models.Tables
 import models.Tables._
 import play.api.Application
 import play.api.db.slick.Config.driver.simple._
 import play.api.db.slick.DB
-import play.api.i18n.Messages
+import play.api.i18n.{Messages, MessagesApi}
 import types.AlphanumericId
 import util.{DefaultDb, Transaction}
 
@@ -55,7 +54,9 @@ abstract class CategoryRepository extends DefaultDb with Transaction {
 }
 
 @Singleton
-class SlickCategoryRepository @Inject() (implicit app: Application) extends CategoryRepository {
+class SlickCategoryRepository @Inject() (implicit app: Application, messagesApi: MessagesApi) extends CategoryRepository {
+
+  implicit val messages: Messages = messagesApi.preferred(Seq.empty)
 
   val groups: TableQuery[Tables.Group] = Tables.Group
   val categories: TableQuery[Tables.Category] = Tables.Category
@@ -269,7 +270,6 @@ class SlickCategoryRepository @Inject() (implicit app: Application) extends Cate
         }
       }
     }
-
     alias.foldLeft[Either[String,AlphanumericId]](Right(categoryId)){
       case (prev, current) => prev.fold(Left(_),r=>addAlias(current))
     }

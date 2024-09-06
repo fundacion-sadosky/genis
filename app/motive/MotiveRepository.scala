@@ -1,12 +1,10 @@
 package motive
 import javax.inject.Singleton
-
 import models.Tables
 import play.api.Logger
 import play.api.db.slick.Config.driver.simple.TableQuery
 import util.{DefaultDb, Transaction}
-
-import play.api.i18n.Messages
+import play.api.i18n.{Messages, MessagesApi}
 
 import scala.concurrent.Future
 import scala.slick.driver.PostgresDriver.simple._
@@ -22,7 +20,8 @@ abstract class MotiveRepository extends DefaultDb with Transaction {
 }
 
 @Singleton
-class SlickMotiveRepository extends MotiveRepository {
+class SlickMotiveRepository (messagesApi: MessagesApi) extends MotiveRepository {
+  implicit val messages: Messages = messagesApi.preferred(Seq.empty)
   val logger: Logger = Logger(this.getClass())
   val motiveTable: TableQuery[Tables.Motive] = Tables.Motive
   val motiveTypeTable: TableQuery[Tables.MotiveType] = Tables.MotiveType

@@ -1,13 +1,12 @@
 package connections
 
 import java.security.SecureRandom
-
 import matching.{MatchStatus, MatchingProfile, MatchingRepository, MatchingService}
+
 import java.util.{Calendar, Date}
-
 import services.ProfileLabKey
-import javax.inject.{Inject, Named, Singleton}
 
+import javax.inject.{Inject, Named, Singleton}
 import akka.pattern.ask
 import org.apache.commons.codec.binary.Base64
 import akka.actor.{ActorRef, ActorSystem}
@@ -30,12 +29,12 @@ import types.{AlphanumericId, Permission, SampleCode}
 import user.{RoleService, UserService}
 import connections.MatchSuperiorInstance
 import util.FutureUtils
-import java.util
 
+import java.util
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.async.Async.{async, await}
-import play.api.i18n.Messages
+import play.api.i18n.{Messages, MessagesApi}
 
 import scala.concurrent.duration.{Duration, FiniteDuration, SECONDS}
 import scala.util.Try
@@ -146,8 +145,11 @@ class InterconnectionServiceImpl @Inject()(akkaSystem: ActorSystem = null, conne
                                            @Named("timeActorSendRequestGet") val timeActorSendRequestGet: String = "1 seconds",
                                            @Named("timeActorSendRequestPutPostDelete") val timeActorSendRequestPutPostDelete: String = "1 seconds",
                                            @Named("timeOutHolder") val timeOutHolder: Int = 1000,
-                                           cache: CacheService = null
+                                           cache: CacheService = null,
+                                           messagesApi: MessagesApi
                                           ) extends InterconnectionService {
+  implicit val messages: Messages = messagesApi.preferred(Seq.empty)
+
   val defaultTimeoutQueue = akka.util.Timeout(Some(Duration(timeOutQueue)).collect { case d: FiniteDuration => d }.get)
   val defaultTimeoutOnDemand = akka.util.Timeout(Some(Duration(timeOutOnDemand)).collect { case d: FiniteDuration => d }.get)
   val sendRequestActorGlobal: ActorRef = akkaSystem.actorOf(SendRequestActor.props())

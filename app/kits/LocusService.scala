@@ -7,7 +7,7 @@ import pedigree.MutationService
 import services.Keys
 import services.CacheService
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import play.api.i18n.Messages
+import play.api.i18n.{Messages, MessagesApi}
 
 import scala.concurrent.duration.{Duration, SECONDS}
 import scala.concurrent.{Await, Future}
@@ -27,7 +27,8 @@ trait LocusService {
 }
 
 @Singleton
-class LocusServiceImpl @Inject() (cache: CacheService, locusRepository: LocusRepository,mutationService: MutationService) extends LocusService {
+class LocusServiceImpl @Inject() (cache: CacheService, locusRepository: LocusRepository,mutationService: MutationService, messagesApi: MessagesApi) extends LocusService {
+  implicit val messages: Messages = messagesApi.preferred(Seq.empty)
 
   def locusRangeMap(): NewMatchingResult.AlleleMatchRange = {
     val listLocus = Await.result(this.list(), Duration(100, SECONDS))

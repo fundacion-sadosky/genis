@@ -8,17 +8,18 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import services.CacheService
 import services.Keys
 import types.AlphanumericId
+
 import scala.util.Success
 import scala.util.Try
 import scala.util.Failure
 import services.CacheService
 import org.postgresql.util.PSQLException
+
 import java.sql.SQLException
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import profile.Profile
-
-import play.api.i18n.Messages
+import play.api.i18n.{Messages, MessagesApi}
 
 abstract class CategoryService {
 
@@ -44,7 +45,8 @@ abstract class CategoryService {
 }
 
 @Singleton
-class CachedCategoryService @Inject() (cache: CacheService, categoryRepository: CategoryRepository) extends CategoryService {
+class CachedCategoryService @Inject() (cache: CacheService, categoryRepository: CategoryRepository, messagesApi: MessagesApi) extends CategoryService {
+  implicit val messages: Messages = messagesApi.preferred(Seq.empty)
 
   private def cleanCache = {
     cache.pop(Keys.categories)
@@ -81,6 +83,7 @@ class CachedCategoryService @Inject() (cache: CacheService, categoryRepository: 
   }
 
   override def addCategory(category: Category): Future[Either[String, FullCategory]] = {
+
     val fc = FullCategory(
       category.id,
       category.name,

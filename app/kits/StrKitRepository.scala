@@ -2,14 +2,12 @@ package kits
 
 import java.sql.SQLException
 import javax.inject.{Inject, Singleton}
-
 import models.Tables
 import play.api.Application
 import play.api.db.slick.Config.driver.simple._
 import play.api.db.slick.DB
 import util.{DefaultDb, Transaction}
-
-import play.api.i18n.Messages
+import play.api.i18n.{Messages, MessagesApi}
 
 import scala.concurrent.Future
 
@@ -33,7 +31,8 @@ abstract class StrKitRepository extends DefaultDb with Transaction {
 }
 
 @Singleton
-class SlickKitDataRepository @Inject() (implicit app: Application) extends StrKitRepository {
+class SlickKitDataRepository @Inject() (implicit app: Application, messagesApi: MessagesApi) extends StrKitRepository {
+  implicit val messages: Messages = messagesApi.preferred(Seq.empty)
 
   val kits: TableQuery[Tables.Strkit] = Tables.Strkit
   val kitsLociRel: TableQuery[Tables.StrkitLocus] = Tables.StrkitLocus

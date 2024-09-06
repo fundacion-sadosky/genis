@@ -2,13 +2,11 @@ package kits
 
 import java.sql.SQLException
 import javax.inject.{Inject, Singleton}
-
 import models.Tables
 import play.api.Application
 import play.api.db.slick._
 import util.{DefaultDb, Transaction}
-
-import play.api.i18n.Messages
+import play.api.i18n.{Messages, MessagesApi}
 
 import scala.concurrent.Future
 import scala.slick.driver.PostgresDriver.simple.{Session, _}
@@ -32,7 +30,8 @@ abstract class LocusRepository extends DefaultDb  with Transaction {
 }
 
 @Singleton
-class SlickLocusRepository @Inject() (implicit app: Application) extends LocusRepository {
+class SlickLocusRepository @Inject() (implicit app: Application, messagesApi: MessagesApi) extends LocusRepository {
+  implicit val messages: Messages = messagesApi.preferred(Seq.empty)
 
   val loci: TableQuery[Tables.Locus] = Tables.Locus
   val lociAlias: TableQuery[Tables.LocusAlias] = Tables.LocusAlias

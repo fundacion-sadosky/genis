@@ -1,14 +1,13 @@
 package connections
 
 import javax.inject.{Inject, Singleton}
-
 import models.Tables
 import play.api.{Application, Logger}
 import play.api.db.slick.Config.driver.simple.TableQuery
 import util.{DefaultDb, Transaction}
-import play.api.i18n.Messages
-import scala.concurrent.duration.{Duration, SECONDS}
+import play.api.i18n.{Messages, MessagesApi}
 
+import scala.concurrent.duration.{Duration, SECONDS}
 import scala.concurrent.{Await, Future}
 import scala.slick.driver.PostgresDriver.simple._
 abstract class InferiorInstanceRepository extends DefaultDb with Transaction {
@@ -36,10 +35,12 @@ abstract class InferiorInstanceRepository extends DefaultDb with Transaction {
 }
 
 @Singleton
-class SlickInferiorInstanceRepository @Inject()(implicit val app: Application) extends InferiorInstanceRepository with DefaultDb {
+class SlickInferiorInstanceRepository @Inject()(implicit val app: Application,
+                                                messagesApi: MessagesApi) extends InferiorInstanceRepository with DefaultDb {
   val inferiorInstanceTable: TableQuery[Tables.InferiorInstance] = Tables.InferiorInstance
   val instanceStatus: TableQuery[Tables.InstanceStatus] = Tables.InstanceStatus
   val logger: Logger = Logger(this.getClass())
+  implicit val messages: Messages = messagesApi.preferred(Seq.empty)
 
   private def queryGetById(id: Column[Long]) = inferiorInstanceTable.filter(_.id === id)
   private def queryGetByURL(url: Column[String]) =  inferiorInstanceTable.filter(_.url === url)
