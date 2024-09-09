@@ -118,36 +118,38 @@ trait InterconnectionService {
 }
 
 @Singleton
-class InterconnectionServiceImpl @Inject()(akkaSystem: ActorSystem = null, connectionRepository: ConnectionRepository,
-                                           inferiorInstanceRepository: InferiorInstanceRepository,
-                                           categoryRepository: CategoryRepository,
-                                           superiorInstanceProfileApprovalRepository: SuperiorInstanceProfileApprovalRepository,
-                                           client: WSClient,
-                                           userService: UserService,
-                                           roleService: RoleService,
-                                           profileService: ProfileService,
-                                           kitService: StrKitService,
-                                           notificationService: NotificationService,
-                                           @Named("protocol") val protocol: String,
-                                           @Named("status") val status: String,
-                                           @Named("categoryTreeCombo") val categoryTreeCombo: String,
-                                           @Named("insertConnection") val insertConnection: String,
-                                           @Named("localUrl") val localUrl: String,
-                                           @Named("uploadProfile") val uploadProfile: String,
-                                           @Named("labCode") val currentInstanceLabCode: String,
-                                           profileDataService: ProfileDataService = null,
-                                           categoryService: CategoryService = null,
-                                           traceService: TraceService = null,
-                                           matchingRepository: MatchingRepository = null,
-                                           matchingService: MatchingService = null,
-                                           @Named("defaultAssignee") val defaultNotificationReceiver: String = "tst-admin",
-                                           @Named("timeOutOnDemand") val timeOutOnDemand: String = "1 seconds",
-                                           @Named("timeOutQueue") val timeOutQueue: String = "1 seconds",
-                                           @Named("timeActorSendRequestGet") val timeActorSendRequestGet: String = "1 seconds",
-                                           @Named("timeActorSendRequestPutPostDelete") val timeActorSendRequestPutPostDelete: String = "1 seconds",
-                                           @Named("timeOutHolder") val timeOutHolder: Int = 1000,
-                                           cache: CacheService = null
-                                          ) extends InterconnectionService {
+class InterconnectionServiceImpl @Inject()(
+  akkaSystem: ActorSystem = null,
+  connectionRepository: ConnectionRepository,
+  inferiorInstanceRepository: InferiorInstanceRepository,
+  categoryRepository: CategoryRepository,
+  superiorInstanceProfileApprovalRepository: SuperiorInstanceProfileApprovalRepository,
+  client: WSClient,
+  userService: UserService,
+  roleService: RoleService,
+  profileService: ProfileService,
+  kitService: StrKitService,
+  notificationService: NotificationService,
+  @Named("protocol") val protocol: String,
+  @Named("status") val status: String,
+  @Named("categoryTreeCombo") val categoryTreeCombo: String,
+  @Named("insertConnection") val insertConnection: String,
+  @Named("localUrl") val localUrl: String,
+  @Named("uploadProfile") val uploadProfile: String,
+  @Named("labCode") val currentInstanceLabCode: String,
+  profileDataService: ProfileDataService = null,
+  categoryService: CategoryService = null,
+  traceService: TraceService = null,
+  matchingRepository: MatchingRepository = null,
+  matchingService: MatchingService = null,
+  @Named("defaultAssignee") val defaultNotificationReceiver: String = "tst-admin",
+  @Named("timeOutOnDemand") val timeOutOnDemand: String = "1 seconds",
+  @Named("timeOutQueue") val timeOutQueue: String = "1 seconds",
+  @Named("timeActorSendRequestGet") val timeActorSendRequestGet: String = "1 seconds",
+  @Named("timeActorSendRequestPutPostDelete") val timeActorSendRequestPutPostDelete: String = "1 seconds",
+  @Named("timeOutHolder") val timeOutHolder: Int = 1000,
+  cache: CacheService = null
+) extends InterconnectionService {
   val defaultTimeoutQueue = akka.util.Timeout(Some(Duration(timeOutQueue)).collect { case d: FiniteDuration => d }.get)
   val defaultTimeoutOnDemand = akka.util.Timeout(Some(Duration(timeOutOnDemand)).collect { case d: FiniteDuration => d }.get)
   val sendRequestActorGlobal: ActorRef = akkaSystem.actorOf(SendRequestActor.props())
@@ -186,9 +188,22 @@ class InterconnectionServiceImpl @Inject()(akkaSystem: ActorSystem = null, conne
     (sendRequestActor ? (holder.withRequestTimeout(timeOutHolder), body, true, timeActorSendRequestGet)).mapTo[WSResponse]
   }
 
-  private def sendRequestQueue(holder: WSRequestHolder, body: String = "", timeoutParam: Timeout = defaultTimeoutQueue): Future[WSResponse] = {
-    implicit val timeout = timeoutParam
-    (sendRequestActorGlobal ? (addHeadersURL(holder).withRequestTimeout(timeOutHolder), body, false, timeActorSendRequestPutPostDelete)).mapTo[WSResponse]
+  private def sendRequestQueue(
+    holder: WSRequestHolder,
+    body: String = "",
+    timeoutParam: Timeout = defaultTimeoutQueue
+  ): Future[WSResponse] = {
+    implicit val timeout: Timeout = timeoutParam
+    (
+      sendRequestActorGlobal ? (
+        addHeadersURL(holder)
+          .withRequestTimeout(timeOutHolder),
+        body,
+        false,
+        timeActorSendRequestPutPostDelete
+      )
+    )
+    .mapTo[WSResponse]
   }
 
   override def getConnectionsStatus(url: String): Future[Either[String, Unit]] = {
@@ -594,65 +609,93 @@ class InterconnectionServiceImpl @Inject()(akkaSystem: ActorSystem = null, conne
     }
   }
 
-  override def importProfile(profile: Profile, labo: String, sampleEntryDate: String, labCodeInstanceOrigin: String, labCodeInmediateInstance: String, profileAssociated: Option[Profile] = None): Unit = {
+  override def importProfile(
+    profile: Profile,
+    labo: String,
+    sampleEntryDate: String,
+    labCodeInstanceOrigin: String,
+    labCodeInmediateInstance: String,
+    profileAssociated: Option[Profile] = None
+  ): Unit = {
 
     var sampleEntryDateOption: Option[java.sql.Date] = None
-
     if (sampleEntryDate != null && !sampleEntryDate.isEmpty) {
       sampleEntryDateOption = Some(new java.sql.Date(java.lang.Long.valueOf(sampleEntryDate)))
     }
-
-    val newGenotipificationWithLocusKeys = profile.genotypification.map(x=>{
-      //var newGenotipification=locusAliasToLocusId(x._2)
-      x.copy(_2=locusAliasToLocusId(x._2))
-    })
-    val newAnalisisWithLocusKeys = profile.analyses.get.map(analysis => {
-      //var newGenotification=locusAliasToLocusId(analysis.genotypification)
-      analysis.copy(genotypification = locusAliasToLocusId(analysis.genotypification))
-    })
-    val profileChanged1 = profile.copy(genotypification=newGenotipificationWithLocusKeys, analyses = Some(newAnalisisWithLocusKeys))
-
-    importProfileValidator(profileChanged1).map {
-      case Right(()) => {
-        val newAnalisis = profileChanged1.analyses.get.map(analysis => {
-          var kitOpt = kitToOptionKit(analysis.kit)
-          if (kitOpt.isDefined) {
-            analysis.copy(kit = kitOpt.get)
-          } else {
-            analysis
-          }
-        })
-
-        val profileChanged2 = profileChanged1.copy(analyses = Some(newAnalisis))
-
-        superiorInstanceProfileApprovalRepository.upsert(
-          SuperiorInstanceProfileApproval
-          (id = 0L,
-            globalCode = profile._id.text,
-            profile = Json.toJson(profileChanged2).toString(),
-            laboratory = labo,
-            laboratoryInstanceOrigin = labCodeInstanceOrigin,
-            laboratoryImmediateInstance = labCodeInmediateInstance,
-            sampleEntryDate = sampleEntryDateOption,
-            profileAssociated = profileAssociated.map(profile => Json.toJson(profile).toString())))
-
-        this.notify(ProfileUploadedInfo(profile.globalCode), Permission.INTERCON_NOTIF)
-      }
-      case Left(error) => {
-        superiorInstanceProfileApprovalRepository.upsert(
-          SuperiorInstanceProfileApproval
-          (id = 0L,
-            globalCode = profile._id.text,
-            profile = Json.toJson(profile).toString(),
-            laboratory = labo,
-            laboratoryInstanceOrigin = labCodeInstanceOrigin,
-            laboratoryImmediateInstance = labCodeInmediateInstance,
-            sampleEntryDate = sampleEntryDateOption,
-            errors = Some(error),
-            profileAssociated = profileAssociated.map(profile => Json.toJson(profile).toString())))
-
-        this.notify(ProfileUploadedInfo(profile.globalCode), Permission.INTERCON_NOTIF)
-      }
+    val newGenotipificationWithLocusKeys = profile
+      .genotypification
+      .map(
+        x => {
+          x.copy(_2=locusAliasToLocusId(x._2))
+        }
+      )
+    val newAnalisisWithLocusKeys = profile
+      .analyses
+      .get
+      .map(
+        analysis => {
+          analysis.copy(genotypification = locusAliasToLocusId(analysis.genotypification))
+        }
+      )
+    val profileChanged1 = profile
+      .copy(
+        genotypification = newGenotipificationWithLocusKeys,
+        analyses = Some(newAnalisisWithLocusKeys)
+      )
+    importProfileValidator(profileChanged1)
+      .map {
+        case Right(()) =>
+          val newAnalisis = profileChanged1
+            .analyses
+            .get
+            .map(
+              analysis => {
+                val kitOpt = kitToOptionKit(analysis.kit)
+                if (kitOpt.isDefined) {
+                  analysis.copy(kit = kitOpt.get)
+                } else {
+                  analysis
+                }
+              }
+            )
+          val profileChanged2 = profileChanged1.copy(analyses = Some(newAnalisis))
+          superiorInstanceProfileApprovalRepository
+            .upsert(
+              SuperiorInstanceProfileApproval(
+                id = 0L,
+                globalCode = profile._id.text,
+                profile = Json.toJson(profileChanged2).toString(),
+                laboratory = labo,
+                laboratoryInstanceOrigin = labCodeInstanceOrigin,
+                laboratoryImmediateInstance = labCodeInmediateInstance,
+                sampleEntryDate = sampleEntryDateOption,
+                profileAssociated = profileAssociated.map(profile => Json.toJson(profile).toString())
+              )
+            )
+          this.notify(
+            ProfileUploadedInfo(profile.globalCode),
+            Permission.INTERCON_NOTIF
+          )
+        case Left(error) => {
+          superiorInstanceProfileApprovalRepository
+            .upsert(
+              SuperiorInstanceProfileApproval(
+                id = 0L,
+                globalCode = profile._id.text,
+                profile = Json.toJson(profile).toString(),
+                laboratory = labo,
+                laboratoryInstanceOrigin = labCodeInstanceOrigin,
+                laboratoryImmediateInstance = labCodeInmediateInstance,
+                sampleEntryDate = sampleEntryDateOption,
+                errors = Some(error),
+                profileAssociated = profileAssociated.map(profile => Json.toJson(profile).toString())
+              )
+            )
+          this.notify(
+            ProfileUploadedInfo(profile.globalCode),
+            Permission.INTERCON_NOTIF
+          )
+        }
     }
     ()
   }
@@ -677,23 +720,46 @@ class InterconnectionServiceImpl @Inject()(akkaSystem: ActorSystem = null, conne
     }
   }
 
-  def insertOrUpdateProfile(profile: Profile, laboratoryInstanceOrigin: String, laboratoryImmediateInstance: String, laboratory: String, profileAssociated: Option[Profile]): Future[SampleCode] = {
+  def insertOrUpdateProfile(
+    profile: Profile,
+    laboratoryInstanceOrigin: String,
+    laboratoryImmediateInstance: String,
+    laboratory: String,
+    profileAssociated: Option[Profile]
+  ): Future[SampleCode] = {
     (getProfileAssociatedCode(profile), profileAssociated) match {
       case (None, None) => {
         this.insertOrUpdateProfileSingle(profile, laboratoryInstanceOrigin, laboratoryImmediateInstance, laboratory)
       }
       case (Some(associatedProfileCode), Some(associatedProfile)) => {
-        this.insertOrUpdateProfileSingle(associatedProfile, laboratoryInstanceOrigin, laboratoryImmediateInstance, laboratory).flatMap(result => {
+        this.insertOrUpdateProfileSingle(
+          associatedProfile,
+          laboratoryInstanceOrigin,
+          laboratoryImmediateInstance,
+          laboratory
+        ).flatMap(result => {
           this.insertOrUpdateProfileSingle(profile, laboratoryInstanceOrigin, laboratoryImmediateInstance, laboratory)
         })
       }
       case _ => {
-        this.insertOrUpdateProfileSingle(profile.copy(labeledGenotypification = None), laboratoryInstanceOrigin, laboratoryImmediateInstance, laboratory)
+        this.insertOrUpdateProfileSingle(
+          profile.copy(
+            labeledGenotypification = None
+          ),
+          laboratoryInstanceOrigin,
+          laboratoryImmediateInstance,
+          laboratory
+        )
       }
     }
   }
 
-  def insertOrUpdateProfileSingle(profile: Profile, laboratoryInstanceOrigin: String, laboratoryImmediateInstance: String, laboratory: String): Future[SampleCode] = {
+  def insertOrUpdateProfileSingle(
+    profile: Profile,
+    laboratoryInstanceOrigin: String,
+    laboratoryImmediateInstance: String,
+    laboratory: String
+  ): Future[SampleCode] = {
 
     this.existProfileData(profile.globalCode).flatMap {
       case true => {
@@ -750,7 +816,14 @@ class InterconnectionServiceImpl @Inject()(akkaSystem: ActorSystem = null, conne
         val profileAssociated = row.profileAssociated.map(profile => Json.fromJson[Profile](Json.parse(profile)).get)
         importProfileValidator(profile).flatMap {
           case Right(()) => {
-            insertOrUpdateProfile(profile, row.laboratoryInstanceOrigin, row.laboratoryImmediateInstance, row.laboratory, profileAssociated.map(p => p.copy(labeledGenotypification = None, matcheable = false))).flatMap {
+            insertOrUpdateProfile(
+              profile,
+              row.laboratoryInstanceOrigin,
+              row.laboratoryImmediateInstance,
+              row.laboratory,
+              profileAssociated.map(p => p.copy(labeledGenotypification = None, matcheable = false))
+            )
+            .flatMap {
               sampleCode => {
 
                 // disparar el proceso de match
@@ -919,45 +992,68 @@ class InterconnectionServiceImpl @Inject()(akkaSystem: ActorSystem = null, conne
   }
 
   override def uploadProfile(globalCode: String): Future[Either[String, Unit]] = {
-
     val sampleCode = SampleCode(globalCode)
-    profileService.get(sampleCode).flatMap {
+    profileService
+      .get(sampleCode)
+      .flatMap {
       prof => {
         prof match {
           case Some(profile) => {
-            profileDataService.get(sampleCode).flatMap {
-              pd => {
-                pd match {
-                  case Some(pd) => {
-                    categoryService.getCategory(pd.category) match {
-                      case Some(category) => {
-                        if (category.replicate) {
-                          getProfileAssociatedCode(profile) match {
-                            case None => {
-                              this.doUploadProfileToSuperiorInstance(profile.copy(internalSampleCode = profile.globalCode.text), pd.copy(internalSampleCode = profile.globalCode.text))
+            profileDataService
+              .get(sampleCode)
+              .flatMap {
+                pd => {
+                  pd match {
+                    case Some(pd) => {
+                      categoryService.getCategory(pd.category) match {
+                        case Some(category) => {
+                          if (category.replicate) {
+                            getProfileAssociatedCode(profile) match {
+                              case None => {
+                                this.doUploadProfileToSuperiorInstance(
+                                  profile.copy(
+                                    internalSampleCode = profile.globalCode.text
+                                  ),
+                                  pd.copy(
+                                    internalSampleCode = profile.globalCode.text
+                                  )
+                                )
+                              }
+                              case Some(sampleCode) => {
+                                profileService
+                                  .findByCode(sampleCode)
+                                  .flatMap(
+                                    profileAssociated => {
+                                      this.doUploadProfileToSuperiorInstance(
+                                        profile.copy(internalSampleCode = profile.globalCode.text),
+                                        pd.copy(internalSampleCode = profile.globalCode.text),
+                                        profileAssociated
+                                          .map(
+                                            p => p.copy(
+                                              internalSampleCode = p.globalCode.text,
+                                              labeledGenotypification = None,
+                                              matcheable = false
+                                            )
+                                          )
+                                      )
+                                })
+                              }
                             }
-                            case Some(sampleCode) => {
-                              profileService.findByCode(sampleCode).flatMap(profileAssociated => {
-                                this.doUploadProfileToSuperiorInstance(profile.copy(internalSampleCode = profile.globalCode.text), pd.copy(internalSampleCode = profile.globalCode.text),
-                                  profileAssociated.map(p => p.copy(internalSampleCode = p.globalCode.text, labeledGenotypification = None, matcheable = false)))
-                              })
-                            }
+                          } else {
+                            Future.successful(Left(Messages("error.E0725")))
                           }
-                        } else {
-                          Future.successful(Left(Messages("error.E0725")))
+                        }
+                        case None => {
+                          Future.successful(Left(Messages("error.E0666")))
                         }
                       }
-                      case None => {
-                        Future.successful(Left(Messages("error.E0666")))
-                      }
                     }
-                  }
-                  case None => {
-                    Future.successful(Left(Messages("error.E0109")))
+                    case None => {
+                      Future.successful(Left(Messages("error.E0109")))
+                    }
                   }
                 }
               }
-            }
           }
           case None => {
             Future.successful(Left(Messages("error.E0109")))
@@ -965,7 +1061,6 @@ class InterconnectionServiceImpl @Inject()(akkaSystem: ActorSystem = null, conne
         }
       }
     }
-
   }
 
   override def updateUploadStatus(globalCode: String, status: Long, motive: Option[String] = None): Future[Either[String, Unit]] = {
@@ -1419,7 +1514,7 @@ class InterconnectionServiceImpl @Inject()(akkaSystem: ActorSystem = null, conne
   }
 
   override def isFromCurrentInstance(globalCode: SampleCode): Boolean = {
-    return isFromLab(globalCode, currentInstanceLabCode)
+    isFromLab(globalCode, currentInstanceLabCode)
   }
 
   def isSuperiorLab(labImmediate: String) : Boolean = {

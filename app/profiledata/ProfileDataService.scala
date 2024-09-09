@@ -347,7 +347,7 @@ class ProfileDataServiceImpl @Inject() (
     profileData: ProfileDataAttempt
   ): Future[Option[String]] = {
     profileService
-      .isReadOnlySampleCode(globalCode)
+      .isReadOnlySampleCode(globalCode, uploadedIsAllowed = true)
       .flatMap(
         {
           case (true, errorMsg) => Future.successful(Some(errorMsg))

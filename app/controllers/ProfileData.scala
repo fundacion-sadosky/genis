@@ -113,20 +113,6 @@ class ProfileData @Inject() (
               }
           }
         }
-        val updateResultToJson = (updateResult: Either[String, Profile]) => {
-          updateResult match {
-            case Left(error) => Json
-              .obj(
-                "status" -> "error",
-                "message" -> error
-              )
-            case Right(p) => Json
-              .obj(
-                "status" -> "OK",
-                "message" -> Messages("success.S0100", p.globalCode.text)
-              )
-          }
-        }
         val launchFindMatches = (profileData: ProfileDataAttempt) =>
           (profileOpt: Option[Profile]) => {
             profileOpt match {
@@ -175,28 +161,48 @@ class ProfileData @Inject() (
             }
           }
         val updateCategoryInProfile = (profileData: ProfileDataAttempt) => {
-          val catModificationResult = profiledataService
+          val matchAndUpload = (profileOrError: Either[String, Profile]) => {
+            profileOrError match {
+              case Left(error) => Future
+                .successful(
+                  Json.arr(
+                    Json.obj(
+                      "status" -> "error",
+                      "message" -> error
+                    )
+                  )
+                )
+              case Right(prof) =>
+                val futFindMatches = profileService
+                  .get(globalCode)
+                  .map(launchFindMatches(profileData))
+                val findMatchesResult = futFindMatches
+                  .map(findMatchestoJson)
+                if (replicate) {
+                  futFindMatches
+                    .onSuccess(uploadModifiedProfile)
+                }
+                findMatchesResult
+                  .map(
+                    result =>
+                      Json
+                        .arr(
+                          Json.obj(
+                            "status" -> "OK",
+                            "message" -> Messages("success.S0100", prof.globalCode.text)
+                          ),
+                          result
+                        )
+                  )
+            }
+          }
+          profiledataService
             .updateProfileCategoryData(globalCode, profileData)
             .map(getProfileId)
             .flatMap(getProfile)
             .map(copyAndModifyProfile(profileData))
             .flatMap(updateProfile)
-            .map(updateResultToJson)
-          val futFindMatches = profileService
-            .get(globalCode)
-            .map(launchFindMatches(profileData))
-          if (replicate) {
-            futFindMatches
-              .onSuccess(uploadModifiedProfile)
-          }
-          val findMatchesResult = futFindMatches
-            .map(findMatchestoJson)
-          catModificationResult
-            .flatMap(
-              catModificationResult =>
-                findMatchesResult
-                  .map(Json.arr(catModificationResult, _))
-            )
+            .flatMap(matchAndUpload)
             .map(Ok(_))
         }
         profileDataJson

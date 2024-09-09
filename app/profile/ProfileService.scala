@@ -66,10 +66,9 @@ trait ProfileService {
   def getFile(profileId: SampleCode, electropherogramId: String): Future[Option[Array[Byte]]]
   def getFilesByAnalysisId(profileId: SampleCode, analysisId: String): Future[List[FileUploadedType]]
   def saveFile(token: String, globalCode: SampleCode, idAnalysis: String,name:String): Future[List[Either[String, SampleCode]]]
-  def isReadOnly(profile:Option[Profile]):Future[(Boolean,String)]
-  def isReadOnlySampleCode(globalCode:SampleCode):Future[(Boolean,String)]
-  def isReadOnly2(profile:Option[Profile]):Future[(Boolean,String,Boolean)]
-
+  def isReadOnly(profile:Option[Profile], uploadedIsAllowed: Boolean = false):Future[(Boolean,String)]
+  def isReadOnlySampleCode(globalCode:SampleCode, uploadedIsAllowed: Boolean=false):Future[(Boolean,String)]
+  def isReadOnly2(profileOpt: Option[Profile]): Future[(Boolean, String, Boolean)]
   def getFullElectropherogramsByCode(globalCode: SampleCode): Future[List[connections.FileInterconnection]]
   def getFullFilesByCode(globalCode: SampleCode): Future[List[connections.FileInterconnection]]
   def addElectropherogramWithId(globalCode: SampleCode, analysisId: String, image: Array[Byte],name:String,id:String): Future[Either[String, SampleCode]]
@@ -122,47 +121,74 @@ class ProfileServiceImpl @Inject() (
       case e: IllegalArgumentException => Left(e.getMessage())
     }
   }
-  override def isReadOnly(profileOpt:Option[Profile]):Future[(Boolean, String)] = {
+  override def isReadOnly(
+    profileOpt:Option[Profile],
+    uploadedIsAllowed: Boolean = false
+  ):Future[(Boolean, String)] = {
     profileOpt.fold(Future.successful((false,""))) {
       profile =>{
-        if(!this.interconnectionService.isFromCurrentInstance(profile.globalCode)){
-          Future.successful((true,Messages("error.E0727")))
-        }else{
-          (for{isDeleted <- profileDataRepository.isDeleted(profile.globalCode)
-              uploadStatus <- this.profileDataRepository.getProfileUploadStatusByGlobalCode(profile.globalCode)}
-            yield(uploadStatus,isDeleted))
+        if(!this.interconnectionService.isFromCurrentInstance(profile.globalCode)) {
+          Future.successful((true, Messages("error.E0727")))
+        } else {
+          (
+            for{
+              isDeleted <- profileDataRepository.isDeleted(profile.globalCode)
+              uploadStatus <- this.profileDataRepository.getProfileUploadStatusByGlobalCode(profile.globalCode)
+            }
+            yield(uploadStatus, isDeleted)
+          )
           .map{
-            case (_,Some(true)) => (true,Messages("error.E0729"))
-            case (
-                None,_) => (false,"")
-            case (Some(status),_) => (true,Messages("error.E0728"))
+            case (_,Some(true)) => (true, Messages("error.E0729"))
+            case (None, _) => (false, "")
+            case (Some(status), _) if uploadedIsAllowed => (false, "")
+            case (Some(status), _) => (true, Messages("error.E0728"))
           }
         }
       }
     }
   }
-  override def isReadOnly2(profileOpt:Option[Profile]):Future[(Boolean,String,Boolean)] = {
-    profileOpt.fold(Future.successful((false,"",false))){
-      profile =>{
-        if(!this.interconnectionService.isFromCurrentInstance(profile.globalCode)){
-          Future.successful((true,Messages("error.E0727"),false))
-        }else{
-          (for{isDeleted <- profileDataRepository.isDeleted(profile.globalCode)
-               uploadStatus <- this.profileDataRepository.getProfileUploadStatusByGlobalCode(profile.globalCode)}
-            yield(uploadStatus,isDeleted))
-            .map{
-              case (us,Some(true)) => (true,Messages("error.E0729"),us.exists(x => x>=4))
-              case (None,_) => (false,"",false)
-              case (Some(status),_) => (true,Messages("error.E0728"),status>=4)
-            }
+
+  override def isReadOnly2(profileOpt: Option[Profile]): Future[(Boolean, String, Boolean)] = {
+    profileOpt
+      .fold(Future
+        .successful((false, "", false))
+      ) {
+        profile => {
+          if (!this
+            .interconnectionService
+            .isFromCurrentInstance(profile
+              .globalCode
+            )) {
+            Future
+              .successful((true, Messages("error.E0727"), false))
+          } else {
+            (for {isDeleted <- profileDataRepository
+              .isDeleted(profile
+                .globalCode
+              )
+                  uploadStatus <- this
+                    .profileDataRepository
+                    .getProfileUploadStatusByGlobalCode(profile
+                      .globalCode
+                    )}
+            yield (uploadStatus, isDeleted))
+              .map {
+                case (us, Some(true)) => (true, Messages("error.E0729"), us.exists(x => x >= 4))
+                case (None, _) => (false, "", false)
+                case (Some(status), _) => (true, Messages("error.E0728"), status >= 4)
+              }
+          }
         }
       }
-    }
   }
-  override def isReadOnlySampleCode(globalCode:SampleCode):Future[(Boolean, String)] = {
+
+  override def isReadOnlySampleCode(
+    globalCode:SampleCode,
+    uploadedIsAllowed:Boolean = false
+  ):Future[(Boolean, String)] = {
       this
         .findByCode(globalCode)
-        .flatMap(this.isReadOnly)
+        .flatMap(x => this.isReadOnly(x, uploadedIsAllowed))
   }
   override def existProfile(globalCode: SampleCode): Future[Boolean] = {
     profileRepository.existProfile(globalCode)

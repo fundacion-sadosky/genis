@@ -241,7 +241,7 @@ define(
             .updateProfileCategoryData(
               $scope.confirmedCode.globalCode,
               updatedProfile,
-              $scope.replicate
+              $scope.models.uploadToSuperior
             )
             .then(
               function (response) {
@@ -249,7 +249,7 @@ define(
                   for (var i = 0; i < response.data.length; i++) {
                     var taskResponse = response.data[i];
                     if (taskResponse.status === "error") {
-                      return Promise.reject(
+                      alertService.error(
                         {"message": taskResponse.message}
                       );
                     } else {
