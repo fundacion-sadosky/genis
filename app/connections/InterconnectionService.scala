@@ -25,7 +25,7 @@ import play.api.Logger
 import play.api.libs.json.{JsValue, Json}
 import play.api.libs.ws.{WSBody, _}
 import profile.{Profile, ProfileService}
-import profiledata.{DeletedMotive, ProfileData, ProfileDataService}
+import profiledata.{DeletedMotive, ProfileData, ProfileDataService, ProfileDataAttempt}
 import types.{AlphanumericId, Permission, SampleCode}
 import user.{RoleService, UserService}
 import connections.MatchSuperiorInstance
@@ -725,20 +725,34 @@ class InterconnectionServiceImpl @Inject()(
     laboratoryInstanceOrigin: String,
     laboratoryImmediateInstance: String,
     laboratory: String,
-    profileAssociated: Option[Profile]
+    profileAssociated: Option[Profile],
+    allowFromOtherInstances: Boolean = false
   ): Future[SampleCode] = {
     (getProfileAssociatedCode(profile), profileAssociated) match {
       case (None, None) => {
-        this.insertOrUpdateProfileSingle(profile, laboratoryInstanceOrigin, laboratoryImmediateInstance, laboratory)
+        this.insertOrUpdateProfileSingle(
+          profile,
+          laboratoryInstanceOrigin,
+          laboratoryImmediateInstance,
+          laboratory,
+          allowFromOtherInstances = allowFromOtherInstances
+        )
       }
       case (Some(associatedProfileCode), Some(associatedProfile)) => {
         this.insertOrUpdateProfileSingle(
           associatedProfile,
           laboratoryInstanceOrigin,
           laboratoryImmediateInstance,
-          laboratory
+          laboratory,
+          allowFromOtherInstances = allowFromOtherInstances
         ).flatMap(result => {
-          this.insertOrUpdateProfileSingle(profile, laboratoryInstanceOrigin, laboratoryImmediateInstance, laboratory)
+          this.insertOrUpdateProfileSingle(
+            profile,
+            laboratoryInstanceOrigin,
+            laboratoryImmediateInstance,
+            laboratory,
+            allowFromOtherInstances = allowFromOtherInstances
+          )
         })
       }
       case _ => {
@@ -748,7 +762,8 @@ class InterconnectionServiceImpl @Inject()(
           ),
           laboratoryInstanceOrigin,
           laboratoryImmediateInstance,
-          laboratory
+          laboratory,
+          allowFromOtherInstances = allowFromOtherInstances
         )
       }
     }
@@ -758,19 +773,41 @@ class InterconnectionServiceImpl @Inject()(
     profile: Profile,
     laboratoryInstanceOrigin: String,
     laboratoryImmediateInstance: String,
-    laboratory: String
+    laboratory: String,
+    allowFromOtherInstances: Boolean = false
   ): Future[SampleCode] = {
 
     this.existProfileData(profile.globalCode).flatMap {
-      case true => {
+      case true =>
         if (isFromCurrentInstance(profile.globalCode)) {
           Future.successful(profile.globalCode)
         } else {
+          val pda = ProfileDataAttempt(
+            category = profile.categoryId,
+            attorney = None,
+            bioMaterialType = None,
+            court = None,
+            crimeInvolved = None,
+            crimeType = None,
+            criminalCase = None,
+            internalSampleCode = profile.internalSampleCode,
+            assignee = profile.assignee,
+            laboratory = Some(laboratory),
+            responsibleGeneticist = None,
+            profileExpirationDate = None,
+            sampleDate = None,
+            sampleEntryDate = None,
+            dataFiliation = None
+          )
+          profileDataService
+            .updateProfileData(
+              profile.globalCode,
+              profileData = pda,
+              allowFromOtherInstances = allowFromOtherInstances
+            )
           profileService.updateProfile(profile)
         }
-      }
-      case false => {
-
+      case false =>
         profileDataService.importFromAnotherInstance(
           ProfileData(
             category = profile.categoryId,
@@ -803,7 +840,6 @@ class InterconnectionServiceImpl @Inject()(
             }
           }
         }
-      }
     }
   }
 
@@ -821,7 +857,8 @@ class InterconnectionServiceImpl @Inject()(
               row.laboratoryInstanceOrigin,
               row.laboratoryImmediateInstance,
               row.laboratory,
-              profileAssociated.map(p => p.copy(labeledGenotypification = None, matcheable = false))
+              profileAssociated.map(p => p.copy(labeledGenotypification = None, matcheable = false)),
+              allowFromOtherInstances = true
             )
             .flatMap {
               sampleCode => {

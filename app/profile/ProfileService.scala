@@ -66,8 +66,16 @@ trait ProfileService {
   def getFile(profileId: SampleCode, electropherogramId: String): Future[Option[Array[Byte]]]
   def getFilesByAnalysisId(profileId: SampleCode, analysisId: String): Future[List[FileUploadedType]]
   def saveFile(token: String, globalCode: SampleCode, idAnalysis: String,name:String): Future[List[Either[String, SampleCode]]]
-  def isReadOnly(profile:Option[Profile], uploadedIsAllowed: Boolean = false):Future[(Boolean,String)]
-  def isReadOnlySampleCode(globalCode:SampleCode, uploadedIsAllowed: Boolean=false):Future[(Boolean,String)]
+  def isReadOnly(
+    profile:Option[Profile],
+    uploadedIsAllowed: Boolean = false,
+    allowFromOtherInstances: Boolean=false
+  ):Future[(Boolean,String)]
+  def isReadOnlySampleCode(
+    globalCode:SampleCode,
+    uploadedIsAllowed: Boolean=false,
+    allowFromOtherInstances: Boolean=false
+  ):Future[(Boolean,String)]
   def isReadOnly2(profileOpt: Option[Profile]): Future[(Boolean, String, Boolean)]
   def getFullElectropherogramsByCode(globalCode: SampleCode): Future[List[connections.FileInterconnection]]
   def getFullFilesByCode(globalCode: SampleCode): Future[List[connections.FileInterconnection]]
@@ -123,11 +131,12 @@ class ProfileServiceImpl @Inject() (
   }
   override def isReadOnly(
     profileOpt:Option[Profile],
-    uploadedIsAllowed: Boolean = false
+    uploadedIsAllowed: Boolean = false,
+    allowFromOtherInstances: Boolean = false
   ):Future[(Boolean, String)] = {
     profileOpt.fold(Future.successful((false,""))) {
       profile =>{
-        if(!this.interconnectionService.isFromCurrentInstance(profile.globalCode)) {
+        if(!allowFromOtherInstances && !this.interconnectionService.isFromCurrentInstance(profile.globalCode)) {
           Future.successful((true, Messages("error.E0727")))
         } else {
           (
@@ -184,11 +193,12 @@ class ProfileServiceImpl @Inject() (
 
   override def isReadOnlySampleCode(
     globalCode:SampleCode,
-    uploadedIsAllowed:Boolean = false
+    uploadedIsAllowed:Boolean = false,
+    allowFromOtherInstances:Boolean = false
   ):Future[(Boolean, String)] = {
       this
         .findByCode(globalCode)
-        .flatMap(x => this.isReadOnly(x, uploadedIsAllowed))
+        .flatMap(x => this.isReadOnly(x, uploadedIsAllowed, allowFromOtherInstances))
   }
   override def existProfile(globalCode: SampleCode): Future[Boolean] = {
     profileRepository.existProfile(globalCode)

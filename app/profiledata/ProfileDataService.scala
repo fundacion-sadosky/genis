@@ -47,10 +47,14 @@ trait ProfileDataService {
   def findByCode(globalCode: SampleCode): Future[Option[ProfileData]]
   def create(profileData: ProfileDataAttempt): Future[Either[String, SampleCode]]
   def findByCodeWithAssociations(globalCode: SampleCode): Future[Option[(ProfileData, Group, FullCategory)]]
-  def updateProfileData(globalCode: SampleCode, profileData: ProfileDataAttempt): Future[Boolean]
+  def updateProfileData(
+    globalCode: SampleCode,
+    profileData: ProfileDataAttempt,
+    allowFromOtherInstances: Boolean = false
+  ): Future[Boolean]
   def updateProfileCategoryData(globalCode: SampleCode, profileData: ProfileDataAttempt): Future[Option[String]]
   def get(sampleCode: SampleCode): Future[Option[ProfileData]]
-  def isEditable(sampleCode: SampleCode): Future[Option[Boolean]]
+  def isEditable(sampleCode: SampleCode, allowFromOtherInstances:Boolean = false): Future[Option[Boolean]]
   def getResource(resourceType: String, id: Long): Future[Option[Array[Byte]]]
   def getDeleteMotive(sampleCode: SampleCode): Future[Option[DeletedMotive]]
   def deleteProfile(
@@ -236,10 +240,13 @@ class ProfileDataServiceImpl @Inject() (
     }
   }
 
-  def isEditable(sampleCode: SampleCode): Future[Option[Boolean]] = {
+  def isEditable(sampleCode: SampleCode, allowFromOtherInstances: Boolean): Future[Option[Boolean]] = {
     val d = for {
       matches <- matchingService.findMatchingResults(sampleCode)
-      isReadOnly <-profileService.isReadOnlySampleCode(sampleCode)
+      isReadOnly <- profileService.isReadOnlySampleCode(
+        sampleCode,
+        allowFromOtherInstances = allowFromOtherInstances
+      )
     } yield (matches.isDefined,isReadOnly._1)
     d map {
       case (hasMatches,isReadOnly) => {
@@ -301,10 +308,11 @@ class ProfileDataServiceImpl @Inject() (
 
   override def updateProfileData(
     globalCode: SampleCode,
-    profileData: ProfileDataAttempt
+    profileData: ProfileDataAttempt,
+    allowFromOtherInstances: Boolean = false
   ): Future[Boolean] = {
 
-    this.isEditable(globalCode).flatMap { result =>
+    this.isEditable(globalCode, allowFromOtherInstances).flatMap { result =>
       if (result.get) {
         val filiationDataOpt = profileData.dataFiliation
         val images = filiationDataOpt map { filiationData =>
