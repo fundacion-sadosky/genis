@@ -101,28 +101,33 @@ class MatchingCalculatorServiceImpl @Inject() (
   override def updateMatchesLR(matchingLRs: Set[(String, Double)]):Future[Unit] = {
     this.matchingService.updateMatchesLR(matchingLRs)
   }
-  override def getDefaultLRForMachingId(firingProfile: Profile, matchingGlobalCode: String,idMatching:String,allelesRanges:Option[NewMatchingResult.AlleleMatchRange] = None): Future[LRCalculation] = {
-    val lrDefault = LRCalculation(idMatching,0.0,0.0)
-    probabilityService.getStats(currentInstanceLabCode).flatMap{
-      case (stats) => {
-        profileService.get(SampleCode(matchingGlobalCode)).flatMap{
-          case Some(matchingProfile) => {
-//              getLRByAlgorithm(firingProfile,matchingProfile,stats.get,allelesRanges).map(_.map(_.total).getOrElse(0.0)).flatMap(lr => {
-//                getLRByAlgorithm(matchingProfile,firingProfile,stats.get,allelesRanges).map(_.map(_.total).getOrElse(0.0)).map(lrRight => {
-//                  LRCalculation(idMatching,lr,lrRight)
-//                })
-            getLRByAlgorithm(firingProfile,matchingProfile,stats.get,allelesRanges).map(_.map(_.total).getOrElse(0.0)).map(lr => {
-              LRCalculation(idMatching,lr,lr)
-
-            })
+  override def getDefaultLRForMachingId(
+    firingProfile: Profile,
+    matchingGlobalCode: String,
+    idMatching:String,
+    allelesRanges:Option[NewMatchingResult.AlleleMatchRange] = None
+  ): Future[LRCalculation] = {
+    val lrDefault = LRCalculation(idMatching, 0.0, 0.0)
+    probabilityService
+      .getStats(currentInstanceLabCode)
+      .flatMap{
+        case Some(stats) =>
+          profileService
+            .get(SampleCode(matchingGlobalCode))
+            .flatMap{
+              case Some(matchingProfile) => {
+    //              getLRByAlgorithm(firingProfile,matchingProfile,stats.get,allelesRanges).map(_.map(_.total).getOrElse(0.0)).flatMap(lr => {
+    //                getLRByAlgorithm(matchingProfile,firingProfile,stats.get,allelesRanges).map(_.map(_.total).getOrElse(0.0)).map(lrRight => {
+    //                  LRCalculation(idMatching,lr,lrRight)
+    //                })
+                getLRByAlgorithm(firingProfile, matchingProfile, stats, allelesRanges)
+                  .map(_.map(_.total).getOrElse(0.0))
+                  .map(lr => { LRCalculation(idMatching, lr, lr) })
+              }
+              case None => Future.successful(lrDefault)
           }
-          case None => Future.successful(lrDefault)
-        }
+        case None => Future.successful(lrDefault)
       }
-      case None => {
-        Future.successful(lrDefault)
-      }
-    }
   }
   def determineProfiles(firingProfile: Profile, matchingProfile: Profile):(Profile,Profile,Boolean) = {
     var sample = firingProfile
