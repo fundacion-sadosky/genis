@@ -3,7 +3,6 @@ package pedigree
 import java.io.File
 import java.util.Date
 import javax.inject.{Inject, Named, Singleton}
-
 import akka.actor.ActorSystem
 import configdata.CategoryService
 import inbox.{NotificationService, PedigreeMatchingInfo}
@@ -11,7 +10,7 @@ import kits.AnalysisType
 import matching.{MatchStatus, MatchingService}
 import pedigree.BayesianNetwork.Linkage
 import play.api.libs.json.{JsArray, JsValue, Json}
-import play.api.i18n.Messages
+import play.api.i18n.{Messages, MessagesApi}
 
 import scala.concurrent.{Await, Future}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -60,6 +59,7 @@ class PedigreeMatchesServiceImpl @Inject()(
   pedigreeGenotypificationRepository: PedigreeGenotypificationRepository,
   profileRepository: ProfileRepository,
   calculationTypeService: CalculationTypeService,
+  messagesApi: MessagesApi,
   traceService: TraceService,
   profileDataRepo: ProfileDataRepository,
   notificationService: NotificationService,
@@ -336,6 +336,7 @@ class PedigreeMatchesServiceImpl @Inject()(
     isSuperUser: Boolean
   ): Future[Either[String, String]] = {
     pedigreeMatchesRepository.getMatchById(matchId) flatMap { opt =>
+      implicit val messages: Messages = messagesApi.preferred(Seq.empty)
       val matchResult = opt.get
       val result = if (isSuperUser || ( matchResult.pedigree.assignee == userId)) {
         pedigreeMatchesRepository.discardProfile(matchId) flatMap {

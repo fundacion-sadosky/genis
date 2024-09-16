@@ -19,7 +19,7 @@ import services.{CacheService, TemporaryAssetKey}
 import trace.{AnalysisInfo, AssociationInfo, Trace, TraceService}
 import types.{AlphanumericId, MongoDate, SampleCode}
 import util.Misc
-import play.api.i18n.Messages
+import play.api.i18n.{Messages, MessagesApi}
 import play.api.libs.json.Json
 import profile.Profile.Marker
 import user.UserService
@@ -87,6 +87,7 @@ trait ProfileService {
 @Singleton
 class ProfileServiceImpl @Inject() (
                                      cache: CacheService,
+                                     messagesApi: MessagesApi,
                                      profileRepository: ProfileRepository,
                                      profileDataRepository: ProfileDataRepository,
                                      kitService: StrKitService,
@@ -103,6 +104,7 @@ class ProfileServiceImpl @Inject() (
                                      interconnectionService : InterconnectionService = null,
                                      matchingRepo: MatchingRepository = null,
                                      userService: UserService = null) extends ProfileService {
+  implicit val messages: Messages = messagesApi.preferred(Seq.empty)
 
   val logger = Logger(this.getClass())
 

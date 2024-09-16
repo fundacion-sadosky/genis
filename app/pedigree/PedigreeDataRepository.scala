@@ -3,13 +3,13 @@ package pedigree
 import java.sql.Timestamp
 import java.util.Calendar
 import javax.inject.{Inject, Singleton}
-
 import models.Tables
 import models.Tables.{CourtCaseFiliationDataRow, CourtCaseRow, PedigreeRow}
 import play.api.{Application, Logger}
 import play.api.db.slick.Config.driver.simple._
 import play.api.db.slick.DB
-import play.api.i18n.Messages
+import play.api.i18n.{Messages, MessagesApi}
+import play.api.i18n.Messages.Implicits.applicationMessages
 import play.api.libs.json.Json
 import types.{SampleCode, Sex}
 import util.{DefaultDb, Transaction}

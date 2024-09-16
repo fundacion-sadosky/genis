@@ -6,13 +6,14 @@ import play.api.libs.json.{JsObject, Json}
 import play.modules.reactivemongo.ReactiveMongoPlugin
 import play.modules.reactivemongo.json.collection.JSONCollection
 import types.{MongoId, SampleCode}
+
 import scala.concurrent.{Await, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 import play.modules.reactivemongo.json._
 import reactivemongo.api.{Cursor, DefaultDB, FailoverStrategy, MongoConnection}
+import play.api.i18n.{Messages, MessagesApi}
 
-import play.api.i18n.Messages
-
+import javax.inject.Inject
 import scala.concurrent.duration._
 
 abstract class ScenarioRepository {
@@ -26,7 +27,7 @@ abstract class ScenarioRepository {
   def getByMatch(firingCode: SampleCode, matchingCode: SampleCode, userId: String, isSuperUser: Boolean): Future[Seq[Scenario]]
 }
 
-class MongoScenarioRepository extends ScenarioRepository {
+class MongoScenarioRepository  @Inject() (messagesApi: MessagesApi) extends ScenarioRepository  {
   private def scenarios = Await.result(play.modules.reactivemongo.ReactiveMongoPlugin.database.map(_.collection[JSONCollection]("scenarios")), Duration(10, SECONDS))
   //private def scenarios = play.modules.reactivemongo.ReactiveMongoPlugin.db.collection[JSONCollection]("scenarios")
 
@@ -69,6 +70,7 @@ class MongoScenarioRepository extends ScenarioRepository {
   }
 
   override def delete(userId: String, id: MongoId, isSuperUser: Boolean): Future[Either[String, String]] = {
+    implicit val messages: Messages = messagesApi.preferred(Seq.empty)
     val set: JsObject = Json.obj("$set" -> Json.obj("state" -> ScenarioStatus.Deleted))
 
     val query = if (isSuperUser){
@@ -104,7 +106,7 @@ class MongoScenarioRepository extends ScenarioRepository {
       scenario.isRestricted,
       scenario.result,
       scenario.description)
-
+    implicit val messages: Messages = messagesApi.preferred(Seq.empty)
     val query = if (isSuperUser){
       Json.obj("_id" -> scenario._id)
     }else{
@@ -120,6 +122,7 @@ class MongoScenarioRepository extends ScenarioRepository {
   }
 
   override def update(userId: String, scenario: Scenario, isSuperUser: Boolean): Future[Either[String, String]] = {
+    implicit val messages: Messages = messagesApi.preferred(Seq.empty)
     val query = if (isSuperUser){
       Json.obj("_id" -> scenario._id)
     }else{

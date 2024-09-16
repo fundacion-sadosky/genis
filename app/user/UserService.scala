@@ -1,20 +1,18 @@
 package user
 
 import java.util.UUID
-
 import scala.Left
 import scala.Right
 import scala.concurrent.Future
 import javax.inject.Inject
 import javax.inject.Singleton
-
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import security.CryptoService
 import security.OTPService
 import services.{CacheService, ClearPassRequestKey, FullUserKey, SignupRequestKey}
 import inbox.{NotificationInfo, NotificationService, UserPendingInfo}
 import types.Permission
-import play.api.i18n.Messages
+import play.api.i18n.{Messages, MessagesApi}
 
 
 abstract class UserService {
@@ -43,11 +41,13 @@ class UserServiceImpl @Inject() (
     userRepository: UserRepository,
     cacheService: CacheService,
     cryptoService: CryptoService,
+    messagesApi: MessagesApi,
     otpService: OTPService,
     notiService: NotificationService,
     roleService: RoleService) extends UserService {
 
   def calculateUserNameCandidates(firstName: String, lastName: String, email: String): Future[Seq[String]] = {
+    implicit val messages: Messages = messagesApi.preferred(Seq.empty)
     val normFirstName = firstName.replace("""\W""", "").toLowerCase()
     val normLastName = lastName.replace("""\W""", "").toLowerCase()
     val firstChar = normFirstName.charAt(0)
@@ -72,6 +72,7 @@ class UserServiceImpl @Inject() (
     }
   }
   override def clearPassRequest(solicitud: ClearPassSolicitud): Future[Either[String, ClearPassResponse]] = {
+    implicit val messages: Messages = messagesApi.preferred(Seq.empty)
     val totpsecret = cryptoService.giveTotpSecret
     val (publicKey, privateKey) = cryptoService.giveRsaKeys
     val credentials = UserCredentials(
@@ -120,6 +121,7 @@ class UserServiceImpl @Inject() (
   }
 
   override def signupConfirmation(confirmation: SignupChallenge): Future[Either[String, Int]] = {
+    implicit val messages: Messages = messagesApi.preferred(Seq.empty)
     val key = SignupRequestKey(confirmation.signupRequestId)
     cacheService.pop(key).fold[Future[Either[String, Int]]] {
       Future.successful(Left(Messages("error.E0802")))
@@ -167,6 +169,7 @@ class UserServiceImpl @Inject() (
     }
   }
   override def clearPassConfirmation(confirmation: ClearPassChallenge): Future[Either[String, Int]] = {
+    implicit val messages: Messages = messagesApi.preferred(Seq.empty)
     val key = ClearPassRequestKey(confirmation.clearPassRequestId)
     cacheService.pop(key).fold[Future[Either[String, Int]]] {
       Future.successful(Left(Messages("error.E0802")))
@@ -222,6 +225,7 @@ class UserServiceImpl @Inject() (
 
   override def setStatus(userId: String, newStatus: UserStatus.Value): Future[Either[String, Int]] = {
     userRepository.get(userId).flatMap { user =>
+      implicit val messages: Messages = messagesApi.preferred(Seq.empty)
       val status = user.status
 
       if (allowTransition(status, newStatus)) {

@@ -2,14 +2,12 @@ package profiledata
 
 import java.io.File
 import java.util.Date
-
 import scala.Left
 import scala.Right
 import scala.concurrent.{Await, Future}
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
-
 import com.github.tototoshi.csv.{CSVWriter, DefaultCSVFormat}
 import models.Tables
 import models.Tables.ProfileUploadedRow
@@ -35,7 +33,7 @@ import connections.InterconnectionService
 import inbox._
 import scenarios.{ScenarioRepository, ScenarioService}
 import trace.{DeleteInfo, Trace, TraceService}
-import play.api.i18n.Messages
+import play.api.i18n.{Messages, MessagesApi}
 import models.Tables.ExternalProfileDataRow
 import pedigree.PedigreeService
 import matching.CollapseRequest
@@ -76,6 +74,7 @@ class ProfileDataServiceImpl @Inject() (
     notificationService: NotificationService,
     bioMatService: BioMaterialTypeService,
     crimeType: CrimeTypeService,
+    messagesApi: MessagesApi,
     laboratories: LaboratoryService,
     matchingService: MatchingService,
     scenarioRepository: ScenarioRepository,
@@ -88,7 +87,7 @@ class ProfileDataServiceImpl @Inject() (
     profileService:ProfileService=null,
     pedigreeService: PedigreeService = null,
     userService : UserService = null) extends ProfileDataService {
-
+  implicit val messages: Messages = messagesApi.preferred(Seq.empty)
   val logger = Logger(this.getClass())
 
   override def getResource(resourceType: String, id: Long): Future[Option[Array[Byte]]] = {

@@ -3,15 +3,13 @@ package user
 import scala.concurrent.Future
 import javax.inject.Inject
 import javax.inject.Singleton
-
 import types.Permission
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import security.StaticAuthorisationOperation
 import services.CacheService
 import services.Keys
 import types.Permission.LOGIN_SIGNUP
-
-import play.api.i18n.Messages
+import play.api.i18n.{Messages, MessagesApi}
 
 abstract class RoleService {
   def getRolePermissions(): Map[String, Set[Permission]]
@@ -26,7 +24,7 @@ abstract class RoleService {
 }
 
 @Singleton
-class RoleServiceImpl @Inject() (roleRepository: RoleRepository, cacheService: CacheService, userRepository: UserRepository) extends RoleService {
+class RoleServiceImpl @Inject() (messagesApi: MessagesApi, roleRepository: RoleRepository, cacheService: CacheService, userRepository: UserRepository) extends RoleService {
 
   private def cleanCache = {
     cacheService.pop(Keys.roles)
@@ -91,6 +89,7 @@ class RoleServiceImpl @Inject() (roleRepository: RoleRepository, cacheService: C
 
   override def deleteRole(id: String): Future[Either[String, Boolean]] = {
     userRepository.listAllUsers().flatMap { l =>
+      implicit val messages: Messages = messagesApi.preferred(Seq.empty)
       if (l.count { _.roles.contains(id) } > 0)
         Future(Left(Messages("error.E0654")))
       else {

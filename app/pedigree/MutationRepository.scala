@@ -1,7 +1,6 @@
 package pedigree
 import java.sql.Timestamp
 import java.util.Calendar
-
 import javax.inject.{Inject, Singleton}
 import models.Tables
 import models.Tables.{CourtCaseFiliationDataRow, CourtCaseRow, PedigreeRow}
@@ -9,11 +8,12 @@ import motive.{Motive, MotiveType}
 import play.api.{Application, Logger}
 import play.api.db.slick.Config.driver.simple._
 import play.api.db.slick.DB
-import play.api.i18n.Messages
+import play.api.i18n.{Messages, MessagesApi}
 import play.api.libs.json.Json
 import types.{SampleCode, Sex}
 import util.{DefaultDb, Transaction}
 import pedigree.MutationDefaultParam
+
 import scala.slick.jdbc.{StaticQuery => Q}
 import scala.concurrent.Future
 import scala.math.BigDecimal.RoundingMode
@@ -37,7 +37,7 @@ abstract class MutationRepository extends DefaultDb with Transaction {
   def insertLocusAlleles(parameterList: List[(String,Double)]): Future[Either[String, Int]]
 }
 @Singleton
-class SlickMutationRepository @Inject() (implicit app: Application) extends MutationRepository {
+class SlickMutationRepository @Inject() (implicit app: Application, messagesApi: MessagesApi) extends MutationRepository {
   val mutationModelTable: TableQuery[Tables.MutationModel] = Tables.MutationModel
   val mutationModelTypeTable: TableQuery[Tables.MutationModelType] = Tables.MutationModelType
   val mutationModelParameterTable: TableQuery[Tables.MutationModelParameter] = Tables.MutationModelParameter
@@ -96,7 +96,7 @@ class SlickMutationRepository @Inject() (implicit app: Application) extends Muta
 
     this.runInTransactionAsync { implicit session => {
       try {
-
+        implicit val messages: Messages = messagesApi.preferred(Seq.empty)
         val id = (mutationModelTable returning mutationModelTable.map(_.id)) += models.Tables.MutationModelRow(id = 0,
             name = fullMutationModel.header.name,
             mutationType = fullMutationModel.header.mutationType,

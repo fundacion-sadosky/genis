@@ -8,17 +8,15 @@ import matching.{CollapseRequest, MatchingService}
 import models.Tables.CourtCaseProfiles
 import org.postgresql.util.PSQLException
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import trace.{PedigreeEditInfo, TraceService,TracePedigree,PedigreeStatusChangeInfo}
-
+import trace.{PedigreeEditInfo, PedigreeStatusChangeInfo, TracePedigree, TraceService}
 import scala.concurrent.{Await, Future}
-import play.api.i18n.Messages
+import play.api.i18n.{Messages, MessagesApi}
 import profile.ProfileService
 import profiledata._
 import search.FullTextSearchService
 import types.SampleCode
 import services.{CacheService, Keys}
-import trace.{PedigreeEditInfo, TraceService,TracePedigree,PedigreeStatusChangeInfo,PedigreeCopyInfo}
-
+import trace.{PedigreeCopyInfo, PedigreeEditInfo, PedigreeStatusChangeInfo, TracePedigree, TraceService}
 import scala.concurrent.duration.{Duration, SECONDS}
 import scala.util.{Failure, Success}
 
@@ -89,6 +87,7 @@ class PedigreeServiceImpl @Inject() (
     pedigreeDataRepository: PedigreeDataRepository,
     pedigreeRepository: PedigreeRepository,
     cache: CacheService,
+    messagesApi: MessagesApi,
     profileService: ProfileService = null,
     fullTextSearch:FullTextSearchService = null,
     categoryService: CategoryService = null,
@@ -98,7 +97,7 @@ class PedigreeServiceImpl @Inject() (
     matchingService:MatchingService = null,
     pedCheckService: PedCheckService = null,
     traceService:TraceService = null) extends PedigreeService {
-
+  implicit val messages: Messages = messagesApi.preferred(Seq.empty)
   val errorPf: PartialFunction[Throwable, Either[String, Long]] = {
     case psql: PSQLException => {
       psql.getSQLState match {

@@ -2,6 +2,7 @@ package profiledata
 
 import models.Tables.ProfileUploadedRow
 import models.Tables.ProfileSentRow
+
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
@@ -14,6 +15,7 @@ import scala.slick.jdbc.{StaticQuery => Q}
 import scala.slick.jdbc.StaticQuery.staticQueryToInvoker
 import configdata.Category
 import configdata.Group
+
 import javax.inject.Inject
 import javax.inject.Singleton
 import javax.sql.rowset.serial.SerialBlob
@@ -32,8 +34,7 @@ import play.api.db.slick.Config.driver.simple.columnExtensionMethods
 import play.api.db.slick.Config.driver.simple.longColumnType
 import play.api.db.slick.Config.driver.simple.queryToAppliedQueryInvoker
 import play.api.db.slick.Config.driver.simple.queryToInsertInvoker
-import play.api.db.slick.Config.driver.simple.
-  runnableCompiledToAppliedQueryInvoker
+import play.api.db.slick.Config.driver.simple.runnableCompiledToAppliedQueryInvoker
 import play.api.db.slick.Config.driver.simple.slickDriver
 import play.api.db.slick.Config.driver.simple.stringColumnType
 import play.api.db.slick.Config.driver.simple.valueToConstColumn
@@ -42,7 +43,7 @@ import play.api.db.slick.DBAction
 import types.AlphanumericId
 import types.SampleCode
 import util.{DefaultDb, Transaction}
-import play.api.i18n.Messages
+import play.api.i18n.{Messages, MessagesApi}
 import models.Tables.ExternalProfileDataRow
 abstract class ProfileDataRepository extends DefaultDb with Transaction  {
   /**
@@ -144,7 +145,7 @@ abstract class ProfileDataRepository extends DefaultDb with Transaction  {
 
 @Singleton
 class SlickProfileDataRepository @Inject() (
-  implicit app: Application
+  implicit app: Application, messagesApi: MessagesApi
 ) extends ProfileDataRepository {
   val logger: Logger = Logger(this.getClass())
 
@@ -972,6 +973,7 @@ class SlickProfileDataRepository @Inject() (
   override def updateUploadStatus(globalCode: String,status:Long,motive:Option[String] = None): Future[Either[String,Unit]]= {
     this.runInTransactionAsync { implicit session => {
       try {
+      implicit val messages: Messages = messagesApi.preferred(Seq.empty)
       getByGlobalCode(globalCode).firstOption match {
         case None => Left(Messages("error.E0940"))
         case Some(row) => {
@@ -1012,6 +1014,7 @@ class SlickProfileDataRepository @Inject() (
   override def updateProfileSentStatus(globalCode: String,status:Long,motive:Option[String]= None,labCode:String): Future[Either[String,Unit]] = {
     this.runInTransactionAsync { implicit session => {
       try {
+        implicit val messages: Messages = messagesApi.preferred(Seq.empty)
         getByGlobalCode(globalCode).firstOption match {
           case None => Left(Messages("error.E0940"))
           case Some(row) => {
@@ -1045,7 +1048,7 @@ class SlickProfileDataRepository @Inject() (
   }
 
 @Singleton
-class ProtoProfileDataRepository @Inject() (implicit app: Application) extends SlickProfileDataRepository {
+class ProtoProfileDataRepository @Inject() (implicit app: Application, messagesApi: MessagesApi) extends SlickProfileDataRepository {
   override val profilesData: TableQuery[Tables.ProfileData] = new TableQuery(tag => new Tables.ProfileData(tag, Some("STASH"), "PROFILE_DATA"))
   override val profileMetaDataFiliations: TableQuery[Tables.ProfileDataFiliation] = new TableQuery(tag => new Tables.ProfileDataFiliation(tag, Some("STASH"), "PROFILE_DATA_FILIATION"))
   override val profileMetaDataFiliationResources: TableQuery[Tables.ProfileDataFiliationResources] = new TableQuery(tag => new Tables.ProfileDataFiliationResources(tag, Some("STASH"), "PROFILE_DATA_FILIATION_RESOURCES"))

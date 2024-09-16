@@ -2,18 +2,17 @@ package stats
 
 import scala.concurrent.Future
 import java.io.File
-
 import javax.inject.Inject
 import javax.inject.Singleton
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import play.api.i18n.Messages
+import play.api.i18n.{Messages, MessagesApi}
 
 import scala.language.postfixOps
 import scala.collection.immutable.TreeMap
 import scala.collection.immutable.SortedMap
 import com.github.tototoshi.csv.CSVReader
-import java.io.FileInputStream
 
+import java.io.FileInputStream
 import scala.io.BufferedSource
 import com.github.tototoshi.csv.DefaultCSVFormat
 import kits.StrKitService
@@ -41,10 +40,11 @@ trait PopulationBaseFrequencyService {
 @Singleton
 class PopulationBaseFrequencyImpl @Inject() (
   cache: CacheService,
+  messagesApi: MessagesApi,
   popBaseFreqRepo: PopulationBaseFrequencyRepository,
   strKitService: StrKitService,
   mutationService:MutationService = null) extends PopulationBaseFrequencyService {
-
+  implicit val messages: Messages = messagesApi.preferred(Seq.empty)
   val logger = Logger(this.getClass())
 
   object comaFileFormat extends DefaultCSVFormat {

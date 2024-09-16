@@ -1,7 +1,6 @@
 package trace
 
 import javax.inject.{Inject, Singleton}
-
 import configdata.{CategoryAssociation, CategoryConfiguration, CategoryService, MatchingRule}
 import kits.{AnalysisType, AnalysisTypeService, LocusRepository, StrKitRepository}
 import matching.Algorithm.Algorithm
@@ -11,8 +10,7 @@ import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
 import profile.ProfileRepository
-
-import play.api.i18n.Messages
+import play.api.i18n.{Messages, MessagesApi}
 
 import scala.concurrent.Future
 
@@ -28,6 +26,7 @@ abstract class TraceService {
 
 @Singleton
 class TraceServiceImpl @Inject() (
+  messagesApi: MessagesApi,
   traceRepository: TraceRepository,
   categoryService: CategoryService,
   analysisTypeService: AnalysisTypeService,
@@ -40,6 +39,7 @@ class TraceServiceImpl @Inject() (
   override def addTracePedigree(trace: TracePedigree): Future[Either[String, Long]] = {
     traceRepository.addTracePedigree(trace).recover {
       case e: Throwable => {
+        implicit val messages: Messages = messagesApi.preferred(Seq.empty)
         val error = Messages("error.E0131",trace.kind.toString, trace.pedigree)
         logger.error(error, e)
         Left(error)
@@ -49,6 +49,7 @@ class TraceServiceImpl @Inject() (
   override def add(trace: Trace): Future[Either[String, Long]] = {
     traceRepository.add(trace).recover {
       case e: Throwable => {
+        implicit val messages: Messages = messagesApi.preferred(Seq.empty)
         val error = Messages("error.E0121",trace.kind.toString, trace.profile.text)
         logger.error(error, e)
         Left(error)

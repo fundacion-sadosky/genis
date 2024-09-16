@@ -6,11 +6,12 @@ import kits.AnalysisType
 import pedigree.BayesianNetwork.Linkage
 import probability.CalculationTypeService
 import profile.{Profile, ProfileRepository}
-import play.api.i18n.Messages
+import play.api.i18n.{Messages, MessagesApi}
 import akka.pattern.ask
 import akka.dispatch.MessageDispatcher
 import akka.util.Timeout
 import play.api.Logger
+
 import scala.concurrent.Future
 import scala.concurrent.duration.{Duration, FiniteDuration}
 
@@ -33,6 +34,7 @@ trait PedigreeGenotypificationService {
 
 @Singleton
 class PedigreeGenotypificationServiceImpl @Inject()(
+  messagesApi: MessagesApi,
   akkaSystem: ActorSystem,
   profileRepository: ProfileRepository,
   calculationTypeService: CalculationTypeService,
@@ -62,6 +64,7 @@ class PedigreeGenotypificationServiceImpl @Inject()(
       .get(pedigreeId)
       .flatMap {
         pedigreeOpt => {
+          implicit val messages: Messages = messagesApi.preferred(Seq.empty)
           val pedigree = pedigreeOpt.get
           val frequencyTableName = pedigree
             .frequencyTable
@@ -127,6 +130,7 @@ class PedigreeGenotypificationServiceImpl @Inject()(
       .flatMap(
         result => {
           if(result.isRight) {
+            implicit val messages: Messages = messagesApi.preferred(Seq.empty)
             val markers = profileRepository.
               getProfilesMarkers(profiles)
             val unknowns = pedigree

@@ -4,18 +4,15 @@ import types.{MongoId, SampleCode}
 
 import scala.concurrent.Future
 import javax.inject.Inject
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import javax.inject.Singleton
-
 import matching._
 import probability._
 import profile.{Profile, ProfileService}
 import stats.PopulationBaseFrequencyService
 
 import scala.collection.mutable.ArrayBuffer
-
-import play.api.i18n.Messages
+import play.api.i18n.{Messages, MessagesApi}
 
 abstract class ScenarioService {
 
@@ -34,6 +31,7 @@ abstract class ScenarioService {
 
 @Singleton
 class ScenarioServiceImpl @Inject() (
+    messagesApi: MessagesApi,
     profileService: ProfileService,
     matchingRepository: MatchingRepository,
     populationBaseFrequencyService: PopulationBaseFrequencyService,
@@ -251,6 +249,7 @@ class ScenarioServiceImpl @Inject() (
 
   override def getNCorrection(request: NCorrectionRequest) : Future[Either[String, NCorrectionResponse]] = {
     matchingRepository.getByFiringAndMatchingProfile(request.firingCode, request.matchingCode).map { mr =>
+      implicit val messages: Messages = messagesApi.preferred(Seq.empty)
       val n = mr.get.n
       if (request.bigN > n) {
         val dmp = 1 - Math.pow(1 - (1 / request.lr), n)

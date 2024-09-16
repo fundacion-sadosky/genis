@@ -1,13 +1,11 @@
 package pedigree
 
 import javax.inject.{Inject, Singleton}
-
 import inbox.{NotificationService, PedigreeLRInfo}
 import scenarios.ScenarioStatus
 import types.MongoId
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-
-import play.api.i18n.Messages
+import play.api.i18n.{Messages, MessagesApi}
 
 import scala.concurrent.Future
 
@@ -22,6 +20,7 @@ abstract class PedigreeScenarioService {
 
 @Singleton
 class PedigreeScenarioServiceImpl @Inject() (
+  messagesApi: MessagesApi,
   pedigreeScenarioRepository: PedigreeScenarioRepository,
   pedigreeService: PedigreeService,
   notificationService: NotificationService) extends PedigreeScenarioService {
@@ -42,6 +41,7 @@ class PedigreeScenarioServiceImpl @Inject() (
   }
 
   override def changeScenarioStatus(scenario: PedigreeScenario, status: ScenarioStatus.Value, userId: String, isSuperUser: Boolean): Future[Either[String, MongoId]] = {
+    implicit val messages: Messages = messagesApi.preferred(Seq.empty)
     val result = (scenario.status, status) match {
       case (ScenarioStatus.Pending, _) => {
         pedigreeScenarioRepository.update(scenario).flatMap {
