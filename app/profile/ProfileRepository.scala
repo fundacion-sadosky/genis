@@ -106,6 +106,7 @@ abstract class ProfileRepository {
 }
 
 class MongoProfileRepository extends ProfileRepository {
+
   private def profiles = Await.result(play.modules.reactivemongo.ReactiveMongoPlugin.database.map(_.collection[JSONCollection]("profiles")), Duration(10, SECONDS))
 
   private def electropherograms = Await.result(play.modules.reactivemongo.ReactiveMongoPlugin.database.map(_.collection[JSONCollection]("electropherograms")), Duration(10, SECONDS))

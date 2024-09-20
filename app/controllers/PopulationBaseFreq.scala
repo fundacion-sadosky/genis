@@ -1,33 +1,21 @@
 package controllers
 
-import java.io.FileInputStream
-import java.nio.file.Files
-import scala.io.BufferedSource
-import play.api.libs.json.Json
-import play.api.libs.json.Json.toJsFieldJsValueWrapper
-import play.api.mvc.Action
-import play.api.mvc.Controller
-import javax.inject.Singleton
-import javax.inject.Inject
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import scala.concurrent.Future
-import play.api.libs.json.Format
-import play.api.libs.json.JsError
-import play.api.libs.json.Json
-import play.api.libs.json.Json.toJsFieldJsValueWrapper
-import play.api.libs.json.Reads
-import play.api.libs.json.Writes
-import play.api.libs.json.__
-import play.api.libs.json._
 import play.api.libs.functional.syntax._
+import play.api.libs.json.Json.toJsFieldJsValueWrapper
+import play.api.libs.json._
+import play.api.mvc.{Action, BodyParsers, Controller}
 import probability.ProbabilityModel
-import stats.PopulationBaseFrequencyService
-import stats.PopBaseFreqResult
-import stats.Fmins
-import play.api.mvc.BodyParsers
+import stats.{Fmins, PopulationBaseFrequencyService}
+
+import java.nio.file.Files
+import javax.inject.{Inject, Singleton}
+import scala.concurrent.Future
 
 @Singleton
 class PopulationBaseFreq @Inject() (populationBaseFrequencyService: PopulationBaseFrequencyService) extends Controller {
+
+  //implicit val populationBaseFrequencyViewFormat = Json.format[PopulationBaseFrequencyView]
 
   def setBaseAsDefault(name: String) = Action.async {
     populationBaseFrequencyService.setAsDefault(name) map {
@@ -47,7 +35,7 @@ class PopulationBaseFreq @Inject() (populationBaseFrequencyService: PopulationBa
     }
   }
 
-  def getByName(name: String) = Action.async { request =>
+ def getByName(name: String) = Action.async { request =>
     populationBaseFrequencyService.getByNamePV(name) map { data =>
       Ok(Json.toJson(data))
     }

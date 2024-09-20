@@ -1,12 +1,7 @@
 package stats
 
-import play.api.libs.json.Reads
-import play.api.libs.json.Writes
-import play.api.libs.json.Format
-import play.api.libs.json.__
-import play.api.libs.functional.syntax.functionalCanBuildApplicative
-import play.api.libs.functional.syntax.toFunctionalBuilderOps
-import play.api.libs.json.Json
+import play.api.libs.functional.syntax._
+import play.api.libs.json.{Format, Json, Reads, Writes}
 import probability.ProbabilityModel
 import profile.Profile
 import types.MinimunFrequencyCalc
@@ -40,10 +35,22 @@ case class PopulationBaseFrequencyView(
   markers: List[String],
   frequencys: List[List[Option[BigDecimal]]])
 
-object PopulationBaseFrequencyView {
-  implicit val populationBaseFrequencyViewFormat = Json.format[PopulationBaseFrequencyView]
-}
+//object PopulationBaseFrequencyView {
+//  implicit val populationBaseFrequencyViewFormat = Json.format[PopulationBaseFrequencyView]
+//}
 
+object PopulationBaseFrequencyView {
+  // Define los Reads y Writes para Option[BigDecimal]
+  implicit val optionBigDecimalReads: Reads[Option[BigDecimal]] = Reads.optionWithNull[BigDecimal]
+  implicit val optionBigDecimalWrites: Writes[Option[BigDecimal]] = Writes.optionWithNull[BigDecimal]
+
+  // Define los implicits para listas anidadas
+  implicit val listOfListOptionBigDecimalReads: Reads[List[List[Option[BigDecimal]]]] = Reads.list(Reads.list(optionBigDecimalReads))
+  implicit val listOfListOptionBigDecimalWrites: Writes[List[List[Option[BigDecimal]]]] = Writes.list(Writes.list(optionBigDecimalWrites))
+
+  implicit val populationBaseFrequencyViewFormat: Format[PopulationBaseFrequencyView] = Json.format[PopulationBaseFrequencyView]
+
+}
 case class Fmins(
   calcOption: MinimunFrequencyCalc.MinimunFrequencyCalc,
   config: Map[Profile.Marker, Seq[Double]])

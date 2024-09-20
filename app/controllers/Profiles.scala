@@ -1,40 +1,39 @@
 package controllers
 
-import javax.inject.{Inject, Singleton}
 import configdata.CategoryService
+import play.api.i18n.MessagesApi
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.iteratee.Enumerator
-import play.api.libs.json.{JsError, JsString, JsValue, Json, Writes}
+import play.api.libs.json.{JsError, JsValue, Json}
 import play.api.mvc._
 import play.modules.reactivemongo.MongoController
 import profile.GenotypificationByType._
 import profile.{GenotypificationByType => _, _}
 import services.{CacheService, UploadedAnalysisKey}
-import types.{AlphanumericId, _}
+import types._
 
-import java.nio.file.Files
-import play.api.i18n.Messages
-
+import javax.inject.{Inject, Singleton}
 import scala.concurrent._
 import scala.concurrent.duration.Duration
 import scala.util.{Left, Right};
 
 @Singleton
 class Profiles @Inject()(
-  categoryService: CategoryService,
-  profileService: ProfileService,
-  cache: CacheService,
-  profileExportService:
+                          categoryService: CategoryService,
+                          messages: MessagesApi,
+                          profileService: ProfileService,
+                          cache: CacheService,
+                          profileExportService:
   ProfileExporterService,
-  limsArchivesExporterService:
-  LimsArchivesExporterService
+                          limsArchivesExporterService: LimsArchivesExporterService
 ) extends Controller with MongoController with JsonActions {
 
   def create = Action.async(BodyParsers.parse.json) { request =>
     val input = request.body.validate[NewAnalysis]
     input.fold(
       errors => {
-        Future.successful(BadRequest(JsError.toFlatJson(errors)))
+        //Future.successful(BadRequest(JsError.toFlatJson(errors)))
+        Future.successful(BadRequest(JsError.toJson(errors)))
       },
       input => {
         val result = profileService.create(input)
@@ -224,7 +223,8 @@ class Profiles @Inject()(
     }
   }
 
-  def exporterProfiles()(implicit messages: Messages) = Action(BodyParsers.parse.json) { request =>
+  def exporterProfiles() = Action(BodyParsers.parse.json) { request =>
+    // implicit val messages: Messages = messagesApi.preferred(Seq.empty)
     val user = request.session("X-USER")
     request.body.validate[ExportProfileFilters].fold(
       errors => {

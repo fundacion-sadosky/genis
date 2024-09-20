@@ -2,11 +2,16 @@ package connections
 
 import com.google.inject.AbstractModule
 import com.google.inject.name.Names
-import com.typesafe.config.ConfigFactory
+import com.ning.http.client.AsyncHttpClientConfig
 import play.api.Configuration
-import play.api.Play.current
-import play.api.libs.ws.ning.NingAsyncHttpClientConfigBuilder
 import play.api.libs.ws._
+import play.api.libs.ws.WSClient
+
+import play.api.libs.ws._
+import play.api.{Configuration, Environment}
+import javax.inject.{Inject, Singleton}
+
+import play.api.libs.ws.ning.NingAsyncHttpClientConfigBuilder
 
 class InterconnectionModule(conf: Configuration,wsConf: Configuration) extends AbstractModule {
   override protected def configure() {
@@ -44,12 +49,15 @@ class InterconnectionModule(conf: Configuration,wsConf: Configuration) extends A
 
     bind(classOf[InterconnectionService]).to(classOf[InterconnectionServiceImpl])
 
-    val clientConfig = new DefaultWSConfigParser(wsConf,getClass.getClassLoader)
-
-    val secureDefaults:com.ning.http.client.AsyncHttpClientConfig = new NingAsyncHttpClientConfigBuilder(clientConfig.parse()).build()
+    val clientConfig = new PlayWSConfigParser(wsConf,getClass.getClassLoader)
+    //val clientConfig = new DefaultWSConfigParser(wsConf,getClass.getClassLoader)
+    val secureDefaults:com.ning.http.client.AsyncHttpClientConfig = new AsyncHttpClientConfig.Builder(clientConfig()).build()
+    //val secureDefaults:com.ning.http.client.AsyncHttpClientConfig = new NingAsyncHttpClientConfigBuilder(clientConfig.parse()).build()
     // You can directly use the builder for specific options once you have secure TLS defaults...
     val builder = new com.ning.http.client.AsyncHttpClientConfig.Builder(secureDefaults)
-    builder.setCompressionEnabled(true)
+    builder.setCompressionEnforced(true)
+    //builder.setCompressionEnabled(true)
+
     val secureDefaultsWithSpecificOptions:com.ning.http.client.AsyncHttpClientConfig = builder.build()
     implicit val implicitClient = new play.api.libs.ws.ning.NingWSClient(secureDefaultsWithSpecificOptions)
     bind(classOf[WSClient]).toInstance(implicitClient)

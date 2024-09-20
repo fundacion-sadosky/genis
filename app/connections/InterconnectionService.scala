@@ -1,49 +1,33 @@
 package connections
 
-import java.security.SecureRandom
-import matching.{MatchStatus, MatchingProfile, MatchingRepository, MatchingService}
-
-import java.util.{Calendar, Date}
-import services.ProfileLabKey
-
-import javax.inject.{Inject, Named, Singleton}
-import akka.pattern.ask
-import org.apache.commons.codec.binary.Base64
 import akka.actor.{ActorRef, ActorSystem}
+import akka.pattern.ask
 import akka.util.Timeout
-import audit.PEOSignerActor
-import connections.ProfileTransfer
-
-import scala.concurrent.duration._
-import scala.concurrent.Await
-import models.Tables.ExternalProfileDataRow
-import configdata.{CategoryConfiguration, CategoryRepository, CategoryService}
+import configdata.{CategoryRepository, CategoryService}
 import inbox._
-import kits.{AnalysisType, StrKitService}
+import kits.StrKitService
+import matching._
+import models.Tables.ExternalProfileDataRow
+import org.apache.commons.codec.binary.Base64
 import play.api.Logger
+import play.api.i18n.{Messages, MessagesApi}
 import play.api.libs.json.{JsValue, Json}
-import play.api.libs.ws.{WSBody, _}
+import play.api.libs.ws._
 import profile.{Profile, ProfileService}
 import profiledata.{DeletedMotive, ProfileData, ProfileDataService}
+import services.CacheService
+import trace.{MatchInfo, MatchTypeInfo, Trace, TraceService}
 import types.{AlphanumericId, Permission, SampleCode}
 import user.{RoleService, UserService}
-import connections.MatchSuperiorInstance
 import util.FutureUtils
 
-import java.util
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import java.util.{Calendar, Date}
+import javax.inject.{Inject, Named, Singleton}
 import scala.async.Async.{async, await}
-import play.api.i18n.{Messages, MessagesApi}
-
-import scala.concurrent.duration.{Duration, FiniteDuration, SECONDS}
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration._
 import scala.util.Try
-import inbox.DiscardInfoInbox
-import inbox.HitInfoInbox
-import inbox.DeleteProfileInfo
-import matching.MatchResult
-import services.CacheService
-import trace.{MatchInfo, MatchTypeInfo, ProfileInterconectionUploadInfo, Trace, TraceService}
 
 trait InterconnectionService {
 
@@ -182,13 +166,13 @@ class InterconnectionServiceImpl @Inject()(akkaSystem: ActorSystem = null, conne
 
   }
 
-  private def sendRequestOnDemand(holder: WSRequestHolder, body: String = "", timeoutParam: Timeout = defaultTimeoutOnDemand): Future[WSResponse] = {
+  private def sendRequestOnDemand(holder: WSRequest, body: String = "", timeoutParam: Timeout = defaultTimeoutOnDemand): Future[WSResponse] = {
     implicit val timeout = timeoutParam
     val sendRequestActor: ActorRef = akkaSystem.actorOf(SendRequestActor.props())
     (sendRequestActor ? (holder.withRequestTimeout(timeOutHolder), body, true, timeActorSendRequestGet)).mapTo[WSResponse]
   }
 
-  private def sendRequestQueue(holder: WSRequestHolder, body: String = "", timeoutParam: Timeout = defaultTimeoutQueue): Future[WSResponse] = {
+  private def sendRequestQueue(holder: WSRequest, body: String = "", timeoutParam: Timeout = defaultTimeoutQueue): Future[WSResponse] = {
     implicit val timeout = timeoutParam
     (sendRequestActorGlobal ? (addHeadersURL(holder).withRequestTimeout(timeOutHolder), body, false, timeActorSendRequestPutPostDelete)).mapTo[WSResponse]
   }
@@ -196,7 +180,7 @@ class InterconnectionServiceImpl @Inject()(akkaSystem: ActorSystem = null, conne
   override def getConnectionsStatus(url: String): Future[Either[String, Unit]] = {
 
     try {
-      val holder: WSRequestHolder = addHeadersURL(client.url(protocol + url + status))
+      val holder: WSRequest = addHeadersURL(client.url(protocol + url + status))
       val futureResponse: Future[WSResponse] = this.sendRequestOnDemand(holder)
       futureResponse.flatMap(result => {
         if (result.status == 200) {
@@ -222,7 +206,7 @@ class InterconnectionServiceImpl @Inject()(akkaSystem: ActorSystem = null, conne
     }
   }
 
-  private def addHeadersURL(holder: WSRequestHolder): WSRequestHolder = {
+  private def addHeadersURL(holder: WSRequest): WSRequest = {
     holder.withHeaders(HeaderInsterconnections.url -> localUrl).withHeaders(HeaderInsterconnections.laboratoryImmediateInstance -> currentInstanceLabCode)
   }
 
@@ -233,7 +217,7 @@ class InterconnectionServiceImpl @Inject()(akkaSystem: ActorSystem = null, conne
       case None => Future.successful(Left("error.E0707"))
       case Some(connectionsUrl) => {
 
-        val holder: WSRequestHolder = addHeadersURL(client.url(protocol + connectionsUrl + categoryTreeCombo))
+        val holder: WSRequest = addHeadersURL(client.url(protocol + connectionsUrl + categoryTreeCombo))
         val futureResponse: Future[WSResponse] = holder.get()
         futureResponse.flatMap { result => {
           if (result.status == 200) {
@@ -301,7 +285,7 @@ class InterconnectionServiceImpl @Inject()(akkaSystem: ActorSystem = null, conne
     connectionRepository.getSupInstanceUrl().flatMap {
       case None => Future.successful(Left(Messages("error.E0707")))
       case Some(urlSup) => {
-        val holder: WSRequestHolder = addHeadersURL(client.url(protocol + urlSup + insertConnection))
+        val holder: WSRequest = addHeadersURL(client.url(protocol + urlSup + insertConnection))
         val futureResponse: Future[WSResponse] = this.sendRequestQueue(holder.withMethod("POST"))
         futureResponse.flatMap { result => {
           if (result.status == 200) {
@@ -427,7 +411,7 @@ class InterconnectionServiceImpl @Inject()(akkaSystem: ActorSystem = null, conne
                 if (pd.sampleEntryDate.isDefined) {
                   sampleEntryDateString = String.valueOf(pd.sampleEntryDate.get.getTime)
                 }
-                val holder: WSRequestHolder = addHeadersURL(client.url(protocol + supUrl + uploadProfile))
+                val holder: WSRequest = addHeadersURL(client.url(protocol + supUrl + uploadProfile))
                   .withHeaders("Content-Type" -> "application/json")
                   .withHeaders(HeaderInsterconnections.labCode -> pd.laboratory)
                   .withHeaders(HeaderInsterconnections.laboratoryOrigin -> currentInstanceLabCode)
@@ -890,7 +874,7 @@ class InterconnectionServiceImpl @Inject()(akkaSystem: ActorSystem = null, conne
 
           val parameters = s"?globalCode=$globalCode&status=$status"
 
-          val holder: WSRequestHolder = if (motive.isEmpty) {
+          val holder: WSRequest = if (motive.isEmpty) {
             client.url(protocol + inferiorInstance.url + "/inferior/profile/status" + parameters)
           }
           else {
@@ -1113,7 +1097,7 @@ class InterconnectionServiceImpl @Inject()(akkaSystem: ActorSystem = null, conne
       case Left(_) => Future.successful(Left("No se pudo notificar el borrado a la instancia inferior"))
       case Right(_) => {
         async {
-          val holder: WSRequestHolder = addHeadersURL(client.url(url + "/superior/profile/" + globalCode.text))
+          val holder: WSRequest = addHeadersURL(client.url(url + "/superior/profile/" + globalCode.text))
             .withHeaders("Content-Type" -> "application/json")
             .withHeaders(HeaderInsterconnections.labCode -> currentInstanceLabCode)
             .withHeaders(HeaderInsterconnections.laboratoryOrigin -> laboratoryOrigin)
@@ -1180,7 +1164,7 @@ class InterconnectionServiceImpl @Inject()(akkaSystem: ActorSystem = null, conne
     this.getConnectionsStatus(url).flatMap {
       case Left(_) => Future.successful(Left("No se pudo enviar el match a la instancia inferior"))
       case Right(_) => {
-        val holder: WSRequestHolder = client.url(protocol + url + "/inferior/match/")
+        val holder: WSRequest = client.url(protocol + url + "/inferior/match/")
           .withHeaders("Content-Type" -> "application/json")
         val futureResponse: Future[WSResponse] = this.sendRequestQueue(holder.withMethod("POST"), outputJsonString)
         futureResponse.flatMap { result => {
@@ -1569,7 +1553,7 @@ class InterconnectionServiceImpl @Inject()(akkaSystem: ActorSystem = null, conne
 
   def sendConvertStatus(convertStatus: ConvertStatusInterconnection, url: String, labcode: String): Unit = {
 
-    val holder: WSRequestHolder = client.url(protocol + url + "/interconection/match/status")
+    val holder: WSRequest= client.url(protocol + url + "/interconection/match/status")
       .withHeaders("Content-Type" -> "application/json")
     val outputJson = Json.toJson(convertStatus)
     val outputJsonString = outputJson.toString
@@ -1942,7 +1926,7 @@ class InterconnectionServiceImpl @Inject()(akkaSystem: ActorSystem = null, conne
   }
 
   private def sendRequestFile(url: String, targetLab: String, fileToSend: FileInterconnection): Unit = {
-    val holder: WSRequestHolder = client.url(protocol + url + "/interconnection/file").withHeaders("Content-Type" -> "application/json")
+    val holder: WSRequest = client.url(protocol + url + "/interconnection/file").withHeaders("Content-Type" -> "application/json")
     val outputJson = Json.toJson(fileToSend)
     val outputJsonString = outputJson.toString
     val futureResponse: Future[WSResponse] = this.sendRequestQueue(holder.withMethod("POST"), outputJsonString)

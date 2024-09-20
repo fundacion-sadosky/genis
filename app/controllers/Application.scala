@@ -1,37 +1,22 @@
 package controllers
 
-import java.security.MessageDigest
-
+import matching.{Algorithm, Stringency}
 import org.apache.commons.codec.binary.Hex
-import javax.inject.Inject
-import javax.inject.Named
-import javax.inject.Singleton
-import matching.Algorithm
-import matching.Stringency
-import play.api.Play
 import play.api.Routes
-import play.api.cache.Cache
-import play.api.libs.functional.syntax.functionalCanBuildApplicative
 import play.api.libs.functional.syntax.toFunctionalBuilderOps
-import play.api.libs.json.Json
 import play.api.libs.json.Json.toJsFieldJsValueWrapper
-import play.api.libs.json.Reads.StringReads
-import play.api.libs.json.Reads.functorReads
-import play.api.libs.json.Reads.minLength
-import play.api.libs.json.Writes
-import play.api.libs.json.__
-import play.api.mvc.Action
-import play.api.mvc.Controller
-import play.api.mvc.DiscardingCookie
+import play.api.libs.json.{Json, Writes, __}
+import play.api.mvc.{Action, Controller}
 import play.twirl.api.Html
-import security.AuthorisationOperation
-import security.StaticAuthorisationOperation
+import profiledata.ProfileDataService
+import security.{AuthorisationOperation, StaticAuthorisationOperation}
 import types.{Mode, Permission, SampleCode}
 import user.UserStatus
-import profiledata.ProfileDataService
 
+import java.security.MessageDigest
+import javax.inject.{Inject, Named, Singleton}
 import scala.concurrent.Await
-import scala.concurrent.duration.{Duration, SECONDS}
+import scala.concurrent.duration.Duration
 @Singleton
 class Application @Inject() (app: play.api.Application, @Named("genisManifest") manifest: Map[String, String], mode: Mode,profileData:ProfileDataService) extends Controller {
 
@@ -135,7 +120,8 @@ class Application @Inject() (app: play.api.Application, @Named("genisManifest") 
       val controllers = jsRoutesClass.getFields.map(_.get(null))
       controllers.flatMap { controller =>
         controller.getClass.getDeclaredMethods.map { action =>
-          action.invoke(controller).asInstanceOf[play.core.Router.JavascriptReverseRoute]
+          //action.invoke(controller).asInstanceOf[play.core.Router.JavascriptReverseRoute]
+          action.invoke(controller).asInstanceOf[play.api.routing.JavaScriptReverseRoute]
         }
       }
     }

@@ -110,6 +110,7 @@ DELETE   /profiles-file/file/:fileId                          @controllers.Profi
 DELETE   /profiles-file/epg/:fileId                           @controllers.Profiles.removeEpg(fileId:String)
 GET      /profiles/readOnly                                   @controllers.Profiles.isReadOnly(globalCode: types.SampleCode)
 POST     /profile-export                                      @controllers.Profiles.exporterProfiles
+# POST     /profile-export                                      @controllers.Profiles.exporterProfiles
 POST     /profile-exportToLims                                @controllers.Profiles.exporterLimsFiles
 GET      /get-profile-export/:user                            @controllers.Profiles.getExportFile(user: String)
 GET      /get-alta-file-export                                @controllers.Profiles.getLimsAltaFile()
@@ -359,7 +360,8 @@ DELETE   /motive/:id                                          @controllers.Motiv
 # ~~~~
 
 # Map static resources from the /public folder to the /assets URL path
-GET      /assets/*file                                        controllers.Assets.at(path="/public/lib/genis", file: Asset)
+GET      /assets/*file                                        controllers.Assets.versioned(path="/public/lib/genis", file: Asset)
+# GET      /assets/*file                                        controllers.Assets.at(path="/public/lib/genis", file: Asset)
 
 # Reporting
 GET     /reportes/primerReporte                                 @controllers.ReportingController.getPrimerReporte

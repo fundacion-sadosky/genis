@@ -38,6 +38,7 @@ abstract class MutationRepository extends DefaultDb with Transaction {
 }
 @Singleton
 class SlickMutationRepository @Inject() (implicit app: Application, messagesApi: MessagesApi) extends MutationRepository {
+  implicit val messages: Messages = messagesApi.preferred(Seq.empty)
   val mutationModelTable: TableQuery[Tables.MutationModel] = Tables.MutationModel
   val mutationModelTypeTable: TableQuery[Tables.MutationModelType] = Tables.MutationModelType
   val mutationModelParameterTable: TableQuery[Tables.MutationModelParameter] = Tables.MutationModelParameter
@@ -177,6 +178,7 @@ class SlickMutationRepository @Inject() (implicit app: Application, messagesApi:
   override def updateMutationModel(fullMutationModel: MutationModelFull): Future[Either[String, Unit]] = {
     this.runInTransactionAsync { implicit session => {
       try {
+        implicit val messages: Messages = messagesApi.preferred(Seq.empty)
         val mutationModel = fullMutationModel.header
         mutationModelTable.filter(_.id === mutationModel.id)
           .map(x => (x.name,x.mutationType,x.active,x.ignoreSex, x.cantSaltos))
@@ -195,7 +197,9 @@ class SlickMutationRepository @Inject() (implicit app: Application, messagesApi:
       } catch {
         case e: Exception => {
           logger.error(e.getMessage,e)
-          Left(Messages("error.E0500"))
+          Left {
+            Messages("error.E0500")
+          }
         }
       }
     }
