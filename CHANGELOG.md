@@ -1,8 +1,42 @@
 # Changelog
 
-## v[5.1.11] - 2023-10-25
+## [v5.1.12-pre-release] - 2024-09-22
 
 _Si está actualizando el sistema por favor lea:  [`UPGRADING.md`](https://github.com/fundacion-sadosky/genis/blob/main/UPGRADING.md)._
+
+### Added
+
+- Ahora es posible cambiar la categoría de un perfil indubitado.
+  El cambio relanza las comparaciones basadas en la nueva categoría.
+  El cambio de categoría se puede replicar en la instancia superior.
+  ([#95](https://github.com/fundacion-sadosky/genis/issues/95)).
+
+### Fixed
+
+- Se corrigió un error se que producía cuando se intentaban ver todos los perfiles
+  en la visualización de coincidencias en el módulo forense.
+  ([#64](https://github.com/fundacion-sadosky/genis/issues/64)).
+- Se corrigió un error que mostraba texto estra en la tabla de comparación de alelos.
+  ([#65](https://github.com/fundacion-sadosky/genis/issues/65)).
+- Se corrigió un error en el módulo MPI dado por pedigrís que no tienen una persona
+  faltante/desconocida.
+  ([#70](https://github.com/fundacion-sadosky/genis/issues/70)).
+- Se corrigió un error que permitía la creación de perfiles que no tienen un persona
+  faltante/desconocida.
+  ([#72](https://github.com/fundacion-sadosky/genis/issues/72)).
+- Se corrigió un error en la verificación de consistencia de un pedigrí que no
+  tiene una persona faltante/desconocida.
+  ([#77](https://github.com/fundacion-sadosky/genis/issues/77)).
+- Se corrigió un error de tipos en el test de PedigreeMatchesService.
+  ([#93](https://github.com/fundacion-sadosky/genis/issues/93)).
+- Se corrigió un error en la comparación de perfiles.
+  ([#108](https://github.com/fundacion-sadosky/genis/issues/108)).
+- Se corrigió un error en el cálculo de LR corregido por N.
+  ([#109](https://github.com/fundacion-sadosky/genis/issues/109)).
+- Se corrigió un error en el cálculo de LR promedio que se da cuando unos de los LRs es 0.0.
+  ([#110](https://github.com/fundacion-sadosky/genis/issues/110)).
+
+## [v5.1.11] - 2023-10-25
 
 ### Fixed
 
