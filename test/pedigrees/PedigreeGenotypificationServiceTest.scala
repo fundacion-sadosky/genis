@@ -78,12 +78,32 @@ class PedigreeGenotypificationServiceTest extends PdgSpec with MockitoSugar {
       val calculationTypeService = mock[CalculationTypeService]
       when(calculationTypeService.getAnalysisTypeByCalculation(any[String])).thenReturn(Future.successful(Stubs.analysisTypes.head))
 
+      val pedigreeDataRepository = mock[PedigreeDataRepository]
+
       val bayesianNetworkService = mock[BayesianNetworkService]
-      when(bayesianNetworkService.getGenotypification(pedigreeGenogram, profiles.toArray, frequencyTable, Stubs.analysisTypes.head, Map.empty,None,None,Map.empty)).thenReturn(Future.successful(genotypification))
+      when(
+        bayesianNetworkService.getGenotypification(
+          pedigreeGenogram, profiles.toArray, frequencyTable, Stubs.analysisTypes.head, Map.empty,None,None,Map.empty
+        )
+      ).thenReturn(Future.successful(genotypification))
       when(bayesianNetworkService.getFrequencyTable("test")).thenReturn(Future.successful(("test", frequencyTable)))
       when(bayesianNetworkService.getLinkage()).thenReturn(Future.successful(Map.empty[String, (String, Double)]))
 
-      val service = new PedigreeGenotypificationServiceImpl(Akka.system, profileRepository, calculationTypeService, bayesianNetworkService, pedigreeGenotypificationRepository, pedigreeSparkMatcher, pedigreeRepository,mutationService)
+      val mutationRepository = mock[MutationRepository]
+
+      val service = new PedigreeGenotypificationServiceImpl(
+        Akka.system,
+        profileRepository,
+        calculationTypeService,
+        bayesianNetworkService,
+        pedigreeGenotypificationRepository,
+        pedigreeSparkMatcher,
+        pedigreeRepository,
+        mutationService,
+        mutationRepository,
+        pedigreeDataRepository
+      )
+
       service.generateGenotypificationAndFindMatches(76)
 
       //Se pone porque adentro se llama a un actor de akka
@@ -115,7 +135,26 @@ class PedigreeGenotypificationServiceTest extends PdgSpec with MockitoSugar {
       when(bayesianNetworkService.getFrequencyTable("test")).thenReturn(Future.successful(("test", frequencyTable)))
       when(bayesianNetworkService.getLinkage()).thenReturn(Future.successful(Map.empty[String, (String, Double)]))
 
-      val service = new PedigreeGenotypificationServiceImpl(Akka.system, profileRepository, calculationTypeService, bayesianNetworkService, pedigreeGenotypificationRepository, pedigreeSparkMatcher, pedigreeRepository)
+      val pedigreeDataRepository = mock[PedigreeDataRepository]
+
+      val mutationService = mock[MutationService]
+
+      val mutationRepository = mock[MutationRepository]
+
+      val service = new PedigreeGenotypificationServiceImpl(
+        Akka.system,
+        profileRepository,
+        calculationTypeService,
+        bayesianNetworkService,
+        pedigreeGenotypificationRepository,
+        pedigreeSparkMatcher,
+        pedigreeRepository,
+        mutationService,
+        mutationRepository,
+        pedigreeDataRepository
+
+      )
+
       service.generateGenotypificationAndFindMatches(76)
 
       verify(pedigreeSparkMatcher, times(0)).findMatchesInBackGround(76)

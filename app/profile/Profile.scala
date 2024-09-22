@@ -97,7 +97,7 @@ object Profile {
         p.genotypification, p.analyses, p.labeledGenotypification, p.contributors, p.matchingRules,
         p.mismatches, p.associatedTo, p.matcheable, p.isReference, p.processed)
     }
-
+  
   implicit val profileFormat: OFormat[Profile] =
     OFormat(profileReads, profileWrites)
 

@@ -1,11 +1,17 @@
 define(['angular', 'jquery'], function(angular, $) {
     'use strict';
 
-    var PedigreeScenarioCtrl = function($scope, alertService, pedigreeService, $modal, $timeout,$window,$routeParams,$location) {
-
+    var PedigreeScenarioCtrl = function(
+      $scope,
+      alertService,
+      pedigreeService,
+      $modal,
+      $timeout,
+      $window,
+      $routeParams,
+      $location
+    ) {
         var network;
-        console.log($routeParams);
-        console.log($location);
 
         $scope.isProcessing = false;
         $scope.previousProfileSearch = "";
@@ -158,8 +164,7 @@ define(['angular', 'jquery'], function(angular, $) {
         };
 
         $scope.printReport = function() {
-
-            network.fit();
+            // network.fit(); // Center and adjust network size to canvas size.
             network.selectNodes([]);
 
             var head = '<head><title>Resultados caso ' + $scope.courtcase.internalSampleCode + '</title>';
@@ -167,14 +172,16 @@ define(['angular', 'jquery'], function(angular, $) {
                 head += '<link rel="stylesheet" href="' + $(this)[0].href + '" />';
             });
             head += "</head>";
-
             // el timeout es necesario para que se termine de cargar la red
             $timeout(function(){
                 $scope.canvasURL = $('#genogram_' + $scope.$index + ' canvas').get(0).toDataURL();
                 $scope.$apply();
-
                 var report = window.open('', '_blank');
-                report.document.write('<html>' + head + '<body>' + $('#report_'+$scope.$index).html() + '</body></html>');
+                report.document.write(
+                  '<html>' + head +
+                  '<body>' + $('#report_'+$scope.$index).html() +
+                  '</body></html>'
+                );
                 report.document.close();
                 $(report).on('load', function(){
                     report.print();

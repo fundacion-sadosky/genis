@@ -352,16 +352,57 @@ class MatchingCalculatorServiceTest extends Specification with MockitoSugar with
       calculator.determineProfiles(profileNonRef,profileNonRef) must beEqualTo (profileNonRef,profileNonRef,true)
     }
     "avglr" in {
-      val a = Some(LRResult(4.0, Map("A"->Some(2.0),"B"->Some(10.0),"C"->Some(20.0))))
-      val b = Some(LRResult(6.0, Map("A"->Some(5.0),"B"->None,"C"->Some(10.0))))
-
-      val calculator = new MatchingCalculatorServiceImpl(null, null, null, null, null, null, null,null,null,false,null,categoryService)
-
-      val actual = calculator.avgLr(a,b)
-      val expected:Option[LRResult] = Some(LRResult(5.0, Map("A"->Some(3.5),"B"->Some(5.0),"C"->Some(15.0))))
+      val a: Option[LRResult] = Some(LRResult(4.0, Map("A"->Some(2.0), "B"->Some(10.0), "C"->Some(20.0))))
+      val b: Option[LRResult] = Some(LRResult(6.0, Map("A"->Some(5.0), "B"->None, "C"->Some(10.0))))
+      val calculator = new MatchingCalculatorServiceImpl(
+        matchingService = null,
+        profileService = null,
+        populationBaseFrequencyService = null,
+        profileDataService = null,
+        laboratoryService = null,
+        scenarioService = null,
+        calculationTypeService = null,
+        probabilityService = null,
+        currentInstanceLabCode = null,
+        updateLr = false,
+        locusService = null,
+        categoryService = categoryService
+      )
+      val actual: Option[LRResult] = calculator.avgLr(a, b)
+      val expected: Option[LRResult] = Some(LRResult(5.0, Map("A"->Some(3.5), "B"->Some(5.0), "C"->Some(15.0))))
       actual mustEqual expected
     }
- /*   "use mix-mix if both contributors = 2" in {
+    "avglr when a profile has total lr of 0.0" in {
+      val a: Option[LRResult] = Some(
+        LRResult(
+          4.0,
+          Map("A" -> Some(2.0), "B" -> Some(10.0), "C" -> Some(20.0))
+        )
+      )
+      val b: Option[LRResult] = Some(
+        LRResult(
+          0.0,
+          Map("A" -> Some(5.0), "B" -> Some(5.0), "C" -> Some(10.0))
+        )
+      )
+      val calculator = new MatchingCalculatorServiceImpl(
+        matchingService = null,
+        profileService = null,
+        populationBaseFrequencyService = null,
+        profileDataService = null,
+        laboratoryService = null,
+        scenarioService = null,
+        calculationTypeService = null,
+        probabilityService = null,
+        currentInstanceLabCode = null,
+        updateLr = false,
+        locusService = null,
+        categoryService = categoryService
+      )
+      val actual: Option[LRResult] = calculator.avgLr(a, b)
+      actual mustEqual a
+    }
+    /*   "use mix-mix if both contributors = 2" in {
       val mockPopulationService = mock[PopulationBaseFrequencyService]
       when(mockPopulationService.getByName(any[String])).thenReturn(Future.successful(Some(baseFrequency)))
 

@@ -1,9 +1,10 @@
 package controllers
 
 import javax.inject.{Inject, Singleton}
-
 import matching.{MatchingCalculatorService, MatchingService}
-import play.api.libs.json.{JsError, Json}
+import play.api.data.validation.ValidationError
+import play.api.i18n.Messages
+import play.api.libs.json.{JsArray, JsError, JsValue, Json}
 import play.api.mvc.{Action, BodyParsers, Controller, Results}
 import scenarios._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -11,6 +12,7 @@ import profile.ProfileService
 import scenarios.ScenarioStatus._
 import types.{MongoId, SampleCode, StatOption}
 import user.UserService
+import util.JsValidationError
 
 import scala.concurrent.Future
 
@@ -186,16 +188,29 @@ class Scenarios @Inject()(
     )
   }
 
-  def getNCorrection() = Action.async(BodyParsers.parse.json) { request =>
-    val input = request.body.validate[NCorrectionRequest]
-
-    input.fold(
-      errors => Future.successful(BadRequest(Json.obj("status" -> "KO", "message" -> JsError.toFlatJson(errors)))),
-      correctionRequest => scenarioService.getNCorrection(correctionRequest).map {
-        case Right(response) => Ok(Json.toJson(response))
-        case Left(error) => BadRequest(Json.toJson(error))
-      }
-    )
+  def getNCorrection: Action[JsValue] =
+    Action
+      .async(BodyParsers.parse.json) {
+        request =>
+          val input = request.body.validate[NCorrectionRequest]
+          input.fold(
+            errors => {
+              val jsErrors = JsValidationError
+                .toJsonResult(errors)
+                .map { case (code, args) => Messages(code, args: _*) }
+                .map( error => Json.obj( "status" -> "KO", "message" -> error ) )
+              Future
+                .successful( BadRequest(JsArray(jsErrors)) )
+            },
+            correctionRequest => scenarioService
+              .getNCorrection(correctionRequest)
+              .map {
+                case Right(response) => Ok(Json.toJson(response))
+                case Left(error) => BadRequest(
+                  Json.arr( Json.obj( "status" -> "KO", "message" -> error ) )
+                )
+              }
+          )
   }
 
 }

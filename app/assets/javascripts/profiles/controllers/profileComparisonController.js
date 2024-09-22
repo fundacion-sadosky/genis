@@ -1,6 +1,15 @@
 define(['lodash'], function(_) {
     'use strict';
-    function PedigreeComparisonController($scope, matchesService,locusService, $routeParams,profileService,$window, alertService,searchService) {
+    function PedigreeComparisonController(
+        $scope,
+        matchesService,
+        locusService,
+        $routeParams,
+        profileService,
+        $window,
+        alertService,
+        searchService
+    ) {
         $scope.shouldShowMaxAlelle = locusService.shouldShowMaxAlelle;
         $scope.shouldShowMinAlelle = locusService.shouldShowMinAlelle;
         $scope.showDifferences = false;
@@ -12,8 +21,6 @@ define(['lodash'], function(_) {
         $scope.pageSize = 10;
         $scope.profilesSearch.page = 0;
         $scope.agrupadorExistente = false;
-        console.log(alertService);
-        console.log(profileService);
 
         localStorage.removeItem("searchPedigree");
         localStorage.removeItem("searchMatches");
@@ -42,9 +49,7 @@ define(['lodash'], function(_) {
 
         $scope.show = function(option) {
             if (option && ($scope.selectedOptions.length < 5)) {
-
                 $scope.selectedOptions.push(option);
-
                 var lista = $scope.selectedOptions.map(function(element){
                     return element.globalCode;
                 });
@@ -80,7 +85,6 @@ define(['lodash'], function(_) {
 
         $scope.hasMatches = function(g, allele) {
             var result = true;
-
             $scope.selectedOptions.forEach(function(individual) {
                 var alleles = g[individual.globalCode];
 
@@ -88,10 +92,8 @@ define(['lodash'], function(_) {
                     result = false;
                 }
             });
-
             return result;
         };
-
 
         $scope.searchProfile= function(){
             if($scope.selectedOptions.length ===2){
@@ -99,33 +101,48 @@ define(['lodash'], function(_) {
                 return;
             }
             $scope.profilesSearch.pageSize = $scope.pageSize;
-            $scope.searchObj = {input: $scope.search, active: true, inactive: false,page:0,pageSize:2};
-
+            $scope.searchObj = {
+                input: $scope.search,
+                active: true,
+                inactive: false,
+                page:0,
+                pageSize:2,
+                notUploaded: null,
+                category: ""
+            };
+            console.log($scope.search);
             if($scope.search){
-
-                searchService.search($scope.searchObj).then(function (response) {
-                    $scope.isProcessing = false;
-                    if(response.data.length>0){
-                        var first = _.find(response.data, function(o) { return o.internalSampleCode === $scope.search || o.globalCode === $scope.search; });
-                        if(first){
-                            var r = {};
-                            r.internalCode = first.internalSampleCode;
-                            r.globalCode = first.globalCode;
-
-                            var existing = _.find($scope.selectedOptions, function(o) { return o.internalCode === r.internalCode || o.globalCode === r.globalCode; });
-
-                            if(!existing){
-                                $scope.show(r);
+                searchService
+                    .search($scope.searchObj)
+                    .then(function (response) {
+                        $scope.isProcessing = false;
+                        if(response.data.length>0){
+                            var first = _.find(
+                                response.data,
+                                function(o) {
+                                    return o.internalSampleCode === $scope.search || o.globalCode === $scope.search;
+                                });
+                            if(first){
+                                var r = {};
+                                r.internalCode = first.internalSampleCode;
+                                r.globalCode = first.globalCode;
+                                var existing = _.find(
+                                    $scope.selectedOptions,
+                                    function(o) {
+                                        return o.internalCode === r.internalCode || o.globalCode === r.globalCode;
+                                    });
+                                if(!existing){
+                                    $scope.show(r);
+                                }
+                            }else{
+                                alertService.error({'message': 'Perfil no encontrado'});
                             }
                         }else{
                             alertService.error({'message': 'Perfil no encontrado'});
                         }
-                    }else{
+                    },function () {
                         alertService.error({'message': 'Perfil no encontrado'});
-                    }
-                },function () {
-                    alertService.error({'message': 'Perfil no encontrado'});
-                });
+                    });
             }
 
         };

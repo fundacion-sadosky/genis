@@ -88,7 +88,7 @@ PUT      /geneticist                                          @controllers.Genet
 
 # Profiles
 
-GET		 /profiles/:id			                              @controllers.Profiles.findByCode(id: types.SampleCode)
+GET      /profiles/:id                                        @controllers.Profiles.findByCode(id: types.SampleCode)
 GET      /profiles/full/:globalCode                           @controllers.Profiles.getFullProfile(globalCode: types.SampleCode)
 GET      /profiles                                            @controllers.Profiles.findByCodes(globalCodes: List[types.SampleCode])
 POST     /profiles                                            @controllers.Profiles.create
@@ -135,7 +135,6 @@ GET      /bulkupload/batches                                  @controllers.BulkU
 GET      /protoprofiledata-complete/:id                       @controllers.ProtoProfileData.getByCode(id: types.SampleCode)
 POST     /protoprofiledata                                    @controllers.ProtoProfileData.create
 PUT      /protoprofiledata/:id                                @controllers.ProtoProfileData.update(id: types.SampleCode)
-GET      /protoprofiledata-complete/:id                       @controllers.ProtoProfileData.getByCode(id: types.SampleCode)
 GET      /protoprofiledata-editable/:id                       @controllers.ProtoProfileData.isEditable(id: types.SampleCode)
 GET      /resources/proto/static/:type/:id                    @controllers.ProtoProfileData.getResources(type:String, id: Long)
 
@@ -149,14 +148,14 @@ GET      /mixture/compare                                     @controllers.Match
 POST     /convertHit                                          @controllers.Matching.convertHit(matchingId: String, firingCode: types.SampleCode)
 POST     /convertDiscard                                      @controllers.Matching.convertDiscard(matchId: String, firingCode: types.SampleCode)
 POST     /uploadStatus                                        @controllers.Matching.uploadStatus(matchId: String, firingCode: types.SampleCode)
-GET      /canUploadMatchStatus                                 @controllers.Matching.canUploadMatchStatus(matchId: String)
+GET      /canUploadMatchStatus                                @controllers.Matching.canUploadMatchStatus(matchId: String)
 GET      /getByMatchedProfileId                               @controllers.Matching.getByMatchedProfileId(matchingId: String, isPedigreeMatch: Boolean,isCollapsing:Option[Boolean],isScreening:Option[Boolean])
 #GET      /comparedGenotyfications                             @controllers.Matching.getComparedGenotyfications(globalCode: types.SampleCode, matchedGlobalCode: types.SampleCode)
 POST     /lr                                                  @controllers.Matching.getLR
 #POST     /mixture/lr                                          @controllers.Matching.getMixtureLRByLocus
 DELETE   /collapsing/partial                                  @controllers.Matching.deleteByLeftProfile(globalCode: String,courtCaseId:Long)
 POST     /masiveDiscardByGlobalCode                           @controllers.Matching.masiveDiscardByGlobalCode(firingCode: types.SampleCode)
-POST     /masiveDiscardByMatchesList                           @controllers.Matching.masiveDiscardByMatchesList(firingCode: types.SampleCode, matches: List[String])
+POST     /masiveDiscardByMatchesList                          @controllers.Matching.masiveDiscardByMatchesList(firingCode: types.SampleCode, matches: List[String])
 GET      /matching-profile                                    @controllers.Matching.searchMatchesProfile(globalCode: String)
 
 # Notifications
@@ -221,6 +220,7 @@ PUT      /pedigree/court-cases/:courtCaseId                   @controllers.Pedig
 POST     /pedigree/create-genogram                            @controllers.Pedigrees.createGenogram
 GET      /pedigree/genogram/:pedigreeId                       @controllers.Pedigrees.getPedigree(pedigreeId: Long)
 GET      /pedigree/full/:courtCaseId                          @controllers.Pedigrees.getCourtCaseFull(courtCaseId: Long)
+GET      /pedigree/by/:courtCaseId                            @controllers.Pedigrees.getByCourtCase(courtCaseId: Long)
 GET      /search/profileDataForPedigree                       @controllers.SearchProfileDatas.searchProfilesForPedigree(input: String)
 GET      /filter/profileDataForPedigree                       @controllers.Pedigrees.filterProfilesForPedigree(input: String,idCase:Long, tab: Boolean, tipo: Int,page:Int,pageSize:Int)
 GET      /filter/profileDataForPedigree/count                 @controllers.Pedigrees.countProfilesForPedigree(input: String,idCase:Long, tab: Boolean, tipo: Int)

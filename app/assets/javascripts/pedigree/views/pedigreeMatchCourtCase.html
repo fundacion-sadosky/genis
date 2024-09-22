@@ -108,6 +108,7 @@
                                             <div class="col-md-3 text-center tabs-estados-tab tab-estados-tab__pendientes tab-estados-tab__pendientes__selected"><a class="" ng-click="filtros(status[1])" data-ng-model="filtro" id="pending" value="pending">Pendientes</a></div>
                                             <div class="col-md-3 padding-left-0 text-center tabs-estados-tab tab-estados-tab__confirmados"><a class=""  ng-click="filtros(status[2])" data-ng-model="filtro" id="hit" value="hit">Confirmados</a></div>
                                             <div class="col-md-3 text-center tabs-estados-tab tab-estados-tab__descartados"><a  ng-click="filtros(status[3])" data-ng-model="filtro" id="discarded" value="discarded"> Descartados</a></div>
+                                            <div class="col-md-3 text-center tabs-estados-tab tab-estados-tab__descartados"><a  ng-click="clearMatches()" data-ng-model="filtro" id="unmatching" value="discarded"> Sin coincidencia</a></div>
                                         </div>
                                     </div>
                         </div>
@@ -140,7 +141,9 @@
         </div>
     </div>
     
-    
+    <div class="row coincidencia-estado">
+        {{allProfiles}}
+    </div>
    
     <div data-ng-show="noResult && !isProcessing" class="row coincidencia-estado">
            
@@ -313,11 +316,24 @@
             </div>
         </div>
     </div>
-   
-    
 </div>
+<div
+  id="report_{{idCourtCase}}"
+  ng-show="false"
+  ng-controller="pedigreeCaseSummaryController"
+  data-ng-include="'/assets/javascripts/pedigree/views/pedigree-case-summary.html'"
+  ng-init="initCourtCase(idCourtCase)"
+></div>
 <footer class="matches-groups-footer-footer">
-    <div>
+    <div class="row coincidencia-estado">
+        <button
+            type="button"
+            class="btn btn-secondary-action"
+            ng-click="printSummaryReport()"
+            enable="{{summaryReady}}"
+        >Imprimir resumen</button>
+    </div>
+    <div class="row">
         <pagination boundary-links="true" ng-change="changePage()" items-per-page="{{pageSize}}" max-size="10" total-items="totalItems" ng-model="currentPage" class="pagination-sm" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;"  rotate="false"></pagination>
     </div>
 </footer>

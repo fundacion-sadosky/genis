@@ -4,19 +4,19 @@ import java.util.Date
 import matching.MatchingAlgorithm.convertSingleAlele
 import matching.{AleleRange, NewMatchingResult}
 import play.api.Play.current
+import play.api.Logger
 import play.api.libs.concurrent.Akka
 import probability.PValueCalculator.FrequencyTable
 import profile.Profile.{Genotypification, Marker}
 import profile.{Allele, AlleleValue, MicroVariant, OutOfLadderAllele, Profile}
-
-import scala.collection.{Seq, mutable}
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.Future
 
 object LRMixCalculator {
-
   // con este nombre se configura en el application.conf
   val name = "lrmix"
+
+  val logger: Logger = Logger(this.getClass)
 
   implicit val executionContext = Akka.system.dispatchers.lookup("play.akka.actor.lrmix-context")
 
@@ -154,19 +154,43 @@ object LRMixCalculator {
     tmp
   }  //if (y==0) 1 else x * pow(x, y-1)
 
-  def calculateLRMix(scenario: FullCalculationScenario, frequencyTable: FrequencyTable,allelesRanges:Option[NewMatchingResult.AlleleMatchRange] = None): Future[LRResult] = Future {
-    val prosecutor = getHypothesisLR("H1", scenario.sample, scenario.prosecutor, frequencyTable, scenario.stats.theta, scenario.stats.dropIn,allelesRanges)
-    val defense = getHypothesisLR("H2", scenario.sample, scenario.defense, frequencyTable, scenario.stats.theta, scenario.stats.dropIn,allelesRanges)
-
-    println(s"Prosecutor- Total: ${prosecutor._1} Detailed: ${prosecutor._2}")
-    println(s"Defense- Total: ${defense._1} Detailed: ${defense._2}")
-    val result = LRResult(getResultTotal(prosecutor, defense), getResultDetailed(prosecutor, defense))
-    println(s"Result- Total: ${result.total} Detailed: ${result.detailed}")
+  def calculateLRMix(
+    scenario: FullCalculationScenario,
+    frequencyTable: FrequencyTable,
+    allelesRanges:Option[NewMatchingResult.AlleleMatchRange] = None
+  ): Future[LRResult] = Future {
+    val prosecutor = getHypothesisLR(
+      "H1",
+      scenario.sample,
+      scenario.prosecutor,
+      frequencyTable,
+      scenario.stats.theta,
+      scenario.stats.dropIn,
+      allelesRanges
+    )
+    val defense = getHypothesisLR(
+      "H2",
+      scenario.sample,
+      scenario.defense,
+      frequencyTable,
+      scenario.stats.theta,
+      scenario.stats.dropIn,
+      allelesRanges
+    )
+    logger.debug(s"Prosecutor- Total: ${prosecutor._1} Detailed: ${prosecutor._2}")
+    logger.debug(s"Defense- Total: ${defense._1} Detailed: ${defense._2}")
+    val result: LRResult = LRResult(
+      getResultTotal(prosecutor, defense),
+      getResultDetailed(prosecutor, defense)
+    )
+    logger.debug(s"Result- Total: ${result.total} Detailed: ${result.detailed}")
     result
-
   }
 
-  def getResultDetailed(prosecutor: (Double, Map[Marker, Option[Double]]), defense: (Double, Map[Marker, Option[Double]])): Map[Marker, Option[Double]] = {
+  private def getResultDetailed(
+    prosecutor: (Double, Map[Marker, Option[Double]]),
+    defense: (Double, Map[Marker, Option[Double]])
+  ): Map[Marker, Option[Double]] = {
     prosecutor._2.keySet.map(key => {
       if (prosecutor._2(key).isDefined && defense._2(key).isDefined) {
         if (defense._2(key).get > 0) {
@@ -180,7 +204,10 @@ object LRMixCalculator {
     }).toMap
   }
 
-  def getResultTotal(prosecutor: (Double, Map[Marker, Option[Double]]), defense: (Double, Map[Marker, Option[Double]])): Double = {
+  private def getResultTotal(
+    prosecutor: (Double, Map[Marker, Option[Double]]),
+    defense: (Double, Map[Marker, Option[Double]])
+  ): Double = {
     if (defense._1 > 0) {
       prosecutor._1 / defense._1
     } else {
@@ -188,60 +215,80 @@ object LRMixCalculator {
     }
   }
 
-  def getHypothesisLR(h: String, sample: Genotypification, hypothesis: FullHypothesis, frequencyTable: FrequencyTable, theta: Double, dropIn: Double,allelesRanges:Option[NewMatchingResult.AlleleMatchRange] = None): (Double, Map[Marker, Option[Double]]) = {
-    val detailed = sample.keySet.toArray.map({ marker =>
-      println(s"$h - $marker - started: ${new Date()}")
-
-      try {
-
-        val sampleGenotypification = flattenGenotypifications(marker, Array(sample),allelesRanges)
-        val selectedGenotypification = flattenGenotypifications(marker, hypothesis.selected,allelesRanges)
-        val unselectedGenotypification = flattenGenotypifications(marker, hypothesis.unselected,allelesRanges)
-        val typified = selectedGenotypification.union(unselectedGenotypification)
-        val selectedOccurrences = getOccurrencesMap(selectedGenotypification)
-        val unselectedOccurrences = getOccurrencesMap(unselectedGenotypification)
-//        val alleles = alleleValues(frequencyTable, marker).union(sampleGenotypification).union(typified).distinct
-        var alleles = sampleGenotypification.union(typified).distinct
-        alleles = alleles :+ 666.0 //Agregamos un valor extra que simboliza el resto de los valores de la tabla de frecuencias para el marcador
-
-        val frequencyTableExtended = addFrequencyOfDefault(666.0, alleles, marker, frequencyTable) //Agregamos como probabilidad de 666 la suma de las probabilidades de los alelos no observados
-
-        val unknowns = generateUnknowns(alleles, hypothesis.unknowns*2)
-
-          println(s"$h - $marker - unknowns: ${new Date()}")
-
-          var calculations = 0.0
-
-          while(unknowns.hasNext) {
-            val u = unknowns.next()
-
-//            val (pCondRes, alleleOccurrences) = pCond(frequencyTable, theta)(marker, u, typified, selectedOccurrences, unselectedOccurrences)
-            val (pCondRes, alleleOccurrences) = pCond(frequencyTableExtended, theta)(marker, u, typified, selectedOccurrences, unselectedOccurrences)
-//            val pRepRes = pRep(dropIn, hypothesis.dropOut, frequencyTable, marker)(sampleGenotypification, u ++ selectedGenotypification)(alleleOccurrences)
-            val pRepRes = pRep(dropIn, hypothesis.dropOut, frequencyTableExtended, marker)(sampleGenotypification, u ++ selectedGenotypification)(alleleOccurrences)
-
-
-            calculations += pRepRes * pCondRes
-          }
-
-          println(s"$h - $marker - finished: ${new Date()}")
-          (marker, Some(calculations))
-
-        } catch {
-          case error: NoFrequencyException => {
-            println(s"$h - $marker - finished: ${new Date()}")
-            (marker, None)
+  def getHypothesisLR(
+    h: String,
+    sample: Genotypification,
+    hypothesis: FullHypothesis,
+    frequencyTable: FrequencyTable,
+    theta: Double,
+    dropIn: Double,allelesRanges:Option[NewMatchingResult.AlleleMatchRange] = None
+  ): (Double, Map[Marker, Option[Double]]) = {
+    val detailed = sample
+      .keySet
+      .toArray
+      .map(
+      {
+        marker =>
+          logger.debug(s"$h - $marker - started: ${new Date()}")
+          try {
+            val sampleGenotypification = flattenGenotypifications(marker, Array(sample), allelesRanges)
+            val selectedGenotypification = flattenGenotypifications(marker, hypothesis.selected, allelesRanges)
+            val unselectedGenotypification = flattenGenotypifications(marker, hypothesis.unselected, allelesRanges)
+            val typified = selectedGenotypification.union(unselectedGenotypification)
+            val selectedOccurrences = getOccurrencesMap(selectedGenotypification)
+            val unselectedOccurrences = getOccurrencesMap(unselectedGenotypification)
+    //        val alleles = alleleValues(frequencyTable, marker).union(sampleGenotypification).union(typified).distinct
+            var alleles = sampleGenotypification.union(typified).distinct
+            // Agregamos un valor extra que simboliza el resto de los valores de la tabla de frecuencias para el marcador
+            alleles = alleles :+ 666.0
+            // Agregamos como probabilidad de 666 la suma de las probabilidades de los alelos no observados
+            val frequencyTableExtended = addFrequencyOfDefault(666.0, alleles, marker, frequencyTable)
+            val unknowns = generateUnknowns(alleles, hypothesis.unknowns*2)
+            logger.debug(s"$h - $marker - unknowns: ${new Date()}")
+            var calculations = 0.0
+            while(unknowns.hasNext) {
+              val u = unknowns.next()
+  //            val (pCondRes, alleleOccurrences) = pCond(frequencyTable, theta)(
+  //             marker, u, typified, selectedOccurrences, unselectedOccurrences)
+              val (pCondRes, alleleOccurrences) = pCond(
+                frequencyTableExtended, theta
+              )(
+                marker, u, typified, selectedOccurrences, unselectedOccurrences
+              )
+  //            val pRepRes = pRep(dropIn, hypothesis.dropOut, frequencyTable, marker)(
+  //            sampleGenotypification, u ++ selectedGenotypification)(alleleOccurrences)
+              val pRepRes = pRep(
+                dropIn, hypothesis.dropOut, frequencyTableExtended, marker
+              )(
+                sampleGenotypification, u ++ selectedGenotypification
+              )(
+                alleleOccurrences
+              )
+              calculations += pRepRes * pCondRes
+            }
+            logger.debug(s"$h - $marker - finished: ${new Date()}")
+            (marker, Some(calculations))
+          } catch {
+            case error: NoFrequencyException => {
+              logger.debug(s"$h - $marker - finished: ${new Date()}")
+              (marker, None)
+            }
           }
         }
-
-    }).toMap
-
-      val total =
-        if (detailed.values.flatten.exists(_>0)) detailed.values.foldLeft(1.0)((prev, current) => if (current.isDefined && current.get != 0) prev * current.get else prev)
-        else 0.0
-
+      )
+    .toMap
+    val total =
+      if (detailed.values.flatten.exists(_>0)) {
+        detailed
+          .values
+          .foldLeft(1.0)(
+            (prev, current) =>
+              if (current.isDefined && current .get != 0) prev * current.get else prev
+          )
+      } else {
+        0.0
+      }
     (total, detailed)
-
   }
 
   def getOccurrencesMap(selectedGenotypification: Array[Double]): Map[Double, Int] = {

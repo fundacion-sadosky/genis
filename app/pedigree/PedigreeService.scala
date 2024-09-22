@@ -80,7 +80,7 @@ trait PedigreeService {
   def countProfilesHitPedigrees(globalCodes:String):Future[Int]
   def countProfilesDiscardedPedigrees(globalCodes:String):Future[Int]
   def getMatchByProfile(globalCode: String): Future[ProfileDataViewCoincidencia]
-
+  def getPedigreeByCourtCase(courtCaseId: Long): Future[List[PedigreeGenogram]]
 
 }
 
@@ -233,6 +233,12 @@ class PedigreeServiceImpl @Inject() (
       })
     }
   }
+
+  override def getPedigreeByCourtCase(courtCaseId: Long): Future[List[PedigreeGenogram]] = {
+    pedigreeRepository
+      .getPedigreeByCourtCaseId(courtCaseId)
+  }
+
 
 override def getMetadata( personDataSearch:PersonDataSearch): Future[List[PersonData]] = {
 

@@ -46,6 +46,7 @@ error.E0208= E0208: El perfil {0} está asociado a pedigris activos o en constru
 error.E0209= E0209: Los perfiles {0} tienen coincidencias pendientes.
 error.E0210= E0210: El perfil {0} tiene coincidencias pendientes.
 error.E0211= E0211: El caso contiene pedigris activos.
+error.E0212= E0212: El pédigri {0} no tiene personas desaparecidas/desconocidas. Configurando el pédigri en modo construcción para poder modificarlo.
 
 #Carga Masiva
 error.E0301= E0301: Error importando el lote.
@@ -143,3 +144,26 @@ error.E0951= E0951: No se pudo obtener imagen del perfil {0} debido a que el tok
 error.E0960= E0960: Inconsistencia entre el tamaño de la cabecera [{0}] y el resto de las filas [{1}].
 error.E1000= E1000: Actualización no permitida.
 error.E2000= E2000: No se encontraron perfiles con los filtros seleccionados.
+
+# JsonValidation Errors
+error.E3000= E3000: Error al validar datos JSON: {0}.
+error.E3001= E3001: Error al validar datos JSON: Falta un campo obligatorio.
+error.E3002= E3002: Error al validar datos JSON: Se esperaba un valor entero, pero se recibió otra cosa.
+error.E3003= E3003: Error al validar datos JSON: Se esperaba un valor entero largo, pero se recibió otra cosa.
+error.E3004= E3004: Error al validar datos JSON: Se esperaba un valor flotante, pero se recibió otra cosa.
+error.E3005= E3005: Error al validar datos JSON: Se esperaba un valor doble, pero se recibió otra cosa.
+error.E3006= E3006: Error al validar datos JSON: Se esperaba un valor booleano, pero se recibió otra cosa.
+error.E3007= E3007: Error al validar datos JSON: Se esperaba una cadena de texto, pero se recibió otra cosa.
+error.E3008= E3008: Error al validar datos JSON: Se esperaba un número (entero, flotante o doble), pero se recibió otra cosa.
+error.E3009= E3009: Error al validar datos JSON: Se esperaba un valor booleano, pero se recibió otra cosa.
+error.E3010= E3010: Error al validar datos JSON: Se esperaba un arreglo JSON, pero se recibió otra cosa.
+error.E3011= E3011: Error al validar datos JSON: Se esperaba un objeto JSON, pero se recibió otra cosa.
+error.E3012= E3012: Error al validar datos JSON: La longitud de la cadena de texto es más corta que la longitud mínima permitida.
+error.E3013= E3013: Error al validar datos JSON: La longitud de la cadena de texto excede la longitud máxima permitida.
+error.E3014= E3014: Error al validar datos JSON: La cadena de texto no coincide con el patrón de expresión regular esperado.
+error.E3015= E3015: Error al validar datos JSON: Error general de validación, generalmente utilizado para reglas de validación personalizadas.
+error.E3016= E3016: Error al validar datos JSON: El valor no coincide con ninguno de los valores permitidos en la enumeración.
+error.E3017= E3017: Error al validar datos JSON: Se esperaba una fecha, pero se recibió otra cosa.
+error.E3018= E3018: Error al validar datos JSON: Se esperaba una fecha y hora, pero se recibió otra cosa.
+error.E3019= E3019: Error al validar datos JSON: Formato de correo electrónico no válido.
+

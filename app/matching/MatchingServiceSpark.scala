@@ -40,11 +40,14 @@ class MatchingServiceSparkImpl @Inject() (
     pedigreeSparkMatcher: PedigreeSparkMatcher,
     pedigreeRepo: PedigreeRepository,
     pedigreeGenotypificationService: PedigreeGenotypificationService,
-    interconnectionService:InterconnectionService = null,
-    spark2MatcherCollapsing: Spark2MatcherCollapsing = null,
-    spark2MatcherScreening: Spark2MatcherScreening = null/*,
+    interconnectionService: InterconnectionService,
+    spark2MatcherCollapsing: Spark2MatcherCollapsing,
+    spark2MatcherScreening: Spark2MatcherScreening
+    /*,
     /*@Named("limsArchivesPath")*/ exportProfilesPath: String = "",
-    /*@Named("generateLimsFiles")*/ exportaALims: Boolean = false*/) extends MatchingService {
+    /*@Named("generateLimsFiles")*/ exportaALims: Boolean = false
+    */
+) extends MatchingService {
 
   val discarded = MatchStatus.discarded.toString
   val hit = MatchStatus.hit.toString
@@ -65,11 +68,23 @@ class MatchingServiceSparkImpl @Inject() (
     matchingRepo.deleteMatch(matchId)
   }
 
-  private def canDiscardMatch(firingCode: SampleCode, matchingCode: SampleCode, userId: String, isSuperUser: Boolean): Future[Boolean] = {
-    scenarioRepository.getByMatch(firingCode, matchingCode, userId, isSuperUser) map { scenarios => scenarios.isEmpty }
+  private def canDiscardMatch(
+    firingCode: SampleCode,
+    matchingCode: SampleCode,
+    userId: String,
+    isSuperUser: Boolean
+  ): Future[Boolean] = {
+    scenarioRepository
+      .getByMatch(firingCode, matchingCode, userId, isSuperUser)
+      .map { scenarios => scenarios.isEmpty }
   }
 
-  def getFiringCode(firingCodeParam: SampleCode, leftCode: SampleCode, rightCode: SampleCode, replicate: Boolean): SampleCode = {
+  private def getFiringCode(
+    firingCodeParam: SampleCode,
+    leftCode: SampleCode,
+    rightCode: SampleCode,
+    replicate: Boolean
+  ): SampleCode = {
     if (replicate && !this.interconnectionService.isFromCurrentInstance(firingCodeParam)) {
       if (this.interconnectionService.isFromCurrentInstance(leftCode)) {
         leftCode
@@ -122,53 +137,60 @@ class MatchingServiceSparkImpl @Inject() (
   }
 */
 
-  override def convertDiscard(matchId: String, firingCodeParam: SampleCode, isSuperUser: Boolean, replicate: Boolean = true): Future[Either[String, Seq[SampleCode]]] = {
-    matchingRepo.getByMatchingProfileId(matchId) flatMap { matchResult =>
-      if (replicate && this.interconnectionService.isExternalMatch(matchResult.get)) {
-        Future.successful(Left(Messages("error.E0726")))
-      } else if (
-        (matchResult.get.leftProfile.status == MatchStatus.deleted || matchResult.get.rightProfile.status == MatchStatus.deleted) ||
-          !(matchResult.get.leftProfile.status == MatchStatus.pending || matchResult.get.rightProfile.status == MatchStatus.pending)
-      ) {
-        Future.successful(Left(Messages("error.E1000")))
-      }
-      else {
-        val leftCode = matchResult.get.leftProfile.globalCode
-        val rightCode = matchResult.get.rightProfile.globalCode
-        val firingCode = getFiringCode(firingCodeParam, leftCode, rightCode, replicate)
+  override def convertDiscard(
+    matchId: String,
+    firingCodeParam: SampleCode,
+    isSuperUser: Boolean,
+    replicate: Boolean = true
+  ): Future[Either[String, Seq[SampleCode]]] = {
+    matchingRepo
+      .getByMatchingProfileId(matchId)
+      .flatMap {
+        matchResult =>
+          if (replicate && this.interconnectionService.isExternalMatch(matchResult.get)) {
+            Future.successful(Left(Messages("error.E0726")))
+          } else if (
+            (matchResult.get.leftProfile.status == MatchStatus.deleted || matchResult.get.rightProfile.status == MatchStatus.deleted) ||
+              !(matchResult.get.leftProfile.status == MatchStatus.pending || matchResult.get.rightProfile.status == MatchStatus.pending)
+          ) {
+            Future.successful(Left(Messages("error.E1000")))
+          }
+          else {
+            val leftCode = matchResult.get.leftProfile.globalCode
+            val rightCode = matchResult.get.rightProfile.globalCode
+            val firingCode = getFiringCode(firingCodeParam, leftCode, rightCode, replicate)
+            val isRight = rightCode == firingCode
+            val userId = if (isRight) matchResult.get.rightProfile.assignee else matchResult.get.leftProfile.assignee
+            val matchingProfile = if (isRight) matchResult.get.leftProfile else matchResult.get.rightProfile
 
-        val isRight = rightCode == firingCode
-        val userId = if (isRight) matchResult.get.rightProfile.assignee else matchResult.get.leftProfile.assignee
-        val matchingProfile = if (isRight) matchResult.get.leftProfile else matchResult.get.rightProfile
+            canDiscardMatch(leftCode, rightCode, userId, isSuperUser) flatMap {
+              allowed =>
+              if (allowed) {
+                val res = matchingRepo.convertStatus(matchId, firingCode, discarded)
 
-        canDiscardMatch(leftCode, rightCode, userId, isSuperUser) flatMap { allowed =>
-          if (allowed) {
-            val res = matchingRepo.convertStatus(matchId, firingCode, discarded)
-
-            res.onSuccess({ case _ => {
-              traceService.add(Trace(firingCode, userId, new Date(),
-                DiscardInfo(matchResult.get._id.id, matchingProfile.globalCode, matchingProfile.assignee, matchResult.get.`type`)))
-              traceService.add(Trace(matchingProfile.globalCode, userId, new Date(),
-                DiscardInfo(matchResult.get._id.id, firingCode, matchingProfile.assignee, matchResult.get.`type`)))
-              notificationService.solve(userId, MatchingInfo(leftCode, rightCode, matchId))
-              notificationService.solve(userId, MatchingInfo(rightCode, leftCode, matchId))
-/*
-              if(exportaALims) {
-                createMatchLimsArchive(leftCode, rightCode, matchId, discarded)
-              }
-*/
-
-              if (replicate) {
-                this.interconnectionService.convertStatus(matchId, firingCode, discarded, matchResult.get)
+                res.onSuccess({ case _ => {
+                  traceService.add(Trace(firingCode, userId, new Date(),
+                    DiscardInfo(matchResult.get._id.id, matchingProfile.globalCode, matchingProfile.assignee, matchResult.get.`type`)))
+                  traceService.add(Trace(matchingProfile.globalCode, userId, new Date(),
+                    DiscardInfo(matchResult.get._id.id, firingCode, matchingProfile.assignee, matchResult.get.`type`)))
+                  notificationService.solve(userId, MatchingInfo(leftCode, rightCode, matchId))
+                  notificationService.solve(userId, MatchingInfo(rightCode, leftCode, matchId))
+    /*
+                  if(exportaALims) {
+                    createMatchLimsArchive(leftCode, rightCode, matchId, discarded)
+                  }
+    */
+                  if (replicate) {
+                    this.interconnectionService.convertStatus(matchId, firingCode, discarded, matchResult.get)
+                  }
+                }
+                })
+                res map { codes => Right(codes) }
+              } else {
+                Future.successful(Left(Messages("error.E0902")))
               }
             }
-            })
-            res map { codes => Right(codes) }
-          } else {
-            Future.successful(Left(Messages("error.E0902")))
           }
-        }
-      }
     }
   }
 
@@ -176,20 +198,16 @@ class MatchingServiceSparkImpl @Inject() (
     matchingRepo.getByMatchingProfileId(matchId) flatMap { matchResult =>
         val leftCode = matchResult.get.leftProfile.globalCode
         val rightCode = matchResult.get.rightProfile.globalCode
-
         this.interconnectionService.convertStatus(matchId, leftCode, matchResult.get.leftProfile.status.toString, matchResult.get,true)
         this.interconnectionService.convertStatus(matchId, rightCode, matchResult.get.rightProfile.status.toString, matchResult.get,true)
-
         Future.successful("Se envio la actualizacion de estado de match")
       }
-
   }
 
   override def canUploadMatchStatus(matchId: String, isCollapsing:Option[Boolean] = None, isScreening:Option[Boolean] = None): Future[Boolean] = {
     matchingRepo.getByMatchingProfileId(matchId,isCollapsing, isScreening) flatMap { matchResult =>
       Future.successful(this.interconnectionService.isInterconnectionMatch(matchResult.get))
     }
-
   }
 
   override def convertHit(matchId: String, firingCodeParam: SampleCode, replicate: Boolean = true): Future[Either[String, Seq[SampleCode]]] = {
