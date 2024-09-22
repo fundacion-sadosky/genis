@@ -10,13 +10,16 @@ GET      /status                                              @controllers.Statu
 GET      /categoryTree                                        @controllers.Categories.categoryTree
 GET      /categories                                          @controllers.Categories.list
 GET      /categoriesWithProfiles                              @controllers.Categories.listWithProfiles
-
 GET      /categoryTreeManualLoading                           @controllers.Categories.categoryTreeManualLoading
 
 POST     /categories                                          @controllers.Categories.addCategory
 PUT      /categories/:catId                                   @controllers.Categories.updateCategory(catId: types.AlphanumericId)
 PUT      /categories/:catId/details                           @controllers.Categories.updateFullCategory(catId: types.AlphanumericId)
 DELETE   /categories/:catId                                   @controllers.Categories.removeCategory(catId: types.AlphanumericId)
+POST     /catmodification                                     @controllers.Categories.registerCategoryModification(from: types.AlphanumericId, to: types.AlphanumericId)
+DELETE   /catmodification                                     @controllers.Categories.unregisterCategoryModification(from: types.AlphanumericId, to: types.AlphanumericId)
+GET      /catmodification                                     @controllers.Categories.getCategoryModifications(catId: types.AlphanumericId)
+GET      /catmodifications                                    @controllers.Categories.allCategoryModifications
 
 GET      /categories-mapping                                  @controllers.Categories.listCategoriesMapping
 PUT      /categories-mapping                                  @controllers.Categories.insertOrUpdateCategoriesMapping
@@ -54,7 +57,9 @@ POST     /profiledata                                         @controllers.Profi
 GET      /profiles-deleted/motive/:id                         @controllers.ProfileData.getDeleteMotive(id: types.SampleCode)
 PUT      /profiledata-deleted/:id                             @controllers.ProfileData.deleteProfile(id: types.SampleCode)
 GET      /profiledataWithAssociations                         @controllers.ProfileData.findByCodeWithAssociations(globalCode: types.SampleCode)
-PUT      /profiledata/:id                                     @controllers.ProfileData.update(id: types.SampleCode)
+PUT      /profiledata/:id/                                    @controllers.ProfileData.update(id: types.SampleCode)
+PUT      /profiledata/modify-category/:id/                    @controllers.ProfileData.modifyCategory(id: types.SampleCode, replicate: Boolean)
+GET      /profiledata-readonly                                @controllers.ProfileData.isReadOnly(globalCode: types.SampleCode)
 GET      /profiledata-complete/:id                            @controllers.ProfileData.getByCode(id: types.SampleCode)
 GET      /profiledata-editable/:id                            @controllers.ProfileData.isEditable(id: types.SampleCode)
 GET      /profilesdata                                        @controllers.ProfileData.findByCodes(globalCode: List[types.SampleCode])
@@ -108,7 +113,7 @@ GET      /profiles/:profileId/file/:fileId                    @controllers.Profi
 POST     /profiles-file                                       @controllers.Profiles.addFiles(token: String, globalCode: types.SampleCode, idAnalysis: String,name:String)
 DELETE   /profiles-file/file/:fileId                          @controllers.Profiles.removeFile(fileId:String)
 DELETE   /profiles-file/epg/:fileId                           @controllers.Profiles.removeEpg(fileId:String)
-GET      /profiles/readOnly                                   @controllers.Profiles.isReadOnly(globalCode: types.SampleCode)
+GET      /profiles-readOnly                                   @controllers.Profiles.isReadOnly(globalCode: types.SampleCode)
 POST     /profile-export                                      @controllers.Profiles.exporterProfiles
 POST     /profile-exportToLims                                @controllers.Profiles.exporterLimsFiles
 GET      /get-profile-export/:user                            @controllers.Profiles.getExportFile(user: String)
@@ -348,15 +353,8 @@ POST     /motive                                              @controllers.Motiv
 PUT      /motive                                              @controllers.MotiveController.update
 DELETE   /motive/:id                                          @controllers.MotiveController.deleteMotiveById(id:Long)
 
-# def getMotives(motiveType: Long): Future[List[Motive]]
-#  def getMotivesTypes(): Future[List[MotiveType]]
-#  def deleteMotiveById(id: Long): Future[Either[String, Unit]]
-#  def insert(row: Motive): Future[Either[String, Long]]
-#  def update(row: Motive): Future[Either[String, Unit]]
 
 # Static
-# ~~~~
-
 # Map static resources from the /public folder to the /assets URL path
 GET      /assets/*file                                        controllers.Assets.versioned(path="/public", file: Asset)
 

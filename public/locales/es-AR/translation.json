@@ -111,6 +111,8 @@
 		"PedigreeConsistencyGenerate": "Generar Consistencia de pedigree",
 		"ProfiledataCreate": "Alta de los datos de la muestra",
 		"ProfiledataUpdate": "Modificación de los datos de la muestra",
+		"ProfiledataCategoryModification": "Modificación de la categoria de un perfil",
+		"ProfiledataIsReadOnly": "Verifica que un perfil es de solo lectura",
 		"ProfiledataDelete": "Baja de perfiles",
         "ProfiledataSearch": "Búsqueda de perfiles",
 		"MatchAll": "Lectura de coincidencias",
@@ -237,6 +239,9 @@
 		},
 		"matching": {
 			"general": "Las reglas especifican contra qué tipo de perfiles se realizan las búsquedas de coincidencias, en qué nivel mínimo de exigencia, con qué algoritmo, cuál es la cantidad mínima de sistemas que deben tener en común y cuál es la máxima cantidad de no coincidencias toleradas"
+		},
+		"modify": {
+			"profileSelection": "Seleccione el perfil al que desea cambiar la categoría."
 		},
 		"alias": {
 			"general": "Configuración de los alias que esta categoría tiene. Estos alias son los utilizados en la columna “Specimen Category” del fichero de GeneMapper® en la importación masiva"
