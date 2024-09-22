@@ -20,7 +20,11 @@ function SearchService(playRoutes, userService){
 	this.searchMatches = function(filters) {
 		return playRoutes.controllers.SearchMatches.search().post(filters);
 	};
-	
+
+	this.searchMatchesProfile = function(profileCode){
+		return playRoutes.controllers.Matching.searchMatchesProfile(profileCode).get();
+	};
+
 	this.searchProfilesAssociable = function(input,category){
 		return playRoutes.controllers.SearchProfileDatas.searchProfilesAssociable(input, category).get();
 	};

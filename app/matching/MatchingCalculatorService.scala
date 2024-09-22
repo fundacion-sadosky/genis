@@ -1,7 +1,6 @@
 package matching
 
 import java.math.MathContext
-
 import configdata.CategoryService
 
 import scala.math.BigDecimal.RoundingMode
@@ -14,12 +13,13 @@ import probability.{MixtureLRCalculator, _}
 import profile.{Profile, ProfileService}
 import profiledata.ProfileDataService
 import scenarios.{CalculationScenario, Hypothesis, ScenarioService}
-import stats.PopulationBaseFrequencyService
+import stats.{PopulationBaseFrequency, PopulationBaseFrequencyService}
 import types.{SampleCode, StatOption}
 
 import scala.concurrent.duration.{Duration, SECONDS}
 import scala.concurrent.{Await, Future}
-import kits.LocusService
+import kits.{AnalysisType, LocusService}
+import profile.Profile.Genotypification
 abstract class MatchingCalculatorService {
   def getLRByAlgorithm(firingProfile: Profile, matchingProfile: Profile, stats: StatOption,allelesRanges:Option[NewMatchingResult.AlleleMatchRange] = None): Future[Option[LRResult]]
   def doGetLRByAlgorithm(firingProfile: Profile, matchingProfile: Profile, stats: StatOption,allelesRanges:Option[NewMatchingResult.AlleleMatchRange] = None): Future[Option[LRResult]]
@@ -129,7 +129,7 @@ class MatchingCalculatorServiceImpl @Inject() (
         case None => Future.successful(lrDefault)
       }
   }
-  def determineProfiles(firingProfile: Profile, matchingProfile: Profile):(Profile,Profile,Boolean) = {
+  def determineProfiles(firingProfile: Profile, matchingProfile: Profile):(Profile, Profile, Boolean) = {
     var sample = firingProfile
     var profile = matchingProfile
     val firingContributors = firingProfile.contributors.getOrElse(1)
@@ -138,75 +138,111 @@ class MatchingCalculatorServiceImpl @Inject() (
     if (firingContributors != matchingContributors) {
       sample = if (firingContributors > matchingContributors) firingProfile else matchingProfile
       profile = if (firingContributors > matchingContributors) matchingProfile else firingProfile
-      (profile,sample,false)
-    }else{
+      (profile, sample, false)
+    } else {
       val categories = categoryService.listCategories
       val firingCategoryIsReference = categories.get(firingProfile.categoryId).map(_.isReference).contains(true)
       val matchingCategoryIsReference = categories.get(matchingProfile.categoryId).map(_.isReference).contains(true)
 
-      (firingCategoryIsReference:Boolean,matchingCategoryIsReference) match {
-        case (true,false) => (firingProfile,matchingProfile,false)
-        case (false,true) => (matchingProfile,firingProfile,false)
-        case (_,_) => (firingProfile,matchingProfile,true)
+      (firingCategoryIsReference:Boolean, matchingCategoryIsReference) match {
+        case (true,false) => (firingProfile, matchingProfile, false)
+        case (false,true) => (matchingProfile, firingProfile, false)
+        case (_,_) => (firingProfile, matchingProfile, true)
       }
     }
   }
-  def avgDetailed(result1: Map[Profile.Marker, Option[Double]], result2: Map[Profile.Marker, Option[Double]]):Map[Profile.Marker, Option[Double]] ={
+  private def avgDetailed(
+    result1: Map[Profile.Marker, Option[Double]],
+    result2: Map[Profile.Marker, Option[Double]]
+  ):Map[Profile.Marker, Option[Double]] ={
     val markers = result1.keySet.union(result2.keySet)
-    markers.map(marker => {
-      val a = result1.getOrElse(marker,None).getOrElse(0.0)
-      val b = result2.getOrElse(marker,None).getOrElse(0.0)
-      val sum = a +b
-      val avg = Some(sum/2).asInstanceOf[Option[Double]]
-      (marker,avg)
-    }).toMap
-  }
-  def avgLr(result1: Option[LRResult], result2: Option[LRResult]):Option[LRResult] = {
-    (result1,result2) match {
-      case (Some(r1),Some(r2)) if r1.total > 0 && r2.total >0 => Some(LRResult((r1.total+r2.total) / 2,avgDetailed(r1.detailed,r2.detailed)))
-      case (Some(r1),None) => result1
-      case (None,Some(r2)) => result2
-      case (None,None) => result1
-    }
-  }
-  override def getLRByAlgorithm(firingProfile: Profile, matchingProfile: Profile, stats: StatOption,allelesRanges:Option[NewMatchingResult.AlleleMatchRange] = None): Future[Option[LRResult]] = {
-
-    val (profile1,profile2,shouldAvg) = determineProfiles(firingProfile,matchingProfile)
-    if(shouldAvg){
-      (for{
-        result1 <- this.doGetLRByAlgorithm(profile1,profile2,stats,allelesRanges)
-        result2 <- this.doGetLRByAlgorithm(profile2,profile1,stats,allelesRanges)
+    markers
+      .map(
+        marker => {
+          val a = result1.getOrElse(marker, None).getOrElse(0.0)
+          val b = result2.getOrElse(marker, None).getOrElse(0.0)
+          val sum = a + b
+          val avg = Some(sum/2).asInstanceOf[Option[Double]]
+          (marker, avg)
         }
-        yield(this.avgLr(result1,result2)))
-    }else{
-      this.doGetLRByAlgorithm(profile1,profile2,stats,allelesRanges)
+      )
+      .toMap
+  }
+
+  def avgLr(result1: Option[LRResult], result2: Option[LRResult]):Option[LRResult] = {
+    (result1, result2) match {
+      case (Some(r1), Some(r2)) if r1.total > 0 && r2.total > 0 =>
+        Some(LRResult((r1.total + r2.total) / 2, avgDetailed(r1.detailed, r2.detailed)))
+      case (Some(r1), Some(r2)) if r1.total == 0 && r2.total == 0 =>
+        None
+      case (Some(r1), Some(_)) if r1.total == 0 =>
+        result2
+      case (Some(_), Some(r2)) if r2.total == 0 =>
+        result1
+      case (Some(_), None) => result1
+      case (None, Some(_)) => result2
+      case (None, None) => result1
     }
   }
-  def doGetLRByAlgorithm(firingProfile: Profile, matchingProfile: Profile, stats: StatOption,allelesRanges:Option[NewMatchingResult.AlleleMatchRange] = None): Future[Option[LRResult]] = {
+  override def getLRByAlgorithm(
+    firingProfile: Profile,
+    matchingProfile: Profile,
+    stats: StatOption,
+    allelesRanges:Option[NewMatchingResult.AlleleMatchRange] = None
+  ): Future[Option[LRResult]] = {
+    val (profile1, profile2, shouldAvg) = determineProfiles(firingProfile, matchingProfile)
+    if (shouldAvg) {
+      for {
+        result1 <- this.doGetLRByAlgorithm(profile1, profile2, stats, allelesRanges)
+        result2 <- this.doGetLRByAlgorithm(profile2, profile1, stats, allelesRanges)
+      }
+        yield this.avgLr(result1, result2)
+    } else {
+      this.doGetLRByAlgorithm(profile1, profile2, stats, allelesRanges)
+    }
+  }
+  def doGetLRByAlgorithm(
+    firingProfile: Profile,
+    matchingProfile: Profile,
+    stats: StatOption,
+    allelesRanges: Option[NewMatchingResult.AlleleMatchRange] = None
+  ): Future[Option[LRResult]] = {
     val firingContributors = firingProfile.contributors.getOrElse(1)
     val matchingContributors = matchingProfile.contributors.getOrElse(1)
-
-//    if (firingContributors.equals(2) && matchingContributors.equals(2)) { //TODO cambiar por >= a 2
     if (firingContributors >= 2 && matchingContributors >= 2) {
       // Q(n>=2) y P(n>=2) -> Mezcla-Mezcla
-      this.getMixtureMixtureLRByLocus(firingProfile.globalCode, matchingProfile.globalCode, stats,firingProfile, matchingProfile, allelesRanges)
+      this.getMixtureMixtureLRByLocus(
+        firingProfile.globalCode,
+        matchingProfile.globalCode,
+        stats,
+        firingProfile,
+        matchingProfile,
+        allelesRanges
+      )
 
     } else if (firingContributors.equals(1) && matchingContributors.equals(1)) {
       // Q(n=1) y P(n=1) -> Enfsi
-      scenarioService.getLRMix(createDefaultScenario(firingProfile, matchingProfile, stats),allelesRanges)
+      scenarioService.getLRMix(
+        createDefaultScenario(firingProfile, matchingProfile, stats),
+        allelesRanges
+      )
       //this.getLRByLocus(firingProfile.globalCode, matchingProfile.globalCode, stats)
 
     } else if (firingContributors > 1 && matchingContributors > 1) {
+      // This case is never reached.
       // Q(n>1) y P(n>1) -> -
       Future.successful(None)
-
-    } else {
-      // Q(n>1) y P(n=1) o Q(n=1) y P(n>1) -> LRMix
-      scenarioService.getLRMix(createDefaultScenario(firingProfile, matchingProfile, stats),allelesRanges)
     }
-
+    else {
+      // Q(n>1) y P(n=1) o Q(n=1) y P(n>1) -> LRMix
+      scenarioService.getLRMix(
+        createDefaultScenario(firingProfile, matchingProfile, stats),
+        allelesRanges
+      )
+    }
   }
-  def filterByCodes(codes: List[SampleCode],profiles:List[Profile]=Nil): Future[Seq[Profile]] ={
+
+  private def filterByCodes(codes: List[SampleCode], profiles:List[Profile]=Nil): Future[Seq[Profile]] ={
     val profilesToAdd = profiles.filter(p=>codes.contains(p.globalCode))
     if(profilesToAdd.map(_.globalCode).containsSlice(codes)){
       Future.successful(profilesToAdd)
@@ -305,36 +341,60 @@ class MatchingCalculatorServiceImpl @Inject() (
   }
 */
 
-  def getMixtureMixtureLRByLocus(mixture1: SampleCode, mixture2: SampleCode, stats: StatOption,firingProfile:Profile, matchingProfile:Profile, allelesRanges:Option[NewMatchingResult.AlleleMatchRange] = None) = {
-
-    val f = for {
-      analysisType <- calculationTypeService.getAnalysisTypeByCalculation(calculation)
-      lProfiles <- this.filterByCodes(List(mixture1, mixture2),List(firingProfile,matchingProfile))
-      asocProfMix1 <- profileService.getAssociatedProfiles(lProfiles(0)) map { profiles => profiles.map(_.genotypification.getOrElse(analysisType.id, Map.empty)) }
-      asocProfMix2 <- profileService.getAssociatedProfiles(lProfiles(1)) map { profiles => profiles.map(_.genotypification.getOrElse(analysisType.id, Map.empty)) }
+  def getMixtureMixtureLRByLocus(
+    mixture1: SampleCode,
+    mixture2: SampleCode,
+    stats: StatOption,
+    firingProfile:Profile,
+    matchingProfile:Profile,
+    allelesRanges:Option[NewMatchingResult.AlleleMatchRange] = None
+  ): Future[Some[LRResult]] = {
+    val f: Future[(
+      AnalysisType,
+      Seq[Profile],
+      PopulationBaseFrequency,
+      Seq[Genotypification],
+      Seq[Genotypification]
+    )] = for {
+      analysisType <- calculationTypeService
+        .getAnalysisTypeByCalculation(calculation)
+      lProfiles <- this.filterByCodes(
+        List(mixture1, mixture2),
+        List(firingProfile,matchingProfile)
+      )
+      asocProfMix1 <- profileService
+        .getAssociatedProfiles( lProfiles(0) ) map {
+          profiles => profiles.map(_.genotypification.getOrElse(analysisType.id, Map.empty))
+        }
+      asocProfMix2 <- profileService
+        .getAssociatedProfiles( lProfiles(1) ) map {
+          profiles => profiles.map(_.genotypification.getOrElse(analysisType.id, Map.empty))
+        }
       maybeFrequencyTable <- populationBaseFrequencyService.getByName(stats.frequencyTable)
     } yield (analysisType, lProfiles, maybeFrequencyTable.get, asocProfMix1, asocProfMix2)
-
     f.map {
       case (analysisType, mixtureProfiles, frequencyTable, asocProfMix1, asocProfMix2) =>
-
 /*
         val res = MixtureLRCalculator.lrMixMix(
           mixtureProfiles(0).genotypification.getOrElse(analysisType.id, Map.empty), asocProfMix1.headOption,
           mixtureProfiles(1).genotypification.getOrElse(analysisType.id, Map.empty), asocProfMix2.headOption,
           PValueCalculator.parseFrequencyTable(frequencyTable),
           getCalculationModel(frequencyTable.theta)(ProbabilityModel.withName(stats.probabilityModel)))
-
         val total = getTotalRmpByGlobacode(res)
 */
-
         val lrResult = LRMixCalculator.lrMixMixNuevo(
-          mixtureProfiles(0).genotypification.getOrElse(analysisType.id, Map.empty), asocProfMix1.headOption,
-          mixtureProfiles(1).genotypification.getOrElse(analysisType.id, Map.empty), asocProfMix2.headOption,
+          mixtureProfiles(0).genotypification.getOrElse(analysisType.id, Map.empty),
+          asocProfMix1.headOption,
+          mixtureProfiles(1).genotypification.getOrElse(analysisType.id, Map.empty),
+          asocProfMix2.headOption,
           PValueCalculator.parseFrequencyTable(frequencyTable),
-          firingProfile.contributors.getOrElse(1), matchingProfile.contributors.getOrElse(1),
-          allelesRanges, stats.theta, stats.dropIn, stats.dropOut.getOrElse(0.0))
-
+          firingProfile.contributors.getOrElse(1),
+          matchingProfile.contributors.getOrElse(1),
+          allelesRanges,
+          stats.theta,
+          stats.dropIn,
+          stats.dropOut.getOrElse(0.0)
+        )
 //        Some(LRResult(total, res))
         Some(lrResult)
 
