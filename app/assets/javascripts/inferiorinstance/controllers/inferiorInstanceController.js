@@ -74,13 +74,18 @@ define([], function() {
             $scope.changeStatus(id,3);
 
         };
-        $scope.changeStatus = function(id,idStatus){
+        $scope.changeStatus = function(id, idStatus){
             for(var i = 0; i < $scope.inferiorInstances.length; i++){
-                if($scope.inferiorInstances[i].id === id){
+                if($scope.inferiorInstances[i].id === id) {
 
                     $scope.inferiorInstances[i].idStatus = idStatus;
 
-                    inferiorInstanceService.updateInferiorInstance($scope.inferiorInstances[i]).then($scope.callBackChangeStatusSuccess,$scope.callBackChangeStatusError);
+                    inferiorInstanceService
+                      .updateInferiorInstance($scope.inferiorInstances[i])
+                      .then(
+                        $scope.callBackChangeStatusSuccess,
+                        $scope.callBackChangeStatusError
+                      );
 
                 }
             }

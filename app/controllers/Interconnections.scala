@@ -1,13 +1,11 @@
 package controllers
 
 import javax.inject.{Inject, Singleton}
-
-import play.api.libs.json.Json
+import play.api.libs.json.{JsError, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, BodyParsers, Controller}
-import javax.inject.{Inject, Singleton}
 
+import javax.inject.{Inject, Singleton}
 import com.ning.http.client.Request
-import play.api.libs.json.{JsError, Json}
 import trace.{TraceSearch, TraceService}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
@@ -124,23 +122,40 @@ class Interconnections @Inject()(interconnectionService : InterconnectionService
     }
   }
 // Instancia superior recibe profile
-  def importProfile() = Action.async(BodyParsers.parse.json) {
+  def importProfile(): Action[JsValue] = Action.async(BodyParsers.parse.json) {
 
-    request =>{
+    request => {
       val labcode = request.headers.get(HeaderInsterconnections.labCode)
       val labCodeInstanceOrigin = request.headers.get(HeaderInsterconnections.laboratoryOrigin)
       val labCodeImmediateInstance = request.headers.get(HeaderInsterconnections.laboratoryImmediateInstance)
       val dateAdded = request.headers.get(HeaderInsterconnections.sampleEntryDate)
-      (labcode,dateAdded,labCodeInstanceOrigin,labCodeImmediateInstance) match {
-        case (Some(labcode),Some(dateAdded),Some(labCodeInstanceOrigin),Some(labCodeInmediateInstanceOrigin)) =>{
+      (labcode, dateAdded, labCodeInstanceOrigin, labCodeImmediateInstance) match {
+        case (
+          Some(labcode),
+          Some(dateAdded),
+          Some(labCodeInstanceOrigin),
+          Some(labCodeInmediateInstanceOrigin)
+        ) =>{
           val input = request.body.validate[connections.ProfileTransfer]
-          input.fold(errors => {
-            Future.successful(BadRequest(JsError.toFlatJson(errors)))
-          },
+          input.fold(
+            errors => {
+              Future.successful(BadRequest(JsError.toFlatJson(errors)))
+            },
             profileTransfer => {
-              interconnectionService.importProfile(profileTransfer.profile,labcode,dateAdded,labCodeInstanceOrigin,labCodeInmediateInstanceOrigin,profileTransfer.profileAssociated)
-              Future.successful(Ok.withHeaders("X-CREATED-ID" -> profileTransfer.profile.globalCode.text))
-            })
+              interconnectionService
+                .importProfile(
+                  profileTransfer.profile,
+                  labcode,
+                  dateAdded,
+                  labCodeInstanceOrigin,
+                  labCodeInmediateInstanceOrigin,
+                  profileTransfer.profileAssociated
+                )
+              Future.successful(
+                Ok.withHeaders("X-CREATED-ID" -> profileTransfer.profile.globalCode.text)
+              )
+            }
+          )
         }
         case (_,_,_,_) => {
           Future.successful(BadRequest)
@@ -174,7 +189,7 @@ class Interconnections @Inject()(interconnectionService : InterconnectionService
       }
     }
   }
-  def approveProfiles() = Action.async(BodyParsers.parse.json){
+  def approveProfiles(): Action[JsValue] = Action.async(BodyParsers.parse.json){
     request =>{
       val input = request.body.validate[List[ProfileApproval]]
       input.fold(errors => {

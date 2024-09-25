@@ -110,7 +110,6 @@ define(['lodash'], function(_) {
                 notUploaded: null,
                 category: ""
             };
-            console.log($scope.search);
             if($scope.search){
                 searchService
                     .search($scope.searchObj)

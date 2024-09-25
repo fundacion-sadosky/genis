@@ -4,7 +4,7 @@ import javax.inject.{Inject, Singleton}
 import configdata.CategoryService
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.iteratee.Enumerator
-import play.api.libs.json.{JsError, JsString, JsValue, Json, Writes}
+import play.api.libs.json.{JsError, JsObject, JsString, JsValue, Json, Writes}
 import play.api.mvc._
 import play.modules.reactivemongo.MongoController
 import profile.GenotypificationByType._
@@ -218,10 +218,18 @@ class Profiles @Inject()(
     }
   }
 
-  def isReadOnly(globalCode: SampleCode) = Action.async { request =>
-    profileService.isReadOnlySampleCode(globalCode).map { result =>
-      Ok(Json.obj("isReadOnly" -> result._1, "message" -> result._2))
+  def isReadOnly(globalCode: SampleCode): Action[AnyContent] = {
+    val responseToJson: ((Boolean, String)) => JsObject = {
+      case (ro, error) => Json.obj("isReadOnly" -> ro, "message" -> error)
     }
+    Action
+      .async(
+        request =>
+          profileService
+            .isReadOnlySampleCode(globalCode)
+            .map(responseToJson)
+            .map(Ok(_))
+      )
   }
 
   def exporterProfiles() = Action(BodyParsers.parse.json) { request =>
