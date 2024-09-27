@@ -1,33 +1,19 @@
 package pdgconf
 
-import java.net.URI
-import java.util.NoSuchElementException
-
-import scala.collection.JavaConverters.asScalaBufferConverter
-import scala.collection.JavaConverters.mapAsScalaMapConverter
-import scala.util.Failure
-import scala.util.Success
+import com.google.inject.{Guice, Injector}
+import matching.{MatchingCalculatorService, MatchingService}
 import org.jboss.netty.handler.codec.http.QueryStringDecoder
-import com.google.inject.Guice
-import com.google.inject.Injector
-import audit.OperationLogService
-import javax.inject.Singleton
 import play.api._
 import play.api.http.HeaderNames
-import play.api.mvc.Action
-import play.api.mvc.BodyParsers
-import play.api.mvc.EssentialAction
-import play.api.mvc.Handler
-import play.api.mvc.RequestHeader
-import play.api.mvc.Results
-import play.api.mvc.WithFilters
+import play.api.mvc.Results._
+import play.api.mvc._
 import play.filters.gzip.GzipFilter
 import security.AuthService
 import types.TotpToken
 
+import java.net.URI
 import scala.concurrent.Future
-import play.api.mvc.Results._
-import matching.{MatchingCalculatorService, MatchingService}
+import scala.util.{Failure, Success}
 
 object Filters {
   val gzipFilter = new GzipFilter(
@@ -142,6 +128,6 @@ object PdgGlobal extends WithFilters(Filters.gzipFilter) {
    * Controllers must be resolved through the application context. There is a special method of GlobalSettings
    * that we can override to resolve a given controller. This resolution is required by the Play router.
    */
-  override def getControllerInstance[A](controllerClass: Class[A]): A = injector.getInstance(controllerClass)
-
+  def getControllerInstance[A](controllerClass: Class[A]): A = injector.getInstance(controllerClass)
+  //override def getControllerInstance[A](controllerClass: Class[A]): A = injector.getInstance(controllerClass)
 }

@@ -4,17 +4,12 @@ import com.google.inject.AbstractModule
 import com.google.inject.name.Names
 import com.ning.http.client.AsyncHttpClientConfig
 import play.api.Configuration
-import play.api.libs.ws._
 import play.api.libs.ws.WSClient
-
-import play.api.libs.ws._
-import play.api.{Configuration, Environment}
-import javax.inject.{Inject, Singleton}
-
-import play.api.libs.ws.ning.NingAsyncHttpClientConfigBuilder
+import play.api.libs.ws.ning.NingWSClient
 
 class InterconnectionModule(conf: Configuration,wsConf: Configuration) extends AbstractModule {
-  override protected def configure() {
+
+  override protected def configure(): Unit = {
 
     val protocol = conf.getString("protocol").get
     val status = conf.getString("status").get
@@ -46,22 +41,30 @@ class InterconnectionModule(conf: Configuration,wsConf: Configuration) extends A
     bind(classOf[ConnectionRepository]).to(classOf[SlickConnectionRepository])
     bind(classOf[InferiorInstanceRepository]).to(classOf[SlickInferiorInstanceRepository])
     bind(classOf[SuperiorInstanceProfileApprovalRepository]).to(classOf[SlickSuperiorInstanceProfileApprovalRepository])
-
     bind(classOf[InterconnectionService]).to(classOf[InterconnectionServiceImpl])
 
-    val clientConfig = new PlayWSConfigParser(wsConf,getClass.getClassLoader)
-    //val clientConfig = new DefaultWSConfigParser(wsConf,getClass.getClassLoader)
-    val secureDefaults:com.ning.http.client.AsyncHttpClientConfig = new AsyncHttpClientConfig.Builder(clientConfig()).build()
-    //val secureDefaults:com.ning.http.client.AsyncHttpClientConfig = new NingAsyncHttpClientConfigBuilder(clientConfig.parse()).build()
-    // You can directly use the builder for specific options once you have secure TLS defaults...
-    val builder = new com.ning.http.client.AsyncHttpClientConfig.Builder(secureDefaults)
-    builder.setCompressionEnforced(true)
-    //builder.setCompressionEnabled(true)
+    // Configuración del NingWSClient
+    val builder = new AsyncHttpClientConfig.Builder()
+      .setCompressionEnforced(true)
+      // Configura otros parámetros de acuerdo a tus necesidades
+      .setRequestTimeout(timeOutHolder) // Ejemplo de tiempo de espera
+
+    val secureDefaults: AsyncHttpClientConfig = builder.build()
+
+    //val clientConfig = new PlayWSConfigParser(wsConf,getClass.getClassLoader)
+    ////val clientConfig = new DefaultWSConfigParser(wsConf,getClass.getClassLoader)
+    //val secureDefaults:com.ning.http.client.AsyncHttpClientConfig = new AsyncHttpClientConfig.Builder(clientConfig()).build()
+    ////val secureDefaults:com.ning.http.client.AsyncHttpClientConfig = new NingAsyncHttpClientConfigBuilder(clientConfig.parse()).build()
+    //// You can directly use the builder for specific options once you have secure TLS defaults...
+    //val builder = new com.ning.http.client.AsyncHttpClientConfig.Builder(secureDefaults)
+    //builder.setCompressionEnforced(true)
+    ////builder.setCompressionEnabled(true)
 
     val secureDefaultsWithSpecificOptions:com.ning.http.client.AsyncHttpClientConfig = builder.build()
-    implicit val implicitClient = new play.api.libs.ws.ning.NingWSClient(secureDefaultsWithSpecificOptions)
+    implicit val implicitClient: NingWSClient = new play.api.libs.ws.ning.NingWSClient(secureDefaultsWithSpecificOptions)
+
     bind(classOf[WSClient]).toInstance(implicitClient)
     bind(classOf[RetryScheduler]).asEagerSingleton()
     ()
   }
-}
+  }

@@ -1,25 +1,14 @@
 package bulkupload
 
 import configdata.MatchingRule
-import jdk.nashorn.internal.runtime.regexp.RegExp
-import kits.{FullStrKit, NewStrKitLocus, StrKit}
-
-import scala.Left
-import scala.Right
-import profile.{AlleleValue, Mitocondrial, MtRCRS, Profile}
 import play.api.Logger
-import profiledata.ProfileDataService
 import play.api.i18n.Messages
-
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
-import scala.concurrent.duration.SECONDS
-import types.AlphanumericId
-import types.SampleCode
+import profile.{AlleleValue, Mitocondrial, MtRCRS, Profile}
+import types.{AlphanumericId, SampleCode}
 import user.User
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.Await
+import scala.concurrent.duration.{Duration, SECONDS}
 //object m {
 //  val mock = AlphanumericId("XXXX")
 //}

@@ -1,13 +1,11 @@
 package profile
 
 import java.util.Date
-
 import configdata.MatchingRule
 import org.apache.commons.codec.binary.Base64
 import play.api.Play.current
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import util.FutureUtils
-
 import play.api.libs.json.Json.toJsFieldJsValueWrapper
 import play.api.libs.json._
 import play.modules.reactivemongo.ReactiveMongoPlugin
@@ -18,7 +16,6 @@ import reactivemongo.api.Cursor
 import reactivemongo.bson.{BSONObjectID, _}
 import reactivemongo.core.commands.{FindAndModify, Update}
 import types._
-
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 
@@ -102,10 +99,10 @@ abstract class ProfileRepository {
   def getProfileOwnerByEpgId(id: String): Future[(String,SampleCode)]
 
   def getAllProfiles(): Future[List[(SampleCode, String)]]
-  
+
 }
 
-class MongoProfileRepository extends ProfileRepository {
+abstract class MongoProfileRepository extends ProfileRepository {
 
   private def profiles = Await.result(play.modules.reactivemongo.ReactiveMongoPlugin.database.map(_.collection[JSONCollection]("profiles")), Duration(10, SECONDS))
 
@@ -113,23 +110,21 @@ class MongoProfileRepository extends ProfileRepository {
 
   private def files = Await.result(play.modules.reactivemongo.ReactiveMongoPlugin.database.map(_.collection[JSONCollection]("files")), Duration(10, SECONDS))
 
-  override def delete(globalCode: SampleCode): Future[Either[String, SampleCode]] = {
+//  override def delete(globalCode: SampleCode): Future[Either[String, SampleCode]] = {
+//
+//    val set: JsObject = Json.obj("$set" -> Json.obj("deleted" -> true))
+//
+//    profiles.update(Json.obj("_id" -> globalCode), set).map { lastError =>
+//      if (lastError.ok)
+//        Right(globalCode)
+//      else
+//        Left(lastError.errmsg.getOrElse("Error"))
+//    }
+//  }
 
-    val set: JsObject = Json.obj("$set" -> Json.obj("deleted" -> true))
-
-    profiles.update(Json.obj("_id" -> globalCode), set).map { lastError =>
-      if (lastError.ok)
-        Right(globalCode)
-      else
-        Left(lastError.errmsg.getOrElse("Error"))
-    }
-  }
-
-  def get(id: SampleCode): Future[Option[Profile]] = {
-    profiles.find(Json.obj("_id" -> id))
-      .sort(Json.obj("_id" -> -1))
-      .one[Profile]
-  }
+  def get(id: SampleCode): Future[Option[Profile]] = profiles.find(Json.obj("_id" -> id))
+    .sort(Json.obj("_id" -> -1))
+    .one[Profile]
 
   def findAll(): Future[List[Profile]] = {
     profiles
@@ -440,12 +435,25 @@ class MongoProfileRepository extends ProfileRepository {
       .projection(Json.obj("_id" -> false, "labeledGenotypification" -> true))
       .one[BSONDocument]
 
-    opt.map(docOpt =>
-      docOpt.flatMap(doc => {
-        val js = Json.toJson(doc)
-        val jsonValue = js.\("labeledGenotypification")
-        Json.fromJson[Map[Profile.MixLabel, Profile.Genotypification]](jsonValue).asOpt
-      }))
+//    opt.map(docOpt =>
+//      docOpt.flatMap(doc => {
+//        val js = Json.toJson(doc)
+//        val jsonValue = js.\("labeledGenotypification")
+//        Json.fromJson[Map[Profile.MixLabel, Profile.Genotypification]](jsonValue).asOpt
+//      }))
+
+    opt.map { docOpt =>
+      docOpt.flatMap { doc =>
+        val js: JsValue = Json.toJson(doc)
+        (js \ "labeledGenotypification").validate[Map[Profile.MixLabel, Profile.Genotypification]].asOpt
+      }
+    }.recover {
+      case e: Throwable =>
+        // Log the error message
+        println(s"An error occurred: ${e.getMessage}")
+        None
+    }
+
   }
 
   override def updateAssocTo(globalCode: SampleCode, to: SampleCode): Future[(String, String, SampleCode)] = {
@@ -609,7 +617,7 @@ class MongoProfileRepository extends ProfileRepository {
         .map(res => res.map( x => (x.assignee, x.globalCode) )))).map(_.flatten)
     })).map( x => x.getOrElse(("",SampleCode(""))))
   }
-  
+
   override def getAllProfiles() : Future[List[(SampleCode, String)]]= {
     profiles
       .find(Json.obj())

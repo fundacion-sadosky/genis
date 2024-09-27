@@ -114,6 +114,9 @@ libraryDependencies ++= Seq(
 // RDBMS
 libraryDependencies ++= Seq(
   // "com.typesafe.play" %% "play-ws" % "2.4.11",
+  "com.typesafe.play" %% "play" % play.core.PlayVersion.current,
+  "com.jolbox" % "bonecp" % "0.8.0.RELEASE",
+
   "com.typesafe.play" %% "play-json" % "2.4.11",
   "com.typesafe.play" %% "play-slick" % "0.8.0",
   "com.typesafe.slick" %% "slick" % "2.1.0",
