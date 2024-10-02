@@ -13,9 +13,9 @@ import types.AlphanumericId
 import util.{DefaultDb, Transaction}
 
 import scala.concurrent.Future
-import scala.slick.jdbc.{StaticQuery => Q}
+import slick.jdbc.{StaticQuery => Q}
 import Q.interpolation
-import scala.slick.jdbc.StaticQuery.staticQueryToInvoker
+import slick.jdbc.StaticQuery.staticQueryToInvoker
 
 abstract class CategoryRepository extends DefaultDb with Transaction {
 

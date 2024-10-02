@@ -9,7 +9,7 @@ import play.api.i18n.{Messages, MessagesApi}
 
 import scala.concurrent.duration.{Duration, SECONDS}
 import scala.concurrent.{Await, Future}
-import scala.slick.driver.PostgresDriver.simple._
+import slick.driver.PostgresDriver.simple._
 abstract class InferiorInstanceRepository extends DefaultDb with Transaction {
 
   def insert(row: InferiorInstance): Future[Either[String, Long]]

@@ -7,8 +7,8 @@ import util.{DefaultDb, Transaction}
 import play.api.i18n.{Messages, MessagesApi}
 
 import scala.concurrent.Future
-import scala.slick.driver.PostgresDriver.simple._
-import scala.slick.lifted.Compiled
+import slick.driver.PostgresDriver.simple._
+import slick.lifted.Compiled
 abstract class MotiveRepository extends DefaultDb with Transaction {
   def getMotives(motiveType: Long, editable:Boolean): Future[List[Motive]]
   def getMotivesTypes(): Future[List[MotiveType]]

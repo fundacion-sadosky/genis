@@ -14,7 +14,7 @@ import play.api.libs.json.Json
 import types.{SampleCode, Sex}
 import util.{DefaultDb, Transaction}
 
-import scala.slick.jdbc.{StaticQuery => Q}
+import slick.jdbc.{StaticQuery => Q}
 import scala.concurrent.Future
 
 abstract class PedigreeDataRepository extends DefaultDb with Transaction {

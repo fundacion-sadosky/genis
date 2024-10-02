@@ -12,7 +12,7 @@ import util.{DefaultDb, Transaction}
 import play.api.i18n.{Messages, MessagesApi}
 
 import scala.concurrent.{Await, Future}
-import scala.slick.driver.PostgresDriver.simple._
+import slick.driver.PostgresDriver.simple._
 
 abstract class ConnectionRepository extends DefaultDb with Transaction {
   // Metodos Genericos

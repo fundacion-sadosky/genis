@@ -9,10 +9,10 @@ import java.io.InputStream
 import java.util.{Calendar, Date}
 import scala.concurrent.Future
 import scala.language.postfixOps
-import scala.slick.driver.PostgresDriver.simple.queryToUpdateInvoker
-import scala.slick.driver.PostgresDriver.simple.runnableCompiledToUpdateInvoker
-import scala.slick.jdbc.{StaticQuery => Q}
-import scala.slick.jdbc.StaticQuery.staticQueryToInvoker
+import slick.driver.PostgresDriver.simple.queryToUpdateInvoker
+import slick.driver.PostgresDriver.simple.runnableCompiledToUpdateInvoker
+import slick.jdbc.{StaticQuery => Q}
+import slick.jdbc.StaticQuery.staticQueryToInvoker
 import configdata.Category
 import configdata.Group
 

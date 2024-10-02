@@ -4,7 +4,7 @@ import java.sql.Timestamp
 import java.util.Date
 
 import scala.concurrent.Future
-import scala.slick.driver.PostgresDriver.simple._
+import slick.driver.PostgresDriver.simple._
 import javax.inject.Inject
 import javax.inject.Singleton
 import javax.sql.rowset.serial.SerialBlob

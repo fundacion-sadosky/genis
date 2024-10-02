@@ -12,7 +12,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 import play.api.db.slick.Config.driver.simple.{Column, Compiled, TableQuery, booleanColumnExtensionMethods, booleanColumnType, columnExtensionMethods, queryToInsertInvoker, runnableCompiledToAppliedQueryInvoker, slickDriver, stringColumnType}
 import scala.language.postfixOps
-import scala.slick.driver.PostgresDriver.simple._
+import slick.driver.PostgresDriver.simple._
 
 class TraceRepositoryTest extends PdgSpec with MockitoSugar {
 

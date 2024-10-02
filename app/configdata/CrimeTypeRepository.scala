@@ -12,9 +12,9 @@ import play.api.db.slick.Config.driver.simple.queryToInsertInvoker
 import play.api.db.slick.Config.driver.simple.stringColumnType
 import play.api.db.slick.DB
 import play.api.db.slick.DBAction
-import scala.slick.driver.PostgresDriver.simple.Compiled
-import scala.slick.driver.PostgresDriver.simple.runnableCompiledToAppliedQueryInvoker
-import scala.slick.driver.PostgresDriver.simple.slickDriver
+import slick.driver.PostgresDriver.simple.Compiled
+import slick.driver.PostgresDriver.simple.runnableCompiledToAppliedQueryInvoker
+import slick.driver.PostgresDriver.simple.slickDriver
 import util.DefaultDb
 
 abstract class CrimeTypeRepository extends DefaultDb {

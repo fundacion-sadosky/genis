@@ -11,8 +11,8 @@ import profiledata.{ProfileData, ProfileDataSearch, ProfileDataWithBatch}
 import types.{AlphanumericId, SampleCode}
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.slick.ast.TypedType
-import scala.slick.lifted.{Column, SimpleFunction}
+import slick.ast.TypedType
+import slick.lifted.{Column, SimpleFunction}
 
 abstract class FullTextSearch {
   def searchProfiles(search: ProfileDataSearch): Future[Seq[ProfileData]]

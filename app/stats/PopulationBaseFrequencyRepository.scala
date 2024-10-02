@@ -10,7 +10,7 @@ import probability.ProbabilityModel
 import util.DefaultDb
 
 import scala.concurrent.Future
-import scala.slick.driver.PostgresDriver.simple._
+import slick.driver.PostgresDriver.simple._
 import scala.util.{Failure, Success, Try}
 
 abstract class PopulationBaseFrequencyRepository extends DefaultDb {

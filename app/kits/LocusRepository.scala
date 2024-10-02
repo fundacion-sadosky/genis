@@ -9,8 +9,8 @@ import util.{DefaultDb, Transaction}
 import play.api.i18n.{Messages, MessagesApi}
 
 import scala.concurrent.Future
-import scala.slick.driver.PostgresDriver.simple.{Session, _}
-import scala.slick.lifted.TableQuery
+import slick.driver.PostgresDriver.simple.{Session, _}
+import slick.lifted.TableQuery
 
 
 abstract class LocusRepository extends DefaultDb  with Transaction {

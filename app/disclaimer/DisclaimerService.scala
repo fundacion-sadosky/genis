@@ -10,7 +10,7 @@ import util.{DefaultDb, Transaction}
 
 import scala.concurrent.Future
 import scala.language.postfixOps
-import scala.slick.jdbc.{StaticQuery => Q}
+import slick.jdbc.{StaticQuery => Q}
 
 abstract class DisclaimerService  extends DefaultDb with Transaction {
   def get(): Future[Disclaimer]

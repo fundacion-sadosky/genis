@@ -14,10 +14,10 @@ import types.SampleCode
 import play.api.{Application, Logger}
 import play.api.libs.json.Json
 
-import scala.slick.jdbc.{StaticQuery => Q}
+import slick.jdbc.{StaticQuery => Q}
 import Q.interpolation
-import scala.slick.jdbc.StaticQuery.staticQueryToInvoker
-import scala.slick.driver.PostgresDriver.simple._
+import slick.jdbc.StaticQuery.staticQueryToInvoker
+import slick.driver.PostgresDriver.simple._
 import play.api.db.slick.Config.driver.simple.Column
 import play.api.db.slick.Config.driver.simple.Compiled
 import play.api.db.slick.Config.driver.simple.TableQuery
@@ -47,7 +47,7 @@ import util.{DefaultDb, Transaction}
 import search.PaginationSearch
 import bulkupload.KitNotExistsException
 
-import scala.slick.driver.PostgresDriver
+import slick.driver.PostgresDriver
 
 abstract class ProtoProfileRepository  extends DefaultDb with Transaction {
 

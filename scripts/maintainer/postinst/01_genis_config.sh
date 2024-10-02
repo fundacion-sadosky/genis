@@ -138,7 +138,7 @@ EOF
   <logger name="user" level="DEBUG" />
   <logger name="audit.PEOSignerActor" level="INFO" />
 
-  <logger name="scala.slick.jdbc.JdbcBackend.statement" level="OFF" />
+  <logger name="slick.jdbc.JdbcBackend.statement" level="OFF" />
   <logger name="org.mockito" level="OFF" />
 
   <logger name="org.apache.spark" level="ERROR" />

@@ -11,7 +11,7 @@ import types.Email
 import util.DefaultDb
 
 import scala.concurrent.Future
-import scala.slick.driver.PostgresDriver.simple._
+import slick.driver.PostgresDriver.simple._
 
 abstract class GeneticistRepository {
 

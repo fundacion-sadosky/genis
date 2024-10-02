@@ -7,7 +7,7 @@ import play.api.{Application, Logger}
 import play.api.db.slick.Config.driver.simple._
 import util.{DefaultDb, Transaction}
 import scala.concurrent.Future
-import scala.slick.lifted.Compiled
+import slick.lifted.Compiled
 
 abstract class PedCheckRepository extends DefaultDb with Transaction {
   def insert(pedChecks:List[PedCheck]): Future[Either[String, Unit]]

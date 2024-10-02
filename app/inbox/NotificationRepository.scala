@@ -13,7 +13,7 @@ import util.DefaultDb
 
 import scala.concurrent.Future
 import scala.language.postfixOps
-import scala.slick.driver.PostgresDriver.simple._
+import slick.driver.PostgresDriver.simple._
 
 
 abstract class NotificationRepository {

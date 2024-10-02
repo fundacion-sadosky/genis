@@ -8,7 +8,7 @@ import specs.PdgSpec
 import stubs.Stubs
 import scala.concurrent.Await
 import scala.concurrent.duration.{Duration, SECONDS}
-import scala.slick.lifted.TableQuery
+import slick.lifted.TableQuery
 
 class PopulationBaseFrequencyRepositoryTest extends PdgSpec {
 

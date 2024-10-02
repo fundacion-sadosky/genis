@@ -6,7 +6,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import models.Tables
 import play.api.Application
-import scala.slick.driver.PostgresDriver.simple._
+import slick.driver.PostgresDriver.simple._
 import play.api.db.slick.Config.driver.simple.Column
 import play.api.db.slick.Config.driver.simple.Compiled
 import play.api.db.slick.Config.driver.simple.TableQuery

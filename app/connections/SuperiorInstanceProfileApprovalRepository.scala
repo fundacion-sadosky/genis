@@ -10,7 +10,7 @@ import play.api.libs.json.Json
 import profile.Profile
 import util.{DefaultDb, Transaction}
 import scala.concurrent.Future
-import scala.slick.driver.PostgresDriver.simple._
+import slick.driver.PostgresDriver.simple._
 
 abstract class SuperiorInstanceProfileApprovalRepository extends DefaultDb with Transaction {
 

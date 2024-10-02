@@ -4,7 +4,7 @@ import java.sql.SQLException
 
 import scala.concurrent.Future
 import scala.language.postfixOps
-import scala.slick.jdbc.{StaticQuery => Q}
+import slick.jdbc.{StaticQuery => Q}
 import javax.inject._
 
 import models.Tables

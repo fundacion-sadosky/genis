@@ -1,6 +1,6 @@
 package pdgconf
 
-import scala.slick.driver.PostgresDriver
+import slick.driver.PostgresDriver
 
 import com.github.tminglei.slickpg.PgArraySupport
 import com.github.tminglei.slickpg.PgDateSupport

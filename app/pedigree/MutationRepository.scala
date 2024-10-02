@@ -14,11 +14,11 @@ import types.{SampleCode, Sex}
 import util.{DefaultDb, Transaction}
 import pedigree.MutationDefaultParam
 
-import scala.slick.jdbc.{StaticQuery => Q}
+import slick.jdbc.{StaticQuery => Q}
 import scala.concurrent.Future
 import scala.math.BigDecimal.RoundingMode
 import scala.math.BigDecimal.RoundingMode.RoundingMode
-import scala.slick.lifted.Compiled
+import slick.lifted.Compiled
 abstract class MutationRepository extends DefaultDb with Transaction {
   def getAllMutationModelType():Future[List[MutationModelType]]
   def getAllMutationModels():Future[List[MutationModel]]
