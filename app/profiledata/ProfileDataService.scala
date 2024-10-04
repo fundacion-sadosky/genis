@@ -377,12 +377,33 @@ class ProfileDataServiceImpl @Inject() (
             images match {
               case Right((inprints, pictures, signatures)) =>
                 val pd = profileData.pdAttempToPd(labCode)
+                val oldProfileData = profileDataRepository
+                  .findByCode(globalCode)
                 val updatePromise = profileDataRepository
                   .updateProfileData(globalCode, pd, inprints, pictures, signatures)
-                updatePromise.onComplete {
-                  updated =>
-                    // TODO: Create a new trace for modifying category data.
+                val joined = for {
+                  old <- oldProfileData
+                  current <- updatePromise
+                } yield {
+                  (old, current)
+                }
+                joined.onComplete {
+                  joinedResult =>
+                    val (oldProfile, _) = joinedResult.get
                     traceService.add(Trace(globalCode, profileData.assignee, new Date(), trace.ProfileDataInfo))
+                    val r = traceService.add(
+                      Trace(
+                        globalCode,
+                        profileData.assignee,
+                        new Date(),
+                        trace
+                          .ProfileCategoryModificationInfo(
+                            oldProfile.get.category.text,
+                            profileData.category.text
+                          )
+                      )
+                    )
+                    println(r);
                     filiationDataOpt map {
                       filiationData =>
                         cache.pop(TemporaryAssetKey(filiationData.inprint))

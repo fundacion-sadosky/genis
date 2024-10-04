@@ -161,15 +161,22 @@ class ProfileData @Inject() (
             }
           }
         val updateCategoryInProfile = (profileData: ProfileDataAttempt) => {
+//          val addTrace = (profileOrError: Either[String, Profile]) => {
+//            profileOrError
+//              .right
+//              .map {
+//                profile => {
+//                  traceService
+//                }
+//              }
+//            profileOrError
+//          }
           val matchAndUpload = (profileOrError: Either[String, Profile]) => {
             profileOrError match {
               case Left(error) => Future
                 .successful(
                   Json.arr(
-                    Json.obj(
-                      "status" -> "error",
-                      "message" -> error
-                    )
+                    Json.obj( "status" -> "error", "message" -> error )
                   )
                 )
               case Right(prof) =>
@@ -202,6 +209,7 @@ class ProfileData @Inject() (
             .flatMap(getProfile)
             .map(copyAndModifyProfile(profileData))
             .flatMap(updateProfile)
+//            .map(addTrace)
             .flatMap(matchAndUpload)
             .map(Ok(_))
         }

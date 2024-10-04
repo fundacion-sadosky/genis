@@ -38,6 +38,14 @@ case object ProfileDataInfo extends TraceInfo {
   override val description = s"Carga de la metadata."
 }
 
+case class ProfileCategoryModificationInfo(
+  oldCategory: String,
+  newCategory: String
+) extends TraceInfo {
+  override val kind = TraceType.categoryModification
+  override val description = s"Modificación de la categoría $oldCategory a $newCategory."
+}
+
 case object ProfileAprovedInSuperiorInfo extends TraceInfo {
   override val kind = TraceType.interconectionAproved
   override val description = s"Aprobado en instancia superior."
@@ -136,6 +144,7 @@ object TraceInfo {
   implicit val pedigreeMatchFormat2 = Json.format[PedigreeMatchInfo2]
   implicit val pedigreeDiscardFormat2 = Json.format[PedigreeDiscardInfo2]
   implicit val pedigreeConfirmFormat2 = Json.format[PedigreeConfirmInfo2]
+  implicit val profileCategoryModificationFormat = Json.format[ProfileCategoryModificationInfo]
   def unapply(info: TraceInfo): Option[(TraceType.Value, JsValue)] = {
     info match {
       case x: AnalysisInfo => Some((x.kind, Json.toJson(x)(analysisFormat)))
@@ -160,6 +169,7 @@ object TraceInfo {
       case x: PedigreeNewScenarioInfo => Some((x.kind, Json.toJson(x)(pedigreeNewScenarioFormat)))
       case x: ProfileAprovedInSuperiorInfo.type => Some((x.kind, Json.toJson(x)(profileAprovedInSuperiorFormat)))
       case x: ProfileRejectedInSuperiorInfo.type => Some((x.kind, Json.toJson(x)(profileRejectedInSuperiorFormat)))
+      case x: ProfileCategoryModificationInfo => Some((x.kind, Json.toJson(x)(profileCategoryModificationFormat)))
       case _ => None
     }
   }
@@ -188,6 +198,7 @@ object TraceInfo {
       case TraceType.pedigreeConfirm2 => Json.fromJson[PedigreeConfirmInfo2](json)
       case TraceType.interconectionAproved => Json.fromJson[ProfileAprovedInSuperiorInfo.type](json)
       case TraceType.interconectionRejected => Json.fromJson[ProfileRejectedInSuperiorInfo.type](json)
+      case TraceType.categoryModification => Json.fromJson[ProfileCategoryModificationInfo](json)
       case _ => JsError()
     }).get
   }
