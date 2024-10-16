@@ -391,7 +391,7 @@ class ProfileDataServiceImpl @Inject() (
                   joinedResult =>
                     val (oldProfile, _) = joinedResult.get
                     traceService.add(Trace(globalCode, profileData.assignee, new Date(), trace.ProfileDataInfo))
-                    val r = traceService.add(
+                    traceService.add(
                       Trace(
                         globalCode,
                         profileData.assignee,
@@ -403,7 +403,6 @@ class ProfileDataServiceImpl @Inject() (
                           )
                       )
                     )
-                    println(r);
                     filiationDataOpt map {
                       filiationData =>
                         cache.pop(TemporaryAssetKey(filiationData.inprint))

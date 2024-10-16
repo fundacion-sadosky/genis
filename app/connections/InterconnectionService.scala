@@ -68,7 +68,14 @@ trait InterconnectionService {
 
   def uploadProfileToSuperiorInstance(profile: Profile, pd: ProfileData): Unit
 
-  def importProfile(profile: Profile, labo: String, sampleEntryDate: String, labCodeInstanceOrigin: String, labCodeInmediateInstanceOrigin: String, profileAssociated: Option[Profile] = None): Unit
+  def importProfile(
+    profile: Profile,
+    labo: String,
+    sampleEntryDate: String,
+    labCodeInstanceOrigin: String,
+    labCodeInmediateInstanceOrigin: String,
+    profileAssociated: Option[Profile] = None
+  ): Unit
 
   def approveProfiles(profileApprovals: List[ProfileApproval]): Future[Either[String, Unit]]
 

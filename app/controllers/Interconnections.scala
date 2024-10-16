@@ -126,8 +126,12 @@ class Interconnections @Inject()(interconnectionService : InterconnectionService
 
     request => {
       val labcode = request.headers.get(HeaderInsterconnections.labCode)
-      val labCodeInstanceOrigin = request.headers.get(HeaderInsterconnections.laboratoryOrigin)
-      val labCodeImmediateInstance = request.headers.get(HeaderInsterconnections.laboratoryImmediateInstance)
+      val labCodeInstanceOrigin = request.headers.get(
+        HeaderInsterconnections.laboratoryOrigin
+      )
+      val labCodeImmediateInstance = request.headers.get(
+        HeaderInsterconnections.laboratoryImmediateInstance
+      )
       val dateAdded = request.headers.get(HeaderInsterconnections.sampleEntryDate)
       (labcode, dateAdded, labCodeInstanceOrigin, labCodeImmediateInstance) match {
         case (
@@ -135,7 +139,7 @@ class Interconnections @Inject()(interconnectionService : InterconnectionService
           Some(dateAdded),
           Some(labCodeInstanceOrigin),
           Some(labCodeInmediateInstanceOrigin)
-        ) =>{
+        ) =>
           val input = request.body.validate[connections.ProfileTransfer]
           input.fold(
             errors => {
@@ -156,7 +160,6 @@ class Interconnections @Inject()(interconnectionService : InterconnectionService
               )
             }
           )
-        }
         case (_,_,_,_) => {
           Future.successful(BadRequest)
         }
