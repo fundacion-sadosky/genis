@@ -17,6 +17,7 @@ define(['lodash'], function (_) {
     $scope.pageSize = 25;
     $scope.totalItems = 0;
     $scope.currentPage = 1;
+    $scope.profilesModified = {};
 
     localStorage.removeItem("searchPedigree");
     localStorage.removeItem("searchMatches");
@@ -42,8 +43,7 @@ define(['lodash'], function (_) {
               .then(
                 function (response) {
                   $scope.profiles = response.data;
-                  $scope.profilesModified = getProfilesWithDifferentCategory($scope.profiles);
-                  console.log($scope.profilesModified);
+                  getProfilesWithDifferentCategory($scope.profiles);
                   $scope.profiles.forEach(
                     function (element) {
                       if (!_.isUndefined(element.genotypification["1"])) {
@@ -271,20 +271,61 @@ define(['lodash'], function (_) {
     }
     
     function getProfilesWithDifferentCategory(profiles) {
-      return _.filter(
-        profiles,
-        function (profile) {
-          return profileService
-            .getProfile(profile.globalCode)
-            .then(
-              function (response) {
-                return response.data.category !== profile.category;
-              }
-            );
+      var promises = profiles
+        .map(
+          function(profile) {
+            return profileService
+              .findByCode(profile.globalCode)
+              .then(
+                function(response) {
+                  return [response.data, profile];
+                }
+              );
+          }
+        );
+      Promise.all(promises)
+        .then(
+          function(profilePairs) {
+            return profilePairs
+              .filter(
+                function(profilePair) {
+                  return profilePair[0].categoryId !== profilePair[1].category;
+                }
+              )
+              .map(
+                function(x) {
+                  return [
+                    x[0].globalCode,
+                    {
+                      "newCategory": x[0].categoryId,
+                      "oldCategory": x[1].category
+                    }
+                  ];
+                }
+              );
           }
         )
-        .map(function(x) { return x.globalCode; });
+        .then(
+          function(categoryInfo) {
+            $scope.profilesModified = _.fromPairs(categoryInfo);
+            $scope.$apply();
+          }
+        );
     }
+
+    $scope.isProfileModified = function(globalCode) {
+      return $scope.profilesModified[globalCode];
+    };
+
+    $scope.getModifiedCategory = function(globalCode, catAge) {
+      if ($scope.profilesModified[globalCode] === undefined) {
+        return undefined;
+      }
+      if ($scope.profilesModified[globalCode][catAge] === undefined) {
+        return undefined;
+      }
+      return $scope.profilesModified[globalCode][catAge];
+    };
 
     $scope.init();
 

@@ -54,8 +54,7 @@
                         </th>
                     </tr>
                 </thead>
-                <tbody>
-                <div ng-repeat="p in profiles">
+                <tbody ng-repeat="p in profiles">
                     <tr>
                         <td><input type="checkbox" ng-model="p.selected"></td>
                         <td class="text-center">{{p.globalCode}}</td>
@@ -98,21 +97,17 @@
                                     </button>
                                 </div>
                             </div>
-
-
-
                         </td>
                     </tr>
                     <tr>
-                        <td colspan="9" class="padding-0">
-                            {{p}}
+                        <td colspan="9" class="padding-0" ng-show="isProfileModified(p.globalCode)">
+                            Este perfil es una modificación de un perfil existente,
+                            generado por el cambio de categoria en una instancia inferior:
+                            {{getModifiedCategory(p.globalCode, "oldCategory")}} a {{getModifiedCategory(p.globalCode, "newCategory")}}.
                         </td>
                     </tr>
-                </div>
-
                 </tbody>
             </table>
-
         </div>
     </section>
 </div>

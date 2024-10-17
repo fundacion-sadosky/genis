@@ -209,11 +209,11 @@ class Interconnections @Inject()(interconnectionService : InterconnectionService
     }
   }
 
-  def getPendingProfiles(page:Int,pageSize:Int) = Action.async {
-    request =>{
-      interconnectionService.getPendingProfiles(ProfileApprovalSearch(page,pageSize)).map{
-        list => Ok(Json.toJson(list))
-      }
+  def getPendingProfiles(page:Int,pageSize:Int): Action[AnyContent] = Action.async {
+    request => {
+      interconnectionService
+        .getPendingProfiles(ProfileApprovalSearch(page, pageSize))
+        .map{ list => Ok(Json.toJson(list)) }
     }
   }
 

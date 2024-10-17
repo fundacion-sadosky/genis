@@ -35,7 +35,19 @@ class SlickSuperiorInstanceProfileApprovalRepository @Inject()(implicit val app:
   val logger: Logger = Logger(this.getClass())
   val superiorInstanceProfileApprovalTable: TableQuery[Tables.SuperiorInstanceProfileApproval] = Tables.SuperiorInstanceProfileApproval
 
-  private def queryGetAll() = superiorInstanceProfileApprovalTable.filter(_.deleted === false).sortBy(_.id.desc).map(x => (x.globalCode, x.profile,x.laboratoryImmediateInstance,x.receptionDate,x.errors,x.profileAssociated))
+  private def queryGetAll() = superiorInstanceProfileApprovalTable
+    .filter(_.deleted === false)
+    .sortBy(_.id.desc)
+    .map(
+      x => (
+        x.globalCode,
+        x.profile,
+        x.laboratoryImmediateInstance,
+        x.receptionDate,
+        x.errors,
+        x.profileAssociated
+      )
+    )
 
   private def queryGetByGlobalCode(globalCode: Column[String]) = superiorInstanceProfileApprovalTable.filter(_.globalCode === globalCode)
 
@@ -104,22 +116,34 @@ class SlickSuperiorInstanceProfileApprovalRepository @Inject()(implicit val app:
   def findAll(profileApprovalSearch:ProfileApprovalSearch): Future[List[PendingProfileApproval]] = {
     this.runInTransactionAsync { implicit session => {
       try {
-
-        queryGetAll().drop((profileApprovalSearch.page-1) * profileApprovalSearch.pageSize).take(profileApprovalSearch.pageSize).list.map(x => {
-
-          val profile = Json.fromJson[Profile](Json.parse(x._2)).get
-
-          PendingProfileApproval(globalCode = x._1,laboratory = x._3, category = profile.categoryId.text, profile.analyses,receptionDate = x._4.get.toString,errors = x._5,profile.genotypification,x._6.isDefined,true,profile.assignee)
-
-        })
+        queryGetAll()
+          .drop((profileApprovalSearch.page-1) * profileApprovalSearch.pageSize)
+          .take(profileApprovalSearch.pageSize)
+          .list
+          .map(
+            x => {
+              val profile = Json.fromJson[Profile](Json.parse(x._2)).get
+              PendingProfileApproval(
+                globalCode = x._1,
+                laboratory = x._3,
+                category = profile.categoryId.text,
+                profile.analyses,
+                receptionDate = x._4.get.toString,
+                errors = x._5,
+                profile.genotypification,
+                x._6.isDefined,
+                hasElectropherogram = true,
+                profile.assignee
+              )
+          }
+        )
       } catch {
         case e: Exception => {
           logger.error(e.getMessage, e)
           Nil
         }
       }
-    }
-    }
+    }}
   }
 
   def getTotal(): Future[Long]= {

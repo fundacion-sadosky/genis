@@ -945,17 +945,28 @@ class InterconnectionServiceImpl @Inject()(
   }
 
   override def getPendingProfiles(profileApprovalSearch: ProfileApprovalSearch): Future[List[PendingProfileApproval]] = {
-    superiorInstanceProfileApprovalRepository.findAll(profileApprovalSearch).flatMap(listPendingProfiles => {
-      Future.sequence(listPendingProfiles.map(pendingProfile => {
-        this.profileService.getElectropherogramsByCode(SampleCode(pendingProfile.globalCode)).map(electros => {
-          pendingProfile.copy(hasElectropherogram = !electros.isEmpty)
-        }).flatMap(pendingProfile => {
-          this.profileService.getFilesByCode(SampleCode(pendingProfile.globalCode)).map(files => {
-            pendingProfile.copy(hasFiles = !files.isEmpty)
-          })
-        })
-      }))
-    })
+    superiorInstanceProfileApprovalRepository
+      .findAll(profileApprovalSearch)
+      .flatMap(listPendingProfiles => {
+        Future.sequence(
+          listPendingProfiles.map(
+            pendingProfile => {
+              this
+                .profileService
+                .getElectropherogramsByCode(SampleCode(pendingProfile.globalCode))
+                .map(electros => { pendingProfile.copy(hasElectropherogram = !electros.isEmpty) })
+                .flatMap(
+                  pendingProfile => {
+                    this
+                      .profileService
+                      .getFilesByCode(SampleCode(pendingProfile.globalCode))
+                      .map(files => { pendingProfile.copy(hasFiles = !files.isEmpty) })
+                  }
+                )
+            }
+          )
+        )
+      })
   }
 
   override def getTotalPendingProfiles(): Future[Long] = {
