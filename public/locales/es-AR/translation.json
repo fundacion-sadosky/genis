@@ -408,7 +408,9 @@
 		"pedigriCopy":"Copia",
 		"pedigriEdit":"Edición",
 		"pedigriNewScenario":"Escenario pedigrí",
+		"superiorInstanceCategoryModification": "Modificación de categoría",
 		"interconectionUpdload": "Interconexión",
+		"importedFromInferior": "Interconexión",
 		"interconectionAproved": "Interconexión",
 		"interconectionRejected": "Interconexión",
 		"categoryModification": "Modificación de categoría"
