@@ -132,6 +132,9 @@
                   fallbackLng: 'en',
                   getAsync: false,
                   resGetPath: '/assets/locales/__lng__/__ns__.json',
+                  interpolation: {
+                    escapeValue: false
+                  },
                   defaultLoadingValue: '' // ng-i18next option, *NOT* directly supported by i18next
                 };
               }

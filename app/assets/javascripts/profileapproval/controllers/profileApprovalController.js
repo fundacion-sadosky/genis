@@ -10,7 +10,8 @@ define(['lodash'], function (_) {
     bulkuploadService,
     locusService,
     profileService,
-    cryptoService
+    cryptoService,
+    $filter
   ) {
     var $modalInstance = {};
     var modalInstanceEpg = null;
@@ -327,6 +328,11 @@ define(['lodash'], function (_) {
       return $scope.profilesModified[globalCode][catAge];
     };
 
+    $scope.getCatergoryModificationText = function(globalCode) {
+      var newCategory = $scope.getModifiedCategory(globalCode, "newCategory");
+      var oldCategory = $scope.getModifiedCategory(globalCode, "oldCategory");
+      return $.i18n.t('superiorInstanceModifiedCategory', {newCategory:newCategory, oldCategory:oldCategory});
+    };
     $scope.init();
 
   }
