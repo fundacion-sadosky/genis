@@ -2,13 +2,13 @@ package connections
 
 
 import javax.inject.{Inject, Singleton}
-
 import models.Tables
 import play.api.{Application, Logger}
 import play.api.db.slick.Config.driver.simple.TableQuery
 import play.api.libs.json.Json
 import profile.Profile
 import util.{DefaultDb, Transaction}
+
 import scala.concurrent.Future
 import scala.slick.driver.PostgresDriver.simple._
 
@@ -28,6 +28,8 @@ abstract class SuperiorInstanceProfileApprovalRepository extends DefaultDb with 
                     rejectionDate: Option[java.sql.Timestamp] = None,
                     idRejectMotive: Option[Long] = None,
                     rejectMotive: Option[String] = None): Future[Either[String, Unit]]
+  
+  def buildUploadedProfile(globalCode: String): Future[Option[Profile]]
 }
 
 @Singleton
@@ -195,4 +197,18 @@ class SlickSuperiorInstanceProfileApprovalRepository @Inject()(implicit val app:
     }
   }
 
+  override def buildUploadedProfile(
+    globalCode: String
+  ): Future[Option[Profile]] = {
+    this
+      .findByGlobalCode(globalCode)
+      .map {
+        case Right(row) => Some(
+          Json
+            .fromJson[Profile](Json.parse(row.profile))
+            .get
+        )
+        case Left(_) => None
+      }
+    }
 }

@@ -14,9 +14,13 @@ import scala.util.{Left, Right}
 import connections._
 import play.api.Logger
 import types.SampleCode
+import profiledata.ProfileDataService
 
 @Singleton
-class Interconnections @Inject()(interconnectionService : InterconnectionService) extends Controller {
+class Interconnections @Inject()(
+  interconnectionService : InterconnectionService,
+  profiledataService: ProfileDataService
+) extends Controller {
   val logger: Logger = Logger(this.getClass())
 
   def getConnections = Action.async {
