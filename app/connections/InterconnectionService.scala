@@ -1,13 +1,12 @@
 package connections
 
 import java.security.SecureRandom
-
 import matching.{MatchStatus, MatchingProfile, MatchingRepository, MatchingService}
+
 import java.util.{Calendar, Date}
-
 import services.ProfileLabKey
-import javax.inject.{Inject, Named, Singleton}
 
+import javax.inject.{Inject, Named, Singleton}
 import akka.pattern.ask
 import org.apache.commons.codec.binary.Base64
 import akka.actor.{ActorRef, ActorSystem}
@@ -22,16 +21,16 @@ import configdata.{CategoryConfiguration, CategoryRepository, CategoryService}
 import inbox._
 import kits.{AnalysisType, StrKitService}
 import play.api.Logger
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsValue, Json, __}
 import play.api.libs.ws.{WSBody, _}
 import profile.{Profile, ProfileService}
-import profiledata.{DeletedMotive, ProfileData, ProfileDataService, ProfileDataAttempt}
+import profiledata.{DeletedMotive, ProfileData, ProfileDataAttempt, ProfileDataService}
 import types.{AlphanumericId, Permission, SampleCode}
 import user.{RoleService, UserService}
 import connections.MatchSuperiorInstance
 import util.FutureUtils
-import java.util
 
+import java.util
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.async.Async.{async, await}
@@ -44,7 +43,7 @@ import inbox.HitInfoInbox
 import inbox.DeleteProfileInfo
 import matching.MatchResult
 import services.CacheService
-import trace.{MatchInfo, MatchTypeInfo, ProfileInterconectionUploadInfo, Trace, TraceService}
+import trace.{MatchInfo, MatchTypeInfo, ProfileImportedFromInferiorInfo, SuperiorInstanceCategoryModificationInfo, Trace, TraceService}
 
 trait InterconnectionService {
 
@@ -68,7 +67,14 @@ trait InterconnectionService {
 
   def uploadProfileToSuperiorInstance(profile: Profile, pd: ProfileData): Unit
 
-  def importProfile(profile: Profile, labo: String, sampleEntryDate: String, labCodeInstanceOrigin: String, labCodeInmediateInstanceOrigin: String, profileAssociated: Option[Profile] = None): Unit
+  def importProfile(
+    profile: Profile,
+    labo: String,
+    sampleEntryDate: String,
+    labCodeInstanceOrigin: String,
+    labCodeInmediateInstanceOrigin: String,
+    profileAssociated: Option[Profile] = None
+  ): Unit
 
   def approveProfiles(profileApprovals: List[ProfileApproval]): Future[Either[String, Unit]]
 
@@ -142,6 +148,7 @@ class InterconnectionServiceImpl @Inject()(
   traceService: TraceService = null,
   matchingRepository: MatchingRepository = null,
   matchingService: MatchingService = null,
+  
   @Named("defaultAssignee") val defaultNotificationReceiver: String = "tst-admin",
   @Named("timeOutOnDemand") val timeOutOnDemand: String = "1 seconds",
   @Named("timeOutQueue") val timeOutQueue: String = "1 seconds",
@@ -938,43 +945,240 @@ class InterconnectionServiceImpl @Inject()(
   }
 
   override def getPendingProfiles(profileApprovalSearch: ProfileApprovalSearch): Future[List[PendingProfileApproval]] = {
-    superiorInstanceProfileApprovalRepository.findAll(profileApprovalSearch).flatMap(listPendingProfiles => {
-      Future.sequence(listPendingProfiles.map(pendingProfile => {
-        this.profileService.getElectropherogramsByCode(SampleCode(pendingProfile.globalCode)).map(electros => {
-          pendingProfile.copy(hasElectropherogram = !electros.isEmpty)
-        }).flatMap(pendingProfile => {
-          this.profileService.getFilesByCode(SampleCode(pendingProfile.globalCode)).map(files => {
-            pendingProfile.copy(hasFiles = !files.isEmpty)
-          })
-        })
-      }))
-    })
+    superiorInstanceProfileApprovalRepository
+      .findAll(profileApprovalSearch)
+      .flatMap(listPendingProfiles => {
+        Future.sequence(
+          listPendingProfiles.map(
+            pendingProfile => {
+              this
+                .profileService
+                .getElectropherogramsByCode(SampleCode(pendingProfile.globalCode))
+                .map(electros => { pendingProfile.copy(hasElectropherogram = !electros.isEmpty) })
+                .flatMap(
+                  pendingProfile => {
+                    this
+                      .profileService
+                      .getFilesByCode(SampleCode(pendingProfile.globalCode))
+                      .map(files => { pendingProfile.copy(hasFiles = !files.isEmpty) })
+                  }
+                )
+            }
+          )
+        )
+      })
   }
-
+  
   override def getTotalPendingProfiles(): Future[Long] = {
     superiorInstanceProfileApprovalRepository.getTotal()
   }
-
-  override def approveProfiles(profileApprovals: List[ProfileApproval]): Future[Either[String, Unit]] = {
-    val futures = profileApprovals.map(profile => approveProfile(profile))
-    val seq = Future.sequence(futures)
-
-    seq.map(list => {
-      list.foreach {
-        case Right(sampleCode) => {
-          this.solveNotificationProfileApproval(sampleCode.text)
-          profileService.fireMatching(sampleCode)
+ 
+  private def traceImportedProfile(
+    setup: ProfileCategoryModificationSetup
+  ): ProfileCategoryModificationSetup = {
+    setup match {
+      case ProfileCategoryModificationSetup(code, _, _, assignee, _, Some(Right(_))) =>
+        val traceInfo = ProfileImportedFromInferiorInfo
+        traceService.add(
+          Trace(
+            code,
+            assignee,
+            new Date(),
+            traceInfo
+          )
+        )
+      case _ => ()
+    }
+    setup
+  }
+  
+  private def traceApprovedProfileWithDifferentCategory(
+    setup: ProfileCategoryModificationSetup
+  ) = {
+    setup match {
+      case ProfileCategoryModificationSetup(
+        globalCode, Some(cCat), nCat, assignee, _, Some(Right(_))
+      ) =>
+        if (nCat.text != cCat.text) {
+          val traceInfo = SuperiorInstanceCategoryModificationInfo(
+            cCat.text,
+            nCat.text
+          )
+          val _ = traceService.add(
+            Trace(
+              globalCode,
+              assignee,
+              new Date(),
+              traceInfo
+            )
+          )
         }
-        case _ => ()
+      case _ => ()
+    }
+    setup
+  }
+  
+  private def uploadToSuperiorInstanceIfCategoryIsModified(
+    setup: ProfileCategoryModificationSetup
+  ): ProfileCategoryModificationSetup = {
+    def getProfiles(prOpt: Option[Profile], globalCode: SampleCode):
+        Future[Either[String, (Profile, Option[ProfileData], Option[Profile])]] = {
+      prOpt match {
+        case Some(profile) =>
+          for {
+            pd <- profileDataService.get(globalCode)
+            associatedProfile <- getProfileAssociated(profile)
+              .map(
+                pOpt => pOpt.map(
+                  p => p.copy(
+                    internalSampleCode = p.globalCode.text,
+                    labeledGenotypification = None,
+                    matcheable = false
+                  )
+                )
+              )
+          } yield {
+            Right((profile, pd, associatedProfile))
+          }
+        case None =>
+          Future.successful(Left(Messages("error.E0109")))
       }
-      list
-    }).map(x => {
-      if (x.forall(_.isRight)) {
-        Right(())
-      } else {
-        Left(x.filter(_.isLeft).map(erroneo => erroneo.left.get).mkString(start = "[", sep = ",", end = "]"))
+    }
+    def uploadProfile(
+      profiles: Either[String, (Profile, Option[ProfileData], Option[Profile])]
+    ): Future[Either[String, Unit]] = {
+      profiles match {
+        case Right((profile, Some(pd), associatedProfile)) =>
+          doUploadProfileToSuperiorInstance(
+            profile.copy(
+              internalSampleCode = profile.globalCode.text
+            ),
+            pd.copy(
+              internalSampleCode = profile.globalCode.text
+            ),
+            associatedProfile
+          )
+        case Left(msg) => Future.successful(Left(msg))
+        case _ => Future.successful(Left(Messages("error.E0109")))
       }
-    })
+    }
+    setup match {
+      case ProfileCategoryModificationSetup(
+        globalCode, Some(cCat), nCat, _, _, Some(Right(_))
+      ) =>
+        if (cCat.text != nCat.text) {
+          profileDataService
+            .getProfileUploadStatusByGlobalCode(globalCode)
+            .flatMap {
+              case Some(APROBADA) =>
+                profileService
+                  .get(globalCode)
+                  .flatMap { getProfiles (_, globalCode)}
+                  .flatMap { uploadProfile }
+              case _ => Future.successful(Right(()))
+            }
+        } else {
+          Future.successful(Right(()))
+        }
+      case _ => Future.successful(Right(()))
+    }
+    // Todo: Error messages are generated by discarded. Should be returned.
+    //       Mayber ProfileCategoryModificationSetup should be changed to
+    //       include the error messages.
+    setup
+  }
+
+  private def getModificationSetup(
+    profileApproval: ProfileApproval
+  ): Future[ProfileCategoryModificationSetup] = {
+    val globalCode = profileApproval.globalCode
+    for {
+     oldProfile <- profileDataService
+       .get(SampleCode(globalCode))
+     newProfile <- superiorInstanceProfileApprovalRepository
+       .buildUploadedProfile(globalCode)
+    } yield {
+     ProfileCategoryModificationSetup(
+       newProfile.get.globalCode,
+       oldProfile.map(_.category),
+       newProfile.get.categoryId,
+       newProfile.get.assignee,
+       profileApproval,
+       None
+     )
+    }
+  }
+  
+  private def approveModificationSetup(
+    setup: ProfileCategoryModificationSetup
+  ): Future[ProfileCategoryModificationSetup] = {
+    for {
+      profileResult <- approveProfile(setup.profileApproval)
+    } yield {
+      setup.copy(approvalResult = Some(profileResult))
+    }
+  }
+  
+  private def solveApprovalNotification(
+    setup: ProfileCategoryModificationSetup
+  ): ProfileCategoryModificationSetup = {
+    setup match {
+      case ProfileCategoryModificationSetup(
+        globalCode, _, _, _, _, Some(Right(_))
+      ) => solveNotificationProfileApproval(globalCode.text)
+      case _ => ()
+    }
+    setup
+  }
+  
+  private def launchFindMatches(
+    setup: ProfileCategoryModificationSetup
+  ): ProfileCategoryModificationSetup = {
+    setup match {
+      case ProfileCategoryModificationSetup(
+        globalCode, _, _, _, _, Some(Right(_))
+      ) => profileService.fireMatching(globalCode)
+      case _ => ()
+    }
+    setup
+  }
+
+
+  override def approveProfiles(
+    profileApprovals: List[ProfileApproval]
+  ): Future[Either[String, Unit]] = {
+    val extractErrors:
+        ProfileCategoryModificationSetup => Either[String, Unit] = {
+      setup =>
+        setup.approvalResult match {
+          case Some(Left(msg)) => Left(msg)
+          case _               => Right(())
+        }
+    }
+    val compileErrors:
+        List[Either[String, Unit]] => Either[String, Unit] = {
+      errors =>
+        if (errors.forall(_.isRight)) {
+          Right(())
+        } else {
+          Left(
+            errors.filter(_.isLeft)
+              .map(erroneo => erroneo.left.get)
+              .mkString(start = "[", sep = ",", end = "]")
+          )
+        }
+    }
+    Future
+      .sequence(profileApprovals.map(getModificationSetup))
+      .map(_.map(approveModificationSetup))
+      .flatMap( Future.sequence(_) )
+      .map(_.map(traceImportedProfile))
+      .map(_.map(traceApprovedProfileWithDifferentCategory))
+      .map(_.map(solveApprovalNotification))
+      .map(_.map(uploadToSuperiorInstanceIfCategoryIsModified))
+      .map(_.map(launchFindMatches))
+      .map(_.map(extractErrors))
+      .map(compileErrors)
   }
 
   private def getLabUrl(lab: String): Future[Option[String]] = {

@@ -13,10 +13,15 @@ import scala.concurrent.Future
 import scala.util.{Left, Right}
 import connections._
 import play.api.Logger
+import play.api.i18n.Messages
 import types.SampleCode
+import profiledata.ProfileDataService
 
 @Singleton
-class Interconnections @Inject()(interconnectionService : InterconnectionService) extends Controller {
+class Interconnections @Inject()(
+  interconnectionService : InterconnectionService,
+  profiledataService: ProfileDataService
+) extends Controller {
   val logger: Logger = Logger(this.getClass())
 
   def getConnections = Action.async {
@@ -126,8 +131,12 @@ class Interconnections @Inject()(interconnectionService : InterconnectionService
 
     request => {
       val labcode = request.headers.get(HeaderInsterconnections.labCode)
-      val labCodeInstanceOrigin = request.headers.get(HeaderInsterconnections.laboratoryOrigin)
-      val labCodeImmediateInstance = request.headers.get(HeaderInsterconnections.laboratoryImmediateInstance)
+      val labCodeInstanceOrigin = request.headers.get(
+        HeaderInsterconnections.laboratoryOrigin
+      )
+      val labCodeImmediateInstance = request.headers.get(
+        HeaderInsterconnections.laboratoryImmediateInstance
+      )
       val dateAdded = request.headers.get(HeaderInsterconnections.sampleEntryDate)
       (labcode, dateAdded, labCodeInstanceOrigin, labCodeImmediateInstance) match {
         case (
@@ -135,7 +144,7 @@ class Interconnections @Inject()(interconnectionService : InterconnectionService
           Some(dateAdded),
           Some(labCodeInstanceOrigin),
           Some(labCodeInmediateInstanceOrigin)
-        ) =>{
+        ) =>
           val input = request.body.validate[connections.ProfileTransfer]
           input.fold(
             errors => {
@@ -156,7 +165,6 @@ class Interconnections @Inject()(interconnectionService : InterconnectionService
               )
             }
           )
-        }
         case (_,_,_,_) => {
           Future.successful(BadRequest)
         }
@@ -206,11 +214,11 @@ class Interconnections @Inject()(interconnectionService : InterconnectionService
     }
   }
 
-  def getPendingProfiles(page:Int,pageSize:Int) = Action.async {
-    request =>{
-      interconnectionService.getPendingProfiles(ProfileApprovalSearch(page,pageSize)).map{
-        list => Ok(Json.toJson(list))
-      }
+  def getPendingProfiles(page:Int,pageSize:Int): Action[AnyContent] = Action.async {
+    request => {
+      interconnectionService
+        .getPendingProfiles(ProfileApprovalSearch(page, pageSize))
+        .map{ list => Ok(Json.toJson(list)) }
     }
   }
 
@@ -246,6 +254,19 @@ class Interconnections @Inject()(interconnectionService : InterconnectionService
         case Left(e) => BadRequest(Json.obj("message" -> e))
         case Right(()) => Ok.withHeaders("X-CREATED-ID" -> globalCode)
       }
+    }
+  }
+  
+  def getUploadStatus(globalCode: String): Action[AnyContent] = Action.async {
+    _ => {
+      profiledataService
+        .getProfileUploadStatusByGlobalCode(SampleCode(globalCode))
+        .map {
+          case None => BadRequest(
+            Json.obj("message" -> Messages("E0900", globalCode))
+          )
+          case status => Ok(Json.toJson(status))
+        }
     }
   }
   def receiveMatchFromSuperior() = Action.async(BodyParsers.parse.json) {

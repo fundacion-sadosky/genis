@@ -29,7 +29,9 @@ object Permission {
       StaticAuthorisationOperation("""/analysistypes""".r, """GET""".r, "AnalysisTypeRead"),
       StaticAuthorisationOperation("""/notifications.*""".r, """.*""".r, "NotificationsAll"),
       StaticAuthorisationOperation("""/inferior/profile""".r, """.*""".r, "UploadProfile"),
-      StaticAuthorisationOperation("""/trace.*""".r, """.*""".r, "TraceRead"))
+      StaticAuthorisationOperation("""/inferior/profile/status""".r, """GET""".r, "UploadProfile"),
+      StaticAuthorisationOperation("""/trace.*""".r, """.*""".r, "TraceRead")
+    )
   }
   case object PROFILE_EXPORTER extends Permission {
     override val operations: Set[StaticAuthorisationOperation] = Set(

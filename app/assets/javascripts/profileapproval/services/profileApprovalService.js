@@ -19,6 +19,9 @@ define([],function() {
             var motiveTypeReject =  1;
             return playRoutes.controllers.MotiveController.getMotives(motiveTypeReject,false).get();
         };
+        this.getUploadStatus = function(globalCode) {
+            return playRoutes.controllers.Interconnections.getUploadStatus(globalCode).get();
+        };
     }
 
     return ProfileApprovalService;

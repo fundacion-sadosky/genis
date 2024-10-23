@@ -166,10 +166,7 @@ class ProfileData @Inject() (
               case Left(error) => Future
                 .successful(
                   Json.arr(
-                    Json.obj(
-                      "status" -> "error",
-                      "message" -> error
-                    )
+                    Json.obj( "status" -> "error", "message" -> error )
                   )
                 )
               case Right(prof) =>
