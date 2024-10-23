@@ -13,6 +13,7 @@ import scala.concurrent.Future
 import scala.util.{Left, Right}
 import connections._
 import play.api.Logger
+import play.api.i18n.Messages
 import types.SampleCode
 import profiledata.ProfileDataService
 
@@ -253,6 +254,19 @@ class Interconnections @Inject()(
         case Left(e) => BadRequest(Json.obj("message" -> e))
         case Right(()) => Ok.withHeaders("X-CREATED-ID" -> globalCode)
       }
+    }
+  }
+  
+  def getUploadStatus(globalCode: String): Action[AnyContent] = Action.async {
+    _ => {
+      profiledataService
+        .getProfileUploadStatusByGlobalCode(SampleCode(globalCode))
+        .map {
+          case None => BadRequest(
+            Json.obj("message" -> Messages("E0900", globalCode))
+          )
+          case status => Ok(Json.toJson(status))
+        }
     }
   }
   def receiveMatchFromSuperior() = Action.async(BodyParsers.parse.json) {

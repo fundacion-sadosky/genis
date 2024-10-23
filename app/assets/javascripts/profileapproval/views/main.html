@@ -104,6 +104,11 @@
                             {{ getCatergoryModificationText(p.globalCode) }}
                         </td>
                     </tr>
+                    <tr>
+                        <td colspan="9" class="padding-0" ng-show="getUploadToSuperiorMessage(p.globalCode) != ''">
+                            {{ getUploadToSuperiorMessage(p.globalCode) }}
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>

@@ -416,5 +416,6 @@
 		"categoryModification": "Modificación de categoría"
 	  }
     },
-	"superiorInstanceModifiedCategory": "Este perfil es una modificación de un perfil existente, generado por el cambio de categoria en una instancia inferior: __oldCategory__ a __newCategory__."
+	"superiorInstanceModifiedCategory": "Este perfil es una modificación de un perfil existente, generado por el cambio de categoria en una instancia inferior: __oldCategory__ a __newCategory__.",
+	"automaticUploadToSuperiorInstance": "Este perfil fue aprobado en una instancia superior, por lo que se replicará automáticamente."
 }

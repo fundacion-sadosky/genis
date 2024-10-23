@@ -45,6 +45,7 @@ define(['lodash'], function (_) {
                 function (response) {
                   $scope.profiles = response.data;
                   getProfilesWithDifferentCategory($scope.profiles);
+                  getUploadStatus($scope.profiles);
                   $scope.profiles.forEach(
                     function (element) {
                       if (!_.isUndefined(element.genotypification["1"])) {
@@ -333,6 +334,34 @@ define(['lodash'], function (_) {
       var oldCategory = $scope.getModifiedCategory(globalCode, "oldCategory");
       return $.i18n.t('superiorInstanceModifiedCategory', {newCategory:newCategory, oldCategory:oldCategory});
     };
+    
+    $scope.uploadToSuperiorMessages = {};
+    
+    $scope.getUploadToSuperiorMessage = function(globalCode) {
+      return $scope.uploadToSuperiorMessages[globalCode];
+    };
+    
+    var getUploadStatus = function(profiles) {
+      profiles
+        .map(
+          function(profile) {
+            profileApprovalService
+              .getUploadStatus(profile.globalCode)
+              .then(
+                function(response) {
+                  var uploadStatusCode = response.data;
+                  // Here a value of 4 means approved.
+                  if (uploadStatusCode === 4 ) {
+                    $scope.uploadToSuperiorMessages[profile.globalCode] = $.i18n.t('automaticUploadToSuperiorInstance');
+                  } else {
+                    $scope.uploadToSuperiorMessages[profile.globalCode] = "";
+                  }
+                }
+              );
+          }
+        );
+    };
+    
     $scope.init();
 
   }
