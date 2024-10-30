@@ -9,6 +9,12 @@ case class ProfileCategoryModificationSetup(
   assignee: String,
   profileApproval: ProfileApproval,
   approvalResult: Option[Either[String, SampleCode]]
-)
+) {
+  def isCategoryUpdated() : Boolean = {
+    this
+      .currentCategory
+      .fold(false)(this.updatedCategory.equals(_))
+  }
+}
 
 

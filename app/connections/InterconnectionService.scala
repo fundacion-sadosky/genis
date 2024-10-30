@@ -850,8 +850,9 @@ class InterconnectionServiceImpl @Inject()(
     }
   }
 
-  def approveProfile(profileApproval: ProfileApproval): Future[Either[String, SampleCode]] = {
-
+  def approveProfile(
+    profileApproval: ProfileApproval
+  ): Future[Either[String, SampleCode]] = {
     superiorInstanceProfileApprovalRepository.findByGlobalCode(profileApproval.globalCode).flatMap {
       case Left(e) => Future.successful(Left(e))
       case Right(row) => {
@@ -1113,7 +1114,9 @@ class InterconnectionServiceImpl @Inject()(
     setup: ProfileCategoryModificationSetup
   ): Future[ProfileCategoryModificationSetup] = {
     for {
-      profileResult <- approveProfile(setup.profileApproval)
+      profileResult <- approveProfile(
+        setup.profileApproval
+      )
     } yield {
       setup.copy(approvalResult = Some(profileResult))
     }
