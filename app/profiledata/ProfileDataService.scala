@@ -47,12 +47,26 @@ trait ProfileDataService {
   def findByCode(globalCode: SampleCode): Future[Option[ProfileData]]
   def create(profileData: ProfileDataAttempt): Future[Either[String, SampleCode]]
   def findByCodeWithAssociations(globalCode: SampleCode): Future[Option[(ProfileData, Group, FullCategory)]]
-  def updateProfileData(globalCode: SampleCode, profileData: ProfileDataAttempt): Future[Boolean]
+  def updateProfileData(
+    globalCode: SampleCode,
+    profileData: ProfileDataAttempt,
+    allowFromOtherInstances: Boolean = false
+  ): Future[Boolean]
+  def updateProfileCategoryData(globalCode: SampleCode, profileData: ProfileDataAttempt): Future[Option[String]]
   def get(sampleCode: SampleCode): Future[Option[ProfileData]]
-  def isEditable(sampleCode: SampleCode): Future[Option[Boolean]]
+  def isEditable(
+    sampleCode: SampleCode,
+    allowFromOtherInstances:Boolean = false
+  ): Future[Option[Boolean]]
   def getResource(resourceType: String, id: Long): Future[Option[Array[Byte]]]
   def getDeleteMotive(sampleCode: SampleCode): Future[Option[DeletedMotive]]
-  def deleteProfile(globalCode: SampleCode, motive: DeletedMotive, userId: String,shouldUpdateSuperiorInstance:Boolean = true,validateMPI:Boolean = true): Future[Either[String, SampleCode]]
+  def deleteProfile(
+    globalCode: SampleCode,
+    motive: DeletedMotive,
+    userId: String,
+    shouldUpdateSuperiorInstance:Boolean = true,
+    validateMPI:Boolean = true
+  ): Future[Either[String, SampleCode]]
   def findByCodes(globalCodes: List[SampleCode]): Future[Seq[ProfileData]]
   def delete(globalCode: SampleCode): Future[Either[String, SampleCode]]
   def importFromAnotherInstance(profileData: ProfileData,labOrigin:String,labImmediate:String):Future[Unit]
@@ -70,24 +84,25 @@ trait ProfileDataService {
 
 @Singleton
 class ProfileDataServiceImpl @Inject() (
-    cache: CacheService,
-    @Named("special") profileDataRepository: ProfileDataRepository,
-    categoryService: CategoryService,
-    notificationService: NotificationService,
-    bioMatService: BioMaterialTypeService,
-    crimeType: CrimeTypeService,
-    laboratories: LaboratoryService,
-    matchingService: MatchingService,
-    scenarioRepository: ScenarioRepository,
-    profileRepository: ProfileRepository,
-    traceService: TraceService,
-    @Named("labCode") val labCode: String,
-    @Named("country") val country: String,
-    @Named("province") val province: String,
-    interconnectionService : InterconnectionService = null,
-    profileService:ProfileService=null,
-    pedigreeService: PedigreeService = null,
-    userService : UserService = null) extends ProfileDataService {
+  cache: CacheService,
+  @Named("special") profileDataRepository: ProfileDataRepository,
+  categoryService: CategoryService,
+  notificationService: NotificationService,
+  bioMatService: BioMaterialTypeService,
+  crimeType: CrimeTypeService,
+  laboratories: LaboratoryService,
+  matchingService: MatchingService,
+  scenarioRepository: ScenarioRepository,
+  profileRepository: ProfileRepository,
+  traceService: TraceService,
+  @Named("labCode") val labCode: String,
+  @Named("country") val country: String,
+  @Named("province") val province: String,
+  interconnectionService : InterconnectionService = null,
+  profileService:ProfileService=null,
+  pedigreeService: PedigreeService = null,
+  userService : UserService = null
+) extends ProfileDataService {
 
   val logger = Logger(this.getClass())
 
@@ -228,19 +243,23 @@ class ProfileDataServiceImpl @Inject() (
     }
   }
 
-  def isEditable(sampleCode: SampleCode): Future[Option[Boolean]] = {
-
+  def isEditable(
+    sampleCode: SampleCode,
+    allowFromOtherInstances: Boolean
+  ) : Future[Option[Boolean]] = {
     val d = for {
       matches <- matchingService.findMatchingResults(sampleCode)
-      isReadOnly <-profileService.isReadOnlySampleCode(sampleCode)
+      isReadOnly <- profileService.isReadOnlySampleCode(
+        sampleCode,
+        uploadedIsAllowed = true,
+        allowFromOtherInstances = allowFromOtherInstances
+      )
     } yield (matches.isDefined,isReadOnly._1)
-
     d map {
       case (hasMatches,isReadOnly) => {
         Some(!(hasMatches || isReadOnly))
       }
     }
-
   }
 
   private def getDetails(pd: Option[ProfileData]) = {
@@ -293,12 +312,16 @@ class ProfileDataServiceImpl @Inject() (
         Right(Some(files))
     }.getOrElse(Left(Messages("error.E0951", uuid )))
 
-  override def updateProfileData(globalCode: SampleCode, profileData: ProfileDataAttempt): Future[Boolean] = {
 
-    this.isEditable(globalCode).flatMap { result =>
+  override def updateProfileData(
+    globalCode: SampleCode,
+    profileData: ProfileDataAttempt,
+    allowFromOtherInstances: Boolean = false
+  ): Future[Boolean] = {
+
+    this.isEditable(globalCode, allowFromOtherInstances).flatMap { result =>
       if (result.get) {
         val filiationDataOpt = profileData.dataFiliation
-
         val images = filiationDataOpt map { filiationData =>
           val images = for {
             inprints <- searchImagesInCache(filiationData.inprint).right
@@ -317,7 +340,7 @@ class ProfileDataServiceImpl @Inject() (
             val pd = profileData.pdAttempToPd(labCode) //pdAttempToPd(profileData)
             val updatePromise = profileDataRepository.updateProfileData(globalCode, pd, inprints, pictures, signatures)
             updatePromise.onComplete { updated =>
-               traceService.add(Trace(globalCode, profileData.assignee, new Date(), trace.ProfileDataInfo))
+              traceService.add(Trace(globalCode, profileData.assignee, new Date(), trace.ProfileDataInfo))
               filiationDataOpt map { filiationData =>
                 cache.pop(TemporaryAssetKey(filiationData.inprint))
                 cache.pop(TemporaryAssetKey(filiationData.picture))
@@ -332,6 +355,77 @@ class ProfileDataServiceImpl @Inject() (
         Future.successful(false)
       }
     }
+  }
+
+  override def updateProfileCategoryData(
+    globalCode: SampleCode,
+    profileData: ProfileDataAttempt
+  ): Future[Option[String]] = {
+    profileService
+      .isReadOnlySampleCode(globalCode, uploadedIsAllowed = true)
+      .flatMap(
+        {
+          case (true, errorMsg) => Future.successful(Some(errorMsg))
+          case (false, _) =>
+            val filiationDataOpt = profileData.dataFiliation
+            val images = filiationDataOpt map {
+              filiationData =>
+                val images = for {
+                  inprints <- searchImagesInCache(filiationData.inprint).right
+                  pictures <- searchImagesInCache(filiationData.picture).right
+                  signatures <- searchImagesInCache(filiationData.signature).right
+                } yield {
+                  (inprints, pictures, signatures)
+                }
+                images
+            } getOrElse {
+              Right((None, None, None))
+            }
+            images match {
+              case Right((inprints, pictures, signatures)) =>
+                val pd = profileData.pdAttempToPd(labCode)
+                val oldProfileData = profileDataRepository
+                  .findByCode(globalCode)
+                val updatePromise = profileDataRepository
+                  .updateProfileData(globalCode, pd, inprints, pictures, signatures)
+                val joined = for {
+                  old <- oldProfileData
+                  current <- updatePromise
+                } yield {
+                  (old, current)
+                }
+                joined.onComplete {
+                  joinedResult =>
+                    val (oldProfile, _) = joinedResult.get
+                    traceService.add(Trace(globalCode, profileData.assignee, new Date(), trace.ProfileDataInfo))
+                    traceService.add(
+                      Trace(
+                        globalCode,
+                        profileData.assignee,
+                        new Date(),
+                        trace
+                          .ProfileCategoryModificationInfo(
+                            oldProfile.get.category.text,
+                            profileData.category.text
+                          )
+                      )
+                    )
+                    filiationDataOpt map {
+                      filiationData =>
+                        cache.pop(TemporaryAssetKey(filiationData.inprint))
+                        cache.pop(TemporaryAssetKey(filiationData.picture))
+                        cache.pop(TemporaryAssetKey(filiationData.signature))
+                    }
+                }
+                updatePromise
+                  .map {
+                    case true => None
+                    case false => Some(Messages("error.E0132"))
+                  }
+              case Left(error) => Future.successful(Some(error))
+            }
+        }
+      )
   }
 
   override def create(profileData: ProfileDataAttempt): Future[Either[String, SampleCode]] = {
@@ -436,4 +530,5 @@ class ProfileDataServiceImpl @Inject() (
   override def getMtRcrs() = {
     this.profileDataRepository.getMtRcrs()
   }
+
 }

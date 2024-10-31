@@ -29,7 +29,9 @@ object Permission {
       StaticAuthorisationOperation("""/analysistypes""".r, """GET""".r, "AnalysisTypeRead"),
       StaticAuthorisationOperation("""/notifications.*""".r, """.*""".r, "NotificationsAll"),
       StaticAuthorisationOperation("""/inferior/profile""".r, """.*""".r, "UploadProfile"),
-      StaticAuthorisationOperation("""/trace.*""".r, """.*""".r, "TraceRead"))
+      StaticAuthorisationOperation("""/inferior/profile/status""".r, """GET""".r, "UploadProfile"),
+      StaticAuthorisationOperation("""/trace.*""".r, """.*""".r, "TraceRead")
+    )
   }
   case object PROFILE_EXPORTER extends Permission {
     override val operations: Set[StaticAuthorisationOperation] = Set(
@@ -48,14 +50,17 @@ object Permission {
       StaticAuthorisationOperation("""/search/profileData.*""".r, """.*""".r, "ProfiledataSearch"),
       StaticAuthorisationOperation("""/profiledata-deleted/.*""".r,"""PUT""".r, "ProfiledataDelete",true),
       StaticAuthorisationOperation("""/profiledata.*|/profile-export""".r, """POST""".r, "ProfiledataCreate"),
-      StaticAuthorisationOperation("""/profiledata/.*""".r, """PUT""".r, "ProfiledataUpdate") ,
+      StaticAuthorisationOperation("""/profiledata/.*""".r, """PUT""".r, "ProfiledataUpdate"),
+      StaticAuthorisationOperation("""/profiledata/modify-category/.*""".r, """PUT""".r, "ProfiledataCategoryModification"),
+      StaticAuthorisationOperation("""/profiledata-readonly""".r, """GET""".r, "ProfiledataIsReadOnly"),
       StaticAuthorisationOperation("""/categories|/categoryTree""".r, """GET""".r, "CategoryTreeRead"),
       StaticAuthorisationOperation("""/crimeTypes""".r, """GET""".r, "CrimeTypesRead"),
       StaticAuthorisationOperation("""/bioMaterialTypes""".r, """GET""".r, "BioMaterialTypesRead"),
       StaticAuthorisationOperation("""/uploadImage|/getFilesId|/uploadFile""".r, """.*""".r, "UploadImageAll"),
       StaticAuthorisationOperation("""/laboratory""".r, """GET""".r, "LaboratoryRead"),
       StaticAuthorisationOperation("""/geneticist.*""".r, """GET""".r, "GeneticistRead"),
-      StaticAuthorisationOperation("""/trace.*""".r, """.*""".r, "TraceRead"))
+      StaticAuthorisationOperation("""/trace.*""".r, """.*""".r, "TraceRead")
+    )
   }
   case object PROFILE_DATA_SEARCH extends Permission {
      override val operations: Set[StaticAuthorisationOperation] = Set(
@@ -161,7 +166,12 @@ object Permission {
       StaticAuthorisationOperation("""/group.*""".r,"""POST""".r, "GroupCreate"),
       StaticAuthorisationOperation("""/group.*""".r,"""PUT""".r, "GroupUpdate"),
       StaticAuthorisationOperation("""/group.*""".r,"""DELETE""".r, "GroupDelete"),
-      StaticAuthorisationOperation("""/analysistypes""".r, """GET""".r, "AnalysisTypeRead"))
+      StaticAuthorisationOperation("""/analysistypes""".r, """GET""".r, "AnalysisTypeRead"),
+      StaticAuthorisationOperation("""/catmodification""".r, """POST""".r, "CategoryModificationCreate"),
+      StaticAuthorisationOperation("""/catmodification""".r, """DELETE""".r, "CategoryModificationDelete"),
+      StaticAuthorisationOperation("""/catmodification""".r, """GET""".r, "CategoryModificationRead"),
+      StaticAuthorisationOperation("""/catmodifications""".r, """GET""".r, "CategoryModificationRead")
+    )
   }
   case object ROLE_CRUD extends Permission {
     override val operations: Set[StaticAuthorisationOperation] = Set(
@@ -318,7 +328,10 @@ object Permission {
   }
   case object PROFILE_COMPARISON extends Permission {
     override val operations: Set[StaticAuthorisationOperation] = Set(
-      StaticAuthorisationOperation("""/profile-comparison""".r,"""GET""".r, "GetProfileComparison")
+      StaticAuthorisationOperation("""/profile-comparison""".r,"""GET""".r, "GetProfileComparison"),
+      StaticAuthorisationOperation("""/modify-forensic-category""".r,"""GET""".r, "GetProfileComparison")
+      // TODO: Change GetProfileComparison to a different description key and then...
+      // TODO: Update translation.json (public/locales/es-AR/translation.json)
     )
   }
   case object LOGIN_SIGNUP extends Permission {
@@ -337,37 +350,39 @@ object Permission {
   }
 
 
-  val list: Set[Permission] = Set(DNA_PROFILE_CRUD,
-      PROFILE_EXPORTER,
-      PROFILE_EXPORTER_TO_LIMS,
-      PROFILE_DATA_CRUD,
-      LABORATORY_CRUD, 
-      GENETICIST_CRUD, 
-      ALLELIC_FREQ_DB_CRUD, 
-      ALLELIC_FREQ_DB_VIEW, 
-      OPERATION_LOG_READ, 
-      MATCHES_MANAGER, 
-      PROTOPROFILE_BULK_UPLOAD, 
-      PROTOPROFILE_BULK_ACCEPTANCE, 
-      USER_CRUD, 
-      CATEGORY_CRUD, 
-      ROLE_CRUD,
-      PEDIGREE_CRUD,
-      BIO_MAT_CRUD,
-      SCENARIO_CRUD,
-      LOCUS_CRUD,
-      LOCUS_UPDATE,
-      KIT_CRUD,
-      SUP_INS_CRUD,
-      INF_INS_CRUD,
-      INTERCON_NOTIF,
-      INSTANCE_INTERCONNECTION,
-      IMP_PERF_INS,
-      MOTIVE_CRUD,
-      ADD_MANUAL_LOCUS,
-      REPORTING_VIEW,
-      MUTATION_MODELS_CRUD,
-    PROFILE_COMPARISON)
+  val list: Set[Permission] = Set(
+    DNA_PROFILE_CRUD,
+    PROFILE_EXPORTER,
+    PROFILE_EXPORTER_TO_LIMS,
+    PROFILE_DATA_CRUD,
+    LABORATORY_CRUD,
+    GENETICIST_CRUD,
+    ALLELIC_FREQ_DB_CRUD,
+    ALLELIC_FREQ_DB_VIEW,
+    OPERATION_LOG_READ,
+    MATCHES_MANAGER,
+    PROTOPROFILE_BULK_UPLOAD,
+    PROTOPROFILE_BULK_ACCEPTANCE,
+    USER_CRUD,
+    CATEGORY_CRUD,
+    ROLE_CRUD,
+    PEDIGREE_CRUD,
+    BIO_MAT_CRUD,
+    SCENARIO_CRUD,
+    LOCUS_CRUD,
+    LOCUS_UPDATE,
+    KIT_CRUD,
+    SUP_INS_CRUD,
+    INF_INS_CRUD,
+    INTERCON_NOTIF,
+    INSTANCE_INTERCONNECTION,
+    IMP_PERF_INS,
+    MOTIVE_CRUD,
+    ADD_MANUAL_LOCUS,
+    REPORTING_VIEW,
+    MUTATION_MODELS_CRUD,
+    PROFILE_COMPARISON
+  )
 
   def fromString(value: String): Option[Permission] = Permission.list.find(_.toString == value)
 

@@ -30,20 +30,20 @@
 		"GENIS_MM": "Mezcla Mezcla"
 	},
 	"userStatus": {
-		"active": "Activo", 
+		"active": "Activo",
 		"pending": "Pendiente de Activación",
-		"blocked": "Bloqueado", 
+		"blocked": "Bloqueado",
 		"inactive":"Inactivo",
 		"pending_reset":"Pendiente de reset"
 	},
 	"sexPedigree": {
-		"Female": "XX", 
-		"Male": "XY", 
+		"Female": "XX",
+		"Male": "XY",
 		"Unknown": "I"
 	},
 	"sexFull": {
-		"Female": "Femenino", 
-		"Male": "Masculino", 
+		"Female": "Femenino",
+		"Male": "Masculino",
 		"Unknown": "Indefinido"
 	},
 	"analysisTypes": {
@@ -111,6 +111,8 @@
 		"PedigreeConsistencyGenerate": "Generar Consistencia de pedigree",
 		"ProfiledataCreate": "Alta de los datos de la muestra",
 		"ProfiledataUpdate": "Modificación de los datos de la muestra",
+		"ProfiledataCategoryModification": "Modificación de la categoria de un perfil",
+		"ProfiledataIsReadOnly": "Verifica que un perfil es de solo lectura",
 		"ProfiledataDelete": "Baja de perfiles",
         "ProfiledataSearch": "Búsqueda de perfiles",
 		"MatchAll": "Lectura de coincidencias",
@@ -231,12 +233,15 @@
 			"pedigreeAssociation": "Indica que se permite su asociación en un pedigrí",
 			"replicate": "Indica que estos perfiles se envían a instancias superiores",
 			"allowManualLoading": "Indica que la categoria permite carga manual de perfiles pertenecientes a la misma"
-		}, 
+		},
 		"associations": {
 			"general": "Las reglas de asociación especifican la categoría a la cual deben pertenecer los perfiles que podrán ser asociados a los perfiles cuya categoría está siendo editada. Los perfiles cuya categoría tienen reglas de asociación no participarán de la búsqueda de coincidencias hasta no tener asociado algún perfil que cumpla con estas reglas de asociación"
 		},
 		"matching": {
 			"general": "Las reglas especifican contra qué tipo de perfiles se realizan las búsquedas de coincidencias, en qué nivel mínimo de exigencia, con qué algoritmo, cuál es la cantidad mínima de sistemas que deben tener en común y cuál es la máxima cantidad de no coincidencias toleradas"
+		},
+		"modify": {
+			"profileSelection": "Seleccione el perfil al que desea cambiar la categoría."
 		},
 		"alias": {
 			"general": "Configuración de los alias que esta categoría tiene. Estos alias son los utilizados en la columna “Specimen Category” del fichero de GeneMapper® en la importación masiva"
@@ -403,10 +408,14 @@
 		"pedigriCopy":"Copia",
 		"pedigriEdit":"Edición",
 		"pedigriNewScenario":"Escenario pedigrí",
+		"superiorInstanceCategoryModification": "Modificación de categoría",
 		"interconectionUpdload": "Interconexión",
+		"importedFromInferior": "Interconexión",
 		"interconectionAproved": "Interconexión",
-		"interconectionRejected": "Interconexión"
+		"interconectionRejected": "Interconexión",
+		"categoryModification": "Modificación de categoría"
 	  }
-    }
-
+    },
+	"superiorInstanceModifiedCategory": "Este perfil es una modificación de un perfil existente, generado por el cambio de categoria en una instancia inferior: __oldCategory__ a __newCategory__.",
+	"automaticUploadToSuperiorInstance": "Este perfil fue aprobado en una instancia superior, por lo que se replicará automáticamente."
 }

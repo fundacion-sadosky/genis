@@ -222,6 +222,7 @@ class SlickProfileDataRepository @Inject() (
   private def queryUpdatePd(globalCode: Column[String]) = for {
     pd <- profilesData if pd.globalCode === globalCode
   } yield (
+    pd.category,
     pd.attorney,
     pd.bioMaterialType,
     pd.court,
@@ -801,71 +802,117 @@ class SlickProfileDataRepository @Inject() (
     }
   }
 
-  override def updateProfileData(globalCode: SampleCode, newProfile: ProfileData, imageList: Option[List[File]] = None, pictureList: Option[List[File]] = None, signatureList: Option[List[File]] = None): Future[Boolean] = Future {
+  override def updateProfileData(
+    globalCode: SampleCode,
+    newProfile: ProfileData,
+    imageList: Option[List[File]] = None,
+    pictureList: Option[List[File]] = None,
+    signatureList: Option[List[File]] = None
+  ): Future[Boolean] = Future {
 
-    DB.withTransaction { implicit session =>
-
-      val posibleExpirationDate = newProfile.profileExpirationDate map { ed => new java.sql.Date(ed.getTime()) }
-      val posiblesampleDate = newProfile.sampleDate map { sd => new java.sql.Date(sd.getTime()) }
-      val posiblesampleEntryDate = newProfile.sampleEntryDate map { sed => new java.sql.Date(sed.getTime()) }
-
-      val pd = (newProfile.attorney, newProfile.bioMaterialType, newProfile.court, newProfile.crimeInvolved, newProfile.crimeType, newProfile.criminalCase,
-        newProfile.responsibleGeneticist, posibleExpirationDate, posiblesampleDate, posiblesampleEntryDate)
-
-      val firstResult = queryUpdatePd(globalCode.text).update(pd)
-
-      val secondResult = newProfile.dataFiliation.fold(-1)({ filiationData =>
-
-        val fd = (filiationData.fullName, filiationData.nickname,filiationData.birthday.map { x => new java.sql.Date(x.getTime) }, filiationData.birthPlace, filiationData.nationality,
-          filiationData.identification, filiationData.identificationIssuingAuthority, filiationData.address)
-
-        val resultPdf = queryUpdatePdFiliation(globalCode.text).update(fd) match {
-          case 0 => {
-            val profileMDF = new ProfileDataFiliationRow(0, globalCode.text, filiationData.fullName, filiationData.nickname,
-              filiationData.birthday.map { x => new java.sql.Date(x.getTime) }, filiationData.birthPlace, filiationData.nationality,
-              filiationData.identification, filiationData.identificationIssuingAuthority, filiationData.address)
-            profileMetaDataFiliations += profileMDF
-            1
+    DB.withTransaction {
+      implicit session =>
+        val posibleExpirationDate = newProfile
+          .profileExpirationDate map { ed => new java.sql.Date(ed.getTime()) }
+        val posiblesampleDate = newProfile
+          .sampleDate map { sd => new java.sql.Date(sd.getTime()) }
+        val posiblesampleEntryDate = newProfile
+          .sampleEntryDate map { sed => new java.sql.Date(sed.getTime()) }
+        val pd = (
+          newProfile.category.text,
+          newProfile.attorney,
+          newProfile.bioMaterialType,
+          newProfile.court,
+          newProfile.crimeInvolved,
+          newProfile.crimeType,
+          newProfile.criminalCase,
+          newProfile.responsibleGeneticist,
+          posibleExpirationDate,
+          posiblesampleDate,
+          posiblesampleEntryDate
+        )
+        val firstResult = queryUpdatePd(globalCode.text).update(pd)
+        val secondResult = newProfile.dataFiliation.fold(-1)(
+          {
+            filiationData =>
+              val fd = (
+                filiationData.fullName,
+                filiationData.nickname,
+                filiationData.birthday.map { x => new java.sql.Date(x.getTime) },
+                filiationData.birthPlace,
+                filiationData.nationality,
+                filiationData.identification,
+                filiationData.identificationIssuingAuthority,
+                filiationData.address
+              )
+              val resultPdf = queryUpdatePdFiliation(globalCode.text)
+                .update(fd) match {
+                  case 0 =>
+                    val profileMDF = new ProfileDataFiliationRow(
+                      0,
+                      globalCode.text,
+                      filiationData.fullName,
+                      filiationData.nickname,
+                      filiationData.birthday.map { x => new java.sql.Date(x.getTime) },
+                      filiationData.birthPlace,
+                      filiationData.nationality,
+                      filiationData.identification,
+                      filiationData.identificationIssuingAuthority,
+                      filiationData.address
+                    )
+                    profileMetaDataFiliations += profileMDF
+                    1
+                  case number => number
+                }
+              imageList.foreach {
+                imageListFile =>
+                  imageListFile
+                    .foreach(
+                      file => {
+                        val is: InputStream = new FileInputStream(file)
+                        val byteArray: Array[Byte] = Stream.continually(is.read).takeWhile(-1 !=).map(_.toByte).toArray
+                        val blob: SerialBlob = new SerialBlob(byteArray)
+                        val resourceRow = ProfileDataFiliationResourcesRow(
+                          0, globalCode.text, blob, "I"
+                        )
+                        profileMetaDataFiliationResources += resourceRow
+                      }
+                    )
+              }
+              pictureList.foreach {
+                picturesListFile =>
+                  picturesListFile.foreach(
+                    file => {
+                      val is: InputStream = new FileInputStream(file)
+                      val byteArray: Array[Byte] = Stream.continually(is.read).takeWhile(-1 !=).map(_.toByte).toArray
+                      val blob: SerialBlob = new SerialBlob(byteArray)
+                      val resourceRow = ProfileDataFiliationResourcesRow(
+                        0, globalCode.text, blob, "P"
+                      )
+                      profileMetaDataFiliationResources += resourceRow
+                    }
+                  )
+              }
+              signatureList.foreach {
+                signaturesListFile =>
+                  signaturesListFile
+                    .foreach(
+                      file => {
+                        val is: InputStream = new FileInputStream(file)
+                        val byteArray: Array[Byte] = Stream.continually(is.read).takeWhile(-1 !=).map(_.toByte).toArray
+                        val blob: SerialBlob = new SerialBlob(byteArray)
+                        val resourceRow = ProfileDataFiliationResourcesRow(
+                          0, globalCode.text, blob, "S"
+                        )
+                        profileMetaDataFiliationResources += resourceRow
+                      }
+                    )
+              }
+              resultPdf
           }
-          case number => number
-        }
-
-        imageList.map { imageListFile =>
-
-          imageListFile.foreach(file => {
-            val is: InputStream = new FileInputStream(file)
-            val byteArray = Stream.continually(is.read).takeWhile(-1 !=).map(_.toByte).toArray
-            val blob = new SerialBlob(byteArray)
-            val resourceRow = ProfileDataFiliationResourcesRow(0, globalCode.text, blob, "I")
-            profileMetaDataFiliationResources += resourceRow
-          })
-        }
-
-        pictureList.map { picturesListFile =>
-
-          picturesListFile.foreach(file => {
-            val is: InputStream = new FileInputStream(file)
-            val byteArray = Stream.continually(is.read).takeWhile(-1 !=).map(_.toByte).toArray
-            val blob = new SerialBlob(byteArray)
-            val resourceRow = ProfileDataFiliationResourcesRow(0, globalCode.text, blob, "P")
-            profileMetaDataFiliationResources += resourceRow
-          })
-        }
-
-        signatureList.map { signaturesListFile =>
-          signaturesListFile.foreach(file => {
-            val is: InputStream = new FileInputStream(file)
-            val byteArray = Stream.continually(is.read).takeWhile(-1 !=).map(_.toByte).toArray
-            val blob = new SerialBlob(byteArray)
-            val resourceRow = ProfileDataFiliationResourcesRow(0, globalCode.text, blob, "S")
-            profileMetaDataFiliationResources += resourceRow
-          })
-        }
-
-        resultPdf
-      })
-      if (firstResult < 1 && secondResult == 0) false else true
-    }
+        )
+        if (firstResult < 1 && secondResult == 0) false else true
+      }
   }
 
   override def getDeletedMotive(globalCode: SampleCode): Future[Option[DeletedMotive]] = Future {

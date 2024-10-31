@@ -75,8 +75,9 @@ class PedigreeMatchesServiceTest extends PdgSpec with MockitoSugar {
       val pedigreeMatch2 = PedigreeMatch(Left(150), MongoDate(new Date()), 15, "Assignee150")
       val pedigreeMatches = Seq[PedigreeMatch](pedigreeMatch1, pedigreeMatch2)
       when(mockPedigreeMatchesRepository.getMatches(pedigreeMatchCardSearch)).thenReturn(Future.successful(pedigreeMatches))
-      when(mockPedigreeMatchesRepository.getMejorLrPedigree(any[Long])).thenReturn(Future.successful(Some(MatchCardMejorLrPed(
-        "id",
+      when(mockPedigreeMatchesRepository.getMejorLrPedigree(any[Long])).thenReturn(Future.successful(Some(MatchCardMejorLrPed
+    (
+                 "id",
         "AR-C-SHDG-1101",
         "AR-C-SHDG-1101",
         Some("UNICO"),

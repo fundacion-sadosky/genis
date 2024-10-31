@@ -39,6 +39,7 @@ function ProfileService(playRoutes, $log, $q, userService) {
 		
 		playRoutes.controllers.Profiles.getFullProfile(globalCode).get().then(
 			function(response){
+				console.log(response);
 				profileOpt.resolve(response);
 			},
 			function(){
