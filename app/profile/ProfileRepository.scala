@@ -739,7 +739,9 @@ class MiddleProfileRepository @Inject () (
   override def getGenotyficationByCode(globalCode: SampleCode): Future[Option[GenotypificationByType]] =
   mongoRepo.getGenotyficationByCode(globalCode)
 
-  override def findByCodes(globalCodes: Seq[SampleCode]): Future[Seq[Profile]] = {
+  override def findByCodes(
+    globalCodes: Seq[SampleCode]
+  ): Future[Seq[Profile]] = {
     {
        for {
          r1 <- mongoRepo.findByCodes(globalCodes)
