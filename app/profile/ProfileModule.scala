@@ -34,7 +34,7 @@ class ProfileModule(conf: Configuration) extends AbstractModule {
 //    bind(classOf[ProfileRepository]).to(classOf[MongoProfileRepository])
 
     // Temporal bind for couchdb
-    bind(classOf[CouchProfileRepository]).to(classOf[CouchProfileRepository])
+    bind(classOf[CouchProfileRepository])
     bind(classOf[ProfileRepository]).to(classOf[MiddleProfileRepository])
 
     val exportProfilesPageSize = conf.getInt("exportProfilesPageSize").get
