@@ -31,7 +31,11 @@ class ProfileModule(conf: Configuration) extends AbstractModule {
       
     bind(new TypeLiteral[Profile.LabelSets](){}).annotatedWith(Names.named("labelsSet")).toInstance(getLabelsSets);
     
-    bind(classOf[ProfileRepository]).to(classOf[MongoProfileRepository])
+//    bind(classOf[ProfileRepository]).to(classOf[MongoProfileRepository])
+
+    // Temporal bind for couchdb
+    bind(classOf[CouchProfileRepository]).to(classOf[CouchProfileRepository])
+    bind(classOf[ProfileRepository]).to(classOf[MiddleProfileRepository])
 
     val exportProfilesPageSize = conf.getInt("exportProfilesPageSize").get
     bind(classOf[Int]).annotatedWith(Names.named("exportProfilesPageSize")).toInstance(exportProfilesPageSize)

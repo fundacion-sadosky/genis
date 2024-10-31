@@ -93,23 +93,24 @@ trait ProfileService {
 
 @Singleton
 class ProfileServiceImpl @Inject() (
-                                     cache: CacheService,
-                                     profileRepository: ProfileRepository,
-                                     profileDataRepository: ProfileDataRepository,
-                                     kitService: StrKitService,
-                                     matchingService: MatchingService,
-                                     qualityParams: QualityParamsProvider,
-                                     categoryService: CategoryService,
-                                     notificationService: NotificationService,
-                                     probabilityService: ProbabilityService,
-                                     locusService: LocusService,
-                                     traceService: TraceService,
-                                     pedigreeService: PedigreeService,
-                                     analysisTypeService: AnalysisTypeService,
-                                     @Named("labelsSet") labelsSet: Profile.LabelSets,
-                                     interconnectionService : InterconnectionService = null,
-                                     matchingRepo: MatchingRepository = null,
-                                     userService: UserService = null) extends ProfileService {
+  cache: CacheService,
+  profileRepository: ProfileRepository,
+  profileDataRepository: ProfileDataRepository,
+  kitService: StrKitService,
+  matchingService: MatchingService,
+  qualityParams: QualityParamsProvider,
+  categoryService: CategoryService,
+  notificationService: NotificationService,
+  probabilityService: ProbabilityService,
+  locusService: LocusService,
+  traceService: TraceService,
+  pedigreeService: PedigreeService,
+  analysisTypeService: AnalysisTypeService,
+  @Named("labelsSet") labelsSet: Profile.LabelSets,
+  interconnectionService: InterconnectionService = null,
+  matchingRepo: MatchingRepository = null,
+  userService: UserService = null
+) extends ProfileService {
 
   val logger = Logger(this.getClass())
 
