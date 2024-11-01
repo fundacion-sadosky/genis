@@ -54,7 +54,10 @@ trait ProfileDataService {
   ): Future[Boolean]
   def updateProfileCategoryData(globalCode: SampleCode, profileData: ProfileDataAttempt): Future[Option[String]]
   def get(sampleCode: SampleCode): Future[Option[ProfileData]]
-  def isEditable(sampleCode: SampleCode, allowFromOtherInstances:Boolean = false): Future[Option[Boolean]]
+  def isEditable(
+    sampleCode: SampleCode,
+    allowFromOtherInstances:Boolean = false
+  ): Future[Option[Boolean]]
   def getResource(resourceType: String, id: Long): Future[Option[Array[Byte]]]
   def getDeleteMotive(sampleCode: SampleCode): Future[Option[DeletedMotive]]
   def deleteProfile(
@@ -240,11 +243,15 @@ class ProfileDataServiceImpl @Inject() (
     }
   }
 
-  def isEditable(sampleCode: SampleCode, allowFromOtherInstances: Boolean): Future[Option[Boolean]] = {
+  def isEditable(
+    sampleCode: SampleCode,
+    allowFromOtherInstances: Boolean
+  ) : Future[Option[Boolean]] = {
     val d = for {
       matches <- matchingService.findMatchingResults(sampleCode)
       isReadOnly <- profileService.isReadOnlySampleCode(
         sampleCode,
+        uploadedIsAllowed = true,
         allowFromOtherInstances = allowFromOtherInstances
       )
     } yield (matches.isDefined,isReadOnly._1)
@@ -333,7 +340,7 @@ class ProfileDataServiceImpl @Inject() (
             val pd = profileData.pdAttempToPd(labCode) //pdAttempToPd(profileData)
             val updatePromise = profileDataRepository.updateProfileData(globalCode, pd, inprints, pictures, signatures)
             updatePromise.onComplete { updated =>
-               traceService.add(Trace(globalCode, profileData.assignee, new Date(), trace.ProfileDataInfo))
+              traceService.add(Trace(globalCode, profileData.assignee, new Date(), trace.ProfileDataInfo))
               filiationDataOpt map { filiationData =>
                 cache.pop(TemporaryAssetKey(filiationData.inprint))
                 cache.pop(TemporaryAssetKey(filiationData.picture))

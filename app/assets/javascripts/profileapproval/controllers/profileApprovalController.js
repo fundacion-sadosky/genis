@@ -299,8 +299,8 @@ define(['lodash'], function (_) {
                   return [
                     x[0].globalCode,
                     {
-                      "newCategory": x[0].categoryId,
-                      "oldCategory": x[1].category
+                      "oldCategory": x[0].categoryId,
+                      "newCategory": x[1].category
                     }
                   ];
                 }
@@ -332,7 +332,7 @@ define(['lodash'], function (_) {
     $scope.getCatergoryModificationText = function(globalCode) {
       var newCategory = $scope.getModifiedCategory(globalCode, "newCategory");
       var oldCategory = $scope.getModifiedCategory(globalCode, "oldCategory");
-      return $.i18n.t('superiorInstanceModifiedCategory', {newCategory:newCategory, oldCategory:oldCategory});
+      return $.i18n.t('superiorInstanceModifiedCategory', {oldCategory:oldCategory, newCategory:newCategory});
     };
     
     $scope.uploadToSuperiorMessages = {};
