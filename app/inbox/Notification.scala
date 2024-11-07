@@ -66,9 +66,22 @@ case class AprovedProfileInfo(globalCode: SampleCode) extends NotificationInfo {
   override val url = s"/search/profiledata"
 }
 
-case class RejectedProfileInfo(globalCode: SampleCode) extends NotificationInfo {
+case class RejectedProfileInfo(
+  globalCode: SampleCode,
+  isCategoryModification: Boolean
+) extends NotificationInfo {
   override val kind = NotificationType.rejectedProfile
-  override val description = s"El perfil: ${globalCode.text} fue rechazado en la instancia superior"
+  override val description = if (isCategoryModification) {
+    s"El cambio de categoría del pergil ${
+      globalCode
+        .text
+    } fue rechazado en la instancia"
+  } else {
+    s"El perfil: ${
+      globalCode
+        .text
+    } fue rechazado en la instancia superior"
+  }
   override val url = s"/search/profiledata"
 }
 

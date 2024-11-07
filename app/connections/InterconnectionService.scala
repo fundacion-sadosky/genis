@@ -88,7 +88,12 @@ trait InterconnectionService {
 
   def uploadProfile(globalCode: String): Future[Either[String, Unit]]
 
-  def updateUploadStatus(globalCode: String, status: Long, motive: Option[String]): Future[Either[String, Unit]]
+  def updateUploadStatus(
+    globalCode: String,
+    status: Long,
+    motive: Option[String],
+    isCategoryModification: Boolean = false
+  ): Future[Either[String, Unit]]
 
   def receiveDeleteProfile(globalCode: String, motive: DeletedMotive, labCodeInstanceOrigin: String, labCodeImmediateInstance: String): Future[Either[String, Unit]]
 
@@ -851,72 +856,87 @@ class InterconnectionServiceImpl @Inject()(
   }
 
   def approveProfile(
-    profileApproval: ProfileApproval
+    profileApproval: ProfileApproval,
+    isCategoryModification: Boolean
   ): Future[Either[String, SampleCode]] = {
-    superiorInstanceProfileApprovalRepository.findByGlobalCode(profileApproval.globalCode).flatMap {
-      case Left(e) => Future.successful(Left(e))
-      case Right(row) => {
-        val profile = Json.fromJson[Profile](Json.parse(row.profile)).get
-        val profileAssociated = row.profileAssociated.map(profile => Json.fromJson[Profile](Json.parse(profile)).get)
-        importProfileValidator(profile).flatMap {
-          case Right(()) => {
-            insertOrUpdateProfile(
-              profile,
-              row.laboratoryInstanceOrigin,
-              row.laboratoryImmediateInstance,
-              row.laboratory,
-              profileAssociated.map(p => p.copy(labeledGenotypification = None, matcheable = false)),
-              allowFromOtherInstances = true
-            )
+    superiorInstanceProfileApprovalRepository
+      .findByGlobalCode(profileApproval.globalCode)
+      .flatMap {
+        case Left(e) => Future.successful(Left(e))
+        case Right(row) => {
+          val profile = Json.fromJson[Profile](Json.parse(row.profile)).get
+          val profileAssociated = row
+            .profileAssociated
+            .map(profile => Json.fromJson[Profile](Json.parse(profile)).get)
+          importProfileValidator(profile)
             .flatMap {
-              sampleCode => {
-
-                // disparar el proceso de match
-                //                Right(profileService.fireMatching(sampleCode))
-                // notificar a la instancia inferior que la superior le aprobó el perfil
-                this.notifyChangeStatus(row.globalCode, row.laboratoryImmediateInstance, APROBADA).flatMap {
-                  _ => superiorInstanceProfileApprovalRepository.delete(row.globalCode)
-                }
-              }
-            }.recoverWith {
-              case e: Exception => {
-                logger.error("Error al importar el perfil ", e)
-                superiorInstanceProfileApprovalRepository.upsert(
-                  SuperiorInstanceProfileApproval
-                  (id = 0L,
-                    globalCode = row.globalCode,
-                    profile = row.profile,
-                    laboratory = row.laboratory,
-                    laboratoryInstanceOrigin = row.laboratoryInstanceOrigin,
-                    laboratoryImmediateInstance = row.laboratoryImmediateInstance,
-                    sampleEntryDate = row.sampleEntryDate,
-                    errors = Some(e.getMessage),
-                    receptionDate = row.receptionDate,
-                    profileAssociated = row.profileAssociated)).map { _ => Left(e.getMessage) }
+              case Right(()) => {
+                insertOrUpdateProfile(
+                  profile,
+                  row.laboratoryInstanceOrigin,
+                  row.laboratoryImmediateInstance,
+                  row.laboratory,
+                  profileAssociated.map(
+                    p => p.copy(
+                      labeledGenotypification = None,
+                      matcheable = false
+                    )
+                  ),
+                  allowFromOtherInstances = true
+                )
+                .flatMap {
+                  sampleCode => {
+                    // disparar el proceso de match
+                    //                Right(profileService.fireMatching(sampleCode))
+                    // notificar a la instancia inferior que la superior le aprobó el perfil
+                    this.notifyChangeStatus(
+                      row.globalCode,
+                      row.laboratoryImmediateInstance,
+                      APROBADA
+                    ).flatMap {
+                      _ => superiorInstanceProfileApprovalRepository
+                        .delete(row.globalCode)
+                    }
+                  }
+                }.recoverWith {
+                  case e: Exception => {
+                    logger.error("Error al importar el perfil ", e)
+                    superiorInstanceProfileApprovalRepository.upsert(
+                      SuperiorInstanceProfileApproval
+                      (id = 0L,
+                        globalCode = row.globalCode,
+                        profile = row.profile,
+                        laboratory = row.laboratory,
+                        laboratoryInstanceOrigin = row.laboratoryInstanceOrigin,
+                        laboratoryImmediateInstance = row.laboratoryImmediateInstance,
+                        sampleEntryDate = row.sampleEntryDate,
+                        errors = Some(e.getMessage),
+                        receptionDate = row.receptionDate,
+                        profileAssociated = row.profileAssociated)).map { _ => Left(e.getMessage) }
+                  }
               }
             }
-          }
-          case Left(error) => {
-            logger.error("Error al importar el perfil " + error)
+            case Left(error) => {
+              logger.error("Error al importar el perfil " + error)
 
-            superiorInstanceProfileApprovalRepository.upsert(
-              SuperiorInstanceProfileApproval
-              (id = 0L,
-                globalCode = row.globalCode,
-                profile = row.profile,
-                laboratory = row.laboratory,
-                laboratoryInstanceOrigin = row.laboratoryInstanceOrigin,
-                laboratoryImmediateInstance = row.laboratoryImmediateInstance,
-                sampleEntryDate = row.sampleEntryDate,
-                errors = Some(error),
-                profileAssociated = row.profileAssociated)).map { _ => Left(error) }
+              superiorInstanceProfileApprovalRepository.upsert(
+                SuperiorInstanceProfileApproval
+                (id = 0L,
+                  globalCode = row.globalCode,
+                  profile = row.profile,
+                  laboratory = row.laboratory,
+                  laboratoryInstanceOrigin = row.laboratoryInstanceOrigin,
+                  laboratoryImmediateInstance = row.laboratoryImmediateInstance,
+                  sampleEntryDate = row.sampleEntryDate,
+                  errors = Some(error),
+                  profileAssociated = row.profileAssociated)).map { _ => Left(error) }
+            }
           }
         }
+      }.map {
+        case Left(msg) => Left(profileApproval.globalCode + ": " + msg)
+        case Right(_) => Right(SampleCode(profileApproval.globalCode))
       }
-    }.map {
-      case Left(msg) => Left(profileApproval.globalCode + ": " + msg)
-      case Right(_) => Right(SampleCode(profileApproval.globalCode))
-    }
   }
 
   def rejectProfile(profileApproval: ProfileApproval, motive: String, idMotive: Long, user: Option[String] = None): Future[Either[String, Unit]] = {
@@ -1115,7 +1135,8 @@ class InterconnectionServiceImpl @Inject()(
   ): Future[ProfileCategoryModificationSetup] = {
     for {
       profileResult <- approveProfile(
-        setup.profileApproval
+        setup.profileApproval,
+        setup.isCategoryUpdated()
       )
     } yield {
       setup.copy(approvalResult = Some(profileResult))
@@ -1196,43 +1217,45 @@ class InterconnectionServiceImpl @Inject()(
     }
   }
 
-  override def notifyChangeStatus(globalCode: String, labCode: String, status: Long, motive: Option[String] = None): Future[Unit] = {
+  override def notifyChangeStatus(
+    globalCode: String,
+    labCode: String,
+    status: Long,
+    motive: Option[String] = None
+  ): Future[Unit] = {
     Future {
-
-      inferiorInstanceRepository.findByLabCode(labCode).flatMap {
-        case None => Future.successful(Right(()))
-        case Some(inferiorInstance) => {
-
-          val parameters = s"?globalCode=$globalCode&status=$status"
-
-          val holder: WSRequestHolder = if (motive.isEmpty) {
-            client.url(protocol + inferiorInstance.url + "/inferior/profile/status" + parameters)
-          }
-          else {
-            client.url(protocol + inferiorInstance.url + "/inferior/profile/status")
-              .withQueryString("globalCode" -> globalCode)
-              .withQueryString("status" -> String.valueOf(status))
-              .withQueryString("motive" -> motive.get)
-          }
-
-          val futureResponse: Future[WSResponse] = this.sendRequestQueue(holder.withMethod("PUT"))
-          futureResponse.flatMap { result => {
-            if (result.status == 200) {
-              logger.debug("se actualizó correctamente el status del perfil en la instancia inferior")
-              Future.successful(Right(()))
-            } else {
-              logger.debug(Messages("error.E0710"))
-              Future.successful(Left(Messages("error.E0710")))
+      inferiorInstanceRepository
+        .findByLabCode(labCode)
+        .flatMap {
+          case None => Future.successful(Right(()))
+          case Some(inferiorInstance) => {
+            val parameters = s"?globalCode=$globalCode&status=$status"
+            val holder: WSRequestHolder = if (motive.isEmpty) {
+              client.url(protocol + inferiorInstance.url + "/inferior/profile/status" + parameters)
             }
-          }
-          }.recoverWith {
-            case _: Exception => Future.successful(Left(Messages("error.E0710")))
+            else {
+              client.url(protocol + inferiorInstance.url + "/inferior/profile/status")
+                .withQueryString("globalCode" -> globalCode)
+                .withQueryString("status" -> String.valueOf(status))
+                .withQueryString("motive" -> motive.get)
+            }
+            val futureResponse: Future[WSResponse] = this.sendRequestQueue(holder.withMethod("PUT"))
+            futureResponse.flatMap { result => {
+              if (result.status == 200) {
+                logger.debug("se actualizó correctamente el status del perfil en la instancia inferior")
+                Future.successful(Right(()))
+              } else {
+                logger.debug(Messages("error.E0710"))
+                Future.successful(Left(Messages("error.E0710")))
+              }
+            }
+            }.recoverWith {
+              case _: Exception => Future.successful(Left(Messages("error.E0710")))
+            }
           }
         }
       }
-
-    }
-    Future.successful(())
+      Future.successful(())
   }
 
   override def uploadProfile(globalCode: String): Future[Either[String, Unit]] = {
@@ -1307,31 +1330,66 @@ class InterconnectionServiceImpl @Inject()(
     }
   }
 
-  override def updateUploadStatus(globalCode: String, status: Long, motive: Option[String] = None): Future[Either[String, Unit]] = {
-//    async {
-      val p = Await.result(profileDataService.findByCode(SampleCode(globalCode)), Duration.Inf)
-    //await(profileDataService.findByCode(SampleCode(globalCode))) match {
-      p match {
+  override def updateUploadStatus(
+    globalCode: String,
+    status: Long,
+    motive: Option[String] = None,
+    isCategoryModification:Boolean = false
+  ): Future[Either[String, Unit]] = {
+      val profileData = Await
+        .result(
+          profileDataService.findByCode(SampleCode(globalCode)),
+          Duration.Inf
+        )
+      profileData match {
         case Some(p) => {
           logger.info("1. Encontro el perfil")
           //enviar notificacion al assignee y grabar en la auditoria
           status match {
             case RECHAZADA => {
               logger.info("2. es rechazada, envio notif de rechazo")
-              this.notify(RejectedProfileInfo(SampleCode(globalCode)), Permission.INTERCON_NOTIF, List(p.assignee))
+              this.notify(
+                RejectedProfileInfo(
+                  SampleCode(globalCode),
+                  isCategoryModification
+                ),
+                Permission.INTERCON_NOTIF,
+                List(p.assignee)
+              )
               logger.info("3. Notif enviada, voy a guardar trazabilidad de rechazo")
-              traceService.add(Trace(SampleCode(globalCode), p.assignee, new Date(), trace.ProfileRejectedInSuperiorInfo))
+              // TODO: Seleccionar el trace object de acuero 
+              //       a si el cambio de status es por un cambio de categoria.
+              traceService.add(
+                Trace(
+                  SampleCode(globalCode),
+                  p.assignee,
+                  new Date(),
+                  trace.ProfileRejectedInSuperiorInfo
+                )
+              )
               logger.info("4. Trazabilidad guardada")
             }
             case APROBADA => {
               logger.info("2. es aprobada, envio notif de aprobada")
-              this.notify(AprovedProfileInfo(SampleCode(globalCode)), Permission.INTERCON_NOTIF, List(p.assignee))
+              this.notify(
+                AprovedProfileInfo(SampleCode(globalCode)),
+                Permission.INTERCON_NOTIF,
+                List(p.assignee)
+              )
               logger.info("3. Notif enviada, voy a guardar trazabilidad de aprobada")
-              traceService.add(Trace(SampleCode(globalCode), p.assignee, new Date(), trace.ProfileAprovedInSuperiorInfo))
+              traceService.add(
+                Trace(
+                  SampleCode(globalCode),
+                  p.assignee,
+                  new Date(),
+                  trace.ProfileAprovedInSuperiorInfo
+                )
+              )
               logger.info("4. Trazabilidad guardada")
             }
           }
         }
+        case None => ()
       }
   //  }
     profileDataService.updateUploadStatus(globalCode, status, motive)

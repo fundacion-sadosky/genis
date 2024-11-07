@@ -59,6 +59,11 @@ case object ProfileAprovedInSuperiorInfo extends TraceInfo {
   override val description = s"Aprobado en instancia superior."
 }
 
+case object ProfileCategoryChangeAprovedInSuperiorInfo extends TraceInfo {
+  override val kind = TraceType.interconectionCategoryAproved
+  override val description = s"Aprobado en instancia superior."
+}
+
 case object ProfileImportedFromInferiorInfo extends TraceInfo {
   override val kind = TraceType.importedFromInferior
   override val description = s"Importado desde una instancia inferior."
@@ -67,6 +72,11 @@ case object ProfileImportedFromInferiorInfo extends TraceInfo {
 case object ProfileRejectedInSuperiorInfo extends TraceInfo {
   override val kind = TraceType.interconectionRejected
   override val description = s"Rechazado en instancia superior."
+}
+
+case object ProfileRejectedCategoryChangeInSuperiorInfo extends TraceInfo {
+  override val kind = TraceType.interconectionCategoryRejected
+  override val description = s"El Cambio de categoría fue rechazado en instancia superior."
 }
 
 case object ProfileInterconectionUploadInfo extends TraceInfo {

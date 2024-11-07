@@ -339,7 +339,7 @@ POST     /superior/profile/approval                           @controllers.Inter
 GET      /superior/profile/approval                           @controllers.Interconnections.getPendingProfiles(page:Int,pageSize:Int)
 GET      /superior/profile/approval-total                     @controllers.Interconnections.getTotalPendingProfiles
 DELETE   /superior/profile/approval                           @controllers.Interconnections.rejectPendingProfile(id:String,motive:String,idMotive:Long)
-PUT      /inferior/profile/status                             @controllers.Interconnections.updateUploadStatus(globalCode:String,status:Long,motive:Option[String])
+PUT      /inferior/profile/status                             @controllers.Interconnections.updateUploadStatus(globalCode:String,status:Long,motive:Option[String],isCategoryModification:Boolean)
 GET      /inferior/profile/status                             @controllers.Interconnections.getUploadStatus(globalCode:String)
 #DELETE   /superior/profile/:id                                @controllers.Interconnections.deleteProfile(id:String)
 POST     /inferior/match/                                     @controllers.Interconnections.receiveMatchFromSuperior()
