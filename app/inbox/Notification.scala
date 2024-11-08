@@ -62,7 +62,7 @@ case class DeleteProfileInfo(globalCode: SampleCode) extends NotificationInfo {
 
 case class AprovedProfileInfo(
   globalCode: SampleCode,
-  isCategoryModification: Boolean
+  isCategoryModification: Boolean = false
 ) extends NotificationInfo {
   override val kind = NotificationType.aprovedProfile
   override val description = if (isCategoryModification) {
