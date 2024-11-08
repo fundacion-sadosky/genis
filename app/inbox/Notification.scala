@@ -60,9 +60,19 @@ case class DeleteProfileInfo(globalCode: SampleCode) extends NotificationInfo {
   override val url = s"/profile/${globalCode.text}"
 }
 
-case class AprovedProfileInfo(globalCode: SampleCode) extends NotificationInfo {
+case class AprovedProfileInfo(
+  globalCode: SampleCode,
+  isCategoryModification: Boolean
+) extends NotificationInfo {
   override val kind = NotificationType.aprovedProfile
-  override val description = s"El perfil: ${globalCode.text} fue aprobado en la instancia superior"
+  override val description = if (isCategoryModification) {
+    s"El cambio de categoría del perfil ${
+      globalCode
+        .text
+    } fue aceptado en la instancia superior"
+  } else {
+    s"El perfil: ${globalCode.text} fue aprobado en la instancia superior"
+  }
   override val url = s"/search/profiledata"
 }
 
@@ -72,10 +82,10 @@ case class RejectedProfileInfo(
 ) extends NotificationInfo {
   override val kind = NotificationType.rejectedProfile
   override val description = if (isCategoryModification) {
-    s"El cambio de categoría del pergil ${
+    s"El cambio de categoría del perfil ${
       globalCode
         .text
-    } fue rechazado en la instancia"
+    } fue rechazado en la instancia superior"
   } else {
     s"El perfil: ${
       globalCode

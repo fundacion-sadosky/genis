@@ -43,7 +43,7 @@ import inbox.HitInfoInbox
 import inbox.DeleteProfileInfo
 import matching.MatchResult
 import services.CacheService
-import trace.{MatchInfo, MatchTypeInfo, ProfileImportedFromInferiorInfo, SuperiorInstanceCategoryModificationInfo, Trace, TraceService}
+import trace.{CategoryChangeRejectedInSupInfo, MatchInfo, MatchTypeInfo, ProfileImportedFromInferiorInfo, SuperiorCategoryChangeRejectedInfo, SuperiorInstanceCategoryModificationInfo, Trace, TraceService}
 
 trait InterconnectionService {
 
@@ -84,7 +84,13 @@ trait InterconnectionService {
 
   def getTotalPendingProfiles(): Future[Long]
 
-  def notifyChangeStatus(globalCode: String, labCode: String, status: Long, motive: Option[String] = None): Future[Unit]
+  def notifyChangeStatus(
+    globalCode: String,
+    labCode: String,
+    status: Long,
+    motive: Option[String] = None,
+    isCategoryModification:Boolean = false
+  ): Future[Unit]
 
   def uploadProfile(globalCode: String): Future[Either[String, Unit]]
 
@@ -857,7 +863,7 @@ class InterconnectionServiceImpl @Inject()(
 
   def approveProfile(
     profileApproval: ProfileApproval,
-    isCategoryModification: Boolean
+    isCategoryModification: Boolean = false
   ): Future[Either[String, SampleCode]] = {
     superiorInstanceProfileApprovalRepository
       .findByGlobalCode(profileApproval.globalCode)
@@ -892,7 +898,8 @@ class InterconnectionServiceImpl @Inject()(
                     this.notifyChangeStatus(
                       row.globalCode,
                       row.laboratoryImmediateInstance,
-                      APROBADA
+                      APROBADA,
+                      isCategoryModification = isCategoryModification
                     ).flatMap {
                       _ => superiorInstanceProfileApprovalRepository
                         .delete(row.globalCode)
@@ -939,29 +946,71 @@ class InterconnectionServiceImpl @Inject()(
       }
   }
 
-  def rejectProfile(profileApproval: ProfileApproval, motive: String, idMotive: Long, user: Option[String] = None): Future[Either[String, Unit]] = {
-
-    superiorInstanceProfileApprovalRepository.findByGlobalCode(profileApproval.globalCode).flatMap {
-      case Right(p) => {
-        this.notifyChangeStatus(p.globalCode, p.laboratoryImmediateInstance, RECHAZADA, Some(motive)).flatMap {
-          _ => {
-            val futureResponse = superiorInstanceProfileApprovalRepository.deleteLogical(p.globalCode
-              , user
-              , Some(new java.sql.Timestamp(Calendar.getInstance().getTime().getTime()))
-              , Some(idMotive)
-              , Some(motive)
+  def rejectProfile(
+    profileApproval: ProfileApproval,
+    motive: String,
+    idMotive: Long,
+    user: Option[String] = None
+  ): Future[Either[String, Unit]] = {
+    superiorInstanceProfileApprovalRepository
+      .findByGlobalCode(profileApproval.globalCode)
+      .flatMap {
+        case Right(p) =>
+          val modSetup = getModificationSetup(profileApproval)
+          modSetup
+            .flatMap(
+              setup =>
+                this
+                  .notifyChangeStatus(
+                    p.globalCode,
+                    p.laboratoryImmediateInstance,
+                    RECHAZADA,
+                    Some(motive),
+                    setup.isCategoryUpdated()
+                  )
+                  .map( _ => (p, setup) )
             )
-            futureResponse.onSuccess({ case _ => {
-              this.solveNotificationProfileApproval(p.globalCode)
+            .flatMap {
+              case (p, setup) =>
+                if (setup.isCategoryUpdated()) {
+                  traceService
+                    .add(
+                      Trace(
+                        setup.globalCode,
+                        setup.assignee,
+                        new Date(),
+                        SuperiorCategoryChangeRejectedInfo
+                      )
+                    )
+                } else {
+                  Future.successful(())
+                }
             }
-            })
-            futureResponse
-          }
-        }
-      }
-      case Left(msg) => {
-        Future.successful(Left(msg))
-      }
+            .flatMap {
+              _ => {
+                val futureResponse = superiorInstanceProfileApprovalRepository
+                  .deleteLogical(
+                    p.globalCode,
+                    user,
+                    Some(
+                      new java.sql.Timestamp(
+                        Calendar
+                          .getInstance()
+                          .getTime
+                          .getTime
+                      )
+                    ),
+                    Some(idMotive),
+                    Some(motive)
+                  )
+                futureResponse
+                  .onSuccess(
+                    { case _ => this.solveNotificationProfileApproval(p.globalCode) }
+                  )
+                futureResponse
+              }
+            }
+        case Left(msg) => Future.successful(Left(msg))
     }
   }
 
@@ -999,15 +1048,17 @@ class InterconnectionServiceImpl @Inject()(
   ): ProfileCategoryModificationSetup = {
     setup match {
       case ProfileCategoryModificationSetup(code, _, _, assignee, _, Some(Right(_))) =>
-        val traceInfo = ProfileImportedFromInferiorInfo
-        traceService.add(
-          Trace(
-            code,
-            assignee,
-            new Date(),
-            traceInfo
+        if (!setup.isCategoryUpdated()) {
+          val traceInfo = ProfileImportedFromInferiorInfo
+          traceService.add(
+            Trace(
+              code,
+              assignee,
+              new Date(),
+              traceInfo
+            )
           )
-        )
+        }
       case _ => ()
     }
     setup
@@ -1088,14 +1139,16 @@ class InterconnectionServiceImpl @Inject()(
         globalCode, Some(cCat), nCat, _, _, Some(Right(_))
       ) =>
         if (cCat.text != nCat.text) {
+          val forbiddenStatusToUpload = Seq(PENDING_DELETE, DELETED_IN_SUP_INS)
           profileDataService
             .getProfileUploadStatusByGlobalCode(globalCode)
             .flatMap {
-              case Some(APROBADA) =>
-                profileService
-                  .get(globalCode)
-                  .flatMap { getProfiles (_, globalCode)}
-                  .flatMap { uploadProfile }
+              case Some(status) if !forbiddenStatusToUpload.contains(status) => {
+                  profileService
+                    .get(globalCode)
+                    .flatMap { getProfiles (_, globalCode)}
+                    .flatMap { uploadProfile }
+                }
               case _ => Future.successful(Right(()))
             }
         } else {
@@ -1221,7 +1274,8 @@ class InterconnectionServiceImpl @Inject()(
     globalCode: String,
     labCode: String,
     status: Long,
-    motive: Option[String] = None
+    motive: Option[String] = None,
+    isCategoryModification:Boolean = false
   ): Future[Unit] = {
     Future {
       inferiorInstanceRepository
@@ -1229,15 +1283,18 @@ class InterconnectionServiceImpl @Inject()(
         .flatMap {
           case None => Future.successful(Right(()))
           case Some(inferiorInstance) => {
-            val parameters = s"?globalCode=$globalCode&status=$status"
             val holder: WSRequestHolder = if (motive.isEmpty) {
-              client.url(protocol + inferiorInstance.url + "/inferior/profile/status" + parameters)
+              client.url(protocol + inferiorInstance.url + "/inferior/profile/status")
+                .withQueryString("globalCode" -> globalCode)
+                .withQueryString("status" -> String.valueOf(status))
+                .withQueryString("isCategoryModification" -> isCategoryModification.toString)
             }
             else {
               client.url(protocol + inferiorInstance.url + "/inferior/profile/status")
                 .withQueryString("globalCode" -> globalCode)
                 .withQueryString("status" -> String.valueOf(status))
                 .withQueryString("motive" -> motive.get)
+                .withQueryString("isCategoryModification" -> isCategoryModification.toString)
             }
             val futureResponse: Future[WSResponse] = this.sendRequestQueue(holder.withMethod("PUT"))
             futureResponse.flatMap { result => {
@@ -1342,11 +1399,11 @@ class InterconnectionServiceImpl @Inject()(
           Duration.Inf
         )
       profileData match {
-        case Some(p) => {
+        case Some(p) =>
           logger.info("1. Encontro el perfil")
           //enviar notificacion al assignee y grabar en la auditoria
           status match {
-            case RECHAZADA => {
+            case RECHAZADA =>
               logger.info("2. es rechazada, envio notif de rechazo")
               this.notify(
                 RejectedProfileInfo(
@@ -1357,41 +1414,45 @@ class InterconnectionServiceImpl @Inject()(
                 List(p.assignee)
               )
               logger.info("3. Notif enviada, voy a guardar trazabilidad de rechazo")
-              // TODO: Seleccionar el trace object de acuero 
-              //       a si el cambio de status es por un cambio de categoria.
+              val c_trace = if (isCategoryModification) {
+                trace.CategoryChangeRejectedInSupInfo
+              } else {
+                trace.ProfileRejectedInSuperiorInfo
+              }
               traceService.add(
                 Trace(
                   SampleCode(globalCode),
                   p.assignee,
                   new Date(),
-                  trace.ProfileRejectedInSuperiorInfo
+                  c_trace
                 )
               )
               logger.info("4. Trazabilidad guardada")
-            }
-            case APROBADA => {
+            case APROBADA =>
               logger.info("2. es aprobada, envio notif de aprobada")
               this.notify(
-                AprovedProfileInfo(SampleCode(globalCode)),
+                AprovedProfileInfo(SampleCode(globalCode), isCategoryModification),
                 Permission.INTERCON_NOTIF,
                 List(p.assignee)
               )
               logger.info("3. Notif enviada, voy a guardar trazabilidad de aprobada")
+              val c_trace = if (isCategoryModification) {
+                trace.ProfileCategoryChangeAprovedInSuperiorInfo
+              } else {
+                trace.ProfileAprovedInSuperiorInfo
+              }
               traceService.add(
                 Trace(
                   SampleCode(globalCode),
                   p.assignee,
                   new Date(),
-                  trace.ProfileAprovedInSuperiorInfo
+                  c_trace
                 )
               )
               logger.info("4. Trazabilidad guardada")
-            }
           }
-        }
         case None => ()
       }
-  //  }
     profileDataService.updateUploadStatus(globalCode, status, motive)
   }
 

@@ -14,6 +14,7 @@ object TraceType extends Enumeration {
     delete,
     categoryModification,
     superiorInstanceCategoryModification,
+    superiorInstanceCategoryRejection,
     interconectionUpdload,
     interconectionAproved,
     interconectionCategoryAproved,

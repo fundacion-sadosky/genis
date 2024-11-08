@@ -204,9 +204,15 @@ class Interconnections @Inject()(
         Future.successful(BadRequest(JsError.toFlatJson(errors)))
       },
         approvals => {
-          interconnectionService.approveProfiles(approvals).map{
+          interconnectionService
+            .approveProfiles(approvals)
+            .map{
             case Left(e) => BadRequest(Json.obj("message" -> e))
-            case Right(()) => Ok.withHeaders("X-CREATED-ID" -> approvals.map(a=>a.globalCode).mkString(start = "[",sep =",",end ="]"))
+            case Right(()) => Ok.withHeaders(
+              "X-CREATED-ID" -> approvals
+                .map(a=>a.globalCode)
+                .mkString(start = "[",sep =",",end ="]")
+            )
           }
         }
       )
