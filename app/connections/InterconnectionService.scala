@@ -1408,7 +1408,7 @@ class InterconnectionServiceImpl @Inject()(
               this.notify(
                 RejectedProfileInfo(
                   SampleCode(globalCode),
-                  isCategoryModification
+                  Some(isCategoryModification)
                 ),
                 Permission.INTERCON_NOTIF,
                 List(p.assignee)
@@ -1431,7 +1431,7 @@ class InterconnectionServiceImpl @Inject()(
             case APROBADA =>
               logger.info("2. es aprobada, envio notif de aprobada")
               this.notify(
-                AprovedProfileInfo(SampleCode(globalCode), isCategoryModification),
+                AprovedProfileInfo(SampleCode(globalCode), Some(isCategoryModification)),
                 Permission.INTERCON_NOTIF,
                 List(p.assignee)
               )
