@@ -413,7 +413,10 @@
 		"importedFromInferior": "Interconexión",
 		"interconectionAproved": "Interconexión",
 		"interconectionRejected": "Interconexión",
-		"categoryModification": "Modificación de categoría"
+		"categoryModification": "Modificación de categoría",
+		"interconectionCategoryRejected": "Interconexión",
+		"superiorInstanceCategoryRejection": "Interconexión",
+		"interconectionCategoryAproved": "Interconexión"
 	  }
     },
 	"superiorInstanceModifiedCategory": "Este perfil es una modificación de un perfil existente, generado por el cambio de categoria en una instancia inferior: __oldCategory__ a __newCategory__.",

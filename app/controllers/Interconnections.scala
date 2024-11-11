@@ -204,9 +204,15 @@ class Interconnections @Inject()(
         Future.successful(BadRequest(JsError.toFlatJson(errors)))
       },
         approvals => {
-          interconnectionService.approveProfiles(approvals).map{
+          interconnectionService
+            .approveProfiles(approvals)
+            .map{
             case Left(e) => BadRequest(Json.obj("message" -> e))
-            case Right(()) => Ok.withHeaders("X-CREATED-ID" -> approvals.map(a=>a.globalCode).mkString(start = "[",sep =",",end ="]"))
+            case Right(()) => Ok.withHeaders(
+              "X-CREATED-ID" -> approvals
+                .map(a=>a.globalCode)
+                .mkString(start = "[",sep =",",end ="]")
+            )
           }
         }
       )
@@ -248,12 +254,20 @@ class Interconnections @Inject()(
       }
     }
   }
-  def updateUploadStatus(globalCode: String,status:Long,motive:Option[String]) = Action.async {
+
+  def updateUploadStatus(
+    globalCode: String,
+    status:Long,
+    motive:Option[String],
+    isCategoryModification:Boolean = false
+  ): Action[AnyContent] = Action.async {
     _ => {
-      interconnectionService.updateUploadStatus(globalCode,status,motive).map{
-        case Left(e) => BadRequest(Json.obj("message" -> e))
-        case Right(()) => Ok.withHeaders("X-CREATED-ID" -> globalCode)
-      }
+      interconnectionService
+        .updateUploadStatus(globalCode, status, motive, isCategoryModification)
+        .map{
+          case Left(e) => BadRequest(Json.obj("message" -> e))
+          case Right(()) => Ok.withHeaders("X-CREATED-ID" -> globalCode)
+        }
     }
   }
   

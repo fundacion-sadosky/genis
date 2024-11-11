@@ -13,7 +13,9 @@ case class ProfileCategoryModificationSetup(
   def isCategoryUpdated() : Boolean = {
     this
       .currentCategory
-      .fold(false)(this.updatedCategory.equals(_))
+      .fold(false)(
+        x => !this.updatedCategory.equals(x)
+      )
   }
 }
 

@@ -6,7 +6,7 @@ import javax.inject.{Inject, Singleton}
 
 import models.Tables
 import play.api.Application
-import play.api.db.slick.Config.driver.simple.{Column, Compiled, TableQuery, booleanColumnExtensionMethods, booleanColumnType, columnExtensionMethods, queryToInsertInvoker, runnableCompiledToAppliedQueryInvoker, slickDriver, stringColumnType}
+import play.api.db.slick.Config.driver.simple.{ Column, Compiled, TableQuery, booleanColumnExtensionMethods, booleanColumnType, columnExtensionMethods, queryToInsertInvoker, runnableCompiledToAppliedQueryInvoker, slickDriver, stringColumnType}
 import play.api.db.slick.DB
 import play.api.libs.json.{JsError, Json}
 import util.DefaultDb
