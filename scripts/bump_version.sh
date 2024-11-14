@@ -8,6 +8,7 @@ Arguments:
     major : Bump the major version
     minor : Bump the minor version
     patch : Bump the patch version
+    exact : Bump to the exact version
     --help: Show this help message
 
 This script reads the current version from a file named 'Version',
@@ -40,12 +41,12 @@ if [[ $1 == "--help" ]]; then
 fi
 
 # Argument check
-if [[ $# -ne 1 ]]; then
-    echo "Invalid number of arguments."
-    print_help
-    exit 1
-fi
-
+#if [[ $# -ne 1 ]]; then
+#    echo "Invalid number of arguments."
+#    print_help
+#    exit 1
+#fi
+#
 check_version_file_exists() {
     if [ ! -f Version ]; then
         echo "VERSION file does not exist."
@@ -180,6 +181,20 @@ case $1 in
         check_version_file_exists
         read_current_version
         patch=$((patch + 1))
+        patch_version_files
+        exit 0
+        ;;
+    exact)
+        check_version_file_exists
+        if [[ -z $2 ]]; then
+            echo "Error: The 'exact' option requires a version number argument (e.g., 'exact 1.2.3')."
+            exit 1
+        fi
+        IFS='.' read -r major minor patch <<< "$2"
+        if [[ -z $major || -z $minor || -z $patch ]]; then
+            echo "Error: Invalid version format. Please use 'major.minor.patch' (e.g., '1.2.3')."
+            exit 1
+        fi
         patch_version_files
         exit 0
         ;;

@@ -1,4 +1,4 @@
-**GENis versión 5.1.12-pre-release.**  
+**GENis versión 5.1.12**  
 Sitio oficial: http://www.fundacionsadosky.org.ar/genis/  
 ©2022 Fundación Manuel Sadosky.  
 Licenciado bajo AGPL-3.0, puede encontrarse en  

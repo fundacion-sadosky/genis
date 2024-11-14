@@ -1,11 +1,13 @@
 # Changelog
 
-## [v5.1.12-pre-release] - 2024-09-22
+## v[5.1.12] - 2024-11-14
 
 _Si está actualizando el sistema por favor lea:  [`UPGRADING.md`](https://github.com/fundacion-sadosky/genis/blob/main/UPGRADING.md)._
 
 ### Added
 
+- Los perfiles con conicidencias se muestran en color diferente en el listade perfiles.
+  ([#100](https://github.com/fundacion-sadosky/genis/issues/100)).
 - Ahora es posible cambiar la categoría de un perfil indubitado.
   El cambio relanza las comparaciones basadas en la nueva categoría.
   El cambio de categoría se puede replicar en la instancia superior.
@@ -35,6 +37,8 @@ _Si está actualizando el sistema por favor lea:  [`UPGRADING.md`](https://githu
   ([#109](https://github.com/fundacion-sadosky/genis/issues/109)).
 - Se corrigió un error en el cálculo de LR promedio que se da cuando unos de los LRs es 0.0.
   ([#110](https://github.com/fundacion-sadosky/genis/issues/110)).
+
+[v5.1.12]: https://github.com/fundacion-sadosky/genis/releases/tag/v5.1.12
 
 ## [v5.1.11] - 2023-10-25
 
