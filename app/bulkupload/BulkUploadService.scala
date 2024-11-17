@@ -107,9 +107,11 @@ class BulkUploadServiceImpl @Inject() (
     val aliasKits = kitService.getKitAlias
     val lociAlias = kitService.getLocusAlias
     val kitsPromise = kitService.list() flatMap { kits =>
-      val primisedLoci = kits map { kit =>
-        val kitLoci = kitService.findLociByKit(kit.id) map { loci => (kit.id, loci.map(_.id)) }
-        kitLoci
+      val primisedLoci = kits map {
+        kit =>
+          val kitLoci = kitService
+            .findLociByKit(kit.id) map { loci => (kit.id, loci.map(_.id)) }
+          kitLoci
       }
       Future.sequence(primisedLoci) map { _.toMap }
     }
@@ -148,7 +150,7 @@ class BulkUploadServiceImpl @Inject() (
                 val either = if (analysisType.equals("Autosomal")) {
                   GeneMapperFileParser.parse(csvFile, vaildator)
                 } else {
-                  GeneMapperFileMitoParser.parse(csvFile, vaildator,mtRcrs)
+                  GeneMapperFileMitoParser.parse(csvFile, vaildator, mtRcrs)
                 }
                 either.fold[Future[Either[String, Long]]](
                   error => {
