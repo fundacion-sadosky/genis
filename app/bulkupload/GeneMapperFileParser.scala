@@ -1,8 +1,11 @@
 package bulkupload
 
 import com.github.tototoshi.csv.DefaultCSVFormat
+
 import java.io.File
 import com.github.tototoshi.csv.CSVReader
+
+import scala.annotation.tailrec
 
 object GeneMapperFileParser {
 
@@ -17,6 +20,7 @@ object GeneMapperFileParser {
       .build
   }
 
+  @tailrec
   private def parseLine(
     prev: List[String],
     mapa: GeneMaperFileHeader,
@@ -25,26 +29,28 @@ object GeneMapperFileParser {
   ): (ProtoProfile, Stream[List[String]]) = {
     input match {
       case Stream.Empty => (builder.build, Stream.Empty)
-      case line #:: tail if (line(mapa.sampleName) == prev(mapa.sampleName)) => {
+      case line #:: tail if (line(mapa.sampleName) == prev(mapa.sampleName)) =>
         val bldrMd = builder
           .buildWithSampleName(line(mapa.sampleName))
           .buildWithAssigne(line(mapa.UD1).toLowerCase)
           .buildWithCategory(line(mapa.SpecimenCategory))
           .buildWithKit(line(mapa.UD2))
           .buildWithGenemapperLine(line)
-        val alleles = Seq(
-          line(mapa.Allele1),
-          line(mapa.Allele2),
-          line(mapa.Allele3),
-          line(mapa.Allele4),
-          line(mapa.Allele5),
-          line(mapa.Allele6),
-          line(mapa.Allele7),
-          line(mapa.Allele8)
+        val alleleIndexes = Seq(
+          mapa.Allele1,
+          mapa.Allele2,
+          mapa.Allele3,
+          mapa.Allele4,
+          mapa.Allele5,
+          mapa.Allele6,
+          mapa.Allele7,
+          mapa.Allele8
         )
+        val alleles = alleleIndexes
+          .map(line.lift)
+          .map(x => x.getOrElse(""))
         val bldr = bldrMd.buildWithMarker(line(mapa.Marker), alleles)
         parseLine(line, mapa, bldr, tail)
-      }
       case head #:: tail => (builder.build, input)
     }
   }
