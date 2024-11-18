@@ -311,7 +311,6 @@ define(['lodash'], function(_) {
             profile.showErrors = (profile.showErrors === undefined || !profile.showErrors);
             profile.showMotive = profile.showMotive !== undefined && profile.showMotive;
             profile.showMotive = profile.showMotive && !profile.showErrors;
-            profile.rejectMotive = "El perfil es incorrecto";
         };
 
         $scope.toggleShowRejectMotive = function(profile) {
