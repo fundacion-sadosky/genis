@@ -13,10 +13,14 @@ object GeneMapperFileMitoParser{
     override val delimiter = '\t'
   }
 
-  private def parseHeader(header: Seq[String]): Either[String, GeneMaperMitoFileHeader] = {
+  private def parseHeader(
+    header: Seq[String]
+  ): Either[String, GeneMaperMitoFileHeader] = {
     header
       .zipWithIndex
-      .foldLeft(GeneMaperFileMitoHeaderBuilder(HeaderLine = header)) { case (builder, tup) => builder.buildWith(tup._1, tup._2) }
+      .foldLeft(GeneMaperFileMitoHeaderBuilder(HeaderLine = header)) {
+        case (builder, tup) => builder.buildWith(tup._1, tup._2)
+      }
       .build
   }
 
@@ -233,12 +237,4 @@ object GeneMapperFileMitoParser{
     }
     result
   }
-
-
-
-
-
-
-
 }
-
