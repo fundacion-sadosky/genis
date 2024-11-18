@@ -65,16 +65,15 @@
 		<table class="table table-striped" style="table-layout:fixed;">
 			<thead>
 				<tr>
-					<th width="2%"></th>
+					<th style="width:2%"></th>
 					<th class="text-center col-md-2">Código Laboratorio</th>
-					<th class="text-center col-md-3">Categoría</th>
-					<th class="text-center col-md-1" ng-hide="l.analysisType != 'Autosomal' ">Kit</th>
+					<th class="text-center col-md-2">Categoría</th>
+					<th class="text-center col-md-1">Kit</th>
 					<th class="text-center col-md-1">Estado</th>
 					<th class="text-center col-md-1">Replicar a instancia superior</th>
-					<th class=" col-md-2"></th>
-					<th class=" col-md-1"></th>
-					<th class=" col-md-1"></th>
-					<th class="text-center col-md-1" ng-show="l.analysisType != 'Autosomal' "></th>
+					<th class=" col-md-2">Rechazar/Aceptar</th>
+					<th class=" col-md-2">Mensajes</th>
+					<th class=" col-md-1">Análisis</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -115,7 +114,7 @@
 
 
 					</td>
-					<td class="text-center" ng-hide="l.analysisType != 'Autosomal' ">{{r.kit}}</td>
+					<td class="text-center">{{r.kit}}</td>
 					<td class="text-center">{{statusMap[r.status]}}</td>
 					<td class="text-center">
 						<input type="checkbox" ng-model="r.replicate" ng-disabled="r.status!= 'Approved' || r.replicateDisabled">
@@ -133,8 +132,15 @@
 
 					</td>
 					<td>
-						<a ng-show="r.rejectMotive" popover="{{r.rejectMotive}}" popover-placement="left-bottom">Ver Motivo de Rechazo</a>
-						<a ng-show="r.errors && r.errors.length > 0" popover="{{r.errors.join()}}" popover-placement="left-bottom">Ver errores</a>
+<!--						<a ng-show="r.rejectMotive" popover="{{r.rejectMotive}}" popover-placement="left-bottom">Ver Motivo de Rechazo</a>-->
+<!--						<a ng-show="r.errors && r.errors.length > 0" popover="{{r.errors.join()}}" popover-placement="left-bottom">Ver errores</a>-->
+						<div data-ng-show="r.rejectMotive">Motivo de Rechazo: {{r.rejectMotive}}</div>
+						<div data-ng-show="r.errors && r.errors.length > 0" >
+							Errores:<br>
+							<span data-ng-repeat="err in r.errors">
+								{{err}}<br>
+							</span>
+						</div>
 					</td>
 					<td class="text-center" title="Ver genotipificación">
 
@@ -146,8 +152,6 @@
 						</button>
 
 					</td>
-
-					<td class="text-center col-md-1" ng-show="l.analysisType != 'Autosomal' "></td>
 				</tr>
                 <tr>
                     <td colspan="9" style="padding-top: 25px; text-align: center;">
