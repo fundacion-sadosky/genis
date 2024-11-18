@@ -1,10 +1,11 @@
 package bulkupload
 
 import java.io.File
-
 import com.github.tototoshi.csv.{CSVReader, DefaultCSVFormat}
 import profile.{AlleleValue, Mitocondrial, MtRCRS}
 import profiledata.ProfileDataRepository
+
+import scala.annotation.tailrec
 
 object GeneMapperFileMitoParser{
 
@@ -19,6 +20,7 @@ object GeneMapperFileMitoParser{
       .build
   }
 
+  @tailrec
   private def parseLine(
     prev: List[String],
     mapa: GeneMaperMitoFileHeader,
@@ -29,7 +31,7 @@ object GeneMapperFileMitoParser{
   ): (ProtoProfile, Stream[List[String]]) = {
     input match {
       case Stream.Empty => (builder.build, Stream.Empty)
-      case line #:: tail if (line(mapa.sampleName) == prev(mapa.sampleName)) => {
+      case line #:: tail if line(mapa.sampleName) == prev(mapa.sampleName) =>
         val MitoRango = Seq(line(mapa.RangeFrom), line(mapa.RangeTo))
         val valida = validarMaxMin(line(mapa.RangeTo), line(mapa.RangeFrom))
         val bldrMd = builder
@@ -38,62 +40,42 @@ object GeneMapperFileMitoParser{
           .buildWithCategory(line(mapa.SpecimenCategory))
           .buildWithKit("Mitocondrial")
           .buildWithGenemapperLine(line)
-          .buildWithMarker("HV"+index+"_RANGE", MitoRango,true)
+          .buildWithMarker(s"HV${index}_RANGE", MitoRango, mitocondrial = true)
           .buildWithErrors(valida)
-        val Mito = Seq(
-          line(mapa.Variacion1), line(mapa.Variacion2), line(mapa.Variacion3),
-          line(mapa.Variacion4), line(mapa.Variacion5), line(mapa.Variacion6),
-          line(mapa.Variacion7), line(mapa.Variacion8), line(mapa.Variacion9),
-          line(mapa.Variacion10), line(mapa.Variacion11), line(mapa.Variacion12),
-          line(mapa.Variacion13), line(mapa.Variacion14), line(mapa.Variacion15),
-          line(mapa.Variacion16), line(mapa.Variacion17), line(mapa.Variacion18),
-          line(mapa.Variacion19), line(mapa.Variacion20), line(mapa.Variacion21),
-          line(mapa.Variacion22), line(mapa.Variacion23), line(mapa.Variacion24),
-          line(mapa.Variacion25), line(mapa.Variacion26), line(mapa.Variacion27),
-          line(mapa.Variacion28), line(mapa.Variacion29), line(mapa.Variacion30),
-          line(mapa.Variacion31), line(mapa.Variacion32), line(mapa.Variacion33),
-          line(mapa.Variacion34), line(mapa.Variacion35), line(mapa.Variacion36),
-          line(mapa.Variacion37), line(mapa.Variacion38), line(mapa.Variacion39),
-          line(mapa.Variacion40), line(mapa.Variacion41), line(mapa.Variacion42),
-          line(mapa.Variacion43), line(mapa.Variacion44), line(mapa.Variacion45),
-          line(mapa.Variacion46), line(mapa.Variacion47), line(mapa.Variacion48),
-          line(mapa.Variacion49), line(mapa.Variacion50)
+        val variations = List(
+          mapa.Variacion1, mapa.Variacion2, mapa.Variacion3, mapa.Variacion4,
+          mapa.Variacion5, mapa.Variacion6, mapa.Variacion7, mapa.Variacion8,
+          mapa.Variacion9, mapa.Variacion10, mapa.Variacion11, mapa.Variacion12,
+          mapa.Variacion13, mapa.Variacion14, mapa.Variacion15, mapa.Variacion16,
+          mapa.Variacion17, mapa.Variacion18, mapa.Variacion19, mapa.Variacion20,
+          mapa.Variacion21, mapa.Variacion22, mapa.Variacion23, mapa.Variacion24,
+          mapa.Variacion25, mapa.Variacion26, mapa.Variacion27, mapa.Variacion28,
+          mapa.Variacion29, mapa.Variacion30, mapa.Variacion31, mapa.Variacion32,
+          mapa.Variacion33, mapa.Variacion34, mapa.Variacion35, mapa.Variacion36,
+          mapa.Variacion37, mapa.Variacion38, mapa.Variacion39, mapa.Variacion40,
+          mapa.Variacion41, mapa.Variacion42, mapa.Variacion43, mapa.Variacion44,
+          mapa.Variacion45, mapa.Variacion46, mapa.Variacion47, mapa.Variacion48,
+          mapa.Variacion49, mapa.Variacion50
         )
-        val valido =  validarRangoVariaciones(
+        val Mito = variations
+          .map(line.lift)
+          .map(x => x.getOrElse(""))
+        val valido = validarRangoVariaciones(
           line(mapa.RangeTo),
           line(mapa.RangeFrom),
           Mito
         )
-        val posiciones = convertirPosiciones(
-          List(
-            line(mapa.Variacion1), line(mapa.Variacion2), line(mapa.Variacion3),
-            line(mapa.Variacion4), line(mapa.Variacion5), line(mapa.Variacion6),
-            line(mapa.Variacion7), line(mapa.Variacion8), line(mapa.Variacion9),
-            line(mapa.Variacion10), line(mapa.Variacion11), line(mapa.Variacion12),
-            line(mapa.Variacion13), line(mapa.Variacion14), line(mapa.Variacion15),
-            line(mapa.Variacion16), line(mapa.Variacion17), line(mapa.Variacion18),
-            line(mapa.Variacion19), line(mapa.Variacion20), line(mapa.Variacion21),
-            line(mapa.Variacion22), line(mapa.Variacion23), line(mapa.Variacion24),
-            line(mapa.Variacion25), line(mapa.Variacion26), line(mapa.Variacion27),
-            line(mapa.Variacion28), line(mapa.Variacion29), line(mapa.Variacion30),
-            line(mapa.Variacion31), line(mapa.Variacion32), line(mapa.Variacion33),
-            line(mapa.Variacion34), line(mapa.Variacion35), line(mapa.Variacion36),
-            line(mapa.Variacion37), line(mapa.Variacion38), line(mapa.Variacion39),
-            line(mapa.Variacion40), line(mapa.Variacion41), line(mapa.Variacion42),
-            line(mapa.Variacion43), line(mapa.Variacion44), line(mapa.Variacion45),
-            line(mapa.Variacion46), line(mapa.Variacion47), line(mapa.Variacion48),
-            line(mapa.Variacion49), line(mapa.Variacion50)
-          )
-        )
+        val posiciones = convertirPosiciones(Mito)
         val bldr = bldrMd
-          .buildWithMarker("HV"+index, Mito,true)
+          .buildWithMarker(s"HV${index}", Mito, mitocondrial = true)
           .buildWithErrors(valido)
-          .buildWithAllelesVal(posiciones,mito)
+          .buildWithAllelesVal(posiciones, mito)
           .buildWithMtExistente()
-        val i= index + 1
+        val i = index + 1
         parseLine(line, mapa, bldr, tail, i, mito)
-      }
-      case head #:: tail => (builder.build, input)
+      case head #:: tail => (
+        builder.build, input
+      )
     }
   }
 
@@ -236,18 +218,18 @@ object GeneMapperFileMitoParser{
   def convertirPosiciones(
     alelos: List[String]
   ): List[(Mitocondrial,String)] = {
-   val result = alelos.map{
-     alelo =>
-       if(alelo!="") {
-         val al = AlleleValue(alelo)
-         al match {
-           case Mitocondrial(base,pos) if !pos.toString.contains(".") =>
-             (Mitocondrial(base,pos), alelo.substring(0,1))
-           case _ => (null ,"")
-         }
-       } else {
-         (null ,"")
-       }
+    val result = alelos.map{
+      alelo =>
+        if(alelo!="") {
+          val al = AlleleValue(alelo)
+          al match {
+            case Mitocondrial(base,pos) if !pos.toString.contains(".") =>
+              (Mitocondrial(base,pos), alelo.substring(0,1))
+            case _ => (null, "")
+          }
+        } else {
+          (null, "")
+        }
     }
     result
   }
