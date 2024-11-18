@@ -307,6 +307,19 @@ define(['lodash'], function(_) {
             getAllBatches();
         };
 
+        $scope.toggleShowError = function(profile) {
+            profile.showErrors = (profile.showErrors === undefined || !profile.showErrors);
+            profile.showMotive = profile.showMotive !== undefined && profile.showMotive;
+            profile.showMotive = profile.showMotive && !profile.showErrors;
+            profile.rejectMotive = "El perfil es incorrecto";
+        };
+
+        $scope.toggleShowRejectMotive = function(profile) {
+            profile.showMotive = (profile.showMotive === undefined || !profile.showMotive);
+            profile.showErrors = profile.showErrors !== undefined && profile.showErrors;
+            profile.showErrors = profile.showErrors && !profile.showMotive;
+        };
+
         var aprobados = function (batchId) {
             $scope.protoProfiles[batchId].todosAprobados = true;
 
