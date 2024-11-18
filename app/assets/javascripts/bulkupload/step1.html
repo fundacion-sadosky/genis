@@ -183,17 +183,33 @@
                                         class="btn btn-default btn-link-action btn-link-border" title="Aprobar análisis" ng-click="approve(r, l.id)">
                                         <span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span>
                                     </button>
-                                    <a ng-show="r.rejectMotive" popover="{{r.rejectMotive}}" popover-placement="left-bottom" >Ver Motivo de Rechazo</a>
-                                    <button data-ng-show="r.rejectMotive" class="btn btn-default btn-link-action btn-link-border" data-ng-click="toggleShowRejectMotive(r)">
+                                    <button
+                                        data-ng-show="r.rejectMotive"
+                                        class="btn btn-default btn-link-action btn-link-border"
+                                        data-ng-click="toggleShowRejectMotive(r)"
+                                    >
                                         <span data-ng-show="!r.showMotive">Motivo de rechazo</span>
                                         <span data-ng-show="r.showMotive">Ocultar rechazo</span>
                                     </button>
-                                    <button data-ng-show="r.errors.length>0" class="btn btn-default btn-link-action btn-link-border" data-ng-click="toggleShowError(r)">
+                                    <button
+                                        data-ng-show="r.errors.length>0"
+                                        class="btn btn-default btn-link-action btn-link-border"
+                                        data-ng-click="toggleShowError(r)"
+                                    >
                                         <span data-ng-show="!r.showErrors">Ver errores</span>
                                         <span data-ng-show="r.showErrors">Ocultar err.</span>
                                     </button>
-                                    <span data-ng-show="r.showMotive"><br>Motivo: {{r.rejectMotive}}</span>
-                                    <span data-ng-show="r.showErrors" data-ng-repeat="err in r.errors"><br>{{err}}</span>
+                                    <span
+                                        data-ng-show="r.showMotive"
+                                    >
+                                        <br>Motivo: {{r.rejectMotive}}
+                                    </span>
+                                    <span
+                                        data-ng-show="r.showErrors"
+                                        data-ng-repeat="err in r.errors"
+                                    >
+                                        <br>{{err}}
+                                    </span>
                                 </td>
                                 
                                 <td class="text-center" title="Ver genotipificación">
