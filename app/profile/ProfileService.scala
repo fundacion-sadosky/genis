@@ -304,7 +304,14 @@ class ProfileServiceImpl @Inject() (
     }
 
   }
-  def validateAnalysis(analysis: Profile.Genotypification, categoryId: AlphanumericId, kitId: Option[String], contributors: Int, `type`: Option[Int], analysisType: AnalysisType): Future[Either[List[String], CategoryConfiguration]] = {
+  def validateAnalysis(
+    analysis: Profile.Genotypification,
+    categoryId: AlphanumericId,
+    kitId: Option[String],
+    contributors: Int,
+    `type`: Option[Int],
+    analysisType: AnalysisType
+  ): Future[Either[List[String], CategoryConfiguration]] = {
 
     async {
 
@@ -314,7 +321,9 @@ class ProfileServiceImpl @Inject() (
         kits <- kitService.list()
         loci <- locusService.list()
       } yield {
-        val kit = kitId.fold(StrKit(null, null, `type`.get, analysis.size, analysis.size))(id => kits.find(k => k.id == id).get)
+        val kit = kitId.fold(
+          StrKit(null, null, `type`.get, analysis.size, analysis.size)
+        )(id => kits.find(k => k.id == id).get)
         (kit, categoryService.listCategories(categoryId), loci)
       }
       val params =  await(paramsFut)
