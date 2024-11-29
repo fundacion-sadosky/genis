@@ -390,20 +390,27 @@ class InterconnectionServiceImpl @Inject()(
     }
   }
 
-  override def notify(notificationInfo: NotificationInfo, permission: Permission, usersToNotify: List[String] = Nil): Unit = {
-
-    userService.findUsersIdWithPermission(permission).map(usersIds => {
-      val seqUsers =
-        if (usersIds.isEmpty) {
-          usersIds ++ Seq(defaultNotificationReceiver) ++ usersToNotify.toSeq
-        } else {
-          usersIds ++ usersToNotify.toSeq
+  override def notify(
+    notificationInfo: NotificationInfo,
+    permission: Permission,
+    usersToNotify: List[String] = Nil
+  ): Unit = {
+    userService
+      .findUsersIdWithPermission(permission)
+      .foreach(
+        usersIds => {
+          val seqUsers = if (usersIds.isEmpty) {
+              usersIds ++ Seq(defaultNotificationReceiver) ++ usersToNotify
+            } else {
+              usersIds ++ usersToNotify
+            }
+          val userSet = seqUsers.toSet
+          userSet
+            .foreach { userId: String => notificationService.push(userId, notificationInfo) }
+          userService
+            .sendNotifToAllSuperUsers(notificationInfo, userSet.toSeq)
         }
-      val userSet = seqUsers.toSet
-      userSet.foreach { userId: String => notificationService.push(userId, notificationInfo) }
-      userService.sendNotifToAllSuperUsers(notificationInfo, userSet.toSeq)
-    })
-
+      )
   }
 
   private def solveNotification(urlInstancia: String) = {
@@ -637,16 +644,12 @@ class InterconnectionServiceImpl @Inject()(
   ): Unit = {
 
     var sampleEntryDateOption: Option[java.sql.Date] = None
-    if (sampleEntryDate != null && !sampleEntryDate.isEmpty) {
+    if (sampleEntryDate != null && sampleEntryDate.nonEmpty) {
       sampleEntryDateOption = Some(new java.sql.Date(java.lang.Long.valueOf(sampleEntryDate)))
     }
     val newGenotipificationWithLocusKeys = profile
       .genotypification
-      .map(
-        x => {
-          x.copy(_2=locusAliasToLocusId(x._2))
-        }
-      )
+      .map(x => x.copy(_2=locusAliasToLocusId(x._2)))
     val newAnalisisWithLocusKeys = profile
       .analyses
       .get
@@ -694,7 +697,7 @@ class InterconnectionServiceImpl @Inject()(
             ProfileUploadedInfo(profile.globalCode),
             Permission.INTERCON_NOTIF
           )
-        case Left(error) => {
+        case Left(error) =>
           superiorInstanceProfileApprovalRepository
             .upsert(
               SuperiorInstanceProfileApproval(
@@ -713,8 +716,7 @@ class InterconnectionServiceImpl @Inject()(
             ProfileUploadedInfo(profile.globalCode),
             Permission.INTERCON_NOTIF
           )
-        }
-    }
+      }
     ()
   }
 
