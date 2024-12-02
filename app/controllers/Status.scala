@@ -1,6 +1,5 @@
 package controllers
 
-
 import javax.inject.Singleton
 
 import play.api.libs.json.Json

@@ -1,4 +1,5 @@
 package controllers
+
 import javax.inject.{Inject, Singleton}
 
 import motive.Motive

@@ -1,6 +1,5 @@
 package profile
 
-
 import java.io.File
 import javax.inject.{Inject, Named, Singleton}
 

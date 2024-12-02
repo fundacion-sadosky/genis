@@ -1,10 +1,3 @@
-# Script para crear dbs y subir los documentos en JSON
-# Primero exportarlos desde mongo
-# Luego corregirlos para couch
-# Ponerlos en esta misma carpeta
-# Personalizar BASE_URL con tu usuario y contraseña de admin en couch
-# Correr
-
 #!/bin/bash
 
 # List of JSON files
@@ -23,7 +16,7 @@ files=(
 )
 
 # Base URL for the database
-BASE_URL="http://usuario:contraseña@localhost:5984"
+BASE_URL="http://admin:genisContra@localhost:5984"
 
 # Loop through each file
 for file in "${files[@]}"; do

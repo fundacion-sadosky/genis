@@ -1,6 +1,5 @@
 package connections
 
-
 import javax.inject.{Inject, Singleton}
 
 import models.Tables

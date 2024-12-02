@@ -1,6 +1,5 @@
 package connections
 
-
 object HeaderInsterconnections {
   val url = "X-URL-INSTANCIA-INFERIOR"
   val laboratoryImmediateInstance = "laboratoryImmediateInstance"

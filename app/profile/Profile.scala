@@ -47,7 +47,35 @@ case class Profile(
   isReference: Boolean = true,
   processed: Boolean = false
 )
+{
+  override def equals(obj: Any): Boolean = obj match {
+    case that: Profile =>
+      this._id == that._id &&
+        this.internalSampleCode == that.internalSampleCode &&
+        this.assignee == that.assignee &&
+        this.categoryId == that.categoryId &&
+        this.genotypification == that.genotypification &&
+        this.analyses == that.analyses &&
+        this.labeledGenotypification == that.labeledGenotypification &&
+        this.contributors == that.contributors &&
+        this.matchingRules == that.matchingRules &&
+        this.associatedTo == that.associatedTo &&
+        this.deleted == that.deleted &&
+        this.matcheable == that.matcheable &&
+        this.isReference == that.isReference &&
+        this.processed == that.processed
+    case _ => false
+  }
 
+  override def hashCode(): Int = {
+    val state = Seq(
+      _id, internalSampleCode, assignee, categoryId, genotypification, analyses,
+      labeledGenotypification, contributors, matchingRules, associatedTo,
+      deleted, matcheable, isReference, processed
+    )
+    state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+  }
+}
 object Profile {
 
   type Marker = String
@@ -100,6 +128,7 @@ object Profile {
   
   implicit val profileFormat: OFormat[Profile] =
     OFormat(profileReads, profileWrites)
+
 
 }
 

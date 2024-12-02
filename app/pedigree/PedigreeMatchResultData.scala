@@ -1,6 +1,5 @@
 package pedigree
 
-
 import play.api.libs.json.Json
 
 case class PedigreeMatchResultData(

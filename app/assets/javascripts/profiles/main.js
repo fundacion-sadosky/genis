@@ -12,7 +12,7 @@ function(angular, ProfileController, LabelsModalController, StringencyModalContr
 angular
 	.module('pdg.profile', ['pdg.common'])
 	.service('profileHelper', ['profileService', '$http',ProfileHelper])
-	.service('profileService', ['playRoutes', '$log', '$q', 'userService', '$hhtp', ProfileService])
+	.service('profileService', ['playRoutes', '$log', '$q', 'userService', '$http', ProfileService])
 	.service('associationLabelService', ['playRoutes', '$http', AssociationLabelService])
 	.controller('profileController', ['$scope', '$rootScope','$routeParams', '$log', 'profileService', 'analysisTypeService', '$route', '$location', 'profileHelper', '$modal' ,'cryptoService', 'alertService', 'locusService', 'kitService', 'Upload', 'resourcesHelper','appConf',ProfileController])
 	.controller('newAnalysisController', ['$sce','$scope','$routeParams', '$log', 'profileService', 'Upload', 'resourcesHelper', '$location', '$modal' ,'cryptoService', 'alertService','appConf', NewAnalysisController])

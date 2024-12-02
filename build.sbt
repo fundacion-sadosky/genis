@@ -111,6 +111,15 @@ libraryDependencies ++= Seq(
   "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4"
 )
 
+// STTP (http client)
+libraryDependencies += "com.softwaremill.sttp.client3" %% "core" % "3.3.16"
+libraryDependencies += "com.softwaremill.sttp.client3" %% "circe" % "3.3.16"
+libraryDependencies ++= Seq(
+  "io.circe" %% "circe-core" % "0.11.2",
+  "io.circe" %% "circe-generic" % "0.11.2",
+  "io.circe" %% "circe-parser" % "0.11.2"
+)
+
 // RDBMS
 libraryDependencies ++= Seq(
   "com.typesafe.play" %% "play-slick" % "0.8.1",

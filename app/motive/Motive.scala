@@ -1,4 +1,5 @@
 package motive
+
 import play.api.libs.json.{Format, Json}
 
 case class Motive(id: Long, motiveType: Long, description:String,freeText: Boolean )

@@ -3,7 +3,7 @@ define(['angular', './services/profileExporterService', './controllers/profileEx
         'use strict';
         angular
     .module('pdg.profileExporter', ['pdg.common'])
-            .service('profileExporterService', ['playRoutes','userService', '$hhtp', profileExporterService])
+            .service('profileExporterService', ['playRoutes','userService', '$http', profileExporterService])
             .controller('profileExporterController', ['$scope','profileExporterService','alertService','cryptoService', 'userService', profileExporterController])
             .config(['$routeProvider', function($routeProvider) {
                 $routeProvider.when('/profile-exporter',  {templateUrl: '/assets/javascripts/profileExporter/views/main.html', controller: 'profileExporterController'});

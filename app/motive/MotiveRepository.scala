@@ -1,4 +1,5 @@
 package motive
+
 import javax.inject.Singleton
 
 import models.Tables

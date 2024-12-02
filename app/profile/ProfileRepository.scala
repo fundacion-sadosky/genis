@@ -1,19 +1,19 @@
 package profile
 
 import java.util.Date
-
 import configdata.MatchingRule
+import connections.FileInterconnection
 import org.apache.commons.codec.binary.Base64
 import play.api.Play.current
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import util.FutureUtils
-
 import play.api.libs.json.Json.toJsFieldJsValueWrapper
 import play.api.libs.json._
 import play.modules.reactivemongo.ReactiveMongoPlugin
 import play.modules.reactivemongo.json._
 import play.modules.reactivemongo.json.collection.JSONCollection
 import profile.GenotypificationByType.{GenotypificationByType, _}
+import profile.Profile._ //{LabeledGenotypification, Mismatch}
 import reactivemongo.api.Cursor
 import reactivemongo.bson.{BSONObjectID, _}
 import reactivemongo.core.commands.{FindAndModify, Update}
@@ -21,6 +21,15 @@ import types._
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
+import javax.inject.{Inject, Named, Singleton}
+
+import sttp.client3._
+import sttp.client3.circe._
+import io.circe.generic.auto._
+import io.circe.parser._
+import io.circe.Decoder
+import io.circe.generic.semiauto._
+
 
 abstract class ProfileRepository {
 
@@ -102,7 +111,7 @@ abstract class ProfileRepository {
   def getProfileOwnerByEpgId(id: String): Future[(String,SampleCode)]
 
   def getAllProfiles(): Future[List[(SampleCode, String)]]
-  
+
 }
 
 class MongoProfileRepository extends ProfileRepository {
@@ -138,6 +147,7 @@ class MongoProfileRepository extends ProfileRepository {
   }
 
   def findByCode(globalCode: SampleCode): Future[Option[Profile]] = {
+    println("Mongo busca: " + globalCode.text)
     profiles
       .find(Json.obj("globalCode" -> globalCode))
       .sort(Json.obj("globalCode" -> -1))
@@ -230,8 +240,8 @@ class MongoProfileRepository extends ProfileRepository {
         "electropherogram" -> array,
         "name" -> name) else
       BSONDocument("profileId" -> globalCode.text,
-      "analysisId" -> analysisId,
-      "electropherogram" -> array)
+        "analysisId" -> analysisId,
+        "electropherogram" -> array)
 
     val result = electropherograms.insert(imageToStore)
     result.map { result => Right(globalCode) }
@@ -360,7 +370,7 @@ class MongoProfileRepository extends ProfileRepository {
       BSONDocument("profileId" -> globalCode.text,
         "analysisId" -> analysisId,
         "content" -> array,
-      "name"->name)
+        "name"->name)
 
     val result = files.insert(imageToStore)
     result.map { result => Right(globalCode) }
@@ -572,15 +582,15 @@ class MongoProfileRepository extends ProfileRepository {
       .find(query)
       .cursor[Profile]()
       .collect[List](Int.MaxValue, Cursor.FailOnError[List[Profile]]())
-/*
-    result.map(listProfiles => {
-      if(laboratory.isDefined && laboratory.get!=""){
-        listProfiles.filter(_.globalCode.text.contains(s"-${laboratory.get}-"))
-      }else{
-        listProfiles
-      }
-    })
-*/
+    /*
+        result.map(listProfiles => {
+          if(laboratory.isDefined && laboratory.get!=""){
+            listProfiles.filter(_.globalCode.text.contains(s"-${laboratory.get}-"))
+          }else{
+            listProfiles
+          }
+        })
+    */
     result
   }
 
@@ -608,7 +618,7 @@ class MongoProfileRepository extends ProfileRepository {
         .map(res => res.map( x => (x.assignee, x.globalCode) )))).map(_.flatten)
     })).map( x => x.getOrElse(("",SampleCode(""))))
   }
-  
+
   override def getAllProfiles() : Future[List[(SampleCode, String)]]= {
     profiles
       .find(Json.obj())
@@ -620,4 +630,432 @@ class MongoProfileRepository extends ProfileRepository {
         )
       )
   }
+}
+
+
+@Singleton
+class MiddleProfileRepository @Inject () (
+                                           mongoRepo: MongoProfileRepository,
+                                           couchRepo: CouchProfileRepository
+                                         ) extends ProfileRepository {
+
+  override def get(id: SampleCode): Future[Option[Profile]] = mongoRepo.get(id)
+
+  override def getBy(
+                      user: String,
+                      isSuperUser: Boolean,
+                      internalSampleCode: Option[String],
+                      categoryId: Option[String],
+                      laboratory: Option[String],
+                      hourFrom: Option[Date],
+                      hourUntil: Option[Date]
+                    ): Future[List[Profile]] =
+    mongoRepo.getBy(
+      user,
+      isSuperUser,
+      internalSampleCode,
+      categoryId,
+      laboratory,
+      hourFrom,
+      hourUntil
+    )
+
+  override def getBetweenDates (
+                                 hourFrom: Option[Date],
+                                 hourUntil: Option[Date]
+                               ): Future[List[Profile]] =
+    mongoRepo.getBetweenDates(
+      hourFrom,
+      hourUntil
+    )
+
+  override def findByCode(globalCode: SampleCode): Future[Option[Profile]] = {
+    {
+      for {
+        r1 <- mongoRepo.findByCode(globalCode)
+        r2 <- couchRepo.findByCode(globalCode)
+      }
+      yield {
+        if (!r1.equals(r2)) {
+          println("Mongo encuentra: " + r1)
+          println("Couch encuentra: " + r2)
+        } else {
+          println("Iguales")
+        }
+        r1
+      }
+    }
+  }
+
+  override def add(profile: Profile): Future[SampleCode] =
+    mongoRepo.add(profile)
+
+  override def addElectropherogram(
+                                    globalCode: SampleCode,
+                                    analysisId: String,
+                                    image: Array[Byte],
+                                    name: String
+                                  ): Future[Either[String, SampleCode]] =
+    mongoRepo.addElectropherogram(
+      globalCode,
+      analysisId,
+      image,
+      name
+    )
+
+  override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(String, String, String)]] =
+    mongoRepo.getElectropherogramsByCode(globalCode: SampleCode)
+
+  override def getElectropherogramImage(
+                                         profileId: SampleCode,
+                                         electropherogramId: String
+                                       ): Future[Option[Array[Byte]]] =
+    mongoRepo.getElectropherogramImage(
+      profileId,
+      electropherogramId
+    )
+
+  override def getElectropherogramsByAnalysisId(
+                                                 profileId: SampleCode,
+                                                 analysisId: String
+                                               ): Future[List[FileUploadedType]] =
+    mongoRepo.getElectropherogramsByAnalysisId(
+      profileId,
+      analysisId
+    )
+
+  override def getFullElectropherogramsByCode(globalCode: SampleCode): Future[List[FileInterconnection]] =
+    mongoRepo.getFullElectropherogramsByCode(globalCode)
+
+  override def getFullFilesByCode(globalCode: SampleCode): Future[List[FileInterconnection]] =
+    mongoRepo.getFullFilesByCode(globalCode)
+
+  override def addElectropherogramWithId(
+                                          globalCode: SampleCode,
+                                          analysisId: String,
+                                          image: Array[Byte],
+                                          name: String,
+                                          id: String
+                                        ): Future[Either[String, SampleCode]] =
+    mongoRepo.addElectropherogramWithId(
+      globalCode,
+      analysisId,
+      image,
+      name,
+      id
+    )
+
+  override def addFileWithId(
+                              globalCode: SampleCode,
+                              analysisId: String,
+                              image: Array[Byte],
+                              name: String,
+                              id: String
+                            ): Future[Either[String, SampleCode]] =
+    mongoRepo.addFileWithId(
+      globalCode,
+      analysisId,
+      image,
+      name,
+      id
+    )
+
+  override def getGenotyficationByCode(globalCode: SampleCode): Future[Option[GenotypificationByType]] =
+    mongoRepo.getGenotyficationByCode(globalCode)
+
+  override def findByCodes(
+                            globalCodes: Seq[SampleCode]
+                          ): Future[Seq[Profile]] = {
+    {
+      for {
+        r1 <- mongoRepo.findByCodes(globalCodes)
+        r2 <- couchRepo.findByCodes(globalCodes)
+      }
+      yield {
+        if (!r1.equals(r2)) {
+          println("Mongo: " + r1)
+          println("Couch: " + r2)
+        } else {
+          println("********************Iguales**************************")
+        }
+        r1
+      }
+    }
+  }
+
+  override def addAnalysis(
+                            _id: SampleCode,
+                            analysis: Analysis,
+                            genotypification: GenotypificationByType,
+                            labeledGenotypification: Option[LabeledGenotypification],
+                            matchingRules: Option[Seq[MatchingRule]],
+                            mismatches: Option[Mismatch]
+                          ): Future[SampleCode] =
+    mongoRepo.addAnalysis(
+      _id,
+      analysis,
+      genotypification,
+      labeledGenotypification,
+      matchingRules,
+      mismatches
+    )
+
+  override def saveLabels(
+                           globalCode: SampleCode,
+                           labels: LabeledGenotypification
+                         ): Future[SampleCode] =
+    mongoRepo.saveLabels(
+      globalCode,
+      labels
+    )
+
+  override def existProfile(globalCode: SampleCode): Future[Boolean] =
+    mongoRepo.existProfile(globalCode)
+
+  override def delete(globalCode: SampleCode): Future[Either[String, SampleCode]] =
+    mongoRepo.delete(globalCode)
+
+  override def getLabels(globalCode: SampleCode): Future[Option[LabeledGenotypification]] =
+    mongoRepo.getLabels(globalCode)
+
+  override def updateAssocTo(
+                              globalCode: SampleCode,
+                              to: SampleCode
+                            ): Future[(String, String, SampleCode)] =
+    mongoRepo.updateAssocTo(
+      globalCode,
+      to
+    )
+
+  override def setMatcheableAndProcessed(globalCode: SampleCode): Future[Either[String, SampleCode]] =
+    mongoRepo.setMatcheableAndProcessed(globalCode)
+
+  override def getUnprocessed(): Future[Seq[SampleCode]] = mongoRepo.getUnprocessed()
+
+  override def canDeleteKit(id: String): Future[Boolean] = mongoRepo.canDeleteKit(id: String)
+
+  override def updateProfile(profile: Profile): Future[SampleCode] = mongoRepo.updateProfile(profile: Profile)
+
+  override def findByCodeWithoutAceptedLocus(
+                                              globalCode: SampleCode,
+                                              aceptedLocus: Seq[String]
+                                            ): Future[Option[Profile]] = mongoRepo.findByCodeWithoutAceptedLocus(
+    globalCode,
+    aceptedLocus
+  )
+
+  override def addFile(
+                        globalCode: SampleCode,
+                        analysisId: String,
+                        image: Array[Byte],
+                        name: String
+                      ): Future[Either[String, SampleCode]] = mongoRepo.addFile(
+    globalCode,
+    analysisId,
+    image,
+    name
+  )
+
+  override def getFileByCode(globalCode: SampleCode): Future[List[(String, String, String)]] =
+    mongoRepo.getFileByCode(globalCode)
+
+  override def getFile(
+                        profileId: SampleCode,
+                        electropherogramId: String
+                      ): Future[Option[Array[Byte]]] = mongoRepo.getFile(
+    profileId,
+    electropherogramId
+  )
+
+  override def getFileByAnalysisId(
+                                    profileId: SampleCode,
+                                    analysisId: String
+                                  ): Future[List[FileUploadedType]] = mongoRepo.getFileByAnalysisId(
+    profileId,
+    analysisId
+  )
+
+  override def getFullElectropherogramsById(id: String): Future[List[FileInterconnection]] = mongoRepo.getFullElectropherogramsById(id)
+
+  override def getFullFilesById(id: String): Future[List[FileInterconnection]] = mongoRepo.getFullFilesById(id)
+
+  override def getProfilesMarkers(profiles: Array[Profile]): List[String] = mongoRepo.getProfilesMarkers(profiles)
+
+  override def removeFile(id: String): Future[Either[String, String]] = mongoRepo.removeFile(id)
+
+  override def removeEpg(id: String): Future[Either[String, String]] = mongoRepo.removeEpg(id)
+
+  override def getProfileOwnerByFileId(id: String): Future[(String, SampleCode)] = mongoRepo.getProfileOwnerByFileId(id)
+
+  override def getProfileOwnerByEpgId(id: String): Future[(String, SampleCode)] = mongoRepo.getProfileOwnerByEpgId(id)
+
+  override def getAllProfiles(): Future[List[(SampleCode, String)]] = mongoRepo.getAllProfiles()
+}
+
+class CouchProfileRepository extends ProfileRepository {
+  private val backend = HttpURLConnectionBackend()
+  private val baseUrl = "http://localhost:5984/profiles"
+
+  override def get(id: SampleCode): Future[Option[Profile]] = ???
+
+  override def getBy(
+                      user: String,
+                      isSuperUser: Boolean,
+                      internalSampleCode: Option[String],
+                      categoryId: Option[String],
+                      laboratory: Option[String],
+                      hourFrom: Option[Date],
+                      hourUntil: Option[Date]
+                    ): Future[List[Profile]] = ???
+
+  override def getBetweenDates(
+                                hourFrom: Option[Date],
+                                hourUntil: Option[Date]
+                              ): Future[List[Profile]] = ???
+
+  override def findByCode(globalCode: SampleCode): Future[Option[Profile]] = {
+    println("Couch busca: " + globalCode.text)
+    val username = "admin"
+    val password = "genisContra"
+    val request = basicRequest
+      .post(uri"$baseUrl/_find")
+      .body(Map("selector" -> Map("globalCode" -> globalCode.text)))
+      .header("Accept", "application/json")
+      .auth.basic(username, password)
+//      .header("Content-Type", "application/json; charset=utf-8")
+
+    Future {
+      println("couch request: " + request)
+      val response = request.send(backend)
+      println("couch response: " + response)
+      response.body match {
+        case Right(profiles) =>
+          val json = Json.parse(profiles)
+          (json \ "docs").validate[List[Profile]] match {
+            case JsSuccess(profileList, _) => profileList.headOption
+            case JsError(errors) =>
+              println(s"Error de parseo a JSON: $errors")
+              None
+          }
+        case Left(_) => None
+      }
+    }
+  }
+  override def add(profile: Profile): Future[SampleCode] = ???
+
+  override def addElectropherogram(
+                                    globalCode: SampleCode,
+                                    analysisId: String,
+                                    image: Array[Byte],
+                                    name: String
+                                  ): Future[Either[String, SampleCode]] = ???
+
+  override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(String, String, String)]] = ???
+
+  override def getElectropherogramImage(
+                                         profileId: SampleCode,
+                                         electropherogramId: String
+                                       ): Future[Option[Array[Byte]]] = ???
+
+  override def getElectropherogramsByAnalysisId(
+                                                 profileId: SampleCode,
+                                                 analysisId: String
+                                               ): Future[List[FileUploadedType]] = ???
+
+  override def getFullElectropherogramsByCode(globalCode: SampleCode): Future[List[FileInterconnection]] = ???
+
+  override def getFullFilesByCode(globalCode: SampleCode): Future[List[FileInterconnection]] = ???
+
+  override def addElectropherogramWithId(
+                                          globalCode: SampleCode,
+                                          analysisId: String,
+                                          image: Array[Byte],
+                                          name: String,
+                                          id: String
+                                        ): Future[Either[String, SampleCode]] = ???
+
+  override def addFileWithId(
+                              globalCode: SampleCode,
+                              analysisId: String,
+                              image: Array[Byte],
+                              name: String,
+                              id: String
+                            ): Future[Either[String, SampleCode]] = ???
+
+  override def getGenotyficationByCode(globalCode: SampleCode): Future[Option[GenotypificationByType]] = ???
+
+  override def findByCodes(globalCodes: Seq[SampleCode]): Future[Seq[Profile]] = ???
+
+  override def addAnalysis(
+                            _id: SampleCode,
+                            analysis: Analysis,
+                            genotypification: GenotypificationByType,
+                            labeledGenotypification: Option[LabeledGenotypification],
+                            matchingRules: Option[Seq[MatchingRule]],
+                            mismatches: Option[Mismatch]
+                          ): Future[SampleCode] = ???
+
+  override def saveLabels(
+                           globalCode: SampleCode,
+                           labels: LabeledGenotypification
+                         ): Future[SampleCode] = ???
+
+  override def existProfile(globalCode: SampleCode): Future[Boolean] = ???
+
+  override def delete(globalCode: SampleCode): Future[Either[String, SampleCode]] = ???
+
+  override def getLabels(globalCode: SampleCode): Future[Option[LabeledGenotypification]] = ???
+
+  override def updateAssocTo(
+                              globalCode: SampleCode,
+                              to: SampleCode
+                            ): Future[(String, String, SampleCode)] = ???
+
+  override def setMatcheableAndProcessed(globalCode: SampleCode): Future[Either[String, SampleCode]] = ???
+
+  override def getUnprocessed(): Future[Seq[SampleCode]] = ???
+
+  override def canDeleteKit(id: String): Future[Boolean] = ???
+
+  override def updateProfile(profile: Profile): Future[SampleCode] = ???
+
+  override def findByCodeWithoutAceptedLocus(
+                                              globalCode: SampleCode,
+                                              aceptedLocus: Seq[String]
+                                            ): Future[Option[Profile]] = ???
+
+  override def addFile(
+                        globalCode: SampleCode,
+                        analysisId: String,
+                        image: Array[Byte],
+                        name: String
+                      ): Future[Either[String, SampleCode]] = ???
+
+  override def getFileByCode(globalCode: SampleCode): Future[List[(String, String, String)]] = ???
+
+  override def getFile(
+                        profileId: SampleCode,
+                        electropherogramId: String
+                      ): Future[Option[Array[Byte]]] = ???
+
+  override def getFileByAnalysisId(
+                                    profileId: SampleCode,
+                                    analysisId: String
+                                  ): Future[List[FileUploadedType]] = ???
+
+  override def getFullElectropherogramsById(id: String): Future[List[FileInterconnection]] = ???
+
+  override def getFullFilesById(id: String): Future[List[FileInterconnection]] = ???
+
+  override def getProfilesMarkers(profiles: Array[Profile]): List[String] = ???
+
+  override def removeFile(id: String): Future[Either[String, String]] = ???
+
+  override def removeEpg(id: String): Future[Either[String, String]] = ???
+
+  override def getProfileOwnerByFileId(id: String): Future[(String, SampleCode)] = ???
+
+  override def getProfileOwnerByEpgId(id: String): Future[(String, SampleCode)] = ???
+
+  override def getAllProfiles(): Future[List[(SampleCode, String)]] = ???
 }
