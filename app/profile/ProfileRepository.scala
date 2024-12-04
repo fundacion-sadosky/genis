@@ -147,7 +147,7 @@ class MongoProfileRepository extends ProfileRepository {
   }
 
   def findByCode(globalCode: SampleCode): Future[Option[Profile]] = {
-    println("Mongo busca: " + globalCode.text)
+    //println("Mongo busca: " + globalCode.text)
     profiles
       .find(Json.obj("globalCode" -> globalCode))
       .sort(Json.obj("globalCode" -> -1))
@@ -677,10 +677,10 @@ class MiddleProfileRepository @Inject () (
       }
       yield {
         if (!r1.equals(r2)) {
-          println("Mongo encuentra: " + r1)
-          println("Couch encuentra: " + r2)
+          //println("Mongo encuentra: " + r1)
+          //println("Couch encuentra: " + r2)
         } else {
-          println("Iguales")
+          //println("Iguales")
         }
         r1
       }
@@ -773,10 +773,10 @@ class MiddleProfileRepository @Inject () (
       }
       yield {
         if (!r1.equals(r2)) {
-          println("Mongo: " + r1)
-          println("Couch: " + r2)
+          //println("Mongo: " + r1)
+          //println("Couch: " + r2)
         } else {
-          println("********************Iguales**************************")
+          //println("********************Iguales**************************")
         }
         r1
       }
@@ -914,7 +914,7 @@ class CouchProfileRepository extends ProfileRepository {
                               ): Future[List[Profile]] = ???
 
   override def findByCode(globalCode: SampleCode): Future[Option[Profile]] = {
-    println("Couch busca: " + globalCode.text)
+    //println("Couch busca: " + globalCode.text)
     val username = "admin"
     val password = "genisContra"
     val request = basicRequest
@@ -922,19 +922,18 @@ class CouchProfileRepository extends ProfileRepository {
       .body(Map("selector" -> Map("globalCode" -> globalCode.text)))
       .header("Accept", "application/json")
       .auth.basic(username, password)
-//      .header("Content-Type", "application/json; charset=utf-8")
 
     Future {
-      println("couch request: " + request)
+      //println("couch request: " + request)
       val response = request.send(backend)
-      println("couch response: " + response)
+      //println("couch response: " + response)
       response.body match {
         case Right(profiles) =>
           val json = Json.parse(profiles)
           (json \ "docs").validate[List[Profile]] match {
             case JsSuccess(profileList, _) => profileList.headOption
             case JsError(errors) =>
-              println(s"Error de parseo a JSON: $errors")
+              //println(s"Error de parseo a JSON: $errors")
               None
           }
         case Left(_) => None
@@ -984,8 +983,31 @@ class CouchProfileRepository extends ProfileRepository {
 
   override def getGenotyficationByCode(globalCode: SampleCode): Future[Option[GenotypificationByType]] = ???
 
-  override def findByCodes(globalCodes: Seq[SampleCode]): Future[Seq[Profile]] = ???
+  override def findByCodes(globalCodes: Seq[SampleCode]): Future[Seq[Profile]] = {
+    val query = Json.obj(
+      "selector" -> Json.obj(
+        "_id" -> Json.obj(
+          "$in" -> globalCodes.map(_.text).asJson
+        )
+      )
+    )
 
+    val request = basicRequest
+      .body(query.noSpaces)
+      .post(uri"$baseUrl/_find")
+      .response(asJson[Json])
+
+    Future {
+      val response = request.send(backend)
+      response.body match {
+        case Right(json) =>
+          val docs = (json \\ "docs").head.as[Seq[Profile]]
+          docs.getOrElse(Seq.empty)
+        case Left(error) =>
+          throw new RuntimeException(s"Error querying CouchDB: $error")
+      }
+    }
+  }
   override def addAnalysis(
                             _id: SampleCode,
                             analysis: Analysis,
