@@ -966,15 +966,18 @@ class SlickProfileDataRepository @Inject() (
   }
 
   override def getProfileUploadStatusByGlobalCode(gc:SampleCode):Future[Option[Long]] = {
-    this.runInTransactionAsync { implicit session => {
-      try {
-        getProfileUploadedByGlobalCode(gc.text).firstOption.map(x => x.status)
-      } catch {
-        case e: Exception => {
-          None
+    this.runInTransactionAsync {
+      implicit session => {
+        try {
+          getProfileUploadedByGlobalCode(gc.text)
+            .firstOption
+            .fold[Option[Long]](Some(0))(x => Some(x.status))
+        } catch {
+          case e: Exception => {
+            None
+          }
         }
       }
-    }
     }
   }
 

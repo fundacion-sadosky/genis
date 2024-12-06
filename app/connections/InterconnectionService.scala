@@ -129,7 +129,7 @@ trait InterconnectionService {
 
   def sendFiles(globalCode: String, targetLab: String): Unit
 
-  def notify(notificationInfo: NotificationInfo, permission: Permission, usersToNotify: List[String] = Nil): Unit
+  def notify(notificationInfo: NotificationInfo, permission: Seq[Permission], usersToNotify: List[String] = Nil): Unit
 
   def wasMatchUploaded(matchResult: MatchResult, labImmediate: String): Boolean
 }
@@ -392,18 +392,18 @@ class InterconnectionServiceImpl @Inject()(
 
   override def notify(
     notificationInfo: NotificationInfo,
-    permission: Permission,
+    permission: Seq[Permission],
     usersToNotify: List[String] = Nil
   ): Unit = {
     userService
-      .findUsersIdWithPermission(permission)
+      .findUsersIdWithPermissions(permission)
       .foreach(
         usersIds => {
           val seqUsers = if (usersIds.isEmpty) {
-              usersIds ++ Seq(defaultNotificationReceiver) ++ usersToNotify
-            } else {
-              usersIds ++ usersToNotify
-            }
+            usersIds ++ Seq(defaultNotificationReceiver) ++ usersToNotify
+          } else {
+            usersIds ++ usersToNotify
+          }
           val userSet = seqUsers.toSet
           userSet
             .foreach { userId: String => notificationService.push(userId, notificationInfo) }
@@ -695,7 +695,7 @@ class InterconnectionServiceImpl @Inject()(
             )
           this.notify(
             ProfileUploadedInfo(profile.globalCode),
-            Permission.INTERCON_NOTIF
+            Seq(Permission.INTERCON_NOTIF, Permission.IMP_PERF_INS)
           )
         case Left(error) =>
           superiorInstanceProfileApprovalRepository
@@ -714,7 +714,7 @@ class InterconnectionServiceImpl @Inject()(
             )
           this.notify(
             ProfileUploadedInfo(profile.globalCode),
-            Permission.INTERCON_NOTIF
+            Seq(Permission.INTERCON_NOTIF, Permission.IMP_PERF_INS)
           )
       }
     ()
@@ -1412,7 +1412,7 @@ class InterconnectionServiceImpl @Inject()(
                   SampleCode(globalCode),
                   Some(isCategoryModification)
                 ),
-                Permission.INTERCON_NOTIF,
+                Seq(Permission.INTERCON_NOTIF),
                 List(p.assignee)
               )
               logger.info("3. Notif enviada, voy a guardar trazabilidad de rechazo")
@@ -1434,7 +1434,7 @@ class InterconnectionServiceImpl @Inject()(
               logger.info("2. es aprobada, envio notif de aprobada")
               this.notify(
                 AprovedProfileInfo(SampleCode(globalCode), Some(isCategoryModification)),
-                Permission.INTERCON_NOTIF,
+                Seq(Permission.INTERCON_NOTIF),
                 List(p.assignee)
               )
               logger.info("3. Notif enviada, voy a guardar trazabilidad de aprobada")
@@ -1489,7 +1489,7 @@ class InterconnectionServiceImpl @Inject()(
               case Left(m) => Left(m)
               case _ => {
                 if (!p.deleted) {
-                  this.notify(DeleteProfileInfo(globalCode), Permission.INTERCON_NOTIF)
+                  this.notify(DeleteProfileInfo(globalCode), Seq(Permission.INTERCON_NOTIF))
                 }
                 Right(())
               }
@@ -2184,10 +2184,10 @@ class InterconnectionServiceImpl @Inject()(
 
     action match {
       case "hit" => {
-        this.notify(HitInfoInbox(globalCode, matchedProfile, matchId), Permission.INTERCON_NOTIF, users)
+        this.notify(HitInfoInbox(globalCode, matchedProfile, matchId), Seq(Permission.INTERCON_NOTIF), users)
       }
       case "discarded" => {
-        this.notify(DiscardInfoInbox(globalCode, matchedProfile, matchId), Permission.INTERCON_NOTIF, users)
+        this.notify(DiscardInfoInbox(globalCode, matchedProfile, matchId), Seq(Permission.INTERCON_NOTIF), users)
       }
       case "deleted" => {
         ()
