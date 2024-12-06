@@ -773,10 +773,10 @@ class MiddleProfileRepository @Inject () (
       }
       yield {
         if (!r1.equals(r2)) {
-          //println("Mongo: " + r1)
-          //println("Couch: " + r2)
+          println("Mongo: " + r1)
+          println("Couch: " + r2)
         } else {
-          //println("********************Iguales**************************")
+          println("********************Iguales**************************")
         }
         r1
       }
@@ -895,6 +895,8 @@ class MiddleProfileRepository @Inject () (
 class CouchProfileRepository extends ProfileRepository {
   private val backend = HttpURLConnectionBackend()
   private val baseUrl = "http://localhost:5984/profiles"
+  val username = "admin"
+  val password = "genisContra" // des-hardcodear esto
 
   override def get(id: SampleCode): Future[Option[Profile]] = ???
 
@@ -915,8 +917,7 @@ class CouchProfileRepository extends ProfileRepository {
 
   override def findByCode(globalCode: SampleCode): Future[Option[Profile]] = {
     //println("Couch busca: " + globalCode.text)
-    val username = "admin"
-    val password = "genisContra"
+
     val request = basicRequest
       .post(uri"$baseUrl/_find")
       .body(Map("selector" -> Map("globalCode" -> globalCode.text)))
@@ -984,25 +985,30 @@ class CouchProfileRepository extends ProfileRepository {
   override def getGenotyficationByCode(globalCode: SampleCode): Future[Option[GenotypificationByType]] = ???
 
   override def findByCodes(globalCodes: Seq[SampleCode]): Future[Seq[Profile]] = {
-    val query = Json.obj(
-      "selector" -> Json.obj(
-        "_id" -> Json.obj(
-          "$in" -> globalCodes.map(_.text).asJson
+    val query = Map(
+      "selector" -> Map(
+        "_id" -> Map(
+          "$in" -> globalCodes.map(_.text)
         )
       )
     )
 
     val request = basicRequest
-      .body(query.noSpaces)
+      .body(query)
       .post(uri"$baseUrl/_find")
-      .response(asJson[Json])
+      .header("Accept", "application/json")
+      .auth.basic(username, password)
 
     Future {
       val response = request.send(backend)
       response.body match {
-        case Right(json) =>
-          val docs = (json \\ "docs").head.as[Seq[Profile]]
-          docs.getOrElse(Seq.empty)
+        case Right(profiles) =>
+          val json = Json.parse(profiles)
+          (json \ "docs").validate[List[Profile]] match {
+            case JsSuccess(profileList, _) => profileList
+            case JsError(errors) =>
+              throw new RuntimeException(s"Error parsing JSON: $errors")
+          }
         case Left(error) =>
           throw new RuntimeException(s"Error querying CouchDB: $error")
       }
