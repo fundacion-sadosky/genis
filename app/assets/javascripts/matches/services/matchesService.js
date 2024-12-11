@@ -22,12 +22,12 @@ define([], function() {
 		};
 
 		this.canUpload = function(matchingId){
-			return $http.get('/canUploadMatchStatus', { params: { matchId: matchingId } });
+			return $http.get('/canUploadMatchStatus?matchingId='+matchingId);
 			//return playRoutes.controllers.Matching.canUploadMatchStatus(matchingId).get();
 		};
 		
 		this.findMatches = function(matchingId) {
-			return $http.get('/matching', { params: { globalCode: matchingId } })
+			return $http.get('/matching?matchingId='+matchingId)
 			.then(function(response) {
 				var res = response.data;
 				fillReducedStringencies(res.results);
@@ -56,7 +56,7 @@ define([], function() {
 		};
 
         this.searchMatchesProfile = function (globalCode) {
-			return $http.get('/matching-profile', { params: { globalCode: globalCode } });
+			return $http.get('/matching-profile?globalCode=',globalCode);
 			//return playRoutes.controllers.Matching.searchMatchesProfile(globalCode).get();
 		};
 
@@ -93,14 +93,7 @@ define([], function() {
 			isCollapsing,
 			isScreening
 		) {
-			return $http.get('/getByMatchedProfileId', {
-				params: {
-					matchingId: matchingId,
-					isPedigreeMatch: isPedigreeMatch,
-					isCollapsing: isCollapsing,
-					isScreening: isScreening
-				}
-			})
+			return $http.get("/getByMatchedProfileId?matchingId=matchingId&isPedigreeMatch=isPedigreeMatch&isCollapsing=isCollapsing&isScreening=isScreening")
 			.then(function(response) {
 				var data = response.data;
 				if (data && data.results) {

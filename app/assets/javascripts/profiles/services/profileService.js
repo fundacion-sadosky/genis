@@ -47,7 +47,7 @@ function ProfileService(playRoutes, $log, $q, userService, $http) {
 		);
 		
 		$q.all({
-			profileData: $http.get('/profiledataWithAssociations', { params: { globalCode: globalCode } }),
+			profileData: $http.get('/profiledataWithAssociations?globalCode='+globalCode),
 			//playRoutes.controllers.ProfileData.findByCodeWithAssociations(globalCode).get(),
 			profileOpt: profileOpt.promise,
 			labelsSets: $http.get('/profiles-labelsets')
