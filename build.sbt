@@ -170,7 +170,7 @@ libraryDependencies ++= Seq(
 
 // Async
 libraryDependencies ++= Seq(
- "org.scala-lang.modules" %% "scala-async" % "0.9.6"
+  "org.scala-lang.modules" %% "scala-async" % "0.9.6"
 )
 
 // TOTP 
@@ -182,10 +182,10 @@ resolvers += "Cascading Conjars" at "https://conjars.wensel.net/repo/"
 
 // Spark 2.0
 libraryDependencies ++= Seq(
-	"org.apache.spark" %% "spark-core" % "2.1.1" withSources() withJavadoc(),
+  "org.apache.spark" %% "spark-core" % "2.1.1" withSources() withJavadoc(),
   "org.apache.spark" %% "spark-sql" % "2.1.1",
-	//"org.mongodb.spark" % "mongo-spark-connector_2.11" % "2.0.0" withSources() withJavadoc(),
-	"org.mongodb" % "mongo-java-driver" % "3.2.2" withSources() withJavadoc(),
+  //"org.mongodb.spark" % "mongo-spark-connector_2.11" % "2.0.0" withSources() withJavadoc(),
+  "org.mongodb" % "mongo-java-driver" % "3.2.2" withSources() withJavadoc(),
   "org.scala-graph" %% "graph-core" % "1.11.5"
 )
 
@@ -228,8 +228,8 @@ scalacOptions in ThisBuild ++= Seq(
 
 // Java compiler options
 javacOptions in ThisBuild ++= Seq(
-	"-source", "1.8",
-	"-target", "1.8"
+  "-source", "1.8",
+  "-target", "1.8"
 )
 
 //
