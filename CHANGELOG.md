@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- Se modificaron los permisos para recibir notificaciones después de 
+  importar un perfil desde en una instancia inferior. Los usuarios que reciban
+  la notificación deben tener permiso para:
+  - Importar perfiles de una instancia inferior.
+  - Recibir notificaciones por interconexión de instancias.
+- Los superusuarios ya no reciben por defecto notificaciones de importación de
+  perfiles. Anteriormente, recibian la notificación pero no podían hacer 
+  nada a menos que tengan los permisos para:
+  - Importar perfiles de una instancia inferior.
+  - Recibir notificaciones por interconexión de instancias.
+  En ese caso, además se genera un mensaje de error por la falta de los 
+    permisos.
+
 ## v[5.1.12] - 2024-11-14
 
 _Si está actualizando el sistema por favor lea:  [`UPGRADING.md`](https://github.com/fundacion-sadosky/genis/blob/main/UPGRADING.md)._
