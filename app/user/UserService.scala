@@ -309,20 +309,29 @@ class UserServiceImpl @Inject() (
         roleService
           .getRolePermissions()
           .filter {
-            case (_, rolePermissions) =>
-              rolePermissions
+            case (role, rolePermissions) =>
+              val has_required_permissions = rolePermissions
                 .intersect(permissions.toSet)
                 .size
                 .equals(permissions.size)
+              has_required_permissions
           }.map {
             case (role, _) =>
-              this
+              val users = this
                 .findUserAssignableByRole(role)
-                .map(list => { list.map(_.id) })
+                .map(
+                  list => {
+                    list.map(_.id)
+                  }
+                )
+              users
           }
       )
       .map(
-        res => { res.flatten.toSet.toSeq }
+        res => {
+          val users = res.flatten.toSet.toSeq
+          users
+        }
       )
   }
 

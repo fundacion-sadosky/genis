@@ -199,25 +199,34 @@ function searchController($scope, $log, profiledataService, searchService, $moda
 	$scope.profileMatches = {};
 
 	$scope.initializeProfileMatches = function (){
-		console.log("## La lista de perfiles: ", $scope.results);
 		$scope.results.forEach(function (profileObj) {
-			searchService.searchMatchesProfile(profileObj.globalCode).then(function (response) {
-				$scope.profileMatches[profileObj.globalCode] = response.data.length > 0;
-				console.log("El resultado de search matches profile: ", response.data);
-			});
+			// User needs MATCHES_MANAGER permission to use searchMatchesProfile
+			// method.
+			if (userService.hasPermission("MATCHES_MANAGER")) {
+				searchService
+					.searchMatchesProfile(profileObj.globalCode)
+					.then(
+						function (response) {
+							$scope.profileMatches[profileObj.globalCode] = response.data.length > 0;
+						}
+					)
+					.catch(
+						function(error) {
+							$scope.profileMatches[profileObj.globalCode] = false;
+						}
+					);
+			} else {
+				$scope.profileMatches[profileObj.globalCode] = false;
+			}
 		});
 	};
 
 	$scope.getRowColor = function(profileCode) {
-		// habrá problema si no hay profiles? porque no lo estoy definiendo en ese caso, pero supongo que no entraría acá tampoco
-		console.log("Search - los matches del perfil", profileCode ," son: ", $scope.profileMatches[profileCode]);
-
 		if($scope.profileMatches[profileCode]){
 			return '#d500f9';
 		} else {
 			return '#e4e7ec';
 		}
-
 	};
 
 

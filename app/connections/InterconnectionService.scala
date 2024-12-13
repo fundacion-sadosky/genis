@@ -129,7 +129,12 @@ trait InterconnectionService {
 
   def sendFiles(globalCode: String, targetLab: String): Unit
 
-  def notify(notificationInfo: NotificationInfo, permission: Seq[Permission], usersToNotify: List[String] = Nil): Unit
+  def notify(
+    notificationInfo: NotificationInfo,
+    permission: Seq[Permission],
+    usersToNotify: List[String] = Nil,
+    notifySuperUsers:Boolean = true
+  ): Unit
 
   def wasMatchUploaded(matchResult: MatchResult, labImmediate: String): Boolean
 }
@@ -393,7 +398,8 @@ class InterconnectionServiceImpl @Inject()(
   override def notify(
     notificationInfo: NotificationInfo,
     permission: Seq[Permission],
-    usersToNotify: List[String] = Nil
+    usersToNotify: List[String] = Nil,
+    notifySuperUsers:Boolean = true
   ): Unit = {
     userService
       .findUsersIdWithPermissions(permission)
@@ -406,9 +412,14 @@ class InterconnectionServiceImpl @Inject()(
           }
           val userSet = seqUsers.toSet
           userSet
-            .foreach { userId: String => notificationService.push(userId, notificationInfo) }
-          userService
-            .sendNotifToAllSuperUsers(notificationInfo, userSet.toSeq)
+            .foreach {
+              userId: String =>
+                notificationService.push(userId, notificationInfo)
+            }
+          if (notifySuperUsers) {
+            userService
+              .sendNotifToAllSuperUsers(notificationInfo, userSet.toSeq)
+          }
         }
       )
   }
@@ -695,7 +706,9 @@ class InterconnectionServiceImpl @Inject()(
             )
           this.notify(
             ProfileUploadedInfo(profile.globalCode),
-            Seq(Permission.INTERCON_NOTIF, Permission.IMP_PERF_INS)
+            Seq(Permission.INTERCON_NOTIF, Permission.IMP_PERF_INS),
+            usersToNotify = List(),
+            notifySuperUsers = false
           )
         case Left(error) =>
           superiorInstanceProfileApprovalRepository
@@ -714,7 +727,9 @@ class InterconnectionServiceImpl @Inject()(
             )
           this.notify(
             ProfileUploadedInfo(profile.globalCode),
-            Seq(Permission.INTERCON_NOTIF, Permission.IMP_PERF_INS)
+            Seq(Permission.INTERCON_NOTIF, Permission.IMP_PERF_INS),
+            usersToNotify = List(),
+            notifySuperUsers = false
           )
       }
     ()
