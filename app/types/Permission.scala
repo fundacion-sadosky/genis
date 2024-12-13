@@ -23,6 +23,7 @@ object Permission {
       StaticAuthorisationOperation("""/strkits.*""".r, """GET""".r, "StrKitsAll"),
       StaticAuthorisationOperation("""/profiledata.*|/profilesdata.*""".r, """GET""".r, "ProfiledataRead"),
       StaticAuthorisationOperation("""/search/profileData.*""".r, """.*""".r, "ProfiledataSearch"),
+      StaticAuthorisationOperation("""/categories|/categoryTree|/categoriesWithProfiles""".r, """GET""".r, "CategoryTreeRead"),
       StaticAuthorisationOperation("""/uploadImage|/getFilesId|/uploadFile""".r, """.*""".r, "UploadImageAll"),
       StaticAuthorisationOperation("""/categoryTree""".r, """GET""".r, "CategoryTreeRead"),
       StaticAuthorisationOperation("""/locus.*""".r, """GET""".r, "LocusRead"),
@@ -45,9 +46,10 @@ object Permission {
       StaticAuthorisationOperation("""/profiledata.*|/get-match-file-export.*""".r, """GET""".r, "ProfileToLimsdataExport"))
   }
   case object PROFILE_DATA_CRUD extends Permission {
-     override val operations: Set[StaticAuthorisationOperation] = Set(
+    override val operations: Set[StaticAuthorisationOperation] = Set(
       StaticAuthorisationOperation("""/profiledata.*|/profilesdata.*""".r, """GET""".r, "ProfiledataRead"),
       StaticAuthorisationOperation("""/search/profileData.*""".r, """.*""".r, "ProfiledataSearch"),
+      StaticAuthorisationOperation("""/categories|/categoryTree|/categoriesWithProfiles""".r, """GET""".r, "CategoryTreeRead"),
       StaticAuthorisationOperation("""/profiledata-deleted/.*""".r,"""PUT""".r, "ProfiledataDelete",true),
       StaticAuthorisationOperation("""/profiledata.*|/profile-export""".r, """POST""".r, "ProfiledataCreate"),
       StaticAuthorisationOperation("""/profiledata/.*""".r, """PUT""".r, "ProfiledataUpdate"),
@@ -59,12 +61,15 @@ object Permission {
       StaticAuthorisationOperation("""/uploadImage|/getFilesId|/uploadFile""".r, """.*""".r, "UploadImageAll"),
       StaticAuthorisationOperation("""/laboratory""".r, """GET""".r, "LaboratoryRead"),
       StaticAuthorisationOperation("""/geneticist.*""".r, """GET""".r, "GeneticistRead"),
-      StaticAuthorisationOperation("""/trace.*""".r, """.*""".r, "TraceRead")
+      StaticAuthorisationOperation("""/trace.*""".r, """.*""".r, "TraceRead"),
+      StaticAuthorisationOperation("""/catmodification""".r, """GET""".r, "CategoryModificationRead"),
+      StaticAuthorisationOperation("""/catmodifications""".r, """GET""".r, "CategoryModificationRead")
     )
   }
   case object PROFILE_DATA_SEARCH extends Permission {
-     override val operations: Set[StaticAuthorisationOperation] = Set(
-      StaticAuthorisationOperation("""/search/profileData.*""".r, """GET""".r, "ProfiledataRead"))
+    override val operations: Set[StaticAuthorisationOperation] = Set(
+      StaticAuthorisationOperation("""/search/profileData.*""".r, """GET""".r, "ProfiledataRead")
+    )
   }
   case object MUTATION_MODELS_CRUD extends Permission {
     override val operations: Set[StaticAuthorisationOperation] = Set(
@@ -328,8 +333,7 @@ object Permission {
   }
   case object PROFILE_COMPARISON extends Permission {
     override val operations: Set[StaticAuthorisationOperation] = Set(
-      StaticAuthorisationOperation("""/profile-comparison""".r,"""GET""".r, "GetProfileComparison"),
-      StaticAuthorisationOperation("""/modify-forensic-category""".r,"""GET""".r, "GetProfileComparison")
+      StaticAuthorisationOperation("""/profile-comparison""".r,"""GET""".r, "GetProfileComparison")
       // TODO: Change GetProfileComparison to a different description key and then...
       // TODO: Update translation.json (public/locales/es-AR/translation.json)
     )

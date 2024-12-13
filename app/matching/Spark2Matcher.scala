@@ -399,7 +399,7 @@ class Spark2Matcher @Inject() (
         val leftNoti = MatchingInfo(SampleCode(leftProfile), SampleCode(rightProfile), matchingId)
 
         if(!leftProfile.contains(labActual) && !rightProfile.contains(labActual) ){
-          this.interconnectionService.notify(leftNoti,Permission.INTERCON_NOTIF)
+          this.interconnectionService.notify(leftNoti, Seq(Permission.INTERCON_NOTIF))
         }else {
           notificationService.push(leftAssignee, leftNoti)
           userService.sendNotifToAllSuperUsers(leftNoti, Seq(leftAssignee))

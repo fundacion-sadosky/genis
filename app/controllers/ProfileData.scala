@@ -287,8 +287,14 @@ class ProfileData @Inject() (
     }
   }
 
-  def findByCodes(globalCodes: List[SampleCode]) = Action.async { request =>
-    profiledataService.findByCodes(globalCodes) map (l => Ok(Json.toJson(l)))
+  def findByCodes(
+    globalCodes: List[SampleCode]
+  ): Action[AnyContent] = Action.async { request =>
+    profiledataService
+      .findByCodes(globalCodes)
+      .map(
+        l => Ok(Json.toJson(l))
+      )
   }
 
   def findByCodeWithAssociations(globalCode: SampleCode) = Action.async { request =>

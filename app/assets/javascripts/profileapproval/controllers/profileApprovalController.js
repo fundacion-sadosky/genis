@@ -25,11 +25,11 @@ define(['lodash'], function (_) {
     localStorage.removeItem("searchPedigreeMatches");
 
     $scope.init = function () {
-      console.log('bulkuploadService', bulkuploadService);
-      console.log('locusService', locusService);
       profileApprovalService
         .getTotalPendingProfiles()
-        .then(function (response) { $scope.totalItems = response.data; });
+        .then(function (response) {
+          $scope.totalItems = response.data;
+        });
       locusService
         .listFull()
         .then(
@@ -275,20 +275,29 @@ define(['lodash'], function (_) {
     function getProfilesWithDifferentCategory(profiles) {
       var promises = profiles
         .map(
-          function(profile) {
+          function (profile) {
             return profileService
               .findByCode(profile.globalCode)
               .then(
-                function(response) {
+                function (response) {
                   return [response.data, profile];
                 }
+              )
+              .catch(
+                function (r) { }
               );
           }
         );
-      Promise.all(promises)
+      Promise
+        .all(promises)
         .then(
           function(profilePairs) {
             return profilePairs
+              .filter(
+                function(promisePair) {
+                  return promisePair[0] !== undefined;
+                }
+              )
               .filter(
                 function(profilePair) {
                   return profilePair[0].categoryId !== profilePair[1].category;

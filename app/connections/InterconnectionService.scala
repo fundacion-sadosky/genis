@@ -129,7 +129,12 @@ trait InterconnectionService {
 
   def sendFiles(globalCode: String, targetLab: String): Unit
 
-  def notify(notificationInfo: NotificationInfo, permission: Permission, usersToNotify: List[String] = Nil): Unit
+  def notify(
+    notificationInfo: NotificationInfo,
+    permission: Seq[Permission],
+    usersToNotify: List[String] = Nil,
+    notifySuperUsers:Boolean = true
+  ): Unit
 
   def wasMatchUploaded(matchResult: MatchResult, labImmediate: String): Boolean
 }
@@ -390,20 +395,33 @@ class InterconnectionServiceImpl @Inject()(
     }
   }
 
-  override def notify(notificationInfo: NotificationInfo, permission: Permission, usersToNotify: List[String] = Nil): Unit = {
-
-    userService.findUsersIdWithPermission(permission).map(usersIds => {
-      val seqUsers =
-        if (usersIds.isEmpty) {
-          usersIds ++ Seq(defaultNotificationReceiver) ++ usersToNotify.toSeq
-        } else {
-          usersIds ++ usersToNotify.toSeq
+  override def notify(
+    notificationInfo: NotificationInfo,
+    permission: Seq[Permission],
+    usersToNotify: List[String] = Nil,
+    notifySuperUsers:Boolean = true
+  ): Unit = {
+    userService
+      .findUsersIdWithPermissions(permission)
+      .foreach(
+        usersIds => {
+          val seqUsers = if (usersIds.isEmpty) {
+            usersIds ++ Seq(defaultNotificationReceiver) ++ usersToNotify
+          } else {
+            usersIds ++ usersToNotify
+          }
+          val userSet = seqUsers.toSet
+          userSet
+            .foreach {
+              userId: String =>
+                notificationService.push(userId, notificationInfo)
+            }
+          if (notifySuperUsers) {
+            userService
+              .sendNotifToAllSuperUsers(notificationInfo, userSet.toSeq)
+          }
         }
-      val userSet = seqUsers.toSet
-      userSet.foreach { userId: String => notificationService.push(userId, notificationInfo) }
-      userService.sendNotifToAllSuperUsers(notificationInfo, userSet.toSeq)
-    })
-
+      )
   }
 
   private def solveNotification(urlInstancia: String) = {
@@ -637,16 +655,12 @@ class InterconnectionServiceImpl @Inject()(
   ): Unit = {
 
     var sampleEntryDateOption: Option[java.sql.Date] = None
-    if (sampleEntryDate != null && !sampleEntryDate.isEmpty) {
+    if (sampleEntryDate != null && sampleEntryDate.nonEmpty) {
       sampleEntryDateOption = Some(new java.sql.Date(java.lang.Long.valueOf(sampleEntryDate)))
     }
     val newGenotipificationWithLocusKeys = profile
       .genotypification
-      .map(
-        x => {
-          x.copy(_2=locusAliasToLocusId(x._2))
-        }
-      )
+      .map(x => x.copy(_2=locusAliasToLocusId(x._2)))
     val newAnalisisWithLocusKeys = profile
       .analyses
       .get
@@ -692,9 +706,11 @@ class InterconnectionServiceImpl @Inject()(
             )
           this.notify(
             ProfileUploadedInfo(profile.globalCode),
-            Permission.INTERCON_NOTIF
+            Seq(Permission.INTERCON_NOTIF, Permission.IMP_PERF_INS),
+            usersToNotify = List(),
+            notifySuperUsers = false
           )
-        case Left(error) => {
+        case Left(error) =>
           superiorInstanceProfileApprovalRepository
             .upsert(
               SuperiorInstanceProfileApproval(
@@ -711,10 +727,11 @@ class InterconnectionServiceImpl @Inject()(
             )
           this.notify(
             ProfileUploadedInfo(profile.globalCode),
-            Permission.INTERCON_NOTIF
+            Seq(Permission.INTERCON_NOTIF, Permission.IMP_PERF_INS),
+            usersToNotify = List(),
+            notifySuperUsers = false
           )
-        }
-    }
+      }
     ()
   }
 
@@ -1410,7 +1427,7 @@ class InterconnectionServiceImpl @Inject()(
                   SampleCode(globalCode),
                   Some(isCategoryModification)
                 ),
-                Permission.INTERCON_NOTIF,
+                Seq(Permission.INTERCON_NOTIF),
                 List(p.assignee)
               )
               logger.info("3. Notif enviada, voy a guardar trazabilidad de rechazo")
@@ -1432,7 +1449,7 @@ class InterconnectionServiceImpl @Inject()(
               logger.info("2. es aprobada, envio notif de aprobada")
               this.notify(
                 AprovedProfileInfo(SampleCode(globalCode), Some(isCategoryModification)),
-                Permission.INTERCON_NOTIF,
+                Seq(Permission.INTERCON_NOTIF),
                 List(p.assignee)
               )
               logger.info("3. Notif enviada, voy a guardar trazabilidad de aprobada")
@@ -1487,7 +1504,7 @@ class InterconnectionServiceImpl @Inject()(
               case Left(m) => Left(m)
               case _ => {
                 if (!p.deleted) {
-                  this.notify(DeleteProfileInfo(globalCode), Permission.INTERCON_NOTIF)
+                  this.notify(DeleteProfileInfo(globalCode), Seq(Permission.INTERCON_NOTIF))
                 }
                 Right(())
               }
@@ -2182,10 +2199,10 @@ class InterconnectionServiceImpl @Inject()(
 
     action match {
       case "hit" => {
-        this.notify(HitInfoInbox(globalCode, matchedProfile, matchId), Permission.INTERCON_NOTIF, users)
+        this.notify(HitInfoInbox(globalCode, matchedProfile, matchId), Seq(Permission.INTERCON_NOTIF), users)
       }
       case "discarded" => {
-        this.notify(DiscardInfoInbox(globalCode, matchedProfile, matchId), Permission.INTERCON_NOTIF, users)
+        this.notify(DiscardInfoInbox(globalCode, matchedProfile, matchId), Seq(Permission.INTERCON_NOTIF), users)
       }
       case "deleted" => {
         ()
