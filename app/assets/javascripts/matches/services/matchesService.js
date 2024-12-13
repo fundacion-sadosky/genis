@@ -133,13 +133,8 @@ define([], function() {
 		};
 		
 		this.getComparedMixtureGene = function(profiles,matchId,isCollapsing) {
-			return $http.get('/mixture/compare', {
-				params: {
-					globalCodes: profiles,  // Asumiendo que profiles es una lista de códigos globales
-					matchId: matchId,
-					isCollapsing: isCollapsing
-				}
-			});
+			// Asumiendo que profiles es una lista de códigos globales
+			return $http.get('/mixture/compare?globalCodes=profiles&matchId=matchId&isCollapsing=isCollapsing');
 			//return playRoutes.controllers.Matching.getComparedMixtureGene(profiles,matchId,isCollapsing).get();
 		};
 

@@ -773,8 +773,8 @@ class MiddleProfileRepository @Inject () (
       }
       yield {
         if (!r1.equals(r2)) {
-          println("Mongo: " + r1)
-          println("Couch: " + r2)
+          println("----------Mongo: " + r1)
+          println("----------Couch: " + r2)
         } else {
           println("********************Iguales**************************")
         }

@@ -93,7 +93,7 @@ function ProfileDataService(playRoutes, $log, $http) {
 	this.getProfilesData = function(globalCodes){
 		console.log('getting ProfilesData for ');
 		var codesString = globalCodes.join(',');
-		return $http.get('/profilesdata', {params: { globalCode: codesString } });
+		return $http.get('/profilesdata?globalCodes=' + codesString);
 		//return playRoutes.controllers.ProfileData.findByCodes(globalCodes).get();
 	};
 	
