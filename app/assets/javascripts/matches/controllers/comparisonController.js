@@ -239,6 +239,7 @@ define([ 'angular','lodash' ], function(angular,_) {
 		});
 		profiledataService.getProfilesData([$scope.profileId, $scope.matchedProfileId]).then(
 			function(response) {
+				console.log("profileData");
 				var profileDataTemp = response.data.filter(function(x){return x.globalCode === $scope.profileId;})[0];
 					var matchedProfileDataTemp = response.data.filter(function(x){return x.globalCode === $scope.matchedProfileId;})[0];
 				if(!_.isUndefined(profileDataTemp)){

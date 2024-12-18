@@ -93,7 +93,7 @@ define([], function() {
 			isCollapsing,
 			isScreening
 		) {
-			return $http.get("/getByMatchedProfileId?matchingId=matchingId&isPedigreeMatch=isPedigreeMatch&isCollapsing=isCollapsing&isScreening=isScreening")
+			return $http.get("/getByMatchedProfileId?matchingId="+matchingId+"&isPedigreeMatch="+isPedigreeMatch+"&isCollapsing="+isCollapsing+"&isScreening="+isScreening)
 			.then(function(response) {
 				var data = response.data;
 				if (data && data.results) {
