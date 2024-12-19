@@ -45,6 +45,8 @@ define(['lodash'], function (_) {
                 function (response) {
                   $scope.profiles = response.data;
                   getProfilesWithDifferentCategory($scope.profiles);
+                  $scope.profile_json = JSON.stringify($scope.profiles, null, 2);
+                  console.log($scope.profile_json);
                   getUploadStatus($scope.profiles);
                   $scope.profiles.forEach(
                     function (element) {
