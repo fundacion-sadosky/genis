@@ -19,6 +19,11 @@ define(['lodash'], function (_) {
     $scope.totalItems = 0;
     $scope.currentPage = 1;
     $scope.profilesModified = {};
+    
+    // Todo: remove after debugging issue 141.
+    $scope.profilePairsJson = [];
+    $scope.profilesModifiedJson = [];
+    //
 
     localStorage.removeItem("searchPedigree");
     localStorage.removeItem("searchMatches");
@@ -45,8 +50,9 @@ define(['lodash'], function (_) {
                 function (response) {
                   $scope.profiles = response.data;
                   getProfilesWithDifferentCategory($scope.profiles);
+                  // Todo: Remove after debug issue 141
                   $scope.profile_json = JSON.stringify($scope.profiles, null, 2);
-                  console.log($scope.profile_json);
+                  //
                   getUploadStatus($scope.profiles);
                   $scope.profiles.forEach(
                     function (element) {
@@ -282,6 +288,10 @@ define(['lodash'], function (_) {
               .findByCode(profile.globalCode)
               .then(
                 function (response) {
+                  // TODO: remove after debugging issue 141
+                  $scope.profilePairsJson.push(
+                    [response.data, profile]
+                  );
                   return [response.data, profile];
                 }
               )
@@ -321,11 +331,19 @@ define(['lodash'], function (_) {
         .then(
           function(categoryInfo) {
             $scope.profilesModified = _.fromPairs(categoryInfo);
+            // Todo: remove after debuggin issue 141
+            $scope.profilesModifiedJson = JSON.stringify(
+              $scope.profilesModified, null, 2
+            );
+            //
             $scope.$apply();
           }
         );
     }
-
+    // TODO: remove after debuggin issue 141
+    $scope.getProfilePairs = function() {
+      return JSON.stringify($scope.profilePairsJson, null, 2);
+    };
     $scope.isProfileModified = function(globalCode) {
       return $scope.profilesModified[globalCode];
     };
