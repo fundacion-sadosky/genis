@@ -1,5 +1,6 @@
 import WebKeys._
 //import com.nescale.gitstamp.GitStampPlugin._
+import scala.concurrent.duration._
 import RjsKeys._
 
 //Seq(gitStampSettings: _*)
@@ -16,7 +17,7 @@ transitiveClassifiers := Seq("sources", "javadoc")
 // TODO Set your organization here; ThisBuild means it will apply to all sub-modules
 organization in ThisBuild := "ar.org.fundacionsadosky"
 
-version := "5.1.12"
+version := "5.1.12.develop"
 
 packageDescription := "Genis app"
 
@@ -231,7 +232,6 @@ javacOptions in ThisBuild ++= Seq(
   "-source", "1.8",
   "-target", "1.8"
 )
-
 //
 // sbt-web configuration
 // https://github.com/sbt/sbt-web
@@ -260,6 +260,11 @@ RjsKeys.paths += ("team" -> ("/team" -> "empty:"))
 webJarCdns := Map("org.webjars" -> "//cdn.jsdelivr.net/webjars")
 
 includeFilter in (Assets, LessKeys.less) := "mainTest.less" | "main.less" | "mainAmarillo.less" | "mainAzul.less" | "mainVerde.less"
+
+concurrentRestrictions in ThisBuild := Seq(
+  Tags.limitAll(1)
+)
+JsEngineKeys.npmTimeout := 180.seconds
 
 //RjsKeys.mainModule := "main"
 
