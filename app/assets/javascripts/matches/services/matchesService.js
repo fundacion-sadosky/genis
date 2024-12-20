@@ -134,7 +134,8 @@ define([], function() {
 		
 		this.getComparedMixtureGene = function(profiles,matchId,isCollapsing) {
 			// Asumiendo que profiles es una lista de códigos globales
-			return $http.get('/mixture/compare?globalCodes=profiles&matchId=matchId&isCollapsing=isCollapsing');
+			var params = new HttpParams().set('globalCodes', profiles).set('matchId', matchId).set('isCollapsing', isCollapsing);
+			return $http.get('/mixture/compare?'+params.toString()); //globalCodes='+profilesString+'&matchId='+matchId+'&isCollapsing='+isCollapsing);
 			//return playRoutes.controllers.Matching.getComparedMixtureGene(profiles,matchId,isCollapsing).get();
 		};
 

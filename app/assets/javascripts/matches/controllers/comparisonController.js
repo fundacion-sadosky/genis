@@ -235,7 +235,7 @@ define([ 'angular','lodash' ], function(angular,_) {
 		analysisTypeService.listById().then(function(response) {
 			$scope.analysisTypes = response;
 			getResults();
-			$scope.$apply();
+			//$scope.$apply();
 		});
 		profiledataService.getProfilesData([$scope.profileId, $scope.matchedProfileId]).then(
 			function(response) {
@@ -248,7 +248,8 @@ define([ 'angular','lodash' ], function(angular,_) {
 				if(!_.isUndefined(matchedProfileDataTemp)){
 					$scope.matchedProfileData = matchedProfileDataTemp;
 				}
-				$scope.$apply();
+				console.log("profileData ids: ", $scope.profileId, $scope.matchedProfileId);
+				//$scope.$apply();
 			});
 		
 		$scope.labeledGenotypifications = {};
@@ -256,12 +257,12 @@ define([ 'angular','lodash' ], function(angular,_) {
 		profileService.getProfile($scope.profileId).then(
 			function(response) {
 				$scope.assignProfile($scope.profileId,response.data);
-				$scope.$apply();
+				//$scope.$apply();
 			});
 		profileService.getProfile($scope.matchedProfileId).then(
 			function(response) {
 				$scope.assignProfile($scope.matchedProfileId,response.data);
-				$scope.$apply();
+				//$scope.$apply();
 			}
 		);
 		$scope.assignProfile = function (profileId, profile){

@@ -86,7 +86,7 @@ function ProfileDataService(playRoutes, $log, $http) {
 
 	this.getProfileData = function(profileId){
 		console.log('getting ProfileData for ' + profileId);
-		return $http.get('/profiledata', { params: { globalCode: profileId } });
+		return $http.get('/profiledata/'+ encodeURIComponent(profileId));
 		//return playRoutes.controllers.ProfileData.findByCode(profileId).get();
 	};
 	
@@ -94,6 +94,7 @@ function ProfileDataService(playRoutes, $log, $http) {
 		console.log('getting ProfilesData for ');
 		var codesString = globalCodes.join(',');
 		return $http.get('/profilesdata?globalCodes=' + codesString);
+
 		//return playRoutes.controllers.ProfileData.findByCodes(globalCodes).get();
 	};
 	
