@@ -12,7 +12,6 @@ import org.apache.commons.codec.binary.Base64
 import akka.actor.{ActorRef, ActorSystem}
 import akka.util.Timeout
 import audit.PEOSignerActor
-import connections.ProfileTransfer
 
 import scala.concurrent.duration._
 import scala.concurrent.Await
@@ -27,7 +26,6 @@ import profile.{Profile, ProfileService}
 import profiledata.{DeletedMotive, ProfileData, ProfileDataAttempt, ProfileDataService}
 import types.{AlphanumericId, Permission, SampleCode}
 import user.{RoleService, UserService}
-import connections.MatchSuperiorInstance
 import util.FutureUtils
 
 import java.util
@@ -208,7 +206,14 @@ class InterconnectionServiceImpl @Inject()(
   private def sendRequestOnDemand(holder: WSRequestHolder, body: String = "", timeoutParam: Timeout = defaultTimeoutOnDemand): Future[WSResponse] = {
     implicit val timeout = timeoutParam
     val sendRequestActor: ActorRef = akkaSystem.actorOf(SendRequestActor.props())
-    (sendRequestActor ? (holder.withRequestTimeout(timeOutHolder), body, true, timeActorSendRequestGet)).mapTo[WSResponse]
+    (sendRequestActor ? (
+      (
+        holder.withRequestTimeout(timeOutHolder),
+        body,
+        true,
+        timeActorSendRequestGet
+      )))
+      .mapTo[WSResponse]
   }
 
   private def sendRequestQueue(
@@ -219,11 +224,13 @@ class InterconnectionServiceImpl @Inject()(
     implicit val timeout: Timeout = timeoutParam
     (
       sendRequestActorGlobal ? (
-        addHeadersURL(holder)
-          .withRequestTimeout(timeOutHolder),
-        body,
-        false,
-        timeActorSendRequestPutPostDelete
+        (
+          addHeadersURL(holder)
+            .withRequestTimeout(timeOutHolder),
+          body,
+          false,
+          timeActorSendRequestPutPostDelete
+        )
       )
     )
     .mapTo[WSResponse]
@@ -1629,14 +1636,15 @@ class InterconnectionServiceImpl @Inject()(
       }
       if (shouldDeleteProfileOnSupInst) {
         await(this.profileDataService.updateUploadStatus(globalCode.text, PENDING_DELETE))
-        sendDeletionToSuperiorInstance(globalCode, motive).map {
-          case Left(m) => {
-            this.profileDataService.updateUploadStatus(globalCode.text, PENDING_DELETE, Some(m))
+        sendDeletionToSuperiorInstance(globalCode, motive)
+          .foreach {
+            case Left(m) => {
+              this.profileDataService.updateUploadStatus(globalCode.text, PENDING_DELETE, Some(m))
+            }
+            case _ => {
+              this.profileDataService.updateUploadStatus(globalCode.text, DELETED_IN_SUP_INS)
+            }
           }
-          case _ => {
-            this.profileDataService.updateUploadStatus(globalCode.text, DELETED_IN_SUP_INS)
-          }
-        }
       }
     }
   }
@@ -1862,7 +1870,7 @@ class InterconnectionServiceImpl @Inject()(
 
   def traceMatch(left: SampleCode, right: SampleCode, matchingId: String, analysisType: Int, assignee: String): Unit = {
     if (left.text.contains(currentInstanceLabCode)) {
-      traceService.add(Trace(left, assignee, new Date(),
+      val _ = traceService.add(Trace(left, assignee, new Date(),
         MatchInfo(matchingId, right, analysisType, MatchTypeInfo.Insert)))
     }
   }
@@ -1935,28 +1943,26 @@ class InterconnectionServiceImpl @Inject()(
       }else if (localProfiles.size == 0) {
         // me tengo que fijar cuantos son de instancias inferiores mias
         // y esa cantidad tiene que ser igual a la cantidad de uploaded profiles
-        var inferiorInstances = Await.result(this.inferiorInstanceRepository.findAll(), Duration.Inf)
+        val inferiorInstances = Await.result(this.inferiorInstanceRepository.findAll(), Duration.Inf)
         inferiorInstances match {
-          case Left(a) => {
-            result = false
-          }
-          case Right(inferiorInstancesList) => {
+          case Left(_) => result = false
+          case Right(inferiorInstancesList) =>
             val inferiorLabs = inferiorInstancesList.map(_.laboratory)
             val profileLeftOpt = Await.result(profileDataService.getExternalProfileDataByGlobalCode(matchResult.leftProfile.globalCode.text), Duration.Inf)
             val profileRightOpt = Await.result(profileDataService.getExternalProfileDataByGlobalCode(matchResult.rightProfile.globalCode.text), Duration.Inf)
 
-            (profileLeftOpt,profileRightOpt) match {
-              case (Some(profileLeft),Some(profileRight)) => {
-                result = List(profileLeft.laboratoryOrigin,profileRight.laboratoryOrigin)
-                  .filter(inferiorLabs.contains(_)).size == uploadedProfiles.size
-              }
+            result = (profileLeftOpt, profileRightOpt) match {
+              case (Some(profileLeft), Some(profileRight)) =>
+                List(
+                  profileLeft.laboratoryOrigin,
+                  profileRight.laboratoryOrigin
+                )
+                  .count(inferiorLabs.contains(_)) == uploadedProfiles.size
+              case (_, _) => false
             }
-
-          }
         }
       }
       result
-
     } else {
       result
     }
@@ -1996,7 +2002,7 @@ class InterconnectionServiceImpl @Inject()(
 
   def handleDeliveryConvertStatus(globalCode: SampleCode, convertStatus: ConvertStatusInterconnection, labImmediate: String, sendToSuperior: Boolean,
                                   onlyUpload: Boolean = false): Unit = {
-    getUrl(globalCode).map {
+    getUrl(globalCode).foreach {
       case Nil => {
         logger.error("No deberia pasar por aca porque se supone que tiene configurada la url")
         ()
@@ -2046,53 +2052,54 @@ class InterconnectionServiceImpl @Inject()(
       .withHeaders("Content-Type" -> "application/json")
     val outputJson = Json.toJson(convertStatus)
     val outputJsonString = outputJson.toString
-    this.markHitOrDiscardPending(convertStatus, Some(outputJsonString), labcode).map {
-      case Left(_) => {
-        Future.successful(())
-      }
-      case Right(()) => {
-        this.getConnectionsStatus(url).flatMap {
-          case Left(_) => Future.successful(Left("No se pudo enviar el status del match"))
-          case Right(_) => {
-            this.sendRequestQueue(holder.withMethod("POST"), outputJsonString).flatMap { result => {
-              if (result.status == 200) {
-                logger.debug("Se envió correctamente el status del match")
-                // Actualizar el estado a enviado
-                this.markHitOrDiscardSent(convertStatus, Some(outputJsonString), labcode)
-                Future.successful(Right(()))
-              } else {
-                logger.error(result.body)
-                // Actualizar el estado a error
-                logger.debug("No se pudo enviar el status del match")
-                Future.successful(Left("No se pudo enviar el status del match"))
+    val _ = this
+      .markHitOrDiscardPending(convertStatus, Some(outputJsonString), labcode)
+      .map {
+        case Left(_) => {
+          Future.successful(())
+        }
+        case Right(()) => {
+          this.getConnectionsStatus(url).flatMap {
+            case Left(_) => Future.successful(Left("No se pudo enviar el status del match"))
+            case Right(_) => {
+              this.sendRequestQueue(holder.withMethod("POST"), outputJsonString).flatMap { result => {
+                if (result.status == 200) {
+                  logger.debug("Se envió correctamente el status del match")
+                  // Actualizar el estado a enviado
+                  this.markHitOrDiscardSent(convertStatus, Some(outputJsonString), labcode)
+                  Future.successful(Right(()))
+                } else {
+                  logger.error(result.body)
+                  // Actualizar el estado a error
+                  logger.debug("No se pudo enviar el status del match")
+                  Future.successful(Left("No se pudo enviar el status del match"))
+                }
               }
-            }
+              }
             }
           }
         }
       }
-    }
       .recoverWith {
         case _: Exception => Future.successful(Left("No se pudo enviar el status del match"))
       }
-
   }
 
   def getUrl(globalCode: SampleCode): Future[List[(String, String)]] = {
-    (for {
-      pd <- profileDataService.getExternalProfileDataByGlobalCode(globalCode.text)
-      url <- connectionRepository.getSupInstanceUrl()
-    } yield (pd, url)).flatMap {
+    (
+      for {
+        pd <- profileDataService.getExternalProfileDataByGlobalCode(globalCode.text)
+        url <- connectionRepository.getSupInstanceUrl()
+      } yield (pd, url)
+    ).flatMap {
       case (Some(pd), None) => {
         this.inferiorInstanceRepository.findByLabCode(pd.laboratoryImmediate).flatMap {
           case Some(inferiorInstance) => {
             // Send to inferior instance
             Future.successful(List((inferiorInstance.url, inferiorInstance.laboratory)))
           }
-          case None => {
-            // no deberia pasar por aca
-            Future.successful(Nil)
-          }
+          case None => Future.successful(Nil)
+          // no deberia pasar por aca
         }
       }
       case (None, Some(url)) => {
@@ -2104,12 +2111,12 @@ class InterconnectionServiceImpl @Inject()(
             // Send to inferior instance
             Future.successful(List((inferiorInstance.url, inferiorInstance.laboratory),(url,superiorLabCode)))
           }
-          case None => {
-            // no deberia pasar por aca
-            Future.successful(List((url,superiorLabCode)))
-          }
+          case None => Future.successful(List((url,superiorLabCode)))
+          // no deberia pasar por aca
         }
       }
+      case (None, None) => Future.successful(Nil)
+      // no deberia pasar por aca
     }
   }
 
@@ -2142,9 +2149,17 @@ class InterconnectionServiceImpl @Inject()(
     ()
   }
 
-  def receiveMatchStatus(matchId: String, firingCode: SampleCode, leftCode: SampleCode, rightCode: SampleCode, status: String, labOrigin: String, labImmediate: String): Future[Unit] = Future {
+  def receiveMatchStatus(
+    matchId: String,
+    firingCode: SampleCode,
+    leftCode: SampleCode,
+    rightCode: SampleCode,
+    status: String,
+    labOrigin: String,
+    labImmediate: String
+  ): Future[Unit] = Future {
 
-    matchingRepository.getByMatchingProfileId(matchId).flatMap {
+    val _ = matchingRepository.getByMatchingProfileId(matchId).flatMap {
       case Some(matchingResult) => {
         if (shouldBeForwarded(matchingResult.leftProfile.globalCode, labOrigin, labImmediate) ||
           shouldBeForwarded(matchingResult.rightProfile.globalCode, labOrigin, labImmediate)) {
@@ -2153,7 +2168,14 @@ class InterconnectionServiceImpl @Inject()(
         }
         val isAdmin = true
         matchingService.convertHitOrDiscard(matchId, firingCode, isAdmin, status)
-        notifyHitOrDiscard(matchId, firingCode, status, matchingResult.leftProfile.globalCode, matchingResult.rightProfile.globalCode, getAssignee(matchingResult))
+        notifyHitOrDiscard(
+          matchId,
+          firingCode,
+          status,
+          matchingResult.leftProfile.globalCode,
+          matchingResult.rightProfile.globalCode,
+          getAssignee(matchingResult)
+        )
         // matching service hit or discard
         Future.successful(())
       }
@@ -2167,7 +2189,14 @@ class InterconnectionServiceImpl @Inject()(
             }
             val isAdmin = true
             matchingService.convertHitOrDiscard(matchingResult._id.id, firingCode, isAdmin, status)
-            notifyHitOrDiscard(matchingResult._id.id, firingCode, status, matchingResult.leftProfile.globalCode, matchingResult.rightProfile.globalCode, getAssignee(matchingResult))
+            notifyHitOrDiscard(
+              matchingResult._id.id,
+              firingCode,
+              status,
+              matchingResult.leftProfile.globalCode,
+              matchingResult.rightProfile.globalCode,
+              getAssignee(matchingResult)
+            )
             // matching service hit or discard
             Future.successful(())
           }

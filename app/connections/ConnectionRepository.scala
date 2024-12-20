@@ -274,7 +274,9 @@ class SlickConnectionRepository @Inject()(implicit val app: Application) extends
         matchUpdateSendStatus.filter(_.id === id)
           .filter(_.targetLab === targetLab.getOrElse("SUPERIOR"))
           .map(x => (x.status,x.message,x.date))
-          .update(statusHitDiscard,message,Some(new java.sql.Timestamp(System.currentTimeMillis())))
+          .update(
+            (statusHitDiscard,message,Some(new java.sql.Timestamp(System.currentTimeMillis())))
+          )
         Right(())
       } catch {
         case e: Exception => {
@@ -288,7 +290,9 @@ class SlickConnectionRepository @Inject()(implicit val app: Application) extends
   override def getMatchSendStatusById(id:String, targetLab:Option[String] = None):Future[Option[Long]] = {
     this.runInTransactionAsync { implicit session => {
       try {
-        getMatchSendStatusByIdCompiled(id,targetLab.getOrElse("SUPERIOR")).firstOption.flatMap(_.status)
+        getMatchSendStatusByIdCompiled((id,targetLab.getOrElse("SUPERIOR")))
+          .firstOption
+          .flatMap(_.status)
       } catch {
         case e: Exception => {
           None
@@ -301,7 +305,9 @@ class SlickConnectionRepository @Inject()(implicit val app: Application) extends
   override def getMatchUpdateSendStatusById(id:String, targetLab:Option[String] = None):Future[Option[Long]] = {
     this.runInTransactionAsync { implicit session => {
       try {
-        getMatchUpdateSendStatusByIdCompiled(id,targetLab.getOrElse("SUPERIOR")).firstOption.flatMap(_.status)
+        getMatchUpdateSendStatusByIdCompiled((id,targetLab.getOrElse("SUPERIOR")))
+          .firstOption
+          .flatMap(_.status)
       } catch {
         case e: Exception => {
           None
