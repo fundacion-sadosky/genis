@@ -32,20 +32,15 @@ import play.api.db.slick.Config.driver.simple.slickDriver
 import play.api.db.slick.Config.driver.simple.stringColumnType
 import play.api.db.slick.Config.driver.simple.valueToConstColumn
 import play.api.db.slick.DB
-import play.api.db.slick.DBAction
 import models.Tables.ProfileDataRow
 import javax.inject.Named
-
 import play.api.i18n.Messages
 import models.Tables.ProfileDataFiliationRow
 import types.AlphanumericId
-import profiledata.ProfileDataAttempt
-import profiledata.DataFiliationAttempt
 import configdata.{CategoryService, MatchingRule}
 import kits.StrKitLocus
 import util.{DefaultDb, Transaction}
 import search.PaginationSearch
-import bulkupload.KitNotExistsException
 
 import scala.slick.driver.PostgresDriver
 
@@ -385,7 +380,7 @@ class SlickProtoProfileRepository @Inject() (
 
   override def getBatchesStep1(userId: String, isSuperUser: Boolean): Future[Seq[ProtoProfilesBatchView]] = Future {
     DB.withSession { implicit session =>
-      queryGetBatchesStep1(userId, isSuperUser).list map {
+      queryGetBatchesStep1((userId, isSuperUser)).list map {
         case (id, user, date, total, appr, pend, rejected, label, approvedstep1, incompletestep1,analysisType) =>
           ProtoProfilesBatchView(id, user, date, total.toInt, appr.toInt, pend.toInt, rejected.toInt, label, approvedstep1.toInt, incompletestep1.toInt,analysisType)
       }
@@ -394,7 +389,7 @@ class SlickProtoProfileRepository @Inject() (
 
   override def getBatchesStep2(userId: String, geneMapperId : String, isSuperUser: Boolean): Future[Seq[ProtoProfilesBatchView]] = Future {
     DB.withSession { implicit session =>
-      queryGetBatchesStep2(geneMapperId, isSuperUser, geneMapperId, isSuperUser).list.filter(_._4 > 0). map {
+      queryGetBatchesStep2((geneMapperId, isSuperUser, geneMapperId, isSuperUser)).list.filter(_._4 > 0). map {
         case (id, user, date, total, label, totalApproved, analysisType) =>
           ProtoProfilesBatchView(id, user, date, total.toInt, 0, 0, 0, label, totalApproved.toInt,0,analysisType)
       }
@@ -575,7 +570,7 @@ class SlickProtoProfileRepository @Inject() (
 
   def getBatchSearchModalViewByIdOrLabel(input:String,idCase:Long):Future[List[BatchModelView]] = Future{
     DB.withSession { implicit session =>
-        queryGetBatchesForModal(input,input).list map {
+        queryGetBatchesForModal((input,input)).list map {
           case (id, label, date) =>{
             val sdf = new java.text.SimpleDateFormat("dd/MM/yyyy");
             BatchModelView(id, Some(label),sdf.format(date))
@@ -585,8 +580,8 @@ class SlickProtoProfileRepository @Inject() (
   }
 
   override def getSearchBachLabelID(userId: String, isSuperUser: Boolean, search :String): Future[Seq[ProtoProfilesBatchView]] = Future {
-   DB.withSession { implicit session =>
-      queryGetSearchBatchesLabelID(userId,isSuperUser,search, search).list map {
+    DB.withSession { implicit session =>
+      queryGetSearchBatchesLabelID((userId,isSuperUser,search, search)).list map {
         case (id, user, date, total, appr, pend, rejected, label, approvedStep1, incompleteStep1, analysisType) =>
           ProtoProfilesBatchView(id, user, date, total.toInt, appr.toInt, pend.toInt, rejected.toInt, label, approvedStep1.toInt, incompleteStep1.toInt,analysisType)
       }
