@@ -1,6 +1,5 @@
 import WebKeys._
 //import com.nescale.gitstamp.GitStampPlugin._
-import scala.concurrent.duration._
 import RjsKeys._
 
 //Seq(gitStampSettings: _*)
@@ -8,7 +7,7 @@ import RjsKeys._
 name := """genis"""
 
 // Scala Version, Play supports both 2.10 and 2.11
-scalaVersion := "2.11.11"
+scalaVersion := "2.11.12"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
@@ -17,7 +16,7 @@ transitiveClassifiers := Seq("sources", "javadoc")
 // TODO Set your organization here; ThisBuild means it will apply to all sub-modules
 organization in ThisBuild := "ar.org.fundacionsadosky"
 
-version := "5.1.12.develop"
+version := "5.1.11"
 
 packageDescription := "Genis app"
 
@@ -112,12 +111,21 @@ libraryDependencies ++= Seq(
   "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4"
 )
 
+// STTP (http client)
+libraryDependencies += "com.softwaremill.sttp.client3" %% "core" % "3.3.16"
+libraryDependencies += "com.softwaremill.sttp.client3" %% "circe" % "3.3.16"
+libraryDependencies ++= Seq(
+  "io.circe" %% "circe-core" % "0.11.2",
+  "io.circe" %% "circe-generic" % "0.11.2",
+  "io.circe" %% "circe-parser" % "0.11.2"
+)
+
 // RDBMS
 libraryDependencies ++= Seq(
-  "com.typesafe.play" %% "play-slick" % "0.8.0",
+  "com.typesafe.play" %% "play-slick" % "0.8.1",
   "com.typesafe.slick" %% "slick" % "2.1.0",
   "com.typesafe.slick" %% "slick-codegen" % "2.1.0",
-  "com.github.tminglei" %% "slick-pg" % "0.8.5",
+  "com.github.tminglei" %% "slick-pg" % "0.8.6",
   "postgresql" % "postgresql" % "9.1-901-1.jdbc4"
 )
 
@@ -131,37 +139,37 @@ libraryDependencies ++= Seq(
 // Dependency Injection
 libraryDependencies ++= Seq(
     "com.google.inject" % "guice" % "3.0",
-    "com.google.inject.extensions" % "guice-multibindings" % "3.0",
+    "com.google.inject.extensions" % "guice-multibindings" % "4.2.3",
     "javax.inject" % "javax.inject" % "1"
 )
 
 // web assets (i.e. client-side) 
 libraryDependencies ++= Seq(
-  "org.webjars.npm" % "lodash" % "4.17.4",
-  "org.webjars" % "requirejs" % "2.1.14-1",
-  "org.webjars" % "underscorejs" % "1.6.0-3",
-  "org.webjars" % "jquery" % "3.1.1-1",
-  "org.webjars" % "jquery-ui" % "1.11.1",
+  "org.webjars.npm" % "lodash" % "4.17.21",
+  "org.webjars" % "requirejs" % "2.3.7",
+  "org.webjars" % "underscorejs" % "1.13.0-2",
+  "org.webjars" % "jquery" % "3.7.1",
+  "org.webjars" % "jquery-ui" % "1.13.2",
   "org.webjars" % "bootstrap" % "3.3.7-1" exclude("org.webjars", "jquery"),
-  "org.webjars" % "angularjs" % "1.4.0" exclude("org.webjars", "jquery"),
+  "org.webjars" % "angularjs" % "1.5.11" exclude("org.webjars", "jquery"),
   "org.webjars" % "angular-ui-bootstrap" % "0.13.3",
-  "org.webjars" % "angular-ui-select" % "0.13.1",
+  "org.webjars" % "angular-ui-select" % "0.19.8",
   "org.webjars" % "angular-ui-sortable" % "0.13.0",
   "org.webjars" % "cryptojs" % "3.1.2",
-  "org.webjars" % "angular-file-upload" % "4.1.3",
-  "org.webjars" % "angular-hotkeys" % "1.4.0",  
+  "org.webjars" % "angular-file-upload" % "12.2.13",
+  "org.webjars" % "angular-hotkeys" % "1.4.5",  
   "org.webjars" % "i18next" % "1.7.3",
   "org.webjars" % "ng-i18next" % "0.3.2",
   "org.webjars" % "qrcodejs" % "07f829d",
   "org.webjars" % "font-awesome" % "4.4.0",
-  "org.webjars" % "d3js" % "3.5.5-1",
-  "org.webjars" % "dagre-d3" % "0.4.10",
-  "org.webjars" % "animate.css" % "3.5.2"
+  "org.webjars" % "d3js" % "6.7.0",
+  "org.webjars" % "dagre-d3" % "0.6.3",
+  "org.webjars" % "animate.css" % "3.7.2"
   )
 
 // LDAP 
 libraryDependencies ++= Seq(
-  "com.unboundid" % "unboundid-ldapsdk" % "2.3.1"
+  "com.unboundid" % "unboundid-ldapsdk" % "2.3.8"
 )
 
 // CSV	 
@@ -171,7 +179,7 @@ libraryDependencies ++= Seq(
 
 // Async
 libraryDependencies ++= Seq(
-  "org.scala-lang.modules" %% "scala-async" % "0.9.6"
+ "org.scala-lang.modules" %% "scala-async" % "0.9.6"
 )
 
 // TOTP 
@@ -183,10 +191,10 @@ resolvers += "Cascading Conjars" at "https://conjars.wensel.net/repo/"
 
 // Spark 2.0
 libraryDependencies ++= Seq(
-  "org.apache.spark" %% "spark-core" % "2.1.1" withSources() withJavadoc(),
+	"org.apache.spark" %% "spark-core" % "2.1.1" withSources() withJavadoc(),
   "org.apache.spark" %% "spark-sql" % "2.1.1",
-  //"org.mongodb.spark" % "mongo-spark-connector_2.11" % "2.0.0" withSources() withJavadoc(),
-  "org.mongodb" % "mongo-java-driver" % "3.2.2" withSources() withJavadoc(),
+	//"org.mongodb.spark" % "mongo-spark-connector_2.11" % "2.0.0" withSources() withJavadoc(),
+	"org.mongodb" % "mongo-java-driver" % "3.12.14" withSources() withJavadoc(),
   "org.scala-graph" %% "graph-core" % "1.11.5"
 )
 
@@ -209,7 +217,7 @@ libraryDependencies ++= Seq(
   //   - https://github.com/flyingsaucerproject/flyingsaucer
   //   - https://about.validator.nu/htmlparser/
   "net.sf.jtidy" % "jtidy" % "r938",
-  "org.xhtmlrenderer" % "flying-saucer-pdf-itext5" % "9.1.6",
+  "org.xhtmlrenderer" % "flying-saucer-pdf-itext5" % "9.3.2",
   "nu.validator.htmlparser" % "htmlparser" % "1.4"
 )
 
@@ -229,9 +237,10 @@ scalacOptions in ThisBuild ++= Seq(
 
 // Java compiler options
 javacOptions in ThisBuild ++= Seq(
-  "-source", "1.8",
-  "-target", "1.8"
+	"-source", "1.8",
+	"-target", "1.8"
 )
+
 //
 // sbt-web configuration
 // https://github.com/sbt/sbt-web
@@ -260,11 +269,6 @@ RjsKeys.paths += ("team" -> ("/team" -> "empty:"))
 webJarCdns := Map("org.webjars" -> "//cdn.jsdelivr.net/webjars")
 
 includeFilter in (Assets, LessKeys.less) := "mainTest.less" | "main.less" | "mainAmarillo.less" | "mainAzul.less" | "mainVerde.less"
-
-concurrentRestrictions in ThisBuild := Seq(
-  Tags.limitAll(1)
-)
-JsEngineKeys.npmTimeout := 180.seconds
 
 //RjsKeys.mainModule := "main"
 

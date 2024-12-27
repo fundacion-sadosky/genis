@@ -1,13 +1,34 @@
 package profile
 
+import java.util.Date
 import configdata.MatchingRule
 import connections.FileInterconnection
-import profile.GenotypificationByType.GenotypificationByType
-import profile.Profile._
-import types._
+import org.apache.commons.codec.binary.Base64
+import play.api.Play.current
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import util.FutureUtils
+import play.api.libs.json.Json.toJsFieldJsValueWrapper
+import play.api.libs.json._
+import play.modules.reactivemongo.ReactiveMongoPlugin
+import play.modules.reactivemongo.json._
+import play.modules.reactivemongo.json.collection.JSONCollection
+import profile.GenotypificationByType.{GenotypificationByType, _}
+import profile.Profile._ //{LabeledGenotypification, Mismatch}
+import reactivemongo.api.Cursor
+import reactivemongo.bson.{BSONObjectID, _}
+import reactivemongo.core.commands.{FindAndModify, Update}
+import types._
 
-import java.util.Date
+import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
+import javax.inject.{Inject, Named, Singleton}
+
+import sttp.client3._
+import sttp.client3.circe._
+import io.circe.generic.auto._
+import io.circe.parser._
+import io.circe.Decoder
+import io.circe.generic.semiauto._
 
 
 abstract class ProfileRepository {
@@ -754,6 +775,12 @@ class MiddleProfileRepository @Inject () (
         if (!r1.equals(r2)) {
           println("----------Mongo: " + r1)
           println("----------Couch: " + r2)
+          val r1String = r1.mkString
+          val r2String = r2.mkString
+          val isAnagram = r1String.sorted == r2String.sorted
+
+          println(s"Verificación de string: $isAnagram")
+
         } else {
           println("********************Iguales**************************")
         }
