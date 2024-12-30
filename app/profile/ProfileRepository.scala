@@ -355,14 +355,14 @@ class MongoProfileRepository extends ProfileRepository {
     }
   }
 
-  override def getGenotyficationByCode(globalCode: SampleCode): Future[Option[GenotypificationByType]] = {
-
-    val cursor = profiles
-      .find(Json.obj("globalCode" -> globalCode))
-      .cursor[Profile]()
-
-    cursor.headOption.map { opt => opt.map(p => p.genotypification) }
-  }
+//  override def getGenotyficationByCode(globalCode: SampleCode): Future[Option[GenotypificationByType]] = {
+//
+//    val cursor = profiles
+//      .find(Json.obj("globalCode" -> globalCode))
+//      .cursor[Profile]()
+//
+//    cursor.headOption.map { opt => opt.map(p => p.genotypification) }
+//  }
 
   def addFile(globalCode: SampleCode, analysisId: String, image: Array[Byte],name:String): Future[Either[String, SampleCode]] = {
     val array = BSONBinary(image, Subtype.GenericBinarySubtype)
@@ -760,8 +760,24 @@ class MiddleProfileRepository @Inject () (
       id
     )
 
-  override def getGenotyficationByCode(globalCode: SampleCode): Future[Option[GenotypificationByType]] =
-    mongoRepo.getGenotyficationByCode(globalCode)
+  override def getGenotyficationByCode(globalCode: SampleCode): Future[Option[GenotypificationByType]] = ???
+//  Out of use
+  //  {
+//    for {
+//      r1 <- mongoRepo.getGenotyficationByCode(globalCode)
+//      r2 <- couchRepo.getGenotyficationByCode(globalCode)
+//    }
+//    yield {
+//      if (!r1.equals(r2)) {
+//        println("Mongo: " + r1)
+//        println("Couch: " + r2)
+//      } else {
+//        println("***Iguales***")
+//      }
+//      r1
+//    }
+//  }
+
 
   override def findByCodes(
                             globalCodes: Seq[SampleCode]
@@ -775,12 +791,6 @@ class MiddleProfileRepository @Inject () (
         if (!r1.equals(r2)) {
           println("----------Mongo: " + r1)
           println("----------Couch: " + r2)
-          val r1String = r1.mkString
-          val r2String = r2.mkString
-          val isAnagram = r1String.sorted == r2String.sorted
-
-          println(s"Verificación de string: $isAnagram")
-
         } else {
           println("********************Iguales**************************")
         }
@@ -922,7 +932,6 @@ class CouchProfileRepository extends ProfileRepository {
                               ): Future[List[Profile]] = ???
 
   override def findByCode(globalCode: SampleCode): Future[Option[Profile]] = {
-    //println("Couch busca: " + globalCode.text)
 
     val request = basicRequest
       .post(uri"$baseUrl/_find")
@@ -931,9 +940,7 @@ class CouchProfileRepository extends ProfileRepository {
       .auth.basic(username, password)
 
     Future {
-      //println("couch request: " + request)
       val response = request.send(backend)
-      //println("couch response: " + response)
       response.body match {
         case Right(profiles) =>
           val json = Json.parse(profiles)
@@ -989,7 +996,30 @@ class CouchProfileRepository extends ProfileRepository {
                             ): Future[Either[String, SampleCode]] = ???
 
   override def getGenotyficationByCode(globalCode: SampleCode): Future[Option[GenotypificationByType]] = ???
-
+// Out of use
+//  {
+//    val request = basicRequest
+//      .post(uri"$baseUrl/_find")
+//      .body(Map("selector" -> Map("globalCode" -> globalCode.text)))
+//      .header("Accept", "application/json")
+//      .auth.basic(username, password)
+//
+//
+//    Future {
+//      val response = request.send(backend)
+//      response.body match {
+//        case Right(profiles) =>
+//          val json = Json.parse(profiles)
+//          (json \ "docs").validate[List[Profile]] match {
+//            case JsSuccess(profileList, _) => profileList.headOption.map(_.genotypification)
+//            case JsError(errors) =>
+//              //println(s"Error de parseo a JSON: $errors")
+//              None
+//          }
+//        case Left(_) => None
+//      }
+//    }
+//  }
   override def findByCodes(globalCodes: Seq[SampleCode]): Future[Seq[Profile]] = {
     val query = Map(
       "selector" -> Map(
