@@ -139,12 +139,14 @@ class MongoProfileRepository extends ProfileRepository {
       .one[Profile]
   }
 
-  def findAll(): Future[List[Profile]] = {
-    profiles
-      .find(Json.obj())
-      .cursor[Profile]()
-      .collect[List](Int.MaxValue, Cursor.FailOnError[List[Profile]]())
-  }
+  def findAll(): Future[List[Profile]] = ???
+// no usages
+//  {
+//    profiles
+//      .find(Json.obj())
+//      .cursor[Profile]()
+//      .collect[List](Int.MaxValue, Cursor.FailOnError[List[Profile]]())
+//  }
 
   def findByCode(globalCode: SampleCode): Future[Option[Profile]] = {
     //println("Mongo busca: " + globalCode.text)
@@ -355,7 +357,7 @@ class MongoProfileRepository extends ProfileRepository {
     }
   }
 
-//  override def getGenotyficationByCode(globalCode: SampleCode): Future[Option[GenotypificationByType]] = {
+override def getGenotyficationByCode(globalCode: SampleCode): Future[Option[GenotypificationByType]] = ???
 //
 //    val cursor = profiles
 //      .find(Json.obj("globalCode" -> globalCode))
@@ -639,8 +641,23 @@ class MiddleProfileRepository @Inject () (
                                            couchRepo: CouchProfileRepository
                                          ) extends ProfileRepository {
 
-  override def get(id: SampleCode): Future[Option[Profile]] = mongoRepo.get(id)
-
+  override def get(id: SampleCode): Future[Option[Profile]] = {
+    {
+      for {
+        r1 <- mongoRepo.get(id)
+        r2 <- couchRepo.get(id)
+      }
+      yield {
+        if (!r1.equals(r2)) {
+          println("Mongo encuentra: " + r1)
+          println("Couch encuentra: " + r2)
+        } else {
+          println("Iguales")
+        }
+        r1
+      }
+    }
+  }
   override def getBy(
                       user: String,
                       isSuperUser: Boolean,
@@ -677,10 +694,10 @@ class MiddleProfileRepository @Inject () (
       }
       yield {
         if (!r1.equals(r2)) {
-          //println("Mongo encuentra: " + r1)
-          //println("Couch encuentra: " + r2)
+          println("Mongo encuentra: " + r1)
+          println("Couch encuentra: " + r2)
         } else {
-          //println("Iguales")
+          println("Iguales")
         }
         r1
       }
@@ -914,7 +931,29 @@ class CouchProfileRepository extends ProfileRepository {
   val username = "admin"
   val password = "genisContra" // des-hardcodear esto
 
-  override def get(id: SampleCode): Future[Option[Profile]] = ???
+  override def get(id: SampleCode): Future[Option[Profile]] = {
+    val request = basicRequest
+      .post(uri"$baseUrl/_find")
+      .body(Map("selector" -> Map("_id" -> id.text)))
+      .header("Accept", "application/json")
+      .auth.basic(username, password)
+
+    Future {
+      val response = request.send(backend)
+      response.body match {
+        case Right(profiles) =>
+          val json = Json.parse(profiles)
+          (json \ "docs").validate[List[Profile]] match {
+            case JsSuccess(profileList, _) => profileList.headOption
+            case JsError(errors) =>
+              //println(s"Error de parseo a JSON: $errors")
+              None
+          }
+        case Left(_) => None
+      }
+    }
+
+  }
 
   override def getBy(
                       user: String,
