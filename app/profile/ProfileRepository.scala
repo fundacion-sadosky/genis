@@ -872,10 +872,29 @@ class MiddleProfileRepository @Inject () (
   override def findByCodeWithoutAceptedLocus(
                                               globalCode: SampleCode,
                                               aceptedLocus: Seq[String]
-                                            ): Future[Option[Profile]] = mongoRepo.findByCodeWithoutAceptedLocus(
-    globalCode,
-    aceptedLocus
-  )
+                                            ): Future[Option[Profile]] = {
+    {
+      for {
+        r1 <- mongoRepo.findByCodeWithoutAceptedLocus(
+          globalCode,
+          aceptedLocus
+        )
+        r2 <- couchRepo.findByCodeWithoutAceptedLocus(
+          globalCode,
+          aceptedLocus
+        )
+      }
+      yield {
+        if (!r1.equals(r2)) {
+          println("Mongo: " + r1)
+          println("Couch: " + r2)
+        } else {
+          println("Iguales")
+        }
+        r1
+      }
+    }
+  }
 
   override def addFile(
                         globalCode: SampleCode,
@@ -1125,9 +1144,63 @@ class CouchProfileRepository extends ProfileRepository {
   override def findByCodeWithoutAceptedLocus(
                                               globalCode: SampleCode,
                                               aceptedLocus: Seq[String]
-                                            ): Future[Option[Profile]] = ???
+                                            ): Future[Option[Profile]] = {
 
-  override def addFile(
+
+
+      val query = Map(
+        "selector" -> Map("globalCode" -> globalCode.text),
+        "sort" -> List(Map("globalCode" -> "desc"))
+      )
+      // Build the CouchDB `_find` request
+      val request = basicRequest
+        .post(uri"$baseUrl/_find")
+        .body(query)
+        .header("Accept", "application/json")
+        .auth.basic(username, password)
+
+      Future {
+        val response = request.send(backend)
+
+        response.body match {
+          case Right(profiles) =>
+            val json = Json.parse(profiles)
+
+            // Parse the list of profiles from the response
+            (json \ "docs").validate[List[Profile]] match {
+              case JsSuccess(profileList, _) =>
+                // Process each profile to exclude unwanted loci from `genotypification.1`
+                val processedProfiles = profileList.map { profile =>
+                  val updatedGenotypificationByType = profile.genotypification.get(1) match {
+                    case Some(genotypification) =>
+                      // Filter loci in `genotypification.1`
+                      val filteredGenotypification = genotypification.filterNot { case (marker, _) =>
+                        aceptedLocus.contains(marker)
+                      }
+                      // Update only key `1` with filtered data
+                      profile.genotypification.updated(1, filteredGenotypification)
+                    case None =>
+                      // If key `1` is not present, return the original `genotypification`
+                      profile.genotypification
+                  }
+                  // Return updated profile
+                  profile.copy(genotypification = updatedGenotypificationByType)
+                }
+                processedProfiles.headOption
+
+              case JsError(errors) =>
+                // Handle JSON parsing errors
+                None
+            }
+
+          case Left(_) =>
+            // Handle HTTP errors
+            None
+        }
+      }
+    }
+
+    override def addFile(
                         globalCode: SampleCode,
                         analysisId: String,
                         image: Array[Byte],
