@@ -806,10 +806,10 @@ class MiddleProfileRepository @Inject () (
       }
       yield {
         if (!r1.equals(r2)) {
-          println("----------Mongo: " + r1)
-          println("----------Couch: " + r2)
+          println("Mongo: " + r1)
+          println("Couch: " + r2)
         } else {
-          println("********************Iguales**************************")
+          println("Iguales")
         }
         r1
       }
@@ -863,7 +863,23 @@ class MiddleProfileRepository @Inject () (
   override def setMatcheableAndProcessed(globalCode: SampleCode): Future[Either[String, SampleCode]] =
     mongoRepo.setMatcheableAndProcessed(globalCode)
 
-  override def getUnprocessed(): Future[Seq[SampleCode]] = mongoRepo.getUnprocessed()
+  override def getUnprocessed(): Future[Seq[SampleCode]] = {
+    {
+      for {
+        r1 <- mongoRepo.getUnprocessed()
+        r2 <- couchRepo.getUnprocessed()
+      }
+      yield {
+        if (!r1.equals(r2)) {
+          println("Mongo: " + r1)
+          println("Couch: " + r2)
+        } else {
+          println("Iguales")
+        }
+        r1
+      }
+    }
+  }
 
   override def canDeleteKit(id: String): Future[Boolean] = mongoRepo.canDeleteKit(id: String)
 
@@ -1135,7 +1151,37 @@ class CouchProfileRepository extends ProfileRepository {
 
   override def setMatcheableAndProcessed(globalCode: SampleCode): Future[Either[String, SampleCode]] = ???
 
-  override def getUnprocessed(): Future[Seq[SampleCode]] = ???
+  override def getUnprocessed(): Future[Seq[SampleCode]] = {
+    val query = Map(
+      "selector" -> Map("processed" -> false),
+      "fields" -> List("globalCode") // Specify fields to limit the data returned
+    )
+
+    val request = basicRequest
+      .post(uri"$baseUrl/_find")
+      .body(query)
+      .header("Accept", "application/json")
+      .auth.basic(username, password)
+
+    Future {
+      val response = request.send(backend)
+      response.body match {
+        case Right(docs) =>
+          val json = Json.parse(docs)
+          (json \ "docs").validate[List[JsValue]] match {
+            case JsSuccess(docList, _) =>
+              docList.flatMap(doc =>
+                (doc \ "globalCode").asOpt[String].map(SampleCode)
+              )
+            case JsError(errors) =>
+              //println(s"JSON parsing errors: $errors")
+              Seq.empty
+          }
+        case Left(_) =>
+          Seq.empty
+      }
+    }
+  }
 
   override def canDeleteKit(id: String): Future[Boolean] = ???
 
@@ -1149,13 +1195,16 @@ class CouchProfileRepository extends ProfileRepository {
 
 
       val query = Map(
-        "selector" -> Map("globalCode" -> globalCode.text),
-        "sort" -> List(Map("globalCode" -> "desc"))
+        "selector" -> Map("globalCode" -> globalCode.text)
       )
+
+    // Serialize query to JSON string
+//      val queryJson = Json.toJson(query).toString()
+
       // Build the CouchDB `_find` request
       val request = basicRequest
-        .post(uri"$baseUrl/_find")
         .body(query)
+        .post(uri"$baseUrl/_find")
         .header("Accept", "application/json")
         .auth.basic(username, password)
 
