@@ -182,6 +182,8 @@ class MongoProfileRepository extends ProfileRepository {
   }
 
   override def getUnprocessed(): Future[Seq[SampleCode]] = {
+
+
     val query = Json.obj("processed" -> false)
     val projection = Json.obj("_id" -> 0, "globalCode" -> 1)
 
@@ -1151,15 +1153,18 @@ class CouchProfileRepository extends ProfileRepository {
 
   override def setMatcheableAndProcessed(globalCode: SampleCode): Future[Either[String, SampleCode]] = ???
 
-  override def getUnprocessed(): Future[Seq[SampleCode]] = {
-    val query = Map(
-      "selector" -> Map("processed" -> false),
-      "fields" -> List("globalCode") // Specify fields to limit the data returned
+  def fetchUnprocessedBatch(skip: Int, limit: Int = 100): Future[Seq[SampleCode]] = {
+    val query: JsValue = Json.obj(
+      "selector" -> Json.obj("processed" -> false),
+      "fields" -> Json.arr("globalCode"),
+      "limit" -> limit,
+      "skip" -> skip // Skip the first `skip` documents
     )
 
     val request = basicRequest
       .post(uri"$baseUrl/_find")
-      .body(query)
+      .body(Json.stringify(query))
+      .header("Content-Type", "application/json")
       .header("Accept", "application/json")
       .auth.basic(username, password)
 
@@ -1171,18 +1176,25 @@ class CouchProfileRepository extends ProfileRepository {
           (json \ "docs").validate[List[JsValue]] match {
             case JsSuccess(docList, _) =>
               docList.flatMap(doc =>
-                (doc \ "globalCode").asOpt[String].map(SampleCode)
+                (doc \ "globalCode").asOpt[String].map(SampleCode(_))
               )
-            case JsError(errors) =>
-              //println(s"JSON parsing errors: $errors")
-              Seq.empty
+            case JsError(_) => Seq.empty
           }
-        case Left(_) =>
-          Seq.empty
+        case Left(_) => Seq.empty
       }
     }
   }
 
+  override def getUnprocessed(): Future[Seq[SampleCode]] = {
+    val step = 100;
+    def loop(skip: Int, acc: Seq[SampleCode]): Future[Seq[SampleCode]] = {
+      fetchUnprocessedBatch(skip).flatMap { batch =>
+        if (batch.isEmpty) Future.successful(acc) // Stop when no more documents
+        else loop(skip + step, acc ++ batch) // Fetch the next batch
+      }
+    }
+    loop(0, Seq.empty)
+  }
   override def canDeleteKit(id: String): Future[Boolean] = ???
 
   override def updateProfile(profile: Profile): Future[SampleCode] = ???
@@ -1196,10 +1208,7 @@ class CouchProfileRepository extends ProfileRepository {
 
       val query = Map(
         "selector" -> Map("globalCode" -> globalCode.text)
-      )
-
-    // Serialize query to JSON string
-//      val queryJson = Json.toJson(query).toString()
+      ) // Mongo sorted it. It was unnecessary so couchDB doesn't
 
       // Build the CouchDB `_find` request
       val request = basicRequest
