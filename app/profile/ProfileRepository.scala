@@ -183,7 +183,6 @@ class MongoProfileRepository extends ProfileRepository {
 
   override def getUnprocessed(): Future[Seq[SampleCode]] = {
 
-
     val query = Json.obj("processed" -> false)
     val projection = Json.obj("_id" -> 0, "globalCode" -> 1)
 
@@ -699,7 +698,7 @@ class MiddleProfileRepository @Inject () (
           println("Mongo encuentra: " + r1)
           println("Couch encuentra: " + r2)
         } else {
-          println("Iguales")
+          println("findByCode - Iguales")
         }
         r1
       }
@@ -722,8 +721,24 @@ class MiddleProfileRepository @Inject () (
       name
     )
 
-  override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(String, String, String)]] =
-    mongoRepo.getElectropherogramsByCode(globalCode: SampleCode)
+  override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(String, String, String)]] = {
+    {
+      for {
+        r1 <- mongoRepo.getElectropherogramsByCode(globalCode)
+        r2 <- couchRepo.getElectropherogramsByCode(globalCode)
+      }
+      yield {
+        if (!r1.equals(r2)) {
+          println("Mongo encuentra: " + r1)
+          println("Couch encuentra: " + r2)
+        } else {
+          println("getElectropherogramsByCode - Iguales")
+        }
+        r1
+      }
+    }
+  }
+
 
   override def getElectropherogramImage(
                                          profileId: SampleCode,
@@ -743,8 +758,23 @@ class MiddleProfileRepository @Inject () (
       analysisId
     )
 
-  override def getFullElectropherogramsByCode(globalCode: SampleCode): Future[List[FileInterconnection]] =
-    mongoRepo.getFullElectropherogramsByCode(globalCode)
+  override def getFullElectropherogramsByCode(globalCode: SampleCode): Future[List[FileInterconnection]] = {
+    {
+      for {
+        r1 <- mongoRepo.getFullElectropherogramsByCode(globalCode)
+        r2 <- couchRepo.getFullElectropherogramsByCode(globalCode)
+      }
+      yield {
+        if (!r1.equals(r2)) {
+          println("Mongo encuentra: " + r1)
+          println("Couch encuentra: " + r2)
+        } else {
+          println("getFullElectropherogramsByCode - Iguales")
+        }
+        r1
+      }
+    }
+  }
 
   override def getFullFilesByCode(globalCode: SampleCode): Future[List[FileInterconnection]] =
     mongoRepo.getFullFilesByCode(globalCode)
@@ -844,8 +874,23 @@ class MiddleProfileRepository @Inject () (
       labels
     )
 
-  override def existProfile(globalCode: SampleCode): Future[Boolean] =
-    mongoRepo.existProfile(globalCode)
+  override def existProfile(globalCode: SampleCode): Future[Boolean] = {
+    {
+      for {
+        r1 <- mongoRepo.existProfile(globalCode)
+        r2 <- couchRepo.existProfile(globalCode)
+      }
+      yield {
+        if (!r1.equals(r2)) {
+          println("Mongo: " + r1)
+          println("Couch: " + r2)
+        } else {
+          println("Iguales")
+        }
+        r1
+      }
+    }
+  }
 
   override def delete(globalCode: SampleCode): Future[Either[String, SampleCode]] =
     mongoRepo.delete(globalCode)
@@ -1039,7 +1084,46 @@ class CouchProfileRepository extends ProfileRepository {
                                     name: String
                                   ): Future[Either[String, SampleCode]] = ???
 
-  override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(String, String, String)]] = ???
+override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(String, String, String)]] = {
+    val query: JsValue = Json.obj(
+      "selector" -> Json.obj("profileId" -> globalCode.text),
+      "fields" -> Json.arr("_id", "analysisId", "name") // Specify fields to retrieve
+    )
+
+    val request = basicRequest
+      .post(uri"$baseUrl/_find")
+      .body(Json.stringify(query))
+      .header("Content-Type", "application/json")
+      .header("Accept", "application/json")
+      .auth.basic(username, password)
+
+    Future {
+      val response = request.send(backend)
+      response.body match {
+        case Right(docs) =>
+          val json = Json.parse(docs)
+          (json \ "docs").validate[List[JsValue]] match {
+            case JsSuccess(docList, _) =>
+              docList.map { doc =>
+                val id = (doc \ "_id").asOpt[String].getOrElse("")
+                val analysisId = (doc \ "analysisId").asOpt[String].getOrElse("")
+                val name = (doc \ "name").asOpt[String].getOrElse {
+                  // Fallback to the timestamp from `_id` if `name` is missing
+                  this.getDateFromTime(id.takeWhile(_.isDigit).toLong).toString
+                }
+                (id, analysisId, name)
+              }
+            case JsError(_) => List.empty // Handle JSON parsing errors
+          }
+        case Left(_) => List.empty // Handle HTTP errors
+      }
+    }
+  }
+
+  private def getDateFromTime(time: Long):String = {
+    var date = java.time.Instant.ofEpochMilli(time).atZone(java.time.ZoneId.systemDefault()).toLocalDateTime
+    return date.format(java.time.format.DateTimeFormatter.ISO_DATE_TIME)
+  }
 
   override def getElectropherogramImage(
                                          profileId: SampleCode,
@@ -1051,7 +1135,47 @@ class CouchProfileRepository extends ProfileRepository {
                                                  analysisId: String
                                                ): Future[List[FileUploadedType]] = ???
 
-  override def getFullElectropherogramsByCode(globalCode: SampleCode): Future[List[FileInterconnection]] = ???
+  override def getFullElectropherogramsByCode(globalCode: SampleCode): Future[List[connections.FileInterconnection]] = {
+    val query: JsValue = Json.obj(
+      "selector" -> Json.obj("profileId" -> globalCode.text),
+      "fields" -> Json.arr("_id", "analysisId", "name", "electropherogram") // Specify fields to retrieve
+    )
+
+    val request = basicRequest
+      .post(uri"$baseUrl/_find")
+      .body(Json.stringify(query))
+      .header("Content-Type", "application/json")
+      .header("Accept", "application/json")
+      .auth.basic(username, password)
+
+    Future {
+      val response = request.send(backend)
+      response.body match {
+        case Right(docs) =>
+          val json = Json.parse(docs)
+          (json \ "docs").validate[List[JsValue]] match {
+            case JsSuccess(docList, _) =>
+              docList.map { doc =>
+                connections.FileInterconnection(
+                  (doc \ "_id").asOpt[String].getOrElse(""),
+                  globalCode.text,
+                  (doc \ "analysisId").asOpt[String].getOrElse(""),
+                  (doc \ "name").asOpt[String],
+                  "ELECTROPHEROGRAM",
+                  (doc \ "electropherogram").asOpt[String].map { base64Encoded =>
+                    Base64.encodeBase64String(base64Encoded.getBytes("UTF-8")) // Encode electropherogram
+                  }.getOrElse("")
+                )
+              }
+            case JsError(_) =>
+              List.empty // Handle JSON parsing errors
+          }
+        case Left(_) =>
+          List.empty // Handle HTTP request errors
+      }
+    }
+  }
+
 
   override def getFullFilesByCode(globalCode: SampleCode): Future[List[FileInterconnection]] = ???
 
@@ -1140,7 +1264,35 @@ class CouchProfileRepository extends ProfileRepository {
                            labels: LabeledGenotypification
                          ): Future[SampleCode] = ???
 
-  override def existProfile(globalCode: SampleCode): Future[Boolean] = ???
+  override def existProfile(globalCode: SampleCode): Future[Boolean] = {
+    val query: JsValue = Json.obj(
+      "selector" -> Json.obj("_id" -> globalCode.text),
+      "limit" -> 1
+    )
+
+    val request = basicRequest
+      .post(uri"$baseUrl/_find")
+      .body(Json.stringify(query))
+      .header("Content-Type", "application/json")
+      .header("Accept", "application/json")
+      .auth.basic(username, password)
+
+    Future {
+      val response = request.send(backend)
+      response.body match {
+        case Right(docs) =>
+          val json = Json.parse(docs)
+          (json \ "docs").validate[List[JsValue]] match {
+            case JsSuccess(docList, _) => docList.nonEmpty
+            case JsError(errors) =>
+              throw new RuntimeException(s"Parsing error: $errors")
+          }
+        case Left(error) =>
+          throw new RuntimeException(s"HTTP request error: $error")
+      }
+    }
+  }
+
 
   override def delete(globalCode: SampleCode): Future[Either[String, SampleCode]] = ???
 
