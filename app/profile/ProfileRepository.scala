@@ -729,8 +729,8 @@ class MiddleProfileRepository @Inject () (
       }
       yield {
         if (!r1.equals(r2)) {
-          println("Mongo encuentra: " + r1)
-          println("Couch encuentra: " + r2)
+          println("getElectropherogramsByCode - Mongo encuentra: " + r1)
+          println("getElectropherogramsByCode - Couch encuentra: " + r2)
         } else {
           println("getElectropherogramsByCode - Iguales")
         }
@@ -743,11 +743,23 @@ class MiddleProfileRepository @Inject () (
   override def getElectropherogramImage(
                                          profileId: SampleCode,
                                          electropherogramId: String
-                                       ): Future[Option[Array[Byte]]] =
-    mongoRepo.getElectropherogramImage(
-      profileId,
-      electropherogramId
-    )
+                                       ): Future[Option[Array[Byte]]] = {
+    {
+      for {
+        r1 <- mongoRepo.getElectropherogramImage(profileId, electropherogramId)
+        r2 <- couchRepo.getElectropherogramImage(profileId, electropherogramId)
+      }
+      yield {
+        if (!r1.equals(r2)) {
+          println("getElectropherogramImage - Mongo encuentra: " + r1)
+          println("getElectropherogramImage - Couch encuentra: " + r2)
+        } else {
+          println("getElectropherogramImage - Iguales")
+        }
+        r1
+      }
+    }
+  }
 
   override def getElectropherogramsByAnalysisId(
                                                  profileId: SampleCode,
@@ -766,8 +778,8 @@ class MiddleProfileRepository @Inject () (
       }
       yield {
         if (!r1.equals(r2)) {
-          println("Mongo encuentra: " + r1)
-          println("Couch encuentra: " + r2)
+          println("getFullElectropherogramsByCode - Mongo encuentra: " + r1)
+          println("getFullElectropherogramsByCode - Couch encuentra: " + r2)
         } else {
           println("getFullElectropherogramsByCode - Iguales")
         }
@@ -776,8 +788,23 @@ class MiddleProfileRepository @Inject () (
     }
   }
 
-  override def getFullFilesByCode(globalCode: SampleCode): Future[List[FileInterconnection]] =
-    mongoRepo.getFullFilesByCode(globalCode)
+  override def getFullFilesByCode(globalCode: SampleCode): Future[List[FileInterconnection]] ={
+    {
+      for {
+        r1 <- mongoRepo.getFullFilesByCode(globalCode)
+        r2 <- couchRepo.getFullFilesByCode(globalCode)
+      }
+      yield {
+        if (!r1.equals(r2)) {
+          println("getFullFilesByCode - Mongo encuentra: " + r1)
+          println("getFullFilesByCode - Couch encuentra: " + r2)
+        } else {
+          println("getFullFilesByCode - Iguales")
+        }
+        r1
+      }
+    }
+  }
 
   override def addElectropherogramWithId(
                                           globalCode: SampleCode,
@@ -1128,8 +1155,40 @@ override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(St
   override def getElectropherogramImage(
                                          profileId: SampleCode,
                                          electropherogramId: String
-                                       ): Future[Option[Array[Byte]]] = ???
+                                       ): Future[Option[Array[Byte]]] =  {
+    val query: JsValue = Json.obj(
+      "selector" -> Json.obj(
+        "_id" -> electropherogramId,
+        "profileId" -> profileId.text
+      ),
+      "fields" -> Json.arr("electropherogram") // Specify the field to retrieve
+    )
 
+    val request = basicRequest
+      .post(uri"$baseUrl/_find")
+      .body(Json.stringify(query))
+      .header("Content-Type", "application/json")
+      .header("Accept", "application/json")
+      .auth.basic(username, password)
+
+    Future {
+      val response = request.send(backend)
+      response.body match {
+        case Right(docs) =>
+          val json = Json.parse(docs)
+          (json \ "docs").validate[List[JsValue]] match {
+            case JsSuccess(docList, _) =>
+              docList.headOption.flatMap { doc =>
+                (doc \ "electropherogram").asOpt[String].map { base64Encoded =>
+                  Base64.decodeBase64(base64Encoded) // Decode Base64 content
+                }
+              }
+            case JsError(_) => None // Handle JSON parsing errors
+          }
+        case Left(_) => None // Handle HTTP request errors
+      }
+    }
+  }
   override def getElectropherogramsByAnalysisId(
                                                  profileId: SampleCode,
                                                  analysisId: String
@@ -1176,8 +1235,47 @@ override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(St
     }
   }
 
+  override def getFullFilesByCode(globalCode: SampleCode): Future[List[FileInterconnection]] = {
+    val query: JsValue = Json.obj(
+      "selector" -> Json.obj("profileId" -> globalCode.text),
+      "fields" -> Json.arr("_id", "analysisId", "name", "content") // Specify fields to retrieve
+    )
 
-  override def getFullFilesByCode(globalCode: SampleCode): Future[List[FileInterconnection]] = ???
+    val request = basicRequest
+      .post(uri"$baseUrl/_find")
+      .body(Json.stringify(query))
+      .header("Content-Type", "application/json")
+      .header("Accept", "application/json")
+      .auth.basic(username, password)
+
+    Future {
+      val response = request.send(backend)
+      response.body match {
+        case Right(docs) =>
+          val json = Json.parse(docs)
+          (json \ "docs").validate[List[JsValue]] match {
+            case JsSuccess(docList, _) =>
+              docList.map { doc =>
+                connections.FileInterconnection(
+                  (doc \ "_id").asOpt[String].getOrElse(""),
+                  globalCode.text,
+                  (doc \ "analysisId").asOpt[String].getOrElse(""),
+                  (doc \ "name").asOpt[String],
+                  "FILE",
+                  (doc \ "content").asOpt[String].map { base64Encoded =>
+                    Base64.encodeBase64String(base64Encoded.getBytes("UTF-8")) // Encode content
+                  }.getOrElse("")
+                )
+              }
+            case JsError(_) =>
+              List.empty // Handle JSON parsing errors
+          }
+        case Left(_) =>
+          List.empty // Handle HTTP request errors
+      }
+    }
+  }
+
 
   override def addElectropherogramWithId(
                                           globalCode: SampleCode,
