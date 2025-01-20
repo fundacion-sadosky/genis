@@ -650,10 +650,10 @@ class MiddleProfileRepository @Inject () (
       }
       yield {
         if (!r1.equals(r2)) {
-          println("Mongo encuentra: " + r1)
-          println("Couch encuentra: " + r2)
+          println("get - Mongo encuentra: " + r1)
+          println("get - Couch encuentra: " + r2)
         } else {
-          println("Iguales")
+          println("get - Iguales")
         }
         r1
       }
@@ -667,26 +667,66 @@ class MiddleProfileRepository @Inject () (
                       laboratory: Option[String],
                       hourFrom: Option[Date],
                       hourUntil: Option[Date]
-                    ): Future[List[Profile]] =
-    mongoRepo.getBy(
-      user,
-      isSuperUser,
-      internalSampleCode,
-      categoryId,
-      laboratory,
-      hourFrom,
-      hourUntil
-    )
+                    ): Future[List[Profile]] = {
+      {
+        for {
+          r1 <- mongoRepo.getBy(
+            user,
+            isSuperUser,
+            internalSampleCode,
+            categoryId,
+            laboratory,
+            hourFrom,
+            hourUntil
+          )
+          r2 <- couchRepo.getBy(
+            user,
+            isSuperUser,
+            internalSampleCode,
+            categoryId,
+            laboratory,
+            hourFrom,
+            hourUntil
+          )
+        }
+        yield {
+          if (!r1.equals(r2)) {
+            println("getBy - Mongo encuentra: " + r1)
+            println("getBy - Couch encuentra: " + r2)
+          } else {
+            println("getBy - Iguales")
+          }
+          r1
+        }
+      }
+    }
 
   override def getBetweenDates (
                                  hourFrom: Option[Date],
                                  hourUntil: Option[Date]
-                               ): Future[List[Profile]] =
-    mongoRepo.getBetweenDates(
-      hourFrom,
-      hourUntil
-    )
-
+                               ): Future[List[Profile]] = {
+      {
+        for {
+          r1 <- mongoRepo.getBetweenDates(
+              hourFrom,
+              hourUntil
+            )
+          r2 <- couchRepo.getBetweenDates(
+            hourFrom,
+            hourUntil
+          )
+        }
+        yield {
+          if (!r1.equals(r2)) {
+            println("getBetweenDates - Mongo encuentra: " + r1)
+            println("getBetweenDates - Couch encuentra: " + r2)
+          } else {
+            println("getBetweenDates - Iguales")
+          }
+          r1
+        }
+      }
+    }
   override def findByCode(globalCode: SampleCode): Future[Option[Profile]] = {
     {
       for {
@@ -1133,30 +1173,114 @@ class MiddleProfileRepository @Inject () (
     }
   }
 
-  override def getFullFilesById(id: String): Future[List[FileInterconnection]] = mongoRepo.getFullFilesById(id)
+  override def getFullFilesById(id: String): Future[List[FileInterconnection]] = {
+    {
+      for {
+        r1 <-  mongoRepo.getFullFilesById(id)
 
-  override def getProfilesMarkers(profiles: Array[Profile]): List[String] = mongoRepo.getProfilesMarkers(profiles)
+        r2 <- couchRepo.getFullFilesById(id)
+      }
+      yield {
+        if (!r1.equals(r2)) {
+          println("getFullFilesById - Mongo: " + r1)
+          println("getFullFilesById - Couch: " + r2)
+        } else {
+          println("getFullFilesById - Iguales")
+        }
+        r1
+      }
+    }
+  }
+  override def getProfilesMarkers(profiles: Array[Profile]): List[String] = {
+    {
+      for {
+        r1 <-  mongoRepo.getProfilesMarkers(profiles)
+
+        r2 <- couchRepo.getProfilesMarkers(profiles)
+      }
+      yield {
+        if (!r1.equals(r2)) {
+          println("getProfilesMarkers - Mongo: " + r1)
+          println("getProfilesMarkers - Couch: " + r2)
+        } else {
+          println("getProfilesMarkers - Iguales")
+        }
+        r1
+      }
+    }
+  }
 
   override def removeFile(id: String): Future[Either[String, String]] = mongoRepo.removeFile(id)
 
   override def removeEpg(id: String): Future[Either[String, String]] = mongoRepo.removeEpg(id)
 
-  override def getProfileOwnerByFileId(id: String): Future[(String, SampleCode)] = mongoRepo.getProfileOwnerByFileId(id)
+  override def getProfileOwnerByFileId(id: String): Future[(String, SampleCode)] = {
+    {
+      for {
+        r1 <-  mongoRepo.getProfileOwnerByFileId(id)
 
-  override def getProfileOwnerByEpgId(id: String): Future[(String, SampleCode)] = mongoRepo.getProfileOwnerByEpgId(id)
+        r2 <- couchRepo.getProfileOwnerByFileId(id)
+      }
+      yield {
+        if (!r1.equals(r2)) {
+          println("getProfileOwnerByFileId - Mongo: " + r1)
+          println("getProfileOwnerByFileId - Couch: " + r2)
+        } else {
+          println("getProfileOwnerByFileId - Iguales")
+        }
+        r1
+      }
+    }
+  }
+  override def getProfileOwnerByEpgId(id: String): Future[(String, SampleCode)] = {
+    {
+      for {
+        r1 <-  mongoRepo.getProfileOwnerByEpgId(id)
 
-  override def getAllProfiles(): Future[List[(SampleCode, String)]] = mongoRepo.getAllProfiles()
+        r2 <- couchRepo.getProfileOwnerByEpgId(id)
+      }
+      yield {
+        if (!r1.equals(r2)) {
+          println("getProfileOwnerByEpgId - Mongo: " + r1)
+          println("getProfileOwnerByEpgId - Couch: " + r2)
+        } else {
+          println("getProfileOwnerByEpgId - Iguales")
+        }
+        r1
+      }
+    }
+  }
+  override def getAllProfiles(): Future[List[(SampleCode, String)]] = {
+    {
+      for {
+        r1 <-  mongoRepo.getAllProfiles()
+
+        r2 <- couchRepo.getAllProfiles()
+      }
+      yield {
+        if (!r1.equals(r2)) {
+          println("getAllProfiles - Mongo: " + r1)
+          println("getAllProfiles - Couch: " + r2)
+        } else {
+          println("getAllProfiles - Iguales")
+        }
+        r1
+      }
+    }
+  }
 }
 
 class CouchProfileRepository extends ProfileRepository {
   private val backend = HttpURLConnectionBackend()
-  private val baseUrl = "http://localhost:5984/profiles"
+  private val profilesUrl = "http://localhost:5984/profiles"
+  private val filesUrl = "http://localhost:5984/files"
+  private val electropherogramsUrl = "http://localhost:5984/electropherograms"
   val username = "admin"
   val password = "genisContra" // des-hardcodear esto
 
   override def get(id: SampleCode): Future[Option[Profile]] = {
     val request = basicRequest
-      .post(uri"$baseUrl/_find")
+      .post(uri"$profilesUrl/_find")
       .body(Map("selector" -> Map("_id" -> id.text)))
       .header("Accept", "application/json")
       .auth.basic(username, password)
@@ -1186,17 +1310,97 @@ class CouchProfileRepository extends ProfileRepository {
                       laboratory: Option[String],
                       hourFrom: Option[Date],
                       hourUntil: Option[Date]
-                    ): Future[List[Profile]] = ???
+                    ): Future[List[Profile]] = {
+    var selector = Json.obj("deleted" -> false)
+    if (internalSampleCode.isDefined && internalSampleCode.get.nonEmpty) {
+      selector = selector.+("internalSampleCode", JsString(internalSampleCode.get))
+    }
+    if (categoryId.isDefined && categoryId.get.nonEmpty) {
+      selector = selector.+("categoryId", JsString(categoryId.get))
+    }
+    val dateFilter = (hourFrom, hourUntil) match {
+      case (Some(hf), Some(hu)) => Some(Json.obj("$gte" -> MongoDate(hf), "$lte" -> MongoDate(hu)))
+      case (Some(hf), None) => Some(Json.obj("$gte" -> MongoDate(hf)))
+      case (None, Some(hu)) => Some(Json.obj("$lte" -> MongoDate(hu)))
+      case (None, None) => None
+    }
+    if (dateFilter.isDefined) {
+      selector = selector.+("analyses", Json.obj("$elemMatch" -> Json.obj("date" -> dateFilter.get)))
+    }
+    if (!isSuperUser) {
+      selector = selector.+("assignee", JsString(user))
+    }
+
+    val query = Json.obj("selector" -> selector)
+
+    val request = basicRequest
+      .post(uri"$profilesUrl/_find")
+      .body(Json.stringify(query))
+      .header("Content-Type", "application/json")
+      .header("Accept", "application/json")
+      .auth.basic(username, password)
+
+    Future {
+      val response = request.send(backend)
+      response.body match {
+        case Right(docs) =>
+          val json = Json.parse(docs)
+          (json \ "docs").validate[List[Profile]] match {
+            case JsSuccess(profileList, _) =>
+              if (laboratory.isDefined && laboratory.get.nonEmpty) {
+                profileList.filter(_.globalCode.text.contains(s"-${laboratory.get}-"))
+              } else {
+                profileList
+              }
+            case JsError(_) => List.empty
+          }
+        case Left(_) => List.empty
+      }
+    }
+  }
 
   override def getBetweenDates(
                                 hourFrom: Option[Date],
                                 hourUntil: Option[Date]
-                              ): Future[List[Profile]] = ???
+                              ): Future[List[Profile]] = {
+    var selector = Json.obj("deleted" -> false)
+    val dateFilter = (hourFrom, hourUntil) match {
+      case (Some(hf), Some(hu)) => Some(Json.obj("$gte" -> MongoDate(hf), "$lte" -> MongoDate(hu)))
+      case (Some(hf), None) => Some(Json.obj("$gte" -> MongoDate(hf)))
+      case (None, Some(hu)) => Some(Json.obj("$lte" -> MongoDate(hu)))
+      case (None, None) => None
+    }
+    if (dateFilter.isDefined) {
+      selector = selector.+("analyses", Json.obj("$elemMatch" -> Json.obj("date" -> dateFilter.get)))
+    }
+
+    val query = Json.obj("selector" -> selector)
+
+    val request = basicRequest
+      .post(uri"$profilesUrl/_find")
+      .body(Json.stringify(query))
+      .header("Content-Type", "application/json")
+      .header("Accept", "application/json")
+      .auth.basic(username, password)
+
+    Future {
+      val response = request.send(backend)
+      response.body match {
+        case Right(docs) =>
+          val json = Json.parse(docs)
+          (json \ "docs").validate[List[Profile]] match {
+            case JsSuccess(profileList, _) => profileList
+            case JsError(_) => List.empty
+          }
+        case Left(_) => List.empty
+      }
+    }
+  }
 
   override def findByCode(globalCode: SampleCode): Future[Option[Profile]] = {
 
     val request = basicRequest
-      .post(uri"$baseUrl/_find")
+      .post(uri"$profilesUrl/_find")
       .body(Map("selector" -> Map("globalCode" -> globalCode.text)))
       .header("Accept", "application/json")
       .auth.basic(username, password)
@@ -1232,7 +1436,7 @@ override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(St
     )
 
     val request = basicRequest
-      .post(uri"$baseUrl/_find")
+      .post(uri"$profilesUrl/_find")
       .body(Json.stringify(query))
       .header("Content-Type", "application/json")
       .header("Accept", "application/json")
@@ -1279,7 +1483,7 @@ override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(St
     )
 
     val request = basicRequest
-      .post(uri"$baseUrl/_find")
+      .post(uri"$profilesUrl/_find")
       .body(Json.stringify(query))
       .header("Content-Type", "application/json")
       .header("Accept", "application/json")
@@ -1316,7 +1520,7 @@ override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(St
     )
 
     val request = basicRequest
-      .post(uri"$baseUrl/_find")
+      .post(uri"$profilesUrl/_find")
       .body(Json.stringify(query))
       .header("Content-Type", "application/json")
       .header("Accept", "application/json")
@@ -1351,7 +1555,7 @@ override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(St
     )
 
     val request = basicRequest
-      .post(uri"$baseUrl/_find")
+      .post(uri"$profilesUrl/_find")
       .body(Json.stringify(query))
       .header("Content-Type", "application/json")
       .header("Accept", "application/json")
@@ -1392,7 +1596,7 @@ override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(St
     )
 
     val request = basicRequest
-      .post(uri"$baseUrl/_find")
+      .post(uri"$profilesUrl/_find")
       .body(Json.stringify(query))
       .header("Content-Type", "application/json")
       .header("Accept", "application/json")
@@ -1479,7 +1683,7 @@ override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(St
 
     val request = basicRequest
       .body(query)
-      .post(uri"$baseUrl/_find")
+      .post(uri"$profilesUrl/_find")
       .header("Accept", "application/json")
       .auth.basic(username, password)
 
@@ -1519,7 +1723,7 @@ override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(St
     )
 
     val request = basicRequest
-      .post(uri"$baseUrl/_find")
+      .post(uri"$profilesUrl/_find")
       .body(Json.stringify(query))
       .header("Content-Type", "application/json")
       .header("Accept", "application/json")
@@ -1551,7 +1755,7 @@ override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(St
     )
 
     val request = basicRequest
-      .post(uri"$baseUrl/_find")
+      .post(uri"$profilesUrl/_find")
       .body(Json.stringify(query))
       .header("Content-Type", "application/json")
       .header("Accept", "application/json")
@@ -1590,7 +1794,7 @@ override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(St
     )
 
     val request = basicRequest
-      .post(uri"$baseUrl/_find")
+      .post(uri"$profilesUrl/_find")
       .body(Json.stringify(query))
       .header("Content-Type", "application/json")
       .header("Accept", "application/json")
@@ -1630,7 +1834,7 @@ override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(St
     )
 
     val request = basicRequest
-      .post(uri"$baseUrl/_find")
+      .post(uri"$profilesUrl/_find")
       .body(Json.stringify(query))
       .header("Content-Type", "application/json")
       .header("Accept", "application/json")
@@ -1666,7 +1870,7 @@ override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(St
       // Build the CouchDB `_find` request
       val request = basicRequest
         .body(query)
-        .post(uri"$baseUrl/_find")
+        .post(uri"$profilesUrl/_find")
         .header("Accept", "application/json")
         .auth.basic(username, password)
 
@@ -1725,7 +1929,7 @@ override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(St
     )
 
     val request = basicRequest
-      .post(uri"$baseUrl/_find")
+      .post(uri"$profilesUrl/_find")
       .body(Json.stringify(query))
       .header("Content-Type", "application/json")
       .header("Accept", "application/json")
@@ -1765,7 +1969,7 @@ override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(St
     )
 
     val request = basicRequest
-      .post(uri"$baseUrl/_find")
+      .post(uri"$profilesUrl/_find")
       .body(Json.stringify(query))
       .header("Content-Type", "application/json")
       .header("Accept", "application/json")
@@ -1803,7 +2007,7 @@ override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(St
     )
 
     val request = basicRequest
-      .post(uri"$baseUrl/_find")
+      .post(uri"$profilesUrl/_find")
       .body(Json.stringify(query))
       .header("Content-Type", "application/json")
       .header("Accept", "application/json")
@@ -1839,7 +2043,7 @@ override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(St
     )
 
     val request = basicRequest
-      .post(uri"$baseUrl/_find")
+      .post(uri"$electropherogramsUrl/_find")
       .body(Json.stringify(query))
       .header("Content-Type", "application/json")
       .header("Accept", "application/json")
@@ -1868,17 +2072,124 @@ override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(St
       }
     }
   }
-  override def getFullFilesById(id: String): Future[List[FileInterconnection]] = ???
+  override def getFullFilesById(id: String): Future[List[FileInterconnection]] = {
+    val query: JsValue = Json.obj(
+      "selector" -> Json.obj("_id" -> id),
+      "fields" -> Json.arr("profileId", "analysisId", "name", "content") // Specify fields to retrieve
+    )
 
-  override def getProfilesMarkers(profiles: Array[Profile]): List[String] = ???
+    val request = basicRequest
+      .post(uri"$filesUrl/_find")
+      .body(Json.stringify(query))
+      .header("Content-Type", "application/json")
+      .header("Accept", "application/json")
+      .auth.basic(username, password)
 
+    Future {
+      val response = request.send(backend)
+      response.body match {
+        case Right(docs) =>
+          val json = Json.parse(docs)
+          (json \ "docs").validate[List[JsValue]] match {
+            case JsSuccess(docList, _) =>
+              docList.map { doc =>
+                connections.FileInterconnection(
+                  id,
+                  (doc \ "profileId").as[String],
+                  (doc \ "analysisId").as[String],
+                  (doc \ "name").asOpt[String],
+                  "FILE",
+                  (doc \ "content").as[String]
+                )
+              }
+            case JsError(_) => List.empty // Handle JSON parsing errors
+          }
+        case Left(_) => List.empty // Handle HTTP request errors
+      }
+    }
+  }
+
+  override def getProfilesMarkers(profiles: Array[Profile]): List[String] = {
+    profiles.flatMap(x => {
+      x.genotypification.get(1).map(result => {
+        result.keySet.map(_.toString)
+      }).getOrElse(Nil).toList
+    }).toSet.toList
+  }
   override def removeFile(id: String): Future[Either[String, String]] = ???
 
   override def removeEpg(id: String): Future[Either[String, String]] = ???
 
-  override def getProfileOwnerByFileId(id: String): Future[(String, SampleCode)] = ???
+  def getProfileOwnerByFileId(id: String): Future[(String,SampleCode)] = {
+    this.getProfileOwnerByEpgOrFileId(id,filesUrl);
+  }
+  def getProfileOwnerByEpgId(id: String): Future[(String,SampleCode)] = {
+    this.getProfileOwnerByEpgOrFileId(id,electropherogramsUrl);
+  }
+  def getProfileOwnerByEpgOrFileId(id: String, url: String): Future[(String,SampleCode)] = {
+    val query: JsValue = Json.obj(
+      "selector" -> Json.obj("_id" -> id),
+      "fields" -> Json.arr("profileId") // Specify the field to retrieve
+    )
 
-  override def getProfileOwnerByEpgId(id: String): Future[(String, SampleCode)] = ???
+    val request = basicRequest
+      .post(uri"$url/_find")
+      .body(Json.stringify(query))
+      .header("Content-Type", "application/json")
+      .header("Accept", "application/json")
+      .auth.basic(username, password)
 
-  override def getAllProfiles(): Future[List[(SampleCode, String)]] = ???
+    Future {
+      val response = request.send(backend)
+      response.body match {
+        case Right(docs) =>
+          val json = Json.parse(docs)
+          (json \ "docs").validate[List[JsObject]] match {
+            case JsSuccess(docsList, _) =>
+              docsList.headOption match {
+                case Some(doc) =>
+                  val profileId = (doc \ "profileId").as[String]
+                  get(SampleCode(profileId)).map {
+                    case Some(profile) => (profile.assignee, profile.globalCode)
+                    case None => ("", SampleCode(""))
+                  }
+                case None => Future.successful(("", SampleCode("")))
+              }
+            case JsError(_) => Future.successful(("", SampleCode("")))
+          }
+        case Left(_) => Future.successful(("", SampleCode("")))
+      }
+    }.flatMap(identity)
+  }
+  override def getAllProfiles(): Future[List[(SampleCode, String)]] = {
+    val query: JsValue = Json.obj(
+      "selector" -> Json.obj(),
+      "fields" -> Json.arr("globalCode", "categoryId") // Specify fields to retrieve
+    )
+
+    val request = basicRequest
+      .post(uri"$profilesUrl/_find")
+      .body(Json.stringify(query))
+      .header("Content-Type", "application/json")
+      .header("Accept", "application/json")
+      .auth.basic(username, password)
+
+    Future {
+      val response = request.send(backend)
+      response.body match {
+        case Right(docs) =>
+          val json = Json.parse(docs)
+          (json \ "docs").validate[List[JsObject]] match {
+            case JsSuccess(docsList, _) =>
+              docsList.map { doc =>
+                val globalCode = (doc \ "globalCode").as[String]
+                val categoryId = (doc \ "categoryId").as[String]
+                (SampleCode(globalCode), categoryId)
+              }
+            case JsError(_) => List.empty
+          }
+        case Left(_) => List.empty
+      }
+    }
+  }
 }
