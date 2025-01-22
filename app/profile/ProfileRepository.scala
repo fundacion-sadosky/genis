@@ -745,21 +745,56 @@ class MiddleProfileRepository @Inject () (
     }
   }
 
-  override def add(profile: Profile): Future[SampleCode] =
-    mongoRepo.add(profile)
+  override def add(profile: Profile): Future[SampleCode] = {
+      {
+        for {
+          r1 <- mongoRepo.add(profile)
+          r2 <- couchRepo.add(profile)
+        }
+        yield {
+          if (!r1.equals(r2)) {
+            println("add - Mongo encuentra: " + r1)
+            println("add - Couch encuentra: " + r2)
+          } else {
+            println("add - Iguales")
+          }
+          r1
+        }
+      }
+    }
 
   override def addElectropherogram(
                                     globalCode: SampleCode,
                                     analysisId: String,
                                     image: Array[Byte],
                                     name: String
-                                  ): Future[Either[String, SampleCode]] =
-    mongoRepo.addElectropherogram(
-      globalCode,
-      analysisId,
-      image,
-      name
-    )
+                                  ): Future[Either[String, SampleCode]] = {
+      {
+        for {
+          r1 <- mongoRepo.addElectropherogram(
+            globalCode,
+            analysisId,
+            image,
+            name
+          )
+          r2 <- couchRepo.addElectropherogram(
+            globalCode,
+            analysisId,
+            image,
+            name
+          )
+        }
+        yield {
+          if (!r1.equals(r2)) {
+            println("addElectropherogram - Mongo encuentra: " + r1)
+            println("addElectropherogram - Couch encuentra: " + r2)
+          } else {
+            println("addElectropherogram - Iguales")
+          }
+          r1
+        }
+      }
+    }
 
   override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(String, String, String)]] = {
     {
@@ -840,7 +875,7 @@ class MiddleProfileRepository @Inject () (
     }
   }
 
-  override def getFullFilesByCode(globalCode: SampleCode): Future[List[FileInterconnection]] ={
+  override def getFullFilesByCode(globalCode: SampleCode): Future[List[FileInterconnection]] = {
     {
       for {
         r1 <- mongoRepo.getFullFilesByCode(globalCode)
@@ -864,29 +899,70 @@ class MiddleProfileRepository @Inject () (
                                           image: Array[Byte],
                                           name: String,
                                           id: String
-                                        ): Future[Either[String, SampleCode]] =
-    mongoRepo.addElectropherogramWithId(
-      globalCode,
-      analysisId,
-      image,
-      name,
-      id
-    )
-
+                                        ): Future[Either[String, SampleCode]] = {
+      {
+        for {
+          r1 <- mongoRepo.addElectropherogramWithId(
+            globalCode,
+            analysisId,
+            image,
+            name,
+            id
+          )
+          r2 <- couchRepo.addElectropherogramWithId(
+            globalCode,
+            analysisId,
+            image,
+            name,
+            id
+          )
+        }
+        yield {
+          if (!r1.equals(r2)) {
+            println("addElectropherogramWithId - Mongo encuentra: " + r1)
+            println("addElectropherogramWithId - Couch encuentra: " + r2)
+          } else {
+            println("addElectropherogramWithId - Iguales")
+          }
+          r1
+        }
+      }
+    }
   override def addFileWithId(
                               globalCode: SampleCode,
                               analysisId: String,
                               image: Array[Byte],
                               name: String,
                               id: String
-                            ): Future[Either[String, SampleCode]] =
-    mongoRepo.addFileWithId(
-      globalCode,
-      analysisId,
-      image,
-      name,
-      id
-    )
+                            ): Future[Either[String, SampleCode]] = {
+      {
+        for {
+          r1 <- mongoRepo.addFileWithId(
+            globalCode,
+            analysisId,
+            image,
+            name,
+            id
+          )
+          r2 <- couchRepo.addFileWithId(
+            globalCode,
+            analysisId,
+            image,
+            name,
+            id
+          )
+        }
+        yield {
+          if (!r1.equals(r2)) {
+            println("addFileWithId - Mongo encuentra: " + r1)
+            println("addFileWithId - Couch encuentra: " + r2)
+          } else {
+            println("addFileWithId - Iguales")
+          }
+          r1
+        }
+      }
+    }
 
   override def getGenotyficationByCode(globalCode: SampleCode): Future[Option[GenotypificationByType]] = ???
 //  Out of use
@@ -917,10 +993,10 @@ class MiddleProfileRepository @Inject () (
       }
       yield {
         if (!r1.equals(r2)) {
-          println("Mongo: " + r1)
-          println("Couch: " + r2)
+          println("findByCodes - Mongo: " + r1)
+          println("findByCodes - Couch: " + r2)
         } else {
-          println("Iguales")
+          println("findByCodes - Iguales")
         }
         r1
       }
@@ -934,24 +1010,65 @@ class MiddleProfileRepository @Inject () (
                             labeledGenotypification: Option[LabeledGenotypification],
                             matchingRules: Option[Seq[MatchingRule]],
                             mismatches: Option[Mismatch]
-                          ): Future[SampleCode] =
-    mongoRepo.addAnalysis(
-      _id,
-      analysis,
-      genotypification,
-      labeledGenotypification,
-      matchingRules,
-      mismatches
-    )
+                          ): Future[SampleCode] = {
+      {
+        for {
+          r1 <- mongoRepo.addAnalysis(
+            _id,
+            analysis,
+            genotypification,
+            labeledGenotypification,
+            matchingRules,
+            mismatches
+          )
+          r2 <- couchRepo.addAnalysis(
+            _id,
+            analysis,
+            genotypification,
+            labeledGenotypification,
+            matchingRules,
+            mismatches
+          )
+        }
+        yield {
+          if (!r1.equals(r2)) {
+            println("addAnalysis - Mongo: " + r1)
+            println("addAnalysis - Couch: " + r2)
+          } else {
+            println("addAnalysis - Iguales")
+          }
+          r1
+        }
+      }
+    }
 
   override def saveLabels(
                            globalCode: SampleCode,
                            labels: LabeledGenotypification
-                         ): Future[SampleCode] =
-    mongoRepo.saveLabels(
-      globalCode,
-      labels
-    )
+                         ): Future[SampleCode] = {
+      {
+        for {
+          r1 <-  mongoRepo.saveLabels(
+            globalCode,
+            labels
+          )
+          r2 <- couchRepo.saveLabels(
+            globalCode,
+            labels
+          )
+        }
+        yield {
+          if (!r1.equals(r2)) {
+            println("saveLabels - Mongo: " + r1)
+            println("saveLabels - Couch: " + r2)
+          } else {
+            println("saveLabels - Iguales")
+          }
+          r1
+        }
+      }
+    }
+
 
   override def existProfile(globalCode: SampleCode): Future[Boolean] = {
     {
@@ -971,8 +1088,22 @@ class MiddleProfileRepository @Inject () (
     }
   }
 
-  override def delete(globalCode: SampleCode): Future[Either[String, SampleCode]] =
-    mongoRepo.delete(globalCode)
+  override def delete(globalCode: SampleCode): Future[Either[String, SampleCode]] = {
+      for {
+        r1 <- mongoRepo.delete(globalCode)
+        r2 <- couchRepo.delete(globalCode)
+      }
+      yield {
+        if (!r1.equals(r2)) {
+          println("delete - Mongo: " + r1)
+          println("delete - Couch: " + r2)
+        } else {
+          println("delete - Iguales")
+        }
+        r1
+      }
+    }
+
 
   override def getLabels(globalCode: SampleCode): Future[Option[LabeledGenotypification]] = {
     {
@@ -1420,14 +1551,59 @@ class CouchProfileRepository extends ProfileRepository {
       }
     }
   }
-  override def add(profile: Profile): Future[SampleCode] = ???
+  override def add(profile: Profile): Future[SampleCode] = {
+    val request = basicRequest
+      .put(uri"$profilesUrl/${profile._id.text}")
+      .body(Json.stringify(Json.toJson(profile)))
+      .header("Content-Type", "application/json")
+      .header("Accept", "application/json")
+      .auth.basic(username, password)
+
+    Future {
+      val response = request.send(backend)
+      response.body match {
+        case Right(_) => profile._id
+        case Left(error) => throw new RuntimeException(s"Error adding profile to CouchDB: $error")
+      }
+    }
+  }
 
   override def addElectropherogram(
                                     globalCode: SampleCode,
                                     analysisId: String,
                                     image: Array[Byte],
                                     name: String
-                                  ): Future[Either[String, SampleCode]] = ???
+                                  ): Future[Either[String, SampleCode]] = {
+    val electropherogramData = if (name != null) {
+      Json.obj(
+        "profileId" -> globalCode.text,
+        "analysisId" -> analysisId,
+        "electropherogram" -> Base64.encodeBase64String(image),
+        "name" -> name
+      )
+    } else {
+      Json.obj(
+        "profileId" -> globalCode.text,
+        "analysisId" -> analysisId,
+        "electropherogram" -> Base64.encodeBase64String(image)
+      )
+    }
+
+    val request = basicRequest
+      .post(uri"$electropherogramsUrl")
+      .body(Json.stringify(electropherogramData))
+      .header("Content-Type", "application/json")
+      .header("Accept", "application/json")
+      .auth.basic(username, password)
+
+    Future {
+      val response = request.send(backend)
+      response.body match {
+        case Right(_) => Right(globalCode)
+        case Left(error) => Left(s"Error adding electropherogram to CouchDB: $error")
+      }
+    }
+  }
 
 override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(String, String, String)]] = {
     val query: JsValue = Json.obj(
@@ -1637,7 +1813,39 @@ override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(St
                                           image: Array[Byte],
                                           name: String,
                                           id: String
-                                        ): Future[Either[String, SampleCode]] = ???
+                                        ): Future[Either[String, SampleCode]] = {
+    val electropherogramData = if (name != null) {
+      Json.obj(
+        "_id" -> id,
+        "profileId" -> globalCode.text,
+        "analysisId" -> analysisId,
+        "electropherogram" -> Base64.encodeBase64String(image),
+        "name" -> name
+      )
+    } else {
+      Json.obj(
+        "_id" -> id,
+        "profileId" -> globalCode.text,
+        "analysisId" -> analysisId,
+        "electropherogram" -> Base64.encodeBase64String(image)
+      )
+    }
+
+    val request = basicRequest
+      .put(uri"$electropherogramsUrl/$id")
+      .body(Json.stringify(electropherogramData))
+      .header("Content-Type", "application/json")
+      .header("Accept", "application/json")
+      .auth.basic(username, password)
+
+    Future {
+      val response = request.send(backend)
+      response.body match {
+        case Right(_) => Right(globalCode)
+        case Left(error) => Left(s"Error adding electropherogram to CouchDB: $error")
+      }
+    }
+  }
 
   override def addFileWithId(
                               globalCode: SampleCode,
@@ -1645,7 +1853,30 @@ override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(St
                               image: Array[Byte],
                               name: String,
                               id: String
-                            ): Future[Either[String, SampleCode]] = ???
+                            ): Future[Either[String, SampleCode]] = {
+    val fileData = Json.obj(
+      "_id" -> id,
+      "profileId" -> globalCode.text,
+      "analysisId" -> analysisId,
+      "content" -> Base64.encodeBase64String(image),
+      "name" -> name
+    )
+
+    val request = basicRequest
+      .put(uri"$filesUrl/$id")
+      .body(Json.stringify(fileData))
+      .header("Content-Type", "application/json")
+      .header("Accept", "application/json")
+      .auth.basic(username, password)
+
+    Future {
+      val response = request.send(backend)
+      response.body match {
+        case Right(_) => Right(globalCode)
+        case Left(error) => Left(s"Error adding file to CouchDB: $error")
+      }
+    }
+  }
 
   override def getGenotyficationByCode(globalCode: SampleCode): Future[Option[GenotypificationByType]] = ???
 // Out of use
@@ -1709,12 +1940,58 @@ override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(St
                             labeledGenotypification: Option[LabeledGenotypification],
                             matchingRules: Option[Seq[MatchingRule]],
                             mismatches: Option[Mismatch]
-                          ): Future[SampleCode] = ???
+                          ): Future[SampleCode] = {
+    val updateData = Json.obj(
+      "genotypification" -> genotypification,
+      "labeledGenotypification" -> labeledGenotypification,
+      "matchingRules" -> matchingRules,
+      "mismatches" -> mismatches,
+      "matcheable" -> false,
+      "processed" -> false,
+      "analyses" -> Json.arr(analysis)
+    )
+
+    val request = basicRequest
+      .put(uri"$profilesUrl/${_id.text}")
+      .body(Json.stringify(Json.obj("$set" -> updateData)))
+      .header("Content-Type", "application/json")
+      .header("Accept", "application/json")
+      .auth.basic(username, password)
+
+    Future {
+      val response = request.send(backend)
+      response.body match {
+        case Right(_) => _id
+        case Left(error) => throw new RuntimeException(s"Error adding analysis to CouchDB: $error")
+      }
+    }
+  }
 
   override def saveLabels(
                            globalCode: SampleCode,
                            labels: LabeledGenotypification
-                         ): Future[SampleCode] = ???
+                         ): Future[SampleCode] = {
+    val updateData = Json.obj(
+      "labeledGenotypification" -> labels,
+      "matcheable" -> false,
+      "processed" -> false
+    )
+
+    val request = basicRequest
+      .put(uri"$profilesUrl/${globalCode.text}")
+      .body(Json.stringify(Json.obj("$set" -> updateData)))
+      .header("Content-Type", "application/json")
+      .header("Accept", "application/json")
+      .auth.basic(username, password)
+
+    Future {
+      val response = request.send(backend)
+      response.body match {
+        case Right(_) => globalCode
+        case Left(error) => throw new RuntimeException(s"Error saving labels to CouchDB: $error")
+      }
+    }
+  }
 
   override def existProfile(globalCode: SampleCode): Future[Boolean] = {
     val query: JsValue = Json.obj(
@@ -1746,7 +2023,26 @@ override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(St
   }
 
 
-  override def delete(globalCode: SampleCode): Future[Either[String, SampleCode]] = ???
+  override def delete(globalCode: SampleCode): Future[Either[String, SampleCode]] = {
+    val updateData = Json.obj(
+      "deleted" -> true
+    )
+
+    val request = basicRequest
+      .put(uri"$profilesUrl/${globalCode.text}")
+      .body(Json.stringify(Json.obj("$set" -> updateData)))
+      .header("Content-Type", "application/json")
+      .header("Accept", "application/json")
+      .auth.basic(username, password)
+
+    Future {
+      val response = request.send(backend)
+      response.body match {
+        case Right(_) => Right(globalCode)
+        case Left(error) => Left(s"Error deleting profile from CouchDB: $error")
+      }
+    }
+  }
 
   override def getLabels(globalCode: SampleCode): Future[Option[LabeledGenotypification]] = {
     val query: JsValue = Json.obj(

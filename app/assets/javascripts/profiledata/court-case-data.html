@@ -12,15 +12,20 @@
 	</div>
 
 	<div class="item-input">
-		<label for="crimeType">Tipo de delito</label> <select id="crimeType" data-ng-disabled="mode == 'readonly'"
-			data-ng-model="$parent.profileData.crimeType" class="form-control form-select"
-			data-ng-options="ctId as ct.name for (ctId, ct) in crimeTypes | orderBy:['ct','name']"></select>
+		<label for="crimeType">Tipo de delito</label>
+		<select id="crimeType" data-ng-disabled="mode == 'readonly'"
+				data-ng-model="$parent.profileData.crimeType"
+				class="form-control form-select"
+				data-ng-options="ct.id as ct.name for ct in crimeTypes | orderBy:'name'">
+		</select>
 	</div>
 
 	<div class="item-input">
-		<label for="crimeInvolved">Delito involucrado</label> <select id="crimeInvolved" data-ng-disabled="mode == 'readonly'"
-			data-ng-model="$parent.profileData.crimeInvolved" class="form-control form-select"
-			data-ng-options="sc.id as sc.name for sc in crimeTypes[profileData.crimeType].crimes | orderBy:'name'">
+		<label for="crimeInvolved">Delito involucrado</label>
+		<select id="crimeInvolved" data-ng-disabled="mode == 'readonly'"
+				data-ng-model="$parent.profileData.crimeInvolved"
+				class="form-control form-select"
+				data-ng-options="sc.id as sc.name for sc in crimesInvolved | orderBy:'name'">
 		</select>
 	</div>
 
