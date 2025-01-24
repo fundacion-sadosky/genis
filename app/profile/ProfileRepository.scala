@@ -2024,22 +2024,42 @@ override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(St
 
 
   override def delete(globalCode: SampleCode): Future[Either[String, SampleCode]] = {
-    val updateData = Json.obj(
-      "deleted" -> true
-    )
-
-    val request = basicRequest
-      .put(uri"$profilesUrl/${globalCode.text}")
-      .body(Json.stringify(Json.obj("$set" -> updateData)))
-      .header("Content-Type", "application/json")
+    val getRequest = basicRequest
+      .get(uri"$profilesUrl/${globalCode.text}")
       .header("Accept", "application/json")
       .auth.basic(username, password)
 
     Future {
-      val response = request.send(backend)
-      response.body match {
-        case Right(_) => Right(globalCode)
-        case Left(error) => Left(s"Error deleting profile from CouchDB: $error")
+      val getResponse = getRequest.send(backend)
+      getResponse.body match {
+        case Right(body) =>
+          parse(body) match {
+            case Right(json) =>
+              val rev = (json \\ "_rev").headOption.flatMap(_.asString)
+              rev match {
+                case Some(revision) =>
+                  val updateData = Json.obj(
+                    "deleted" -> true,
+                    "_rev" -> revision
+                  )
+
+                  val updateRequest = basicRequest
+                    .put(uri"$profilesUrl/${globalCode.text}")
+                    .body(Json.stringify(updateData))
+                    .header("Content-Type", "application/json")
+                    .header("Accept", "application/json")
+                    .auth.basic(username, password)
+
+                  val updateResponse = updateRequest.send(backend)
+                  updateResponse.body match {
+                    case Right(_) => Right(globalCode)
+                    case Left(error) => Left(s"Error updating profile in CouchDB: $error")
+                  }
+                case None => Left("Error retrieving document revision for update.")
+              }
+            case Left(error) => Left(s"Error parsing JSON: $error")
+          }
+        case Left(error) => Left(s"Error retrieving profile from CouchDB: $error")
       }
     }
   }
