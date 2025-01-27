@@ -149,7 +149,6 @@ class MongoProfileRepository extends ProfileRepository {
 //  }
 
   def findByCode(globalCode: SampleCode): Future[Option[Profile]] = {
-    //println("Mongo busca: " + globalCode.text)
     profiles
       .find(Json.obj("globalCode" -> globalCode))
       .sort(Json.obj("globalCode" -> -1))
@@ -2024,43 +2023,60 @@ override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(St
 
 
   override def delete(globalCode: SampleCode): Future[Either[String, SampleCode]] = {
-    val getRequest = basicRequest
-      .get(uri"$profilesUrl/${globalCode.text}")
+    // Primero, obtenemos el documento que queremos actualizar
+    val findRequest = basicRequest
+      .post(uri"$profilesUrl/_find")
+      .body(Json.obj("selector" -> Json.obj("_id" -> globalCode.text)).toString)
+      .header("Content-Type", "application/json")
       .header("Accept", "application/json")
       .auth.basic(username, password)
 
-    Future {
-      val getResponse = getRequest.send(backend)
-      getResponse.body match {
-        case Right(body) =>
-          parse(body) match {
-            case Right(json) =>
-              val rev = (json \\ "_rev").headOption.flatMap(_.asString)
-              rev match {
-                case Some(revision) =>
-                  val updateData = Json.obj(
-                    "deleted" -> true,
-                    "_rev" -> revision
-                  )
+    val findResponse = findRequest.send(backend)
 
-                  val updateRequest = basicRequest
-                    .put(uri"$profilesUrl/${globalCode.text}")
-                    .body(Json.stringify(updateData))
-                    .header("Content-Type", "application/json")
-                    .header("Accept", "application/json")
-                    .auth.basic(username, password)
+    findResponse.body match {
+      case Right(profiles) =>
+        val json = Json.parse(profiles)
+        (json \ "docs").validate[List[Profile]] match {
+          case JsSuccess(profileList, _) =>
+            profileList.headOption match {
+              case Some(profile) =>
+                // Extraemos el campo `_rev` del documento
+                val revision = (json \ "docs")(0) \ "_rev"
+                revision.asOpt[String] match {
+                  case Some(rev) =>
+                    // Modificamos el campo `deleted` a `true` en el perfil
+                    val updatedProfile = profile.copy(deleted = true)
 
-                  val updateResponse = updateRequest.send(backend)
-                  updateResponse.body match {
-                    case Right(_) => Right(globalCode)
-                    case Left(error) => Left(s"Error updating profile in CouchDB: $error")
-                  }
-                case None => Left("Error retrieving document revision for update.")
-              }
-            case Left(error) => Left(s"Error parsing JSON: $error")
-          }
-        case Left(error) => Left(s"Error retrieving profile from CouchDB: $error")
-      }
+                    // Convertimos el perfil actualizado a JSON y añadimos el campo `_rev`
+                    val updatedProfileJson = Json.toJson(updatedProfile).as[JsObject] ++ Json.obj("_rev" -> rev)
+
+                    // Enviamos la actualización a CouchDB
+                    val updateRequest = basicRequest
+                      .put(uri"$profilesUrl/${profile._id.text}")
+                      .body(updatedProfileJson.toString)
+                      .header("Content-Type", "application/json")
+                      .header("Accept", "application/json")
+                      .auth.basic(username, password)
+
+                    val updateResponse = updateRequest.send(backend)
+
+                    updateResponse.body match {
+                      case Right(_) => Future.successful(Right(globalCode))
+                      case Left(error) => Future.successful(Left(error))
+                    }
+
+                  case None =>
+                    Future.successful(Left("Document revision not found"))
+                }
+
+              case None =>
+                Future.successful(Left("Document not found"))
+            }
+          case JsError(errors) =>
+            Future.successful(Left(s"JSON parsing error: $errors"))
+        }
+      case Left(error) =>
+        Future.successful(Left(error))
     }
   }
 
