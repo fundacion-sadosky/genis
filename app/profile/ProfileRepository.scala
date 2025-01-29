@@ -1126,14 +1126,47 @@ class MiddleProfileRepository @Inject () (
   override def updateAssocTo(
                               globalCode: SampleCode,
                               to: SampleCode
-                            ): Future[(String, String, SampleCode)] =
-    mongoRepo.updateAssocTo(
-      globalCode,
-      to
-    )
+                            ): Future[(String, String, SampleCode)] = {
+      {
+        for {
+          r1 <- mongoRepo.updateAssocTo(
+            globalCode,
+            to
+          )
+          r2 <- couchRepo.updateAssocTo(
+            globalCode,
+            to
+          )
+        }
+        yield {
+          if (!r1.equals(r2)) {
+            println("updateAssocTo - Mongo: " + r1)
+            println("updateAssocTo - Couch: " + r2)
+          } else {
+            println("updateAssocTo - Iguales")
+          }
+          r1
+        }
+      }
+    }
 
-  override def setMatcheableAndProcessed(globalCode: SampleCode): Future[Either[String, SampleCode]] =
-    mongoRepo.setMatcheableAndProcessed(globalCode)
+  override def setMatcheableAndProcessed(globalCode: SampleCode): Future[Either[String, SampleCode]] ={
+    {
+      for {
+        r1 <- mongoRepo.setMatcheableAndProcessed(globalCode)
+        r2 <- couchRepo.setMatcheableAndProcessed(globalCode)
+      }
+      yield {
+        if (!r1.equals(r2)) {
+          println("setMatcheableAndProcessed - Mongo: " + r1)
+          println("setMatcheableAndProcessed - Couch: " + r2)
+        } else {
+          println("setMatcheableAndProcessed - Iguales")
+        }
+        r1
+      }
+    }
+  }
 
   override def getUnprocessed(): Future[Seq[SampleCode]] = {
     {
@@ -1143,10 +1176,10 @@ class MiddleProfileRepository @Inject () (
       }
       yield {
         if (!r1.equals(r2)) {
-          println("Mongo: " + r1)
-          println("Couch: " + r2)
+          println("getUnprocessed - Mongo: " + r1)
+          println("getUnprocessed - Couch: " + r2)
         } else {
-          println("Iguales")
+          println("getUnprocessed - Iguales")
         }
         r1
       }
@@ -2113,10 +2146,126 @@ override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(St
   override def updateAssocTo(
                               globalCode: SampleCode,
                               to: SampleCode
-                            ): Future[(String, String, SampleCode)] = ???
+                            ): Future[(String, String, SampleCode)] = {
+    // Primero, obtenemos el documento que queremos actualizar
+    val findRequest = basicRequest
+      .post(uri"$profilesUrl/_find")
+      .body(Json.obj("selector" -> Json.obj("_id" -> globalCode.text)).toString)
+      .header("Content-Type", "application/json")
+      .header("Accept", "application/json")
+      .auth.basic(username, password)
 
-  override def setMatcheableAndProcessed(globalCode: SampleCode): Future[Either[String, SampleCode]] = ???
+    Future {
+      val findResponse = findRequest.send(backend)
 
+      findResponse.body match {
+        case Right(profiles) =>
+          val json = Json.parse(profiles)
+          (json \ "docs").validate[List[Profile]] match {
+            case JsSuccess(profileList, _) =>
+              profileList.headOption match {
+                case Some(profile) =>
+                  // Extraemos el campo `_rev` del documento
+                  val revision = (json \ "docs")(0) \ "_rev"
+                  revision.asOpt[String] match {
+                    case Some(rev) =>
+                      // Modificamos el campo `associatedTo` añadiendo el nuevo valor
+                      val updatedAssociatedTo = profile.associatedTo match {
+                        case Some(list) => Some(list :+ to)
+                        case None => Some(List(to))
+                      }
+                      val updatedProfileJson = Json.toJson(profile).as[JsObject] ++ Json.obj(
+                        "_rev" -> rev,
+                        "associatedTo" -> updatedAssociatedTo
+                      )
+
+                      // Enviamos la actualización a CouchDB
+                      val updateRequest = basicRequest
+                        .put(uri"$profilesUrl/${profile._id.text}")
+                        .body(updatedProfileJson.toString)
+                        .header("Content-Type", "application/json")
+                        .header("Accept", "application/json")
+                        .auth.basic(username, password)
+
+                      val updateResponse = updateRequest.send(backend)
+
+                      updateResponse.body match {
+                        case Right(_) =>
+                          val assignee = profile.assignee
+                          val internalSampleCode = profile.internalSampleCode
+                          val globalCode = SampleCode(profile.globalCode.text)
+                          (assignee, internalSampleCode, globalCode)
+                        case Left(error) => throw new RuntimeException(error)
+                      }
+
+                    case None => throw new RuntimeException("Document revision not found")
+                  }
+
+                case None => throw new RuntimeException("Document not found")
+              }
+            case JsError(errors) => throw new RuntimeException(s"JSON parsing error: $errors")
+          }
+        case Left(error) => throw new RuntimeException(error)
+      }
+    }
+  }
+
+  override def setMatcheableAndProcessed(globalCode: SampleCode): Future[Either[String, SampleCode]] = {
+    // Primero, obtenemos el documento que queremos actualizar
+    val findRequest = basicRequest
+      .post(uri"$profilesUrl/_find")
+      .body(Json.obj("selector" -> Json.obj("_id" -> globalCode.text)).toString)
+      .header("Content-Type", "application/json")
+      .header("Accept", "application/json")
+      .auth.basic(username, password)
+
+    Future {
+      val findResponse = findRequest.send(backend)
+
+      findResponse.body match {
+        case Right(profiles) =>
+          val json = Json.parse(profiles)
+          (json \ "docs").validate[List[Profile]] match {
+            case JsSuccess(profileList, _) =>
+              profileList.headOption match {
+                case Some(profile) =>
+                  // Extraemos el campo `_rev` del documento
+                  val revision = (json \ "docs")(0) \ "_rev"
+                  revision.asOpt[String] match {
+                    case Some(rev) =>
+                      // Modificamos los campos `matcheable` y `processed`
+                      val updatedProfileJson = Json.toJson(profile).as[JsObject] ++ Json.obj(
+                        "_rev" -> rev,
+                        "matcheable" -> true,
+                        "processed" -> true
+                      )
+
+                      // Enviamos la actualización a CouchDB
+                      val updateRequest = basicRequest
+                        .put(uri"$profilesUrl/${profile._id.text}")
+                        .body(updatedProfileJson.toString)
+                        .header("Content-Type", "application/json")
+                        .header("Accept", "application/json")
+                        .auth.basic(username, password)
+
+                      val updateResponse = updateRequest.send(backend)
+
+                      updateResponse.body match {
+                        case Right(_) => Right(globalCode)
+                        case Left(error) => Left(error)
+                      }
+
+                    case None => Left("Document revision not found")
+                  }
+
+                case None => Left("Document not found")
+              }
+            case JsError(errors) => Left(s"JSON parsing error: $errors")
+          }
+        case Left(error) => Left(error)
+      }
+    }
+  }
   def fetchUnprocessedBatch(skip: Int, limit: Int = 100): Future[Seq[SampleCode]] = {
     val query: JsValue = Json.obj(
       "selector" -> Json.obj("processed" -> false),
