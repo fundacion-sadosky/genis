@@ -1203,8 +1203,23 @@ class MiddleProfileRepository @Inject () (
       }
     }
   }
-  override def updateProfile(profile: Profile): Future[SampleCode] = mongoRepo.updateProfile(profile: Profile)
-
+  override def updateProfile(profile: Profile): Future[SampleCode] = {
+    {
+      for {
+        r1 <- mongoRepo.updateProfile(profile: Profile)
+        r2 <- couchRepo.updateProfile(profile: Profile)
+      }
+      yield {
+        if (!r1.equals(r2)) {
+          println("updateProfile - Mongo: " + r1)
+          println("updateProfile - Couch: " + r2)
+        } else {
+          println("updateProfile - Iguales")
+        }
+        r1
+      }
+    }
+  }
   override def findByCodeWithoutAceptedLocus(
                                               globalCode: SampleCode,
                                               aceptedLocus: Seq[String]
@@ -1373,9 +1388,43 @@ class MiddleProfileRepository @Inject () (
     }
   }
 
-  override def removeFile(id: String): Future[Either[String, String]] = mongoRepo.removeFile(id)
+  override def removeFile(id: String): Future[Either[String, String]] = {
+    {
+      for {
+        r1 <-  mongoRepo.removeFile(id)
 
-  override def removeEpg(id: String): Future[Either[String, String]] = mongoRepo.removeEpg(id)
+        r2 <- couchRepo.removeFile(id)
+      }
+      yield {
+        if (!r1.equals(r2)) {
+          println("removeFile - Mongo: " + r1)
+          println("removeFile - Couch: " + r2)
+        } else {
+          println("removeFile - Iguales")
+        }
+        r1
+      }
+    }
+  }
+
+  override def removeEpg(id: String): Future[Either[String, String]] = {
+    {
+      for {
+        r1 <-  mongoRepo.removeEpg(id)
+
+        r2 <- couchRepo.removeEpg(id)
+      }
+      yield {
+        if (!r1.equals(r2)) {
+          println("removeEpg - Mongo: " + r1)
+          println("removeEpg - Couch: " + r2)
+        } else {
+          println("removeEpg - Iguales")
+        }
+        r1
+      }
+    }
+  }
 
   override def getProfileOwnerByFileId(id: String): Future[(String, SampleCode)] = {
     {
@@ -2335,8 +2384,58 @@ override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(St
     }
   }
 
-  override def updateProfile(profile: Profile): Future[SampleCode] = ???
+  override def updateProfile(profile: Profile): Future[SampleCode] = {
+    // Primero, obtenemos el documento que queremos actualizar
+    val findRequest = basicRequest
+      .post(uri"$profilesUrl/_find")
+      .body(Json.obj("selector" -> Json.obj("_id" -> profile._id.text)).toString)
+      .header("Content-Type", "application/json")
+      .header("Accept", "application/json")
+      .auth.basic(username, password)
 
+    Future {
+      val findResponse = findRequest.send(backend)
+
+      findResponse.body match {
+        case Right(profiles) =>
+          val json = Json.parse(profiles)
+          (json \ "docs").validate[List[Profile]] match {
+            case JsSuccess(profileList, _) =>
+              profileList.headOption match {
+                case Some(existingProfile) =>
+                  // Extraemos el campo `_rev` del documento
+                  val revision = (json \ "docs")(0) \ "_rev"
+                  revision.asOpt[String] match {
+                    case Some(rev) =>
+                      // Convertimos el perfil actualizado a JSON y añadimos el campo `_rev`
+                      val updatedProfileJson = Json.toJson(profile).as[JsObject] ++ Json.obj("_rev" -> rev)
+
+                      // Enviamos la actualización a CouchDB
+                      val updateRequest = basicRequest
+                        .put(uri"$profilesUrl/${profile._id.text}")
+                        .body(updatedProfileJson.toString)
+                        .header("Content-Type", "application/json")
+                        .header("Accept", "application/json")
+                        .auth.basic(username, password)
+
+                      val updateResponse = updateRequest.send(backend)
+
+                      updateResponse.body match {
+                        case Right(_) => profile._id
+                        case Left(error) => throw new RuntimeException(s"Error updating profile in CouchDB: $error")
+                      }
+
+                    case None => throw new RuntimeException("Document revision not found")
+                  }
+
+                case None => throw new RuntimeException("Document not found")
+              }
+            case JsError(errors) => throw new RuntimeException(s"JSON parsing error: $errors")
+          }
+        case Left(error) => throw new RuntimeException(error)
+      }
+    }
+  }
   override def findByCodeWithoutAceptedLocus(
                                               globalCode: SampleCode,
                                               aceptedLocus: Seq[String]
@@ -2597,10 +2696,92 @@ override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(St
       }).getOrElse(Nil).toList
     }).toSet.toList
   }
-  override def removeFile(id: String): Future[Either[String, String]] = ???
+  override def removeFile(id: String): Future[Either[String, String]] = {
+    // Primero, obtenemos el documento que queremos eliminar
+    val findRequest = basicRequest
+      .post(uri"$filesUrl/_find")
+      .body(Json.obj("selector" -> Json.obj("_id" -> id)).toString)
+      .header("Content-Type", "application/json")
+      .header("Accept", "application/json")
+      .auth.basic(username, password)
 
-  override def removeEpg(id: String): Future[Either[String, String]] = ???
+    Future {
+      val findResponse = findRequest.send(backend)
 
+      findResponse.body match {
+        case Right(files) =>
+          val json = Json.parse(files)
+          (json \ "docs").validate[List[JsObject]] match {
+            case JsSuccess(fileList, _) =>
+              fileList.headOption match {
+                case Some(file) =>
+                  // Extraemos el campo `_rev` del documento
+                  val revision = (file \ "_rev").as[String]
+                  // Enviamos la solicitud de eliminación a CouchDB
+                  val deleteRequest = basicRequest
+                    .delete(uri"$filesUrl/$id?rev=$revision")
+                    .header("Content-Type", "application/json")
+                    .header("Accept", "application/json")
+                    .auth.basic(username, password)
+
+                  val deleteResponse = deleteRequest.send(backend)
+
+                  deleteResponse.body match {
+                    case Right(_) => Right(id)
+                    case Left(error) => Left(s"Error deleting file from CouchDB: $error")
+                  }
+
+                case None => Left("File not found")
+              }
+            case JsError(errors) => Left(s"JSON parsing error: $errors")
+          }
+        case Left(error) => Left(error)
+      }
+    }
+  }
+  override def removeEpg(id: String): Future[Either[String, String]] = {
+    // Primero, obtenemos el documento que queremos eliminar
+    val findRequest = basicRequest
+      .post(uri"$electropherogramsUrl/_find")
+      .body(Json.obj("selector" -> Json.obj("_id" -> id)).toString)
+      .header("Content-Type", "application/json")
+      .header("Accept", "application/json")
+      .auth.basic(username, password)
+
+    Future {
+      val findResponse = findRequest.send(backend)
+
+      findResponse.body match {
+        case Right(electropherograms) =>
+          val json = Json.parse(electropherograms)
+          (json \ "docs").validate[List[JsObject]] match {
+            case JsSuccess(epgList, _) =>
+              epgList.headOption match {
+                case Some(epg) =>
+                  // Extraemos el campo `_rev` del documento
+                  val revision = (epg \ "_rev").as[String]
+                  // Enviamos la solicitud de eliminación a CouchDB
+                  val deleteRequest = basicRequest
+                    .delete(uri"$electropherogramsUrl/$id?rev=$revision")
+                    .header("Content-Type", "application/json")
+                    .header("Accept", "application/json")
+                    .auth.basic(username, password)
+
+                  val deleteResponse = deleteRequest.send(backend)
+
+                  deleteResponse.body match {
+                    case Right(_) => Right(id)
+                    case Left(error) => Left(error)
+                  }
+
+                case None => Left("Electropherogram not found")
+              }
+            case JsError(errors) => Left(s"JSON parsing error: $errors")
+          }
+        case Left(error) => Left(error)
+      }
+    }
+  }
   def getProfileOwnerByFileId(id: String): Future[(String,SampleCode)] = {
     this.getProfileOwnerByEpgOrFileId(id,filesUrl);
   }
