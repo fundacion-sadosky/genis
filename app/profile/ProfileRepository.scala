@@ -1252,12 +1252,34 @@ class MiddleProfileRepository @Inject () (
                         analysisId: String,
                         image: Array[Byte],
                         name: String
-                      ): Future[Either[String, SampleCode]] = mongoRepo.addFile(
-    globalCode,
-    analysisId,
-    image,
-    name
-  )
+                      ): Future[Either[String, SampleCode]] = {
+    {
+      for {
+        r1 <- mongoRepo.addFile(
+          globalCode,
+          analysisId,
+          image,
+          name
+        )
+        r2 <- couchRepo.addFile(
+          globalCode,
+          analysisId,
+          image,
+          name
+        )
+      }
+      yield {
+        if (!r1.equals(r2)) {
+          println("addFile - Mongo: " + r1)
+          println("addFile - Couch: " + r2)
+        } else {
+          println("addFile - Iguales")
+        }
+        r1
+      }
+    }
+  }
+
 
   override def getFileByCode(globalCode: SampleCode): Future[List[(String, String, String)]] = {
     {
@@ -2495,12 +2517,29 @@ override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(St
       }
     }
 
-    override def addFile(
-                        globalCode: SampleCode,
-                        analysisId: String,
-                        image: Array[Byte],
-                        name: String
-                      ): Future[Either[String, SampleCode]] = ???
+  override def addFile(globalCode: SampleCode, analysisId: String, image: Array[Byte], name: String): Future[Either[String, SampleCode]] = {
+    val fileData = Json.obj(
+      "profileId" -> globalCode.text,
+      "analysisId" -> analysisId,
+      "content" -> Base64.encodeBase64String(image),
+      "name" -> name
+    )
+
+    val request = basicRequest
+      .post(uri"$filesUrl")
+      .body(Json.stringify(fileData))
+      .header("Content-Type", "application/json")
+      .header("Accept", "application/json")
+      .auth.basic(username, password)
+
+    Future {
+      val response = request.send(backend)
+      response.body match {
+        case Right(_) => Right(globalCode)
+        case Left(error) => Left(s"Error adding file to CouchDB: $error")
+      }
+    }
+  }
 
   override def getFileByCode(globalCode: SampleCode): Future[List[(String, String, String)]] = {
     val query: JsValue = Json.obj(
