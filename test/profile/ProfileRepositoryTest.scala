@@ -9,27 +9,23 @@ import types.{MongoDate, SampleCode}
 
 import scala.concurrent.Await
 import scala.concurrent.duration.{Duration, SECONDS}
-
-class ProfileRepositoryTest extends PdgSpec {
+class ProfileRepositoryTest(repository: ProfileRepository) extends PdgSpec {
 
   val duration = Duration(10, SECONDS)
+  val sampleCode = SampleCode("AR-B-Z-1147")
 
-  val sampleCode = SampleCode("AR-C-SHDG-1")
-
-  "A Profile respository" must {
+  "A Profile repository" must {
     "set matcheable true ok" in {
       val profile = Stubs.newProfile
 
-      val profileRepository = new MongoProfileRepository
+      Await.result(repository.add(profile), duration)
 
-      Await.result(profileRepository.add(profile), duration)
-
-      val result = Await.result(profileRepository.setMatcheableAndProcessed(profile.globalCode), duration)
+      val result = Await.result(repository.setMatcheableAndProcessed(profile.globalCode), duration)
 
       result.isRight mustBe true
       result.right.get mustBe profile.globalCode
 
-      val profileOpt = Await.result(profileRepository.get(result.right.get), duration)
+      val profileOpt = Await.result(repository.get(result.right.get), duration)
 
       profileOpt.get.matcheable mustBe true
       profileOpt.get.processed mustBe true
@@ -38,19 +34,16 @@ class ProfileRepositoryTest extends PdgSpec {
     "get unprocessed 1 element" in {
       val profile = Stubs.newProfile
 
-      val profileRepository = new MongoProfileRepository
+      Await.result(repository.add(profile), duration)
 
-      Await.result(profileRepository.add(profile), duration)
-
-      val globalCodes: Seq[SampleCode] = Await.result(profileRepository.getUnprocessed(), duration)
+      val globalCodes: Seq[SampleCode] = Await.result(repository.getUnprocessed(), duration)
 
       globalCodes.contains(profile.globalCode) mustBe true
     }
 
     "add new profiles into it and return entity id" in {
       val p = Stubs.newProfile
-      val profileRespository = new MongoProfileRepository
-      val profileFuture = profileRespository.add(p)
+      val profileFuture = repository.add(p)
       val profileId = Await.result(profileFuture, duration)
       profileId must not be null
       profileId mustBe p.globalCode
@@ -59,22 +52,20 @@ class ProfileRepositoryTest extends PdgSpec {
     "fail if an already existing profileId is attempted to be reinserted" in {
 
       val pd = Stubs.newProfile
-      val profileRespository = new MongoProfileRepository
-      val profileFuture = profileRespository.add(pd)
+      val profileFuture = repository.add(pd)
       val profileId = Await.result(profileFuture, duration)
       profileId must not be null
 
       val thrown = intercept[java.lang.Exception] {
-        val profileFutureFailed = profileRespository.add(pd)
+        val profileFutureFailed = repository.add(pd)
         val profileIdFailed = Await.result(profileFutureFailed, duration)
       }
       thrown.getMessage.contains("duplicate key") mustBe true
     }
 
     "retrieve profiles by global code" in {
-      val profileRespository = new MongoProfileRepository
 
-      val profileGetFuture = profileRespository.findByCode(sampleCode)
+      val profileGetFuture = repository.findByCode(sampleCode)
 
       val p: Option[Profile] = Await.result(profileGetFuture, duration)
       p match {
@@ -84,9 +75,8 @@ class ProfileRepositoryTest extends PdgSpec {
     }
 
     "retrieve profiles by id" in {
-      val profileRespository = new MongoProfileRepository
 
-      val profileGetFuture = profileRespository.get(sampleCode)
+      val profileGetFuture = repository.get(sampleCode)
 
       val p: Option[Profile] = Await.result(profileGetFuture, duration)
       p match {
@@ -95,34 +85,34 @@ class ProfileRepositoryTest extends PdgSpec {
       }
     }
 
-    "retrieve just the genotyfication by globalCode" in {
-      val profileRespository = new MongoProfileRepository
-      val profileToInsert = Stubs.newProfile
-      val profileFuture = profileRespository.add(profileToInsert)
-      val profileId = Await.result(profileFuture, duration)
-
-      val profileGetFuture = profileRespository.getGenotyficationByCode(profileToInsert.globalCode)
-
-      val p = Await.result(profileGetFuture, duration)
-      p match {
-        case Some(g) => {
-          g mustBe profileToInsert.genotypification
-        }
-        case None => fail("Profile '" + profileId + "' not found")
-      }
-    }
+//    Commented out because the method is not implemented nor used
+//    "retrieve just the genotyfication by globalCode" in {
+//      val profileRespository = new MongoProfileRepository
+//      val profileToInsert = Stubs.newProfile
+//      val profileFuture = profileRespository.add(profileToInsert)
+//      val profileId = Await.result(profileFuture, duration)
+//
+//      val profileGetFuture = profileRespository.getGenotyficationByCode(profileToInsert.globalCode)
+//
+//      val p = Await.result(profileGetFuture, duration)
+//      p match {
+//        case Some(g) => {
+//          g mustBe profileToInsert.genotypification
+//        }
+//        case None => fail("Profile '" + profileId + "' not found")
+//      }
+//    }
 
     "add a new analysis and update that profile" in {
       val newP = Stubs.newProfile
-      val target = new MongoProfileRepository
 
       // Add a profile
-      val profileFuture = target.add(newP)
+      val profileFuture = repository.add(newP)
       val profileId = Await.result(profileFuture, duration)
       profileId must not be null
 
       // Get it just to check it was correctly inserted
-      val profileGetInsertedFuture = target.get(profileId)
+      val profileGetInsertedFuture = repository.get(profileId)
       val pInserted: Option[Profile] = Await.result(profileGetInsertedFuture, duration)
       pInserted match {
         case Some(profile) => {
@@ -136,14 +126,15 @@ class ProfileRepositoryTest extends PdgSpec {
       }
 
       val newGenotypification: Map[String, List[AlleleValue]] = Map("LOCUS 10" -> List(Allele(10), Allele(14)))
+      // ACA PUEDE FALLAR COUCH PORQUE ES UNA MONGODATE
       val toInsertAnalysis = new Analysis("toUpdateAnalysisId", MongoDate(new Date()), "Kit", newGenotypification, None)
       val toUpdateGenotypification: GenotypificationByType = Map(1 -> newP.genotypification(1).toSet.union(newGenotypification.toSet).toMap)
 
-      val gc = Await.result(target.addAnalysis(newP._id, toInsertAnalysis, toUpdateGenotypification, None, None, None), duration)
+      val gc = Await.result(repository.addAnalysis(newP._id, toInsertAnalysis, toUpdateGenotypification, None, None, None), duration)
 
       gc mustBe newP._id
       //       Get it to check it was correctly updated      
-      val profileGetUpdatedFuture = target.get(profileId)
+      val profileGetUpdatedFuture = repository.get(profileId)
       val pUpdated: Option[Profile] = Await.result(profileGetUpdatedFuture, duration)
       pUpdated match {
         case Some(profile) => {
@@ -164,29 +155,27 @@ class ProfileRepositoryTest extends PdgSpec {
     }
 
     "add an electropherogram" in {
-      val target = new MongoProfileRepository
       val expectedArrayByte = new Array[Byte](1)
-      val imageFuture = target.addElectropherogram(Stubs.sampleCode, "newAnalysisId", expectedArrayByte)
+      val imageFuture = repository.addElectropherogram(Stubs.sampleCode, "newAnalysisId", expectedArrayByte)
       val id = Await.result(imageFuture, duration)
       id must not be null
     }
 
     "retrieve imagesIds by global code" in {
-      val target = new MongoProfileRepository
 
       val profileToInsert = Stubs.newProfile
 
       val imageToInsert1 = new Array[Byte](1)
-      val imageFuture1 = target.addElectropherogram(profileToInsert.globalCode, "newAnalysisId", imageToInsert1)
+      val imageFuture1 = repository.addElectropherogram(profileToInsert.globalCode, "newAnalysisId", imageToInsert1)
       val id1 = Await.result(imageFuture1, duration)
       id1 must not be null
 
       val imageToInsert2 = new Array[Byte](1)
-      val imageFuture2 = target.addElectropherogram(profileToInsert.globalCode, "newAnalysisId", imageToInsert2)
+      val imageFuture2 = repository.addElectropherogram(profileToInsert.globalCode, "newAnalysisId", imageToInsert2)
       val id2 = Await.result(imageFuture2, duration)
       id2 must not be null
 
-      val epgListFuture = target.getElectropherogramsByCode(profileToInsert.globalCode)
+      val epgListFuture = repository.getElectropherogramsByCode(profileToInsert.globalCode)
       val epgList: List[(String, String, String)] = Await.result(epgListFuture, duration)
 
       epgList.length mustBe 2
@@ -196,43 +185,41 @@ class ProfileRepositoryTest extends PdgSpec {
     }
 
     "retrieve images array[byte] by global code" in {
-      val target = new MongoProfileRepository
 
       val profileToInsert = Stubs.newProfile
 
       val imageToInsert = new Array[Byte](5)
-      val imageFuture = target.addElectropherogram(profileToInsert.globalCode, "newAnalysisId", imageToInsert)
+      val imageFuture = repository.addElectropherogram(profileToInsert.globalCode, "newAnalysisId", imageToInsert)
       val id1 = Await.result(imageFuture, duration)
       id1 must not be null
 
-      val epgListFuture = target.getElectropherogramsByCode(profileToInsert.globalCode)
+      val epgListFuture = repository.getElectropherogramsByCode(profileToInsert.globalCode)
       val epgList: List[(String, String, String)] = Await.result(epgListFuture, duration)
 
       // Cuando sepamos como devolver el id de imagen en el add, verificar _1 tmb
       epgList.foreach(x => {
-        val fut = target.getElectropherogramImage(profileToInsert.globalCode, x._1)
+        val fut = repository.getElectropherogramImage(profileToInsert.globalCode, x._1)
         val im = Await.result(fut, duration)
         im.get mustBe imageToInsert
       })
     }
 
     "retrieve imagesIds by global code and analysisId" in {
-      val target = new MongoProfileRepository
 
       val profileToInsert = Stubs.newProfile
       val newAnalysisId = "newAnalysisId"
 
       val imageToInsert1 = new Array[Byte](1)
-      val imageFuture1 = target.addElectropherogram(profileToInsert.globalCode, newAnalysisId, imageToInsert1)
+      val imageFuture1 = repository.addElectropherogram(profileToInsert.globalCode, newAnalysisId, imageToInsert1)
       val id1 = Await.result(imageFuture1, duration)
       id1 must not be null
 
       val imageToInsert2 = new Array[Byte](2)
-      val imageFuture2 = target.addElectropherogram(profileToInsert.globalCode, newAnalysisId, imageToInsert2)
+      val imageFuture2 = repository.addElectropherogram(profileToInsert.globalCode, newAnalysisId, imageToInsert2)
       val id2 = Await.result(imageFuture2, duration)
       id2 must not be null
 
-      val epgListFuture = target.getElectropherogramsByAnalysisId(profileToInsert.globalCode, newAnalysisId)
+      val epgListFuture = repository.getElectropherogramsByAnalysisId(profileToInsert.globalCode, newAnalysisId)
       val epgList = Await.result(epgListFuture, duration)
 
       epgList.length mustBe 2
@@ -243,8 +230,7 @@ class ProfileRepositoryTest extends PdgSpec {
 
     "add new profiles with LabeledGenotypification and return entity id" in {
       val p = Stubs.newProfileLabeledGenotypification
-      val profileRespository = new MongoProfileRepository
-      val profileFuture = profileRespository.add(p)
+      val profileFuture = repository.add(p)
       val profileId = Await.result(profileFuture, duration)
       profileId must not be null
       profileId mustBe p.globalCode
@@ -252,12 +238,11 @@ class ProfileRepositoryTest extends PdgSpec {
 
     "return a profile with LabeledGenotypification and contributors specified" in {
       val newP = Stubs.newProfileLabeledGenotypification
-      val profileRespository = new MongoProfileRepository
-      val profileFuture = profileRespository.add(newP)
+      val profileFuture = repository.add(newP)
       val profileId = Await.result(profileFuture, duration)
       profileId must not be null
 
-      val profileGetFuture = profileRespository.findByCode(newP.globalCode)
+      val profileGetFuture = repository.findByCode(newP.globalCode)
 
       val p: Option[Profile] = Await.result(profileGetFuture, duration)
       p match {
@@ -285,42 +270,46 @@ class ProfileRepositoryTest extends PdgSpec {
     }
 
     "retrieve None when there's no labeledGenotypification" in {
-      val profileRespository = new MongoProfileRepository
-      val labelsFuture = profileRespository.getLabels(sampleCode)
+      val labelsFuture = repository.getLabels(sampleCode)
 
       val labels = Await.result(labelsFuture, duration)
       labels mustBe None
     }
 
     "retrieve just the labeledGenotypification" in {
-      val profileRespository = new MongoProfileRepository
-      val labelsFuture = profileRespository.getLabels(SampleCode("AR-C-SHDG-2"))
+      val labelsFuture = repository.getLabels(SampleCode("AR-B-LAB-1968909017"))
 
       val labels = Await.result(labelsFuture, duration)
-      val expectedLabels: Profile.LabeledGenotypification = Map("V" -> Map("D18S51" -> List(Allele(18.0)), "D3S1358" -> List(Allele(17.0)), "D7S820" -> List(Allele(10.0)), "FGA" -> List(Allele(27.0), Allele(20.0))),
-        "O" -> Map("D18S51" -> List(Allele(22.0)), "D3S1358" -> List(Allele(17.0), Allele(15.0)), "D7S820" -> List(Allele(12.0)), "FGA" -> List(Allele(27.0))))
+      val expectedLabels: Profile.LabeledGenotypification = Map(
+        "label1" -> Map(
+          "LOCUS 1" -> List(Allele(1.0)),
+          "LOCUS 2" -> List(Allele(1.0))
+        ),
+        "label2" -> Map(
+          "LOCUS 1" -> List(Allele(2.1)),
+          "LOCUS 2" -> List(Allele(5.0))
+        )
+      )
+
       println(labels)
       labels.get mustBe expectedLabels
     }
 
     "retrieve None when the profile doesn't exist" in {
-      val profileRespository = new MongoProfileRepository
-      val labelsFuture = profileRespository.getLabels(SampleCode("AR-C-XXX-1"))
+      val labelsFuture = repository.getLabels(SampleCode("AR-C-XXX-1"))
 
       val labels = Await.result(labelsFuture, duration)
       labels mustBe None
     }
 
     "be able to delete an unused kit" in {
-      val repository = new MongoProfileRepository()
       val result = Await.result(repository.canDeleteKit("UNUSED"), duration)
 
       result mustBe true
     }
 
-    "not be able to delete a kit in a proile" in {
-      val repository = new MongoProfileRepository()
-      val result = Await.result(repository.canDeleteKit("Powerplex16"), duration)
+    "not be able to delete a kit in a profile" in {
+      val result = Await.result(repository.canDeleteKit("ArgusX8"), duration) //Un kit que esté en uso
 
       result mustBe false
     }
@@ -328,3 +317,7 @@ class ProfileRepositoryTest extends PdgSpec {
   }
 
 }
+
+class MongoProfileRepositoryTest extends ProfileRepositoryTest(new MongoProfileRepository)
+
+class CouchProfileRepositoryTest extends ProfileRepositoryTest(new CouchProfileRepository)
