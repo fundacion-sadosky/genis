@@ -46,7 +46,7 @@ abstract class ProfileRepository {
 
   def add(profile: Profile): Future[SampleCode]
 
-  def addElectropherogram(globalCode: SampleCode, analysisId: String, image: Array[Byte], name: String): Future[Either[String, SampleCode]]
+  def addElectropherogram(globalCode: SampleCode, analysisId: String, image: Array[Byte], name: String = null): Future[Either[String, SampleCode]]
 
   def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(String, String, String)]]
 
@@ -1675,7 +1675,7 @@ class CouchProfileRepository extends ProfileRepository {
                                     globalCode: SampleCode,
                                     analysisId: String,
                                     image: Array[Byte],
-                                    name: String
+                                    name: String = null
                                   ): Future[Either[String, SampleCode]] = {
     val electropherogramData = if (name != null) {
       Json.obj(
@@ -2040,36 +2040,74 @@ override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(St
                             _id: SampleCode,
                             analysis: Analysis,
                             genotypification: GenotypificationByType,
-                            labeledGenotypification: Option[LabeledGenotypification],
+                            labeledGenotypification: Option[Profile.LabeledGenotypification],
                             matchingRules: Option[Seq[MatchingRule]],
-                            mismatches: Option[Mismatch]
+                            mismatches: Option[Profile.Mismatch]
                           ): Future[SampleCode] = {
-    val updateData = Json.obj(
-      "genotypification" -> genotypification,
-      "labeledGenotypification" -> labeledGenotypification,
-      "matchingRules" -> matchingRules,
-      "mismatches" -> mismatches,
-      "matcheable" -> false,
-      "processed" -> false,
-      "analyses" -> Json.arr(analysis)
-    )
-
-    val request = basicRequest
-      .put(uri"$profilesUrl/${_id.text}")
-      .body(Json.stringify(Json.obj("$set" -> updateData)))
+    // Primero, obtenemos el documento que queremos actualizar
+    val findRequest = basicRequest
+      .post(uri"$profilesUrl/_find")
+      .body(Json.obj("selector" -> Json.obj("_id" -> _id.text)).toString)
       .header("Content-Type", "application/json")
       .header("Accept", "application/json")
       .auth.basic(username, password)
 
     Future {
-      val response = request.send(backend)
-      response.body match {
-        case Right(_) => _id
-        case Left(error) => throw new RuntimeException(s"Error adding analysis to CouchDB: $error")
+      val findResponse = findRequest.send(backend)
+
+      findResponse.body match {
+        case Right(profiles) =>
+          val json = Json.parse(profiles)
+          (json \ "docs").validate[List[Profile]] match {
+            case JsSuccess(profileList, _) =>
+              profileList.headOption match {
+                case Some(existingProfile) =>
+                  // Extraemos el campo `_rev` del documento
+                  val revision = (json \ "docs")(0) \ "_rev"
+                  revision.asOpt[String] match {
+                    case Some(rev) =>
+                      val updatedAnalyses = existingProfile.analyses match {
+                        case Some(list) => Some(list ++ List(analysis))
+                        case None => Some(List(analysis))
+                      }
+
+                      val updatedProfileJson = Json.toJson(existingProfile).as[JsObject] ++ Json.obj(
+                        "_rev" -> rev,
+                        "genotypification" -> genotypification,
+                        "labeledGenotypification" -> labeledGenotypification,
+                        "matchingRules" -> matchingRules,
+                        "mismatches" -> mismatches,
+                        "matcheable" -> false,
+                        "processed" -> false,
+                        "analyses" -> updatedAnalyses
+                      )
+
+                      // Enviamos la actualización a CouchDB
+                      val updateRequest = basicRequest
+                        .put(uri"$profilesUrl/${existingProfile._id.text}")
+                        .body(updatedProfileJson.toString)
+                        .header("Content-Type", "application/json")
+                        .header("Accept", "application/json")
+                        .auth.basic(username, password)
+
+                      val updateResponse = updateRequest.send(backend)
+
+                      updateResponse.body match {
+                        case Right(_) => _id
+                        case Left(error) => throw new RuntimeException(error)
+                      }
+
+                    case None => throw new RuntimeException("Document revision not found")
+                  }
+
+                case None => throw new RuntimeException("Document not found")
+              }
+            case JsError(errors) => throw new RuntimeException(s"JSON parsing error: $errors")
+          }
+        case Left(error) => throw new RuntimeException(error)
       }
     }
   }
-
   override def saveLabels(
                            globalCode: SampleCode,
                            labels: LabeledGenotypification

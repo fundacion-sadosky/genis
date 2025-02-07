@@ -60,7 +60,7 @@ class ProfileRepositoryTest(repository: ProfileRepository) extends PdgSpec {
         val profileFutureFailed = repository.add(pd)
         val profileIdFailed = Await.result(profileFutureFailed, duration)
       }
-      thrown.getMessage.contains("duplicate key") mustBe true
+      Seq("duplicate key", "Document update conflict.").exists(thrown.getMessage.contains) mustBe true
     }
 
     "retrieve profiles by global code" in {
