@@ -1715,7 +1715,7 @@ override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(St
     )
 
     val request = basicRequest
-      .post(uri"$profilesUrl/_find")
+      .post(uri"$electropherogramsUrl/_find")
       .body(Json.stringify(query))
       .header("Content-Type", "application/json")
       .header("Accept", "application/json")
@@ -1762,7 +1762,7 @@ override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(St
     )
 
     val request = basicRequest
-      .post(uri"$profilesUrl/_find")
+      .post(uri"$electropherogramsUrl/_find")
       .body(Json.stringify(query))
       .header("Content-Type", "application/json")
       .header("Accept", "application/json")
@@ -1799,7 +1799,7 @@ override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(St
     )
 
     val request = basicRequest
-      .post(uri"$profilesUrl/_find")
+      .post(uri"$electropherogramsUrl/_find")
       .body(Json.stringify(query))
       .header("Content-Type", "application/json")
       .header("Accept", "application/json")
@@ -1834,7 +1834,7 @@ override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(St
     )
 
     val request = basicRequest
-      .post(uri"$profilesUrl/_find")
+      .post(uri"$electropherogramsUrl/_find")
       .body(Json.stringify(query))
       .header("Content-Type", "application/json")
       .header("Accept", "application/json")
@@ -1875,7 +1875,7 @@ override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(St
     )
 
     val request = basicRequest
-      .post(uri"$profilesUrl/_find")
+      .post(uri"$filesUrl/_find")
       .body(Json.stringify(query))
       .header("Content-Type", "application/json")
       .header("Accept", "application/json")
@@ -2419,7 +2419,11 @@ override def getElectropherogramsByCode(globalCode: SampleCode): Future[List[(St
   }
   override def canDeleteKit(id: String): Future[Boolean] = {
     val query: JsValue = Json.obj(
-      "selector" -> Json.obj("analyses.kit" -> id),
+      "selector" -> Json.obj(
+        "analyses" -> Json.obj(
+          "$elemMatch" -> Json.obj("kit" -> id)
+        )
+      ),
       "limit" -> 1 // Limit to 1 document to check existence
     )
 

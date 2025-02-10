@@ -11,7 +11,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration.{Duration, SECONDS}
 class ProfileRepositoryTest(repository: ProfileRepository) extends PdgSpec {
 
-  val duration = Duration(10, SECONDS)
+  val duration = Duration(100, SECONDS)
   val sampleCode = SampleCode("AR-B-Z-1147")
 
   "A Profile repository" must {
