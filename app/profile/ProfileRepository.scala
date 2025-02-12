@@ -598,7 +598,7 @@ override def getGenotyficationByCode(globalCode: SampleCode): Future[Option[Geno
 
   def removeFile(id: String):Future[Either[String,String]] = Future{
     val query = Json.obj("_id" -> BSONObjectID(id))
-    files.findAndRemove(query)
+    val response = files.findAndRemove(query)
     Right(id)
   }
 
@@ -614,12 +614,40 @@ override def getGenotyficationByCode(globalCode: SampleCode): Future[Option[Geno
   def getProfileOwnerByEpgId(id: String): Future[(String,SampleCode)] = {
     this.getProfileOwnerByEpgOrFileId(id,electropherograms);
   }
-  def getProfileOwnerByEpgOrFileId(id: String,collection: JSONCollection): Future[(String,SampleCode)] = {
-    ((collection.find( Json.obj("_id" -> BSONObjectID(id))).one[BSONDocument]) flatMap (optDoc =>{
-      FutureUtils.swap(optDoc.map(doc => this.get(SampleCode(doc.getAs[String]("profileId").get))
-        .map(res => res.map( x => (x.assignee, x.globalCode) )))).map(_.flatten)
-    })).map( x => x.getOrElse(("",SampleCode(""))))
+
+  //  original:
+  //  def getProfileOwnerByEpgOrFileId(id: String,collection: JSONCollection): Future[(String,SampleCode)] = {
+//    ((collection.find( Json.obj("_id" -> BSONObjectID(id))).one[BSONDocument]) flatMap (optDoc =>{
+//      FutureUtils.swap(optDoc.map(doc => this.get(SampleCode(doc.getAs[String]("profileId").get))
+//        .map(res => res.map( x => (x.assignee, x.globalCode) )))).map(_.flatten)
+//    })).map( x => x.getOrElse(("",SampleCode(""))))
+//  }
+def getProfileOwnerByEpgOrFileId(id: String, collection: JSONCollection): Future[(String, SampleCode)] = {
+  val query = Json.obj("_id" -> BSONObjectID(id))
+  println(s"Querying collection with: $query")
+
+  collection.find(query).one[BSONDocument] flatMap {
+    case Some(doc) =>
+      println(s"Document found: $doc")
+      val profileIdOpt = doc.getAs[String]("profileId")
+      profileIdOpt match {
+        case Some(profileId) =>
+          this.get(SampleCode(profileId)).map {
+            case Some(profile) => (profile.assignee, profile.globalCode)
+            case None => ("", SampleCode(""))
+          }
+        case None =>
+          println("profileId not found in document")
+          Future.successful(("", SampleCode("")))
+      }
+    case None =>
+      println("No document found for the given ID")
+      Future.successful(("", SampleCode("")))
+  } map {
+    case (assignee, globalCode) if globalCode.text.nonEmpty => (assignee, globalCode)
+    case _ => ("", SampleCode(""))
   }
+}
 
   override def getAllProfiles() : Future[List[(SampleCode, String)]]= {
     profiles

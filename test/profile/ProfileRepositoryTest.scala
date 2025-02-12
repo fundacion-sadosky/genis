@@ -1,8 +1,8 @@
 package profile
 
 import java.util.{Calendar, Date}
-
 import profile.GenotypificationByType.GenotypificationByType
+import reactivemongo.bson.BSONObjectID
 import specs.PdgSpec
 import stubs.Stubs
 import types.{MongoDate, SampleCode}
@@ -312,6 +312,63 @@ class ProfileRepositoryTest(repository: ProfileRepository) extends PdgSpec {
       val result = Await.result(repository.canDeleteKit("ArgusX8"), duration) //Un kit que esté en uso
 
       result mustBe false
+    }
+
+    // nuevos
+
+    "remove a file successfully" in {
+      val profile = Stubs.newProfile
+      Await.result(repository.add(profile), duration)
+
+      val fileId = BSONObjectID.generate().stringify
+      val image = new Array[Byte](1)
+      val name = "fileName"
+      // Assuming addFile takes fileId, globalCode, image, and name as arguments
+      Await.result(repository.addFile(profile.globalCode, fileId, image, name), duration)
+
+      val result = Await.result(repository.removeFile(fileId), duration)
+      result.isRight mustBe true
+      result.right.get mustBe fileId
+    }
+
+    "get profile owner by file ID" in {
+      val profile = Stubs.newProfile
+      Await.result(repository.add(profile), duration)
+
+      val fileId = BSONObjectID.generate().stringify
+      val image = new Array[Byte](1)
+      val name = "fileName"
+      Await.result(repository.addFile(profile.globalCode, fileId,  image, name), duration)
+
+      val result = Await.result(repository.getProfileOwnerByFileId(fileId), duration)
+      result._1 mustBe profile.assignee
+      result._2 mustBe profile.globalCode
+    }
+
+    "remove an electropherogram successfully" in {
+      val profile = Stubs.newProfile
+      Await.result(repository.add(profile), duration)
+
+      val epgId = BSONObjectID.generate().stringify
+
+      Await.result(repository.addElectropherogram(profile.globalCode, epgId, new Array[Byte](1)), duration)
+
+      val result = Await.result(repository.removeEpg(epgId), duration)
+      result.isRight mustBe true
+      result.right.get mustBe epgId
+    }
+
+    "get profile owner by electropherogram ID" in {
+      val profile = Stubs.newProfile
+      Await.result(repository.add(profile), duration)
+
+      val epgId = BSONObjectID.generate().stringify
+
+      Await.result(repository.addElectropherogram(profile.globalCode, epgId, new Array[Byte](1)), duration)
+
+      val result = Await.result(repository.getProfileOwnerByEpgId(epgId), duration)
+      result._1 mustBe profile.assignee
+      result._2 mustBe profile.globalCode
     }
 
   }
