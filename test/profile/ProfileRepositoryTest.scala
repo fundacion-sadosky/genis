@@ -332,12 +332,14 @@ class ProfileRepositoryTest(repository: ProfileRepository) extends PdgSpec {
     }
 
     "get profile owner by file ID" in {
+      // el problema puede ser que estoy buscando un numero que aparece en "analysisId" como si fuera en _id
+      // qué parte está mal? como lo subo o como lo busco?
       val profile = Stubs.newProfile
       Await.result(repository.add(profile), duration)
 
       val fileId = BSONObjectID.generate().stringify
       val image = new Array[Byte](1)
-      val name = "fileName"
+      val name = "FileName"
       Await.result(repository.addFile(profile.globalCode, fileId,  image, name), duration)
 
       val result = Await.result(repository.getProfileOwnerByFileId(fileId), duration)
