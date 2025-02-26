@@ -220,8 +220,8 @@
 			class="btn btn-secondary-action"
 			data-ng-click="printReport()"
 	>Imprimir reporte</button>
-	<button id="doHit" ng-if="!isCollapsingMatch && !isScreening" ng-disabled="matchAg||(profileData.isExternal && matchedProfileData.isExternal)" pdg-confirm pdg-confirm-title="Confirmar Coincidencia" pdg-confirm-content="¿Está seguro?" type="button" class="btn btn-primary-action" pdg-on-confirm="doHit" data-ng-disabled="closedMatch" ng-show="!isPedigreeMatch">Confirmar Coincidencia</button>
-	<button id="doDescart" ng-if="!isCollapsingMatch && !isScreening" ng-disabled="profileData.isExternal && matchedProfileData.isExternal"  pdg-confirm pdg-confirm-title="Descartar Coincidencia" pdg-confirm-content="¿Está seguro?" type="button" class="btn btn-secondary-action" pdg-on-confirm="doDiscard" data-ng-disabled="closedMatch" ng-show="!isPedigreeMatch">Descartar Coincidencia</button>
+	<button id="doHit" ng-if="!isCollapsingMatch && !isScreening" ng-disabled="matchAg||(profileData.isExternal && matchedProfileData.isExternal) || matchStatus !== 'pending'" pdg-confirm pdg-confirm-title="Confirmar Coincidencia" pdg-confirm-content="¿Está seguro?" type="button" class="btn btn-primary-action" pdg-on-confirm="doHit" data-ng-disabled="closedMatch" ng-show="!isPedigreeMatch">Confirmar Coincidencia</button>
+	<button id="doDescart" ng-if="!isCollapsingMatch && !isScreening" ng-disabled="profileData.isExternal && matchedProfileData.isExternal || matchStatus !== 'pending'"  pdg-confirm pdg-confirm-title="Descartar Coincidencia" pdg-confirm-content="¿Está seguro?" type="button" class="btn btn-secondary-action" pdg-on-confirm="doDiscard" data-ng-disabled="closedMatch" ng-show="!isPedigreeMatch">Descartar Coincidencia</button>
 
 </div>
 </footer>
