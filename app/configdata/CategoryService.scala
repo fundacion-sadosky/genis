@@ -8,19 +8,25 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import services.CacheService
 import services.Keys
 import types.AlphanumericId
+
 import scala.util.Success
 import scala.util.Try
 import scala.util.Failure
 import services.CacheService
 import org.postgresql.util.PSQLException
+
 import java.sql.SQLException
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import profile.Profile
-
 import play.api.i18n.Messages
+import play.api.libs.json.Json
+
+import java.io.PrintWriter
 
 abstract class CategoryService {
+
+  def exportCategories: Either[String, String]
 
   def categoryTree: Category.CategoryTree
 
@@ -105,6 +111,30 @@ abstract class CategoryService {
 @Singleton
 class CachedCategoryService @Inject() (cache: CacheService, categoryRepository: CategoryRepository) extends CategoryService {
 
+  override def exportCategories(filePath: String): Either[String, String] = {
+    Try {
+      // Obtener las categorías desde el repositorio
+      val futureCategories = categoryRepository.listCategories
+      val categories = Await.result(futureCategories, 10.seconds)
+
+      // Convertir a JSON
+      implicit val categoryWrites = Json.writes[FullCategory]
+      val json = Json.toJson(categories)
+
+      // Escribir en el archivo
+      val writer = new PrintWriter(filePath)
+      try {
+        writer.write(Json.prettyPrint(json))
+        Right(s"Exportación completada en: $filePath")
+      } finally {
+        writer.close()
+      }
+    } match {
+      case Success(result) => result
+      case Failure(exception) =>
+        Left(s"Error durante la exportación: ${exception.getMessage}")
+    }
+  }
   private def cleanCache = {
     cache.pop(Keys.categories)
     cache.pop(Keys.categoryTree)
