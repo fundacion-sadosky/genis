@@ -164,6 +164,7 @@ object Permission {
   }
   case object CATEGORY_CRUD extends Permission {
     override val operations: Set[StaticAuthorisationOperation] = Set(
+      StaticAuthorisationOperation("""/categories.*""".r, """GET""".r, "CategoryExport"),
       StaticAuthorisationOperation("""/categories.*""".r, """PUT""".r, "CategoryUpdate"),
       StaticAuthorisationOperation("""/categories.*""".r, """POST""".r, "CategoryCreate"),
       StaticAuthorisationOperation("""/categories.*""".r, """DELETE""".r, "CategoryDelete"),

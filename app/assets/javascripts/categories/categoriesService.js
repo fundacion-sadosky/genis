@@ -81,6 +81,10 @@ function CategoriesService($q, playRoutes) {
       .getCategoryModifications(catId)
       .get();
   };
+
+  this.exportCategories = function() {
+    return playRoutes.controllers.Categories.exportCategories().get();
+  };
 }
   
 return CategoriesService;

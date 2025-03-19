@@ -9,7 +9,7 @@ angular
 	.controller('totpPromptController', ['$scope', 'totpPromptService', TotpPromptController])
 	.service('errorService', ['$log', ErrorService]) 
 	.controller('errorController', ['$scope', 'errorService', 'alertService', ErrorController])
-	.controller('headerController', ['$scope', 'userService', '$location', '$modal', 'hotkeys','appConf', HeaderController])
+	.controller('headerController', ['$scope', 'userService', 'categoriesService', '$location', '$modal', 'hotkeys','appConf', HeaderController])
 	.service('notificationsService', ['$log','$rootScope', 'cryptoService', 'userService', NotificationsService])
 	.controller('notificationsController', [ '$scope', '$log', 'notificationsService', 'userService', 'inboxService', NotificationsController])
     .config(['$routeProvider', function($routeProvider) {

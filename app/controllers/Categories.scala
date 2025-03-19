@@ -46,6 +46,15 @@ class Categories @Inject() (categoryService: CategoryService) extends Controller
     }
   }
 
+  def exportCategories: Action[AnyContent] = Action {
+    categoryService.exportCategories("/tmp/categories.json") match {
+      case Right(_) =>
+        Ok.sendFile(new java.io.File("/tmp/categories.json"), inline = false)
+      case Left(errorMessage) =>
+        InternalServerError(errorMessage)
+    }
+  }
+
   def listWithProfiles = Action.async {
     val fcs = Future.successful(categoryService.listCategoriesWithProfiles)
     fcs map { list =>

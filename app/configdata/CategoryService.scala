@@ -20,13 +20,13 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 import profile.Profile
 import play.api.i18n.Messages
-import play.api.libs.json.Json
+import play.api.libs.json.{JsValue, Json, Writes}
 
 import java.io.PrintWriter
 
 abstract class CategoryService {
 
-  def exportCategories: Either[String, String]
+  def exportCategories(filePath: String): Either[String, String]
 
   def categoryTree: Category.CategoryTree
 
@@ -111,6 +111,25 @@ abstract class CategoryService {
 @Singleton
 class CachedCategoryService @Inject() (cache: CacheService, categoryRepository: CategoryRepository) extends CategoryService {
 
+  // Serializador para CategoryConfiguration
+  implicit val categoryConfigWrites: Writes[CategoryConfiguration] = Json.writes[CategoryConfiguration]
+
+  // Serializador para FullCategory, incluyendo Map[Int, CategoryConfiguration]
+  implicit val fullCategoryWrites: Writes[FullCategory] = new Writes[FullCategory] {
+    def writes(fc: FullCategory): JsValue = Json.obj(
+      "id" -> fc.id,
+      "name" -> fc.name,
+      "description" -> fc.description,
+      "group" -> fc.group,
+      "isReference" -> fc.isReference,
+      "filiationDataRequired" -> fc.filiationDataRequired,
+      "configurations" -> fc.configurations.map { case (k, v) => k.toString -> Json.toJson(v) },
+      "associations" -> fc.associations,
+      "aliases" -> fc.aliases,
+      "matchingRules" -> fc.matchingRules
+    )
+  }
+
   override def exportCategories(filePath: String): Either[String, String] = {
     Try {
       // Obtener las categorías desde el repositorio
@@ -118,7 +137,6 @@ class CachedCategoryService @Inject() (cache: CacheService, categoryRepository: 
       val categories = Await.result(futureCategories, 10.seconds)
 
       // Convertir a JSON
-      implicit val categoryWrites = Json.writes[FullCategory]
       val json = Json.toJson(categories)
 
       // Escribir en el archivo

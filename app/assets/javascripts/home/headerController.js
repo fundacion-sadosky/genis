@@ -1,7 +1,7 @@
 define([], function() {
 'use strict';
 
-function HeaderController($scope, userService, $location, $modal, hotkeys, appConf) {
+function HeaderController($scope, userService, categoriesService, $location, $modal, hotkeys, appConf) {
 
 	var modalInstance = null;
 
@@ -41,6 +41,22 @@ function HeaderController($scope, userService, $location, $modal, hotkeys, appCo
 		$scope.selectedMenu = undefined;
 		userService.logout();
 		$scope.user = undefined;
+	};
+
+	$scope.exportCategories = function() {
+		categoriesService.exportCategories().then(function(response) {
+			var blob = new Blob([response.data], { type: 'application/json' });
+			var downloadUrl = URL.createObjectURL(blob);
+			var a = document.createElement('a');
+			a.href = downloadUrl;
+			a.download = 'categories.json';
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+		}, function(error) {
+			console.error('Error al exportar las categorías:', error);
+			alert('Ocurrió un error al exportar las categorías.'); //cambiar esto para que use el error de la plataforma
+		});
 	};
 
 
