@@ -23,9 +23,11 @@ import play.api.i18n.Messages
 import play.api.libs.json.{JsValue, Json, Writes}
 
 import java.io.PrintWriter
+import models.Tables.{Category => CategoryTable, CategoryRow}
+import scala.slick.driver.PostgresDriver.simple._
 
 abstract class CategoryService {
-
+  def replaceCategories(categories: List[CategoryRow]): Future[Either[String, Unit]]
   def exportCategories(filePath: String): Either[String, String]
 
   def categoryTree: Category.CategoryTree
@@ -111,6 +113,22 @@ abstract class CategoryService {
 @Singleton
 class CachedCategoryService @Inject() (cache: CacheService, categoryRepository: CategoryRepository) extends CategoryService {
 
+  override def replaceCategories(categories: List[CategoryRow]): Future[Either[String, Unit]] = {
+    val action = DBIO.seq(
+      CategoryTable.delete,
+      CategoryTable.insertAll(categories: _*)
+    )
+
+    Future {
+      Database.forDataSource(dataSource).withSession { implicit session =>
+        action(session)
+      }
+      Right(())
+    }.recover {
+      case ex: Exception => Left(ex.getMessage)
+    }
+  }
+  
   // Serializador para CategoryConfiguration
   implicit val categoryConfigWrites: Writes[CategoryConfiguration] = Json.writes[CategoryConfiguration]
 

@@ -45,7 +45,8 @@ function HeaderController($scope, userService, categoriesService, $location, $mo
 
 	$scope.exportCategories = function() {
 		categoriesService.exportCategories().then(function(response) {
-			var blob = new Blob([response.data], { type: 'application/json' });
+			var jsonData = JSON.stringify(response.data, null, 2); // Convierte a JSON con formato legible
+			var blob = new Blob([jsonData], { type: 'application/json' });
 			var downloadUrl = URL.createObjectURL(blob);
 			var a = document.createElement('a');
 			a.href = downloadUrl;

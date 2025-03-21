@@ -16,6 +16,13 @@ import profiledata.ProfileDataAttempt
 
 import scala.util.{Left, Right}
 
+import play.api.mvc._
+import play.api.libs.json._
+import javax.inject._
+import scala.concurrent.{ExecutionContext, Future}
+import java.nio.file.{Files, Paths}
+import models.Tables.CategoryRow
+
 @Singleton
 class Categories @Inject() (categoryService: CategoryService) extends Controller with JsonActions {
 
@@ -52,6 +59,30 @@ class Categories @Inject() (categoryService: CategoryService) extends Controller
         Ok.sendFile(new java.io.File("/tmp/categories.json"), inline = false)
       case Left(errorMessage) =>
         InternalServerError(errorMessage)
+    }
+  }
+
+  implicit val categoryReads: Reads[CategoryRow] = Json.reads[CategoryRow]
+
+  def importCategories: Action[MultipartFormData[play.api.libs.Files.TemporaryFile]] = Action.async(parse.multipartFormData) { request =>
+    request.body.file("file").map { file =>
+      val path = new java.io.File("/tmp/" + file.filename)
+      file.ref.moveTo(path, replace = true)
+
+      val source = scala.io.Source.fromFile(path)
+      val jsonString = try source.mkString finally source.close()
+
+      Json.parse(jsonString).validate[List[CategoryRow]] match {
+        case JsSuccess(categories, _) =>
+          categoryService.replaceCategories(categories).map {
+            case Right(_) => Ok("Importación exitosa")
+            case Left(error) => InternalServerError(s"Error al importar: $error")
+          }
+        case JsError(errors) =>
+          Future.successful(BadRequest("Error en el formato JSON"))
+      }
+    }.getOrElse {
+      Future.successful(BadRequest("No se encontró ningún archivo"))
     }
   }
 
