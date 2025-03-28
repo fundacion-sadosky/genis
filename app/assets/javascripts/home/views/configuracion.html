@@ -42,6 +42,11 @@
                             </button>
                         </li>
 
+                        <input type="file" id="categoryFile" style="display: none;" onchange="importCategories(event)">
+                        <button class="btn btn-success" onclick="document.getElementById('categoryFile').click()">
+                            <i class="icon-upload"></i> Importar Categorías
+                        </button>
+
                     </div>
 
                       <div show-permissions="SUP_INS_CRUD" class="panel panel-default">

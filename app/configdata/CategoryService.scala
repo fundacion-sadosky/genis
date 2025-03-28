@@ -23,7 +23,9 @@ import play.api.i18n.Messages
 import play.api.libs.json.{JsValue, Json, Writes}
 
 import java.io.PrintWriter
-import models.Tables.{Category => CategoryTable, CategoryRow}
+import models.Tables.{CategoryRow, Category => CategoryTable}
+
+import javax.sql.DataSource
 import scala.slick.driver.PostgresDriver.simple._
 
 abstract class CategoryService {
@@ -111,22 +113,10 @@ abstract class CategoryService {
 }
 
 @Singleton
-class CachedCategoryService @Inject() (cache: CacheService, categoryRepository: CategoryRepository) extends CategoryService {
+class CachedCategoryService @Inject() (cache: CacheService, categoryRepository: CategoryRepository, dataSource: DataSource) extends CategoryService {
 
   override def replaceCategories(categories: List[CategoryRow]): Future[Either[String, Unit]] = {
-    val action = DBIO.seq(
-      CategoryTable.delete,
-      CategoryTable.insertAll(categories: _*)
-    )
-
-    Future {
-      Database.forDataSource(dataSource).withSession { implicit session =>
-        action(session)
-      }
-      Right(())
-    }.recover {
-      case ex: Exception => Left(ex.getMessage)
-    }
+ // completar usando los métodos de este servicio y el repositorio (removeCategory, ...) . y sacar datasource ded los parametros de la clase
   }
   
   // Serializador para CategoryConfiguration

@@ -60,6 +60,20 @@ function HeaderController($scope, userService, categoriesService, $location, $mo
 		});
 	};
 
+	$scope.importCategories = function(event) {
+		var file = event.target.files[0];
+		if (!file) return;
+
+		var formData = new FormData();
+		formData.append("file", file);
+
+		categoriesService.importCategories(formData).then(function(response) {
+			alert(response.data);
+		}, function(error) {
+			alert("Error al importar categorías: " + error.data);
+		});
+	};
+
 
 }
 

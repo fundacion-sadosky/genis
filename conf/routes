@@ -21,6 +21,7 @@ DELETE   /catmodification                                     @controllers.Categ
 GET      /catmodification                                     @controllers.Categories.getCategoryModifications(catId: types.AlphanumericId)
 GET      /catmodifications                                    @controllers.Categories.allCategoryModifications
 GET      /categories/export                                   @controllers.Categories.exportCategories
+GET      /categories/import                                   @controllers.Categories.importCategories
 
 GET      /categories-mapping                                  @controllers.Categories.listCategoriesMapping
 PUT      /categories-mapping                                  @controllers.Categories.insertOrUpdateCategoriesMapping

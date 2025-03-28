@@ -85,6 +85,12 @@ function CategoriesService($q, playRoutes) {
   this.exportCategories = function() {
     return playRoutes.controllers.Categories.exportCategories().get();
   };
+
+  this.importCategories = function(formData) {
+    return playRoutes.controllers.Categories.importCategories().post(formData, {
+      headers: { 'Content-Type': undefined }
+    });
+  };
 }
   
 return CategoriesService;
