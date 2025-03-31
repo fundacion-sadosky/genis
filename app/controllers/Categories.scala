@@ -66,26 +66,93 @@ class Categories @Inject() (categoryService: CategoryService) extends Controller
 
   def importCategories: Action[MultipartFormData[play.api.libs.Files.TemporaryFile]] = Action.async(parse.multipartFormData) { request =>
     request.body.file("file").map { file =>
+      // Guardar archivo temporalmente
       val path = new java.io.File("/tmp/" + file.filename)
       file.ref.moveTo(path, replace = true)
 
+      // Leer contenido del archivo
       val source = scala.io.Source.fromFile(path)
       val jsonString = try source.mkString finally source.close()
 
+      // Parsear JSON a lista de CategoryRow
       Json.parse(jsonString).validate[List[CategoryRow]] match {
-        case JsSuccess(categories, _) =>
-          categoryService.replaceCategories(categories).map {
-            case Right(_) => Ok("Importación exitosa")
-            case Left(error) => InternalServerError(s"Error al importar: $error")
-          }
+        case JsSuccess(importedCategories, _) =>
+          // Proceso de importación: eliminar categorías existentes y añadir las nuevas
+          processImportCategories(importedCategories)
         case JsError(errors) =>
-          Future.successful(BadRequest("Error en el formato JSON"))
+          Future.successful(BadRequest(Json.obj(
+            "status" -> "error",
+            "message" -> "Error en el formato JSON",
+            "details" -> JsError.toFlatJson(errors)
+          )))
       }
     }.getOrElse {
-      Future.successful(BadRequest("No se encontró ningún archivo"))
+      Future.successful(BadRequest(Json.obj(
+        "status" -> "error",
+        "message" -> "No se encontró ningún archivo"
+      )))
     }
   }
 
+  // Método auxiliar para procesar la importación de categorías
+  private def processImportCategories(importedCategories: List[CategoryRow]): Future[Result] = {
+    // 1. Obtener las categorías existentes
+    val existingCategoriesFuture = Future.successful(categoryService.listCategories)
+
+    existingCategoriesFuture.flatMap { existingCategories =>
+      // 2. Eliminar categorías existentes
+      val deleteFutures = existingCategories.keys.map { categoryId =>
+        categoryService.removeCategory(categoryId)
+      }
+
+      Future.sequence(deleteFutures.toSeq).flatMap { deleteResults =>
+        // Verificar errores de eliminación
+        val deleteErrors = deleteResults.collect { case Left(error) => error }
+
+        if (deleteErrors.nonEmpty) {
+          Future.successful(InternalServerError(Json.obj(
+            "status" -> "error",
+            "message" -> "Error al eliminar categorías existentes",
+            "details" -> deleteErrors
+          )))
+        } else {
+          // 3. Agregar nuevas categorías
+          val addFutures = importedCategories.map { categoryRow =>
+            // Convertir CategoryRow a Category
+            val category = Category(
+              AlphanumericId(categoryRow.id),
+              AlphanumericId(categoryRow.group),
+              categoryRow.name,
+              categoryRow.isReference,
+              categoryRow.description
+            )
+
+            categoryService.addCategory(category)
+          }
+
+          Future.sequence(addFutures).map { addResults =>
+            // Verificar errores de adición
+            val addErrors = addResults.collect { case Left(error) => error }
+
+            if (addErrors.nonEmpty) {
+              InternalServerError(Json.obj(
+                "status" -> "error",
+                "message" -> "Error al importar categorías",
+                "details" -> addErrors
+              ))
+            } else {
+              // Importación exitosa
+              Ok(Json.obj(
+                "status" -> "success",
+                "message" -> "Importación exitosa",
+                "count" -> importedCategories.size
+              ))
+            }
+          }
+        }
+      }
+    }
+  }
   def listWithProfiles = Action.async {
     val fcs = Future.successful(categoryService.listCategoriesWithProfiles)
     fcs map { list =>

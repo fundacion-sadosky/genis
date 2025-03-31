@@ -29,7 +29,8 @@ import javax.sql.DataSource
 import scala.slick.driver.PostgresDriver.simple._
 
 abstract class CategoryService {
-  def replaceCategories(categories: List[CategoryRow]): Future[Either[String, Unit]]
+  //def replaceCategories(categories: List[CategoryRow]): Future[Either[String, Unit]]
+
   def exportCategories(filePath: String): Either[String, String]
 
   def categoryTree: Category.CategoryTree
@@ -113,11 +114,8 @@ abstract class CategoryService {
 }
 
 @Singleton
-class CachedCategoryService @Inject() (cache: CacheService, categoryRepository: CategoryRepository, dataSource: DataSource) extends CategoryService {
+class CachedCategoryService @Inject() (cache: CacheService, categoryRepository: CategoryRepository) extends CategoryService {
 
-  override def replaceCategories(categories: List[CategoryRow]): Future[Either[String, Unit]] = {
- // completar usando los métodos de este servicio y el repositorio (removeCategory, ...) . y sacar datasource ded los parametros de la clase
-  }
   
   // Serializador para CategoryConfiguration
   implicit val categoryConfigWrites: Writes[CategoryConfiguration] = Json.writes[CategoryConfiguration]
