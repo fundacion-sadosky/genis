@@ -7,6 +7,8 @@ function SecureRequestInterceptor($q, $window, $log, $injector) {
 		request : function(request) {
 			request.headers = request.headers || {};
 
+			var isCategoriesImport = request.url.indexOf("/categories/import") === 0;
+
 			var isPublicAsset = request.url.indexOf("/assets") === 0;
 
 			var isJsLibAsset = 
@@ -33,7 +35,8 @@ function SecureRequestInterceptor($q, $window, $log, $injector) {
 				isSignup ||
 				isRolesForSignUp ||
 				isClearPass ||
-				isDisclaimer
+				isDisclaimer ||
+				isCategoriesImport
 			);
 
 			if (isSecuredPath && !request.file) {

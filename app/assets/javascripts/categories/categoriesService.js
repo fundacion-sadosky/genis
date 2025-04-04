@@ -88,11 +88,13 @@ function CategoriesService($q, playRoutes) {
 
   this.importCategories = function(formData) {
     return playRoutes.controllers.Categories.importCategories().post(formData, {
-      headers: { 'Content-Type': undefined }
+      headers: { 'Content-Type': undefined },
+      file: true, // Marca la solicitud como archivo
+      transformRequest: angular.identity
     });
   };
 }
-  
+
 return CategoriesService;
 
 });

@@ -60,8 +60,11 @@ function HeaderController($scope, userService, categoriesService, $location, $mo
 		});
 	};
 
-	$scope.importCategories = function(event) {
-		var file = event.target.files[0];
+	$scope.triggerFileInput = function() {
+		document.getElementById('categoryFile').click();
+	};
+
+	$scope.importCategories = function(file) {
 		if (!file) return;
 
 		var formData = new FormData();
@@ -73,7 +76,6 @@ function HeaderController($scope, userService, categoriesService, $location, $mo
 			alert("Error al importar categorías: " + error.data);
 		});
 	};
-
 
 }
 
