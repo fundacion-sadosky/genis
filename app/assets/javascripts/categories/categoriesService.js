@@ -1,7 +1,7 @@
 define([], function() {
 'use strict';
 
-function CategoriesService($q, playRoutes) {
+function CategoriesService($q, $http, playRoutes) {
 
   this.getCategories = function() {
     var groupsPromise = playRoutes.controllers.Categories.categoryTree().get().then(function(response) {
@@ -86,11 +86,23 @@ function CategoriesService($q, playRoutes) {
     return playRoutes.controllers.Categories.exportCategories().get();
   };
 
+  // this.importCategories = function(formData) {
+  //   return playRoutes.controllers.Categories.importCategories().post(formData, {
+  //     transformRequest: angular.identity,
+  //     headers: {
+  //       'Content-Type': undefined // Let the browser set the correct Content-Type with boundary
+  //     }
+  //   });
+  // };
+
   this.importCategories = function(formData) {
-    return playRoutes.controllers.Categories.importCategories().post(formData, {
-      headers: { 'Content-Type': undefined },
-      file: true, // Marca la solicitud como archivo
-      transformRequest: angular.identity
+    // Extract the URL from the Play routes object.
+    var url = playRoutes.controllers.Categories.importCategories().url;
+
+    // Use $http directly to ensure proper FormData handling.
+    return $http.post(url, formData, {
+      transformRequest: angular.identity,
+      headers: { 'Content-Type': undefined }  // Let the browser set multipart/form-data with boundary.
     });
   };
 }

@@ -65,6 +65,7 @@ class Categories @Inject() (categoryService: CategoryService) extends Controller
   implicit val categoryReads: Reads[CategoryRow] = Json.reads[CategoryRow]
 
   def importCategories: Action[MultipartFormData[play.api.libs.Files.TemporaryFile]] = Action.async(parse.multipartFormData) { request =>
+    println("Importando categorías...")
     request.body.file("file").map { file =>
       // Guardar archivo temporalmente
       val path = new java.io.File("/tmp/" + file.filename)
