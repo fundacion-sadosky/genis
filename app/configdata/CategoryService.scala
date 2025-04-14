@@ -214,11 +214,39 @@ class CachedCategoryService @Inject() (cache: CacheService, categoryRepository: 
   }
 
   override def removeCategory(categoryId: AlphanumericId): Future[Either[String, Int]] = {
-    val promise = categoryRepository.removeCategory(categoryId)
+    val promise = categoryRepository.runInTransactionAsync { implicit session =>
+
+      val deleteAliasesResult = categoryRepository.deleteAliases(categoryId)
+      val deleteAssociationsResult = deleteAliasesResult.fold(Left(_), r=>categoryRepository.deleteAssociations(categoryId))
+      val deleteMatchingRulesResult = deleteAssociationsResult.fold(Left(_), r=>categoryRepository.deleteMatchingRules(categoryId))
+      val deleteConfigurationsResult = deleteMatchingRulesResult.fold(Left(_), r=>categoryRepository.deleteConfigurations(categoryId))
+
+      val category = this.getCategory(categoryId).getOrElse(throw new Exception("Category not found"))
+      val matchingRules = category.matchingRules.filterNot(p => categoryId == p.categoryRelated)
+
+      val deleteReciprocateRulesResult = deleteConfigurationsResult.fold(Left(_), r =>
+        matchingRules.foldLeft[Either[String,AlphanumericId]](Right(r)){
+          case (prev,current) => prev.fold(Left(_),r=>categoryRepository.deleteMatchingRule(current.categoryRelated, categoryId))
+        })
+
+
+      val removeCategoryResult = deleteReciprocateRulesResult.fold(Left(_), r=>categoryRepository.removeCategory(categoryId))
+      removeCategoryResult
+    }
+
     promise.foreach { _ => cleanCache }
     promise
-      .map { Right(_) }
+      .map { _ => Right(1) }
       .recover { case e: SQLException if e.getSQLState.startsWith("23") => Left(Messages("error.E0665")) }
+    
+    
+    //promise.map { either => either.fold(Left(_), r=>Right(1)) }
+    ///
+//    val promise = categoryRepository.removeCategory(categoryId)
+//    promise.foreach { _ => cleanCache }
+//    promise
+//      .map { Right(_) }
+//      .recover { case e: SQLException if e.getSQLState.startsWith("23") => Left(Messages("error.E0665")) }
   }
 
   override def updateCategory(category: FullCategory): Future[Either[String, Int]] = {

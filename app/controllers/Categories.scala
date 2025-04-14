@@ -15,13 +15,16 @@ import scala.concurrent.Future
 import profiledata.ProfileDataAttempt
 
 import scala.util.{Left, Right}
-
 import play.api.mvc._
 import play.api.libs.json._
+
 import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
 import java.nio.file.{Files, Paths}
 import models.Tables.CategoryRow
+import play.api.libs.functional.syntax.toFunctionalBuilderOps
+import play.api.libs.functional.syntax._
+import profile.ProfileRepository
 
 @Singleton
 class Categories @Inject() (categoryService: CategoryService) extends Controller with JsonActions {
@@ -62,17 +65,28 @@ class Categories @Inject() (categoryService: CategoryService) extends Controller
     }
   }
 
-  implicit val categoryReads: Reads[CategoryRow] = Json.reads[CategoryRow]
+  implicit val categoryRowReads: Reads[CategoryRow] = (
+    (JsPath \ "id").read[String] and
+      (JsPath \ "group").read[String] and
+      (JsPath \ "name").read[String] and
+      (JsPath \ "isReference").read[Boolean] and
+      (JsPath \ "description").readNullable[String] and
+      (JsPath \ "filiationDataRequired").read[Boolean].orElse(Reads.pure(false)) and
+      (JsPath \ "replicate").read[Boolean].orElse(Reads.pure(true)) and
+      (JsPath \ "pedigreeAssociation").read[Boolean].orElse(Reads.pure(false)) and
+      (JsPath \ "allowManualLoading").read[Boolean].orElse(Reads.pure(true)) and
+      (JsPath \ "tipo").read[Int].orElse(Reads.pure(1))
+    )(CategoryRow.apply _)
+  //Json.reads[CategoryRow]
 
   def importCategories: Action[MultipartFormData[play.api.libs.Files.TemporaryFile]] = Action.async(parse.multipartFormData) { request =>
-    println("Importando categorías...")
     request.body.file("file").map { file =>
       // Guardar archivo temporalmente
       val path = new java.io.File("/tmp/" + file.filename)
       file.ref.moveTo(path, replace = true)
 
       // Leer contenido del archivo
-      val source = scala.io.Source.fromFile(path)
+      val source = scala.io.Source.fromFile(path, "UTF-8")
       val jsonString = try source.mkString finally source.close()
 
       // Parsear JSON a lista de CategoryRow

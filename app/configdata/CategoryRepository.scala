@@ -399,6 +399,7 @@ class SlickCategoryRepository @Inject() (implicit app: Application) extends Cate
   override def removeCategory(categoryId: AlphanumericId): Future[Int] = Future {
     // TODO check if there is a CategoryModification associated with this category
     //      if so, remove it
+
     DB.withTransaction { implicit session =>
       getMappingById(categoryId.text).delete
       val res = queryGetCategory(categoryId.text).delete
