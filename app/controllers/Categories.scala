@@ -24,10 +24,10 @@ import java.nio.file.{Files, Paths}
 import models.Tables.CategoryRow
 import play.api.libs.functional.syntax.toFunctionalBuilderOps
 import play.api.libs.functional.syntax._
-import profile.ProfileRepository
+import profile.{ProfileRepository, ProfileService}
 
 @Singleton
-class Categories @Inject() (categoryService: CategoryService) extends Controller with JsonActions {
+class Categories @Inject() (categoryService: CategoryService, profileService: ProfileService) extends Controller with JsonActions {
 
   def categoryTree = Action.async {
     val fct = Future.successful(categoryService.categoryTree)
@@ -111,6 +111,10 @@ class Categories @Inject() (categoryService: CategoryService) extends Controller
 
   // Método auxiliar para procesar la importación de categorías
   private def processImportCategories(importedCategories: List[CategoryRow]): Future[Result] = {
+    // 0. Eliminar todos los perfiles (y epgs y files)
+    profileService.removeAll()
+    //falta eliminar profile_data etc
+
     // 1. Obtener las categorías existentes
     val existingCategoriesFuture = Future.successful(categoryService.listCategories)
 

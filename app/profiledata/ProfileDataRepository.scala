@@ -92,6 +92,13 @@ abstract class ProfileDataRepository extends DefaultDb with Transaction  {
    *
    */
   def delete(globalCode: SampleCode, motive: DeletedMotive): Future[Int]
+
+  /**
+   * remove all elements from the table
+   */
+  
+  def removeAll(): Future[Int]
+  
   /**
    * Get all profile datas of a user
    *
@@ -617,6 +624,12 @@ class SlickProfileDataRepository @Inject() (
       val id = (profileDataMotive returning profileDataMotive.map(_.id)) += models.Tables.ProfileDataMotiveRow(0L,idProfile,now,motive.selectedMotive)
 
       Future.successful(resp)
+    }
+  }
+  
+  override def removeAll(): Future[Int] = Future {
+    DB.withTransaction { implicit session =>
+      profilesData.delete
     }
   }
 
