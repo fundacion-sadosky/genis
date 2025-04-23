@@ -44,6 +44,8 @@ import types.SampleCode
 import util.{DefaultDb, Transaction}
 import play.api.i18n.Messages
 import models.Tables.ExternalProfileDataRow
+import play.api.db.slick.Config.driver.simple._
+
 abstract class ProfileDataRepository extends DefaultDb with Transaction  {
   /**
    * Get by dataBase Id
@@ -271,11 +273,20 @@ class SlickProfileDataRepository @Inject() (
     pdf.address
   )
 
+  //private def queryRemoveAll() = profilesData.filter(_.deleted === true).delete
+
   private def queryDefineGetIdProfileData(globalCode: Column[String]) = for {
     pd <- profilesData if (pd.globalCode === globalCode)
   } yield (pd.id)
 
   val queryGetIdProfileData = Compiled(queryDefineGetIdProfileData _)
+
+
+  private def queryDefineGetAllProfileGlobalCodes = for {
+    pd <- profilesData
+  } yield pd.globalCode
+
+  val queryGetAllProfileGlobalCodes = Compiled(queryDefineGetAllProfileGlobalCodes)
 
   private def queryDefineGetProfileData(id: Column[Long]) = for (
     ((pd, pmdf),epd) <-
@@ -626,12 +637,25 @@ class SlickProfileDataRepository @Inject() (
       Future.successful(resp)
     }
   }
-  
-  override def removeAll(): Future[Int] = Future {
+
+  override def removeAll(): Future[Int] = {
     DB.withTransaction { implicit session =>
-      profilesData.delete
+      val codes = queryGetAllProfileGlobalCodes.list
+      val counts: Seq[Int] = codes.map { code =>
+        queryGetIdProfileData(code).delete
+      }
+
+      val totalDeleted = counts.sum
+      Future.successful(totalDeleted)
+//      for {
+//        code <- codes
+//      } yield {
+//        val deleted = queryGetIdProfileData(code).delete
+//      }
+//      Future.successful(deleted)
     }
   }
+
 
   override def getResource(resourceType: String, id: Long): Future[Option[Array[Byte]]] = Future {
     DB.withTransaction { implicit session =>

@@ -12,7 +12,7 @@ import configdata._
 import play.api.i18n.Messages
 
 import scala.concurrent.Future
-import profiledata.ProfileDataAttempt
+import profiledata._//{ProfileDataAttempt, ProfileDataRepository}
 
 import scala.util.{Left, Right}
 import play.api.mvc._
@@ -27,7 +27,11 @@ import play.api.libs.functional.syntax._
 import profile.{ProfileRepository, ProfileService}
 
 @Singleton
-class Categories @Inject() (categoryService: CategoryService, profileService: ProfileService) extends Controller with JsonActions {
+class Categories @Inject() (
+                             categoryService: CategoryService,
+                             profileService: ProfileService,
+                             profileDataService: ProfileDataService
+                           ) extends Controller with JsonActions {
 
   def categoryTree = Action.async {
     val fct = Future.successful(categoryService.categoryTree)
@@ -113,7 +117,7 @@ class Categories @Inject() (categoryService: CategoryService, profileService: Pr
   private def processImportCategories(importedCategories: List[CategoryRow]): Future[Result] = {
     // 0. Eliminar todos los perfiles (y epgs y files)
     profileService.removeAll()
-    //falta eliminar profile_data etc
+    profileDataService.removeAll()
 
     // 1. Obtener las categorías existentes
     val existingCategoriesFuture = Future.successful(categoryService.listCategories)

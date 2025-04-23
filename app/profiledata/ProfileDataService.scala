@@ -69,6 +69,8 @@ trait ProfileDataService {
   ): Future[Either[String, SampleCode]]
   def findByCodes(globalCodes: List[SampleCode]): Future[Seq[ProfileData]]
   def delete(globalCode: SampleCode): Future[Either[String, SampleCode]]
+  
+  def removeAll():Future[Int]
   def importFromAnotherInstance(profileData: ProfileData,labOrigin:String,labImmediate:String):Future[Unit]
   def updateUploadStatus(globalCode: String,status:Long,motive:Option[String]= None): Future[Either[String,Unit]]
   def getProfileUploadStatusByGlobalCode(globalCode:SampleCode):Future[Option[Long]]
@@ -228,6 +230,9 @@ class ProfileDataServiceImpl @Inject() (
     }
   }
 
+  override def removeAll(): Future[Int] = {
+    profileDataRepository.removeAll()
+  }
   override def get(id: Long): Future[(ProfileData, Group, Category)] = {
     for {
       profile <- profileDataRepository.get(id)

@@ -14,6 +14,7 @@ import play.api.test.Helpers.defaultAwaitTimeout
 import play.api.test.Helpers.status
 import configdata.{CategoryMapping, CategoryMappingList, CategoryService, FullCategoryMapping}
 import profile.ProfileService
+import profiledata.ProfileDataService
 import specs.PdgSpec
 import stubs.Stubs
 import types.AlphanumericId
@@ -28,8 +29,10 @@ class CategoriesTest extends PdgSpec with MockitoSugar with Results {
       when(mockCategoryService.categoryTree).thenReturn(Stubs.categoryTree)
 
       val mockProfileService = mock[ProfileService]
-      
-      val categoriesController = new Categories(mockCategoryService, mockProfileService)
+      val mockProfileDataService = mock[ProfileDataService]
+
+
+      val categoriesController = new Categories(mockCategoryService, mockProfileService, mockProfileDataService)
       val result: Future[Result] = categoriesController.categoryTree().apply(FakeRequest())
 
       status(result) mustBe OK
@@ -59,7 +62,7 @@ class CategoriesTest extends PdgSpec with MockitoSugar with Results {
 
       when(categoryService.listCategoriesMapping).thenReturn(Future.successful(fcm))
 
-      val target = new Categories(categoryService, mock[ProfileService])
+      val target = new Categories(categoryService, mock[ProfileService], mock[ProfileDataService])
       val result: Future[Result] = target.listCategoriesMapping.apply(FakeRequest())
       status(result) mustBe OK
     }
@@ -70,7 +73,7 @@ class CategoriesTest extends PdgSpec with MockitoSugar with Results {
       val cml = CategoryMappingList(cm)
       when(categoryService.insertOrUpdateMapping(cml)).thenReturn(Future.successful(Right(())))
 
-      val target = new Categories(categoryService, mock[ProfileService])
+      val target = new Categories(categoryService, mock[ProfileService], mock[ProfileDataService])
 
       val json = play.api.libs.json.Json.toJson(cml)
       val request = FakeRequest().withBody(json)
@@ -85,7 +88,7 @@ class CategoriesTest extends PdgSpec with MockitoSugar with Results {
       val cml = CategoryMappingList(cm)
       when(categoryService.insertOrUpdateMapping(cml)).thenReturn(Future.successful(Right(())))
 
-      val target = new Categories(categoryService, mock[ProfileService])
+      val target = new Categories(categoryService, mock[ProfileService], mock[ProfileDataService])
 
       val json = play.api.libs.json.Json.toJson(cm)
       val request = FakeRequest().withBody(json)
@@ -102,7 +105,7 @@ class CategoriesTest extends PdgSpec with MockitoSugar with Results {
 
       when(mockCategoryService.listCategories).thenReturn(Stubs.categoryMap)
 
-      val target = new Categories(mockCategoryService, mock[ProfileService])
+      val target = new Categories(mockCategoryService, mock[ProfileService], mock[ProfileDataService])
       val result: Future[Result] = target.list().apply(FakeRequest())
 
       status(result) mustBe OK
