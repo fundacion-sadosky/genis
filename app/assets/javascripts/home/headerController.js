@@ -1,7 +1,7 @@
 define([], function() {
 'use strict';
 
-function HeaderController($scope, userService, categoriesService, $location, $modal, hotkeys, appConf) {
+function HeaderController($scope, userService, categoriesService, strKitService, $location, $modal, hotkeys, appConf, alertService) {
 
 	var modalInstance = null;
 
@@ -43,6 +43,10 @@ function HeaderController($scope, userService, categoriesService, $location, $mo
 		$scope.user = undefined;
 	};
 
+	$scope.exportConfiguration = function() {
+		$scope.exportCategories();
+	};
+
 	$scope.exportCategories = function() {
 		categoriesService.exportCategories().then(function(response) {
 			var jsonData = JSON.stringify(response.data, null, 2); // Convierte a JSON con formato legible
@@ -60,6 +64,23 @@ function HeaderController($scope, userService, categoriesService, $location, $mo
 		});
 	};
 
+	$scope.exportKits = function() {
+		strKitService.exportKits().then(function(response) {
+			var jsonData = JSON.stringify(response.data, null, 2); // Convierte a JSON con formato legible
+			var blob = new Blob([jsonData], { type: 'application/json' });
+			var downloadUrl = URL.createObjectURL(blob);
+			var a = document.createElement('a');
+			a.href = downloadUrl;
+			a.download = 'kits.json';
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+		}, function(error) {
+			console.error('Error al exportar los kits:', error);
+			alert('Ocurrió un error al exportar los kits.'); //cambiar esto para que use el error de la plataforma
+		});
+	}
+
 	$scope.triggerFileInput = function() {
 		document.getElementById('categoryFile').click();
 	};
@@ -71,7 +92,7 @@ function HeaderController($scope, userService, categoriesService, $location, $mo
 		formData.append("file", file);
 
 		categoriesService.importCategories(formData).then(function(response) {
-			alert(response.data);
+			alertService.success({message: 'Categorías importadas con éxito'});
 		}, function(error) {
 			alert("Error al importar categorías: " + error.data);
 		});

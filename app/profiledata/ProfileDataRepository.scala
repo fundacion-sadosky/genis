@@ -647,12 +647,6 @@ class SlickProfileDataRepository @Inject() (
 
       val totalDeleted = counts.sum
       Future.successful(totalDeleted)
-//      for {
-//        code <- codes
-//      } yield {
-//        val deleted = queryGetIdProfileData(code).delete
-//      }
-//      Future.successful(deleted)
     }
   }
 
