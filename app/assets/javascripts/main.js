@@ -81,7 +81,10 @@
           'ng-i18next' : [ 'angular', 'i18next' ],
           'qrcodejs' : {exports : 'QRCode'},
               'jquery-ui': ['jquery'],
-              'angular-ui-sortable': ['jquery-ui']
+              'angular-ui-sortable': ['jquery-ui'],
+          'jszip': {
+            exports: 'JSZip'
+          }
           },
         paths : {
           'requirejs' :  '../lib/requirejs/require' ,
@@ -107,7 +110,8 @@
           'dagre-d3': '../lib/dagre-d3/dagre-d3',
           'jquery-ui': '../lib/jquery-ui/jquery-ui',
           'angular-ui-sortable': '../lib/angular-ui-sortable/sortable',
-          'lodash': '../lib/lodash/lodash'
+          'lodash': '../lib/lodash/lodash',
+          'jszip': '../lib/jszip/jszip.min'
         }
       }
     );

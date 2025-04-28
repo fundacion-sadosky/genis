@@ -315,7 +315,9 @@ GET      /strkits/:kitId/loci                                 @controllers.StrKi
 GET      /strkits-full                                        @controllers.StrKits.listFull
 POST     /strkit/create                                       @controllers.StrKits.add
 PUT      /strkit/update                                       @controllers.StrKits.update
+GET      /strkit/export                                       @controllers.StrKits.exportKits
 DELETE   /strkit/delete/:id                                   @controllers.StrKits.delete(id: String)
+
 
 # Trace
 POST     /trace/search                                        @controllers.Traces.search

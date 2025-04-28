@@ -1,7 +1,7 @@
-define([], function() {
+define(['JSZip'], function() {
 'use strict';
 
-function HeaderController($scope, userService, categoriesService, strKitService, $location, $modal, hotkeys, appConf, alertService) {
+function HeaderController($scope, userService, categoriesService, kitService, $location, $modal, hotkeys, appConf, alertService) {
 
 	var modalInstance = null;
 
@@ -44,7 +44,33 @@ function HeaderController($scope, userService, categoriesService, strKitService,
 	};
 
 	$scope.exportConfiguration = function() {
-		$scope.exportCategories();
+		// Pedimos ambas exportaciones al mismo tiempo
+		Promise.all([
+			categoriesService.exportCategories(),
+			kitService.exportKits()
+		]).then(function(responses) {
+			var categoriesData = responses[0].data;
+			var kitsData = responses[1].data;
+
+			var zip = new JSZip();
+			zip.file("categories.json", JSON.stringify(categoriesData, null, 2));
+			zip.file("kits.json", JSON.stringify(kitsData, null, 2));
+
+			zip.generateAsync({ type: "blob" })
+				.then(function(content) {
+					var downloadUrl = URL.createObjectURL(content);
+					var a = document.createElement('a');
+					a.href = downloadUrl;
+					a.download = 'configuration.zip';
+					document.body.appendChild(a);
+					a.click();
+					document.body.removeChild(a);
+				});
+
+		}).catch(function(error) {
+			console.error('Error al exportar la configuración:', error);
+			alertService.error('Ocurrió un error al exportar la configuración.');
+		});
 	};
 
 	$scope.exportCategories = function() {
@@ -60,12 +86,12 @@ function HeaderController($scope, userService, categoriesService, strKitService,
 			document.body.removeChild(a);
 		}, function(error) {
 			console.error('Error al exportar las categorías:', error);
-			alert('Ocurrió un error al exportar las categorías.'); //cambiar esto para que use el error de la plataforma
+			alertService.error('Ocurrió un error al exportar las categorías.');
 		});
 	};
 
 	$scope.exportKits = function() {
-		strKitService.exportKits().then(function(response) {
+		kitService.exportKits().then(function(response) {
 			var jsonData = JSON.stringify(response.data, null, 2); // Convierte a JSON con formato legible
 			var blob = new Blob([jsonData], { type: 'application/json' });
 			var downloadUrl = URL.createObjectURL(blob);
@@ -77,12 +103,17 @@ function HeaderController($scope, userService, categoriesService, strKitService,
 			document.body.removeChild(a);
 		}, function(error) {
 			console.error('Error al exportar los kits:', error);
-			alert('Ocurrió un error al exportar los kits.'); //cambiar esto para que use el error de la plataforma
+			alertService.error('Ocurrió un error al exportar los kits.');
 		});
-	}
+	};
 
 	$scope.triggerFileInput = function() {
 		document.getElementById('categoryFile').click();
+	};
+
+
+	$scope.importConfiguration = function() {
+		$scope.importCategories();
 	};
 
 	$scope.importCategories = function(file) {
@@ -94,7 +125,7 @@ function HeaderController($scope, userService, categoriesService, strKitService,
 		categoriesService.importCategories(formData).then(function(response) {
 			alertService.success({message: 'Categorías importadas con éxito'});
 		}, function(error) {
-			alert("Error al importar categorías: " + error.data);
+			alertService.error("Error al importar categorías: " + error.data);
 		});
 	};
 

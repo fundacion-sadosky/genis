@@ -1,4 +1,4 @@
-define(['angular', './loadingAppController', './totpPromptService', './totpPromptController', './errorService', './errorController', './headerController', './notificationsService', './notificationsController'], 
+define(['angular', './loadingAppController', './totpPromptService', './totpPromptController', './errorService', './errorController', './headerController', './notificationsService', './notificationsController'],
 function(angular, LoadingAppController, TotpPromptService, TotpPromptController, ErrorService, ErrorController, HeaderController, NotificationsService, NotificationsController) {
 'use strict';
 
@@ -9,7 +9,7 @@ angular
 	.controller('totpPromptController', ['$scope', 'totpPromptService', TotpPromptController])
 	.service('errorService', ['$log', ErrorService]) 
 	.controller('errorController', ['$scope', 'errorService', 'alertService', ErrorController])
-	.controller('headerController', ['$scope', 'userService', 'categoriesService', 'strKitService', '$location', '$modal', 'hotkeys','appConf', 'alertService', HeaderController])
+	.controller('headerController', ['$scope', 'userService', 'categoriesService', 'kitService', '$location', '$modal', 'hotkeys','appConf', 'alertService', HeaderController])
 	.service('notificationsService', ['$log','$rootScope', 'cryptoService', 'userService', NotificationsService])
 	.controller('notificationsController', [ '$scope', '$log', 'notificationsService', 'userService', 'inboxService', NotificationsController])
     .config(['$routeProvider', function($routeProvider) {

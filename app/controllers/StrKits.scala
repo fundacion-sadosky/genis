@@ -71,6 +71,13 @@ class StrKits @Inject() (strKitService: StrKitService) extends Controller {
     )
   }
 
+  def exportKits = Action.async {
+    strKitService.listFull map { kits =>
+      val json = Json.toJson(kits)
+      Ok(json).as("application/json").withHeaders("Content-Disposition" -> "attachment; filename=kits.json")
+    }
+  }
+  
   def delete(id: String) = Action.async {
     strKitService.delete(id) map {
       case Right(id) => Ok(Json.toJson(id)).withHeaders("X-CREATED-ID" -> id)

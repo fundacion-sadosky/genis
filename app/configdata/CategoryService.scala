@@ -137,6 +137,7 @@ class CachedCategoryService @Inject() (cache: CacheService, categoryRepository: 
   }
 
   override def exportCategories(filePath: String): Either[String, String] = {
+    // Esto se está usando?
     Try {
       // Obtener las categorías desde el repositorio
       val futureCategories = categoryRepository.listCategories

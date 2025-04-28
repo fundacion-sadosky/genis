@@ -26,6 +26,10 @@ define([],function() {
         this.updateKit = function(kit){
             return playRoutes.controllers.StrKits.update().put(kit);
         };
+        
+        this.exportKits = function () {
+            return playRoutes.controllers.StrKits.exportKits().get();
+        };
 
         this.delete = function (id) {
             return playRoutes.controllers.StrKits.delete(id).delete();
