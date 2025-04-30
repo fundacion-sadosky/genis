@@ -156,7 +156,8 @@ libraryDependencies ++= Seq(
   "org.webjars" % "font-awesome" % "4.4.0",
   "org.webjars" % "d3js" % "3.5.5-1",
   "org.webjars" % "dagre-d3" % "0.4.10",
-  "org.webjars" % "animate.css" % "3.5.2"
+  "org.webjars" % "animate.css" % "3.5.2",
+  "org.webjars.npm" % "jszip" % "3.10.1"
   )
 
 // LDAP 

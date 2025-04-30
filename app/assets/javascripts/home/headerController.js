@@ -1,4 +1,4 @@
-define(['JSZip'], function() {
+define(['jszip'], function(JSZip) {
 'use strict';
 
 function HeaderController($scope, userService, categoriesService, kitService, $location, $modal, hotkeys, appConf, alertService) {
@@ -108,12 +108,50 @@ function HeaderController($scope, userService, categoriesService, kitService, $l
 	};
 
 	$scope.triggerFileInput = function() {
-		document.getElementById('categoryFile').click();
+		document.getElementById('configFile').click();
 	};
 
 
-	$scope.importConfiguration = function() {
-		$scope.importCategories();
+	$scope.importConfiguration = function(fileInput) {
+		if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+			alertService.error('No se seleccionó ningún archivo.');
+			return;
+		}
+
+		var file = fileInput.files[0];
+		var reader = new FileReader();
+
+		reader.onload = function(event) {
+			JSZip.loadAsync(event.target.result).then(function(zip) {
+				var categoriesPromise = zip.file("categories.json") ?
+					zip.file("categories.json").async("string").then(function(content) {
+						var data = JSON.parse(content);
+						return categoriesService.importCategories(data);
+					})
+					: Promise.resolve();
+
+				var kitsPromise = zip.file("kits.json") ?
+					zip.file("kits.json").async("string").then(function(content) {
+						var data = JSON.parse(content);
+						return kitService.importKits(data);
+					})
+					: Promise.resolve();
+
+				return Promise.all([categoriesPromise, kitsPromise]);
+
+			}).then(function() {
+				alertService.success('La configuración fue importada correctamente.');
+			}).catch(function(error) {
+				console.error('Error al importar la configuración:', error);
+				alertService.error('Ocurrió un error al importar la configuración.');
+			});
+		};
+
+		reader.onerror = function() {
+			alertService.error('No se pudo leer el archivo.');
+		};
+
+		reader.readAsArrayBuffer(file);
 	};
 
 	$scope.importCategories = function(file) {

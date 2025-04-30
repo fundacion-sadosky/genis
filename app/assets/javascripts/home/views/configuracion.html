@@ -41,10 +41,12 @@
                         </li>
 
                         <li class="list-group-item" show-permissions="CATEGORY_CRUD">
-                        <input type="file" id="categoryFile" style="display: none;" onchange="angular.element(this).scope().$apply(function(scope) { scope.importCategories(this.files[0]); }.bind(this))">
-                        <button class="btn btn-success" ng-click="triggerFileInput()">
-                            <i class="icon-upload"></i> Importar Categorías
-                        </button>
+                            <input type="file" id="configFile" style="display: none;" accept=".zip"
+                                   onchange="angular.element(this).scope().$apply(function(scope) { scope.importConfiguration(this); }.bind(this))">
+
+                            <button class="btn btn-success" ng-click="triggerFileInput()">
+                                <i class="icon-upload"></i> Importar Configuración
+                            </button>
                         </li>
 
 

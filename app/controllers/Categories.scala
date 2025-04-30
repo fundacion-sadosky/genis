@@ -115,7 +115,7 @@ class Categories @Inject() (
 
   // Método auxiliar para procesar la importación de categorías
   private def processImportCategories(importedCategories: List[CategoryRow]): Future[Result] = {
-    // 0. Eliminar todos los perfiles (y epgs y files)
+    // 0. Eliminar todos los perfiles (y demás)
     profileService.removeAll()
     profileDataService.removeAll()
 

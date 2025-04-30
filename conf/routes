@@ -316,6 +316,7 @@ GET      /strkits-full                                        @controllers.StrKi
 POST     /strkit/create                                       @controllers.StrKits.add
 PUT      /strkit/update                                       @controllers.StrKits.update
 GET      /strkit/export                                       @controllers.StrKits.exportKits
+POST     /strkit/import                                       @controllers.StrKits.importKits
 DELETE   /strkit/delete/:id                                   @controllers.StrKits.delete(id: String)
 
 
