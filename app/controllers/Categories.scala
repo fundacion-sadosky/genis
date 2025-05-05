@@ -116,7 +116,7 @@ class Categories @Inject() (
   // Método auxiliar para procesar la importación de categorías
   private def processImportCategories(importedCategories: List[CategoryRow]): Future[Result] = {
     // 0. Eliminar todos los perfiles (y demás)
-    profileService.removeAll()
+    //profileService.removeAll()
     profileDataService.removeAll()
 
     // 1. Obtener las categorías existentes

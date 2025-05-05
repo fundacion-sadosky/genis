@@ -78,6 +78,10 @@ class StrKits @Inject() (strKitService: StrKitService) extends Controller {
     }
   }
   
+  def importKits = Action.async(BodyParsers.parse.json) { request =>
+    ???
+  }
+  
   def delete(id: String) = Action.async {
     strKitService.delete(id) map {
       case Right(id) => Ok(Json.toJson(id)).withHeaders("X-CREATED-ID" -> id)

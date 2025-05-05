@@ -1,7 +1,7 @@
 define(['jszip'], function(JSZip) {
 'use strict';
 
-function HeaderController($scope, userService, categoriesService, kitService, $location, $modal, hotkeys, appConf, alertService) {
+function HeaderController($scope, userService, categoriesService, kitService, profileService, profileDataService, $location, $modal, hotkeys, appConf, alertService) {
 
 	var modalInstance = null;
 
@@ -117,6 +117,12 @@ function HeaderController($scope, userService, categoriesService, kitService, $l
 			alertService.error('No se seleccionó ningún archivo.');
 			return;
 		}
+
+		profileService.removeAll().then( function (response) {
+			if (response.status !== 200) {
+				alertService.error("Error removing profiles:", response);
+			}
+		});
 
 		var file = fileInput.files[0];
 		var reader = new FileReader();

@@ -166,6 +166,11 @@ function ProfileService(playRoutes, $log, $q, userService) {
 	this.removeEpg = function(fileId) {
 		return playRoutes.controllers.Profiles.removeEpg(fileId).delete();
 	};
+
+	this.removeAll = function() {
+		return playRoutes.controllers.Profiles.removeAll().delete();
+	};
+
 }
 
 return ProfileService;

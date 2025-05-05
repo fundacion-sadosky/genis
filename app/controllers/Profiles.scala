@@ -192,6 +192,13 @@ class Profiles @Inject()(
       case Right(pp) => Ok(Json.obj("fileId" -> pp))
     }
   }
+
+  def removeAll() = Action.async {
+    profileService.removeAll() map {
+      case Left(e) => BadRequest(Json.obj("error" -> e))
+      case Right(pp) => Ok(Json.obj("fileId" -> pp))
+    }
+  }
   def getFilesByCode(globalCode: SampleCode) = Action.async { request =>
     profileService.getFilesByCode(globalCode).map { lista =>
       Ok(Json.toJson(lista))
