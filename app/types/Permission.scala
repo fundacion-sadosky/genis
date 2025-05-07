@@ -14,6 +14,7 @@ object Permission {
     override val operations: Set[StaticAuthorisationOperation] = Set(
       StaticAuthorisationOperation("""/profiles|/profiles/.*|/profiles-.*""".r, """GET""".r, "ProfilesRead"),
       StaticAuthorisationOperation("""/profiles""".r, """POST""".r, "ProfilesCreate"),
+      StaticAuthorisationOperation("""/profiles|/profiles/.*""".r, """DELETE""".r, "ProfilesRemove"),
       StaticAuthorisationOperation("""/profiles-xxx.*""".r, """POST""".r, "AnalysisCreate"),
       StaticAuthorisationOperation("""/profiles-epg""".r, """POST""".r, "EpgCreate"),
       StaticAuthorisationOperation("""/profiles-file""".r, """POST""".r, "FileCreate"),
@@ -48,6 +49,7 @@ object Permission {
   case object PROFILE_DATA_CRUD extends Permission {
     override val operations: Set[StaticAuthorisationOperation] = Set(
       StaticAuthorisationOperation("""/profiledata.*|/profilesdata.*""".r, """GET""".r, "ProfiledataRead"),
+      StaticAuthorisationOperation("""/profiledata.*|/profilesdata.*""".r, """DELETE""".r, "ProfiledataRemove"),
       StaticAuthorisationOperation("""/search/profileData.*""".r, """.*""".r, "ProfiledataSearch"),
       StaticAuthorisationOperation("""/categories|/categoryTree|/categoriesWithProfiles""".r, """GET""".r, "CategoryTreeRead"),
       StaticAuthorisationOperation("""/profiledata-deleted/.*""".r,"""PUT""".r, "ProfiledataDelete",true),

@@ -193,6 +193,8 @@ class AuthServiceImpl @Inject() (
   ): Try[String] = {
     if (encryptedUri.startsWith("/categories/import")) {
       Success(encryptedUri) // No desencriptar
+    } else if (encryptedUri.startsWith("/strkit/import")) {
+      Success(encryptedUri) // No desencriptar
     } else if (isPublicResource(encryptedUri)) {
       Success(encryptedUri)
     } else {

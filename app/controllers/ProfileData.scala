@@ -259,6 +259,12 @@ class ProfileData @Inject() (
       })
   }
 
+  def removeAll = Action.async { request =>
+    profiledataService.removeAll() map { result =>
+      Ok(Json.toJson(result))
+    }
+  }
+
   def get(id: Long) = Action.async(BodyParsers.parse.json) { request =>
     profiledataService.get(id) map {
       profileData =>

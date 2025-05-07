@@ -56,6 +56,7 @@ POST     /operationLogLot                                     @controllers.Opera
 GET      /profiledata/:id                                     @controllers.ProfileData.get(id: Long)
 GET      /profiledata                                         @controllers.ProfileData.findByCode(globalCode: types.SampleCode)
 POST     /profiledata                                         @controllers.ProfileData.create
+DELETE   /profiledata                                         @controllers.ProfileData.removeAll
 GET      /profiles-deleted/motive/:id                         @controllers.ProfileData.getDeleteMotive(id: types.SampleCode)
 PUT      /profiledata-deleted/:id                             @controllers.ProfileData.deleteProfile(id: types.SampleCode)
 GET      /profiledataWithAssociations                         @controllers.ProfileData.findByCodeWithAssociations(globalCode: types.SampleCode)

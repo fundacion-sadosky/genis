@@ -89,6 +89,10 @@ define([], function() {
       return playRoutes.controllers.ProfileData.deleteProfile(sampleCode).put(motive);
     };
 
+    this.removeAll = function() {
+      return playRoutes.controllers.ProfileData.removeAll().delete();
+    };
+
     this.isModal = function(){return false;};
 
     this.getResourcesURL = function(){return '/resources/static';};

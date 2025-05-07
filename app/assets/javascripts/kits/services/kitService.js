@@ -1,7 +1,7 @@
 define([],function() {
     'use strict';
 
-    function KitService(playRoutes) {
+    function KitService(playRoutes, $http) {
 
         this.get = function(id){
             return playRoutes.controllers.StrKits.get(id).get();
@@ -31,9 +31,17 @@ define([],function() {
             return playRoutes.controllers.StrKits.exportKits().get();
         };
 
-        this.importKits = function () {
-            return playRoutes.controllers.StrKits.importKits().get();
+        this.importKits = function(formData) {
+            // Extract the URL from the Play routes object.
+            var url = playRoutes.controllers.StrKits.importKits().url;
+
+            // Use $http directly to ensure proper FormData handling.
+            return $http.post(url, formData, {
+                transformRequest: angular.identity,
+                headers: { 'Content-Type': undefined }  // Let the browser set multipart/form-data with boundary.
+            });
         };
+
 
         this.delete = function (id) {
             return playRoutes.controllers.StrKits.delete(id).delete();

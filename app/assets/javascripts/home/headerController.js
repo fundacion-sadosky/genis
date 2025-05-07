@@ -118,38 +118,44 @@ function HeaderController($scope, userService, categoriesService, kitService, pr
 			return;
 		}
 
-		profileService.removeAll().then( function (response) {
-			if (response.status !== 200) {
-				alertService.error("Error removing profiles:", response);
-			}
-		});
-
 		var file = fileInput.files[0];
 		var reader = new FileReader();
 
 		reader.onload = function(event) {
 			JSZip.loadAsync(event.target.result).then(function(zip) {
-				var categoriesPromise = zip.file("categories.json") ?
-					zip.file("categories.json").async("string").then(function(content) {
-						var data = JSON.parse(content);
-						return categoriesService.importCategories(data);
-					})
-					: Promise.resolve();
+				var categoriesFile = zip.file("categories.json");
+				var kitsFile = zip.file("kits.json");
 
-				var kitsPromise = zip.file("kits.json") ?
-					zip.file("kits.json").async("string").then(function(content) {
-						var data = JSON.parse(content);
-						return kitService.importKits(data);
-					})
-					: Promise.resolve();
+				var importPromises = [];
 
-				return Promise.all([categoriesPromise, kitsPromise]);
+				if (categoriesFile) {
+					importPromises.push(
+						categoriesFile.async("blob").then(function(blob) {
+							var file = new File([blob], "categories.json", { type: "application/json" });
+							return $scope.importCategories(file); // Reuse the working importCategories function
+						})
+					);
+				} else {
+					alertService.error("El archivo no contiene categorías.");
+				}
 
+				if (kitsFile) {
+					importPromises.push(
+						kitsFile.async("blob").then(function(blob) {
+							var file = new File([blob], "kits.json", { type: "application/json" });
+							return $scope.importKits(file); // Add a new importKits function
+						})
+					);
+				} else {
+					alertService.error("El archivo no contiene kits.");
+				}
+
+				return Promise.all(importPromises);
 			}).then(function() {
 				alertService.success('La configuración fue importada correctamente.');
 			}).catch(function(error) {
 				console.error('Error al importar la configuración:', error);
-				alertService.error('Ocurrió un error al importar la configuración.');
+				alertService.error("Ocurrió un error al importar la configuración.");
 			});
 		};
 
@@ -158,6 +164,19 @@ function HeaderController($scope, userService, categoriesService, kitService, pr
 		};
 
 		reader.readAsArrayBuffer(file);
+	};
+
+	$scope.importKits = function(file) {
+		if (!file) return;
+
+		var formData = new FormData();
+		formData.append("file", file);
+
+		kitService.importKits(formData).then(function(response) {
+			alertService.success({ message: 'Kits importados con éxito' });
+		}, function(error) {
+			alertService.error("Error al importar kits: " + error.data);
+		});
 	};
 
 	$scope.importCategories = function(file) {
