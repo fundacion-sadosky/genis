@@ -117,7 +117,7 @@ class Categories @Inject() (
   private def processImportCategories(importedCategories: List[CategoryRow]): Future[Result] = {
     // 0. Eliminar todos los perfiles (y demás)
     //profileService.removeAll()
-    profileDataService.removeAll()
+    //profileDataService.removeAll()
 
     // 1. Obtener las categorías existentes
     val existingCategoriesFuture = Future.successful(categoryService.listCategories)
@@ -167,7 +167,7 @@ class Categories @Inject() (
               // Importación exitosa
               Ok(Json.obj(
                 "status" -> "success",
-                "message" -> "Importación exitosa",
+                "message" -> "Importación de categorías exitosa",
                 "count" -> importedCategories.size
               ))
             }
