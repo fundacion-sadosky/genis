@@ -308,6 +308,8 @@ GET      /locus                                               @controllers.Locis
 GET      /locus-full                                          @controllers.Locis.listFull
 DELETE   /locus/delete/:id                                    @controllers.Locis.delete(id: String)
 GET      /locus/ranges                                        @controllers.Locis.ranges
+GET      /locus/export                                        @controllers.Locis.export
+
 
 # Kits
 GET      /strkits/:id                                         @controllers.StrKits.get(id: String)

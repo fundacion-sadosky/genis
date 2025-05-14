@@ -65,4 +65,11 @@ class Locis @Inject() (locusService: LocusService) extends Controller {
     }
   }
 
+  def export = Action.async {
+    locusService.listFull map { loci =>
+      val json = Json.toJson(loci)
+      Ok(json).as("application/json").withHeaders("Content-Disposition" -> "attachment; filename=locus.json")
+    }
+  }
+
 }

@@ -86,6 +86,9 @@ define(['lodash', 'angular'],function(_,angular) {
         this.getOutOfLadderBase = function(allele){
             return allele.substring(0,allele.length-1);
         }.bind(this);
+        this.exportLocus = function () {
+            return playRoutes.controllers.Locis.export().get();
+        };
     }
         
     return LocusService;
