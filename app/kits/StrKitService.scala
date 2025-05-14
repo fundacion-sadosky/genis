@@ -142,28 +142,44 @@ class StrKitServiceImpl @Inject() (
   }
 
   override def delete(id: String): Future[Either[String, String]] = {
-    strKitRepository.runInTransactionAsync { implicit session =>
-      // these need to be blocking to keep the session alive
-      val canDeleteProfile = Await.result(profileRepository.canDeleteKit(id), Duration(10, SECONDS))
-      val canDeleteProto = Await.result(protoProfileRepository.canDeleteKit(id), Duration(10, SECONDS))
+    // 1) Primero comprobamos asincrónicamente si se puede borrar
+    val canDeleteProfileF = profileRepository.canDeleteKit(id)
+    val canDeleteProtoF   = protoProfileRepository.canDeleteKit(id)
 
-      if (!canDeleteProfile) Left(Messages("error.E0695" ,id ))
-      else if (!canDeleteProto) Left (Messages("error.E0696", id ))
+    for {
+      canDeleteProfile <- canDeleteProfileF
+      canDeleteProto   <- canDeleteProtoF
 
-      else {
-        val aliasResult = strKitRepository.deleteAlias(id)
-        val locusResult = aliasResult.fold(Left(_), r => strKitRepository.deleteLocus(id))
-        val deleteResult = locusResult.fold(Left(_), r => strKitRepository.delete(id))
+      // 2) Luego abrimos la transacción y ejecutamos los deletes síncronos
+      result <- strKitRepository.runInTransactionAsync { implicit session =>
+        // 2.1) Validaciones
+        if (!canDeleteProfile) {
+          Left(Messages("error.E0695", id))
+        } else if (!canDeleteProto) {
+          Left(Messages("error.E0696", id))
+        } else {
+          // 2.2) Composición de los deletes con Either.RightProjection
+          val deleteResult: Either[String, String] =
+            strKitRepository.deleteAlias(id).right.flatMap { _ =>
+              strKitRepository.deleteLocus(id).right.flatMap { _ =>
+                strKitRepository.delete(id)
+              }
+            }
 
-        deleteResult match {
-          case Left(_) => session.rollback()
-          case Right(_) => this.cleanCache
+          // 2.3) Efectos secundarios según el resultado
+          deleteResult match {
+            case Left(_)  => session.rollback()
+            case Right(_) => this.cleanCache
+          }
+
+          // 2.4) Retorno final
+          deleteResult
         }
-        deleteResult
       }
-    }
-
+    } yield result
   }
+
+
 
 
 }
