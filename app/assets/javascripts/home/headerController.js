@@ -69,7 +69,7 @@ function HeaderController($scope, userService, categoriesService, kitService, pr
 
 		}).catch(function(error) {
 			console.error('Error al exportar la configuración:', error);
-			alertService.error('Ocurrió un error al exportar la configuración.');
+			alertService.error({message: 'Ocurrió un error al exportar la configuración.'});
 		});
 	};
 
@@ -86,7 +86,7 @@ function HeaderController($scope, userService, categoriesService, kitService, pr
 			document.body.removeChild(a);
 		}, function(error) {
 			console.error('Error al exportar las categorías:', error);
-			alertService.error('Ocurrió un error al exportar las categorías.');
+			alertService.error({message: 'Ocurrió un error al exportar las categorías.'});
 		});
 	};
 
@@ -103,7 +103,7 @@ function HeaderController($scope, userService, categoriesService, kitService, pr
 			document.body.removeChild(a);
 		}, function(error) {
 			console.error('Error al exportar los kits:', error);
-			alertService.error('Ocurrió un error al exportar los kits.');
+			alertService.error({message: 'Ocurrió un error al exportar los kits.'});
 		});
 	};
 
@@ -114,7 +114,7 @@ function HeaderController($scope, userService, categoriesService, kitService, pr
 
 	$scope.importConfiguration = function(fileInput) {
 		if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-			alertService.error('No se seleccionó ningún archivo.');
+			alertService.error({message: 'No se seleccionó ningún archivo.'});
 			return;
 		}
 
@@ -136,7 +136,7 @@ function HeaderController($scope, userService, categoriesService, kitService, pr
 						})
 					);
 				} else {
-					alertService.error("El archivo no contiene categorías.");
+					alertService.error({message: "El archivo no contiene categorías."});
 				}
 
 				if (kitsFile) {
@@ -147,20 +147,20 @@ function HeaderController($scope, userService, categoriesService, kitService, pr
 						})
 					);
 				} else {
-					alertService.error("El archivo no contiene kits.");
+					alertService.error({message: "El archivo no contiene kits."});
 				}
 
 				return Promise.all(importPromises);
 			}).then(function() {
-				alertService.success('La configuración fue importada correctamente.');
+				alertService.success({message: 'Configuración importada con éxito'});
 			}).catch(function(error) {
 				console.error('Error al importar la configuración:', error);
-				alertService.error("Ocurrió un error al importar la configuración.");
+				alertService.error({message: "Ocurrió un error al importar la configuración."});
 			});
 		};
 
 		reader.onerror = function() {
-			alertService.error('No se pudo leer el archivo.');
+			alertService.error({message: 'No se pudo leer el archivo.'});
 		};
 
 		reader.readAsArrayBuffer(file);
@@ -173,9 +173,9 @@ function HeaderController($scope, userService, categoriesService, kitService, pr
 		formData.append("file", file);
 
 		kitService.importKits(formData).then(function(response) {
-			alertService.success({ message: 'Kits importados con éxito' });
+			console.log({ message: 'Kits importados con éxito' });
 		}, function(error) {
-			alertService.error("Error al importar kits: " + error.data);
+			console.log("Error al importar kits: " + error.data);
 		});
 	};
 
@@ -186,9 +186,9 @@ function HeaderController($scope, userService, categoriesService, kitService, pr
 		formData.append("file", file);
 
 		categoriesService.importCategories(formData).then(function(response) {
-			alertService.success({message: 'Categorías importadas con éxito'});
+			console.log({message: 'Categorías importadas con éxito'});
 		}, function(error) {
-			alertService.error("Error al importar categorías: " + error.data);
+			console.log("Error al importar categorías: " + error.data);
 		});
 	};
 
