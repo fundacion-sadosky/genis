@@ -195,6 +195,8 @@ class AuthServiceImpl @Inject() (
       Success(encryptedUri) // No desencriptar
     } else if (encryptedUri.startsWith("/strkit/import")) {
       Success(encryptedUri) // No desencriptar
+    } else if (encryptedUri.startsWith("/locus/import")) {
+      Success(encryptedUri) // No desencriptar
     } else if (isPublicResource(encryptedUri)) {
       Success(encryptedUri)
     } else {

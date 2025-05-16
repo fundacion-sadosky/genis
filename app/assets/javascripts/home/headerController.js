@@ -96,6 +96,7 @@ function HeaderController($scope, userService, categoriesService, kitService, pr
 			JSZip.loadAsync(event.target.result).then(function(zip) {
 				var categoriesFile = zip.file("categories.json");
 				var kitsFile = zip.file("kits.json");
+				var locusFile = zip.file("locus.json");
 
 				var importPromises = [];
 
@@ -103,7 +104,7 @@ function HeaderController($scope, userService, categoriesService, kitService, pr
 					importPromises.push(
 						categoriesFile.async("blob").then(function(blob) {
 							var file = new File([blob], "categories.json", { type: "application/json" });
-							return $scope.importCategories(file); // Reuse the working importCategories function
+							return $scope.importCategories(file);
 						})
 					);
 				} else {
@@ -114,11 +115,22 @@ function HeaderController($scope, userService, categoriesService, kitService, pr
 					importPromises.push(
 						kitsFile.async("blob").then(function(blob) {
 							var file = new File([blob], "kits.json", { type: "application/json" });
-							return $scope.importKits(file); // Add a new importKits function
+							return $scope.importKits(file);
 						})
 					);
 				} else {
 					alertService.error({message: "El archivo no contiene kits."});
+				}
+
+				if (locusFile) {
+					importPromises.push(
+						locusFile.async("blob").then(function(blob) {
+							var file = new File([blob], "locus.json", {type: "application/json"});
+							return $scope.importLocus(file);
+						})
+					);
+				} else {
+					alertService.error({message: "El archivo no contiene loci."});
 				}
 
 				return Promise.all(importPromises);
@@ -137,6 +149,19 @@ function HeaderController($scope, userService, categoriesService, kitService, pr
 		reader.readAsArrayBuffer(file);
 	};
 
+	$scope.importCategories = function(file) {
+		if (!file) return;
+
+		var formData = new FormData();
+		formData.append("file", file);
+
+		categoriesService.importCategories(formData).then(function(response) {
+			console.log({message: 'Categorías importadas con éxito'});
+		}, function(error) {
+			console.log("Error al importar categorías: " + error.data);
+		});
+	};
+
 	$scope.importKits = function(file) {
 		if (!file) return;
 
@@ -150,18 +175,20 @@ function HeaderController($scope, userService, categoriesService, kitService, pr
 		});
 	};
 
-	$scope.importCategories = function(file) {
+	$scope.importLocus = function(file) {
 		if (!file) return;
 
 		var formData = new FormData();
 		formData.append("file", file);
 
-		categoriesService.importCategories(formData).then(function(response) {
-			console.log({message: 'Categorías importadas con éxito'});
+		locusService.importLocus(formData).then(function(response) {
+			console.log({ message: 'Loci importados con éxito' });
 		}, function(error) {
-			console.log("Error al importar categorías: " + error.data);
+			console.log("Error al importar loci: " + error.data);
 		});
 	};
+
+
 
 }
 

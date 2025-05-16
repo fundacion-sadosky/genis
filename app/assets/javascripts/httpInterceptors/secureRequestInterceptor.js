@@ -9,6 +9,7 @@ function SecureRequestInterceptor($q, $window, $log, $injector) {
 
 			var isCategoriesImport = request.url.indexOf("/categories/import") === 0;
 			var isKitsImport = request.url.indexOf("/strkit/import") === 0;
+			var isLocusImport = request.url.indexOf("/locus/import") === 0;
 			
 
 			var isPublicAsset = request.url.indexOf("/assets") === 0;
@@ -39,7 +40,8 @@ function SecureRequestInterceptor($q, $window, $log, $injector) {
 				isClearPass ||
 				isDisclaimer ||
 				isCategoriesImport ||
-				isKitsImport
+				isKitsImport ||
+				isLocusImport
 			);
 
 			if (isSecuredPath && !request.file) {

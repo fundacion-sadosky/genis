@@ -133,7 +133,7 @@ class StrKits @Inject() (strKitService: StrKitService) extends Controller {
             "details" -> deleteErrors
           )))
         } else {
-          // 3. Agregar nuevas categorías
+          // 3. Agregar nuevos kits
           val addFutures = importedKits.map { kitRow =>
             // Convertir kitRow a kit
 
