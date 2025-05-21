@@ -111,8 +111,8 @@ class LocusServiceImpl @Inject() (cache: CacheService, locusRepository: LocusRep
 
   override def delete(id: String): Future[Either[String, String]] = {
     locusRepository.runInTransactionAsync { implicit session =>
-      val canDeleteByKit = locusRepository.canDeleteLocusByKit(id)
-      val canDeleteByLink = locusRepository.canDeleteLocusByLink(id)
+      val canDeleteByKit = true; // kit and link tables have delete cascade
+      val canDeleteByLink = true;
 
       if (!canDeleteByKit) Left(Messages("error.E0693", id ))
       else if (!canDeleteByLink) Left(Messages("error.E0687", id))

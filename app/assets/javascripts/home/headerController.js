@@ -85,7 +85,7 @@ function HeaderController($scope, userService, categoriesService, kitService, pr
 
 	$scope.importConfiguration = function(fileInput) {
 		if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-			alertService.error({message: 'No se seleccionó ningún archivo.'});
+			alertService.error({ message: 'No se seleccionó ningún archivo.' });
 			return;
 		}
 
@@ -98,56 +98,56 @@ function HeaderController($scope, userService, categoriesService, kitService, pr
 				var kitsFile = zip.file("kits.json");
 				var locusFile = zip.file("locus.json");
 
-				var importPromises = [];
+				var categoryPromise = Promise.resolve();
+				var locusPromise = Promise.resolve();
 
 				if (categoriesFile) {
-					importPromises.push(
-						categoriesFile.async("blob").then(function(blob) {
-							var file = new File([blob], "categories.json", { type: "application/json" });
-							return $scope.importCategories(file);
-						})
-					);
+					categoryPromise = categoriesFile.async("blob").then(function(blob) {
+						var file = new File([blob], "categories.json", { type: "application/json" });
+						return $scope.importCategories(file);
+					});
 				} else {
-					alertService.error({message: "El archivo no contiene categorías."});
-				}
-
-				if (kitsFile) {
-					importPromises.push(
-						kitsFile.async("blob").then(function(blob) {
-							var file = new File([blob], "kits.json", { type: "application/json" });
-							return $scope.importKits(file);
-						})
-					);
-				} else {
-					alertService.error({message: "El archivo no contiene kits."});
+					alertService.error({ message: "El archivo no contiene categorías." });
 				}
 
 				if (locusFile) {
-					importPromises.push(
-						locusFile.async("blob").then(function(blob) {
-							var file = new File([blob], "locus.json", {type: "application/json"});
-							return $scope.importLocus(file);
-						})
-					);
+					locusPromise = locusFile.async("blob").then(function(blob) {
+						var file = new File([blob], "locus.json", { type: "application/json" });
+						return $scope.importLocus(file);
+					});
 				} else {
-					alertService.error({message: "El archivo no contiene loci."});
+					alertService.error({ message: "El archivo no contiene loci." });
 				}
 
-				return Promise.all(importPromises);
+				return categoryPromise.then(function() {
+					return locusPromise;
+				}).then(function() {
+					if (kitsFile) {
+						return kitsFile.async("blob").then(function(blob) {
+							var file = new File([blob], "kits.json", { type: "application/json" });
+							return $scope.importKits(file);
+						});
+					} else {
+						alertService.error({ message: "El archivo no contiene kits." });
+						return Promise.resolve(); // Para continuar la cadena sin interrumpir
+					}
+				});
+
 			}).then(function() {
-				alertService.success({message: 'Configuración importada con éxito'});
+				alertService.success({ message: 'Configuración importada con éxito' });
 			}).catch(function(error) {
 				console.error('Error al importar la configuración:', error);
-				alertService.error({message: "Ocurrió un error al importar la configuración."});
+				alertService.error({ message: "Ocurrió un error al importar la configuración." });
 			});
 		};
 
 		reader.onerror = function() {
-			alertService.error({message: 'No se pudo leer el archivo.'});
+			alertService.error({ message: 'No se pudo leer el archivo.' });
 		};
 
 		reader.readAsArrayBuffer(file);
 	};
+
 
 	$scope.importCategories = function(file) {
 		if (!file) return;
