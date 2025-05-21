@@ -1,7 +1,7 @@
 define(['jszip'], function(JSZip) {
 'use strict';
 
-function HeaderController($scope, userService, categoriesService, kitService, profileService, profileDataService, locusService, $location, $modal, hotkeys, appConf, alertService) {
+function HeaderController($scope, userService, categoriesService, kitService, profileService, profileDataService, locusService, roleService, $location, $modal, hotkeys, appConf, alertService) {
 
 	var modalInstance = null;
 
@@ -57,16 +57,19 @@ function HeaderController($scope, userService, categoriesService, kitService, pr
 		Promise.all([
 			categoriesService.exportCategories(),
 			kitService.exportKits(),
-			locusService.exportLocus()
+			locusService.exportLocus(),
+			roleService.exportRoles()
 		]).then(function(responses) {
 			var categoriesData = responses[0].data;
 			var kitsData = responses[1].data;
 			var locusData = responses[2].data;
+			var rolesData = responses[3].data;
 
 			var zip = new JSZip();
 			zip.file("categories.json", JSON.stringify(categoriesData, null, 2));
 			zip.file("kits.json", JSON.stringify(kitsData, null, 2));
 			zip.file("locus.json", JSON.stringify(locusData, null, 2));
+			zip.file("roles.json", JSON.stringify(rolesData, null, 2));
 			
 			zip.generateAsync({ type: "blob" })
 				.then(downloadJSON);
@@ -97,10 +100,12 @@ function HeaderController($scope, userService, categoriesService, kitService, pr
 				var categoriesFile = zip.file("categories.json");
 				var kitsFile = zip.file("kits.json");
 				var locusFile = zip.file("locus.json");
+				var rolesFile = zip.file("roles.json");
 
 				var categoryPromise = Promise.resolve();
 				var locusPromise = Promise.resolve();
-
+				var rolesPromise = Promise.resolve();
+				
 				if (categoriesFile) {
 					categoryPromise = categoriesFile.async("blob").then(function(blob) {
 						var file = new File([blob], "categories.json", { type: "application/json" });
@@ -108,6 +113,13 @@ function HeaderController($scope, userService, categoriesService, kitService, pr
 					});
 				} else {
 					alertService.error({ message: "El archivo no contiene categorías." });
+				}
+				
+				if (rolesFile) {
+					rolesPromise = rolesFile.async("blob").then(function(blob) {
+						var file = new File([blob], "roles.json", { type: "application/json" });
+						return $scope.importRoles(file);
+					});
 				}
 
 				if (locusFile) {
@@ -188,7 +200,18 @@ function HeaderController($scope, userService, categoriesService, kitService, pr
 		});
 	};
 
+	$scope.importRoles = function(file) {
+		if (!file) return;
 
+		var formData = new FormData();
+		formData.append("file", file);
+
+		roleService.importRoles(formData).then(function(response) {
+			console.log({ message: 'Roles importados con éxito' });
+		}, function(error) {
+			console.log("Error al importar roles: " + error.data);
+		});
+	};
 
 }
 

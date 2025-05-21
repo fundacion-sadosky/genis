@@ -216,6 +216,8 @@ GET      /rolesForSU                                          @controllers.Roles
 GET      /permissions                                         @controllers.Roles.listPermissions()
 GET      /permissionsfull                                     @controllers.Roles.listFullPermissions()
 GET      /operations                                          @controllers.Roles.listOperations()
+GET      /roles/export                                        @controllers.Roles.exportRoles
+POST     /roles/import                                        @controllers.Roles.importRoles
 PUT      /roles                                               @controllers.Roles.updateRole()
 POST     /roles                                               @controllers.Roles.addRole()
 DELETE   /roles/:id                                           @controllers.Roles.deleteRole(id: String)

@@ -1,19 +1,13 @@
 package controllers
 
 import scala.concurrent.Future
-
 import javax.inject.Inject
 import javax.inject.Singleton
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.functional.syntax.toFunctionalBuilderOps
-import play.api.libs.json.JsError
-import play.api.libs.json.Json
+import play.api.libs.json.{JsError, JsSuccess, Json, Writes, __}
 import play.api.libs.json.Json.toJsFieldJsValueWrapper
-import play.api.libs.json.Writes
-import play.api.libs.json.__
-import play.api.mvc.Action
-import play.api.mvc.BodyParsers
-import play.api.mvc.Controller
+import play.api.mvc.{Action, BodyParsers, Controller, MultipartFormData, Result}
 import security.StaticAuthorisationOperation
 import types.Permission
 import user.Role
@@ -76,6 +70,106 @@ class Roles @Inject() (userService: UserService, roleService: RoleService) exten
       result match {
         case Right(b)    => Ok(Json.obj("result" -> b))
         case Left(error) => Ok(Json.obj("result" -> false, "error" -> error))
+      }
+    }
+  }
+
+  def exportRoles = Action.async {
+    roleService.getRoles map { role =>
+      val json = Json.toJson(role)
+      Ok(json).as("application/json").withHeaders("Content-Disposition" -> "attachment; filename=roles.json")
+    }
+  }
+
+  def importRoles:  Action[MultipartFormData[play.api.libs.Files.TemporaryFile]] = Action.async(parse.multipartFormData) { request =>
+    request.body.file("file").map { file =>
+      // Guardar archivo temporalmente
+      val path = new java.io.File("/tmp/" + file.filename)
+      file.ref.moveTo(path, replace = true)
+
+      // Leer contenido del archivo
+      val source = scala.io.Source.fromFile(path, "UTF-8")
+      val jsonString = try source.mkString finally source.close()
+
+      // Parsear JSON a lista de locus
+      Json.parse(jsonString).validate[List[Role]] match {
+        case JsSuccess(importedRoles, _) =>
+          // Proceso de importación: eliminar categorías existentes y añadir las nuevas
+          processImportRoles(importedRoles)
+        case JsError(errors) =>
+          Future.successful(BadRequest(Json.obj(
+            "status" -> "error",
+            "message" -> "Error en el formato JSON",
+            "details" -> JsError.toFlatJson(errors)
+          )))
+      }
+    }.getOrElse {
+      Future.successful(BadRequest(Json.obj(
+        "status" -> "error",
+        "message" -> "No se encontró ningún archivo"
+      )))
+    }
+  }
+
+  // Método auxiliar para procesar la importación de kits
+  private def processImportRoles(importedRoles: List[Role]): Future[Result] = {
+
+    // 1. Obtener los Kits existentes
+    val existingRolesFuture = roleService.getRoles()
+
+    existingRolesFuture.flatMap { existingRoles =>
+      // 2. Eliminar Locus existentes
+      val deleteFutures = existingRoles.map(_.id).map { roleId =>
+        roleService.deleteRole(roleId)
+      }
+
+      Future.sequence(deleteFutures).flatMap { deleteResults =>
+        // Verificar errores de eliminación
+        val deleteErrors = deleteResults.collect { case Left(error) => error }
+
+        if (deleteErrors.nonEmpty) {
+          Future.successful(InternalServerError(Json.obj(
+            "status" -> "error",
+            "message" -> "Error al eliminar roles existentes",
+            "details" -> deleteErrors
+          )))
+        } else {
+          // 3. Agregar nuevas categorías
+          val addFutures = importedRoles.map { role =>
+//            val role = Role(
+//              locus = locusRow.locus,
+//              alias = locusRow.alias,
+//              links = locusRow.links.map { link =>
+//                LocusLink(
+//                  locus = link.locus,
+//                  factor = link.factor,
+//                  distance = link.distance
+//                )
+//              }
+//            )
+            roleService.addRole(role)
+          }
+
+          Future.sequence(addFutures).map { addResults =>
+            // Verificar errores de adición
+            val addErrors = addResults.collect { case Left(error) => error }
+
+            if (addErrors.nonEmpty) {
+              InternalServerError(Json.obj(
+                "status" -> "error",
+                "message" -> "Error al importar locus",
+                "details" -> addErrors
+              ))
+            } else {
+              // Importación exitosa
+              Ok(Json.obj(
+                "status" -> "success",
+                "message" -> "Importación de locus exitosa",
+                "count" -> importedLocus.size
+              ))
+            }
+          }
+        }
       }
     }
   }
