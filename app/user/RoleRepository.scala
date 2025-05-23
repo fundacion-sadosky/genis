@@ -78,33 +78,44 @@ class LdapRoleRepository @Inject() (
   }
 
   override def addRole(role: Role): Future[Boolean] = {
-    val future = Promise[Boolean]
+    val promise = Promise[Boolean]
+
     withConnection { connection =>
       val bindRequest = new SimpleBindRequest(new DN(adminDn), adminPassword)
-
       val bindResult: BindResult = connection.bind(bindRequest)
 
-      if (bindResult.getResultCode() == ResultCode.SUCCESS) {
+      if (bindResult.getResultCode == ResultCode.SUCCESS) {
+        val existingRoles = Await.result(getRoles, Duration(10, SECONDS))
+        if (existingRoles.exists(_.id == role.id)) {
+          // Role already exists, update it
+          updateRole(role).onComplete(promise.complete)(ldapContextR)
+        } else {
+          // Role does not exist, add it
+          val attributes = Seq(
+            new Attribute("cn", role.id),
+            new Attribute("description", role.roleName),
+            new Attribute("ou", "Roles"),
+            new Attribute("objectclass", Seq("organizationalRole", "top"))
+          )
 
-        val attributes = Seq(
-          new Attribute("cn", role.id),
-          new Attribute("description", role.roleName),
-          new Attribute("ou", "Roles"),
-          new Attribute("objectclass", Seq("organizationalRole", "top")))
+          val rDn = new RDN("cn", role.id)
+          val dn = new DN(rDn, baseDn)
+          val addRequest = new AddRequest(dn, attributes)
 
-        val rDn = new RDN("cn", role.id)
-        val dn = new DN(rDn, baseDn)
-        val addRequest = new AddRequest(dn, attributes)
-
-        connection.add(addRequest)
-        future.success(true)
+          try {
+            connection.add(addRequest)
+            promise.success(true)
+          } catch {
+            case e: LDAPException => promise.failure(e)
+          }
+        }
       } else {
-        future.failure(new LDAPException(bindResult.getResultCode()))
+        promise.failure(new LDAPException(bindResult.getResultCode))
       }
     }
-    future.future
-  }
 
+    promise.future
+  }
   override def updateRole(role: Role): Future[Boolean] = {
 
     val promise = Promise[Boolean]

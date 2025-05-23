@@ -1,5 +1,7 @@
 package controllers
 
+import play.api.Logger
+
 import scala.concurrent.Future
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -128,46 +130,32 @@ class Roles @Inject() (userService: UserService, roleService: RoleService) exten
         val deleteErrors = deleteResults.collect { case Left(error) => error }
 
         if (deleteErrors.nonEmpty) {
-          Future.successful(InternalServerError(Json.obj(
-            "status" -> "error",
-            "message" -> "Error al eliminar roles existentes",
-            "details" -> deleteErrors
-          )))
-        } else {
-          // 3. Agregar nuevas categorías
-          val addFutures = importedRoles.map { role =>
-//            val role = Role(
-//              locus = locusRow.locus,
-//              alias = locusRow.alias,
-//              links = locusRow.links.map { link =>
-//                LocusLink(
-//                  locus = link.locus,
-//                  factor = link.factor,
-//                  distance = link.distance
-//                )
-//              }
-//            )
-            roleService.addRole(role)
-          }
+          // log warning
+          Logger.warn("Some roles could not be deleted: " + deleteErrors.mkString(", "))
+          
+        }
+        // 3. Agregar nuevas categorías
+        val addFutures = importedRoles.map { role =>
+          roleService.addRole(role)
+        }
 
-          Future.sequence(addFutures).map { addResults =>
-            // Verificar errores de adición
-            val addErrors = addResults.collect { case Left(error) => error }
+        Future.sequence(addFutures).map { addResults =>
+          // Verificar errores de adición
+          val addErrors = addResults.collect { case false => "Error al añadir rol" }
 
-            if (addErrors.nonEmpty) {
-              InternalServerError(Json.obj(
-                "status" -> "error",
-                "message" -> "Error al importar locus",
-                "details" -> addErrors
-              ))
-            } else {
-              // Importación exitosa
-              Ok(Json.obj(
-                "status" -> "success",
-                "message" -> "Importación de locus exitosa",
-                "count" -> importedLocus.size
-              ))
-            }
+          if (addErrors.nonEmpty) {
+            InternalServerError(Json.obj(
+              "status" -> "error",
+              "message" -> "Error al importar rol",
+              "details" -> addErrors
+            ))
+          } else {
+            // Importación exitosa
+            Ok(Json.obj(
+              "status" -> "success",
+              "message" -> "Importación de roles exitosa",
+              "count" -> importedRoles.size
+            ))
           }
         }
       }
