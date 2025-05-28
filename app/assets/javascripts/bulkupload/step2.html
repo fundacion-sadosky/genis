@@ -46,7 +46,7 @@
 					<td class="col-md-8"><span>Lote #{{l.id}}	{{l.analysisType}} {{l.label}}</span></td>
 					<td class="col-md-1"></td>
 					<td class="col-md-1">
-						<button class="btn btn-secondary-action " ng-click="$event.stopPropagation();$event.preventDefault();importBatch(l)"  ng-disabled="l.isProcessing || l.totalForApprovalOrImport==0 || protoProfiles[l.id].todosAprobados" >Aceptar todo</button>
+						<button class="btn btn-secondary-action " ng-click="$event.stopPropagation();$event.preventDefault();importBatch(l);desktopSearchResults(l)"  ng-disabled="l.isProcessing || l.totalForApprovalOrImport==0 || protoProfiles[l.id].todosAprobados" >Aceptar todo</button>
 					</td>
 					<td class="col-md-1">
 						<button class="btn btn-secondary-action " ng-click="$event.stopPropagation();$event.preventDefault();" pdg-confirm pdg-confirm-title="Confirmar eliminación del lote" pdg-confirm-content="¿Está seguro de eliminar el lote?" pdg-on-confirm="doDeleteBatch" param="{{l}}" ng-disabled="l.isProcessing" >Eliminar</button>
@@ -64,17 +64,18 @@
               data-ng-class="{'spinner': l.isProcessing}" data-ng-show="l.isProcessing"></span>
 		<table class="table table-striped" style="table-layout:fixed;">
 			<thead>
-				<tr>
-					<th style="width:2%"></th>
-					<th class="text-center col-md-2">Código Laboratorio</th>
-					<th class="text-center col-md-2">Categoría</th>
-					<th class="text-center col-md-1">Kit</th>
-					<th class="text-center col-md-1">Estado</th>
-					<th class="text-center col-md-1">Replicar a instancia superior</th>
-					<th class=" col-md-2">Rechazar/Aceptar</th>
-					<th class=" col-md-2">Mensajes</th>
-					<th class=" col-md-1">Análisis</th>
-				</tr>
+			<tr>
+				<th style="width:2%"></th>
+				<th class="text-center col-md-2">Código Laboratorio</th>
+				<th class="text-center col-md-2">Categoría</th>
+				<th class="text-center col-md-1">Kit</th>
+				<th class="text-center col-md-1">Estado</th>
+				<th class="text-center col-md-1">Replicar a instancia superior</th>
+				<th class="text-center col-md-1">Búsqueda de escritorio</th>
+				<th class="col-md-2">Rechazar/Aceptar</th>
+				<th class="col-md-2">Mensajes</th>
+				<th class="col-md-1">Análisis</th>
+			</tr>
 			</thead>
 			<tbody>
                 <tr ng:repeat="r in protoProfiles[l.id] " name="{{'row_' + $index}}">
@@ -120,13 +121,18 @@
 						<input type="checkbox" ng-model="r.replicate" ng-disabled="r.status!= 'Approved' || r.replicateDisabled">
 					</td>
 					<td class="text-center">
+						<input type="checkbox"
+							   ng-model="l.desktopSearch"
+							   ng-disabled="protoProfiles[l.id].length !== 1">
+					</td>
+					<td class="text-center">
 						<button ng-if="r.status === 'Approved'" ng-disabled="l.isProcessing"
 							class="btn btn-default btn-link-action btn-link-border"title="Rechazar análisis" ng-click="reject(r, l)">
 							<span class="glyphicon glyphicon-thumbs-down" aria-hidden="true"></span>
 						</button>
-		
+
 						<button ng-if="r.status === 'Approved'" ng-disabled="l.isProcessing"
-							class="btn btn-default btn-link-action btn-link-border" title="Aceptar análisis" ng-click="import(r, l)">
+							class="btn btn-default btn-link-action btn-link-border" title="Aceptar análisis" ng-click="import(r, l);desktopSearchResults(l)">
 							<span class="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span>
 						</button>
 

@@ -230,9 +230,9 @@ class ProfileDataServiceImpl @Inject() (
     }
   }
 
-  override def removeAll(): Future[Int] = {
-    profileDataRepository.removeAll()
-  }
+  override def removeAll(): Future[Int] = ???
+//    profileDataRepository.removeAll()
+//  }
   override def get(id: Long): Future[(ProfileData, Group, Category)] = {
     for {
       profile <- profileDataRepository.get(id)

@@ -221,6 +221,21 @@ define(['jquery','lodash'], function($,_) {
             });
 		};
 
+        $scope.desktopSearchResults = function (batch) {
+            if (batch.desktopSearch) {
+                $modal.open({
+                    templateUrl: '/assets/javascripts/bulkupload/desktopSearchResults.html',
+                    controller: 'step2Controller'
+                }).result.then(function () {
+                    closeDesktopResults();
+                });
+            }
+        };
+
+        function closeDesktopResults(){
+            //remove profile and matches
+        }
+
         $scope.importBatch = function(batch){
             batch.isProcessing = true;
             var protoprofilesFromBatch= $scope.protoProfiles[batch.id];
@@ -233,9 +248,14 @@ define(['jquery','lodash'], function($,_) {
                     }
                 });
 			}
+            if (batch.desktopSearch) {idsToReplicate = [];} // If the batch is for desktop search, we don't replicate to superior instance
             bulkuploadService.changeBatchStatus(batch.id, 'Imported',idsToReplicate,replicateAll).then(function() {
                 batch.isProcessing = false;
                 getBatchProtoProfiles(batch);
+                if (batch.desktopSearch) {
+                    // Pop up list of matches
+
+                }
                 alertService.success({message: 'Se ha importado el lote exitosamente.'});
             }, function(response) {
                 batch.isProcessing = false;

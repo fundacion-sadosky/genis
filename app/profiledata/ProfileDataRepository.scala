@@ -99,7 +99,7 @@ abstract class ProfileDataRepository extends DefaultDb with Transaction  {
    * remove all elements from the table
    */
   
-  def removeAll(): Future[Int]
+  //def removeAll(): Future[Int]
   
   /**
    * Get all profile datas of a user
@@ -282,11 +282,11 @@ class SlickProfileDataRepository @Inject() (
   val queryGetIdProfileData = Compiled(queryDefineGetIdProfileData _)
 
 
-  private def queryDefineGetAllProfileGlobalCodes = for {
-    pd <- profilesData
-  } yield pd.globalCode
-
-  val queryGetAllProfileGlobalCodes = Compiled(queryDefineGetAllProfileGlobalCodes)
+//  private def queryDefineGetAllProfileGlobalCodes = for {
+//    pd <- profilesData
+//  } yield pd.globalCode
+//
+//  val queryGetAllProfileGlobalCodes = Compiled(queryDefineGetAllProfileGlobalCodes)
 
   private def queryDefineGetProfileData(id: Column[Long]) = for (
     ((pd, pmdf),epd) <-
@@ -638,18 +638,18 @@ class SlickProfileDataRepository @Inject() (
     }
   }
 
-  override def removeAll(): Future[Int] = {
-    DB.withTransaction { implicit session =>
-      val codes = queryGetAllProfileGlobalCodes.list
-      val counts: Seq[Int] = codes.map { code =>
-        queryGetIdProfileData(code).delete
-      }
-
-      val totalDeleted = counts.sum
-      Future.successful(totalDeleted)
-    }
-  }
-
+//  override def removeAll(): Future[Int] = {
+//    DB.withTransaction { implicit session =>
+//      val codes = queryGetAllProfileGlobalCodes.list
+//      val counts: Seq[Int] = codes.map { code =>
+//        queryGetIdProfileData(code).delete
+//      }
+//
+//      val totalDeleted = counts.sum
+//      Future.successful(totalDeleted)
+//    }
+//  }
+//
 
   override def getResource(resourceType: String, id: Long): Future[Option[Array[Byte]]] = Future {
     DB.withTransaction { implicit session =>
