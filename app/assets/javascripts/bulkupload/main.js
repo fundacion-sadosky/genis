@@ -8,7 +8,7 @@ angular.module('pdg.bulkupload', ['pdg.common','pdg.locus'])
 	.service('protoProfileDataService',['playRoutes', ProtoProfileDataService])
 	.controller('protoProfileDataController', ['$scope', '$log', 'protoProfileDataService', 'profileDataCommonService', '$filter', 'rp', 'alertService', '$modalInstance', ProtoProfileDataController])
 	.controller('step1Controller',['$scope', '$location', 'bulkuploadService', 'Upload', 'profileDataService','cryptoService', '$log', '$modal','appConf', 'alertService', '$q','locusService', Step1Controller])
-	.controller('step2Controller',['$scope', '$routeParams', 'bulkuploadService', 'helper', '$log', '$modal', 'alertService', '$q', 'userService','locusService','profileDataService', Step2Controller])
+	.controller('step2Controller',['$scope', '$routeParams', 'bulkuploadService', 'helper', '$log', '$modal', 'alertService', '$q', 'userService','locusService','profileDataService', 'notificationsService', Step2Controller])
     .controller('addLoteController',['$scope', 'alertService','$filter', AddLoteController])
 	.config(['$routeProvider', function($routeProvider) {
 		$routeProvider

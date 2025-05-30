@@ -1,7 +1,7 @@
 define(['jquery','lodash'], function($,_) {
 	'use strict';
 
-	function Step2Controller($scope, $routeParams, bulkuploadService, helper, $log, $modal, alertService, $q, userService,locusService,profiledataService) {
+	function Step2Controller($scope, $routeParams, bulkuploadService, helper, $log, $modal, alertService, $q, userService,locusService,profiledataService, notificationsService) {
 
 		$scope.statusMap = bulkuploadService.getStatusMap();
 		var toogle = true;
@@ -222,6 +222,7 @@ define(['jquery','lodash'], function($,_) {
 		};
 
         $scope.desktopSearchResults = function (batch) {
+            var protoprofile = $scope.protoProfiles[batch.id][0];
             if (batch.desktopSearch) {
                 $modal.open({
                     templateUrl: '/assets/javascripts/bulkupload/desktopSearchResults.html',
@@ -231,6 +232,31 @@ define(['jquery','lodash'], function($,_) {
                 });
             }
         };
+
+        notificationsService.onMatchStatusNotification(function(msg){
+            var status = msg.status;
+            if (status === "started"){
+                $scope.stall = false;
+                $scope.working = true;
+                $scope.fail = false;
+            }else if (status === "ended"){
+                $scope.stall = true;
+                $scope.working = false;
+                $scope.fail = false;
+            }else if (status === "fail"){
+                $scope.stall = false;
+                $scope.working = false;
+                $scope.fail = true;
+            }else if (status === "pedigreeStarted"){
+                $scope.pedigreeStall = false;
+                $scope.pedigreeWorking = true;
+            } else if (status === "pedigreeEnded"){
+                $scope.pedigreeStall = true;
+                $scope.pedigreeWorking = false;
+            }
+
+            $scope.$apply();
+        });
 
         function closeDesktopResults(){
             //remove profile and matches
@@ -252,10 +278,6 @@ define(['jquery','lodash'], function($,_) {
             bulkuploadService.changeBatchStatus(batch.id, 'Imported',idsToReplicate,replicateAll).then(function() {
                 batch.isProcessing = false;
                 getBatchProtoProfiles(batch);
-                if (batch.desktopSearch) {
-                    // Pop up list of matches
-
-                }
                 alertService.success({message: 'Se ha importado el lote exitosamente.'});
             }, function(response) {
                 batch.isProcessing = false;
