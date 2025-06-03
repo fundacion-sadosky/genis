@@ -259,6 +259,32 @@ Se puede utilizar libremente para propósitos de desarrollo pero en producción 
 Si tuviera problemas para ingresar al sistema puede que precise instalar el servicio NTP como se indica en el [manual de instalación de GENis](https://github.com/fundacion-sadosky/genis/files/9739746/instalacion.pdf).
 Para obtener el password a partir del TOPT puede utilizar https://gauth.apps.gbraad.nl/
 
+### Resguardo y recuperación de las bases de datos
+
+Generar un script de resguardo:
+
+```
+#!/bin/bash
+
+# Set date variable in YYYYMMDD format
+DATE=$(date +%Y%m%d)
+
+# Backup LDAP
+docker exec genis_ldap sh -c 'ldapsearch -x -H ldap://localhost:1389 -D "cn=admin,dc=genis,dc=local" -w adminp -b "dc=genis,dc=local" -LLL' > /home/genis-user/backups/ldap_backup_${DATE}.ldif
+
+# Backup PostgreSQL databases
+docker exec -e PGPASSWORD=genissqladminp genis_postgres pg_dump -U genissqladmin -h postgres -d genisdb -F c -b -v -f /backups/genisdb_backup_${DATE}.dump
+docker exec -e PGPASSWORD=genissqladminp genis_postgres pg_dump -U genissqladmin -h postgres -d genislogdb -F c -b -v -f /backups/genislogdb_backup_${DATE}.dump
+docker cp genis_postgres:/backups/genisdb_backup_${DATE}.dump /home/genis-user/backups/
+docker cp genis_postgres:/backups/genislogdb_backup_${DATE}.dump /home/genis-user/backups/
+
+# Backup MongoDB
+docker exec genis_mongo mongodump --db pdgdb --out /tmp/mongodump_${DATE}
+docker cp genis_mongo:/tmp/mongodump_${DATE} /home/genis-user/backups/mongodump_pdgdb_${DATE}
+
+```
+
+
 ### Otras utilidades y ejemplos 
 
 Se incluyen dos scripts útiles para desarrollo que borran los contenidos de las tablas de perfiles y matches en las bases de datos, se pueden correr con:
