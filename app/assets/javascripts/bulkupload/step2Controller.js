@@ -1,7 +1,7 @@
 define(['jquery','lodash'], function($,_) {
 	'use strict';
 
-	function Step2Controller($scope, $routeParams, bulkuploadService, helper, $log, $modal, alertService, $q, userService,locusService,profiledataService, notificationsService) {
+	function Step2Controller($scope, $routeParams, bulkuploadService, helper, $log, $modal, alertService, $q, userService, locusService, profiledataService, notificationsService, matchesService) {
 
 		$scope.statusMap = bulkuploadService.getStatusMap();
 		var toogle = true;
@@ -222,41 +222,22 @@ define(['jquery','lodash'], function($,_) {
 		};
 
         $scope.desktopSearchResults = function (batch) {
-            var protoprofile = $scope.protoProfiles[batch.id][0];
+            var profileIdToMatch = $scope.protoProfiles[batch.id][0].id;
             if (batch.desktopSearch) {
                 $modal.open({
                     templateUrl: '/assets/javascripts/bulkupload/desktopSearchResults.html',
-                    controller: 'step2Controller'
+                    controller: 'desktopSearchController',
+                    resolve: {
+                        profileId: function () {
+                            return profileIdToMatch;
+                        }
+                    }
                 }).result.then(function () {
                     closeDesktopResults();
                 });
             }
         };
 
-        notificationsService.onMatchStatusNotification(function(msg){
-            var status = msg.status;
-            if (status === "started"){
-                $scope.stall = false;
-                $scope.working = true;
-                $scope.fail = false;
-            }else if (status === "ended"){
-                $scope.stall = true;
-                $scope.working = false;
-                $scope.fail = false;
-            }else if (status === "fail"){
-                $scope.stall = false;
-                $scope.working = false;
-                $scope.fail = true;
-            }else if (status === "pedigreeStarted"){
-                $scope.pedigreeStall = false;
-                $scope.pedigreeWorking = true;
-            } else if (status === "pedigreeEnded"){
-                $scope.pedigreeStall = true;
-                $scope.pedigreeWorking = false;
-            }
-
-            $scope.$apply();
-        });
 
         function closeDesktopResults(){
             //remove profile and matches

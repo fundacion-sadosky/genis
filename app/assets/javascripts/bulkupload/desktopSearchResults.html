@@ -13,6 +13,7 @@
                 <b data-ng-if="stall" class="fa-stack font-color-grey">
                     <b class="icon-circulo icon-stack-2x"></b>
                     <b class="icon-estado_proceso_busqueda-coincidencias icon-stack-2x"></b>
+
                 </b>
 
                 <div data-ng-if="working" style="display: flex; flex-direction: column; align-items: center;">
@@ -33,6 +34,12 @@
 
 
         <div class="col-md-4 text-center ">
+
+            <ul data-ng-if="matches && matches.length > 0">
+                <li data-ng-repeat="match in matches">
+                    {{ match }}
+                </li>
+            </ul>
 
             <label class="control-label" style="margin-top: 10px">Elija---:</label>
             </br></br>
