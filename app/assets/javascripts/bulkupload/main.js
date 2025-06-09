@@ -10,7 +10,8 @@ angular.module('pdg.bulkupload', ['pdg.common','pdg.locus'])
 	.controller('step1Controller',['$scope', '$location', 'bulkuploadService', 'Upload', 'profileDataService','cryptoService', '$log', '$modal','appConf', 'alertService', '$q','locusService', Step1Controller])
 	.controller('step2Controller',['$scope', '$routeParams', 'bulkuploadService', 'helper', '$log', '$modal', 'alertService', '$q', 'userService','locusService','profileDataService', 'notificationsService', 'matchesService', Step2Controller])
     .controller('addLoteController',['$scope', 'alertService','$filter', AddLoteController])
-	.controller('desktopSearchController',['$scope', 'matchesService', 'notificationsService', 'profileId', DesktopSearchController])
+	.controller('desktopSearchController',['$scope', 'matchesService', 'notificationsService', 'profileId', 'profileDataService',
+		DesktopSearchController])
 	.config(['$routeProvider', function($routeProvider) {
 		$routeProvider
 			.when('/profiles/bulkupload-step1', {templateUrl: '/assets/javascripts/bulkupload/step1.html', controller: 'step1Controller' })
