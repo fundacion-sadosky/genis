@@ -297,6 +297,7 @@ docker exec genis_mongo rm -f /tmp/mongodump_${DATE}.gz
 #### Recuperación:
 Generar un script de recuperación llamado restore.sh:
 ```
+
 #!/bin/bash
 
 # Uso: ./restore.sh <YYYYMMDD>
@@ -308,55 +309,81 @@ fi
 
 DATE=$1
 
-# Ubicación de los archivos de resguardo
+# Rutas a los archivos de backup
 LDAP_BACKUP="/home/genis-user/backups/ldap_backup_${DATE}.ldif"
 PG_DUMP_GENISDB="/home/genis-user/backups/genisdb_backup_${DATE}.dump"
 PG_DUMP_GENISLOGDB="/home/genis-user/backups/genislogdb_backup_${DATE}.dump"
 MONGO_ARCHIVE="/home/genis-user/backups/mongodump_pdgdb_${DATE}.gz"
 
-# Restaurar LDAP
+# Recuperar LDAP
 if [ -f "$LDAP_BACKUP" ]; then
   echo "Restoring LDAP data..."
-  # Copy LDIF into container
+  # Copio ldif al contenedor
   docker cp "$LDAP_BACKUP" genis_ldap:/tmp/ldap_restore.ldif
-  # Run ldapadd inside the container
-  docker exec -i genis_ldap sh -c 'ldapadd -x -D "cn=admin,dc=genis,dc=local" -w adminp -f /tmp/ldap_restore.ldif'
+  # Ejecuto ldapadd dentro del contenedor
+  docker exec -i genis_ldap sh -c 'ldapadd -x -H ldap://localhost:1389 -D "cn=admin,dc=genis,dc=local" -w adminp -f /tmp/ldap_restore.ldif'
 else
-  echo "LDAP backup file not found: $LDAP_BACKUP"
+  echo "Archivo de resguardo de LDAP no encontrado: $LDAP_BACKUP"
 fi
 
-# Restaurar PostgreSQL databases
-# Copy dump files into the container
+# Función para drop y recrear una base de datos PostgreSQL
+drop_and_recreate_db() {
+  local dbname=$1
+  echo "Dropping and recreating $dbname..."
+
+  # Forzar desconexión de usuarios
+  docker exec -e PGPASSWORD=genissqladminp genis_postgres psql -U genissqladmin -d postgres -c "REVOKE CONNECT ON DATABASE $dbname FROM public;"
+  docker exec -e PGPASSWORD=genissqladminp genis_postgres psql -U genissqladmin -d postgres -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE datname='$dbname' AND pid
+ <> pg_backend_pid();"
+
+  # Dropear y crear base de datos
+  docker exec -e PGPASSWORD=genissqladminp genis_postgres dropdb -U genissqladmin --if-exists "$dbname"
+  docker exec -e PGPASSWORD=genissqladminp genis_postgres createdb -U genissqladmin "$dbname"
+}
+
+# Recuperación de las bases de datos PostgreSQL
 if [ -f "$PG_DUMP_GENISDB" ]; then
+  # Drop y recreate genisdb
+  drop_and_recreate_db "genisdb"
+
+  # Copiar dump
   docker cp "$PG_DUMP_GENISDB" genis_postgres:/backups/
-  echo "Recuperando genisdb..."
-  docker exec -e PGPASSWORD=genissqladminp genis_postgres pg_restore -U genissqladmin -h postgres --clean --if-exists -d genisdb /backups/$(basename "$PG_DUMP_GENISDB")
+  echo "Restaurando genisdb..."
+  docker exec -e PGPASSWORD=genissqladminp genis_postgres pg_restore -U genissqladmin -h postgres -d genisdb /backups/$(basename "$PG_DUMP_GENISDB")
 else
-  echo "Archivo de backup genisdb de PostgreSQL no encontrado: $PG_DUMP_GENISDB"
+  echo "Archivo de resguardo de PostgreSQL no encontrado: $PG_DUMP_GENISDB"
 fi
 
 if [ -f "$PG_DUMP_GENISLOGDB" ]; then
+  # Drop y recreate genislogdb
+  drop_and_recreate_db "genislogdb"
+
+  # Copiar dump
   docker cp "$PG_DUMP_GENISLOGDB" genis_postgres:/backups/
-  echo "Recuperando genislogdb..."
-  docker exec -e PGPASSWORD=genissqladminp genis_postgres pg_restore -U genissqladmin -h postgres --clean --if-exists -d genislogdb /backups/$(basename "$PG_DUMP_GENISLOGDB")
+  echo "Restaurando genislogdb..."
+  docker exec -e PGPASSWORD=genissqladminp genis_postgres pg_restore -U genissqladmin -h postgres -d genislogdb /backups/$(basename "$PG_DUMP_GENISLOGDB")
 else
-  echo ""Archivo de backup genislogdb de PostgreSQL no encontrado: $PG_DUMP_GENISLOGDB"
+  echo "Archivo de resguardo de PostgreSQL no encontrado: $PG_DUMP_GENISLOGDB"
 fi
 
-# Restauarar MongoDB
+# Recuoeración de MongoDB
 if [ -f "$MONGO_ARCHIVE" ]; then
-  echo "Restoring MongoDB..."
-  # Drop existing database
-  docker exec genis_mongo mongo --eval 'db.dropDatabase()' --quiet pdgdb
-  # Restore from archive
-  docker exec genis_mongo mongorestore --archive=/tmp/mongodump_${DATE}.gz --gzip
-  # Copy archive into container
+  echo "Restaurando MongoDB..."
+  # Elimino las bases existentes
+  docker exec genis_mongo mongo --eval 'db.dropDatabase()' --quiet  pdgdb
+
+  # Copiar el archivo de respaldo a la ubicación temporal en el contenedor
   docker cp "$MONGO_ARCHIVE" genis_mongo:/tmp/mongodump_${DATE}.gz
+
+  # Restaurar desde el archivo comprimido
+  docker exec genis_mongo mongorestore --archive=/tmp/mongodump_${DATE}.gz --gzip
+
 else
   echo "Archivo de resguardo de MongoDB no encontrado: $MONGO_ARCHIVE"
 fi
 
 echo "Proceso de recuperación completado."
+
 
 ```
 
