@@ -272,18 +272,25 @@ Generar un script de resguardo llamado backup.sh:
 # Set date variable in YYYYMMDD format
 DATE=$(date +%Y%m%d)
 
-# Backup LDAP
+# Resguardar el LDAP
 docker exec genis_ldap sh -c 'ldapsearch -x -H ldap://localhost:1389 -D "cn=admin,dc=genis,dc=local" -w adminp -b "dc=genis,dc=local" -LLL' > /home/genis-user/backups/ldap_backup_${DATE}.ldif
 
-# Backup PostgreSQL databases
+# Resguardar las bases PostgreSQL 
 docker exec -e PGPASSWORD=genissqladminp genis_postgres pg_dump -U genissqladmin -h postgres -d genisdb -F c -b -v -f /backups/genisdb_backup_${DATE}.dump
 docker exec -e PGPASSWORD=genissqladminp genis_postgres pg_dump -U genissqladmin -h postgres -d genislogdb -F c -b -v -f /backups/genislogdb_backup_${DATE}.dump
 docker cp genis_postgres:/backups/genisdb_backup_${DATE}.dump /home/genis-user/backups/
 docker cp genis_postgres:/backups/genislogdb_backup_${DATE}.dump /home/genis-user/backups/
 
+# Eliminar el archivo de backup dentro del contenedor mongo
+docker exec genis_postgres rm -f /backups/genisdb_backup_${DATE}.dump
+docker exec genis_postgres rm -f /backups/genislogdb_backup_${DATE}.dump
+
 # Backup MongoDB
-docker exec genis_mongo mongodump --db pdgdb --out /tmp/mongodump_${DATE}
-docker cp genis_mongo:/tmp/mongodump_${DATE} /home/genis-user/backups/mongodump_pdgdb_${DATE}
+docker exec genis_mongo mongodump --db pdgdb --archive=/tmp/mongodump_${DATE}.gz  --gzip
+docker cp genis_mongo:/tmp/mongodump_${DATE}.gz /home/genis-user/backups/mongodump_pdgdb_${DATE}.gz
+
+# Eliminar el archivo de backup dentro del contenedor mongo
+docker exec genis_mongo rm -f /tmp/mongodump_${DATE}.gz
 
 ```
 
@@ -292,8 +299,8 @@ Generar un script de recuperación llamado restore.sh:
 ```
 #!/bin/bash
 
-# Usage: ./restore.sh <YYYYMMDD>
-# Example: ./restore.sh 20230601
+# Uso: ./restore.sh <YYYYMMDD>
+# Ejemplo: ./restore.sh 20230601
 if [ -z "$1" ]; then
   echo "Usage: $0 <backup_date in YYYYMMDD>"
   exit 1
@@ -301,13 +308,13 @@ fi
 
 DATE=$1
 
-# Paths to backup files
+# Ubicación de los archivos de resguardo
 LDAP_BACKUP="/home/genis-user/backups/ldap_backup_${DATE}.ldif"
 PG_DUMP_GENISDB="/home/genis-user/backups/genisdb_backup_${DATE}.dump"
 PG_DUMP_GENISLOGDB="/home/genis-user/backups/genislogdb_backup_${DATE}.dump"
 MONGO_ARCHIVE="/home/genis-user/backups/mongodump_pdgdb_${DATE}.gz"
 
-# Restore LDAP
+# Restaurar LDAP
 if [ -f "$LDAP_BACKUP" ]; then
   echo "Restoring LDAP data..."
   # Copy LDIF into container
@@ -318,25 +325,25 @@ else
   echo "LDAP backup file not found: $LDAP_BACKUP"
 fi
 
-# Restore PostgreSQL databases
+# Restaurar PostgreSQL databases
 # Copy dump files into the container
 if [ -f "$PG_DUMP_GENISDB" ]; then
   docker cp "$PG_DUMP_GENISDB" genis_postgres:/backups/
-  echo "Restoring genisdb..."
+  echo "Recuperando genisdb..."
   docker exec -e PGPASSWORD=genissqladminp genis_postgres pg_restore -U genissqladmin -h postgres --clean --if-exists -d genisdb /backups/$(basename "$PG_DUMP_GENISDB")
 else
-  echo "PostgreSQL backup for genisdb not found: $PG_DUMP_GENISDB"
+  echo "Archivo de backup genisdb de PostgreSQL no encontrado: $PG_DUMP_GENISDB"
 fi
 
 if [ -f "$PG_DUMP_GENISLOGDB" ]; then
   docker cp "$PG_DUMP_GENISLOGDB" genis_postgres:/backups/
-  echo "Restoring genislogdb..."
+  echo "Recuperando genislogdb..."
   docker exec -e PGPASSWORD=genissqladminp genis_postgres pg_restore -U genissqladmin -h postgres --clean --if-exists -d genislogdb /backups/$(basename "$PG_DUMP_GENISLOGDB")
 else
-  echo "PostgreSQL backup for genislogdb not found: $PG_DUMP_GENISLOGDB"
+  echo ""Archivo de backup genislogdb de PostgreSQL no encontrado: $PG_DUMP_GENISLOGDB"
 fi
 
-# Restore MongoDB
+# Restauarar MongoDB
 if [ -f "$MONGO_ARCHIVE" ]; then
   echo "Restoring MongoDB..."
   # Drop existing database
@@ -346,10 +353,10 @@ if [ -f "$MONGO_ARCHIVE" ]; then
   # Copy archive into container
   docker cp "$MONGO_ARCHIVE" genis_mongo:/tmp/mongodump_${DATE}.gz
 else
-  echo "MongoDB backup archive not found: $MONGO_ARCHIVE"
+  echo "Archivo de resguardo de MongoDB no encontrado: $MONGO_ARCHIVE"
 fi
 
-echo "Restore process completed."
+echo "Proceso de recuperación completado."
 
 ```
 
