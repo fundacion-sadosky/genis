@@ -262,6 +262,8 @@ Para obtener el password a partir del TOPT puede utilizar https://gauth.apps.gbr
 ### Resguardo y recuperación de las bases de datos
 
 #### Resguardo:
+Crear en los contenedores una carpeta llamada /backup
+
 Generar un script de resguardo llamado backup.sh:
 
 ```
@@ -338,7 +340,7 @@ fi
 if [ -f "$MONGO_ARCHIVE" ]; then
   echo "Restoring MongoDB..."
   # Drop existing database
-  docker exec genis_mongo mongosh --eval 'db.dropDatabase()' --quiet pdgdb
+  docker exec genis_mongo mongo --eval 'db.dropDatabase()' --quiet pdgdb
   # Restore from archive
   docker exec genis_mongo mongorestore --archive=/tmp/mongodump_${DATE}.gz --gzip
   # Copy archive into container
@@ -348,6 +350,7 @@ else
 fi
 
 echo "Restore process completed."
+
 ```
 
 ### Otras utilidades y ejemplos 
