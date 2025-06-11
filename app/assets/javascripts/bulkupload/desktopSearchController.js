@@ -2,11 +2,13 @@ define(
     [],
     function() {
         'use strict';
-        function DesktopSearchController ($scope, matchesService, notificationsService, profileId, profiledataService) {
+        function DesktopSearchController ($scope, matchesService, notificationsService, protoprofileId, profiledataService) {
 
             var inicializar = function () {
                 $scope.matches = [];
                 $scope.stall = false;
+                $scope.showCalculation = true;
+                $scope.stringency = matchesService.getStrigencyEnum();
             };
             inicializar();
 
@@ -42,39 +44,45 @@ define(
             });
 
             notificationsService.onNotification(function(msg){
-                    if (msg.kind === 'matching'){
-                        var url = msg.url;
-                        var parts = url.split('/');  // in an url like /comparison/<profile id>/matchedProfileId/<matched profile id>/matchingId/<matching id>
-                        $scope.profileId  = parts[2];
-                        var matchedProfileId = parts[4];
-                        $scope.matches.push(matchedProfileId);
-                        console.log("New match found:", matchedProfileId);
-
-                        $scope.profileData = profiledataService.getProfileDataBySampleCode(profileId);
-                        $scope.matchedProfileData = profiledataService.getProfileDataBySampleCode(matchedProfileId);
-
+                if (msg.kind === 'matching'){
+                    var url = msg.url;
+                    var parts = url.split('/');  // in an url like /comparison/<profile id>/matchedProfileId/<matched profile id>/matchingId/<matching id>
+                    $scope.profileId  = parts[2];
+                    var matchedProfileId = parts[4];
+                    $scope.matches.push(matchedProfileId);
+                    console.log("New match found:", matchedProfileId);
+                    if (!$scope.profileData){
+                        profiledataService.getProfileDataBySampleCode($scope.profileId).then(function (response) {
+                            $scope.profileData = response.data;
+                        });
                     }
-                });
 
-                $scope.printReport = function(matchedProfileId) {
+
+                }
+            });
+
+            $scope.printReport = function(matchedProfileId) {
                 $scope.matchedProfileId = matchedProfileId;
-                var head = '<head><title>Comparación</title>';
-                $("link").each(function () {
-                    head += '<link rel="stylesheet" href="' + $(this)[0].href + '" />';
-                });
-                head += "</head>";
-                $scope.$apply();
-                var report = window.open('', '_blank');
-                report.document.write(
-                    '<html>' + head +
-                    '<body>' +
-                    $('#report').html() +
-                    '</body></html>'
-                );
-                report.document.close();
-                $(report).on('load', function(){
-                    report.print();
-                    report.close();
+                profiledataService.getProfileDataBySampleCode(matchedProfileId).then(function (response) {
+                    $scope.matchedProfileData = response.data;
+                    var head = '<head><title>Comparación</title>';
+                    $("link").each(function () {
+                        head += '<link rel="stylesheet" href="' + $(this)[0].href + '" />';
+                    });
+                    head += "</head>";
+                    $scope.$apply();
+                    var report = window.open('', '_blank');
+                    report.document.write(
+                        '<html>' + head +
+                        '<body>' +
+                        $('#report').html() +
+                        '</body></html>'
+                    );
+                    report.document.close();
+                    $(report).on('load', function(){
+                        report.print();
+                        report.close();
+                    });
                 });
             };
 
