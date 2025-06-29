@@ -1,6 +1,7 @@
 package trace
 
 import configdata.{CategoryAssociation, CategoryConfiguration}
+import play.api.libs.json.Format.GenericFormat
 import play.api.libs.json.{Json, Writes, _}
 import profile.Profile
 import types.SampleCode
@@ -11,24 +12,24 @@ trait TraceInfo {
 }
 
 case class AnalysisInfo(
-  loci: Seq[Profile.Marker],
-  kit: Option[String],
-  analysisType: Option[Int],
-  categoryConfiguration: CategoryConfiguration) extends TraceInfo {
+                         loci: Seq[Profile.Marker],
+                         kit: Option[String],
+                         analysisType: Option[Int],
+                         categoryConfiguration: CategoryConfiguration) extends TraceInfo {
   override val kind = TraceType.analysis
   override val description =
     if (kit.isDefined) {
       s"Alta de análisis del " +
-      s"Kit ${kit.get} con Marcadores ${loci.mkString(", ")}."
+        s"Kit ${kit.get} con Marcadores ${loci.mkString(", ")}."
     } else {
       s"Alta de análisis con Marcadores ${loci.mkString(", ")}."
     }
 }
 
 case class AssociationInfo(
-  profile: SampleCode,
-  user: String,
-  categoryAssociations: Seq[CategoryAssociation]) extends TraceInfo {
+                            profile: SampleCode,
+                            user: String,
+                            categoryAssociations: Seq[CategoryAssociation]) extends TraceInfo {
   override val kind = TraceType.association
   override val description =
     s"Asociación con el perfil ${profile.text} cuyo responsable es $user."
@@ -40,18 +41,18 @@ case object ProfileDataInfo extends TraceInfo {
 }
 
 case class ProfileCategoryModificationInfo(
-  oldCategory: String,
-  newCategory: String
-) extends TraceInfo {
+                                            oldCategory: String,
+                                            newCategory: String
+                                          ) extends TraceInfo {
   override val kind = TraceType.categoryModification
   override val description =
     s"Modificación de la categoría $oldCategory a $newCategory."
 }
 
 case class SuperiorInstanceCategoryModificationInfo(
-  oldCategory: String,
-  newCategory: String
-) extends TraceInfo {
+                                                     oldCategory: String,
+                                                     newCategory: String
+                                                   ) extends TraceInfo {
   override val kind = TraceType.superiorInstanceCategoryModification
   override val description = s"Se aceptó el cambio de categoría de la" +
     s" instancia inferior." +
@@ -80,10 +81,11 @@ case object ProfileImportedFromInferiorInfo extends TraceInfo {
   override val description = s"Importado desde una instancia inferior."
 }
 
-case object ProfileRejectedInSuperiorInfo extends TraceInfo {
+case class ProfileRejectedInSuperiorInfo(motive: String) extends TraceInfo {
   override val kind = TraceType.interconectionRejected
-  override val description = s"Rechazado en instancia superior."
+  override val description = s"Rechazado en instancia superior. Motivo: $motive"
 }
+
 
 case object CategoryChangeRejectedInSupInfo extends TraceInfo {
   override val kind = TraceType.interconectionCategoryRejected
@@ -97,8 +99,8 @@ case object ProfileInterconectionUploadInfo extends TraceInfo {
 }
 
 case class DeleteInfo(
-  solicitor: String,
-  motive: String) extends TraceInfo {
+                       solicitor: String,
+                       motive: String) extends TraceInfo {
   override val kind = TraceType.delete
   override val description =
     s"Baja del perfil solicitada por $solicitor con motivo: $motive."
@@ -128,13 +130,23 @@ case class PedigreeEditInfo(pedigreeId:Long) extends TraceInfo{
   override val kind = TraceType.pedigriEdit
   override val description = s"Modificación del pedigrí."
 }
-case class PedigreeNewScenarioInfo(id:String,nombre:String) extends TraceInfo{
+case class PedigreeNewScenarioInfo(id:String,nombre:String) extends TraceInfo {
   override val kind = TraceType.pedigriNewScenario
   override val description =
     s"Creación de un nuevo escenario con nombre $nombre."
 }
-object TraceInfo {
 
+object TraceInfo {
+  implicit val profileRejectedInSuperiorFormat: Format[ProfileRejectedInSuperiorInfo] = Format(
+    new Reads[ProfileRejectedInSuperiorInfo] {
+      def reads(js: JsValue): JsResult[ProfileRejectedInSuperiorInfo] =
+        Json.reads[ProfileRejectedInSuperiorInfo].reads(js)
+    },
+    new Writes[ProfileRejectedInSuperiorInfo] {
+      def writes(ti: ProfileRejectedInSuperiorInfo): JsValue =
+        Json.writes[ProfileRejectedInSuperiorInfo].writes(ti)
+    }
+  )
   implicit val analysisFormat = Json.format[AnalysisInfo]
   implicit val matchProcessFormat = Json.format[MatchProcessInfo]
   implicit val matchFormat = Json.format[MatchInfo]
@@ -169,12 +181,12 @@ object TraceInfo {
   implicit val categoryAprovedInSuperiorFormat = Format(
     new Reads[ProfileCategoryChangeAprovedInSuperiorInfo.type] {
       def reads(js: JsValue)
-        :JsResult[ProfileCategoryChangeAprovedInSuperiorInfo.type]
-        = JsSuccess(ProfileCategoryChangeAprovedInSuperiorInfo)
+      :JsResult[ProfileCategoryChangeAprovedInSuperiorInfo.type]
+      = JsSuccess(ProfileCategoryChangeAprovedInSuperiorInfo)
     },
     new Writes[ProfileCategoryChangeAprovedInSuperiorInfo.type] {
       def writes(ti: ProfileCategoryChangeAprovedInSuperiorInfo.type)
-        :JsValue = Json.obj()
+      :JsValue = Json.obj()
     }
   )
   implicit val profileImportedFromInferiorFormat = Format(
@@ -186,14 +198,7 @@ object TraceInfo {
       def writes(ti: ProfileImportedFromInferiorInfo.type): JsValue = Json.obj()
     }
   )
-  implicit val profileRejectedInSuperiorFormat = Format(
-    new Reads[ProfileRejectedInSuperiorInfo.type] {
-      def reads(js: JsValue): JsResult[ProfileRejectedInSuperiorInfo.type] =
-        JsSuccess(ProfileRejectedInSuperiorInfo)
-    },
-    new Writes[ProfileRejectedInSuperiorInfo.type] {
-      def writes(ti: ProfileRejectedInSuperiorInfo.type): JsValue = Json.obj()
-    })
+
 
   implicit val catModRejectedInSupFormat = Format(
     new Reads[CategoryChangeRejectedInSupInfo.type] {
@@ -204,7 +209,7 @@ object TraceInfo {
       def writes(ti: CategoryChangeRejectedInSupInfo.type): JsValue = Json.obj()
     }
   )
-  
+
   implicit val superiorInstCatRejectFormat = Format(
     new Reads[SuperiorCategoryChangeRejectedInfo.type] {
       def reads(js: JsValue): JsResult[SuperiorCategoryChangeRejectedInfo.type] =
@@ -214,7 +219,7 @@ object TraceInfo {
       def writes(ti: SuperiorCategoryChangeRejectedInfo.type): JsValue =
         Json.obj()
     })
-  
+
   implicit val deleteFormat = Json.format[DeleteInfo]
   implicit val pedigreeMatchProcessFormat = Json.format[PedigreeMatchProcessInfo]
   implicit val pedigreeMatchFormat = Json.format[PedigreeMatchInfo]
@@ -231,7 +236,7 @@ object TraceInfo {
     .format[ProfileCategoryModificationInfo]
   implicit val superiorInstCatModFormat = Json
     .format[SuperiorInstanceCategoryModificationInfo]
-  
+
   def unapply(info: TraceInfo): Option[(TraceType.Value, JsValue)] = {
     info match {
       case x: AnalysisInfo => Some((x.kind, Json.toJson(x)(analysisFormat)))
@@ -275,8 +280,8 @@ object TraceInfo {
         Some((x.kind, Json.toJson(x)(categoryAprovedInSuperiorFormat)))
       case x: ProfileImportedFromInferiorInfo.type =>
         Some((x.kind, Json.toJson(x)(profileImportedFromInferiorFormat)))
-      case x: ProfileRejectedInSuperiorInfo.type =>
-        Some((x.kind, Json.toJson(x)(profileRejectedInSuperiorFormat)))
+      case x: ProfileRejectedInSuperiorInfo =>
+        Some((x.kind, Json.toJson(x)(profileRejectedInSuperiorFormat))) // updated
       case x: CategoryChangeRejectedInSupInfo.type =>
         Some((x.kind, Json.toJson(x)(catModRejectedInSupFormat)))
       case x: ProfileCategoryModificationInfo =>
@@ -299,46 +304,30 @@ object TraceInfo {
         case TraceType.discard => Json.fromJson[DiscardInfo](json)
         case TraceType.association => Json.fromJson[AssociationInfo](json)
         case TraceType.profileData => Json.fromJson[ProfileDataInfo.type](json)
-        case TraceType.interconectionUpdload =>
-          Json.fromJson[ProfileInterconectionUploadInfo.type](json)
+        case TraceType.interconectionUpdload => Json.fromJson[ProfileInterconectionUploadInfo.type](json)
         case TraceType.delete => Json.fromJson[DeleteInfo](json)
-        case TraceType.pedigreeMatchProcess =>
-          Json.fromJson[PedigreeMatchProcessInfo](json)
+        case TraceType.pedigreeMatchProcess => Json.fromJson[PedigreeMatchProcessInfo](json)
         case TraceType.pedigreeMatch => Json.fromJson[PedigreeMatchInfo](json)
-        case TraceType.pedigreeDiscard =>
-          Json.fromJson[PedigreeDiscardInfo](json)
-        case TraceType.pedigreeConfirm =>
-          Json.fromJson[PedigreeConfirmInfo](json)
-        case TraceType.pedigreeStatusChange =>
-          Json.fromJson[PedigreeStatusChangeInfo](json)
+        case TraceType.pedigreeDiscard => Json.fromJson[PedigreeDiscardInfo](json)
+        case TraceType.pedigreeConfirm => Json.fromJson[PedigreeConfirmInfo](json)
+        case TraceType.pedigreeStatusChange => Json.fromJson[PedigreeStatusChangeInfo](json)
         case TraceType.pedigriCopy => Json.fromJson[PedigreeCopyInfo](json)
         case TraceType.pedigriEdit => Json.fromJson[PedigreeEditInfo](json)
-        case TraceType.pedigriNewScenario =>
-          Json.fromJson[PedigreeNewScenarioInfo](json)
+        case TraceType.pedigriNewScenario => Json.fromJson[PedigreeNewScenarioInfo](json)
         case TraceType.pedigreeMatch2 => Json.fromJson[PedigreeMatchInfo2](json)
-        case TraceType.pedigreeDiscard2 =>
-          Json.fromJson[PedigreeDiscardInfo2](json)
-        case TraceType.pedigreeConfirm2 =>
-          Json.fromJson[PedigreeConfirmInfo2](json)
-        case TraceType.interconectionAproved =>
-          Json.fromJson[ProfileAprovedInSuperiorInfo.type](json)
-        case TraceType.interconectionCategoryAproved =>
-          Json.fromJson[ProfileCategoryChangeAprovedInSuperiorInfo.type](json)
-        case TraceType.importedFromInferior =>
-          Json.fromJson[ProfileImportedFromInferiorInfo.type](json)
-        case TraceType.interconectionRejected =>
-          Json.fromJson[ProfileRejectedInSuperiorInfo.type](json)
-        case TraceType.interconectionCategoryRejected => Json
-          .fromJson[CategoryChangeRejectedInSupInfo.type](json)
-        case TraceType.categoryModification => Json
-          .fromJson[ProfileCategoryModificationInfo](json)
-        case TraceType.superiorInstanceCategoryModification => Json
-          .fromJson[SuperiorInstanceCategoryModificationInfo](json)
-        case TraceType.superiorInstanceCategoryRejection => Json
-          .fromJson[SuperiorCategoryChangeRejectedInfo.type](json)
+        case TraceType.pedigreeDiscard2 => Json.fromJson[PedigreeDiscardInfo2](json)
+        case TraceType.pedigreeConfirm2 =>  Json.fromJson[PedigreeConfirmInfo2](json)
+        case TraceType.interconectionAproved =>  Json.fromJson[ProfileAprovedInSuperiorInfo.type](json)
+        case TraceType.interconectionCategoryAproved => Json.fromJson[ProfileCategoryChangeAprovedInSuperiorInfo.type](json)
+        case TraceType.importedFromInferior =>  Json.fromJson[ProfileImportedFromInferiorInfo.type](json)
+        case TraceType.interconectionRejected =>  Json.fromJson[ProfileRejectedInSuperiorInfo](json)
+        case TraceType.interconectionCategoryRejected => Json.fromJson[CategoryChangeRejectedInSupInfo.type](json)
+        case TraceType.categoryModification => Json.fromJson[ProfileCategoryModificationInfo](json)
+        case TraceType.superiorInstanceCategoryModification => Json.fromJson[SuperiorInstanceCategoryModificationInfo](json)
+        case TraceType.superiorInstanceCategoryRejection => Json.fromJson[SuperiorCategoryChangeRejectedInfo.type](json)
         case _ => JsError()
       }
-    ).get
+      ).get
   }
 
   implicit val writes = new Writes[TraceInfo] {

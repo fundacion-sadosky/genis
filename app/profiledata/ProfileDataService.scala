@@ -48,29 +48,29 @@ trait ProfileDataService {
   def create(profileData: ProfileDataAttempt): Future[Either[String, SampleCode]]
   def findByCodeWithAssociations(globalCode: SampleCode): Future[Option[(ProfileData, Group, FullCategory)]]
   def updateProfileData(
-    globalCode: SampleCode,
-    profileData: ProfileDataAttempt,
-    allowFromOtherInstances: Boolean = false
-  ): Future[Boolean]
+                         globalCode: SampleCode,
+                         profileData: ProfileDataAttempt,
+                         allowFromOtherInstances: Boolean = false
+                       ): Future[Boolean]
   def updateProfileCategoryData(globalCode: SampleCode, profileData: ProfileDataAttempt): Future[Option[String]]
   def get(sampleCode: SampleCode): Future[Option[ProfileData]]
   def isEditable(
-    sampleCode: SampleCode,
-    allowFromOtherInstances:Boolean = false
-  ): Future[Option[Boolean]]
+                  sampleCode: SampleCode,
+                  allowFromOtherInstances:Boolean = false
+                ): Future[Option[Boolean]]
   def getResource(resourceType: String, id: Long): Future[Option[Array[Byte]]]
   def getDeleteMotive(sampleCode: SampleCode): Future[Option[DeletedMotive]]
   def deleteProfile(
-    globalCode: SampleCode,
-    motive: DeletedMotive,
-    userId: String,
-    shouldUpdateSuperiorInstance:Boolean = true,
-    validateMPI:Boolean = true
-  ): Future[Either[String, SampleCode]]
+                     globalCode: SampleCode,
+                     motive: DeletedMotive,
+                     userId: String,
+                     shouldUpdateSuperiorInstance:Boolean = true,
+                     validateMPI:Boolean = true
+                   ): Future[Either[String, SampleCode]]
   def findByCodes(globalCodes: List[SampleCode]): Future[Seq[ProfileData]]
   def delete(globalCode: SampleCode): Future[Either[String, SampleCode]]
   def importFromAnotherInstance(profileData: ProfileData,labOrigin:String,labImmediate:String):Future[Unit]
-  def updateUploadStatus(globalCode: String,status:Long,motive:Option[String]= None): Future[Either[String,Unit]]
+  def updateUploadStatus(globalCode: String,status:Long,motive:Option[String], interconnection_error:Option[String]): Future[Either[String,Unit]]
   def getProfileUploadStatusByGlobalCode(globalCode:SampleCode):Future[Option[Long]]
   def getExternalProfileDataByGlobalCode(globalCode:String):Future[Option[ExternalProfileDataRow]]
   def findProfileDataLocalOrSuperior(globalCode:SampleCode):Future[Option[ProfileData]]
@@ -78,31 +78,35 @@ trait ProfileDataService {
   def gefFailedProfilesUploaded():Future[Seq[ProfileUploadedRow]]
   def gefFailedProfilesUploadedDeleted():Future[Seq[ProfileUploadedRow]]
   def gefFailedProfilesSentDeleted(labCode:String):Future[Seq[ProfileSentRow]]
-  def updateProfileSentStatus(globalCode: String,status:Long,motive:Option[String]= None,labCode:String): Future[Either[String,Unit]]
+  def updateProfileSentStatus(globalCode: String,status:Long,motive:Option[String],labCode:String,interconnection_error:Option[String]): Future[Either[String,Unit]]
   def getMtRcrs():Future[MtRCRS]
+  def updateInterconnectionError(globalCode: String, status:Long, interconnection_error: String): Future[Either[String,Unit]]
+  def addProfileReceivedApproved(labCode:String,globalCode:String):Future[Either[String,Unit]]
+  def addProfileReceivedRejected(labCode:String,globalCode:String, motive: String):Future[Either[String,Unit]]
+  def updateProfileReceivedStatus(globalCode: String,status:Long,motive:String,labCode:String,interconnection_error:String): Future[Either[String,Unit]]
 }
 
 @Singleton
 class ProfileDataServiceImpl @Inject() (
-  cache: CacheService,
-  @Named("special") profileDataRepository: ProfileDataRepository,
-  categoryService: CategoryService,
-  notificationService: NotificationService,
-  bioMatService: BioMaterialTypeService,
-  crimeType: CrimeTypeService,
-  laboratories: LaboratoryService,
-  matchingService: MatchingService,
-  scenarioRepository: ScenarioRepository,
-  profileRepository: ProfileRepository,
-  traceService: TraceService,
-  @Named("labCode") val labCode: String,
-  @Named("country") val country: String,
-  @Named("province") val province: String,
-  interconnectionService : InterconnectionService = null,
-  profileService:ProfileService=null,
-  pedigreeService: PedigreeService = null,
-  userService : UserService = null
-) extends ProfileDataService {
+                                         cache: CacheService,
+                                         @Named("special") profileDataRepository: ProfileDataRepository,
+                                         categoryService: CategoryService,
+                                         notificationService: NotificationService,
+                                         bioMatService: BioMaterialTypeService,
+                                         crimeType: CrimeTypeService,
+                                         laboratories: LaboratoryService,
+                                         matchingService: MatchingService,
+                                         scenarioRepository: ScenarioRepository,
+                                         profileRepository: ProfileRepository,
+                                         traceService: TraceService,
+                                         @Named("labCode") val labCode: String,
+                                         @Named("country") val country: String,
+                                         @Named("province") val province: String,
+                                         interconnectionService : InterconnectionService = null,
+                                         profileService:ProfileService=null,
+                                         pedigreeService: PedigreeService = null,
+                                         userService : UserService = null
+                                       ) extends ProfileDataService {
 
   val logger = Logger(this.getClass())
 
@@ -201,11 +205,11 @@ class ProfileDataServiceImpl @Inject() (
                 if(shouldUpdateSuperiorInstance){
                   interconnectionService.inferiorDeleteProfile(globalCode,motive)
                 }
-/*
-                if (exportaALims) {
-                  createBajaLimsArchive(globalCode, motive)
-                }
-*/
+                /*
+                                if (exportaALims) {
+                                  createBajaLimsArchive(globalCode, motive)
+                                }
+                */
                 response
               } else Left(Messages("error.E0117"))
             }
@@ -223,7 +227,7 @@ class ProfileDataServiceImpl @Inject() (
   override def delete(globalCode: SampleCode): Future[Either[String, SampleCode]] = {
     profileRepository.delete(globalCode) flatMap { response =>
       response.fold(fa => Future.successful(Left(fa)), fb => {
-            Future.successful(Right(globalCode))
+        Future.successful(Right(globalCode))
       })
     }
   }
@@ -244,9 +248,9 @@ class ProfileDataServiceImpl @Inject() (
   }
 
   def isEditable(
-    sampleCode: SampleCode,
-    allowFromOtherInstances: Boolean
-  ) : Future[Option[Boolean]] = {
+                  sampleCode: SampleCode,
+                  allowFromOtherInstances: Boolean
+                ) : Future[Option[Boolean]] = {
     val d = for {
       matches <- matchingService.findMatchingResults(sampleCode)
       isReadOnly <- profileService.isReadOnlySampleCode(
@@ -314,10 +318,10 @@ class ProfileDataServiceImpl @Inject() (
 
 
   override def updateProfileData(
-    globalCode: SampleCode,
-    profileData: ProfileDataAttempt,
-    allowFromOtherInstances: Boolean = false
-  ): Future[Boolean] = {
+                                  globalCode: SampleCode,
+                                  profileData: ProfileDataAttempt,
+                                  allowFromOtherInstances: Boolean = false
+                                ): Future[Boolean] = {
 
     this.isEditable(globalCode, allowFromOtherInstances).flatMap { result =>
       if (result.get) {
@@ -358,9 +362,9 @@ class ProfileDataServiceImpl @Inject() (
   }
 
   override def updateProfileCategoryData(
-    globalCode: SampleCode,
-    profileData: ProfileDataAttempt
-  ): Future[Option[String]] = {
+                                          globalCode: SampleCode,
+                                          profileData: ProfileDataAttempt
+                                        ): Future[Option[String]] = {
     profileService
       .isReadOnlySampleCode(globalCode, uploadedIsAllowed = true)
       .flatMap(
@@ -499,8 +503,8 @@ class ProfileDataServiceImpl @Inject() (
     profileDataRepository.addExternalProfile(profileData,labOrigin,labImmediate).map( _ => ())
   }
 
-  override def updateUploadStatus(globalCode: String,status:Long,motive:Option[String]= None): Future[Either[String,Unit]] = {
-    profileDataRepository.updateUploadStatus(globalCode,status,motive)
+  def updateUploadStatus(globalCode: String,status:Long,motive:Option[String], interconnection_error:Option[String]): Future[Either[String,Unit]] = {
+    profileDataRepository.updateUploadStatus(globalCode,status,motive, interconnection_error)
   }
 
   override def getProfileUploadStatusByGlobalCode(gc:SampleCode):Future[Option[Long]] = {
@@ -524,11 +528,23 @@ class ProfileDataServiceImpl @Inject() (
   override def gefFailedProfilesSentDeleted(labCode:String):Future[Seq[ProfileSentRow]] = {
     this.profileDataRepository.gefFailedProfilesSentDeleted(labCode).map(list => list.seq)
   }
-  override def updateProfileSentStatus(globalCode: String,status:Long,motive:Option[String]= None,labCode:String): Future[Either[String,Unit]] = {
-    profileDataRepository.updateProfileSentStatus(globalCode,status,motive,labCode)
+  def updateProfileSentStatus(globalCode: String,status:Long,motive:Option[String], labCode:String, interconnection_error: Option[String]): Future[Either[String,Unit]] = {
+    profileDataRepository.updateProfileSentStatus(globalCode, status, motive,  labCode, interconnection_error)
   }
   override def getMtRcrs() = {
     this.profileDataRepository.getMtRcrs()
   }
+  override def updateInterconnectionError(globalCode: String, status: Long, interconnection_error: String): Future[Either[String, Unit]] = {
+    this.profileDataRepository.updateInterconnectionError(globalCode,status, interconnection_error)
+  }
+  override def addProfileReceivedApproved (labCode: String, globalCode: String): Future[Either[String, Unit]] = {
+    this.profileDataRepository.addProfileReceivedApproved(labCode, globalCode)
+  }
 
+  override def addProfileReceivedRejected(labCode: String, globalCode: String, motive:String): Future[Either[String, Unit]] = {
+    this.profileDataRepository.addProfileReceivedRejected(labCode, globalCode, motive)
+  }
+  def updateProfileReceivedStatus(globalCode: String, status: Long, motive: String, labCode: String, interconnection_error: String): Future[Either[String, Unit]] = {
+    this.profileDataRepository.updateProfileReceivedStatus(globalCode, status, motive, interconnection_error)
+  }
 }

@@ -143,17 +143,18 @@ function searchController($scope, $log, profiledataService, searchService, $moda
 		$scope.genDelForm.$setPristine();
 	};
 
+	// En searchController.js
 	$scope.deleteProfile = function(deleted) {
-        for (var i = 0; i < $scope.motives.length; i++) {
-            if($scope.motives[i].id === parseInt(deleted.selectedMotive) && !$scope.motives[i].freeText){
-                deleted.motive = $scope.motives[i].description;
-            }
-        }
-        var deletedRequest = {};
+		for (var i = 0; i < $scope.motives.length; i++) {
+			if($scope.motives[i].id === parseInt(deleted.selectedMotive) && !$scope.motives[i].freeText){
+				deleted.motive = $scope.motives[i].description;
+			}
+		}
+		var deletedRequest = {};
 
-        deletedRequest.selectedMotive = parseInt(deleted.selectedMotive);
-        deletedRequest.solicitor = deleted.solicitor;
-        deletedRequest.motive  = deleted.motive;
+		deletedRequest.selectedMotive = parseInt(deleted.selectedMotive);
+		deletedRequest.solicitor = deleted.solicitor;
+		deletedRequest.motive  = deleted.motive;
 
 		profiledataService.deleteProfile($scope.pdToDeleted.globalCode, deletedRequest).then(
 			function(){
@@ -162,15 +163,19 @@ function searchController($scope, $log, profiledataService, searchService, $moda
 				$scope.pdToDeleted.deleted = true;
 			},
 			function(response) {
-                if (response.status !== 499) {
-                    alertService.error({message: 'Ha ocurrido un error ' + response.data.message});
-                    $scope.closeModal();
-                    $scope.pdToDeleted.deleted = false;
-                }
+				if (response.status !== 499) {
+					var errorMessage = 'Ha ocurrido un error ' + response.data.message;
+					if (response.data.message.includes("Failed to notify deletion due to timeout")) {
+						errorMessage = "Timeout occurred while deleting profile.  Profile deleted but deletion status update may not have been sent to remote instance.";
+					}
+					alertService.error({message: errorMessage});
+					$scope.closeModal();
+					$scope.pdToDeleted.deleted = false;
+				}
 			}
 		);
-		
 	};
+
 
 	$scope.hasPermission = function(permission) {
 		return userService.hasPermission(permission);
