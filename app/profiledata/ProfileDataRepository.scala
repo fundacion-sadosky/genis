@@ -1120,53 +1120,67 @@ class SlickProfileDataRepository @Inject() (
     }
     }
   }
+
   val ProfileReceived: TableQuery[Tables.ProfileReceived] = Tables.ProfileReceived
 
   override def addProfileReceivedApproved(labCode: String, globalCode: String): Future[Either[String, Unit]] = {
-    this.runInTransactionAsync { implicit session =>
-      try {
-        // Use the table's returning method to get the generated ID (if needed)
-        val insertAction = ProfileReceived returning ProfileReceived.map(_.id) += Tables.ProfileReceivedRow(0L, labCode, globalCode, 18L, None, None)
+    Future {
+      DB.withTransaction { implicit session =>
+        try {
+          // Get the next value from the sequence
+          val nextVal: Long = Q.queryNA[Long]("select nextval('\"APP\".\"PROFILE_RECEIVED_ID_seq\"')").first
 
-        // Execute the insert and get the generated ID (if you need it)
-        val generatedId = insertAction
+          // Insert a new record
+          val insertAction = ProfileReceived += Tables.ProfileReceivedRow(
+            nextVal, // Use the next value from the sequence
+            labCode,
+            globalCode,
+            18L,
+            None,
+            None
+          )
 
-        logger.info(s"Inserted profile received with ID: $generatedId, labCode: $labCode, globalCode: $globalCode")
-        Right(())
-      } catch {
-        case e: Exception => {
-          logger.error("Error adding profile received", e)
-          Left(e.getMessage)
+          logger.info(s"Inserted new profile received with ID: $nextVal, labCode: $labCode, globalCode: $globalCode")
+          Right(())
+        } catch {
+          case e: Exception => {
+            logger.error("Error adding profile received", e)
+            Left(e.getMessage)
+          }
         }
       }
     }
   }
+
   def addProfileReceivedRejected(labCode: String, globalCode: String, motive: String): Future[Either[String, Unit]] = {
-    this.runInTransactionAsync { implicit session =>
-      try {
-        // Use the table's returning method to get the generated ID (if needed)
-        val insertAction = ProfileReceived returning ProfileReceived.map(_.id) += Tables.ProfileReceivedRow(
-          0L,
-          labCode,
-          globalCode,
-          17L,
-          Some("Rechazado por el motivo: " + motive),  // Include the motive
-          None
-        )
+    Future {
+      DB.withTransaction { implicit session =>
+        try {
+          // Get the next value from the sequence
+          val nextVal: Long = Q.queryNA[Long]("select nextval('\"APP\".\"PROFILE_RECEIVED_ID_seq\"')").first
 
-        // Execute the insert and get the generated ID (if you need it)
-        val generatedId = insertAction
+          // Insert a new record
+          val insertAction = ProfileReceived += Tables.ProfileReceivedRow(
+            nextVal, // Use the next value from the sequence
+            labCode,
+            globalCode,
+            17L,
+            Some("Rechazado por el motivo: " + motive),
+            None
+          )
 
-        logger.info(s"Inserted rejected profile received with ID: $generatedId, labCode: $labCode, globalCode: $globalCode, motive: $motive")
-        Right(())
-      } catch {
-        case e: Exception => {
-          logger.error("Error adding rejected profile received", e)
-          Left(e.getMessage)
+          logger.info(s"Inserted new profile received with ID: $nextVal, labCode: $labCode, globalCode: $globalCode, motive: $motive")
+          Right(())
+        } catch {
+          case e: Exception => {
+            logger.error("Error adding profile received", e)
+            Left(e.getMessage)
+          }
         }
       }
     }
   }
+
 
 
   def updateProfileReceivedStatus(globalCode: String, status: Long, motive: DeletedMotive, interconnection_error: Option[String]): Future[Either[String,Unit]] = {

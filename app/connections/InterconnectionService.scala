@@ -1594,6 +1594,7 @@ class InterconnectionServiceImpl @Inject()(
     }
   }
 
+  // TODO: intenta enviar el delete a la una instancia
   def doSendDeletionToInstance(globalCode: SampleCode, motive: DeletedMotive, url: String, laboratoryOrigin: String, laboratoryImmediateInstance: String, labCode: String): Future[Either[String, Unit]] = {
     logger.debug(s"Attempting to delete profile ${globalCode.text} at URL: $url") // Added logging
     async {
@@ -2373,6 +2374,10 @@ class InterconnectionServiceImpl @Inject()(
       ,
       // Reintento envio Baja de Perfil desde instancia superior hacia instancia inferior
       this.retryDeleteProfilesToInferior(lab,url)
+      // Reintento de envío de reject en instancia superior consultando la tabla PROFILE_RECEIVED con status 21: Perfil proveniente de instancia inferior rechazado en instancia . Pendiente notificación a instancia inferior
+      // this.retrySendRejectToInferiorInstance()
+      //
+
     )).map(_ => ())
   }
 

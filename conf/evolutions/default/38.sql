@@ -2,10 +2,12 @@
 ALTER TABLE "APP"."PROFILE_UPLOADED" ADD COLUMN "INTERCONNECTION_ERROR" VARCHAR(255);
 ALTER TABLE "APP"."PROFILE_SENT" ADD COLUMN "INTERCONNECTION_ERROR" VARCHAR(255);
 INSERT INTO "APP"."INFERIOR_INSTANCE_PROFILE_STATUS"("ID", "STATUS") VALUES
-                                                                         (17, 'Perfil proveniente de instancia inferior rechazado en esta instancia'),
-                                                                         (18, 'Perfil proveniente de instancia inferior aprobado en esta instancia'),
-                                                                         (19, 'Perfile eliminado en esta instancia y pendiente de notificar a instancia inferior'),
-                                                                         (20, 'Instancia inferior notificada de la eliminación del perfil en la instancia superior');
+                                                                         (17, 'Perfil proveniente de instancia inferior rechazado en  instancia. Instancia inferior notificada'),
+                                                                         (18, 'Perfil proveniente de instancia inferior aprobado en esta instancia. Instanica inferior notificada'),
+                                                                         (19, 'Perfil eliminado en esta instancia y pendiente de notificar a instancia inferior'),
+                                                                         (20, 'Instancia inferior notificada de la eliminación del perfil en la instancia superior'),
+                                                                         (21, 'Perfil proveniente de instancia inferior rechazado en  instancia . Pendiente notificación a instancia inferior' ),
+                                                                         (22, 'Perfil proveniente de instancia inferior aprobado en esta instancia. Pendiente notificación a instancia inferior');
 
 CREATE SEQUENCE IF NOT EXISTS "APP"."PROFILE_RECEIVED_ID_seq"
     INCREMENT 1
@@ -22,25 +24,25 @@ CREATE TABLE IF NOT EXISTS "APP"."PROFILE_RECEIVED"
     "STATUS" bigint,
     "MOTIVE" text COLLATE pg_catalog."default",
     "INTERCONNECTION_ERROR" character varying(255) COLLATE pg_catalog."default",
-    CONSTRAINT "PROFILE_RECEIVED_ID_PKEY" PRIMARY KEY ("ID", "LABCODE"),
-    REFERENCES "APP"."PROFILE_DATA" ("ID") MATCH SIMPLE
-    ON UPDATE NO ACTION ON DELETE NO ACTION,
-    CONSTRAINT "PROFILE_RECEIVED_FK" FOREIGN KEY ("STATUS")
-    REFERENCES "APP"."INFERIOR_INSTANCE_PROFILE_STATUS" ("ID") MATCH SIMPLE
-    ON UPDATE NO ACTION ON DELETE NO ACTION
-    ) TABLESPACE pg_default;
+    CONSTRAINT "PROFILE_RECEIVED_ID_PKEY" PRIMARY KEY ("ID","LABCODE")
+) TABLESPACE pg_default;
 
 ALTER SEQUENCE "APP"."PROFILE_RECEIVED_ID_seq" OWNED BY "APP"."PROFILE_RECEIVED"."ID";
 
 ALTER SEQUENCE "APP"."PROFILE_RECEIVED_ID_seq" OWNER TO genissqladmin;
 ALTER TABLE IF EXISTS "APP"."PROFILE_RECEIVED" OWNER TO genissqladmin;
+
+ALTER TABLE "APP"."PROFILE_RECEIVED"
+    ADD CONSTRAINT "PROFILE_RECEIVED_FK" FOREIGN KEY ("STATUS")
+        REFERENCES "APP"."INFERIOR_INSTANCE_PROFILE_STATUS" ("ID") MATCH SIMPLE
+        ON UPDATE NO ACTION ON DELETE NO ACTION;
 # --- !Downs
-ALTER TABLE "APP"."PROFILE_UPLOADED" DROP COLUMN "INTERCONNECTION_ERROR";
-ALTER TABLE "APP"."PROFILE_SENT" DROP COLUMN "INTERCONNECTION_ERROR";
-ALTER TABLE IF EXISTS "APP"."PROFILE_RECEIVED" DROP CONSTRAINT IF EXISTS "PROFILE_RECEIVED_ID_PKEY";
-ALTER TABLE IF EXISTS "APP"."PROFILE_RECEIVED" DROP CONSTRAINT IF EXISTS "PROFILE_RECEIVED_FK";
 DROP TABLE IF EXISTS "APP"."PROFILE_RECEIVED";
 
 DROP SEQUENCE IF EXISTS "APP"."PROFILE_RECEIVED_ID_seq";
 
-DELETE FROM "APP"."INFERIOR_INSTANCE_PROFILE_STATUS" WHERE "ID" IN (17, 18, 19, 20);
+DELETE FROM "APP"."INFERIOR_INSTANCE_PROFILE_STATUS" WHERE "ID" IN (17, 18, 19, 20, 21, 22);
+
+ALTER TABLE "APP"."PROFILE_SENT" DROP COLUMN IF EXISTS "INTERCONNECTION_ERROR";
+
+ALTER TABLE "APP"."PROFILE_UPLOADED" DROP COLUMN IF EXISTS "INTERCONNECTION_ERROR";

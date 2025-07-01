@@ -205,7 +205,7 @@
 		"PutCatMapping": "Modificar mapeo de categorías",
 		"PostConnection": "Conectar con la instancia superior",
 		"PostIIProfile": "Agregar perfil de instancia inferior",
-		"DeleteIIProfile": "Borrar perfil de instancia inferior",
+		"DeleteIIProfile": "Instancia inferior informada de la eliminación del perfil en la instancia superior",
 		"ReceiveMatchFromSuperior": "Recibir el match de la instancia superior",
 		"MatchUpdateInterconnection": "Actualizar el match con hit o descarte de otra instancia",
 		"GetInfIns": "Obtener configuración de instancias inferiores",
