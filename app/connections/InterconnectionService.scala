@@ -189,7 +189,12 @@ class InterconnectionServiceImpl @Inject()(
   val FILE_PENDING = 15L
   val FILE_SENT = 16L
   val superiorLabCode = "SUPERIOR"
-
+  val REJECTED_THIS_INSTANCE_INF_INFORMED = 17L
+  val APPROVED_THIS_INSTANCE_INF_INFORMED = 18L
+  val DELETE_IN_SUP_INTSTANCE_PENDING_SEND_TO_INFERIOR = 19L
+  val DELETE_IN_SUP_INTSTANCE_SENT_TO_INFERIOR = 20L
+  val REJECTED_THIS_INSTANCE_PENDING_SEND_TO_INFERIOR = 21L
+  val APPROVED_THIS_INSTANCE_PENDING_SEND_TO_INFERIOR = 22L
   override def getConnections(): Future[Either[String, Connection]] = {
     connectionRepository.getConnections()
   }
@@ -2374,9 +2379,13 @@ class InterconnectionServiceImpl @Inject()(
       ,
       // Reintento envio Baja de Perfil desde instancia superior hacia instancia inferior
       this.retryDeleteProfilesToInferior(lab,url)
+
+      // TODO: añadir la lógica de cambios de estados en las tablas PROFILE_RECEIVED y PROFILE_UPLOADED
       // Reintento de envío de reject en instancia superior consultando la tabla PROFILE_RECEIVED con status 21: Perfil proveniente de instancia inferior rechazado en instancia . Pendiente notificación a instancia inferior
+      // Si logro notificar a la instancia inferior del rechazo entonces pongo en PROFILE_SENT el estado 17
       // this.retrySendRejectToInferiorInstance()
-      //
+      //    busca los perfiles en PROFILE_RECEIVED con estado 21
+      //    reintenta enviar el reject y si tiene éxito pone el estado en PROFILE_RECEIVED en
 
     )).map(_ => ())
   }
