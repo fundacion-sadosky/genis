@@ -79,6 +79,8 @@ define(
 					'analysisTypeService',
 					'locusService',
 					'$window',
+					'notificationsService',
+					'shared',
 					comparisonController
 				]
 			)

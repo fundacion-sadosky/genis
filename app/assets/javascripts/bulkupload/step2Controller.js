@@ -12,6 +12,7 @@ define(['jquery','lodash'], function($,_) {
         localStorage.removeItem("searchPedigreeMatches");
 		
 		var $modalInstance = {};
+        $scope.shared = { profileId: 0, matches: {}, profileData: [] };
         $scope.editedSubcats = {};
         $scope.batches = [];
         $scope.protoProfiles = {};
@@ -221,15 +222,32 @@ define(['jquery','lodash'], function($,_) {
             });
 		};
 
+
+        notificationsService.onNotification(function(msg){
+            if (msg.kind === 'matching'){
+                var url = msg.url;
+                var parts = url.split('/');  // in an url like /comparison/<profile id>/matchedProfileId/<matched profile id>/matchingId/<matching id>
+                $scope.shared.profileId  = parts[2];
+                var matchedProfileId = parts[4];
+                $scope.shared.matches[matchedProfileId] = parts[6];
+
+                console.log("New match found:", matchedProfileId, $scope.shared.profileId);
+                profiledataService.getProfileDataBySampleCode($scope.shared.profileId).then(function (response) {
+                    $scope.shared.profileData = response.data;
+                    console.debug("Profile data loaded:", $scope.shared.profileData);
+                });
+            }
+        });
+
         $scope.desktopSearchResults = function (batch) {
-            var profileIdToMatch = $scope.protoProfiles[batch.id][0].id;
+            $scope.fromDesktopSearch = true;
             if (batch.desktopSearch) {
                 $modal.open({
                     templateUrl: '/assets/javascripts/bulkupload/desktopSearchResults.html',
-                    controller: 'desktopSearchController',
+                    controller: 'comparisonController',
                     resolve: {
-                        profileId: function () {
-                            return profileIdToMatch;
+                        shared: function () {
+                            return $scope.shared;
                         }
                     }
                 }).result.then(function () {
@@ -244,6 +262,7 @@ define(['jquery','lodash'], function($,_) {
         }
 
         $scope.importBatch = function(batch){
+            $scope.matches = {};
             batch.isProcessing = true;
             var protoprofilesFromBatch= $scope.protoProfiles[batch.id];
             var replicateAll = false;

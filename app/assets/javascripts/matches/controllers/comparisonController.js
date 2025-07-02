@@ -20,7 +20,9 @@ define([ 'angular','lodash' ], function(angular,_) {
 		appConf,
 		analysisTypeService,
 		locusService,
-		$window
+		$window,
+		notificationsService,
+		shared
 	) {
 
 		$scope.lab = "-"+appConf.labCode+"-";
@@ -39,6 +41,7 @@ define([ 'angular','lodash' ], function(angular,_) {
 			'dropIn': null,
 			'dropOut': null
 		};
+		$scope.stall = false;
 		var modalInstanceHit = null;
 		var modalInstanceEpg = null;
 		$scope.associations = {};
@@ -134,7 +137,7 @@ define([ 'angular','lodash' ], function(angular,_) {
 		};
 
 		var loadCalculation = function() {
-			$scope.showCalculation = $scope.analysisTypes[$scope.results.type].name === 'Autosomal';
+			$scope.showCalculation = $scope.analysisTypes[$scope.results.type].name === 'Autosomal' || $scope.fromDesktopSearch;
 			if ($scope.showCalculation) {
 				statsService
 					.getDefaultOptions($scope.profileId)
@@ -155,6 +158,10 @@ define([ 'angular','lodash' ], function(angular,_) {
 		};
 
 		var getResults = function() {
+			if (!$scope.isPedigreeMatch) $scope.isPedigreeMatch = false;
+			if (!$scope.isCollapsingMatch) $scope.isCollapsingMatch = false;
+			if (!$scope.isScreening) $scope.isScreening = false;
+
 			matcherService
 				.getResults(
 					$scope.matchingId,
@@ -287,37 +294,45 @@ define([ 'angular','lodash' ], function(angular,_) {
 				$scope.$apply();
 			}
 		};
-		
-		matcherService
-			.getComparedGenotyfications(
-				$scope.profileId,
-				$scope.matchedProfileId,
-				$scope.matchingId,
-				$scope.isCollapsingMatch,
-				$scope.isScreening
-			).then(
-				function(response) {
+
+		$scope.setComparisions = function() {
+			if (!$scope.isCollapsingMatch) $scope.isCollapsingMatch = false;
+			if (!$scope.isScreening) $scope.isScreening = false;
+
+			matcherService
+				.getComparedGenotyfications(
+					$scope.profileId,
+					$scope.matchedProfileId,
+					$scope.matchingId,
+					$scope.isCollapsingMatch,
+					$scope.isScreening
+				).then(
+				function (response) {
 					function mtConvert(item) {
 						item.locusSort = item.locus;
-						if(item.locus === 'HV1'){
-								item.locusSort = 'HV1_VAR';
+						if (item.locus === 'HV1') {
+							item.locusSort = 'HV1_VAR';
 						}
-						if(item.locus === 'HV2'){
-								item.locusSort = 'HV2_VAR';
+						if (item.locus === 'HV2') {
+							item.locusSort = 'HV2_VAR';
 						}
-						if(item.locus === 'HV3'){
-								item.locusSort = 'HV3_VAR';
+						if (item.locus === 'HV3') {
+							item.locusSort = 'HV3_VAR';
 						}
-						if(item.locus === 'HV4'){
-								item.locusSort = 'HV4_VAR';
+						if (item.locus === 'HV4') {
+							item.locusSort = 'HV4_VAR';
 						}
 						return item;
 					}
+
 					$scope.comparision = _.sortBy(response.data.map(mtConvert), ['locusSort']);
-					console.log('comparision',$scope.comparision);
+					console.log('comparision', $scope.comparision);
 					$scope.$apply();
-			}
-		);
+				}
+			);
+		};
+
+		$scope.setComparisions();
 		function encryptedEpgs(profile, epgs) {
 			return epgs.map(function(e){
 				return cryptoService.encryptBase64("/profiles/" + profile + "/epg/" + e.fileId);
@@ -502,6 +517,92 @@ define([ 'angular','lodash' ], function(angular,_) {
 			});
 		}
 		cantidadDeContributors();
+
+		// for desktop search
+
+		notificationsService.onMatchStatusNotification(function(msg){
+			var status = msg.status;
+			if (status === "started"){
+				$scope.stall = false;
+				$scope.working = true;
+				$scope.fail = false;
+				console.log("Match started");
+			}else if (status === "ended"){
+				$scope.stall = true;
+				$scope.working = false;
+				$scope.fail = false;
+				console.log("Match ended");
+			}else if (status === "fail"){
+				$scope.stall = false;
+				$scope.working = false;
+				$scope.fail = true;
+				console.log("Match failed");
+			}else if (status === "pedigreeStarted"){
+				$scope.pedigreeStall = false;
+				$scope.pedigreeWorking = true;
+				console.log("Pedigree Match started");
+			} else if (status === "pedigreeEnded"){
+				$scope.pedigreeStall = true;
+				$scope.pedigreeWorking = false;
+				console.log("Pedigree Match ended");
+			}
+			$scope.profileId = shared.profileId;
+			$scope.profileData = shared.profileData;
+			$scope.matches = shared.matches;
+			$scope.$apply();
+
+		});
+
+		$scope.hasMatches = function(){
+			var length = Object.keys($scope.matches).length;
+			console.debug("matches length: ", length);
+			if (length > 68) {
+				console.debug("$scope.matches | $scope.profileId | $scope.profileData: ", $scope.matches, $scope.profileId, $scope.profileData);
+			}
+			return length > 0;
+		};
+
+		$scope.printDesktopSearchReport = function(matchedProfileId) {
+			$scope.showCalculation = true;
+			$scope.matchedProfileId = matchedProfileId;
+			console.debug("Al momento de imprimir el reporte, $scope.profileData es: ", $scope.profileData);
+			$scope.matchingId = $scope.matches[matchedProfileId];
+
+			profiledataService.getProfileDataBySampleCode(matchedProfileId).then(function (response) {
+				$scope.matchedProfileData = response.data;
+				var head = '<head><title>Comparación</title>';
+				$("link").each(function () {
+					head += '<link rel="stylesheet" href="' + $(this)[0].href + '" />';
+				});
+				head += "</head>";
+				analysisTypeService.listById().then(function(response) {
+					$scope.analysisTypes = response;
+					$scope.setComparisions();
+					getResults();
+					$scope.$apply();
+					var report = window.open('', '_blank');
+					report.document.write(
+						'<html>' + head +
+						'<body>' +
+						$('#report').html() +
+						'</body></html>'
+					);
+					report.document.close();
+					$(report).on('load', function(){
+						report.print();
+						report.close();
+					});
+				});
+
+			});
+		};
+
+
+		$scope.cancel = function () {
+			$scope.$dismiss('cancel');
+		};
+
+
 	}
 	return ComparisonController;
 });

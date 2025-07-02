@@ -62,8 +62,8 @@ define(
         var nDiff = new Set(allAlleles).size;
         return nDiff;
       };
-      var markerMap = new Map();
       $scope.getMarker = function(marker, profileId) {
+        var markerMap = new Map();
         if (markerMap.size===0) {
           markerMap = new Map(
             $scope
@@ -90,6 +90,7 @@ define(
         markers.sort();
         return markers;
       };
+
     }
     return ComparisonReportController;
   }
