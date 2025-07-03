@@ -171,8 +171,8 @@ class Interconnections @Inject()(
       }
     }
   }
-  // instancia superior recibe el codigo de profile borrado en la instancia inferior
-  def deleteProfileFromInferior(id:String) = Action.async(BodyParsers.parse.json) {
+  // instancia superior recibe el codigo y el usuario que borró el perfil en la instancia inferior
+  def deleteProfileFromInferior(id:String, userName: String) = Action.async(BodyParsers.parse.json) {
     request =>{
       val labcode = request.headers.get(HeaderInsterconnections.labCode)
       val labCodeInstanceOrigin = request.headers.get(HeaderInsterconnections.laboratoryOrigin)
@@ -185,7 +185,7 @@ class Interconnections @Inject()(
             Future.successful(BadRequest(JsError.toFlatJson(errors)))
           },
             motive => {
-              interconnectionService.receiveDeleteProfile(id,motive,lio,li, true).map{
+              interconnectionService.receiveDeleteProfile(id,motive,lio,li, true, userName).map{
                 case Left(e) => BadRequest(Json.obj("message" -> e))
                 case Right(_) => Ok.withHeaders("X-CREATED-ID" -> id.toString)
               }
@@ -198,8 +198,8 @@ class Interconnections @Inject()(
     }
   }
 
-  // instancia superior recibe el codigo de profile borrado en la instancia inferior
-  def deleteProfileFromSuperior(id:String) = Action.async(BodyParsers.parse.json) {
+  // nstancia inferior recibe el codigo y el usuario que borró el perfil en la instancia superior
+  def deleteProfileFromSuperior(id:String, userName: String) = Action.async(BodyParsers.parse.json) {
     request =>{
       val labcode = request.headers.get(HeaderInsterconnections.labCode)
       val labCodeInstanceOrigin = request.headers.get(HeaderInsterconnections.laboratoryOrigin)
@@ -212,7 +212,7 @@ class Interconnections @Inject()(
             Future.successful(BadRequest(JsError.toFlatJson(errors)))
           },
             motive => {
-              interconnectionService.receiveDeleteProfile(id,motive,lio,li, false).map{
+              interconnectionService.receiveDeleteProfile(id,motive,lio,li, false, userName).map{
                 case Left(e) => BadRequest(Json.obj("message" -> e))
                 case Right(_) => Ok.withHeaders("X-CREATED-ID" -> id.toString)
               }
@@ -328,11 +328,12 @@ class Interconnections @Inject()(
                           globalCode: String,
                           status:Long,
                           motive:Option[String],
+                          userName:Option[String],
                           isCategoryModification:Boolean = false
                         ): Action[AnyContent] = Action.async {
     _ => {
       interconnectionService
-        .updateUploadStatus(globalCode, status, motive, isCategoryModification)
+        .updateUploadStatus(globalCode, status, motive, userName,isCategoryModification)
         .map{
           case Left(e) => BadRequest(Json.obj("message" -> e))
           case Right(()) => Ok.withHeaders("X-CREATED-ID" -> globalCode)

@@ -88,14 +88,13 @@ case class ProfileRejectedInSuperiorInfo(motive: String) extends TraceInfo {
 
 case class ProfileDeletedInInferiorInfo(motive: String) extends TraceInfo {
   override val kind = TraceType.interconnectionDeletedInInferior
-  override val description = s"Eliimnado en instancia inferior. $motive"
+  override val description = s"Eliminado en instancia inferior. $motive"
 }
 
 case class ProfileDeletedInSuperiorInfo(motive: String) extends TraceInfo {
-  override val kind = TraceType.interconnectiodDeletedInSuperior
+  override val kind = TraceType.interconnectionDeletedInSuperior
   override val description = s"Eliminado en instancia superior. $motive"
 }
-
 
 case object CategoryChangeRejectedInSupInfo extends TraceInfo {
   override val kind = TraceType.interconectionCategoryRejected
@@ -132,21 +131,46 @@ case class PedigreeStatusChangeInfo(status:String) extends TraceInfo{
   val stat = getStatus(status)
   override val description = s"Cambio al estado $stat."
 }
-case class PedigreeCopyInfo(pedigreeId:Long,name:String) extends TraceInfo{
+
+case class PedigreeCopyInfo(pedigreeId: Long, name: String) extends TraceInfo {
   override val kind = TraceType.pedigriCopy
   override val description = s"Copia del pedigrí con el nombre $name."
 }
-case class PedigreeEditInfo(pedigreeId:Long) extends TraceInfo{
+
+case class PedigreeEditInfo(pedigreeId: Long) extends TraceInfo {
   override val kind = TraceType.pedigriEdit
   override val description = s"Modificación del pedigrí."
 }
-case class PedigreeNewScenarioInfo(id:String,nombre:String) extends TraceInfo {
+
+case class PedigreeNewScenarioInfo(id: String, nombre: String) extends TraceInfo {
   override val kind = TraceType.pedigriNewScenario
   override val description =
     s"Creación de un nuevo escenario con nombre $nombre."
 }
 
 object TraceInfo {
+  implicit val profileDeletedInInferiorFormat: Format[ProfileDeletedInInferiorInfo] = Format(
+    new Reads[ProfileDeletedInInferiorInfo] {
+      def reads(js: JsValue): JsResult[ProfileDeletedInInferiorInfo] =
+        Json.reads[ProfileDeletedInInferiorInfo].reads(js)
+    },
+    new Writes[ProfileDeletedInInferiorInfo] {
+      def writes(ti: ProfileDeletedInInferiorInfo): JsValue =
+        Json.writes[ProfileDeletedInInferiorInfo].writes(ti)
+    }
+  )
+
+  implicit val profileDeletedInSuperiorFormat: Format[ProfileDeletedInSuperiorInfo] = Format(
+    new Reads[ProfileDeletedInSuperiorInfo] {
+      def reads(js: JsValue): JsResult[ProfileDeletedInSuperiorInfo] =
+        Json.reads[ProfileDeletedInSuperiorInfo].reads(js)
+    },
+    new Writes[ProfileDeletedInSuperiorInfo] {
+      def writes(ti: ProfileDeletedInSuperiorInfo): JsValue =
+        Json.writes[ProfileDeletedInSuperiorInfo].writes(ti)
+    }
+  )
+
   implicit val profileRejectedInSuperiorFormat: Format[ProfileRejectedInSuperiorInfo] = Format(
     new Reads[ProfileRejectedInSuperiorInfo] {
       def reads(js: JsValue): JsResult[ProfileRejectedInSuperiorInfo] =
@@ -157,6 +181,8 @@ object TraceInfo {
         Json.writes[ProfileRejectedInSuperiorInfo].writes(ti)
     }
   )
+
+  // Additional format declarations
   implicit val analysisFormat = Json.format[AnalysisInfo]
   implicit val matchProcessFormat = Json.format[MatchProcessInfo]
   implicit val matchFormat = Json.format[MatchInfo]
@@ -209,7 +235,6 @@ object TraceInfo {
     }
   )
 
-
   implicit val catModRejectedInSupFormat = Format(
     new Reads[CategoryChangeRejectedInSupInfo.type] {
       def reads(js: JsValue): JsResult[CategoryChangeRejectedInSupInfo.type] =
@@ -221,6 +246,7 @@ object TraceInfo {
   )
 
   implicit val superiorInstCatRejectFormat = Format(
+
     new Reads[SuperiorCategoryChangeRejectedInfo.type] {
       def reads(js: JsValue): JsResult[SuperiorCategoryChangeRejectedInfo.type] =
         JsSuccess(SuperiorCategoryChangeRejectedInfo)
@@ -291,7 +317,9 @@ object TraceInfo {
       case x: ProfileImportedFromInferiorInfo.type =>
         Some((x.kind, Json.toJson(x)(profileImportedFromInferiorFormat)))
       case x: ProfileRejectedInSuperiorInfo =>
-        Some((x.kind, Json.toJson(x)(profileRejectedInSuperiorFormat))) // updated
+        Some((x.kind, Json.toJson(x)(profileRejectedInSuperiorFormat)))
+      case x: ProfileDeletedInInferiorInfo =>
+        Some((x.kind, Json.toJson(x)(profileDeletedInInferiorFormat)))
       case x: CategoryChangeRejectedInSupInfo.type =>
         Some((x.kind, Json.toJson(x)(catModRejectedInSupFormat)))
       case x: ProfileCategoryModificationInfo =>
@@ -305,44 +333,46 @@ object TraceInfo {
   }
 
   def apply(kind: TraceType.Value, json: JsValue): TraceInfo = {
-    (
-      kind match {
-        case TraceType.analysis => Json.fromJson[AnalysisInfo](json)
-        case TraceType.matchProcess => Json.fromJson[MatchProcessInfo](json)
-        case TraceType.`match` => Json.fromJson[MatchInfo](json)
-        case TraceType.hit => Json.fromJson[HitInfo](json)
-        case TraceType.discard => Json.fromJson[DiscardInfo](json)
-        case TraceType.association => Json.fromJson[AssociationInfo](json)
-        case TraceType.profileData => Json.fromJson[ProfileDataInfo.type](json)
-        case TraceType.interconectionUpdload => Json.fromJson[ProfileInterconectionUploadInfo.type](json)
-        case TraceType.delete => Json.fromJson[DeleteInfo](json)
-        case TraceType.pedigreeMatchProcess => Json.fromJson[PedigreeMatchProcessInfo](json)
-        case TraceType.pedigreeMatch => Json.fromJson[PedigreeMatchInfo](json)
-        case TraceType.pedigreeDiscard => Json.fromJson[PedigreeDiscardInfo](json)
-        case TraceType.pedigreeConfirm => Json.fromJson[PedigreeConfirmInfo](json)
-        case TraceType.pedigreeStatusChange => Json.fromJson[PedigreeStatusChangeInfo](json)
-        case TraceType.pedigriCopy => Json.fromJson[PedigreeCopyInfo](json)
-        case TraceType.pedigriEdit => Json.fromJson[PedigreeEditInfo](json)
-        case TraceType.pedigriNewScenario => Json.fromJson[PedigreeNewScenarioInfo](json)
-        case TraceType.pedigreeMatch2 => Json.fromJson[PedigreeMatchInfo2](json)
-        case TraceType.pedigreeDiscard2 => Json.fromJson[PedigreeDiscardInfo2](json)
-        case TraceType.pedigreeConfirm2 =>  Json.fromJson[PedigreeConfirmInfo2](json)
-        case TraceType.interconectionAproved =>  Json.fromJson[ProfileAprovedInSuperiorInfo.type](json)
-        case TraceType.interconectionCategoryAproved => Json.fromJson[ProfileCategoryChangeAprovedInSuperiorInfo.type](json)
-        case TraceType.importedFromInferior =>  Json.fromJson[ProfileImportedFromInferiorInfo.type](json)
-        case TraceType.interconectionRejected =>  Json.fromJson[ProfileRejectedInSuperiorInfo](json)
-        case TraceType.interconectionCategoryRejected => Json.fromJson[CategoryChangeRejectedInSupInfo.type](json)
-        case TraceType.categoryModification => Json.fromJson[ProfileCategoryModificationInfo](json)
-        case TraceType.superiorInstanceCategoryModification => Json.fromJson[SuperiorInstanceCategoryModificationInfo](json)
-        case TraceType.superiorInstanceCategoryRejection => Json.fromJson[SuperiorCategoryChangeRejectedInfo.type](json)
-        case _ => JsError()
-      }
-      ).get
+    (kind match {
+      case TraceType.analysis => Json.fromJson[AnalysisInfo](json)
+      case TraceType.matchProcess => Json.fromJson[MatchProcessInfo](json)
+      case TraceType.`match` => Json.fromJson[MatchInfo](json)
+      case TraceType.hit => Json.fromJson[HitInfo](json)
+      case TraceType.discard => Json.fromJson[DiscardInfo](json)
+      case TraceType.association => Json.fromJson[AssociationInfo](json)
+      case TraceType.profileData => Json.fromJson[ProfileDataInfo.type](json)
+      case TraceType.interconectionUpdload => Json.fromJson[ProfileInterconectionUploadInfo.type](json)
+      case TraceType.delete => Json.fromJson[DeleteInfo](json)
+      case TraceType.pedigreeMatchProcess => Json.fromJson[PedigreeMatchProcessInfo](json)
+      case TraceType.pedigreeMatch => Json.fromJson[PedigreeMatchInfo](json)
+      case TraceType.pedigreeDiscard => Json.fromJson[PedigreeDiscardInfo](json)
+      case TraceType.pedigreeConfirm => Json.fromJson[PedigreeConfirmInfo](json)
+      case TraceType.pedigreeStatusChange => Json.fromJson[PedigreeStatusChangeInfo](json)
+      case TraceType.pedigriCopy => Json.fromJson[PedigreeCopyInfo](json)
+      case TraceType.pedigriEdit => Json.fromJson[PedigreeEditInfo](json)
+      case TraceType.pedigriNewScenario => Json.fromJson[PedigreeNewScenarioInfo](json)
+      case TraceType.pedigreeMatch2 => Json.fromJson[PedigreeMatchInfo2](json)
+      case TraceType.pedigreeDiscard2 => Json.fromJson[PedigreeDiscardInfo2](json)
+      case TraceType.pedigreeConfirm2 => Json.fromJson[PedigreeConfirmInfo2](json)
+      case TraceType.interconectionAproved => Json.fromJson[ProfileAprovedInSuperiorInfo.type](json)
+      case TraceType.interconectionCategoryAproved => Json.fromJson[ProfileCategoryChangeAprovedInSuperiorInfo.type](json)
+      case TraceType.importedFromInferior => Json.fromJson[ProfileImportedFromInferiorInfo.type](json)
+      case TraceType.interconectionRejected => Json.fromJson[ProfileRejectedInSuperiorInfo](json)
+      case TraceType.interconnectionDeletedInInferior => Json.fromJson[ProfileDeletedInInferiorInfo](json)
+      case TraceType.interconnectionDeletedInSuperior => Json.fromJson[ProfileDeletedInSuperiorInfo](json)
+      case TraceType.interconectionCategoryRejected => Json.fromJson[CategoryChangeRejectedInSupInfo.type](json)
+      case TraceType.categoryModification => Json.fromJson[ProfileCategoryModificationInfo](json)
+      case TraceType.superiorInstanceCategoryModification => Json.fromJson[SuperiorInstanceCategoryModificationInfo](json)
+      case TraceType.superiorInstanceCategoryRejection => Json.fromJson[SuperiorCategoryChangeRejectedInfo.type](json)
+      case _ => JsError()
+    }).getOrElse(throw new Exception("Unknown TraceType or invalid JSON"))
   }
 
-  implicit val writes = new Writes[TraceInfo] {
+  implicit val writes: Writes[TraceInfo] = new Writes[TraceInfo] {
     def writes(ti: TraceInfo): JsValue = {
-      TraceInfo.unapply(ti).get._2
+      unapply(ti).map { case (kind, json) =>
+        Json.obj("kind" -> kind, "data" -> json)
+      }.getOrElse(Json.obj("kind" -> "unknown"))
     }
   }
 }

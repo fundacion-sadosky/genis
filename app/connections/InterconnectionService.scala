@@ -98,12 +98,13 @@ trait InterconnectionService {
                           globalCode: String,
                           status: Long,
                           motive: Option[String],
+                          userName: Option[String] = None,
                           isCategoryModification: Boolean = false
                         ): Future[Either[String, Unit]]
 
-  def receiveDeleteProfile(globalCode: String, motive: DeletedMotive, labCodeInstanceOrigin: String, labCodeImmediateInstance: String, up: Boolean): Future[Either[String, Unit]]
+  def receiveDeleteProfile(globalCode: String, motive: DeletedMotive, labCodeInstanceOrigin: String, labCodeImmediateInstance: String, up: Boolean, userName:String): Future[Either[String, Unit]]
 
-  def inferiorDeleteProfile(globalCode: SampleCode, motive: DeletedMotive): Unit
+  def inferiorDeleteProfile(globalCode: SampleCode, motive: DeletedMotive, supUrl: String, userName:String): Unit
 
   def sendMatchToInferiorInstance(matchResult: MatchResult): Unit
 
@@ -449,7 +450,7 @@ class InterconnectionServiceImpl @Inject()(
     val futureReturn = categoryService.getCategoriesMappingById(profile.categoryId).flatMap {
       case None => {
         logger.debug("No está mapeada la categoria de la instancia superior")
-        this.profileDataService.updateUploadStatus(profile.globalCode.text, PENDIENTE_ENVIO, Option.empty[String], Some(s"No se puede enviar porque no esta mapeada la categoria ${profile.categoryId.text} en la instancia superior"))
+        this.profileDataService.updateUploadStatus(profile.globalCode.text, PENDIENTE_ENVIO, Option.empty[String], Some(s"No se puede enviar porque no esta mapeada la categoria ${profile.categoryId.text} en la instancia superior"), Option.empty[String])
         Future.successful(Left(Messages("error.E0721")))
       }
       case Some(idCategorySuperior) => {
@@ -457,7 +458,7 @@ class InterconnectionServiceImpl @Inject()(
           case Some(supUrl) => {
             this.getConnectionsStatus(supUrl).flatMap {
               case Left(_) => {
-                this.profileDataService.updateUploadStatus(profile.globalCode.text, PENDIENTE_ENVIO, Option.empty[String], Some(s"No se puede enviar porque no se pudo conectar con la instancia superior"))
+                this.profileDataService.updateUploadStatus(profile.globalCode.text, PENDIENTE_ENVIO, Option.empty[String], Some(s"No se puede enviar porque no se pudo conectar con la instancia superior"), Option.empty[String])
                 Future.successful(Left(Messages("error.E0723")))
               }
               case Right(_) => {
@@ -479,12 +480,12 @@ class InterconnectionServiceImpl @Inject()(
                 futureResponse.flatMap { result => {
                   if (result.status == 200) {
                     logger.debug("se envio correctamente el perfil a la instancia superior")
-                    this.profileDataService.updateUploadStatus(profile.globalCode.text, ENVIADA, Option.empty[String],Option.empty[String])
+                    this.profileDataService.updateUploadStatus(profile.globalCode.text, ENVIADA, Option.empty[String],Option.empty[String], Option.empty[String])
                     sendFiles(profile.globalCode.text, superiorLabCode)
                     Future.successful(Right(()))
                   } else {
                     logger.debug("La instancia superior rechazo el perfil")
-                    this.profileDataService.updateUploadStatus(profile.globalCode.text, PENDIENTE_ENVIO,Option.empty[String],Option.empty[String])
+                    this.profileDataService.updateUploadStatus(profile.globalCode.text, PENDIENTE_ENVIO,Option.empty[String],Option.empty[String],Option.empty[String])
                     Future.successful(Left(Messages("error.E0724")))
                   }
                 }
@@ -493,7 +494,7 @@ class InterconnectionServiceImpl @Inject()(
             }
           }
           case None => {
-            this.profileDataService.updateUploadStatus(profile.globalCode.text, PENDIENTE_ENVIO, Option.empty[String], Some(s"No se puede enviar porque no se pudo conectar con la instancia superior"))
+            this.profileDataService.updateUploadStatus(profile.globalCode.text, PENDIENTE_ENVIO, Option.empty[String], Some(s"No se puede enviar porque no se pudo conectar con la instancia superior"), Option.empty[String])
             Future.successful(Left(Messages("error.E0722")))
           }
         }
@@ -501,7 +502,7 @@ class InterconnectionServiceImpl @Inject()(
     }.recoverWith {
       case e: Exception => {
         logger.error("Error de conexión con la instancia superior", e)
-        this.profileDataService.updateUploadStatus(profile.globalCode.text, PENDIENTE_ENVIO,Option.empty[String],Some(s"No se puede enviar porque no se pudo conectar con la instancia superior"))
+        this.profileDataService.updateUploadStatus(profile.globalCode.text, PENDIENTE_ENVIO,Option.empty[String],Some(s"No se puede enviar porque no se pudo conectar con la instancia superior"), Option.empty[String])
         Future.successful(Left(Messages("error.E0723")))
       }
     }
@@ -1395,10 +1396,11 @@ class InterconnectionServiceImpl @Inject()(
       }
   }
 
-  override def updateUploadStatus(
+  def updateUploadStatus(
                                    globalCode: String,
                                    status: Long,
                                    motive: Option[String] = None,
+                                   userName: Option[String] = None,
                                    isCategoryModification:Boolean = false
                                  ): Future[Either[String, Unit]] = {
     val profileData = Await
@@ -1468,30 +1470,26 @@ class InterconnectionServiceImpl @Inject()(
         logger.warn(s"Unexpected status value: $status")
       case None => ()
     }
-    profileDataService.updateUploadStatus(globalCode, status, motive, Option.empty[String])
+    profileDataService.updateUploadStatus(globalCode, status, motive, Option.empty[String], userName)
   }
 
   // Se ejecuta cada vez que se recibe la notificación del borrado de un perfil en una instancia inferior (up:true) o en una superior(up:false)
-  override def receiveDeleteProfile(globalCode: String, motive: DeletedMotive, labCodeInstanceOrigin: String, labCodeImmediateInstance: String, up: Boolean): Future[Either[String, Unit]] = {
+  override def receiveDeleteProfile(globalCode: String, motive: DeletedMotive, labCodeInstanceOrigin: String, labCodeImmediateInstance: String, up: Boolean, userName: String): Future[Either[String, Unit]] = {
     // Si se va notificar el borrado de un perfil desde una instancia inferior (up: quiere decir que el pedido viene de una instanica infeiror)
     // Hay que hacer un update en PROFILE_RECEIVED cambiando el estado a 6
     if (up) {
       logger.info(s"ReceiveDeleteProfile from inferior instance called for globalCode: $globalCode, labCodeInstanceOrigin: $labCodeInstanceOrigin, labCodeImmediateInstance: $labCodeImmediateInstance")
       // Hago el update de la tabla PROFILE_RECEIVED con status 6 (Notificación de eliminación recibida en instancia superior)
-      this.profileDataService.updateProfileReceivedStatus(globalCode, DELETED_IN_INF_INS, s"Usuario: ${motive.solicitor}. Motivo: ${motive.motive}.", labCodeInstanceOrigin, interconnection_error = "")
+      this.profileDataService.updateProfileReceivedStatus(labCodeInstanceOrigin, globalCode, DELETED_IN_INF_INS, s"Usuario: $userName. Motivo: ${motive.motive}.", interconnection_error = "", Some(userName))
       // Agregar al trace del perfil que fue eliminado en la instancia inferior
       val c_trace: TraceInfo = trace.ProfileDeletedInInferiorInfo(motive.motive)
-      traceService.add(Trace(SampleCode(globalCode), motive.solicitor, new Date(), c_trace))
-        .map(_ => Right(())).recover {
-          case ex: Exception =>
-            logger.error(s"Error while adding trace for globalCode: $globalCode", ex)
-            Left("Failed to add trace to traceService")
-        }
-    } else {
+      traceService.add(Trace(SampleCode(globalCode), motive.solicitor, new Date(), c_trace)).map { _ => Right(()) }
+    }
+    else {
       // Recibo un delete de un perfil de la instancia superior
       // Debo actualizar el estado en PROFILE_UPLOADED a 20: Instancia inferior notificada de la eliminación del perfil en la instancia superior
       logger.info(s"ReceiveDeleteProfile from superior instance called for globalCode: $globalCode, labCodeInstanceOrigin: $labCodeInstanceOrigin, labCodeImmediateInstance: $labCodeImmediateInstance")
-      this.profileDataService.updateUploadStatus(globalCode, DELETE_IN_SUP_INTSTANCE_SENT_TO_INFERIOR, Some(s"Usuario: ${motive.solicitor}. Motivo: ${motive.motive}."), Some("") )
+      this.profileDataService.updateUploadStatus(globalCode, DELETE_IN_SUP_INTSTANCE_SENT_TO_INFERIOR, Some(s"Usuario: $userName. Motivo: ${motive.motive}."),Some("") , Some(userName))
     }
   }
 
@@ -1515,19 +1513,19 @@ class InterconnectionServiceImpl @Inject()(
     }
   }
 
-  override def inferiorDeleteProfile(globalCode: SampleCode, motive: DeletedMotive): Unit = {
-    doInferiorDeleteProfile(globalCode, motive, "")
+  def inferiorDeleteProfile(globalCode: SampleCode, motive: DeletedMotive, supUrl: String,userName: String): Unit = {
+    doInferiorDeleteProfile(globalCode, motive, supUrl,userName)
     ()
   }
 
-  def sendDeletionToSuperiorInstance(globalCode: SampleCode, motive: DeletedMotive, supUrl: String): Future[Either[String, Unit]] = {
+  def sendDeletionToSuperiorInstance(globalCode: SampleCode, motive: DeletedMotive, supUrl: String, userName: String): Future[Either[String, Unit]] = {
 
-    sendDeletionToInstance(globalCode, motive, protocol + supUrl, currentInstanceLabCode, currentInstanceLabCode, superiorLabCode, true)
+    sendDeletionToInstance(globalCode, motive, protocol + supUrl, currentInstanceLabCode, currentInstanceLabCode, superiorLabCode, true, userName)
 
   }
 
-  // Si el borrado es en una instancia superior, envío el delete a la instancia inferior?
-  def sendDeletionToAllInferiorInstancesExceptPrevious(globalCode: SampleCode, motive: DeletedMotive, laboratoryOrigin: String): Future[Either[String, Unit]] = {
+  // Si el borrado es en una instancia superior, envío el delete a la instancia inferior? NO LO ESTOY USANDO
+  /*def sendDeletionToAllInferiorInstancesExceptPrevious(globalCode: SampleCode, motive: DeletedMotive, laboratoryOrigin: String): Future[Either[String, Unit]] = {
     inferiorInstanceRepository.findAll().flatMap {
       case Left(l) => Future.successful(Left(l))
       case Right(inferiorInstances) => {
@@ -1546,12 +1544,12 @@ class InterconnectionServiceImpl @Inject()(
         })
       }
     }
-  }
+  }*/
 
-  def sendDeletionToInstance(globalCode: SampleCode, motive: DeletedMotive, url: String, laboratoryOrigin: String, laboratoryImmediateInstance: String, labCode: String, up: Boolean): Future[Either[String, Unit]] = {
-    profileDataService.updateProfileSentStatus(globalCode.text, PENDING_DELETE, Some(s"Usuario: ${motive.solicitor}. Motivo: ${motive.motive}."), labCode, Option.empty[String]).flatMap {
+  def sendDeletionToInstance(globalCode: SampleCode, motive: DeletedMotive, url: String, laboratoryOrigin: String, laboratoryImmediateInstance: String, labCode: String, up: Boolean, userName:String): Future[Either[String, Unit]] = {
+    profileDataService.updateProfileSentStatus(globalCode.text, PENDING_DELETE, Some(s"Usuario: ${motive.solicitor}. Motivo: ${motive.motive}."), labCode, Option.empty[String], Some(userName)).flatMap {
       case Left(l) => Future.successful(Left(l))
-      case Right(_) => this.doSendDeletionToInstance(globalCode, motive, url, laboratoryOrigin, laboratoryImmediateInstance, labCode, up).recoverWith {
+      case Right(_) => this.doSendDeletionToInstance(globalCode, motive, url, laboratoryOrigin, laboratoryImmediateInstance, labCode, up, userName).recoverWith {
         case ex: Exception =>
           logger.error(s"Error during doSendDeletionToInstance for $globalCode at $url", ex)
           // Return a Left with an error message but DO NOT modify the motive in profile_uploaded table
@@ -1560,12 +1558,12 @@ class InterconnectionServiceImpl @Inject()(
     }
   }
 
-  def doSendDeletionToInstance(globalCode: SampleCode, motive: DeletedMotive, url: String, laboratoryOrigin: String, laboratoryImmediateInstance: String, labCode: String, up: Boolean): Future[Either[String, Unit]] = {
+  def doSendDeletionToInstance(globalCode: SampleCode, motive: DeletedMotive, url: String, laboratoryOrigin: String, laboratoryImmediateInstance: String, labCode: String, up: Boolean, userName: String): Future[Either[String, Unit]] = {
     logger.debug(s"Attempting to delete profile ${globalCode.text} at URL: $url") // Added logging
     val deleteUrl = if (up) {
-      url + "/superior/profile/" + globalCode.text
+      url + "/superior/profile/" + globalCode.text + "/" + userName
     } else {
-      url + "/inferior/profile/" + globalCode.text
+      url + "/inferior/profile/" + globalCode.text + "/" + userName
     }
     async {
       val holder: WSRequestHolder = addHeadersURL(client.url(deleteUrl))
@@ -1583,9 +1581,9 @@ class InterconnectionServiceImpl @Inject()(
       if (result.status == play.api.http.Status.OK) {
         logger.debug(s"DELETE request to $deleteUrl was successful")
         if (labCode == superiorLabCode) {
-          await(profileDataService.updateUploadStatus(globalCode.text, DELETED_IN_SUP_INS, Some(motive.motive), Some(s"Instancia $deleteUrl notificada de la baja")))
+          await(profileDataService.updateUploadStatus(globalCode.text, DELETED_IN_SUP_INS, Some(motive.motive), Some(s"Instancia $deleteUrl notificada de la baja"), Some(userName)))
         } else {
-          await(profileDataService.updateProfileSentStatus(globalCode.text, DELETED_IN_SUP_INS, Some(motive.motive), labCode, Some(s"Instancia $deleteUrl notificada de la baja")))
+          await(profileDataService.updateProfileSentStatus(globalCode.text, DELETED_IN_SUP_INS, Some(motive.motive), labCode, Some(s"Instancia $deleteUrl notificada de la baja"), Some(userName)))
         }
         Right(())
       } else if (result.status == play.api.http.Status.BAD_REQUEST) {
@@ -1601,7 +1599,7 @@ class InterconnectionServiceImpl @Inject()(
     }
   }
 
-  def doInferiorDeleteProfile(globalCode: SampleCode, motive: DeletedMotive, supUrl: String): Future[Unit] = {
+  def doInferiorDeleteProfile(globalCode: SampleCode, motive: DeletedMotive, supUrl: String, userName: String): Future[Unit] = {
     async {
       val statusProfileUploaded = await(this.profileDataService.getProfileUploadStatusByGlobalCode(globalCode))
       val shouldDeleteProfileOnSupInst = statusProfileUploaded match {
@@ -1614,14 +1612,14 @@ class InterconnectionServiceImpl @Inject()(
         case None => false
       }
       if (shouldDeleteProfileOnSupInst) {
-        await(this.profileDataService.updateUploadStatus(globalCode.text, PENDING_DELETE, Some(motive.motive), Option.empty[String]))
-        sendDeletionToSuperiorInstance(globalCode, motive, supUrl).map {
+        await(this.profileDataService.updateUploadStatus(globalCode.text, PENDING_DELETE, Some(motive.motive), Option.empty[String], Some(userName)))
+        sendDeletionToSuperiorInstance(globalCode, motive, supUrl,userName).map {
           case Left(m) => {
             logger.info(s"Error sending deletion to superior instance: $m")
-            this.profileDataService.updateUploadStatus(globalCode.text, PENDING_DELETE, Some(motive.motive), Some(s"Instancia $currentInstanceLabCode no pudo notificar la baja a la instancia superior: $m"))
+            this.profileDataService.updateUploadStatus(globalCode.text, PENDING_DELETE, Some(motive.motive), Some(s"Instancia $currentInstanceLabCode no pudo notificar la baja a la instancia superior: $m"), Some(userName))
           }
           case _ => {
-            this.profileDataService.updateUploadStatus(globalCode.text, DELETED_IN_SUP_INS, Some(motive.motive) ,Option.empty[String])
+            this.profileDataService.updateUploadStatus(globalCode.text, DELETED_IN_SUP_INS, Some(motive.motive) ,Option.empty[String], Some(userName))
           }
         }
       }
@@ -2232,7 +2230,8 @@ class InterconnectionServiceImpl @Inject()(
         logger.info("Cantidad de perfiles para volver a borrar:" + lab + " " + listFailed.size)
         Future.successful(listFailed.foreach(profileFailedRow => {
           logger.info("Intentando borrar el perfil: " + profileFailedRow.globalCode + " en la instancia: " + currentInstanceLabCode)
-          doInferiorDeleteProfile(SampleCode(profileFailedRow.globalCode), DeletedMotive(currentInstanceLabCode, profileFailedRow.motive.getOrElse("")), url)
+          //TODO : obtener el usuario conectado
+          doInferiorDeleteProfile(SampleCode(profileFailedRow.globalCode), DeletedMotive(profileFailedRow.userName.getOrElse(""), profileFailedRow.motive.getOrElse("")), url, profileFailedRow.userName.getOrElse(""))
         }))
       })
     } else {
@@ -2246,8 +2245,7 @@ class InterconnectionServiceImpl @Inject()(
       this.profileDataService.gefFailedProfilesSentDeleted(lab).flatMap(listFailed => {
         logger.info("Cantidad de perfiles para volver a borrar:" + lab + " " + listFailed.size)
         Future.successful(listFailed.foreach(profileFailedRow => {
-          sendDeletionToInstance(SampleCode(profileFailedRow.globalCode), DeletedMotive(currentInstanceLabCode, profileFailedRow.motive.getOrElse(""), 0), protocol + url, superiorLabCode, superiorLabCode, lab, false)
-        }))
+          sendDeletionToInstance(SampleCode(profileFailedRow.globalCode), DeletedMotive(profileFailedRow.userName.getOrElse(""), profileFailedRow.motive.getOrElse(""), 0), protocol + url, superiorLabCode, superiorLabCode, lab, false, profileFailedRow.userName.getOrElse("")) }))
       })
     } else {
       Future.successful(())

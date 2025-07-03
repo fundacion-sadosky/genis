@@ -2,14 +2,12 @@ package profiledata
 
 import java.io.File
 import java.util.Date
-
 import scala.Left
 import scala.Right
 import scala.concurrent.{Await, Future}
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
-
 import com.github.tototoshi.csv.{CSVWriter, DefaultCSVFormat}
 import models.Tables
 import models.Tables.ProfileUploadedRow
@@ -31,7 +29,7 @@ import laboratories.LaboratoryService
 import matching.{MatchGlobalStatus, MatchingService}
 import configdata.Group
 import configdata.FullCategory
-import connections.InterconnectionService
+import connections.{ConnectionRepository, InterconnectionService}
 import inbox._
 import scenarios.{ScenarioRepository, ScenarioService}
 import trace.{DeleteInfo, Trace, TraceService}
@@ -70,7 +68,7 @@ trait ProfileDataService {
   def findByCodes(globalCodes: List[SampleCode]): Future[Seq[ProfileData]]
   def delete(globalCode: SampleCode): Future[Either[String, SampleCode]]
   def importFromAnotherInstance(profileData: ProfileData,labOrigin:String,labImmediate:String):Future[Unit]
-  def updateUploadStatus(globalCode: String,status:Long,motive:Option[String], interconnection_error:Option[String]): Future[Either[String,Unit]]
+  def updateUploadStatus(globalCode: String,status:Long,motive:Option[String], interconnection_error:Option[String], userName:Option[String]): Future[Either[String,Unit]]
   def getProfileUploadStatusByGlobalCode(globalCode:SampleCode):Future[Option[Long]]
   def getExternalProfileDataByGlobalCode(globalCode:String):Future[Option[ExternalProfileDataRow]]
   def findProfileDataLocalOrSuperior(globalCode:SampleCode):Future[Option[ProfileData]]
@@ -78,12 +76,12 @@ trait ProfileDataService {
   def gefFailedProfilesUploaded():Future[Seq[ProfileUploadedRow]]
   def gefFailedProfilesUploadedDeleted():Future[Seq[ProfileUploadedRow]]
   def gefFailedProfilesSentDeleted(labCode:String):Future[Seq[ProfileSentRow]]
-  def updateProfileSentStatus(globalCode: String,status:Long,motive:Option[String],labCode:String,interconnection_error:Option[String]): Future[Either[String,Unit]]
+  def updateProfileSentStatus(globalCode: String,status:Long,motive:Option[String],labCode:String,interconnection_error:Option[String], userName:Option[String]): Future[Either[String,Unit]]
   def getMtRcrs():Future[MtRCRS]
   def updateInterconnectionError(globalCode: String, status:Long, interconnection_error: String): Future[Either[String,Unit]]
   def addProfileReceivedApproved(labCode:String,globalCode:String):Future[Either[String,Unit]]
   def addProfileReceivedRejected(labCode:String,globalCode:String, motive: String):Future[Either[String,Unit]]
-  def updateProfileReceivedStatus(globalCode: String,status:Long,motive:String,labCode:String,interconnection_error:String): Future[Either[String,Unit]]
+  def updateProfileReceivedStatus(labCode:String, globalCode: String,status:Long,motive:String,interconnection_error:String, userName:Option[String]): Future[Either[String,Unit]]
 }
 
 @Singleton
@@ -91,6 +89,7 @@ class ProfileDataServiceImpl @Inject() (
                                          cache: CacheService,
                                          @Named("special") profileDataRepository: ProfileDataRepository,
                                          categoryService: CategoryService,
+                                         connectionRepository: ConnectionRepository,
                                          notificationService: NotificationService,
                                          bioMatService: BioMaterialTypeService,
                                          crimeType: CrimeTypeService,
@@ -201,15 +200,15 @@ class ProfileDataServiceImpl @Inject() (
           if (response.isRight) {
             profileDataRepository.delete(globalCode, motive) map { resp =>
               if (resp == 1) {
-                traceService.add(Trace(globalCode, userId, new Date(), DeleteInfo(motive.solicitor, motive.motive)))
-                if(shouldUpdateSuperiorInstance){
-                  interconnectionService.inferiorDeleteProfile(globalCode,motive)
+                // cambio el motive.solicitor en DeleteInfo por el getUser(userId)
+                traceService.add(Trace(globalCode, userId, new Date(), DeleteInfo(userId, "Solicitado por: " + motive.solicitor + " "+ motive.motive)))
+                if(shouldUpdateSuperiorInstance) {
+                  val supUrlFuture = connectionRepository.getSupInstanceUrl().map(_.getOrElse(""))
+                  supUrlFuture.flatMap(supUrl =>
+                    Future.successful(interconnectionService.inferiorDeleteProfile(globalCode, motive, supUrl, userId))
+                  )
                 }
-                /*
-                                if (exportaALims) {
-                                  createBajaLimsArchive(globalCode, motive)
-                                }
-                */
+
                 response
               } else Left(Messages("error.E0117"))
             }
@@ -503,8 +502,8 @@ class ProfileDataServiceImpl @Inject() (
     profileDataRepository.addExternalProfile(profileData,labOrigin,labImmediate).map( _ => ())
   }
 
-  def updateUploadStatus(globalCode: String,status:Long,motive:Option[String], interconnection_error:Option[String]): Future[Either[String,Unit]] = {
-    profileDataRepository.updateUploadStatus(globalCode,status,motive, interconnection_error)
+  def updateUploadStatus(globalCode: String,status:Long,motive:Option[String], interconnection_error:Option[String], userName:Option[String]): Future[Either[String,Unit]] = {
+    profileDataRepository.updateUploadStatus(globalCode,status,motive,interconnection_error,userName)
   }
 
   override def getProfileUploadStatusByGlobalCode(gc:SampleCode):Future[Option[Long]] = {
@@ -528,7 +527,7 @@ class ProfileDataServiceImpl @Inject() (
   override def gefFailedProfilesSentDeleted(labCode:String):Future[Seq[ProfileSentRow]] = {
     this.profileDataRepository.gefFailedProfilesSentDeleted(labCode).map(list => list.seq)
   }
-  def updateProfileSentStatus(globalCode: String,status:Long,motive:Option[String], labCode:String, interconnection_error: Option[String]): Future[Either[String,Unit]] = {
+  def updateProfileSentStatus(globalCode: String,status:Long,motive:Option[String], labCode:String, interconnection_error: Option[String], userName: Option[String]): Future[Either[String,Unit]] = {
     profileDataRepository.updateProfileSentStatus(globalCode, status, motive,  labCode, interconnection_error)
   }
   override def getMtRcrs() = {
@@ -544,7 +543,8 @@ class ProfileDataServiceImpl @Inject() (
   override def addProfileReceivedRejected(labCode: String, globalCode: String, motive:String): Future[Either[String, Unit]] = {
     this.profileDataRepository.addProfileReceivedRejected(labCode, globalCode, motive)
   }
-  def updateProfileReceivedStatus(globalCode: String, status: Long, motive: String, labCode: String, interconnection_error: String): Future[Either[String, Unit]] = {
-    this.profileDataRepository.updateProfileReceivedStatus(globalCode, status, motive, interconnection_error)
+
+  def updateProfileReceivedStatus(labCode: String, globalCode: String, status: Long, motive: String, interconnection_error: String, userName: Option[String]): Future[Either[String, Unit]] = {
+    this.profileDataRepository.updateProfileReceivedStatus(labCode, globalCode, status, Some(motive), Some(interconnection_error), userName)
   }
 }

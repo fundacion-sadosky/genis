@@ -18,7 +18,7 @@ object TraceType extends Enumeration {
   interconectionUpdload,
   interconectionAproved,
   interconnectionDeletedInInferior,
-  interconnectiodDeletedInSuperior,
+  interconnectionDeletedInSuperior,
   interconectionCategoryAproved,
   importedFromInferior,
   interconectionRejected,
@@ -35,4 +35,5 @@ object TraceType extends Enumeration {
   pedigreeDiscard2,
   pedigreeConfirm2 = Value
   implicit val enumTypeFormat = PlayEnumUtils.enumFormat(TraceType)
+
 }
