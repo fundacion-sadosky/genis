@@ -147,17 +147,17 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
     new InterconnectionServiceImpl(akkaSystem,connectionRepository, inferiorInstanceRepository, mock[CategoryRepository], mock[SuperiorInstanceProfileApprovalRepository], wsClient, null, null, null, null,
       null , protocol, status, categoryTreeCombo, insertConnection, localUrl, uploadProfile, labCode,
       profileDataServiceMock,
-     null,
-     null,
-    null,
-     null,
-    "tst-admin",
-    "1 seconds",
-     "1 seconds",
+      null,
+      null,
+      null,
+      null,
+      "tst-admin",
       "1 seconds",
-     "1 seconds",
-     1000,
-    cacheService
+      "1 seconds",
+      "1 seconds",
+      "1 seconds",
+      1000,
+      cacheService
     )
   }
 
@@ -575,1227 +575,1227 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
 
     }
 
-        "connect no ok 2 E0707" in {
+    "connect no ok 2 E0707" in {
 
-          val dummyUrl = ""
-          val connectionRepository = mock[ConnectionRepository]
-          val inferiorInstanceRepository = mock[InferiorInstanceRepository]
-          when(connectionRepository.getSupInstanceUrl()).thenReturn(Future.successful(Some(dummyUrl)))
+      val dummyUrl = ""
+      val connectionRepository = mock[ConnectionRepository]
+      val inferiorInstanceRepository = mock[InferiorInstanceRepository]
+      when(connectionRepository.getSupInstanceUrl()).thenReturn(Future.successful(Some(dummyUrl)))
 
-          when(connectionRepository.getConnections()).
-            thenReturn(Future.successful(Right(Connection(dummyUrl, dummyUrl))))
+      when(connectionRepository.getConnections()).
+        thenReturn(Future.successful(Right(Connection(dummyUrl, dummyUrl))))
 
-          val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, client)
+      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, client)
 
-          val result = Await.result(interconnectionService.connect(), duration);
-          result.isLeft mustBe true
-          result mustBe Left("E0707: No se pudo conectar.")
+      val result = Await.result(interconnectionService.connect(), duration);
+      result.isLeft mustBe true
+      result mustBe Left("E0707: No se pudo conectar.")
 
+    }
+
+    "connect no ok 3 E0707" in {
+
+      val dummyUrl = ""
+      val connectionRepository = mock[ConnectionRepository]
+      val inferiorInstanceRepository = mock[InferiorInstanceRepository]
+      when(connectionRepository.getSupInstanceUrl()).thenReturn(Future.failed(new RuntimeException()))
+      when(connectionRepository.getConnections()).thenReturn(Future.failed(new RuntimeException()))
+
+      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, client)
+
+      val result = Await.result(interconnectionService.connect(), duration);
+      result.isLeft mustBe true
+      result mustBe Left("E0707: No se pudo conectar.")
+
+    }
+
+    "getAllInferiorInstances" in {
+      val connectionRepository = mock[ConnectionRepository]
+      val inferiorInstanceRepository = mock[InferiorInstanceRepository]
+      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, client)
+
+      when(inferiorInstanceRepository.findAll()).thenReturn(Future.successful(Left("")))
+
+      val result = Await.result(interconnectionService.getAllInferiorInstances(), duration);
+      result.isLeft mustBe true
+    }
+    "getAllInferiorInstanceStatus" in {
+      val connectionRepository = mock[ConnectionRepository]
+      val inferiorInstanceRepository = mock[InferiorInstanceRepository]
+      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, client)
+
+      when(inferiorInstanceRepository.findAllInstanceStatus()).thenReturn(Future.successful(Left("")))
+
+      val result = Await.result(interconnectionService.getAllInferiorInstanceStatus(), duration);
+      result.isLeft mustBe true
+    }
+    "updateInferiorInstance ok" in {
+      val connectionRepository = mock[ConnectionRepository]
+      val inferiorInstanceRepository = mock[InferiorInstanceRepository]
+      val userService = mock[UserService]
+      val roleService = mock[RoleService]
+      val notificationService = mock[NotificationService]
+      val permissions: Map[String, Set[Permission]] = HashMap("admin" -> Set(INF_INS_CRUD))
+
+      when(userService.findUserAssignableByRole("admin")).thenReturn(Future.successful(Seq(Stubs.user)))
+      when(roleService.getRolePermissions()).thenReturn(permissions)
+
+      val interconnectionService = new InterconnectionServiceImpl(akkaSystem,connectionRepository, inferiorInstanceRepository, mock[CategoryRepository], mock[SuperiorInstanceProfileApprovalRepository]
+        , client, userService, roleService, null, null, notificationService
+        , protocol, status, categoryTreeCombo, insertConnection, localUrl, uploadProfile, labCode,        profileDataServiceMock,
+        null,
+        null,
+        null,
+        null,
+        "tst-admin",
+        "1 seconds",
+        "1 seconds",
+        "1 seconds",
+        "1 seconds",
+        1000,
+        cacheService)
+
+      when(inferiorInstanceRepository.update(InferiorInstanceFull(id = 1, url = "", connectivity = "", idStatus = 1))).thenReturn(Future.successful(Left("")))
+
+      val result = Await.result(interconnectionService.updateInferiorInstance(InferiorInstanceFull(id = 1, url = "", connectivity = "", idStatus = 1)), duration);
+      result.isLeft mustBe true
+    }
+    "uploadProfileToSuperiorInstance ok" in {
+      val connectionRepository = mock[ConnectionRepository]
+      val inferiorInstanceRepository = mock[InferiorInstanceRepository]
+      val userService = mock[UserService]
+      val roleService = mock[RoleService]
+      val notificationService = mock[NotificationService]
+      val categoryRepository = mock[CategoryRepository]
+      val traceService = mock[TraceService]
+
+      val profile: Profile = Stubs.mixtureProfile
+      val profileData: ProfileData = Stubs.profileData
+      val categoryService = mock[CategoryService]
+
+      when(connectionRepository.getSupInstanceUrl()).thenReturn(Future.successful(Some("pdg-devclient:9000")))
+
+      when(connectionRepository.getConnections()).
+        thenReturn(Future.successful(Right(Connection("pdg-devclient:9000", "dummyUrl"))))
+
+      when(categoryService.getCategoriesMappingById(profile.categoryId)).thenReturn(Future.successful(Some(profile.categoryId.text)))
+      when(traceService.add(any())).thenReturn(Future.successful(Right(1l)))
+
+      val uri = "http://pdg-devclient:9000" + uploadProfile
+
+      val ws = MockWS {
+        case ("POST", uri) => Action {
+          Ok
         }
+      }
 
-        "connect no ok 3 E0707" in {
+      val interconnectionService = new InterconnectionServiceImpl(akkaSystem,
+        connectionRepository,
+        inferiorInstanceRepository,
+        categoryRepository,
+        mock[SuperiorInstanceProfileApprovalRepository]
+        , ws
+        , userService
+        , roleService
+        , null
+        , null
+        , notificationService
+        , protocol
+        , status
+        , categoryTreeCombo
+        , insertConnection
+        , localUrl
+        , uploadProfile
+        , labCode,profileDataServiceMock,categoryService,
+        traceService,
+        null,
+        null,
+        "tst-admin",
+        "1 seconds",
+        "1 seconds",
+        "1 seconds",
+        "1 seconds",
+        1000,
+        cacheService)
 
-          val dummyUrl = ""
-          val connectionRepository = mock[ConnectionRepository]
-          val inferiorInstanceRepository = mock[InferiorInstanceRepository]
-          when(connectionRepository.getSupInstanceUrl()).thenReturn(Future.failed(new RuntimeException()))
-          when(connectionRepository.getConnections()).thenReturn(Future.failed(new RuntimeException()))
+      interconnectionService.uploadProfileToSuperiorInstance(profile, profileData)
 
-          val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, client)
+    }
 
-          val result = Await.result(interconnectionService.connect(), duration);
-          result.isLeft mustBe true
-          result mustBe Left("E0707: No se pudo conectar.")
+    "uploadProfileToSuperiorInstance no ok" in {
+      val connectionRepository = mock[ConnectionRepository]
+      val inferiorInstanceRepository = mock[InferiorInstanceRepository]
+      val userService = mock[UserService]
+      val roleService = mock[RoleService]
+      val notificationService = mock[NotificationService]
+      val categoryRepository = mock[CategoryRepository]
+      val categoryService = mock[CategoryService]
+      val traceService = mock[TraceService]
 
+      val profile: Profile = Stubs.mixtureProfile
+      val profileData: ProfileData = Stubs.profileData
+
+      when(connectionRepository.getSupInstanceUrl()).thenReturn(Future.successful(Some("pdg-devclient:9000")))
+
+      when(connectionRepository.getConnections()).
+        thenReturn(Future.successful(Right(Connection("pdg-devclient:9000", "dummyUrl"))))
+
+      when(categoryService.getCategoriesMappingById(profile.categoryId)).thenReturn(Future.successful(Some(profile.categoryId.text)))
+      when(traceService.add(any())).thenReturn(Future.successful(Right(1l)))
+
+      val uri = "http://pdg-devclient:9000" + uploadProfile
+
+      val ws = MockWS {
+        case ("POST", uri) => Action {
+          BadRequest
         }
+      }
 
-        "getAllInferiorInstances" in {
-          val connectionRepository = mock[ConnectionRepository]
-          val inferiorInstanceRepository = mock[InferiorInstanceRepository]
-          val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, client)
+      val interconnectionService = new InterconnectionServiceImpl(akkaSystem,
+        connectionRepository,
+        inferiorInstanceRepository,
+        categoryRepository,
+        mock[SuperiorInstanceProfileApprovalRepository]
+        , ws
+        , userService
+        , roleService
+        , null
+        , null
+        , notificationService
+        , protocol
+        , status
+        , categoryTreeCombo
+        , insertConnection
+        , localUrl
+        , uploadProfile
+        , labCode,profileDataServiceMock,categoryService,
+        traceService,
+        null,
+        null,
+        "tst-admin",
+        "1 seconds",
+        "1 seconds",
+        "1 seconds",
+        "1 seconds",
+        1000,
+        cacheService)
 
-          when(inferiorInstanceRepository.findAll()).thenReturn(Future.successful(Left("")))
+      interconnectionService.uploadProfileToSuperiorInstance(profile, profileData)
 
-          val result = Await.result(interconnectionService.getAllInferiorInstances(), duration);
-          result.isLeft mustBe true
+    }
+    "importProfile ok" in {
+      val connectionRepository = mock[ConnectionRepository]
+      val inferiorInstanceRepository = mock[InferiorInstanceRepository]
+      val userService = mock[UserService]
+      val roleService = mock[RoleService]
+      val notificationService = mock[NotificationService]
+      val categoryRepository = mock[CategoryRepository]
+      val profileService = mock[ProfileService]
+
+      val profile: Profile = Stubs.mixtureProfile.copy(categoryId = AlphanumericId("INDIVIDUONN"),analyses = Some(List(analisis)))
+
+      when(profileService.isExistingCategory(profile.categoryId)).thenReturn(true)
+      val at: AnalysisType =  AnalysisType(1,"")
+      val kitOption = Some(analisis.kit)
+      when(profileService.getAnalysisType(kitOption,analisis.`type`)).thenReturn(Future.successful(at))
+      when(profileService.validateAnalysis(analisis.genotypification,profile.categoryId,kitOption,profile.contributors.getOrElse(0),analisis.`type`,at)).thenReturn(Future.successful(Right(CategoryConfiguration())))
+      for (analysis <- profile.analyses.get) {
+        when(profileService.isExistingKit(analysis.kit)).thenReturn(Future.successful(true))
+      }
+
+      val interconnectionService = new InterconnectionServiceImpl(akkaSystem,
+        connectionRepository,
+        inferiorInstanceRepository,
+        categoryRepository,
+        mock[SuperiorInstanceProfileApprovalRepository]
+        , client
+        , userService
+        , roleService
+        , profileService
+        , null
+        , notificationService
+        , protocol
+        , status
+        , categoryTreeCombo
+        , insertConnection
+        , localUrl
+        , uploadProfile
+        , labCode,        profileDataServiceMock,
+        null,
+        null,
+        null,
+        null,
+        "tst-admin",
+        "1 seconds",
+        "1 seconds",
+        "1 seconds",
+        "1 seconds",
+        1000,
+        cacheService)
+
+
+      interconnectionService.importProfile(profile, "SHDG", "", "SHDG", "SHDG")
+
+    }
+    "importProfile with invalid category" in {
+      val connectionRepository = mock[ConnectionRepository]
+      val inferiorInstanceRepository = mock[InferiorInstanceRepository]
+      val userService = mock[UserService]
+      val roleService = mock[RoleService]
+      val notificationService = mock[NotificationService]
+      val categoryRepository = mock[CategoryRepository]
+      val profileService = mock[ProfileService]
+      val profile: Profile = Stubs.mixtureProfile
+
+      when(profileService.isExistingCategory(profile.categoryId)).thenReturn(false)
+
+      for (analysis <- profile.analyses.get) {
+        when(profileService.isExistingKit(analysis.kit)).thenReturn(Future.successful(true))
+      }
+
+      val interconnectionService = new InterconnectionServiceImpl(akkaSystem,
+        connectionRepository,
+        inferiorInstanceRepository,
+        categoryRepository,
+        mock[SuperiorInstanceProfileApprovalRepository]
+        , client
+        , userService
+        , roleService
+        , profileService
+        , null
+        , notificationService
+        , protocol
+        , status
+        , categoryTreeCombo
+        , insertConnection
+        , localUrl
+        , uploadProfile
+        , labCode,
+        profileDataServiceMock,
+        null,
+        null,
+        null,
+        null,
+        "tst-admin",
+        "1 seconds",
+        "1 seconds",
+        "1 seconds",
+        "1 seconds",
+        1000,
+        cacheService)
+
+      interconnectionService.importProfile(profile, "SHDG", "", "SHDG", "SHDG")
+
+    }
+    "importProfile with sample entry date" in {
+      val connectionRepository = mock[ConnectionRepository]
+      val inferiorInstanceRepository = mock[InferiorInstanceRepository]
+      val userService = mock[UserService]
+      val roleService = mock[RoleService]
+      val notificationService = mock[NotificationService]
+      val categoryRepository = mock[CategoryRepository]
+      val profileService = mock[ProfileService]
+      val profile: Profile = Stubs.mixtureProfile
+
+      when(profileService.isExistingCategory(profile.categoryId)).thenReturn(false)
+
+      for (analysis <- profile.analyses.get) {
+        when(profileService.isExistingKit(analysis.kit)).thenReturn(Future.successful(true))
+      }
+
+      val interconnectionService = new InterconnectionServiceImpl(akkaSystem,
+        connectionRepository,
+        inferiorInstanceRepository,
+        categoryRepository,
+        mock[SuperiorInstanceProfileApprovalRepository]
+        , client
+        , userService
+        , roleService
+        , profileService
+        , null
+        , notificationService
+        , protocol
+        , status
+        , categoryTreeCombo
+        , insertConnection
+        , localUrl
+        , uploadProfile
+        , labCode,        profileDataServiceMock,
+        null,
+        null,
+        null,
+        null,
+        "tst-admin",
+        "1 seconds",
+        "1 seconds",
+        "1 seconds",
+        "1 seconds",
+        1000,
+        cacheService)
+
+      interconnectionService.importProfile(profile, "SHDG", "1", "SHDG", "SHDG")
+
+    }
+    "approveProfile no ok" in {
+      val connectionRepository = mock[ConnectionRepository]
+      val inferiorInstanceRepository = mock[InferiorInstanceRepository]
+      val userService = mock[UserService]
+      val roleService = mock[RoleService]
+      val notificationService = mock[NotificationService]
+      val categoryRepository = mock[CategoryRepository]
+      val profileService = mock[ProfileService]
+      val superiorInstanceProfileApprovalRepository = mock[SuperiorInstanceProfileApprovalRepository]
+      val profile: Profile = Stubs.mixtureProfile
+      val profileApproval = ProfileApproval(profile.globalCode.text)
+      val profileDataService = mock[ProfileDataService]
+
+      when(profileService.isExistingCategory(profile.categoryId)).thenReturn(true)
+      when(profileDataService.findByCodeWithoutDetails(profile.globalCode)).thenReturn(Future.successful(Some(Stubs.profileData)))
+      when(profileService.findByCode(profile.globalCode)).thenReturn(Future.successful(Some(Stubs.mixtureProfile)))
+      //      when(profileService.updateProfile(anyObject[Profile])).thenReturn(Future.successful(profile.globalCode))
+      //      when(profileService.updateProfile(profile)).thenReturn(Future.successful(profile.globalCode))
+      //      when(profileService.existProfile(profile.globalCode)).thenReturn(Future.successful(true))
+      when(superiorInstanceProfileApprovalRepository.findByGlobalCode(profileApproval.globalCode))
+        .thenReturn(Future.successful(Right(SuperiorInstanceProfileApproval
+        (id = 0L,
+          globalCode = profile.globalCode.text,
+          profile = Json.toJson(Stubs.mixtureProfile).toString(),
+          laboratory = "SHDG",
+          laboratoryInstanceOrigin = "SHDG",
+          laboratoryImmediateInstance = "SHDG",
+          sampleEntryDate = None))))
+
+      when(superiorInstanceProfileApprovalRepository.upsert(anyObject[SuperiorInstanceProfileApproval])).thenReturn(Future.successful(Right(1L)))
+
+      for (analysis <- profile.analyses.get) {
+        when(profileService.isExistingKit(analysis.kit)).thenReturn(Future.successful(true))
+      }
+
+      val interconnectionService = new InterconnectionServiceImpl(akkaSystem,
+        connectionRepository,
+        inferiorInstanceRepository,
+        categoryRepository,
+        superiorInstanceProfileApprovalRepository
+        , client
+        , userService
+        , roleService
+        , profileService
+        , null
+        , notificationService
+        , protocol
+        , status
+        , categoryTreeCombo
+        , insertConnection
+        , localUrl
+        , uploadProfile
+        , labCode,
+        profileDataService,
+        null,
+        null,
+        null,
+        null,
+        "tst-admin",
+        "1 seconds",
+        "1 seconds",
+        "1 seconds",
+        "1 seconds",
+        1000,
+        cacheService)
+
+      val result = Await.result(interconnectionService.approveProfile(profileApproval), Duration.Inf)
+      result.isLeft mustBe true
+
+
+    }
+    "approveProfile non existent profile data ok" in {
+      val connectionRepository = mock[ConnectionRepository]
+      val inferiorInstanceRepository = mock[InferiorInstanceRepository]
+      val userService = mock[UserService]
+      val roleService = mock[RoleService]
+      val notificationService = mock[NotificationService]
+      val categoryRepository = mock[CategoryRepository]
+      val profileService = mock[ProfileService]
+      val superiorInstanceProfileApprovalRepository = mock[SuperiorInstanceProfileApprovalRepository]
+      val profile: Profile = Stubs.mixtureProfile
+      val profileApproval = ProfileApproval(profile.globalCode.text)
+      val profileDataService = mock[ProfileDataService]
+
+      when(profileService.isExistingCategory(profile.categoryId)).thenReturn(true)
+      when(profileDataService.findByCodeWithoutDetails(profile.globalCode)).thenReturn(Future.successful(None))
+      when(profileService.findByCode(profile.globalCode)).thenReturn(Future.successful(Some(Stubs.mixtureProfile)))
+      //      when(profileService.updateProfile(anyObject[Profile])).thenReturn(Future.successful(profile.globalCode))
+      //      when(profileService.updateProfile(profile)).thenReturn(Future.successful(profile.globalCode))
+      //      when(profileService.existProfile(profile.globalCode)).thenReturn(Future.successful(true))
+      when(profileDataService.importFromAnotherInstance(any[ProfileData], anyString(), anyString())).thenReturn(Future.successful(()))
+      when(profileService.addProfile(any[Profile])).thenReturn(Future.successful(profile.globalCode))
+
+      when(superiorInstanceProfileApprovalRepository.findByGlobalCode(profileApproval.globalCode))
+        .thenReturn(Future.successful(Right(SuperiorInstanceProfileApproval
+        (id = 0L,
+          globalCode = profile.globalCode.text,
+          profile = Json.toJson(Stubs.mixtureProfile).toString(),
+          laboratory = "SHDG",
+          laboratoryInstanceOrigin = "SHDG",
+          laboratoryImmediateInstance = "SHDG",
+          sampleEntryDate = None))))
+
+      when(superiorInstanceProfileApprovalRepository.upsert(anyObject[SuperiorInstanceProfileApproval])).thenReturn(Future.successful(Right(1L)))
+
+      for (analysis <- profile.analyses.get) {
+        when(profileService.isExistingKit(analysis.kit)).thenReturn(Future.successful(true))
+      }
+
+      val interconnectionService = new InterconnectionServiceImpl(akkaSystem,
+        connectionRepository,
+        inferiorInstanceRepository,
+        categoryRepository,
+        superiorInstanceProfileApprovalRepository
+        , client
+        , userService
+        , roleService
+        , profileService
+        , null
+        , notificationService
+        , protocol
+        , status
+        , categoryTreeCombo
+        , insertConnection
+        , localUrl
+        , uploadProfile
+        , labCode,
+        profileDataService,
+        null,
+        null,
+        null,
+        null,
+        "tst-admin",
+        "1 seconds",
+        "1 seconds",
+        "1 seconds",
+        "1 seconds",
+        1000,
+        cacheService)
+
+      val result = Await.result(interconnectionService.approveProfile(profileApproval), Duration.Inf)
+      result.isLeft mustBe true
+
+    }
+    "approveProfile invalid profile E0600" in {
+      val connectionRepository = mock[ConnectionRepository]
+      val inferiorInstanceRepository = mock[InferiorInstanceRepository]
+      val userService = mock[UserService]
+      val roleService = mock[RoleService]
+      val notificationService = mock[NotificationService]
+      val categoryRepository = mock[CategoryRepository]
+      val profileService = mock[ProfileService]
+      val superiorInstanceProfileApprovalRepository = mock[SuperiorInstanceProfileApprovalRepository]
+      val profile: Profile = Stubs.mixtureProfile
+      val profileApproval = ProfileApproval(profile.globalCode.text)
+      val profileDataService = mock[ProfileDataService]
+
+      when(profileService.isExistingCategory(profile.categoryId)).thenReturn(false)
+      when(profileDataService.findByCodeWithoutDetails(profile.globalCode)).thenReturn(Future.successful(None))
+      when(profileService.findByCode(profile.globalCode)).thenReturn(Future.successful(Some(Stubs.mixtureProfile)))
+      //      when(profileService.updateProfile(anyObject[Profile])).thenReturn(Future.successful(profile.globalCode))
+      //      when(profileService.updateProfile(profile)).thenReturn(Future.successful(profile.globalCode))
+      //      when(profileService.existProfile(profile.globalCode)).thenReturn(Future.successful(true))
+      when(profileDataService.importFromAnotherInstance(any[ProfileData], anyString(), anyString())).thenReturn(Future.successful(()))
+      when(profileService.addProfile(any[Profile])).thenReturn(Future.successful(profile.globalCode))
+
+      when(superiorInstanceProfileApprovalRepository.findByGlobalCode(profileApproval.globalCode))
+        .thenReturn(Future.successful(Right(SuperiorInstanceProfileApproval
+        (id = 0L,
+          globalCode = profile.globalCode.text,
+          profile = Json.toJson(Stubs.mixtureProfile).toString(),
+          laboratory = "SHDG",
+          laboratoryInstanceOrigin = "SHDG",
+          laboratoryImmediateInstance = "SHDG",
+          sampleEntryDate = None))))
+
+      when(superiorInstanceProfileApprovalRepository.upsert(anyObject[SuperiorInstanceProfileApproval])).thenReturn(Future.successful(Right(1L)))
+
+      for (analysis <- profile.analyses.get) {
+        when(profileService.isExistingKit(analysis.kit)).thenReturn(Future.successful(true))
+      }
+
+      val interconnectionService = new InterconnectionServiceImpl(akkaSystem,
+        connectionRepository,
+        inferiorInstanceRepository,
+        categoryRepository,
+        superiorInstanceProfileApprovalRepository
+        , client
+        , userService
+        , roleService
+        , profileService
+        , null
+        , notificationService
+        , protocol
+        , status
+        , categoryTreeCombo
+        , insertConnection
+        , localUrl
+        , uploadProfile
+        , labCode,
+        profileDataService,
+        null,
+        null,
+        null,
+        null,
+        "tst-admin",
+        "1 seconds",
+        "1 seconds",
+        "1 seconds",
+        "1 seconds",
+        1000,
+        cacheService)
+
+      val result = Await.result(interconnectionService.approveProfile(profileApproval), Duration.Inf)
+      result.isLeft mustBe true
+      result.left.get.contains("E0600: No existe la categoría MULTIPLE.") mustBe true
+
+    }
+    "approveProfiles ok" in {
+      val connectionRepository = mock[ConnectionRepository]
+      val inferiorInstanceRepository = mock[InferiorInstanceRepository]
+      val userService = mock[UserService]
+      val roleService = mock[RoleService]
+      val notificationService = mock[NotificationService]
+      val categoryRepository = mock[CategoryRepository]
+      val profileService = mock[ProfileService]
+      val superiorInstanceProfileApprovalRepository = mock[SuperiorInstanceProfileApprovalRepository]
+      val profile: Profile = Stubs.mixtureProfile
+      val profileApproval = ProfileApproval(profile.globalCode.text)
+      val profileDataService = mock[ProfileDataService]
+
+      when(profileService.isExistingCategory(profile.categoryId)).thenReturn(true)
+      when(profileDataService.findByCodeWithoutDetails(profile.globalCode)).thenReturn(Future.successful(Some(Stubs.profileData)))
+      when(profileService.findByCode(profile.globalCode)).thenReturn(Future.successful(Some(Stubs.mixtureProfile)))
+      //      when(profileService.updateProfile(anyObject[Profile])).thenReturn(Future.successful(profile.globalCode))
+      //      when(profileService.updateProfile(profile)).thenReturn(Future.successful(profile.globalCode))
+      //      when(profileService.existProfile(profile.globalCode)).thenReturn(Future.successful(true))
+      when(superiorInstanceProfileApprovalRepository.findByGlobalCode(profileApproval.globalCode))
+        .thenReturn(Future.successful(Right(SuperiorInstanceProfileApproval
+        (id = 0L,
+          globalCode = profile.globalCode.text,
+          profile = Json.toJson(Stubs.mixtureProfile).toString(),
+          laboratory = "SHDG",
+          laboratoryInstanceOrigin = "SHDG",
+          laboratoryImmediateInstance = "SHDG",
+          sampleEntryDate = None))))
+
+      when(superiorInstanceProfileApprovalRepository.upsert(anyObject[SuperiorInstanceProfileApproval])).thenReturn(Future.successful(Right(1L)))
+
+      for (analysis <- profile.analyses.get) {
+        when(profileService.isExistingKit(analysis.kit)).thenReturn(Future.successful(true))
+      }
+
+      val interconnectionService = new InterconnectionServiceImpl(akkaSystem,
+        connectionRepository,
+        inferiorInstanceRepository,
+        categoryRepository,
+        superiorInstanceProfileApprovalRepository
+        , client
+        , userService
+        , roleService
+        , profileService
+        , null
+        , notificationService
+        , protocol
+        , status
+        , categoryTreeCombo
+        , insertConnection
+        , localUrl
+        , uploadProfile
+        , labCode,
+        profileDataService,
+        null,
+        null,
+        null,
+        null,
+        "tst-admin",
+        "1 seconds",
+        "1 seconds",
+        "1 seconds",
+        "1 seconds",
+        1000,
+        cacheService)
+
+      val result = Await.result(interconnectionService.approveProfiles(List(profileApproval)), Duration.Inf)
+      result.isLeft mustBe true
+    }
+    "getPendingProfiles ok" in {
+      val connectionRepository = mock[ConnectionRepository]
+      val inferiorInstanceRepository = mock[InferiorInstanceRepository]
+      val userService = mock[UserService]
+      val roleService = mock[RoleService]
+      val notificationService = mock[NotificationService]
+      val categoryRepository = mock[CategoryRepository]
+      val profileService = mock[ProfileService]
+      val superiorInstanceProfileApprovalRepository = mock[SuperiorInstanceProfileApprovalRepository]
+      val profile: Profile = Stubs.mixtureProfile
+      val profileApproval = ProfileApproval(profile.globalCode.text)
+      val profileDataService = mock[ProfileDataService]
+
+      when(superiorInstanceProfileApprovalRepository.findAll(approvalSearch)).thenReturn(Future.successful(Nil))
+
+      val interconnectionService = new InterconnectionServiceImpl(akkaSystem,
+        connectionRepository,
+        inferiorInstanceRepository,
+        categoryRepository,
+        superiorInstanceProfileApprovalRepository
+        , client
+        , userService
+        , roleService
+        , profileService
+        , null
+        , notificationService
+        , protocol
+        , status
+        , categoryTreeCombo
+        , insertConnection
+        , localUrl
+        , uploadProfile
+        , labCode,
+        profileDataService,
+        null,
+        null,
+        null,
+        null,
+        "tst-admin",
+        "1 seconds",
+        "1 seconds",
+        "1 seconds",
+        "1 seconds",
+        1000,
+        cacheService)
+
+      val result = Await.result(interconnectionService.getPendingProfiles(approvalSearch), Duration.Inf)
+      result.isEmpty mustBe true
+    }
+    "notifyChangeStatus ok" in {
+      val connectionRepository = mock[ConnectionRepository]
+      val inferiorInstanceRepository = mock[InferiorInstanceRepository]
+      val userService = mock[UserService]
+      val roleService = mock[RoleService]
+      val notificationService = mock[NotificationService]
+      val categoryRepository = mock[CategoryRepository]
+      val profileService = mock[ProfileService]
+      val superiorInstanceProfileApprovalRepository = mock[SuperiorInstanceProfileApprovalRepository]
+      val profile: Profile = Stubs.mixtureProfile
+      val profileApproval = ProfileApproval(profile.globalCode.text)
+      val profileDataService = mock[ProfileDataService]
+
+      when(superiorInstanceProfileApprovalRepository.findAll(approvalSearch)).thenReturn(Future.successful(Nil))
+
+      val interconnectionService = new InterconnectionServiceImpl(akkaSystem,
+        connectionRepository,
+        inferiorInstanceRepository,
+        categoryRepository,
+        superiorInstanceProfileApprovalRepository
+        , client
+        , userService
+        , roleService
+        , profileService
+        , null
+        , notificationService
+        , protocol
+        , status
+        , categoryTreeCombo
+        , insertConnection
+        , localUrl
+        , uploadProfile
+        , labCode,
+        profileDataService,
+        null,
+        null,
+        null,
+        null,
+        "tst-admin",
+        "1 seconds",
+        "1 seconds",
+        "1 seconds",
+        "1 seconds",
+        1000,
+        cacheService)
+
+      Await.result(interconnectionService.notifyChangeStatus(profile.globalCode.text, "SHDG", 1L), Duration.Inf)
+
+    }
+    //        "uploadProfile ok" in {
+    //          val connectionRepository = mock[ConnectionRepository]
+    //          val inferiorInstanceRepository = mock[InferiorInstanceRepository]
+    //          val userService = mock[UserService]
+    //          val roleService = mock[RoleService]
+    //          val notificationService = mock[NotificationService]
+    //          val categoryRepository = mock[CategoryRepository]
+    //          val profileService = mock[ProfileService]
+    //          val superiorInstanceProfileApprovalRepository = mock[SuperiorInstanceProfileApprovalRepository]
+    //          val profile: Profile = Stubs.mixtureProfile
+    //          val profileData: ProfileData = Stubs.profileData
+    //          val profileApproval = ProfileApproval(profile.globalCode.text)
+    //          val profileDataService = mock[ProfileDataService]
+    //          val categoryService = mock[CategoryService]
+    //
+    //          when(profileService.get(profile.globalCode)).thenReturn(Future.successful(Some(profile)))
+    //          when(profileDataService.get(profile.globalCode)).thenReturn(Future.successful(Some(profileData)))
+    //          when(categoryService.getCategory(profileData.category)).thenReturn(Some(Stubs.fullCatA1))
+    //          when(connectionRepository.getSupInstanceUrl()).thenReturn(Future.successful(Some("pdg-devclient:9000")))
+    //
+    //          when(connectionRepository.getConnections()).
+    //            thenReturn(Future.successful(Right(Connection("pdg-devclient:9000", "dummyUrl"))))
+    //
+    //          when(categoryService.getCategoriesMappingById(profile.categoryId)).thenReturn(Future.successful(Some(profile.categoryId.text)))
+    //          val uri = "http://pdg-devclient:9000" + uploadProfile
+    //
+    //          val ws = MockWS {
+    //            case ("POST", uri) => Action {
+    //              Ok
+    //            }
+    //          }
+    //
+    //          val interconnectionService = new InterconnectionServiceImpl(akkaSystem,
+    //            connectionRepository,
+    //            inferiorInstanceRepository,
+    //            categoryRepository,
+    //            superiorInstanceProfileApprovalRepository
+    //            , ws
+    //            , userService
+    //            , roleService
+    //            , profileService
+    //            , notificationService
+    //            , protocol
+    //            , status
+    //            , categoryTreeCombo
+    //            , insertConnection
+    //            , localUrl
+    //            , uploadProfile
+    //            , labCode,
+    //            profileDataService,
+    //            categoryService)
+    //
+    //          val result = Await.result(interconnectionService.uploadProfile(profile.globalCode.text), Duration.Inf)
+    //          result.isRight mustBe true
+    //
+    //        }
+
+    "uploadProfile no esta mapeada la categoria de la instancia superior" in {
+      val connectionRepository = mock[ConnectionRepository]
+      val inferiorInstanceRepository = mock[InferiorInstanceRepository]
+      val userService = mock[UserService]
+      val roleService = mock[RoleService]
+      val notificationService = mock[NotificationService]
+      val categoryRepository = mock[CategoryRepository]
+      val profileService = mock[ProfileService]
+      val superiorInstanceProfileApprovalRepository = mock[SuperiorInstanceProfileApprovalRepository]
+      val profile: Profile = Stubs.mixtureProfile
+      val profileData: ProfileData = Stubs.profileData
+      val profileApproval = ProfileApproval(profile.globalCode.text)
+      val profileDataService = mock[ProfileDataService]
+      val categoryService = mock[CategoryService]
+      val traceService = mock[TraceService]
+
+      when(profileDataService.updateUploadStatus(profile.globalCode.text,1L,Option.empty[String],Option.empty[String])).thenReturn(Future.successful(Right(())))
+
+      when(profileService.get(profile.globalCode)).thenReturn(Future.successful(Some(profile)))
+      when(profileDataService.get(profile.globalCode)).thenReturn(Future.successful(Some(profileData)))
+      when(categoryService.getCategory(profileData.category)).thenReturn(Some(Stubs.fullCatA1))
+      when(connectionRepository.getSupInstanceUrl()).thenReturn(Future.successful(Some("pdg-devclient:9000")))
+
+      when(connectionRepository.getConnections()).
+        thenReturn(Future.successful(Right(Connection("pdg-devclient:9000", "dummyUrl"))))
+
+      when(categoryService.getCategoriesMappingById(profile.categoryId)).thenReturn(Future.successful(None))
+      when(traceService.add(any())).thenReturn(Future.successful(Right(1l)))
+
+      val uri = "http://pdg-devclient:9000" + uploadProfile
+
+      val ws = MockWS {
+        case ("POST", uri) => Action {
+          Ok
         }
-        "getAllInferiorInstanceStatus" in {
-          val connectionRepository = mock[ConnectionRepository]
-          val inferiorInstanceRepository = mock[InferiorInstanceRepository]
-          val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, client)
+      }
 
-          when(inferiorInstanceRepository.findAllInstanceStatus()).thenReturn(Future.successful(Left("")))
+      val interconnectionService = new InterconnectionServiceImpl(akkaSystem,
+        connectionRepository,
+        inferiorInstanceRepository,
+        categoryRepository,
+        superiorInstanceProfileApprovalRepository
+        , ws
+        , userService
+        , roleService
+        , profileService
+        , null
+        , notificationService
+        , protocol
+        , status
+        , categoryTreeCombo
+        , insertConnection
+        , localUrl
+        , uploadProfile
+        , labCode,
+        profileDataService,
+        categoryService,
+        traceService,
+        null,
+        null,
+        "tst-admin",
+        "1 seconds",
+        "1 seconds",
+        "1 seconds",
+        "1 seconds",
+        1000,
+        cacheService)
 
-          val result = Await.result(interconnectionService.getAllInferiorInstanceStatus(), duration);
-          result.isLeft mustBe true
+      val result = Await.result(interconnectionService.uploadProfile(profile.globalCode.text), Duration.Inf)
+      result.isLeft mustBe true
+
+    }
+
+    "uploadProfile no se puede conectar con la instancia superior" in {
+      val connectionRepository = mock[ConnectionRepository]
+      val inferiorInstanceRepository = mock[InferiorInstanceRepository]
+      val userService = mock[UserService]
+      val roleService = mock[RoleService]
+      val notificationService = mock[NotificationService]
+      val categoryRepository = mock[CategoryRepository]
+      val profileService = mock[ProfileService]
+      val superiorInstanceProfileApprovalRepository = mock[SuperiorInstanceProfileApprovalRepository]
+      val profile: Profile = Stubs.mixtureProfile
+      val profileData: ProfileData = Stubs.profileData
+      val profileApproval = ProfileApproval(profile.globalCode.text)
+      val profileDataService = mock[ProfileDataService]
+      val categoryService = mock[CategoryService]
+      val traceService = mock[TraceService]
+
+      when(profileDataService.updateUploadStatus(profile.globalCode.text,1L, Option.empty[String],Option.empty[String])).thenReturn(Future.successful(Right(())))
+      when(profileService.get(profile.globalCode)).thenReturn(Future.successful(Some(profile)))
+      when(profileDataService.get(profile.globalCode)).thenReturn(Future.successful(Some(profileData)))
+      when(categoryService.getCategory(profileData.category)).thenReturn(Some(Stubs.fullCatA1))
+      when(connectionRepository.getSupInstanceUrl()).thenReturn(Future.successful(None))
+
+      when(categoryService.getCategoriesMappingById(profile.categoryId)).thenReturn(Future.successful(Some(profile.categoryId.text)))
+      when(traceService.add(any())).thenReturn(Future.successful(Right(1l)))
+
+      val interconnectionService = new InterconnectionServiceImpl(akkaSystem,
+        connectionRepository,
+        inferiorInstanceRepository,
+        categoryRepository,
+        superiorInstanceProfileApprovalRepository
+        , client
+        , userService
+        , roleService
+        , profileService
+        , null
+        , notificationService
+        , protocol
+        , status
+        , categoryTreeCombo
+        , insertConnection
+        , localUrl
+        , uploadProfile
+        , labCode,
+        profileDataService,
+        categoryService,
+        traceService,
+        null,
+        null,
+        "tst-admin",
+        "1 seconds",
+        "1 seconds",
+        "1 seconds",
+        "1 seconds",
+        1000,
+        cacheService)
+
+      val result = Await.result(interconnectionService.uploadProfile(profile.globalCode.text), Duration.Inf)
+      result.isLeft mustBe true
+
+    }
+
+    "rejectProfile ok" in {
+      val connectionRepository = mock[ConnectionRepository]
+      val inferiorInstanceRepository = mock[InferiorInstanceRepository]
+      val userService = mock[UserService]
+      val roleService = mock[RoleService]
+      val notificationService = mock[NotificationService]
+      val categoryRepository = mock[CategoryRepository]
+      val profileService = mock[ProfileService]
+      val superiorInstanceProfileApprovalRepository = mock[SuperiorInstanceProfileApprovalRepository]
+      val profile: Profile = Stubs.mixtureProfile
+      val profileApproval = ProfileApproval(profile.globalCode.text)
+      val profileDataService = mock[ProfileDataService]
+      val globalCode = Stubs.profileData.globalCode.text
+      val url = "http://clientUrl/inferior/profile/status?globalCode=AR-B-LAB-1&status=3"
+      when(inferiorInstanceRepository.findByLabCode("SHDG")).thenReturn(Future.successful(Some(InferiorInstance("clientUrl","SHDG"))))
+
+      val ws = MockWS {
+        case ("PUT", url) => Action {
+          Ok
         }
-        "updateInferiorInstance ok" in {
-          val connectionRepository = mock[ConnectionRepository]
-          val inferiorInstanceRepository = mock[InferiorInstanceRepository]
-          val userService = mock[UserService]
-          val roleService = mock[RoleService]
-          val notificationService = mock[NotificationService]
-          val permissions: Map[String, Set[Permission]] = HashMap("admin" -> Set(INF_INS_CRUD))
+      }
 
-          when(userService.findUserAssignableByRole("admin")).thenReturn(Future.successful(Seq(Stubs.user)))
-          when(roleService.getRolePermissions()).thenReturn(permissions)
+      when(profileService.isExistingCategory(profile.categoryId)).thenReturn(true)
+      when(profileDataService.findByCodeWithoutDetails(profile.globalCode)).thenReturn(Future.successful(Some(Stubs.profileData)))
+      when(profileService.findByCode(profile.globalCode)).thenReturn(Future.successful(Some(Stubs.mixtureProfile)))
+      when(superiorInstanceProfileApprovalRepository.deleteLogical(any[String],any[Option[String]],any[Option[java.sql.Timestamp]],any[Option[Long]],any[Option[String]])).thenReturn(Future.successful(Right(())))
+      when(superiorInstanceProfileApprovalRepository.findByGlobalCode(profileApproval.globalCode))
+        .thenReturn(Future.successful(Right(SuperiorInstanceProfileApproval
+        (id = 0L,
+          globalCode = profile.globalCode.text,
+          profile = Json.toJson(Stubs.mixtureProfile).toString(),
+          laboratory = "SHDG",
+          laboratoryInstanceOrigin = "SHDG",
+          laboratoryImmediateInstance = "SHDG",
+          sampleEntryDate = None))))
 
-          val interconnectionService = new InterconnectionServiceImpl(akkaSystem,connectionRepository, inferiorInstanceRepository, mock[CategoryRepository], mock[SuperiorInstanceProfileApprovalRepository]
-            , client, userService, roleService, null, null, notificationService
-            , protocol, status, categoryTreeCombo, insertConnection, localUrl, uploadProfile, labCode,        profileDataServiceMock,
-            null,
-            null,
-            null,
-            null,
-            "tst-admin",
-            "1 seconds",
-            "1 seconds",
-            "1 seconds",
-            "1 seconds",
-            1000,
-            cacheService)
+      when(superiorInstanceProfileApprovalRepository.upsert(anyObject[SuperiorInstanceProfileApproval])).thenReturn(Future.successful(Right(1L)))
 
-          when(inferiorInstanceRepository.update(InferiorInstanceFull(id = 1, url = "", connectivity = "", idStatus = 1))).thenReturn(Future.successful(Left("")))
+      for (analysis <- profile.analyses.get) {
+        when(profileService.isExistingKit(analysis.kit)).thenReturn(Future.successful(true))
+      }
 
-          val result = Await.result(interconnectionService.updateInferiorInstance(InferiorInstanceFull(id = 1, url = "", connectivity = "", idStatus = 1)), duration);
-          result.isLeft mustBe true
+      val interconnectionService = new InterconnectionServiceImpl(akkaSystem,
+        connectionRepository,
+        inferiorInstanceRepository,
+        categoryRepository,
+        superiorInstanceProfileApprovalRepository
+        , ws
+        , userService
+        , roleService
+        , profileService
+        , null
+        , notificationService
+        , protocol
+        , status
+        , categoryTreeCombo
+        , insertConnection
+        , localUrl
+        , uploadProfile
+        , labCode,
+        profileDataService,
+        null,
+        null,
+        null,
+        null,
+        "tst-admin",
+        "1 seconds",
+        "1 seconds",
+        "1 seconds",
+        "1 seconds",
+        1000,
+        cacheService)
+
+      val result = Await.result(interconnectionService.rejectProfile(ProfileApproval(profile.globalCode.text),"motivo",1L), Duration.Inf)
+      result.isRight mustBe true
+    }
+    "rejectProfile falla la coneción para actualizar el estado en la inferior" in {
+      val connectionRepository = mock[ConnectionRepository]
+      val inferiorInstanceRepository = mock[InferiorInstanceRepository]
+      val userService = mock[UserService]
+      val roleService = mock[RoleService]
+      val notificationService = mock[NotificationService]
+      val categoryRepository = mock[CategoryRepository]
+      val profileService = mock[ProfileService]
+      val superiorInstanceProfileApprovalRepository = mock[SuperiorInstanceProfileApprovalRepository]
+      val profile: Profile = Stubs.mixtureProfile
+      val profileApproval = ProfileApproval(profile.globalCode.text)
+      val profileDataService = mock[ProfileDataService]
+      val globalCode = Stubs.profileData.globalCode.text
+      val url = "http://clientUrl/inferior/profile/status?globalCode=AR-B-LAB-1&status=3"
+      when(inferiorInstanceRepository.findByLabCode("SHDG")).thenReturn(Future.successful(Some(InferiorInstance("clientUrl","SHDG"))))
+
+      val ws = MockWS {
+        case ("PUT", url) => Action {
+          BadRequest
         }
-        "uploadProfileToSuperiorInstance ok" in {
-          val connectionRepository = mock[ConnectionRepository]
-          val inferiorInstanceRepository = mock[InferiorInstanceRepository]
-          val userService = mock[UserService]
-          val roleService = mock[RoleService]
-          val notificationService = mock[NotificationService]
-          val categoryRepository = mock[CategoryRepository]
-          val traceService = mock[TraceService]
-
-          val profile: Profile = Stubs.mixtureProfile
-          val profileData: ProfileData = Stubs.profileData
-          val categoryService = mock[CategoryService]
-
-          when(connectionRepository.getSupInstanceUrl()).thenReturn(Future.successful(Some("pdg-devclient:9000")))
-
-          when(connectionRepository.getConnections()).
-            thenReturn(Future.successful(Right(Connection("pdg-devclient:9000", "dummyUrl"))))
-
-          when(categoryService.getCategoriesMappingById(profile.categoryId)).thenReturn(Future.successful(Some(profile.categoryId.text)))
-          when(traceService.add(any())).thenReturn(Future.successful(Right(1l)))
-
-          val uri = "http://pdg-devclient:9000" + uploadProfile
-
-          val ws = MockWS {
-            case ("POST", uri) => Action {
-              Ok
-            }
-          }
-
-          val interconnectionService = new InterconnectionServiceImpl(akkaSystem,
-            connectionRepository,
-            inferiorInstanceRepository,
-            categoryRepository,
-            mock[SuperiorInstanceProfileApprovalRepository]
-            , ws
-            , userService
-            , roleService
-            , null
-            , null
-            , notificationService
-            , protocol
-            , status
-            , categoryTreeCombo
-            , insertConnection
-            , localUrl
-            , uploadProfile
-            , labCode,profileDataServiceMock,categoryService,
-            traceService,
-            null,
-            null,
-            "tst-admin",
-            "1 seconds",
-            "1 seconds",
-            "1 seconds",
-            "1 seconds",
-            1000,
-            cacheService)
-
-          interconnectionService.uploadProfileToSuperiorInstance(profile, profileData)
-
-        }
-
-        "uploadProfileToSuperiorInstance no ok" in {
-          val connectionRepository = mock[ConnectionRepository]
-          val inferiorInstanceRepository = mock[InferiorInstanceRepository]
-          val userService = mock[UserService]
-          val roleService = mock[RoleService]
-          val notificationService = mock[NotificationService]
-          val categoryRepository = mock[CategoryRepository]
-          val categoryService = mock[CategoryService]
-          val traceService = mock[TraceService]
-
-          val profile: Profile = Stubs.mixtureProfile
-          val profileData: ProfileData = Stubs.profileData
-
-          when(connectionRepository.getSupInstanceUrl()).thenReturn(Future.successful(Some("pdg-devclient:9000")))
-
-          when(connectionRepository.getConnections()).
-            thenReturn(Future.successful(Right(Connection("pdg-devclient:9000", "dummyUrl"))))
-
-          when(categoryService.getCategoriesMappingById(profile.categoryId)).thenReturn(Future.successful(Some(profile.categoryId.text)))
-          when(traceService.add(any())).thenReturn(Future.successful(Right(1l)))
-
-          val uri = "http://pdg-devclient:9000" + uploadProfile
-
-          val ws = MockWS {
-            case ("POST", uri) => Action {
-              BadRequest
-            }
-          }
-
-          val interconnectionService = new InterconnectionServiceImpl(akkaSystem,
-            connectionRepository,
-            inferiorInstanceRepository,
-            categoryRepository,
-            mock[SuperiorInstanceProfileApprovalRepository]
-            , ws
-            , userService
-            , roleService
-            , null
-            , null
-            , notificationService
-            , protocol
-            , status
-            , categoryTreeCombo
-            , insertConnection
-            , localUrl
-            , uploadProfile
-            , labCode,profileDataServiceMock,categoryService,
-            traceService,
-            null,
-            null,
-            "tst-admin",
-            "1 seconds",
-            "1 seconds",
-            "1 seconds",
-            "1 seconds",
-            1000,
-            cacheService)
-
-          interconnectionService.uploadProfileToSuperiorInstance(profile, profileData)
-
-        }
-        "importProfile ok" in {
-          val connectionRepository = mock[ConnectionRepository]
-          val inferiorInstanceRepository = mock[InferiorInstanceRepository]
-          val userService = mock[UserService]
-          val roleService = mock[RoleService]
-          val notificationService = mock[NotificationService]
-          val categoryRepository = mock[CategoryRepository]
-          val profileService = mock[ProfileService]
-
-          val profile: Profile = Stubs.mixtureProfile.copy(categoryId = AlphanumericId("INDIVIDUONN"),analyses = Some(List(analisis)))
-
-          when(profileService.isExistingCategory(profile.categoryId)).thenReturn(true)
-          val at: AnalysisType =  AnalysisType(1,"")
-          val kitOption = Some(analisis.kit)
-          when(profileService.getAnalysisType(kitOption,analisis.`type`)).thenReturn(Future.successful(at))
-          when(profileService.validateAnalysis(analisis.genotypification,profile.categoryId,kitOption,profile.contributors.getOrElse(0),analisis.`type`,at)).thenReturn(Future.successful(Right(CategoryConfiguration())))
-          for (analysis <- profile.analyses.get) {
-            when(profileService.isExistingKit(analysis.kit)).thenReturn(Future.successful(true))
-          }
-
-          val interconnectionService = new InterconnectionServiceImpl(akkaSystem,
-            connectionRepository,
-            inferiorInstanceRepository,
-            categoryRepository,
-            mock[SuperiorInstanceProfileApprovalRepository]
-            , client
-            , userService
-            , roleService
-            , profileService
-            , null
-            , notificationService
-            , protocol
-            , status
-            , categoryTreeCombo
-            , insertConnection
-            , localUrl
-            , uploadProfile
-            , labCode,        profileDataServiceMock,
-            null,
-            null,
-            null,
-            null,
-            "tst-admin",
-            "1 seconds",
-            "1 seconds",
-            "1 seconds",
-            "1 seconds",
-            1000,
-            cacheService)
-
-
-          interconnectionService.importProfile(profile, "SHDG", "", "SHDG", "SHDG")
-
-        }
-        "importProfile with invalid category" in {
-          val connectionRepository = mock[ConnectionRepository]
-          val inferiorInstanceRepository = mock[InferiorInstanceRepository]
-          val userService = mock[UserService]
-          val roleService = mock[RoleService]
-          val notificationService = mock[NotificationService]
-          val categoryRepository = mock[CategoryRepository]
-          val profileService = mock[ProfileService]
-          val profile: Profile = Stubs.mixtureProfile
-
-          when(profileService.isExistingCategory(profile.categoryId)).thenReturn(false)
-
-          for (analysis <- profile.analyses.get) {
-            when(profileService.isExistingKit(analysis.kit)).thenReturn(Future.successful(true))
-          }
-
-          val interconnectionService = new InterconnectionServiceImpl(akkaSystem,
-            connectionRepository,
-            inferiorInstanceRepository,
-            categoryRepository,
-            mock[SuperiorInstanceProfileApprovalRepository]
-            , client
-            , userService
-            , roleService
-            , profileService
-            , null
-            , notificationService
-            , protocol
-            , status
-            , categoryTreeCombo
-            , insertConnection
-            , localUrl
-            , uploadProfile
-            , labCode,
-            profileDataServiceMock,
-            null,
-            null,
-            null,
-            null,
-            "tst-admin",
-            "1 seconds",
-            "1 seconds",
-            "1 seconds",
-            "1 seconds",
-            1000,
-            cacheService)
-
-          interconnectionService.importProfile(profile, "SHDG", "", "SHDG", "SHDG")
-
-        }
-        "importProfile with sample entry date" in {
-          val connectionRepository = mock[ConnectionRepository]
-          val inferiorInstanceRepository = mock[InferiorInstanceRepository]
-          val userService = mock[UserService]
-          val roleService = mock[RoleService]
-          val notificationService = mock[NotificationService]
-          val categoryRepository = mock[CategoryRepository]
-          val profileService = mock[ProfileService]
-          val profile: Profile = Stubs.mixtureProfile
-
-          when(profileService.isExistingCategory(profile.categoryId)).thenReturn(false)
-
-          for (analysis <- profile.analyses.get) {
-            when(profileService.isExistingKit(analysis.kit)).thenReturn(Future.successful(true))
-          }
-
-          val interconnectionService = new InterconnectionServiceImpl(akkaSystem,
-            connectionRepository,
-            inferiorInstanceRepository,
-            categoryRepository,
-            mock[SuperiorInstanceProfileApprovalRepository]
-            , client
-            , userService
-            , roleService
-            , profileService
-            , null
-            , notificationService
-            , protocol
-            , status
-            , categoryTreeCombo
-            , insertConnection
-            , localUrl
-            , uploadProfile
-            , labCode,        profileDataServiceMock,
-            null,
-            null,
-            null,
-            null,
-            "tst-admin",
-            "1 seconds",
-            "1 seconds",
-            "1 seconds",
-            "1 seconds",
-            1000,
-            cacheService)
-
-          interconnectionService.importProfile(profile, "SHDG", "1", "SHDG", "SHDG")
-
-        }
-        "approveProfile no ok" in {
-          val connectionRepository = mock[ConnectionRepository]
-          val inferiorInstanceRepository = mock[InferiorInstanceRepository]
-          val userService = mock[UserService]
-          val roleService = mock[RoleService]
-          val notificationService = mock[NotificationService]
-          val categoryRepository = mock[CategoryRepository]
-          val profileService = mock[ProfileService]
-          val superiorInstanceProfileApprovalRepository = mock[SuperiorInstanceProfileApprovalRepository]
-          val profile: Profile = Stubs.mixtureProfile
-          val profileApproval = ProfileApproval(profile.globalCode.text)
-          val profileDataService = mock[ProfileDataService]
-
-          when(profileService.isExistingCategory(profile.categoryId)).thenReturn(true)
-          when(profileDataService.findByCodeWithoutDetails(profile.globalCode)).thenReturn(Future.successful(Some(Stubs.profileData)))
-          when(profileService.findByCode(profile.globalCode)).thenReturn(Future.successful(Some(Stubs.mixtureProfile)))
-          //      when(profileService.updateProfile(anyObject[Profile])).thenReturn(Future.successful(profile.globalCode))
-          //      when(profileService.updateProfile(profile)).thenReturn(Future.successful(profile.globalCode))
-          //      when(profileService.existProfile(profile.globalCode)).thenReturn(Future.successful(true))
-          when(superiorInstanceProfileApprovalRepository.findByGlobalCode(profileApproval.globalCode))
-            .thenReturn(Future.successful(Right(SuperiorInstanceProfileApproval
-            (id = 0L,
-              globalCode = profile.globalCode.text,
-              profile = Json.toJson(Stubs.mixtureProfile).toString(),
-              laboratory = "SHDG",
-              laboratoryInstanceOrigin = "SHDG",
-              laboratoryImmediateInstance = "SHDG",
-              sampleEntryDate = None))))
-
-          when(superiorInstanceProfileApprovalRepository.upsert(anyObject[SuperiorInstanceProfileApproval])).thenReturn(Future.successful(Right(1L)))
-
-          for (analysis <- profile.analyses.get) {
-            when(profileService.isExistingKit(analysis.kit)).thenReturn(Future.successful(true))
-          }
-
-          val interconnectionService = new InterconnectionServiceImpl(akkaSystem,
-            connectionRepository,
-            inferiorInstanceRepository,
-            categoryRepository,
-            superiorInstanceProfileApprovalRepository
-            , client
-            , userService
-            , roleService
-            , profileService
-            , null
-            , notificationService
-            , protocol
-            , status
-            , categoryTreeCombo
-            , insertConnection
-            , localUrl
-            , uploadProfile
-            , labCode,
-            profileDataService,
-            null,
-            null,
-            null,
-            null,
-            "tst-admin",
-            "1 seconds",
-            "1 seconds",
-            "1 seconds",
-            "1 seconds",
-            1000,
-            cacheService)
-
-          val result = Await.result(interconnectionService.approveProfile(profileApproval), Duration.Inf)
-          result.isLeft mustBe true
-
-
-        }
-        "approveProfile non existent profile data ok" in {
-          val connectionRepository = mock[ConnectionRepository]
-          val inferiorInstanceRepository = mock[InferiorInstanceRepository]
-          val userService = mock[UserService]
-          val roleService = mock[RoleService]
-          val notificationService = mock[NotificationService]
-          val categoryRepository = mock[CategoryRepository]
-          val profileService = mock[ProfileService]
-          val superiorInstanceProfileApprovalRepository = mock[SuperiorInstanceProfileApprovalRepository]
-          val profile: Profile = Stubs.mixtureProfile
-          val profileApproval = ProfileApproval(profile.globalCode.text)
-          val profileDataService = mock[ProfileDataService]
-
-          when(profileService.isExistingCategory(profile.categoryId)).thenReturn(true)
-          when(profileDataService.findByCodeWithoutDetails(profile.globalCode)).thenReturn(Future.successful(None))
-          when(profileService.findByCode(profile.globalCode)).thenReturn(Future.successful(Some(Stubs.mixtureProfile)))
-          //      when(profileService.updateProfile(anyObject[Profile])).thenReturn(Future.successful(profile.globalCode))
-          //      when(profileService.updateProfile(profile)).thenReturn(Future.successful(profile.globalCode))
-          //      when(profileService.existProfile(profile.globalCode)).thenReturn(Future.successful(true))
-          when(profileDataService.importFromAnotherInstance(any[ProfileData], anyString(), anyString())).thenReturn(Future.successful(()))
-          when(profileService.addProfile(any[Profile])).thenReturn(Future.successful(profile.globalCode))
-
-          when(superiorInstanceProfileApprovalRepository.findByGlobalCode(profileApproval.globalCode))
-            .thenReturn(Future.successful(Right(SuperiorInstanceProfileApproval
-            (id = 0L,
-              globalCode = profile.globalCode.text,
-              profile = Json.toJson(Stubs.mixtureProfile).toString(),
-              laboratory = "SHDG",
-              laboratoryInstanceOrigin = "SHDG",
-              laboratoryImmediateInstance = "SHDG",
-              sampleEntryDate = None))))
-
-          when(superiorInstanceProfileApprovalRepository.upsert(anyObject[SuperiorInstanceProfileApproval])).thenReturn(Future.successful(Right(1L)))
-
-          for (analysis <- profile.analyses.get) {
-            when(profileService.isExistingKit(analysis.kit)).thenReturn(Future.successful(true))
-          }
-
-          val interconnectionService = new InterconnectionServiceImpl(akkaSystem,
-            connectionRepository,
-            inferiorInstanceRepository,
-            categoryRepository,
-            superiorInstanceProfileApprovalRepository
-            , client
-            , userService
-            , roleService
-            , profileService
-            , null
-            , notificationService
-            , protocol
-            , status
-            , categoryTreeCombo
-            , insertConnection
-            , localUrl
-            , uploadProfile
-            , labCode,
-            profileDataService,
-            null,
-            null,
-            null,
-            null,
-            "tst-admin",
-            "1 seconds",
-            "1 seconds",
-            "1 seconds",
-            "1 seconds",
-            1000,
-            cacheService)
-
-          val result = Await.result(interconnectionService.approveProfile(profileApproval), Duration.Inf)
-          result.isLeft mustBe true
-
-        }
-        "approveProfile invalid profile E0600" in {
-          val connectionRepository = mock[ConnectionRepository]
-          val inferiorInstanceRepository = mock[InferiorInstanceRepository]
-          val userService = mock[UserService]
-          val roleService = mock[RoleService]
-          val notificationService = mock[NotificationService]
-          val categoryRepository = mock[CategoryRepository]
-          val profileService = mock[ProfileService]
-          val superiorInstanceProfileApprovalRepository = mock[SuperiorInstanceProfileApprovalRepository]
-          val profile: Profile = Stubs.mixtureProfile
-          val profileApproval = ProfileApproval(profile.globalCode.text)
-          val profileDataService = mock[ProfileDataService]
-
-          when(profileService.isExistingCategory(profile.categoryId)).thenReturn(false)
-          when(profileDataService.findByCodeWithoutDetails(profile.globalCode)).thenReturn(Future.successful(None))
-          when(profileService.findByCode(profile.globalCode)).thenReturn(Future.successful(Some(Stubs.mixtureProfile)))
-          //      when(profileService.updateProfile(anyObject[Profile])).thenReturn(Future.successful(profile.globalCode))
-          //      when(profileService.updateProfile(profile)).thenReturn(Future.successful(profile.globalCode))
-          //      when(profileService.existProfile(profile.globalCode)).thenReturn(Future.successful(true))
-          when(profileDataService.importFromAnotherInstance(any[ProfileData], anyString(), anyString())).thenReturn(Future.successful(()))
-          when(profileService.addProfile(any[Profile])).thenReturn(Future.successful(profile.globalCode))
-
-          when(superiorInstanceProfileApprovalRepository.findByGlobalCode(profileApproval.globalCode))
-            .thenReturn(Future.successful(Right(SuperiorInstanceProfileApproval
-            (id = 0L,
-              globalCode = profile.globalCode.text,
-              profile = Json.toJson(Stubs.mixtureProfile).toString(),
-              laboratory = "SHDG",
-              laboratoryInstanceOrigin = "SHDG",
-              laboratoryImmediateInstance = "SHDG",
-              sampleEntryDate = None))))
-
-          when(superiorInstanceProfileApprovalRepository.upsert(anyObject[SuperiorInstanceProfileApproval])).thenReturn(Future.successful(Right(1L)))
-
-          for (analysis <- profile.analyses.get) {
-            when(profileService.isExistingKit(analysis.kit)).thenReturn(Future.successful(true))
-          }
-
-          val interconnectionService = new InterconnectionServiceImpl(akkaSystem,
-            connectionRepository,
-            inferiorInstanceRepository,
-            categoryRepository,
-            superiorInstanceProfileApprovalRepository
-            , client
-            , userService
-            , roleService
-            , profileService
-            , null
-            , notificationService
-            , protocol
-            , status
-            , categoryTreeCombo
-            , insertConnection
-            , localUrl
-            , uploadProfile
-            , labCode,
-            profileDataService,
-            null,
-            null,
-            null,
-            null,
-            "tst-admin",
-            "1 seconds",
-            "1 seconds",
-            "1 seconds",
-            "1 seconds",
-            1000,
-            cacheService)
-
-          val result = Await.result(interconnectionService.approveProfile(profileApproval), Duration.Inf)
-          result.isLeft mustBe true
-          result.left.get.contains("E0600: No existe la categoría MULTIPLE.") mustBe true
-
-        }
-        "approveProfiles ok" in {
-          val connectionRepository = mock[ConnectionRepository]
-          val inferiorInstanceRepository = mock[InferiorInstanceRepository]
-          val userService = mock[UserService]
-          val roleService = mock[RoleService]
-          val notificationService = mock[NotificationService]
-          val categoryRepository = mock[CategoryRepository]
-          val profileService = mock[ProfileService]
-          val superiorInstanceProfileApprovalRepository = mock[SuperiorInstanceProfileApprovalRepository]
-          val profile: Profile = Stubs.mixtureProfile
-          val profileApproval = ProfileApproval(profile.globalCode.text)
-          val profileDataService = mock[ProfileDataService]
-
-          when(profileService.isExistingCategory(profile.categoryId)).thenReturn(true)
-          when(profileDataService.findByCodeWithoutDetails(profile.globalCode)).thenReturn(Future.successful(Some(Stubs.profileData)))
-          when(profileService.findByCode(profile.globalCode)).thenReturn(Future.successful(Some(Stubs.mixtureProfile)))
-          //      when(profileService.updateProfile(anyObject[Profile])).thenReturn(Future.successful(profile.globalCode))
-          //      when(profileService.updateProfile(profile)).thenReturn(Future.successful(profile.globalCode))
-          //      when(profileService.existProfile(profile.globalCode)).thenReturn(Future.successful(true))
-          when(superiorInstanceProfileApprovalRepository.findByGlobalCode(profileApproval.globalCode))
-            .thenReturn(Future.successful(Right(SuperiorInstanceProfileApproval
-            (id = 0L,
-              globalCode = profile.globalCode.text,
-              profile = Json.toJson(Stubs.mixtureProfile).toString(),
-              laboratory = "SHDG",
-              laboratoryInstanceOrigin = "SHDG",
-              laboratoryImmediateInstance = "SHDG",
-              sampleEntryDate = None))))
-
-          when(superiorInstanceProfileApprovalRepository.upsert(anyObject[SuperiorInstanceProfileApproval])).thenReturn(Future.successful(Right(1L)))
-
-          for (analysis <- profile.analyses.get) {
-            when(profileService.isExistingKit(analysis.kit)).thenReturn(Future.successful(true))
-          }
-
-          val interconnectionService = new InterconnectionServiceImpl(akkaSystem,
-            connectionRepository,
-            inferiorInstanceRepository,
-            categoryRepository,
-            superiorInstanceProfileApprovalRepository
-            , client
-            , userService
-            , roleService
-            , profileService
-            , null
-            , notificationService
-            , protocol
-            , status
-            , categoryTreeCombo
-            , insertConnection
-            , localUrl
-            , uploadProfile
-            , labCode,
-            profileDataService,
-            null,
-            null,
-            null,
-            null,
-            "tst-admin",
-            "1 seconds",
-            "1 seconds",
-            "1 seconds",
-            "1 seconds",
-            1000,
-            cacheService)
-
-          val result = Await.result(interconnectionService.approveProfiles(List(profileApproval)), Duration.Inf)
-          result.isLeft mustBe true
-        }
-        "getPendingProfiles ok" in {
-          val connectionRepository = mock[ConnectionRepository]
-          val inferiorInstanceRepository = mock[InferiorInstanceRepository]
-          val userService = mock[UserService]
-          val roleService = mock[RoleService]
-          val notificationService = mock[NotificationService]
-          val categoryRepository = mock[CategoryRepository]
-          val profileService = mock[ProfileService]
-          val superiorInstanceProfileApprovalRepository = mock[SuperiorInstanceProfileApprovalRepository]
-          val profile: Profile = Stubs.mixtureProfile
-          val profileApproval = ProfileApproval(profile.globalCode.text)
-          val profileDataService = mock[ProfileDataService]
-
-          when(superiorInstanceProfileApprovalRepository.findAll(approvalSearch)).thenReturn(Future.successful(Nil))
-
-          val interconnectionService = new InterconnectionServiceImpl(akkaSystem,
-            connectionRepository,
-            inferiorInstanceRepository,
-            categoryRepository,
-            superiorInstanceProfileApprovalRepository
-            , client
-            , userService
-            , roleService
-            , profileService
-            , null
-            , notificationService
-            , protocol
-            , status
-            , categoryTreeCombo
-            , insertConnection
-            , localUrl
-            , uploadProfile
-            , labCode,
-            profileDataService,
-            null,
-            null,
-            null,
-            null,
-            "tst-admin",
-            "1 seconds",
-            "1 seconds",
-            "1 seconds",
-            "1 seconds",
-            1000,
-            cacheService)
-
-          val result = Await.result(interconnectionService.getPendingProfiles(approvalSearch), Duration.Inf)
-          result.isEmpty mustBe true
-        }
-        "notifyChangeStatus ok" in {
-          val connectionRepository = mock[ConnectionRepository]
-          val inferiorInstanceRepository = mock[InferiorInstanceRepository]
-          val userService = mock[UserService]
-          val roleService = mock[RoleService]
-          val notificationService = mock[NotificationService]
-          val categoryRepository = mock[CategoryRepository]
-          val profileService = mock[ProfileService]
-          val superiorInstanceProfileApprovalRepository = mock[SuperiorInstanceProfileApprovalRepository]
-          val profile: Profile = Stubs.mixtureProfile
-          val profileApproval = ProfileApproval(profile.globalCode.text)
-          val profileDataService = mock[ProfileDataService]
-
-          when(superiorInstanceProfileApprovalRepository.findAll(approvalSearch)).thenReturn(Future.successful(Nil))
-
-          val interconnectionService = new InterconnectionServiceImpl(akkaSystem,
-            connectionRepository,
-            inferiorInstanceRepository,
-            categoryRepository,
-            superiorInstanceProfileApprovalRepository
-            , client
-            , userService
-            , roleService
-            , profileService
-            , null
-            , notificationService
-            , protocol
-            , status
-            , categoryTreeCombo
-            , insertConnection
-            , localUrl
-            , uploadProfile
-            , labCode,
-            profileDataService,
-            null,
-            null,
-            null,
-            null,
-            "tst-admin",
-            "1 seconds",
-            "1 seconds",
-            "1 seconds",
-            "1 seconds",
-            1000,
-            cacheService)
-
-          Await.result(interconnectionService.notifyChangeStatus(profile.globalCode.text, "SHDG", 1L), Duration.Inf)
-
-        }
-//        "uploadProfile ok" in {
-//          val connectionRepository = mock[ConnectionRepository]
-//          val inferiorInstanceRepository = mock[InferiorInstanceRepository]
-//          val userService = mock[UserService]
-//          val roleService = mock[RoleService]
-//          val notificationService = mock[NotificationService]
-//          val categoryRepository = mock[CategoryRepository]
-//          val profileService = mock[ProfileService]
-//          val superiorInstanceProfileApprovalRepository = mock[SuperiorInstanceProfileApprovalRepository]
-//          val profile: Profile = Stubs.mixtureProfile
-//          val profileData: ProfileData = Stubs.profileData
-//          val profileApproval = ProfileApproval(profile.globalCode.text)
-//          val profileDataService = mock[ProfileDataService]
-//          val categoryService = mock[CategoryService]
-//
-//          when(profileService.get(profile.globalCode)).thenReturn(Future.successful(Some(profile)))
-//          when(profileDataService.get(profile.globalCode)).thenReturn(Future.successful(Some(profileData)))
-//          when(categoryService.getCategory(profileData.category)).thenReturn(Some(Stubs.fullCatA1))
-//          when(connectionRepository.getSupInstanceUrl()).thenReturn(Future.successful(Some("pdg-devclient:9000")))
-//
-//          when(connectionRepository.getConnections()).
-//            thenReturn(Future.successful(Right(Connection("pdg-devclient:9000", "dummyUrl"))))
-//
-//          when(categoryService.getCategoriesMappingById(profile.categoryId)).thenReturn(Future.successful(Some(profile.categoryId.text)))
-//          val uri = "http://pdg-devclient:9000" + uploadProfile
-//
-//          val ws = MockWS {
-//            case ("POST", uri) => Action {
-//              Ok
-//            }
-//          }
-//
-//          val interconnectionService = new InterconnectionServiceImpl(akkaSystem,
-//            connectionRepository,
-//            inferiorInstanceRepository,
-//            categoryRepository,
-//            superiorInstanceProfileApprovalRepository
-//            , ws
-//            , userService
-//            , roleService
-//            , profileService
-//            , notificationService
-//            , protocol
-//            , status
-//            , categoryTreeCombo
-//            , insertConnection
-//            , localUrl
-//            , uploadProfile
-//            , labCode,
-//            profileDataService,
-//            categoryService)
-//
-//          val result = Await.result(interconnectionService.uploadProfile(profile.globalCode.text), Duration.Inf)
-//          result.isRight mustBe true
-//
-//        }
-
-        "uploadProfile no esta mapeada la categoria de la instancia superior" in {
-          val connectionRepository = mock[ConnectionRepository]
-          val inferiorInstanceRepository = mock[InferiorInstanceRepository]
-          val userService = mock[UserService]
-          val roleService = mock[RoleService]
-          val notificationService = mock[NotificationService]
-          val categoryRepository = mock[CategoryRepository]
-          val profileService = mock[ProfileService]
-          val superiorInstanceProfileApprovalRepository = mock[SuperiorInstanceProfileApprovalRepository]
-          val profile: Profile = Stubs.mixtureProfile
-          val profileData: ProfileData = Stubs.profileData
-          val profileApproval = ProfileApproval(profile.globalCode.text)
-          val profileDataService = mock[ProfileDataService]
-          val categoryService = mock[CategoryService]
-          val traceService = mock[TraceService]
-
-          when(profileDataService.updateUploadStatus(profile.globalCode.text,1L)).thenReturn(Future.successful(Right(())))
-
-          when(profileService.get(profile.globalCode)).thenReturn(Future.successful(Some(profile)))
-          when(profileDataService.get(profile.globalCode)).thenReturn(Future.successful(Some(profileData)))
-          when(categoryService.getCategory(profileData.category)).thenReturn(Some(Stubs.fullCatA1))
-          when(connectionRepository.getSupInstanceUrl()).thenReturn(Future.successful(Some("pdg-devclient:9000")))
-
-          when(connectionRepository.getConnections()).
-            thenReturn(Future.successful(Right(Connection("pdg-devclient:9000", "dummyUrl"))))
-
-          when(categoryService.getCategoriesMappingById(profile.categoryId)).thenReturn(Future.successful(None))
-          when(traceService.add(any())).thenReturn(Future.successful(Right(1l)))
-
-          val uri = "http://pdg-devclient:9000" + uploadProfile
-
-          val ws = MockWS {
-            case ("POST", uri) => Action {
-              Ok
-            }
-          }
-
-          val interconnectionService = new InterconnectionServiceImpl(akkaSystem,
-            connectionRepository,
-            inferiorInstanceRepository,
-            categoryRepository,
-            superiorInstanceProfileApprovalRepository
-            , ws
-            , userService
-            , roleService
-            , profileService
-            , null
-            , notificationService
-            , protocol
-            , status
-            , categoryTreeCombo
-            , insertConnection
-            , localUrl
-            , uploadProfile
-            , labCode,
-            profileDataService,
-            categoryService,
-            traceService,
-            null,
-            null,
-            "tst-admin",
-            "1 seconds",
-            "1 seconds",
-            "1 seconds",
-            "1 seconds",
-            1000,
-            cacheService)
-
-          val result = Await.result(interconnectionService.uploadProfile(profile.globalCode.text), Duration.Inf)
-          result.isLeft mustBe true
-
-        }
-
-        "uploadProfile no se puede conectar con la instancia superior" in {
-          val connectionRepository = mock[ConnectionRepository]
-          val inferiorInstanceRepository = mock[InferiorInstanceRepository]
-          val userService = mock[UserService]
-          val roleService = mock[RoleService]
-          val notificationService = mock[NotificationService]
-          val categoryRepository = mock[CategoryRepository]
-          val profileService = mock[ProfileService]
-          val superiorInstanceProfileApprovalRepository = mock[SuperiorInstanceProfileApprovalRepository]
-          val profile: Profile = Stubs.mixtureProfile
-          val profileData: ProfileData = Stubs.profileData
-          val profileApproval = ProfileApproval(profile.globalCode.text)
-          val profileDataService = mock[ProfileDataService]
-          val categoryService = mock[CategoryService]
-          val traceService = mock[TraceService]
-
-          when(profileDataService.updateUploadStatus(profile.globalCode.text,1L)).thenReturn(Future.successful(Right(())))
-          when(profileService.get(profile.globalCode)).thenReturn(Future.successful(Some(profile)))
-          when(profileDataService.get(profile.globalCode)).thenReturn(Future.successful(Some(profileData)))
-          when(categoryService.getCategory(profileData.category)).thenReturn(Some(Stubs.fullCatA1))
-          when(connectionRepository.getSupInstanceUrl()).thenReturn(Future.successful(None))
-
-          when(categoryService.getCategoriesMappingById(profile.categoryId)).thenReturn(Future.successful(Some(profile.categoryId.text)))
-          when(traceService.add(any())).thenReturn(Future.successful(Right(1l)))
-
-          val interconnectionService = new InterconnectionServiceImpl(akkaSystem,
-            connectionRepository,
-            inferiorInstanceRepository,
-            categoryRepository,
-            superiorInstanceProfileApprovalRepository
-            , client
-            , userService
-            , roleService
-            , profileService
-            , null
-            , notificationService
-            , protocol
-            , status
-            , categoryTreeCombo
-            , insertConnection
-            , localUrl
-            , uploadProfile
-            , labCode,
-            profileDataService,
-            categoryService,
-            traceService,
-            null,
-            null,
-            "tst-admin",
-            "1 seconds",
-            "1 seconds",
-            "1 seconds",
-            "1 seconds",
-            1000,
-            cacheService)
-
-          val result = Await.result(interconnectionService.uploadProfile(profile.globalCode.text), Duration.Inf)
-          result.isLeft mustBe true
-
-        }
-
-        "rejectProfile ok" in {
-          val connectionRepository = mock[ConnectionRepository]
-          val inferiorInstanceRepository = mock[InferiorInstanceRepository]
-          val userService = mock[UserService]
-          val roleService = mock[RoleService]
-          val notificationService = mock[NotificationService]
-          val categoryRepository = mock[CategoryRepository]
-          val profileService = mock[ProfileService]
-          val superiorInstanceProfileApprovalRepository = mock[SuperiorInstanceProfileApprovalRepository]
-          val profile: Profile = Stubs.mixtureProfile
-          val profileApproval = ProfileApproval(profile.globalCode.text)
-          val profileDataService = mock[ProfileDataService]
-          val globalCode = Stubs.profileData.globalCode.text
-          val url = "http://clientUrl/inferior/profile/status?globalCode=AR-B-LAB-1&status=3"
-          when(inferiorInstanceRepository.findByLabCode("SHDG")).thenReturn(Future.successful(Some(InferiorInstance("clientUrl","SHDG"))))
-
-          val ws = MockWS {
-            case ("PUT", url) => Action {
-              Ok
-            }
-          }
-
-          when(profileService.isExistingCategory(profile.categoryId)).thenReturn(true)
-          when(profileDataService.findByCodeWithoutDetails(profile.globalCode)).thenReturn(Future.successful(Some(Stubs.profileData)))
-          when(profileService.findByCode(profile.globalCode)).thenReturn(Future.successful(Some(Stubs.mixtureProfile)))
-          when(superiorInstanceProfileApprovalRepository.deleteLogical(any[String],any[Option[String]],any[Option[java.sql.Timestamp]],any[Option[Long]],any[Option[String]])).thenReturn(Future.successful(Right(())))
-          when(superiorInstanceProfileApprovalRepository.findByGlobalCode(profileApproval.globalCode))
-            .thenReturn(Future.successful(Right(SuperiorInstanceProfileApproval
-            (id = 0L,
-              globalCode = profile.globalCode.text,
-              profile = Json.toJson(Stubs.mixtureProfile).toString(),
-              laboratory = "SHDG",
-              laboratoryInstanceOrigin = "SHDG",
-              laboratoryImmediateInstance = "SHDG",
-              sampleEntryDate = None))))
-
-          when(superiorInstanceProfileApprovalRepository.upsert(anyObject[SuperiorInstanceProfileApproval])).thenReturn(Future.successful(Right(1L)))
-
-          for (analysis <- profile.analyses.get) {
-            when(profileService.isExistingKit(analysis.kit)).thenReturn(Future.successful(true))
-          }
-
-          val interconnectionService = new InterconnectionServiceImpl(akkaSystem,
-            connectionRepository,
-            inferiorInstanceRepository,
-            categoryRepository,
-            superiorInstanceProfileApprovalRepository
-            , ws
-            , userService
-            , roleService
-            , profileService
-            , null
-            , notificationService
-            , protocol
-            , status
-            , categoryTreeCombo
-            , insertConnection
-            , localUrl
-            , uploadProfile
-            , labCode,
-            profileDataService,
-            null,
-            null,
-            null,
-            null,
-            "tst-admin",
-            "1 seconds",
-            "1 seconds",
-            "1 seconds",
-            "1 seconds",
-            1000,
-            cacheService)
-
-          val result = Await.result(interconnectionService.rejectProfile(ProfileApproval(profile.globalCode.text),"motivo",1L), Duration.Inf)
-          result.isRight mustBe true
-        }
-        "rejectProfile falla la coneción para actualizar el estado en la inferior" in {
-          val connectionRepository = mock[ConnectionRepository]
-          val inferiorInstanceRepository = mock[InferiorInstanceRepository]
-          val userService = mock[UserService]
-          val roleService = mock[RoleService]
-          val notificationService = mock[NotificationService]
-          val categoryRepository = mock[CategoryRepository]
-          val profileService = mock[ProfileService]
-          val superiorInstanceProfileApprovalRepository = mock[SuperiorInstanceProfileApprovalRepository]
-          val profile: Profile = Stubs.mixtureProfile
-          val profileApproval = ProfileApproval(profile.globalCode.text)
-          val profileDataService = mock[ProfileDataService]
-          val globalCode = Stubs.profileData.globalCode.text
-          val url = "http://clientUrl/inferior/profile/status?globalCode=AR-B-LAB-1&status=3"
-          when(inferiorInstanceRepository.findByLabCode("SHDG")).thenReturn(Future.successful(Some(InferiorInstance("clientUrl","SHDG"))))
-
-          val ws = MockWS {
-            case ("PUT", url) => Action {
-              BadRequest
-            }
-          }
-
-          when(profileService.isExistingCategory(profile.categoryId)).thenReturn(true)
-          when(profileDataService.findByCodeWithoutDetails(profile.globalCode)).thenReturn(Future.successful(Some(Stubs.profileData)))
-          when(profileService.findByCode(profile.globalCode)).thenReturn(Future.successful(Some(Stubs.mixtureProfile)))
-          when(superiorInstanceProfileApprovalRepository.deleteLogical(any[String],any[Option[String]],any[Option[java.sql.Timestamp]],any[Option[Long]],any[Option[String]])).thenReturn(Future.successful(Right(())))
-          when(superiorInstanceProfileApprovalRepository.findByGlobalCode(profileApproval.globalCode))
-            .thenReturn(Future.successful(Right(SuperiorInstanceProfileApproval
-            (id = 0L,
-              globalCode = profile.globalCode.text,
-              profile = Json.toJson(Stubs.mixtureProfile).toString(),
-              laboratory = "SHDG",
-              laboratoryInstanceOrigin = "SHDG",
-              laboratoryImmediateInstance = "SHDG",
-              sampleEntryDate = None))))
-
-          when(superiorInstanceProfileApprovalRepository.upsert(anyObject[SuperiorInstanceProfileApproval])).thenReturn(Future.successful(Right(1L)))
-
-          for (analysis <- profile.analyses.get) {
-            when(profileService.isExistingKit(analysis.kit)).thenReturn(Future.successful(true))
-          }
-
-          val interconnectionService = new InterconnectionServiceImpl(akkaSystem,
-            connectionRepository,
-            inferiorInstanceRepository,
-            categoryRepository,
-            superiorInstanceProfileApprovalRepository
-            , ws
-            , userService
-            , roleService
-            , profileService
-            , null
-            , notificationService
-            , protocol
-            , status
-            , categoryTreeCombo
-            , insertConnection
-            , localUrl
-            , uploadProfile
-            , labCode,
-            profileDataService,
-            null,
-            null,
-            null,
-            null,
-            "tst-admin",
-            "1 seconds",
-            "1 seconds",
-            "1 seconds",
-            "1 seconds",
-            1000,
-            cacheService)
-
-          val result = Await.result(interconnectionService.rejectProfile(ProfileApproval(profile.globalCode.text),"motivo",1L), Duration.Inf)
-          result.isRight mustBe true
-        }
-
-        "rejectProfile with not existeng global code" in {
-          val connectionRepository = mock[ConnectionRepository]
-          val inferiorInstanceRepository = mock[InferiorInstanceRepository]
-          val userService = mock[UserService]
-          val roleService = mock[RoleService]
-          val notificationService = mock[NotificationService]
-          val categoryRepository = mock[CategoryRepository]
-          val profileService = mock[ProfileService]
-          val superiorInstanceProfileApprovalRepository = mock[SuperiorInstanceProfileApprovalRepository]
-          val profile: Profile = Stubs.mixtureProfile
-          val profileApproval = ProfileApproval(profile.globalCode.text)
-          val profileDataService = mock[ProfileDataService]
-
-          when(superiorInstanceProfileApprovalRepository.delete(profileApproval.globalCode)).thenReturn(Future.successful(Right(())))
-          when(superiorInstanceProfileApprovalRepository.findByGlobalCode(profileApproval.globalCode))
-            .thenReturn(Future.successful(Left("No existe")))
-
-          val interconnectionService = new InterconnectionServiceImpl(akkaSystem,
-            connectionRepository,
-            inferiorInstanceRepository,
-            categoryRepository,
-            superiorInstanceProfileApprovalRepository
-            , client
-            , userService
-            , roleService
-            , profileService
-            , null
-            , notificationService
-            , protocol
-            , status
-            , categoryTreeCombo
-            , insertConnection
-            , localUrl
-            , uploadProfile
-            , labCode,
-            profileDataService,
-            null,
-            null,
-            null,
-            null,
-            "tst-admin",
-            "1 seconds",
-            "1 seconds",
-            "1 seconds",
-            "1 seconds",
-            1000,
-            cacheService)
-
-          val result = Await.result(interconnectionService.rejectProfile(ProfileApproval(profile.globalCode.text),"motivo",1L), Duration.Inf)
-          result.isLeft mustBe true
-        }
-        "validateAnalisis ok" in {
-          val connectionRepository = mock[ConnectionRepository]
-          val inferiorInstanceRepository = mock[InferiorInstanceRepository]
-          val userService = mock[UserService]
-          val roleService = mock[RoleService]
-          val notificationService = mock[NotificationService]
-          val categoryRepository = mock[CategoryRepository]
-          val profileService = mock[ProfileService]
-          val superiorInstanceProfileApprovalRepository = mock[SuperiorInstanceProfileApprovalRepository]
-          val profile: Profile = Stubs.mixtureProfile
-          val profileApproval = ProfileApproval(profile.globalCode.text)
-          val profileDataService = mock[ProfileDataService]
-          when(profileService.isExistingCategory(profile.categoryId)).thenReturn(true)
-          for (analysis <- profile.analyses.get) {
-            when(profileService.isExistingKit(analysis.kit)).thenReturn(Future.successful(true))
-            when(profileService.validateExistingLocusForKit(any[Profile.Genotypification],any[Option[String]])).thenReturn(Future.successful(Right(())))
-            when(profileService.validateExistingLocusForKit(analysis.genotypification,None)).thenReturn(Future.successful(Right(())))
-            when(profileService.validateExistingLocusForKit(analysis.genotypification,Some(analysis.kit))).thenReturn(Future.successful(Right(())))
-          }
-    //      when(profileService.validateExistingLocusForKit(any[Profile.Genotypification],any[Option[String]])).thenReturn(Future.successful(Right(())))
-
-          val interconnectionService = new InterconnectionServiceImpl(akkaSystem,
-            connectionRepository,
-            inferiorInstanceRepository,
-            categoryRepository,
-            superiorInstanceProfileApprovalRepository
-            , client
-            , userService
-            , roleService
-            , profileService
-            , null
-            , notificationService
-            , protocol
-            , status
-            , categoryTreeCombo
-            , insertConnection
-            , localUrl
-            , uploadProfile
-            , labCode,
-            profileDataService,
-            null,
-            null,
-            null,
-            null,
-            "tst-admin",
-            "1 seconds",
-            "1 seconds",
-            "1 seconds",
-            "1 seconds",
-            1000,
-            cacheService)
-
-          val result = Await.result(interconnectionService.validateAnalysis(profile), Duration.Inf)
-          result.forall(x => x.isRight) mustBe true
-
-        }
-
-        "updateUploadStatus ok" in {
-          val connectionRepository = mock[ConnectionRepository]
-          val inferiorInstanceRepository = mock[InferiorInstanceRepository]
-          val profileDataService = mock[ProfileDataService]
-          when(profileDataService.updateUploadStatus("GLOBALCODE",1L,None)).thenReturn(Future.successful(Right(())))
-          val interconnectionService =  new InterconnectionServiceImpl(akkaSystem,connectionRepository, inferiorInstanceRepository, mock[CategoryRepository], mock[SuperiorInstanceProfileApprovalRepository], client, null, null, null, null
-          , null, protocol, status, categoryTreeCombo, insertConnection, localUrl, uploadProfile, labCode,profileDataService,
-            null,
-            null,
-            null,
-            null,
-            "tst-admin",
-            "1 seconds",
-            "1 seconds",
-            "1 seconds",
-            "1 seconds",
-            1000,
-            cacheService)
-
-          val result = Await.result(interconnectionService.updateUploadStatus("GLOBALCODE",1L,None), duration)
-
-          result.isRight mustBe true
-        }
+      }
+
+      when(profileService.isExistingCategory(profile.categoryId)).thenReturn(true)
+      when(profileDataService.findByCodeWithoutDetails(profile.globalCode)).thenReturn(Future.successful(Some(Stubs.profileData)))
+      when(profileService.findByCode(profile.globalCode)).thenReturn(Future.successful(Some(Stubs.mixtureProfile)))
+      when(superiorInstanceProfileApprovalRepository.deleteLogical(any[String],any[Option[String]],any[Option[java.sql.Timestamp]],any[Option[Long]],any[Option[String]])).thenReturn(Future.successful(Right(())))
+      when(superiorInstanceProfileApprovalRepository.findByGlobalCode(profileApproval.globalCode))
+        .thenReturn(Future.successful(Right(SuperiorInstanceProfileApproval
+        (id = 0L,
+          globalCode = profile.globalCode.text,
+          profile = Json.toJson(Stubs.mixtureProfile).toString(),
+          laboratory = "SHDG",
+          laboratoryInstanceOrigin = "SHDG",
+          laboratoryImmediateInstance = "SHDG",
+          sampleEntryDate = None))))
+
+      when(superiorInstanceProfileApprovalRepository.upsert(anyObject[SuperiorInstanceProfileApproval])).thenReturn(Future.successful(Right(1L)))
+
+      for (analysis <- profile.analyses.get) {
+        when(profileService.isExistingKit(analysis.kit)).thenReturn(Future.successful(true))
+      }
+
+      val interconnectionService = new InterconnectionServiceImpl(akkaSystem,
+        connectionRepository,
+        inferiorInstanceRepository,
+        categoryRepository,
+        superiorInstanceProfileApprovalRepository
+        , ws
+        , userService
+        , roleService
+        , profileService
+        , null
+        , notificationService
+        , protocol
+        , status
+        , categoryTreeCombo
+        , insertConnection
+        , localUrl
+        , uploadProfile
+        , labCode,
+        profileDataService,
+        null,
+        null,
+        null,
+        null,
+        "tst-admin",
+        "1 seconds",
+        "1 seconds",
+        "1 seconds",
+        "1 seconds",
+        1000,
+        cacheService)
+
+      val result = Await.result(interconnectionService.rejectProfile(ProfileApproval(profile.globalCode.text),"motivo",1L), Duration.Inf)
+      result.isRight mustBe true
+    }
+
+    "rejectProfile with not existeng global code" in {
+      val connectionRepository = mock[ConnectionRepository]
+      val inferiorInstanceRepository = mock[InferiorInstanceRepository]
+      val userService = mock[UserService]
+      val roleService = mock[RoleService]
+      val notificationService = mock[NotificationService]
+      val categoryRepository = mock[CategoryRepository]
+      val profileService = mock[ProfileService]
+      val superiorInstanceProfileApprovalRepository = mock[SuperiorInstanceProfileApprovalRepository]
+      val profile: Profile = Stubs.mixtureProfile
+      val profileApproval = ProfileApproval(profile.globalCode.text)
+      val profileDataService = mock[ProfileDataService]
+
+      when(superiorInstanceProfileApprovalRepository.delete(profileApproval.globalCode)).thenReturn(Future.successful(Right(())))
+      when(superiorInstanceProfileApprovalRepository.findByGlobalCode(profileApproval.globalCode))
+        .thenReturn(Future.successful(Left("No existe")))
+
+      val interconnectionService = new InterconnectionServiceImpl(akkaSystem,
+        connectionRepository,
+        inferiorInstanceRepository,
+        categoryRepository,
+        superiorInstanceProfileApprovalRepository
+        , client
+        , userService
+        , roleService
+        , profileService
+        , null
+        , notificationService
+        , protocol
+        , status
+        , categoryTreeCombo
+        , insertConnection
+        , localUrl
+        , uploadProfile
+        , labCode,
+        profileDataService,
+        null,
+        null,
+        null,
+        null,
+        "tst-admin",
+        "1 seconds",
+        "1 seconds",
+        "1 seconds",
+        "1 seconds",
+        1000,
+        cacheService)
+
+      val result = Await.result(interconnectionService.rejectProfile(ProfileApproval(profile.globalCode.text),"motivo",1L), Duration.Inf)
+      result.isLeft mustBe true
+    }
+    "validateAnalisis ok" in {
+      val connectionRepository = mock[ConnectionRepository]
+      val inferiorInstanceRepository = mock[InferiorInstanceRepository]
+      val userService = mock[UserService]
+      val roleService = mock[RoleService]
+      val notificationService = mock[NotificationService]
+      val categoryRepository = mock[CategoryRepository]
+      val profileService = mock[ProfileService]
+      val superiorInstanceProfileApprovalRepository = mock[SuperiorInstanceProfileApprovalRepository]
+      val profile: Profile = Stubs.mixtureProfile
+      val profileApproval = ProfileApproval(profile.globalCode.text)
+      val profileDataService = mock[ProfileDataService]
+      when(profileService.isExistingCategory(profile.categoryId)).thenReturn(true)
+      for (analysis <- profile.analyses.get) {
+        when(profileService.isExistingKit(analysis.kit)).thenReturn(Future.successful(true))
+        when(profileService.validateExistingLocusForKit(any[Profile.Genotypification],any[Option[String]])).thenReturn(Future.successful(Right(())))
+        when(profileService.validateExistingLocusForKit(analysis.genotypification,None)).thenReturn(Future.successful(Right(())))
+        when(profileService.validateExistingLocusForKit(analysis.genotypification,Some(analysis.kit))).thenReturn(Future.successful(Right(())))
+      }
+      //      when(profileService.validateExistingLocusForKit(any[Profile.Genotypification],any[Option[String]])).thenReturn(Future.successful(Right(())))
+
+      val interconnectionService = new InterconnectionServiceImpl(akkaSystem,
+        connectionRepository,
+        inferiorInstanceRepository,
+        categoryRepository,
+        superiorInstanceProfileApprovalRepository
+        , client
+        , userService
+        , roleService
+        , profileService
+        , null
+        , notificationService
+        , protocol
+        , status
+        , categoryTreeCombo
+        , insertConnection
+        , localUrl
+        , uploadProfile
+        , labCode,
+        profileDataService,
+        null,
+        null,
+        null,
+        null,
+        "tst-admin",
+        "1 seconds",
+        "1 seconds",
+        "1 seconds",
+        "1 seconds",
+        1000,
+        cacheService)
+
+      val result = Await.result(interconnectionService.validateAnalysis(profile), Duration.Inf)
+      result.forall(x => x.isRight) mustBe true
+
+    }
+
+    "updateUploadStatus ok" in {
+      val connectionRepository = mock[ConnectionRepository]
+      val inferiorInstanceRepository = mock[InferiorInstanceRepository]
+      val profileDataService = mock[ProfileDataService]
+      when(profileDataService.updateUploadStatus("GLOBALCODE",1L,Option.empty[String],Option.empty[String])).thenReturn(Future.successful(Right(())))
+      val interconnectionService =  new InterconnectionServiceImpl(akkaSystem,connectionRepository, inferiorInstanceRepository, mock[CategoryRepository], mock[SuperiorInstanceProfileApprovalRepository], client, null, null, null, null
+        , null, protocol, status, categoryTreeCombo, insertConnection, localUrl, uploadProfile, labCode,profileDataService,
+        null,
+        null,
+        null,
+        null,
+        "tst-admin",
+        "1 seconds",
+        "1 seconds",
+        "1 seconds",
+        "1 seconds",
+        1000,
+        cacheService)
+
+      val result = Await.result(interconnectionService.updateUploadStatus("GLOBALCODE",1L,None), duration)
+
+      result.isRight mustBe true
+    }
 
     "delete superior pendiente de aprobacion ok" in {
       val connectionRepository = mock[ConnectionRepository]
@@ -1809,7 +1809,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
       when(superiorInstanceProfileApprovalRepository.deleteLogical(any[String],any[Option[String]],any[Option[java.sql.Timestamp]],any[Option[Long]],any[Option[String]])).thenReturn(Future.successful(Right(())))
 
       val interconnectionService =  new InterconnectionServiceImpl(akkaSystem,connectionRepository, inferiorInstanceRepository, mock[CategoryRepository],superiorInstanceProfileApprovalRepository, client, null, null, profileService, null
-      , null, protocol, status, categoryTreeCombo, insertConnection, localUrl, uploadProfile, labCode,profileDataService,
+        , null, protocol, status, categoryTreeCombo, insertConnection, localUrl, uploadProfile, labCode,profileDataService,
         null,
         null,
         null,
@@ -1822,7 +1822,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         1000,
         cacheService)
 
-      val result = Await.result(interconnectionService.receiveDeleteProfile("AR-C-SHDG-1190",DeletedMotive("ahierro", "motivo", 2),"",""), duration)
+      val result = Await.result(interconnectionService.receiveDeleteProfile("AR-C-SHDG-1190",DeletedMotive("ahierro", "motivo", 2),"","", true), duration)
 
       result.isRight mustBe true
     }
@@ -1852,7 +1852,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         1000,
         cacheService)
 
-      val result = Await.result(interconnectionService.receiveDeleteProfile("AR-C-SHDG-1190",DeletedMotive("ahierro", "motivo", 2),"",""), duration)
+      val result = Await.result(interconnectionService.receiveDeleteProfile("AR-C-SHDG-1190",DeletedMotive("ahierro", "motivo", 2),"","", true), duration)
 
       result.isLeft mustBe true
     }
@@ -1894,7 +1894,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         1000,
         cacheService)
 
-      val result = Await.result(interconnectionService.receiveDeleteProfile("AR-C-SHDG-1190",DeletedMotive("ahierro", "motivo", 2),"",""), duration)
+      val result = Await.result(interconnectionService.receiveDeleteProfile("AR-C-SHDG-1190",DeletedMotive("ahierro", "motivo", 2),"","", true), duration)
 
       result.isRight mustBe true
     }
@@ -1927,7 +1927,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         1000,
         cacheService)
 
-      val result = Await.result(interconnectionService.receiveDeleteProfile("AR-C-SHDG-1190",DeletedMotive("ahierro", "motivo", 2L),"",""), duration)
+      val result = Await.result(interconnectionService.receiveDeleteProfile("AR-C-SHDG-1190",DeletedMotive("ahierro", "motivo", 2L),"","", true), duration)
 
       result.isLeft mustBe true
     }
@@ -1977,7 +1977,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         1000,
         cacheService)
 
-      val result = Await.result(interconnectionService.doInferiorDeleteProfile(SampleCode("AR-C-SHDG-1190"),DeletedMotive("solicitor","motive",2L)), duration)
+      val result = Await.result(interconnectionService.doInferiorDeleteProfile(SampleCode("AR-C-SHDG-1190"),DeletedMotive("solicitor","motive"), ""), duration)
       result.mustBe(())
     }
     "do inferior delete profile profile approved" in {
@@ -1993,7 +1993,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
           Ok
         }
       }
-      when(profileDataService.updateUploadStatus(any[String],any[Long],any[Option[String]])).thenReturn(Future.successful(Right(())))
+      when(profileDataService.updateUploadStatus(any[String],any[Long],any[Option[String]],any[Option[String]])).thenReturn(Future.successful(Right(())))
 
       when(profileDataService.getProfileUploadStatusByGlobalCode(any[SampleCode])).thenReturn(Future.successful(Some(4L)))
       val interconnectionService =  new InterconnectionServiceImpl(akkaSystem,connectionRepository, inferiorInstanceRepository, mock[CategoryRepository],superiorInstanceProfileApprovalRepository, ws, null, null, profileService, null
@@ -2010,7 +2010,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         1000,
         cacheService)
 
-      val result = Await.result(interconnectionService.doInferiorDeleteProfile(SampleCode("AR-C-SHDG-1190"),DeletedMotive("solicitor","motive",2L)), duration)
+      val result = Await.result(interconnectionService.doInferiorDeleteProfile(SampleCode("AR-C-SHDG-1190"),DeletedMotive("solicitor","motive"), url), duration)
       result.mustBe(())
     }
 
@@ -2027,7 +2027,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
           InternalServerError
         }
       }
-      when(profileDataService.updateUploadStatus(any[String],any[Long],any[Option[String]])).thenReturn(Future.successful(Right(())))
+      when(profileDataService.updateUploadStatus(any[String],any[Long],any[Option[String]],any[Option[String]])).thenReturn(Future.successful(Right(())))
 
       when(profileDataService.getProfileUploadStatusByGlobalCode(SampleCode("AR-C-SHDG-1190"))).thenReturn(Future.successful(Some(4L)))
       val interconnectionService =  new InterconnectionServiceImpl(akkaSystem,connectionRepository, inferiorInstanceRepository, mock[CategoryRepository],superiorInstanceProfileApprovalRepository, ws, null, null, profileService, null
@@ -2044,7 +2044,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         1000,
         cacheService)
 
-      val result = Await.result(interconnectionService.doInferiorDeleteProfile(SampleCode("AR-C-SHDG-1190"),DeletedMotive("solicitor","motive",2L)), duration)
+      val result = Await.result(interconnectionService.doInferiorDeleteProfile(SampleCode("AR-C-SHDG-1190"),DeletedMotive("solicitor","motive"),url), duration)
       result.mustBe(())
     }
   }

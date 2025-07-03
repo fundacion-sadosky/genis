@@ -348,6 +348,33 @@ define(['jquery','lodash'], function($,_) {
                 getAllBatches();
         };
 
+        $scope.importAndReplicateBatch = function(batch){
+            batch.isProcessing = true;
+            var protoprofilesFromBatch= $scope.protoProfiles[batch.id];
+            var replicateAll = true; // Set to true to replicate all
+            var idsToReplicate = [];
+            if(!_.isUndefined(protoprofilesFromBatch)){
+                protoprofilesFromBatch.forEach(function(sample) {
+                    if(sample.replicateDisabled){
+                        sample.replicate=false;
+                    } else {
+                        sample.replicate = true;
+                        idsToReplicate.push(sample.id);
+                    }
+
+                });
+            }
+
+            bulkuploadService.changeBatchStatus(batch.id, 'Imported',idsToReplicate,replicateAll).then(function() {
+                batch.isProcessing = false;
+                getBatchProtoProfiles(batch);
+                alertService.success({message: 'Se ha importado el lote exitosamente y se ha replicado.'});
+            }, function(response) {
+                batch.isProcessing = false;
+                getBatchProtoProfiles(batch);
+                alertService.error({message: ' Hubo un error: ' + response.data});
+            });
+        };
 	}
 	
 	return Step2Controller;

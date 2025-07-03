@@ -15,13 +15,13 @@ import connections._
 import play.api.Logger
 import play.api.i18n.Messages
 import types.SampleCode
-import profiledata.ProfileDataService
+import profiledata.{DeletedMotive, ProfileDataService}
 
 @Singleton
 class Interconnections @Inject()(
-  interconnectionService : InterconnectionService,
-  profiledataService: ProfileDataService
-) extends Controller {
+                                  interconnectionService : InterconnectionService,
+                                  profiledataService: ProfileDataService
+                                ) extends Controller {
   val logger: Logger = Logger(this.getClass())
 
   def getConnections = Action.async {
@@ -81,14 +81,14 @@ class Interconnections @Inject()(
       val laboratory = request.headers.get(HeaderInsterconnections.laboratoryImmediateInstance)
 
       (url,laboratory) match {
-         case (Some(urlContent),Some(laboratory)) => {
-           interconnectionService.insertInferiorInstanceConnection(urlContent,laboratory).map{
-             case Left(e) => BadRequest(Json.obj("message" -> e))
-             case Right(()) => Ok.withHeaders("X-CREATED-ID" -> laboratory)
-           }
-         }
-         case (_,_) => Future.successful(BadRequest(Json.obj("message" -> "Debe completar los parámetros de url ")))
-       }
+        case (Some(urlContent),Some(laboratory)) => {
+          interconnectionService.insertInferiorInstanceConnection(urlContent,laboratory).map{
+            case Left(e) => BadRequest(Json.obj("message" -> e))
+            case Right(()) => Ok.withHeaders("X-CREATED-ID" -> laboratory)
+          }
+        }
+        case (_,_) => Future.successful(BadRequest(Json.obj("message" -> "Debe completar los parámetros de url ")))
+      }
 
     }
 
@@ -126,7 +126,7 @@ class Interconnections @Inject()(
         })
     }
   }
-// Instancia superior recibe profile
+  // Instancia superior recibe profile
   def importProfile(): Action[JsValue] = Action.async(BodyParsers.parse.json) {
 
     request => {
@@ -144,7 +144,7 @@ class Interconnections @Inject()(
           Some(dateAdded),
           Some(labCodeInstanceOrigin),
           Some(labCodeInmediateInstanceOrigin)
-        ) =>
+          ) =>
           val input = request.body.validate[connections.ProfileTransfer]
           input.fold(
             errors => {
@@ -171,8 +171,8 @@ class Interconnections @Inject()(
       }
     }
   }
-  // instancia superior recibe el codigo de profile a borrar
-  def deleteProfile(id:String) = Action.async(BodyParsers.parse.json) {
+  // instancia superior recibe el codigo de profile borrado en la instancia inferior
+  def deleteProfileFromInferior(id:String) = Action.async(BodyParsers.parse.json) {
     request =>{
       val labcode = request.headers.get(HeaderInsterconnections.labCode)
       val labCodeInstanceOrigin = request.headers.get(HeaderInsterconnections.laboratoryOrigin)
@@ -185,7 +185,34 @@ class Interconnections @Inject()(
             Future.successful(BadRequest(JsError.toFlatJson(errors)))
           },
             motive => {
-              interconnectionService.receiveDeleteProfile(id,motive,lio,li).map{
+              interconnectionService.receiveDeleteProfile(id,motive,lio,li, true).map{
+                case Left(e) => BadRequest(Json.obj("message" -> e))
+                case Right(_) => Ok.withHeaders("X-CREATED-ID" -> id.toString)
+              }
+            })
+        }
+        case (_,_,_) => {
+          Future.successful(BadRequest)
+        }
+      }
+    }
+  }
+
+  // instancia superior recibe el codigo de profile borrado en la instancia inferior
+  def deleteProfileFromSuperior(id:String) = Action.async(BodyParsers.parse.json) {
+    request =>{
+      val labcode = request.headers.get(HeaderInsterconnections.labCode)
+      val labCodeInstanceOrigin = request.headers.get(HeaderInsterconnections.laboratoryOrigin)
+      val labCodeImmediateInstance = request.headers.get(HeaderInsterconnections.laboratoryImmediateInstance)
+
+      (labcode,labCodeInstanceOrigin,labCodeImmediateInstance) match {
+        case (Some(labcode),Some(lio),Some(li)) =>{
+          val input = request.body.validate[profiledata.DeletedMotive]
+          input.fold(errors => {
+            Future.successful(BadRequest(JsError.toFlatJson(errors)))
+          },
+            motive => {
+              interconnectionService.receiveDeleteProfile(id,motive,lio,li, false).map{
                 case Left(e) => BadRequest(Json.obj("message" -> e))
                 case Right(_) => Ok.withHeaders("X-CREATED-ID" -> id.toString)
               }
@@ -198,6 +225,7 @@ class Interconnections @Inject()(
     }
   }
   def approveProfiles(): Action[JsValue] = Action.async(BodyParsers.parse.json){
+
     request =>{
       val input = request.body.validate[List[ProfileApproval]]
       input.fold(errors => {
@@ -206,17 +234,46 @@ class Interconnections @Inject()(
         approvals => {
           interconnectionService
             .approveProfiles(approvals)
-            .map{
-            case Left(e) => BadRequest(Json.obj("message" -> e))
-            case Right(()) => Ok.withHeaders(
-              "X-CREATED-ID" -> approvals
-                .map(a=>a.globalCode)
-                .mkString(start = "[",sep =",",end ="]")
-            )
-          }
+            .flatMap{
+              case Left(e) => Future.successful(BadRequest(Json.obj("message" -> e)))
+              case Right(()) => {
+                // After successful approval, insert into PROFILE_RECEIVED
+
+                Future.sequence(approvals.map(approval => {
+                  val labCode: Option[String] = getLabCodeFromGlobalCode(approval.globalCode)
+
+                  labCode match {
+                    //Insertar el perfil en PROFILE_RECEIVED table
+                    case Some(code) =>  profiledataService.addProfileReceivedApproved(code, approval.globalCode) // Using profiledataService to access the repository
+                    case None => Future.successful(Left("Invalid global code format")) // Or handle the missing labCode case
+                  }
+                })).map { results =>
+                  // Handle results of addProfileReceived calls
+                  if (results.forall(_.isRight)) {
+                    Ok.withHeaders(
+                      "X-CREATED-ID" -> approvals
+                        .map(a=>a.globalCode)
+                        .mkString(start = "[",sep =",",end ="]")
+                    )
+                  } else {
+                    // If any insertion fails, return an error (you might want more specific error handling)
+                    InternalServerError(Json.obj("message" -> "Error inserting into PROFILE_RECEIVED"))
+                  }
+                }
+
+              }
+            }
         }
       )
 
+    }
+  }
+  private def getLabCodeFromGlobalCode(globalCode: String): Option[String] = {
+    val parts = globalCode.split("-")
+    if (parts.length >= 4) {
+      Some(parts(2))
+    } else {
+      None  // Or handle the case where the globalCode doesn't have the expected format
     }
   }
 
@@ -236,15 +293,26 @@ class Interconnections @Inject()(
     }
   }
 
+
   def rejectPendingProfile(id: String,motive:String,idMotive:Long) = Action.async {
-      request => {
-        val user = request.headers.get("X-USER")
-          interconnectionService.rejectProfile(ProfileApproval(id),motive,idMotive,user).map{
-            case Left(e) => BadRequest(Json.obj("message" -> e))
-            case Right(()) => Ok.withHeaders("X-CREATED-ID" -> id)
+    request => {
+      val user = request.headers.get("X-USER")
+      interconnectionService.rejectProfile(ProfileApproval(id),motive,idMotive,user).map{
+        case Left(e) => BadRequest(Json.obj("message" -> e))
+        case Right(()) => {
+          val labCode: Option[String] = getLabCodeFromGlobalCode(id)
+          labCode match {
+            //Insertar el perfil en PROFILE_RECEIVED table
+            case Some(code) => profiledataService.addProfileReceivedRejected(code, id, motive)// Using profiledataService to access the repository
+            case None => Future.successful(Left("Invalid global code format")) // Or handle the missing labCode case
           }
+          Ok.withHeaders("X-CREATED-ID" -> id)
+        }
+      }
     }
   }
+
+
 
   def uploadProfile(globalCode:String) = Action.async {
     _ => {
@@ -256,11 +324,11 @@ class Interconnections @Inject()(
   }
 
   def updateUploadStatus(
-    globalCode: String,
-    status:Long,
-    motive:Option[String],
-    isCategoryModification:Boolean = false
-  ): Action[AnyContent] = Action.async {
+                          globalCode: String,
+                          status:Long,
+                          motive:Option[String],
+                          isCategoryModification:Boolean = false
+                        ): Action[AnyContent] = Action.async {
     _ => {
       interconnectionService
         .updateUploadStatus(globalCode, status, motive, isCategoryModification)
@@ -270,7 +338,7 @@ class Interconnections @Inject()(
         }
     }
   }
-  
+
   def getUploadStatus(globalCode: String): Action[AnyContent] = Action.async {
     _ => {
       profiledataService

@@ -38,25 +38,29 @@
 </div>
 
 </br>
-<accordion close-others="false">
-	<accordion-group ng-repeat="l in batches" is-open="l.isOpen">
-		<accordion-heading>
-			<table class="table-accordeon">
-				<tr class="row-accordeon">
-					<td class="col-md-8"><span>Lote #{{l.id}}	{{l.analysisType}} {{l.label}}</span></td>
-					<td class="col-md-1"></td>
-					<td class="col-md-1">
-						<button class="btn btn-secondary-action " ng-click="$event.stopPropagation();$event.preventDefault();importBatch(l)"  ng-disabled="l.isProcessing || l.totalForApprovalOrImport==0 || protoProfiles[l.id].todosAprobados" >Aceptar todo</button>
-					</td>
-					<td class="col-md-1">
-						<button class="btn btn-secondary-action " ng-click="$event.stopPropagation();$event.preventDefault();" pdg-confirm pdg-confirm-title="Confirmar eliminación del lote" pdg-confirm-content="¿Está seguro de eliminar el lote?" pdg-on-confirm="doDeleteBatch" param="{{l}}" ng-disabled="l.isProcessing" >Eliminar</button>
-					</td>
-					<td class="col-md-1">
-						<i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-down': l.isOpen, 'glyphicon-chevron-right': !l.isOpen}"></i>
-					</td>
-				</tr>
-			</table>
-		</accordion-heading>
+<<accordion close-others="false">
+						<accordion-group ng-repeat="l in batches" is-open="l.isOpen">
+							<accordion-heading>
+								<table class="table-accordeon">
+									<tr class="row-accordeon">
+										<td class="col-md-8"><span>Lote #{{l.id}}	{{l.analysisType}} {{l.label}}</span></td>
+										<td class="col-md-1"></td>
+										<td class="col-md-1">
+											<button class="btn btn-secondary-action " ng-click="$event.stopPropagation();$event.preventDefault();importBatch(l)"  ng-disabled="l.isProcessing || l.totalForApprovalOrImport==0 || protoProfiles[l.id].todosAprobados" >Aceptar todo</button>
+										</td>
+										<!-- ADD THIS LINE -->
+										<td class="col-md-1">
+											<button class="btn btn-secondary-action " ng-click="$event.stopPropagation();$event.preventDefault();importAndReplicateBatch(l)"  ng-disabled="l.isProcessing || l.totalForApprovalOrImport==0 || protoProfiles[l.id].todosAprobados" >Aceptar todo y replicar</button>
+										</td>
+										<td class="col-md-1">
+											<button class="btn btn-secondary-action " ng-click="$event.stopPropagation();$event.preventDefault();" pdg-confirm pdg-confirm-title="Confirmar eliminación del lote" pdg-confirm-content="¿Está seguro de eliminar el lote?" pdg-on-confirm="doDeleteBatch" param="{{l}}" ng-disabled="l.isProcessing" >Eliminar</button>
+										</td>
+										<td class="col-md-1">
+											<i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-down': l.isOpen, 'glyphicon-chevron-right': !l.isOpen}"></i>
+										</td>
+									</tr>
+								</table>
+							</accordion-heading>
 
 		<button class="btn btn-link-action" ng-click="selectAll(l.id)" ng-disabled="l.isProcessing || protoProfiles[l.id].todosAprobados"><span class="glyphicon glyphicon-ok" aria-hidden="true"></span><span> Seleccionar todos</span></button>
 		<button class="btn btn-secondary-action" ng-click="importSelected(l)" ng-disabled="l.isProcessing || protoProfiles[l.id].todosAprobados">Aceptar seleccionados</button>
