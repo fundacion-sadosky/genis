@@ -12,8 +12,8 @@ define([],function() {
         this.approveProfiles = function (data) {
             return playRoutes.controllers.Interconnections.approveProfiles().post(data);
         };
-        this.rejectPendingProfile = function (id,res) {
-            return playRoutes.controllers.Interconnections.rejectPendingProfile(id,res.motive,parseInt(res.idMotive)).delete();
+        this.rejectPendingProfile = function (id, res, userName) { // Add userName parameter
+            return playRoutes.controllers.Interconnections.rejectPendingProfile(id,res.motive,parseInt(res.idMotive),userName).delete();
         };
         this.getMotives = function()  {
             var motiveTypeReject =  1;

@@ -2,6 +2,7 @@ package profiledata
 
 import models.Tables.ProfileUploadedRow
 import models.Tables.ProfileSentRow
+import models.Tables.ProfileReceivedRow
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
@@ -119,7 +120,8 @@ abstract class ProfileDataRepository extends DefaultDb with Transaction  {
                           globalCode: String,
                           status:Long,
                           motive:Option[String],
-                          interconnection_error:Option[String]
+                          interconnection_error:Option[String],
+                          userName:Option[String]
                         ): Future[Either[String,Unit]]
   def findUploadedProfilesByCodes(
                                    globalCodes: Seq[SampleCode]
@@ -144,13 +146,20 @@ abstract class ProfileDataRepository extends DefaultDb with Transaction  {
                              ): Future[Either[String,Unit]]
   def getMtRcrs():Future[MtRCRS]
 
-  def updateInterconnectionError(globalCode: String, status: Long, interconnection_error: String): Future[Either[String, Unit]] = ???
+  def updateInterconnectionError(globalCode: String, status: Long, interconnection_error: String): Future[Either[String, Unit]]
 
   def addProfileReceivedApproved(labCode: String, globalCode: String): Future[Either[String, Unit]]
 
-  def addProfileReceivedRejected(labCode: String, globalCode: String, motive: String): Future[Either[String, Unit]]
+  def addProfileReceivedRejected(labCode: String, globalCode: String, motive: String, userName: String): Future[Either[String, Unit]]
 
-  def updateProfileReceivedStatus(globalCode: String, status: Long, motive: String, interconnection_error: String): Future[Either[String, Unit]] = ???
+  def updateProfileReceivedStatus(
+                                   labCode:String,
+                                   globalCode: String,
+                                   status:Long,
+                                   motive:Option[String],
+                                   interconnection_error:Option[String],
+                                   userName:Option[String]
+                                 ): Future[Either[String,Unit]]
 }
 
 @Singleton
@@ -201,6 +210,8 @@ class SlickProfileDataRepository @Inject() (
   val getProfileUploadedById = Compiled(queryProfileUploadedById _)
   val getProfileUploadedByGlobalCode =
     Compiled(queryProfileUploadedByGlobalCode _)
+  val getProfileReceivedByGlobalCode =
+    Compiled(queryProfileReceivedByGlobalCode _)
   val getExternalProfileDataByGlobalCodeCompiled =
     Compiled(queryGetExternalProfileDataByGlobalCode _)
 
@@ -218,9 +229,10 @@ class SlickProfileDataRepository @Inject() (
     profileUploaded.filter(_.status === 5L)
   private def queryFailedSentProfilesDeleted(labCode: Column[String]) =
     profileSent.filter(_.status === 5L).filter(_.labCode === labCode)
+  private def queryProfileReceivedByGlobalCode(globalCode: Column[String]) =
+    profileReceived.filter(_.globalCode === globalCode)
 
-  private def queryGetExternalProfileDataByGlobalCode(
-                                                       globalCode: Column[String]
+  private def queryGetExternalProfileDataByGlobalCode(globalCode: Column[String]
                                                      ) =
     externalProfileDataTable
       .innerJoin(profilesData)
@@ -1029,13 +1041,13 @@ class SlickProfileDataRepository @Inject() (
     }
     }
   }
-  override def updateUploadStatus(globalCode: String,status:Long,motive:Option[String], interconnection_error:Option[String]): Future[Either[String,Unit]]= {
+  def updateUploadStatus(globalCode: String,status:Long,motive:Option[String], interconnection_error:Option[String], userName:Option[String]): Future[Either[String,Unit]]= {
     this.runInTransactionAsync { implicit session => {
       try {
         getByGlobalCode(globalCode).firstOption match {
           case None => Left(Messages("error.E0940"))
           case Some(row) => {
-            profileUploaded insertOrUpdate models.Tables.ProfileUploadedRow(row.id,row.globalCode,status,motive, interconnection_error)
+            profileUploaded insertOrUpdate models.Tables.ProfileUploadedRow(row.id,row.globalCode,status,motive, interconnection_error, userName)
             Right(())
           }
         }
@@ -1088,24 +1100,6 @@ class SlickProfileDataRepository @Inject() (
     }
   }
 
-  def updateInterconnectionError(globalCode: String, status: Long, interconnection_error: Option[String]): Future[Either[String,Unit]] = {
-    this.runInTransactionAsync { implicit session => {
-      try {
-        getByGlobalCode(globalCode).firstOption match {
-          case None => Left(Messages("error.E0940"))
-          case Some(row) => {
-            profileSent insertOrUpdate models.Tables.ProfileSentRow(row.id,row.laboratory,row.globalCode,status,row.deletedMotive, interconnection_error: Option[String])
-            Right(())
-          }
-        }
-      } catch {
-        case e: Exception => {
-          Left(e.getMessage)
-        }
-      }
-    }
-    }
-  }
 
   def getMtRcrs():Future[MtRCRS] = {
     this.runInTransactionAsync { implicit session => {
@@ -1152,7 +1146,7 @@ class SlickProfileDataRepository @Inject() (
     }
   }
 
-  def addProfileReceivedRejected(labCode: String, globalCode: String, motive: String): Future[Either[String, Unit]] = {
+  def addProfileReceivedRejected(labCode: String, globalCode: String, motive: String, userName: String): Future[Either[String, Unit]] = {
     Future {
       DB.withTransaction { implicit session =>
         try {
@@ -1164,9 +1158,9 @@ class SlickProfileDataRepository @Inject() (
             nextVal, // Use the next value from the sequence
             labCode,
             globalCode,
-            17L,
+            21L,
             Some("Rechazado por el motivo: " + motive),
-            None
+            Some(userName)
           )
 
           logger.info(s"Inserted new profile received with ID: $nextVal, labCode: $labCode, globalCode: $globalCode, motive: $motive")
@@ -1181,15 +1175,13 @@ class SlickProfileDataRepository @Inject() (
     }
   }
 
-
-
-  def updateProfileReceivedStatus(globalCode: String, status: Long, motive: DeletedMotive, interconnection_error: Option[String]): Future[Either[String,Unit]] = {
+  def updateInterconnectionError(globalCode: String, status: Long, interconnection_error: String): Future[Either[String, Unit]]  = {
     this.runInTransactionAsync { implicit session => {
       try {
-        getByGlobalCode(globalCode).firstOption match {
+        getProfileReceivedByGlobalCode(globalCode).firstOption match {
           case None => Left(Messages("error.E0940"))
           case Some(row) => {
-            profileReceived insertOrUpdate models.Tables.ProfileReceivedRow(row.id,row.laboratory,row.globalCode,status,row.deletedMotive, interconnection_error: Option[String])
+            profileSent insertOrUpdate models.Tables.ProfileSentRow(row.id,row.labCode,row.globalCode,status,row.motive, Some(interconnection_error))
             Right(())
           }
         }
@@ -1202,6 +1194,25 @@ class SlickProfileDataRepository @Inject() (
     }
   }
 
+  def updateProfileReceivedStatus(labCode: String, globalCode: String,  status: Long, motive: Option[String], interconnection_error: Option[String], userName:Option [String]): Future[Either[String, Unit]] = {
+    this.runInTransactionAsync { implicit session =>
+    {
+      try {
+        getProfileReceivedByGlobalCode(globalCode).firstOption match {
+          case None => Left(Messages("error.E0940"))
+          case Some(row) => { //hizo un insert con un nuevo id. row es del tipo profileDataRow y debería ser una profileRecevedRow
+            profileReceived insertOrUpdate models.Tables.ProfileReceivedRow(row.id,row.labCode,row.globalCode,status,motive, interconnection_error, userName)
+            Right(())
+          }
+        }
+      } catch {
+        case e: Exception => {
+          Left(e.getMessage)
+        }
+      }
+    }
+    }
+  }
 }
 
 @Singleton

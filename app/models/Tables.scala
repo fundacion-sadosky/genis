@@ -1730,40 +1730,41 @@ trait Tables {
 
   lazy val ExternalProfileData = new TableQuery(tag => new ExternalProfileData(tag, Some("APP"), "EXTERNAL_PROFILE_DATA"))
 
-  case class ProfileUploadedRow(id: Long, globalCode:String ,status: Long,motive:Option[String] = None: None.type , interconnection_error: Option[String] = None)
+  case class ProfileUploadedRow(id: Long, globalCode:String ,status: Long,motive:Option[String] = None: None.type , interconnection_error: Option[String] = None, userName:Option[String]=None)
   /** GetResult implicit for fetching ProfileUploaded objects using plain SQL queries */
   implicit def GetResultProfileUploaded(implicit e0: GR[String], e1: GR[Option[String]]): GR[ProfileUploadedRow] = GR{
     prs => import prs._
-      ProfileUploadedRow.tupled((<<[Long],<<[String], <<[Long],<<?[String] ,<<?[String]))
+      ProfileUploadedRow.tupled((<<[Long],<<[String], <<[Long],<<?[String] ,<<?[String], <<?[String]))
   }
 
   /** Table description of table PROFILE_UPLOADED. Objects of this class serve as prototypes for rows in queries. */
   class ProfileUploaded(_tableTag: Tag, schema: Option[String], tableName: String) extends Table[ProfileUploadedRow](_tableTag, schema, tableName) {
-    def * = (id,globalCode, status,motive, interconnection_error) <> (ProfileUploadedRow.tupled, ProfileUploadedRow.unapply)
+    def * = (id,globalCode, status,motive, interconnection_error, userName) <> (ProfileUploadedRow.tupled, ProfileUploadedRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ?  = (id.?,globalCode.?, status.?,motive,interconnection_error).shaped.<>({ r=>import r._; _1.map(_=> ProfileUploadedRow.tupled((_1.get, _2.get,_3.get,_4, _5)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ?  = (id.?,globalCode.?, status.?,motive,interconnection_error, userName).shaped.<>({ r=>import r._; _1.map(_=> ProfileUploadedRow.tupled((_1.get, _2.get,_3.get,_4, _5, _6)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
 
     val id: Column[Long] = column[Long]("ID", O.PrimaryKey)
     val globalCode: Column[String] = column[String]("GLOBAL_CODE", O.Length(100,varying=true))
     val status: Column[Long] = column[Long]("STATUS")
     val motive: Column[Option[String]] = column[Option[String]]("MOTIVE")
     val interconnection_error: Column[Option[String]] = column[Option[String]]("INTERCONNECTION_ERROR")
+    val userName: Column[Option[String]] = column[Option[String]]("DELETION_USER")
   }
 
   lazy val ProfileUploaded = new TableQuery(tag => new ProfileUploaded(tag, Some("APP"), "PROFILE_UPLOADED"))
 
-  case class ProfileSentRow(id: Long, labCode:String,globalCode:String ,status: Long,motive:Option[String] = None, interconnectionError:Option[String] = None)
+  case class ProfileSentRow(id: Long, labCode:String,globalCode:String ,status: Long,motive:Option[String] = None, interconnectionError:Option[String] = None, userName:Option[String]=None)
   /** GetResult implicit for fetching ProfileSent objects using plain SQL queries */
   implicit def GetResultProfileSent(implicit e0: GR[Long], e1: GR[String], e2: GR[Option[String]]): GR[ProfileSentRow] = GR{
     prs => import prs._
-      ProfileSentRow.tupled((<<[Long],<<[String],<<[String], <<[Long],<<?[String], <<?[String]))
+      ProfileSentRow.tupled((<<[Long],<<[String],<<[String], <<[Long],<<?[String], <<?[String], <<?[String]))
   }
 
   /** Table description of table PROFILE_SENT. Objects of this class serve as prototypes for rows in queries. */
   class ProfileSent(_tableTag: Tag, schema: Option[String], tableName: String) extends Table[ProfileSentRow](_tableTag, schema, tableName) {
-    def * = (id, labCode,globalCode, status,motive, interconnectionError) <> (ProfileSentRow.tupled, ProfileSentRow.unapply)
+    def * = (id, labCode,globalCode, status,motive, interconnectionError, userName) <> (ProfileSentRow.tupled, ProfileSentRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = (id.?, labCode.?,globalCode.?, status.?,motive, interconnectionError).shaped.<>({ r=>import r._; _1.map(_=> ProfileSentRow.tupled((_1.get, _2.get,_3.get,_4.get,_5,_6)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? = (id.?, labCode.?,globalCode.?, status.?,motive, interconnectionError, userName).shaped.<>({ r=>import r._; _1.map(_=> ProfileSentRow.tupled((_1.get, _2.get,_3.get,_4.get,_5,_6,_7)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
 
     val id: Column[Long] = column[Long]("ID", O.PrimaryKey)
     val labCode: Column[String] = column[String]("LABCODE", O.Length(100,varying=true))
@@ -1771,21 +1772,21 @@ trait Tables {
     val status: Column[Long] = column[Long]("STATUS")
     val motive: Column[Option[String]] = column[Option[String]]("MOTIVE")
     val interconnectionError: Column[Option[String]] = column[Option[String]]("INTERCONNECTION_ERROR")
-
+    val userName: Column[Option[String]] = column[Option[String]]("DELETION_USER")
   }
   lazy val ProfileSent = new TableQuery(tag => new ProfileSent(tag, Some("APP"), "PROFILE_SENT"))
 
-  case class ProfileReceivedRow(id: Long, labCode:String,globalCode:String ,status: Long,motive:Option[String] = None, interconnectionError:Option[String] = None)
+  case class ProfileReceivedRow(id: Long, labCode:String,globalCode:String ,status: Long,motive:Option[String] = None, interconnectionError:Option[String] = None, userName:Option[String]= None)
   /** GetResult implicit for fetching ProfileSent objects using plain SQL queries */
   implicit def GetResultProfileReceived(implicit e0: GR[Long], e1: GR[String], e2: GR[Option[String]]): GR[ProfileReceivedRow] = GR{
     prs => import prs._
-      ProfileReceivedRow.tupled((<<[Long],<<[String],<<[String], <<[Long],<<?[String], <<?[String]))
+      ProfileReceivedRow.tupled((<<[Long],<<[String],<<[String], <<[Long],<<?[String], <<?[String], <<?[String]))
   }
   /** Table description of table PROFILE_RECEIVED. Objects of this class serve as prototypes for rows in queries. */
   class ProfileReceived(_tableTag: Tag, schema: Option[String], tableName: String) extends Table[ProfileReceivedRow](_tableTag, schema, tableName) {
-    def * = (id, labCode,globalCode, status,motive, interconnectionError) <> (ProfileReceivedRow.tupled, ProfileReceivedRow.unapply)
+    def * = (id, labCode,globalCode, status,motive, interconnectionError, userName) <> (ProfileReceivedRow.tupled, ProfileReceivedRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = (id.?, labCode.?,globalCode.?, status.?,motive, interconnectionError).shaped.<>({ r=>import r._; _1.map(_=> ProfileReceivedRow.tupled((_1.get, _2.get,_3.get,_4.get,_5,_6)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? = (id.?, labCode.?,globalCode.?, status.?,motive, interconnectionError, userName).shaped.<>({ r=>import r._; _1.map(_=> ProfileReceivedRow.tupled((_1.get, _2.get,_3.get,_4.get,_5,_6, _7)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
 
     val id: Column[Long] = column[Long]("ID", O.PrimaryKey)
     val labCode: Column[String] = column[String]("LABCODE", O.Length(100,varying=true))
@@ -1793,6 +1794,7 @@ trait Tables {
     val status: Column[Long] = column[Long]("STATUS")
     val motive: Column[Option[String]] = column[Option[String]]("MOTIVE")
     val interconnectionError: Column[Option[String]] = column[Option[String]]("INTERCONNECTION_ERROR")
+    val userName: Column[Option[String]] = column[Option[String]]("DELETION_USER")
 
   }
   lazy val ProfileReceived = new TableQuery(tag => new ProfileReceived(tag, Some("APP"), "PROFILE_RECEIVED"))

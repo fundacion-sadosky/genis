@@ -7,14 +7,14 @@ import play.api.libs.json.{Json, Writes, _}
 import types.SampleCode
 
 case class Notification(
-  id: Long,
-  user: String,
-  creationDate: Date,
-  updateDate: Option[Date],
-  flagged: Boolean,
-  pending: Boolean,
-  info: NotificationInfo
-) {
+                         id: Long,
+                         user: String,
+                         creationDate: Date,
+                         updateDate: Option[Date],
+                         flagged: Boolean,
+                         pending: Boolean,
+                         info: NotificationInfo
+                       ) {
   val description = info.description
   val url = info.url
   val kind = info.kind
@@ -40,16 +40,16 @@ case class InferiorInstancePendingInfo(urlInstance: String) extends Notification
 }
 
 case class HitInfoInbox(
-  globalCode: SampleCode,
-  matchedProfile: SampleCode,
-  matchingId: String
-) extends NotificationInfo {
+                         globalCode: SampleCode,
+                         matchedProfile: SampleCode,
+                         matchingId: String
+                       ) extends NotificationInfo {
   override val kind = NotificationType.hitMatch
   override val description =
     s"Se confirmó el match del perfil: ${matchedProfile.text} "
   override val url =
     s"/comparison/${globalCode.text}/matchedProfileId/" +
-    s"${matchedProfile.text}/matchingId/$matchingId"
+      s"${matchedProfile.text}/matchingId/$matchingId"
 }
 
 case class DiscardInfoInbox(globalCode: SampleCode,
@@ -60,7 +60,7 @@ case class DiscardInfoInbox(globalCode: SampleCode,
     s"Se descartó el match del perfil: ${matchedProfile.text} "
   override val url =
     s"/comparison/${globalCode.text}/matchedProfileId/" +
-    s"${matchedProfile.text}/matchingId/$matchingId"
+      s"${matchedProfile.text}/matchingId/$matchingId"
 }
 
 case class DeleteProfileInfo(globalCode: SampleCode) extends NotificationInfo {
@@ -70,9 +70,10 @@ case class DeleteProfileInfo(globalCode: SampleCode) extends NotificationInfo {
 }
 
 case class AprovedProfileInfo(
-  globalCode: SampleCode,
-  isCategoryModification: Option[Boolean] = Some(false)
-) extends NotificationInfo {
+                               globalCode: SampleCode,
+                               userName: String,
+                               isCategoryModification: Option[Boolean] = Some(false)
+                             ) extends NotificationInfo {
   override val kind = NotificationType.aprovedProfile
   override val description = if (isCategoryModification.getOrElse(false)) {
     s"El cambio de categoría del perfil ${
@@ -80,15 +81,16 @@ case class AprovedProfileInfo(
         .text
     } fue aceptado en la instancia superior"
   } else {
-    s"El perfil: ${globalCode.text} fue aprobado en la instancia superior"
+    s"El perfil: ${globalCode.text} fue aprobado en la instancia superior por el usuario: " + userName
   }
   override val url = s"/search/profiledata"
 }
 
 case class RejectedProfileInfo(
-  globalCode: SampleCode,
-  isCategoryModification: Option[Boolean]
-) extends NotificationInfo {
+                                globalCode: SampleCode,
+                                userName: String,
+                                isCategoryModification: Option[Boolean]
+                              ) extends NotificationInfo {
   override val kind = NotificationType.rejectedProfile
   override val description = if (isCategoryModification.getOrElse(false)) {
     s"El cambio de categoría del perfil ${
@@ -99,14 +101,14 @@ case class RejectedProfileInfo(
     s"El perfil: ${
       globalCode
         .text
-    } fue rechazado en la instancia superior"
+    } fue rechazado en la instancia superior" + "por el usuario: " + userName
   }
   override val url = s"/search/profiledata"
 }
 
 case class ProfileDataInfo(
-    internalSampleCode: String,
-    globalCode: SampleCode) extends NotificationInfo {
+                            internalSampleCode: String,
+                            globalCode: SampleCode) extends NotificationInfo {
   override val kind = NotificationType.profileData
   override val description =
     s"Nuevo Perfil: ${globalCode.text} - $internalSampleCode"
@@ -114,9 +116,9 @@ case class ProfileDataInfo(
 }
 
 case class ProfileDataAssociationInfo(
-  internalSampleCode: String,
-  globalCode: SampleCode
-) extends NotificationInfo {
+                                       internalSampleCode: String,
+                                       globalCode: SampleCode
+                                     ) extends NotificationInfo {
   override val kind = NotificationType.profileDataAssociation
   override val description =
     s"Perfil para Asociación: ${globalCode.text} - $internalSampleCode"
@@ -127,33 +129,33 @@ case class ProfileUploadedInfo(globalCode: SampleCode) extends NotificationInfo 
   override val kind = NotificationType.profileUploaded
   override val description =
     s"El perfil: ${globalCode.text} proveniente de una " +
-    "instancia inferior esta pendiente de aprobación"
+      "instancia inferior esta pendiente de aprobación"
   override val url = s"/profile-approval"
 }
 
 case class MatchingInfo(
-  globalCode: SampleCode,
-  matchedProfile: SampleCode,
-  matchingId: String
-) extends NotificationInfo {
+                         globalCode: SampleCode,
+                         matchedProfile: SampleCode,
+                         matchingId: String
+                       ) extends NotificationInfo {
   override val kind = NotificationType.matching
   override val description =
     s"Nueva coincidencia pendiente entre: ${globalCode.text} y " +
-    s"${matchedProfile.text}"
+      s"${matchedProfile.text}"
   override val url =
     s"/comparison/${globalCode.text}/matchedProfileId/" +
-    s"${matchedProfile.text}/matchingId/$matchingId"
+      s"${matchedProfile.text}/matchingId/$matchingId"
 }
 
 case class PedigreeMatchingInfo(
-  matchedProfile: SampleCode,
-  caseType: Option[String] = None,
-  courtCaseId: Option[String] = None
-) extends NotificationInfo {
+                                 matchedProfile: SampleCode,
+                                 caseType: Option[String] = None,
+                                 courtCaseId: Option[String] = None
+                               ) extends NotificationInfo {
   override val kind = NotificationType.pedigreeMatching
   override val description =
     s"Nueva coincidencia de búsqueda de personas (${caseType.getOrElse("")}) " +
-    s"para el perfil: ${matchedProfile.text}"
+      s"para el perfil: ${matchedProfile.text}"
   override val url = if (caseType.get.equals("DVI")) {
     s"/court-case/${courtCaseId.getOrElse("")}?tab=6"
   } else {
@@ -162,19 +164,19 @@ case class PedigreeMatchingInfo(
 }
 
 case class BulkUploadInfo(
-  protoProfileId: String,
-  sampleName: String
-) extends NotificationInfo {
+                           protoProfileId: String,
+                           sampleName: String
+                         ) extends NotificationInfo {
   override val kind = NotificationType.bulkImport
   val description = s"Nuevo perfil para importación: $sampleName"
   val url = s"/profiles/bulkupload-step2/protoprofile/$protoProfileId"
 }
 
 case class PedigreeLRInfo(
-  pedigreeId: Long,
-  courtCaseId: Long,
-  scenarioName: String
-) extends NotificationInfo {
+                           pedigreeId: Long,
+                           courtCaseId: Long,
+                           scenarioName: String
+                         ) extends NotificationInfo {
   override val kind = NotificationType.pedigreeLR
   override val description =
     s"El escenario $scenarioName finalizó el cálculo del LR"
@@ -182,9 +184,9 @@ case class PedigreeLRInfo(
 }
 
 case class CollapsingInfo(
-  courtCaseId: Long,
-  result:Boolean
-) extends NotificationInfo {
+                           courtCaseId: Long,
+                           result:Boolean
+                         ) extends NotificationInfo {
   override val kind = NotificationType.collapsing
   override val description = if (result) {
     s"Finalizó la búsqueda de agrupaciones para el caso $courtCaseId "
@@ -195,10 +197,10 @@ case class CollapsingInfo(
 }
 
 case class PedigreeConsistencyInfo(
-  courtCaseId: Long,
-  pedigreeId: Long,
-  pedigreeName:String
-) extends NotificationInfo {
+                                    courtCaseId: Long,
+                                    pedigreeId: Long,
+                                    pedigreeName:String
+                                  ) extends NotificationInfo {
   override val kind = NotificationType.pedigreeConsistency
   override val description =
     s"Finalizó el chequeo de consistencia para el pedigrí $pedigreeName"
@@ -297,7 +299,7 @@ object NotificationInfo {
           Json.fromJson[RejectedProfileInfo](json)
         case _ => JsError()
       }
-    ).get
+      ).get
   }
 
   implicit val writes = new Writes[NotificationInfo] {

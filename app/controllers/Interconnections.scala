@@ -171,8 +171,8 @@ class Interconnections @Inject()(
       }
     }
   }
-  // instancia superior recibe el codigo de profile a borrar
-  def deleteProfile(id:String) = Action.async(BodyParsers.parse.json) {
+  // instancia superior recibe el codigo y el usuario que borró el perfil en la instancia inferior
+  def deleteProfileFromInferior(id:String, userName: String) = Action.async(BodyParsers.parse.json) {
     request =>{
       val labcode = request.headers.get(HeaderInsterconnections.labCode)
       val labCodeInstanceOrigin = request.headers.get(HeaderInsterconnections.laboratoryOrigin)
@@ -185,7 +185,34 @@ class Interconnections @Inject()(
             Future.successful(BadRequest(JsError.toFlatJson(errors)))
           },
             motive => {
-              interconnectionService.receiveDeleteProfile(id,motive,lio,li).map{
+              interconnectionService.receiveDeleteProfile(id,motive,lio,li, true, userName).map{
+                case Left(e) => BadRequest(Json.obj("message" -> e))
+                case Right(_) => Ok.withHeaders("X-CREATED-ID" -> id.toString)
+              }
+            })
+        }
+        case (_,_,_) => {
+          Future.successful(BadRequest)
+        }
+      }
+    }
+  }
+
+  // nstancia inferior recibe el codigo y el usuario que borró el perfil en la instancia superior
+  def deleteProfileFromSuperior(id:String, userName: String) = Action.async(BodyParsers.parse.json) {
+    request =>{
+      val labcode = request.headers.get(HeaderInsterconnections.labCode)
+      val labCodeInstanceOrigin = request.headers.get(HeaderInsterconnections.laboratoryOrigin)
+      val labCodeImmediateInstance = request.headers.get(HeaderInsterconnections.laboratoryImmediateInstance)
+
+      (labcode,labCodeInstanceOrigin,labCodeImmediateInstance) match {
+        case (Some(labcode),Some(lio),Some(li)) =>{
+          val input = request.body.validate[profiledata.DeletedMotive]
+          input.fold(errors => {
+            Future.successful(BadRequest(JsError.toFlatJson(errors)))
+          },
+            motive => {
+              interconnectionService.receiveDeleteProfile(id,motive,lio,li, false, userName).map{
                 case Left(e) => BadRequest(Json.obj("message" -> e))
                 case Right(_) => Ok.withHeaders("X-CREATED-ID" -> id.toString)
               }
@@ -268,16 +295,15 @@ class Interconnections @Inject()(
   }
 
 
-  def rejectPendingProfile(id: String,motive:String,idMotive:Long) = Action.async {
+  def rejectPendingProfile(id: String,motive:String,idMotive:Long, userName:String) = Action.async {
     request => {
-      val user = request.headers.get("X-USER")
-      interconnectionService.rejectProfile(ProfileApproval(id),motive,idMotive,user).map{
+      interconnectionService.rejectProfile(ProfileApproval(id),motive,idMotive,userName).map{
         case Left(e) => BadRequest(Json.obj("message" -> e))
         case Right(()) => {
           val labCode: Option[String] = getLabCodeFromGlobalCode(id)
           labCode match {
             //Insertar el perfil en PROFILE_RECEIVED table
-            case Some(code) => profiledataService.addProfileReceivedRejected(code, id, motive)// Using profiledataService to access the repository
+            case Some(code) => profiledataService.addProfileReceivedRejected(code, id, motive, userName)// Using profiledataService to access the repository
             case None => Future.successful(Left("Invalid global code format")) // Or handle the missing labCode case
           }
           Ok.withHeaders("X-CREATED-ID" -> id)
@@ -301,11 +327,12 @@ class Interconnections @Inject()(
                           globalCode: String,
                           status:Long,
                           motive:Option[String],
+                          userName:String,
                           isCategoryModification:Boolean = false
                         ): Action[AnyContent] = Action.async {
     _ => {
       interconnectionService
-        .updateUploadStatus(globalCode, status, motive, isCategoryModification)
+        .updateUploadStatus(globalCode, status, motive, userName,isCategoryModification)
         .map{
           case Left(e) => BadRequest(Json.obj("message" -> e))
           case Right(()) => Ok.withHeaders("X-CREATED-ID" -> globalCode)
