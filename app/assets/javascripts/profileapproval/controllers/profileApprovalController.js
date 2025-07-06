@@ -11,7 +11,8 @@ define(['lodash'], function (_) {
     locusService,
     profileService,
     cryptoService,
-    $filter
+    $filter,
+    userService
   ) {
     var $modalInstance = {};
     var modalInstanceEpg = null;
@@ -28,70 +29,70 @@ define(['lodash'], function (_) {
       console.log('bulkuploadService', bulkuploadService);
       console.log('locusService', locusService);
       profileApprovalService
-        .getTotalPendingProfiles()
-        .then(function (response) { $scope.totalItems = response.data; });
+          .getTotalPendingProfiles()
+          .then(function (response) { $scope.totalItems = response.data; });
       locusService
-        .listFull()
-        .then(
-          function (response) {
-            $scope.locus = response.data;
-            $scope.locusById = _.keyBy(
-              _.map($scope.locus, function (o) { return o.locus; } ),
-              'id'
-            );
-            profileApprovalService
-              .getPendingProfiles($scope.currentPage, $scope.pageSize)
-              .then(
-                function (response) {
-                  $scope.profiles = response.data;
-                  getProfilesWithDifferentCategory($scope.profiles);
-                  getUploadStatus($scope.profiles);
-                  $scope.profiles.forEach(
-                    function (element) {
-                      if (!_.isUndefined(element.genotypification["1"])) {
-                        var genotypification = element.genotypification["1"];
-                        if (element.genotypification["4"]) {
-                          element.genotypificationMT = _.transform(
-                            element.genotypification["4"],
-                            function (result, value, key) {
-                              var elem = {};
-                              elem.locus = key;
-                              elem.alleles = value;
-                              result.push(elem);
-                            },
-                            []
+          .listFull()
+          .then(
+              function (response) {
+                $scope.locus = response.data;
+                $scope.locusById = _.keyBy(
+                    _.map($scope.locus, function (o) { return o.locus; } ),
+                    'id'
+                );
+                profileApprovalService
+                    .getPendingProfiles($scope.currentPage, $scope.pageSize)
+                    .then(
+                        function (response) {
+                          $scope.profiles = response.data;
+                          getProfilesWithDifferentCategory($scope.profiles);
+                          getUploadStatus($scope.profiles);
+                          $scope.profiles.forEach(
+                              function (element) {
+                                if (!_.isUndefined(element.genotypification["1"])) {
+                                  var genotypification = element.genotypification["1"];
+                                  if (element.genotypification["4"]) {
+                                    element.genotypificationMT = _.transform(
+                                        element.genotypification["4"],
+                                        function (result, value, key) {
+                                          var elem = {};
+                                          elem.locus = key;
+                                          elem.alleles = value;
+                                          result.push(elem);
+                                        },
+                                        []
+                                    );
+                                  }
+                                  element.genotypification = _.transform(
+                                      genotypification,
+                                      function (result, value, key) {
+                                        var elem = {};
+                                        elem.locus = key;
+                                        elem.alleles = value;
+                                        result.push(elem);
+                                      },
+                                      []
+                                  );
+                                  _.forEach(
+                                      element.genotypification,
+                                      _.partial(
+                                          bulkuploadService.fillRange,
+                                          $scope.locusById,
+                                          locusService.isOutOfLadder
+                                      )
+                                  );
+                                }
+                              }
+                          );
+                        },
+                        function () {
+                          alertService.error(
+                              {message: 'Error al consultar los perfiles'}
                           );
                         }
-                        element.genotypification = _.transform(
-                          genotypification,
-                          function (result, value, key) {
-                            var elem = {};
-                            elem.locus = key;
-                            elem.alleles = value;
-                            result.push(elem);
-                          },
-                          []
-                        );
-                        _.forEach(
-                          element.genotypification,
-                          _.partial(
-                            bulkuploadService.fillRange,
-                            $scope.locusById,
-                            locusService.isOutOfLadder
-                          )
-                        );
-                      }
-                    }
-                  );
-                },
-                function () {
-                  alertService.error(
-                    {message: 'Error al consultar los perfiles'}
-                  );
-                }
-              );
-          }
-        );
+                    );
+              }
+          );
     };
     $scope.verErrores = function (errores) {
       alertService.error({message: errores});
@@ -107,7 +108,8 @@ define(['lodash'], function (_) {
           }
         }
       }
-      profileApprovalService.approveProfiles(request).then(function () {
+      var userName = userService.getUser().name; // Get the username
+      profileApprovalService.approveProfiles(request, userName).then(function () {
         alertService.success({message: 'Se aprobaron los perfiles'});
         if ($scope.profiles !== undefined) {
           for (var i = 0; i < $scope.profiles.length; i++) {
@@ -140,7 +142,8 @@ define(['lodash'], function (_) {
             request.push(p);
           }
         }
-        profileApprovalService.approveProfiles(request).then(function () {
+        var userName = userService.getUser().name; // Get the username
+        profileApprovalService.approveProfiles(request, userName).then(function () {
           alertService.success({message: 'Se aprobó el perfil'});
           if ($scope.profiles !== undefined) {
             for (var i = 0; i < $scope.profiles.length; i++) {
@@ -158,7 +161,8 @@ define(['lodash'], function (_) {
     $scope.doReject = function (profile, res) {
       console.log(res);
       var deferred = $q.defer();
-      profileApprovalService.rejectPendingProfile(profile.globalCode, res).then(function () {
+      var userName = userService.getUser().name; // Get the username
+      profileApprovalService.rejectPendingProfile(profile.globalCode, res, userName).then(function () {
         alertService.success({message: 'Se rechazó el perfil'});
         deferred.resolve();
         $scope.deleteFromTable(profile);
@@ -166,7 +170,6 @@ define(['lodash'], function (_) {
         alertService.error({message: 'Error al rechazar el perfil'});
         deferred.reject();
       });
-
     };
 
     $scope.reject = function (profile) {
@@ -271,7 +274,7 @@ define(['lodash'], function (_) {
         };
       });
     }
-    
+
     function getProfilesWithDifferentCategory(profiles) {
       var promises = profiles
         .map(
@@ -334,13 +337,13 @@ define(['lodash'], function (_) {
       var oldCategory = $scope.getModifiedCategory(globalCode, "oldCategory");
       return $.i18n.t('superiorInstanceModifiedCategory', {oldCategory:oldCategory, newCategory:newCategory});
     };
-    
+
     $scope.uploadToSuperiorMessages = {};
-    
+
     $scope.getUploadToSuperiorMessage = function(globalCode) {
       return $scope.uploadToSuperiorMessages[globalCode];
     };
-    
+
     var getUploadStatus = function(profiles) {
       profiles
         .map(
@@ -361,7 +364,7 @@ define(['lodash'], function (_) {
           }
         );
     };
-    
+
     $scope.init();
 
   }

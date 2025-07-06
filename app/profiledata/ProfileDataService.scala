@@ -79,8 +79,8 @@ trait ProfileDataService {
   def updateProfileSentStatus(globalCode: String,status:Long,motive:Option[String],labCode:String,interconnection_error:Option[String], userName:Option[String]): Future[Either[String,Unit]]
   def getMtRcrs():Future[MtRCRS]
   def updateInterconnectionError(globalCode: String, status:Long, interconnection_error: String): Future[Either[String,Unit]]
-  def addProfileReceivedApproved(labCode:String,globalCode:String):Future[Either[String,Unit]]
-  def addProfileReceivedRejected(labCode:String,globalCode:String, motive: String):Future[Either[String,Unit]]
+  def addProfileReceivedApproved(labCode:String,globalCode:String, status: Long, userName: String):Future[Either[String,Unit]]
+  def addProfileReceivedRejected(labCode:String,globalCode:String, status: Long, motive: String, userName: String):Future[Either[String,Unit]]
   def updateProfileReceivedStatus(labCode:String, globalCode: String,status:Long,motive:String,interconnection_error:String, userName:Option[String]): Future[Either[String,Unit]]
 }
 
@@ -536,12 +536,12 @@ class ProfileDataServiceImpl @Inject() (
   override def updateInterconnectionError(globalCode: String, status: Long, interconnection_error: String): Future[Either[String, Unit]] = {
     this.profileDataRepository.updateInterconnectionError(globalCode,status, interconnection_error)
   }
-  override def addProfileReceivedApproved (labCode: String, globalCode: String): Future[Either[String, Unit]] = {
-    this.profileDataRepository.addProfileReceivedApproved(labCode, globalCode)
+  override def addProfileReceivedApproved (labCode: String, globalCode: String, status: Long, userName: String): Future[Either[String, Unit]] = {
+    this.profileDataRepository.addProfileReceivedApproved(labCode, globalCode, status: Long, userName: String)
   }
 
-  override def addProfileReceivedRejected(labCode: String, globalCode: String, motive:String): Future[Either[String, Unit]] = {
-    this.profileDataRepository.addProfileReceivedRejected(labCode, globalCode, motive)
+  def addProfileReceivedRejected(labCode: String, globalCode: String, status: Long, motive:String, userName:String): Future[Either[String, Unit]] = {
+    this.profileDataRepository.addProfileReceivedRejected(labCode, globalCode, status: Long, motive, userName)
   }
 
   def updateProfileReceivedStatus(labCode: String, globalCode: String, status: Long, motive: String, interconnection_error: String, userName: Option[String]): Future[Either[String, Unit]] = {

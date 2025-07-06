@@ -1748,7 +1748,7 @@ trait Tables {
     val status: Column[Long] = column[Long]("STATUS")
     val motive: Column[Option[String]] = column[Option[String]]("MOTIVE")
     val interconnection_error: Column[Option[String]] = column[Option[String]]("INTERCONNECTION_ERROR")
-    val userName: Column[Option[String]] = column[Option[String]]("DELETION_USER")
+    val userName: Column[Option[String]] = column[Option[String]]("USER")
   }
 
   lazy val ProfileUploaded = new TableQuery(tag => new ProfileUploaded(tag, Some("APP"), "PROFILE_UPLOADED"))
@@ -1772,11 +1772,11 @@ trait Tables {
     val status: Column[Long] = column[Long]("STATUS")
     val motive: Column[Option[String]] = column[Option[String]]("MOTIVE")
     val interconnectionError: Column[Option[String]] = column[Option[String]]("INTERCONNECTION_ERROR")
-    val userName: Column[Option[String]] = column[Option[String]]("DELETION_USER")
+    val userName: Column[Option[String]] = column[Option[String]]("USER")
   }
   lazy val ProfileSent = new TableQuery(tag => new ProfileSent(tag, Some("APP"), "PROFILE_SENT"))
 
-  case class ProfileReceivedRow(id: Long, labCode:String,globalCode:String ,status: Long,motive:Option[String] = None, interconnectionError:Option[String] = None, userName:Option[String]= None)
+  case class ProfileReceivedRow(id: Long, labCode:String,globalCode:String ,status: Long,motive:Option[String] = None,  userName:Option[String]= None, interconnectionError:Option[String] = None)
   /** GetResult implicit for fetching ProfileSent objects using plain SQL queries */
   implicit def GetResultProfileReceived(implicit e0: GR[Long], e1: GR[String], e2: GR[Option[String]]): GR[ProfileReceivedRow] = GR{
     prs => import prs._
@@ -1794,7 +1794,7 @@ trait Tables {
     val status: Column[Long] = column[Long]("STATUS")
     val motive: Column[Option[String]] = column[Option[String]]("MOTIVE")
     val interconnectionError: Column[Option[String]] = column[Option[String]]("INTERCONNECTION_ERROR")
-    val userName: Column[Option[String]] = column[Option[String]]("DELETION_USER")
+    val userName: Column[Option[String]] = column[Option[String]]("USER")
 
   }
   lazy val ProfileReceived = new TableQuery(tag => new ProfileReceived(tag, Some("APP"), "PROFILE_RECEIVED"))
