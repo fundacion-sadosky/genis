@@ -225,7 +225,7 @@ class Interconnections @Inject()(
     }
   }
 
-  def approveProfiles(): Action[JsValue] = Action.async(BodyParsers.parse.json){
+  def approveProfiles(userName:String): Action[JsValue] = Action.async(BodyParsers.parse.json){
 
     request =>{
       val input = request.body.validate[List[ProfileApproval]]
@@ -234,7 +234,7 @@ class Interconnections @Inject()(
       },
         approvals => {
           interconnectionService
-            .approveProfiles(approvals)
+            .approveProfiles(approvals,userName)
             .flatMap{
               case Left(e) => Future.successful(BadRequest(Json.obj("message" -> e)))
               case Right(()) => {
@@ -244,8 +244,8 @@ class Interconnections @Inject()(
                   val labCode: Option[String] = getLabCodeFromGlobalCode(approval.globalCode)
 
                   labCode match {
-                    //Insertar el perfil en PROFILE_RECEIVED table
-                    case Some(code) =>  profiledataService.addProfileReceivedApproved(code, approval.globalCode) // Using profiledataService to access the repository
+                    //Insertar el perfil en PROFILE_RECEIVED table con estado pendiente de avisar a la instancia inferior
+                    case Some(code) =>  profiledataService.addProfileReceivedApproved(code, approval.globalCode, 22L, userName) // Using profiledataService to access the repository
                     case None => Future.successful(Left("Invalid global code format")) // Or handle the missing labCode case
                   }
                 })).map { results =>
@@ -303,7 +303,7 @@ class Interconnections @Inject()(
           val labCode: Option[String] = getLabCodeFromGlobalCode(id)
           labCode match {
             //Insertar el perfil en PROFILE_RECEIVED table
-            case Some(code) => profiledataService.addProfileReceivedRejected(code, id, motive, userName)// Using profiledataService to access the repository
+            case Some(code) => profiledataService.addProfileReceivedRejected(code, id, 21L,  motive,userName)// Using profiledataService to access the repository
             case None => Future.successful(Left("Invalid global code format")) // Or handle the missing labCode case
           }
           Ok.withHeaders("X-CREATED-ID" -> id)

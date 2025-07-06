@@ -232,11 +232,11 @@ class InterconnectionsTest extends PdgSpec with MockitoSugar with Results {
       val interconnectionService = mock[InterconnectionService]
       val target = new Interconnections(interconnectionService, null)
       val requestObj: List[ProfileApproval] = Nil
-      when(interconnectionService.approveProfiles(requestObj)).thenReturn(Future.successful(Right(())))
+      when(interconnectionService.approveProfiles(requestObj, "test-user")).thenReturn(Future.successful(Right(())))
 
       val request = FakeRequest().withBody(Json.toJson(requestObj))
 
-      val resultOk: Future[Result] = target.approveProfiles().apply(request)
+      val resultOk: Future[Result] = target.approveProfiles("test-user").apply(request)
       status(resultOk) mustBe OK
 
     }
@@ -246,11 +246,11 @@ class InterconnectionsTest extends PdgSpec with MockitoSugar with Results {
       val interconnectionService = mock[InterconnectionService]
       val target = new Interconnections(interconnectionService, null)
       val requestObj: List[ProfileApproval] = Nil
-      when(interconnectionService.approveProfiles(requestObj)).thenReturn(Future.successful(Left("error")))
+      when(interconnectionService.approveProfiles(requestObj, "test-user")).thenReturn(Future.successful(Left("error")))
 
       val request = FakeRequest().withBody(Json.toJson(requestObj))
 
-      val resultOk: Future[Result] = target.approveProfiles().apply(request)
+      val resultOk: Future[Result] = target.approveProfiles("test-user").apply(request)
       status(resultOk) mustBe BAD_REQUEST
 
     }
@@ -266,7 +266,7 @@ class InterconnectionsTest extends PdgSpec with MockitoSugar with Results {
 
       val request = FakeRequest().withBody(Json.toJson(requestObj))
 
-      val resultOk: Future[Result] = target.approveProfiles().apply(request)
+      val resultOk: Future[Result] = target.approveProfiles("test-user").apply(request)
       status(resultOk) mustBe BAD_REQUEST
 
     }

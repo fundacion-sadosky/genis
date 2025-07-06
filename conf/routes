@@ -335,7 +335,7 @@ GET      /instances/inferior/status                           @controllers.Inter
 PUT      /instances/inferior                                  @controllers.Interconnections.updateInferiorInstance
 POST     /superior/profile                                    @controllers.Interconnections.importProfile
 POST     /inferior/profile                                    @controllers.Interconnections.uploadProfile(globalCode:String)
-POST     /superior/profile/approval                           @controllers.Interconnections.approveProfiles
+POST     /superior/profile/approval                           @controllers.Interconnections.approveProfiles(userName:String)
 GET      /superior/profile/approval                           @controllers.Interconnections.getPendingProfiles(page:Int,pageSize:Int)
 GET      /superior/profile/approval-total                     @controllers.Interconnections.getTotalPendingProfiles
 DELETE   /superior/profile/approval                           @controllers.Interconnections.rejectPendingProfile(id:String,motive:String,idMotive:Long,userName:String)

@@ -148,9 +148,9 @@ abstract class ProfileDataRepository extends DefaultDb with Transaction  {
 
   def updateInterconnectionError(globalCode: String, status: Long, interconnection_error: String): Future[Either[String, Unit]]
 
-  def addProfileReceivedApproved(labCode: String, globalCode: String): Future[Either[String, Unit]]
+  def addProfileReceivedApproved(labCode: String, globalCode: String, status: Long, userName: String): Future[Either[String, Unit]]
 
-  def addProfileReceivedRejected(labCode: String, globalCode: String, motive: String, userName: String): Future[Either[String, Unit]]
+  def addProfileReceivedRejected(labCode: String, globalCode: String, status:Long, motive: String, userName: String): Future[Either[String, Unit]]
 
   def updateProfileReceivedStatus(
                                    labCode:String,
@@ -1117,23 +1117,19 @@ class SlickProfileDataRepository @Inject() (
 
   val ProfileReceived: TableQuery[Tables.ProfileReceived] = Tables.ProfileReceived
 
-  override def addProfileReceivedApproved(labCode: String, globalCode: String): Future[Either[String, Unit]] = {
+
+  override def addProfileReceivedApproved(labCode: String, globalCode: String, status: Long, userName: String): Future[Either[String, Unit]] = {
     Future {
       DB.withTransaction { implicit session =>
         try {
           // Get the next value from the sequence
           val nextVal: Long = Q.queryNA[Long]("select nextval('\"APP\".\"PROFILE_RECEIVED_ID_seq\"')").first
-
-          // Insert a new record
-          val insertAction = ProfileReceived += Tables.ProfileReceivedRow(
-            nextVal, // Use the next value from the sequence
+          profileReceived insertOrUpdate models.Tables.ProfileReceivedRow( nextVal, // Use the next value from the sequence
             labCode,
             globalCode,
-            18L,
+            status,
             None,
-            None
-          )
-
+            Some(userName))
           logger.info(s"Inserted new profile received with ID: $nextVal, labCode: $labCode, globalCode: $globalCode")
           Right(())
         } catch {
@@ -1146,7 +1142,7 @@ class SlickProfileDataRepository @Inject() (
     }
   }
 
-  def addProfileReceivedRejected(labCode: String, globalCode: String, motive: String, userName: String): Future[Either[String, Unit]] = {
+  def addProfileReceivedRejected(labCode: String, globalCode: String, status: Long, motive: String, userName: String): Future[Either[String, Unit]] = {
     Future {
       DB.withTransaction { implicit session =>
         try {
@@ -1154,11 +1150,11 @@ class SlickProfileDataRepository @Inject() (
           val nextVal: Long = Q.queryNA[Long]("select nextval('\"APP\".\"PROFILE_RECEIVED_ID_seq\"')").first
 
           // Insert a new record
-          val insertAction = ProfileReceived += Tables.ProfileReceivedRow(
+          profileReceived insertOrUpdate models.Tables.ProfileReceivedRow(
             nextVal, // Use the next value from the sequence
             labCode,
             globalCode,
-            21L,
+            status,
             Some("Rechazado por el motivo: " + motive),
             Some(userName)
           )

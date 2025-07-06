@@ -1002,7 +1002,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         1000,
         cacheService)
 
-      val result = Await.result(interconnectionService.approveProfile(profileApproval), Duration.Inf)
+      val result = Await.result(interconnectionService.approveProfile(profileApproval, false, ""), Duration.Inf)
       result.isLeft mustBe true
 
 
@@ -1076,7 +1076,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         1000,
         cacheService)
 
-      val result = Await.result(interconnectionService.approveProfile(profileApproval), Duration.Inf)
+      val result = Await.result(interconnectionService.approveProfile(profileApproval, false, ""), Duration.Inf)
       result.isLeft mustBe true
 
     }
@@ -1149,7 +1149,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         1000,
         cacheService)
 
-      val result = Await.result(interconnectionService.approveProfile(profileApproval), Duration.Inf)
+      val result = Await.result(interconnectionService.approveProfile(profileApproval, false,""), Duration.Inf)
       result.isLeft mustBe true
       result.left.get.contains("E0600: No existe la categoría MULTIPLE.") mustBe true
 
@@ -1220,7 +1220,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         1000,
         cacheService)
 
-      val result = Await.result(interconnectionService.approveProfiles(List(profileApproval)), Duration.Inf)
+      val result = Await.result(interconnectionService.approveProfiles(List(profileApproval), "test-user"), Duration.Inf)
       result.isLeft mustBe true
     }
     "getPendingProfiles ok" in {
@@ -1318,7 +1318,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         1000,
         cacheService)
 
-      Await.result(interconnectionService.notifyChangeStatus(profile.globalCode.text, "SHDG", 1L), Duration.Inf)
+      Await.result(interconnectionService.notifyApprovalChangeStatus(profile.globalCode.text, "SHDG", 1L), Duration.Inf)
 
     }
     //        "uploadProfile ok" in {
@@ -1792,7 +1792,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         1000,
         cacheService)
 
-      val result = Await.result(interconnectionService.updateUploadStatus("GLOBALCODE",1L,None,""), duration)
+      val result = Await.result(interconnectionService.updateUploadStatus("GLOBALCODE",1L,None,"",false), duration)
 
       result.isRight mustBe true
     }
