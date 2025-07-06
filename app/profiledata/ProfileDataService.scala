@@ -537,11 +537,11 @@ class ProfileDataServiceImpl @Inject() (
     this.profileDataRepository.updateInterconnectionError(globalCode,status, interconnection_error)
   }
   override def addProfileReceivedApproved (labCode: String, globalCode: String, status: Long, userName: String): Future[Either[String, Unit]] = {
-    this.profileDataRepository.addProfileReceivedApproved(labCode, globalCode, status: Long, userName: String)
+    this.profileDataRepository.addProfileReceivedApproved(labCode, globalCode, status, userName: String)
   }
 
   def addProfileReceivedRejected(labCode: String, globalCode: String, status: Long, motive:String, userName:String): Future[Either[String, Unit]] = {
-    this.profileDataRepository.addProfileReceivedRejected(labCode, globalCode, status: Long, motive, userName)
+    this.profileDataRepository.addProfileReceivedRejected(labCode, globalCode, status, motive, userName)
   }
 
   def updateProfileReceivedStatus(labCode: String, globalCode: String, status: Long, motive: String, interconnection_error: String, userName: Option[String]): Future[Either[String, Unit]] = {

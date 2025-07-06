@@ -1784,9 +1784,9 @@ trait Tables {
   }
   /** Table description of table PROFILE_RECEIVED. Objects of this class serve as prototypes for rows in queries. */
   class ProfileReceived(_tableTag: Tag, schema: Option[String], tableName: String) extends Table[ProfileReceivedRow](_tableTag, schema, tableName) {
-    def * = (id, labCode,globalCode, status,motive, interconnectionError, userName) <> (ProfileReceivedRow.tupled, ProfileReceivedRow.unapply)
+    def * = (id, labCode,globalCode, status,motive, userName,interconnectionError) <> (ProfileReceivedRow.tupled, ProfileReceivedRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = (id.?, labCode.?,globalCode.?, status.?,motive, interconnectionError, userName).shaped.<>({ r=>import r._; _1.map(_=> ProfileReceivedRow.tupled((_1.get, _2.get,_3.get,_4.get,_5,_6, _7)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? = (id.?, labCode.?,globalCode.?, status.?,motive, userName, interconnectionError).shaped.<>({ r=>import r._; _1.map(_=> ProfileReceivedRow.tupled((_1.get, _2.get,_3.get,_4.get,_5,_6, _7)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
 
     val id: Column[Long] = column[Long]("ID", O.PrimaryKey)
     val labCode: Column[String] = column[String]("LABCODE", O.Length(100,varying=true))

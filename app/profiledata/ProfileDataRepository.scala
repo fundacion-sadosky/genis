@@ -1129,7 +1129,8 @@ class SlickProfileDataRepository @Inject() (
             globalCode,
             status,
             None,
-            Some(userName))
+            Some(userName),
+            None)
           logger.info(s"Inserted new profile received with ID: $nextVal, labCode: $labCode, globalCode: $globalCode")
           Right(())
         } catch {
@@ -1156,7 +1157,8 @@ class SlickProfileDataRepository @Inject() (
             globalCode,
             status,
             Some("Rechazado por el motivo: " + motive),
-            Some(userName)
+            Some(userName),
+            None
           )
 
           logger.info(s"Inserted new profile received with ID: $nextVal, labCode: $labCode, globalCode: $globalCode, motive: $motive")

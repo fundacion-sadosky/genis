@@ -96,8 +96,8 @@ trait InterconnectionService {
                           globalCode: String,
                           labCode: String,
                           status: Long,
-                          motive: Option[String] = None,
-                          userName: Option[String] = None,
+                          motive: String,
+                          userName: String,
                           isCategoryModification:Boolean = false
                         ): Future[Unit]
 
@@ -984,8 +984,8 @@ class InterconnectionServiceImpl @Inject()(
                     p.globalCode,
                     p.laboratoryImmediateInstance,
                     RECHAZADA,
-                    Some(motive),
-                    Some(user),
+                    motive,
+                    user,
                     setup.isCategoryUpdated()
                   )
                   .map( _ => (p, setup) )
@@ -1317,6 +1317,8 @@ class InterconnectionServiceImpl @Inject()(
             val futureResponse: Future[WSResponse] = this.sendRequestQueue(holder.withMethod("PUT"))
             futureResponse.flatMap { result => {
               if (result.status == 200) {
+                // Actualizar PROFILE_RECEIVED con el perfil status en APPROVED_THIS_INSTANCE_INF_INFORMED (18L)
+                profileDataService.updateProfileReceivedStatus(labCode,globalCode,APPROVED_THIS_INSTANCE_INF_INFORMED,"","",userName )
                 logger.debug("se actualizó correctamente el status del perfil en la instancia inferior")
                 Future.successful(Right(()))
               } else {
@@ -1337,8 +1339,8 @@ class InterconnectionServiceImpl @Inject()(
                                            globalCode: String,
                                            labCode: String,
                                            status: Long,
-                                           motive: Option[String] = None,
-                                           userName: Option[String] = None,
+                                           motive: String,
+                                           userName:String,
                                            isCategoryModification:Boolean = false
                                          ): Future[Unit] = {
     Future {
@@ -1351,12 +1353,14 @@ class InterconnectionServiceImpl @Inject()(
               client.url(protocol + inferiorInstance.url + "/inferior/profile/status")
                 .withQueryString("globalCode" -> globalCode)
                 .withQueryString("status" -> String.valueOf(status))
-                .withQueryString("userName" -> userName.get)
-                .withQueryString("motive" -> motive.get)
+                .withQueryString("userName" -> userName)
+                .withQueryString("motive" -> motive)
                 .withQueryString("isCategoryModification" -> isCategoryModification.toString)
             val futureResponse: Future[WSResponse] = this.sendRequestQueue(holder.withMethod("PUT"))
             futureResponse.flatMap { result => {
               if (result.status == 200) {
+                // Poner el status del perfil en PROFILE_RECEIVED en REJECTED_THIS_INSTANCE_INF_INFORMED (17L)
+                profileDataService.updateProfileReceivedStatus(labCode,globalCode, REJECTED_THIS_INSTANCE_INF_INFORMED,motive,"",Some(userName))
                 logger.debug("se actualizó correctamente el status del perfil en la instancia inferior")
                 Future.successful(Right(()))
               } else {
@@ -2282,7 +2286,6 @@ class InterconnectionServiceImpl @Inject()(
         logger.info("Cantidad de perfiles para volver a borrar:" + lab + " " + listFailed.size)
         Future.successful(listFailed.foreach(profileFailedRow => {
           logger.info("Intentando borrar el perfil: " + profileFailedRow.globalCode + " en la instancia: " + currentInstanceLabCode)
-          //TODO : obtener el usuario conectado
           doInferiorDeleteProfile(SampleCode(profileFailedRow.globalCode), DeletedMotive(profileFailedRow.userName.getOrElse(""), profileFailedRow.motive.getOrElse("")), url, profileFailedRow.userName.getOrElse(""))
         }))
       })
@@ -2302,6 +2305,16 @@ class InterconnectionServiceImpl @Inject()(
     } else {
       Future.successful(())
     }
+  }
+
+  def retrySendApprovalToInferior(lab: String, url: String): Future[Unit] = {
+    // Buscar los perfiles con estado 22L en la tabla PROFILE_RECEIVED del laboratorio lab
+    Future.successful(())
+  }
+
+  def retrySendRejectionToInferior(lab: String, url: String): Future[Unit] = {
+    // Buscar los perfiles con estado 21L en la tabla PROFILE_RECEIVED del laboratorio lab y mandar el motivo además
+    Future.successful(())
   }
 
   def retryUploadProfiles(lab: String): Future[Unit] = {
@@ -2393,6 +2406,12 @@ class InterconnectionServiceImpl @Inject()(
       ,
       // Reintento envio Baja de Perfil desde instancia superior hacia instancia inferior
       this.retryDeleteProfilesToInferior(lab,url)
+      ,
+      // Reintento de reenvío de notificación de aprobación de un perfil en la instancia superior a la inferior
+      this.retrySendApprovalToInferior(lab,url)
+      //Reintento de reenvío de notificación de rechazo de un perfil en la instancia superior a la inferior
+      ,
+      this.retrySendRejectionToInferior(lab,url)
     )).map(_ => ())
   }
 
