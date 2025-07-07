@@ -85,21 +85,21 @@ trait InterconnectionService {
   def getTotalPendingProfiles(): Future[Long]
 
   def notifyApprovalChangeStatus(
-                          globalCode: String,
-                          labCode: String,
-                          status: Long,
-                          userName: Option[String] = None,
-                          isCategoryModification:Boolean = false
-                        ): Future[Unit]
+                                  globalCode: String,
+                                  labCode: String,
+                                  status: Long,
+                                  userName: Option[String] = None,
+                                  isCategoryModification:Boolean = false
+                                ): Future[Unit]
 
   def notifyRejectionChangeStatus(
-                          globalCode: String,
-                          labCode: String,
-                          status: Long,
-                          motive: String,
-                          userName: String,
-                          isCategoryModification:Boolean = false
-                        ): Future[Unit]
+                                   globalCode: String,
+                                   labCode: String,
+                                   status: Long,
+                                   motive: String,
+                                   userName: String,
+                                   isCategoryModification:Boolean = false
+                                 ): Future[Unit]
 
   def uploadProfile(globalCode: String): Future[Either[String, Unit]]
 
@@ -1296,12 +1296,12 @@ class InterconnectionServiceImpl @Inject()(
 
 
   override def notifyApprovalChangeStatus(
-                                   globalCode: String,
-                                   labCode: String,
-                                   status: Long,
-                                   userName: Option[String] = None,
-                                   isCategoryModification:Boolean = false
-                                 ): Future[Unit] = {
+                                           globalCode: String,
+                                           labCode: String,
+                                           status: Long,
+                                           userName: Option[String] = None,
+                                           isCategoryModification:Boolean = false
+                                         ): Future[Unit] = {
     Future {
       inferiorInstanceRepository
         .findByLabCode(labCode)
@@ -1318,7 +1318,7 @@ class InterconnectionServiceImpl @Inject()(
             futureResponse.flatMap { result => {
               if (result.status == 200) {
                 // Actualizar PROFILE_RECEIVED con el perfil status en APPROVED_THIS_INSTANCE_INF_INFORMED (18L)
-                profileDataService.updateProfileReceivedStatus(labCode,globalCode,APPROVED_THIS_INSTANCE_INF_INFORMED,"","",userName )
+                profileDataService.updateProfileReceivedStatus(labCode,globalCode,APPROVED_THIS_INSTANCE_INF_INFORMED,"",isCategoryModification,"",userName)
                 logger.debug("se actualizó correctamente el status del perfil en la instancia inferior")
                 Future.successful(Right(()))
               } else {
@@ -1336,13 +1336,13 @@ class InterconnectionServiceImpl @Inject()(
   }
 
   override def notifyRejectionChangeStatus(
-                                           globalCode: String,
-                                           labCode: String,
-                                           status: Long,
-                                           motive: String,
-                                           userName:String,
-                                           isCategoryModification:Boolean = false
-                                         ): Future[Unit] = {
+                                            globalCode: String,
+                                            labCode: String,
+                                            status: Long,
+                                            motive: String,
+                                            userName:String,
+                                            isCategoryModification:Boolean = false
+                                          ): Future[Unit] = {
     Future {
       inferiorInstanceRepository
         .findByLabCode(labCode)
@@ -1360,7 +1360,7 @@ class InterconnectionServiceImpl @Inject()(
             futureResponse.flatMap { result => {
               if (result.status == 200) {
                 // Poner el status del perfil en PROFILE_RECEIVED en REJECTED_THIS_INSTANCE_INF_INFORMED (17L)
-                profileDataService.updateProfileReceivedStatus(labCode,globalCode, REJECTED_THIS_INSTANCE_INF_INFORMED,motive,"",Some(userName))
+                profileDataService.updateProfileReceivedStatus(labCode,globalCode, REJECTED_THIS_INSTANCE_INF_INFORMED,motive,isCategoryModification,"",Some(userName))
                 logger.debug("se actualizó correctamente el status del perfil en la instancia inferior")
                 Future.successful(Right(()))
               } else {
@@ -1452,12 +1452,12 @@ class InterconnectionServiceImpl @Inject()(
   }
 
   def updateUploadStatus(
-                                   globalCode: String,
-                                   status: Long,
-                                   motive: Option[String] = None,
-                                   userName: String,
-                                   isCategoryModification:Boolean = false
-                                 ): Future[Either[String, Unit]] = {
+                          globalCode: String,
+                          status: Long,
+                          motive: Option[String] = None,
+                          userName: String,
+                          isCategoryModification:Boolean = false
+                        ): Future[Either[String, Unit]] = {
     val profileData = Await
       .result(
         profileDataService.findByCode(SampleCode(globalCode)),
@@ -1477,7 +1477,8 @@ class InterconnectionServiceImpl @Inject()(
                 Some(isCategoryModification)
               ),
               Permission.INTERCON_NOTIF,
-              List(p.assignee)
+              List(userName)
+              //List(p.assignee)
             )
             logger.info("3. Notif enviada, voy a guardar trazabilidad de rechazo")
             val c_trace: TraceInfo =  // Explicit type annotation here!
@@ -1536,7 +1537,7 @@ class InterconnectionServiceImpl @Inject()(
     if (up) {
       logger.info(s"ReceiveDeleteProfile from inferior instance called for globalCode: $globalCode, labCodeInstanceOrigin: $labCodeInstanceOrigin, labCodeImmediateInstance: $labCodeImmediateInstance")
       // Hago el update de la tabla PROFILE_RECEIVED con status 6 (Notificación de eliminación recibida en instancia superior)
-      this.profileDataService.updateProfileReceivedStatus(labCodeInstanceOrigin, globalCode, DELETED_IN_INF_INS, s"Usuario: $userName. Motivo: ${motive.motive}.", interconnection_error = "", Some(userName))
+      this.profileDataService.updateProfileReceivedStatus(labCodeInstanceOrigin, globalCode, DELETED_IN_INF_INS, s"Usuario: $userName. Motivo: ${motive.motive}.", false,interconnection_error = "", Some(userName))
       // Agregar al trace del perfil que fue eliminado en la instancia inferior
       val c_trace: TraceInfo = trace.InterconnectionDeletedInInferiorInfo(Option(motive.motive).getOrElse("Motivo no especificado"))
       traceService.add(Trace(SampleCode(globalCode), userName, new Date(), c_trace)).map { _ => Right(()) }
@@ -2308,13 +2309,25 @@ class InterconnectionServiceImpl @Inject()(
   }
 
   def retrySendApprovalToInferior(lab: String, url: String): Future[Unit] = {
-    // Buscar los perfiles con estado 22L en la tabla PROFILE_RECEIVED del laboratorio lab
-    Future.successful(())
+    logger.info(s"Reintento de envío de aprobación a instancia inferior: lab=$lab, url=$url")
+    this.profileDataService.getPendingApprovalNotification(lab).flatMap { receivedRows =>
+      logger.info(s"Cantidad de notificaciones de aprobaciones de perfiles de la instancia inferior a aprobar del lab=$lab, url=$url :" + receivedRows.size )
+      Future.successful(receivedRows.foreach(row => {
+        //Este status: APROBADA es lo que baja para que se updete el PROFILE_UPLOADED de la instancia inferior
+        notifyApprovalChangeStatus(row.globalCode, lab, APROBADA, row.userName, row.isCategoryModification)
+      }))
+    }
   }
 
   def retrySendRejectionToInferior(lab: String, url: String): Future[Unit] = {
-    // Buscar los perfiles con estado 21L en la tabla PROFILE_RECEIVED del laboratorio lab y mandar el motivo además
-    Future.successful(())
+    logger.info(s"Reintento de envío de rechazos a instancia inferior: lab=$lab, url=$url")
+    this.profileDataService.getPendingRejectionNotification(lab).flatMap { receivedRows =>
+      logger.info(s"Cantidad de notificaciones de rechazos de perfiles de la instancia inferior a aprobar del lab=$lab, url=$url :" + receivedRows.size )
+      Future.successful(receivedRows.foreach(row => {
+        //Este status: RECHAZADA es lo que baja para que se updete el PROFILE_UPLOADED de la instancia inferior
+        notifyRejectionChangeStatus(row.globalCode, lab, RECHAZADA, row.motive.getOrElse(""), row.userName.getOrElse(""), row.isCategoryModification)
+      }))
+    }
   }
 
   def retryUploadProfiles(lab: String): Future[Unit] = {

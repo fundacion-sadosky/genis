@@ -1,17 +1,17 @@
 define(['jquery','lodash'], function($,_) {
-	'use strict';
+    'use strict';
 
-	function Step2Controller($scope, $routeParams, bulkuploadService, helper, $log, $modal, alertService, $q, userService,locusService,profiledataService) {
+    function Step2Controller($scope, $routeParams, bulkuploadService, helper, $log, $modal, alertService, $q, userService,locusService,profiledataService) {
 
-		$scope.statusMap = bulkuploadService.getStatusMap();
-		var toogle = true;
+        $scope.statusMap = bulkuploadService.getStatusMap();
+        var toogle = true;
         var user = userService.getUser();
 
         localStorage.removeItem("searchPedigree");
         localStorage.removeItem("searchMatches");
         localStorage.removeItem("searchPedigreeMatches");
-		
-		var $modalInstance = {};
+
+        var $modalInstance = {};
         $scope.editedSubcats = {};
         $scope.batches = [];
         $scope.protoProfiles = {};
@@ -19,9 +19,9 @@ define(['jquery','lodash'], function($,_) {
             {label: 'Todo', filters: {}, placement: 'top'}];
         $scope.activeOption = 1;
 
-            bulkuploadService.getSubcategories().then(function(response){
+        bulkuploadService.getSubcategories().then(function(response){
             $scope.subcategory = response.data;
-		} );
+        } );
         profiledataService.getCategories().then(function(response) {
             $scope.categories = response.data;
         });
@@ -38,9 +38,10 @@ define(['jquery','lodash'], function($,_) {
                     }
                     _.forEach(response.data[i].genotypification,_.partial(bulkuploadService.fillRange,$scope.locusById,locusService.isOutOfLadder));
                 }
-				$scope.protoProfiles[batch.id] = response.data;
-               aprobados(batch.id);
+                $scope.protoProfiles[batch.id] = response.data;
+                aprobados(batch.id);
                 batch.isProcessing = false;
+                updateAllReplicatedStatus(batch.id); // Initialize allReplicated status
             }, function() { batch.isProcessing = false; });
         };
         var loadLocus = function() {
@@ -81,28 +82,28 @@ define(['jquery','lodash'], function($,_) {
         $scope.changePage = function(batch) {
             getBatchProtoProfiles(batch);
         };
-		
-		var getBatchItem = function(id, batch) {
-			if (batch){
-				batch.isProcessing = true;
-			}
 
-			bulkuploadService.getProtoProfileBySampleId(id).then(function(response) {		
-				if (batch && batch.id) {
-					$scope.protoProfiles[batch.id] = $scope.protoProfiles[batch.id].map(function(x){
-						return (x.id === id)? response.data: x;
-					});
-				} else {
+        var getBatchItem = function(id, batch) {
+            if (batch){
+                batch.isProcessing = true;
+            }
+
+            bulkuploadService.getProtoProfileBySampleId(id).then(function(response) {
+                if (batch && batch.id) {
+                    $scope.protoProfiles[batch.id] = $scope.protoProfiles[batch.id].map(function(x){
+                        return (x.id === id)? response.data: x;
+                    });
+                } else {
                     $scope.protoProfiles = helper.groupBy([response.data], 'batchId');
                     $scope.batches = Object.keys($scope.protoProfiles).map(function(id) {
                         return {id: id, isOpen: true};
                     });
-				}
-				if (batch){
+                }
+                if (batch){
                     batch.isProcessing = false;
-				}
-			}, function() { if (batch) { batch.isProcessing = false; } });
-		};
+                }
+            }, function() { if (batch) { batch.isProcessing = false; } });
+        };
 
         $scope.protoprofileId = $routeParams.protoprofileId;
         if ($scope.protoprofileId) {
@@ -111,57 +112,57 @@ define(['jquery','lodash'], function($,_) {
             getAllBatches();
             loadLocus();
         }
-		
-		var updateStatus = function(sample, status, batch) {
-			var id = parseInt(sample.id);
+
+        var updateStatus = function(sample, status, batch) {
+            var id = parseInt(sample.id);
             batch.isProcessing = true;
             return  bulkuploadService.changeStatus(id, status,sample.replicate).then(function(response) {
-				if(response.data.length > 0) {
-					if (batch.id) {
-						$scope.protoProfiles[batch.id].forEach(function(b){
-							if (b.id === id) {b.errors = response.data;}
-						});
-                    } else { $scope.protoProfiles[0].errors = response.data; }
-				}else { sample.status = status; }
-                    aprobados(batch.id);
-                    batch.isProcessing = false;
-			},
-                function(response){
-//				alert('Hubo un error: ' + response.data);
-                batch.isProcessing = false;
-				alertService.error({message: ' Hubo un error: ' + response.data});
-				$log.log(response);
-			});
-		};
-		
-		var rejectPp = function(sample, motive, batch,idMotive) {
-            batch.isProcessing = true;
-            bulkuploadService.rejectProtoProfile(sample.id, motive,idMotive).then(function(response) {
-				if(response.data.length > 0) {
-					if (batch) {
-						$scope.protoProfiles[batch.id].forEach(function(b){
-							if (b.id === sample.id) {b.errors = response.data;}
-						});
-					} else { $scope.protoProfiles[0].errors = response.data; }
-				}
-				else { sample.status = 'Rejected';
-                    sample.selected = false;
-				}
+                    if(response.data.length > 0) {
+                        if (batch.id) {
+                            $scope.protoProfiles[batch.id].forEach(function(b){
+                                if (b.id === id) {b.errors = response.data;}
+                            });
+                        } else { $scope.protoProfiles[0].errors = response.data; }
+                    }else { sample.status = status; }
                     aprobados(batch.id);
                     batch.isProcessing = false;
                 },
-			function(response){
+                function(response){
 //				alert('Hubo un error: ' + response.data);
-                batch.isProcessing = false;
-                alertService.error({message: ' Hubo un error: ' + response.data});
-				$log.log(response);
-			});
-		};
-		
-		$scope.import = function(id, batch) {
-			updateStatus(id, 'Imported', batch);
-		};
-		$scope.onChangeMotive = function(selectedMotive){
+                    batch.isProcessing = false;
+                    alertService.error({message: ' Hubo un error: ' + response.data});
+                    $log.log(response);
+                });
+        };
+
+        var rejectPp = function(sample, motive, batch,idMotive) {
+            batch.isProcessing = true;
+            bulkuploadService.rejectProtoProfile(sample.id, motive,idMotive).then(function(response) {
+                    if(response.data.length > 0) {
+                        if (batch) {
+                            $scope.protoProfiles[batch.id].forEach(function(b){
+                                if (b.id === sample.id) {b.errors = response.data;}
+                            });
+                        } else { $scope.protoProfiles[0].errors = response.data; }
+                    }
+                    else { sample.status = 'Rejected';
+                        sample.selected = false;
+                    }
+                    aprobados(batch.id);
+                    batch.isProcessing = false;
+                },
+                function(response){
+//				alert('Hubo un error: ' + response.data);
+                    batch.isProcessing = false;
+                    alertService.error({message: ' Hubo un error: ' + response.data});
+                    $log.log(response);
+                });
+        };
+
+        $scope.import = function(id, batch) {
+            updateStatus(id, 'Imported', batch);
+        };
+        $scope.onChangeMotive = function(selectedMotive){
 
             $scope.showMotiveTextArea = false;
             for (var i = 0; i < $scope.motives.length; i++) {
@@ -171,55 +172,55 @@ define(['jquery','lodash'], function($,_) {
                 }
             }
 
-		};
-		$scope.reject = function(sample, batchId) {
+        };
+        $scope.reject = function(sample, batchId) {
             $scope.showMotiveTextArea = false;
-			console.log(batchId);
+            console.log(batchId);
             bulkuploadService.getMotives().then(function(response) {
                 $scope.motives = response.data;
             }, function() {
                 $scope.motives = [];
             });
-			$modalInstance = $modal.open({
-				templateUrl:'/assets/javascripts/bulkupload/modalRejectProtoProfile.html',
-				scope: $scope
-			});
-			
-			$modalInstance.result.then(function(res){
-				rejectPp(sample,res.motive,batchId,res.idMotive);
-			});
-			
-			//rejectProtoProfile(id, '');
-		};
-		
-		$scope.closeModal = function(motiveText,selectedMotive){
-			if(motiveText === false){
-				$modalInstance.dismiss('cancel');
-			}else{
+            $modalInstance = $modal.open({
+                templateUrl:'/assets/javascripts/bulkupload/modalRejectProtoProfile.html',
+                scope: $scope
+            });
+
+            $modalInstance.result.then(function(res){
+                rejectPp(sample,res.motive,batchId,res.idMotive);
+            });
+
+            //rejectProtoProfile(id, '');
+        };
+
+        $scope.closeModal = function(motiveText,selectedMotive){
+            if(motiveText === false){
+                $modalInstance.dismiss('cancel');
+            }else{
                 for (var i = 0; i < $scope.motives.length; i++) {
                     if($scope.motives[i].id === parseInt(selectedMotive) && !$scope.motives[i].freeText){
                         motiveText = $scope.motives[i].description;
                     }
                 }
-				$modalInstance.close({motive: motiveText,idMotive:selectedMotive});
-			}
-		};
-		
-		$scope.importSelected = function(batch){
-			var promises = [];
+                $modalInstance.close({motive: motiveText,idMotive:selectedMotive});
+            }
+        };
+
+        $scope.importSelected = function(batch){
+            var promises = [];
             $scope.protoProfiles[batch.id].forEach(function(sample) {
-				if (sample.selected) {
-					promises.push(updateStatus(sample, 'Imported', batch).then(function() {
+                if (sample.selected) {
+                    promises.push(updateStatus(sample, 'Imported', batch).then(function() {
                         sample.selected = false;
                     }));
-				}
-			});
+                }
+            });
             $q.all(promises).then(function() {
                 alertService.success({message: 'Se ha realizado el cambio de estado satisfactoriamente'});
             }, function(response) {
                 alertService.error({message: ' Hubo un error: ' + response.toString()});
             });
-		};
+        };
 
         $scope.importBatch = function(batch){
             batch.isProcessing = true;
@@ -232,7 +233,7 @@ define(['jquery','lodash'], function($,_) {
                         idsToReplicate.push(sample.id);
                     }
                 });
-			}
+            }
             bulkuploadService.changeBatchStatus(batch.id, 'Imported',idsToReplicate,replicateAll).then(function() {
                 batch.isProcessing = false;
                 getBatchProtoProfiles(batch);
@@ -260,45 +261,45 @@ define(['jquery','lodash'], function($,_) {
             }
             $scope.deleteBatch(JSON.parse(batch));
         };
-		$scope.selectAll = function(batchId){
-			bulkuploadService.selectAll(batchId, $scope.protoProfiles[batchId], toogle, 'Approved');
-			toogle = !toogle;
-		};
-		
-		$scope.setMismatch = function(id, batchId) {
-			var pp = $scope.protoProfiles[batchId].filter(function(x){return x.id === id;})[0];
-			var strigencyModalInstance = $modal.open({
-				templateUrl:'/assets/javascripts/profiles/views/stringency-modal.html',
-				controller: 'stringencyModalController',
-				resolve: {
-					data: function () {
-						return {
-							subcategory: {id: pp.category},
-							profile: pp.sampleName,
-							subcatsRel: pp.matchingRules,
-							mismatches: pp.mismatches
-						};
-					}
-				}
-			}); 
-			
-			strigencyModalInstance.result.then(function (ret) {
-				console.log(ret);
-				$scope.subcatsRel = ret.subcatsRel;
-				$scope.mismatches = ret.mismatches;
-				
-				bulkuploadService.updateProtoProfileRulesMismatch(id, ret.subcatsRel, ret.mismatches).then(function(response) {	
-					if(response.data === id) {
-						getBatchItem(id, batchId);
-					}
-					else {
+        $scope.selectAll = function(batchId){
+            bulkuploadService.selectAll(batchId, $scope.protoProfiles[batchId], toogle, 'Approved');
+            toogle = !toogle;
+        };
+
+        $scope.setMismatch = function(id, batchId) {
+            var pp = $scope.protoProfiles[batchId].filter(function(x){return x.id === id;})[0];
+            var strigencyModalInstance = $modal.open({
+                templateUrl:'/assets/javascripts/profiles/views/stringency-modal.html',
+                controller: 'stringencyModalController',
+                resolve: {
+                    data: function () {
+                        return {
+                            subcategory: {id: pp.category},
+                            profile: pp.sampleName,
+                            subcatsRel: pp.matchingRules,
+                            mismatches: pp.mismatches
+                        };
+                    }
+                }
+            });
+
+            strigencyModalInstance.result.then(function (ret) {
+                console.log(ret);
+                $scope.subcatsRel = ret.subcatsRel;
+                $scope.mismatches = ret.mismatches;
+
+                bulkuploadService.updateProtoProfileRulesMismatch(id, ret.subcatsRel, ret.mismatches).then(function(response) {
+                    if(response.data === id) {
+                        getBatchItem(id, batchId);
+                    }
+                    else {
 //						alert('Hubo un error: ' + response.data);
-						alertService.error({message: ' Hubo un error: ' + response.data});
-					}
-				});
-				
-			}, function(){});
-		};
+                        alertService.error({message: ' Hubo un error: ' + response.data});
+                    }
+                });
+
+            }, function(){});
+        };
         $scope.editData = function(sample, action, batchId) {
             if (action === 'edit') { $scope.edit = sample.id; }
             if (action === 'cancel') {$scope.edit = ''; }
@@ -333,19 +334,19 @@ define(['jquery','lodash'], function($,_) {
         };
 
         var aprobados = function (batchId) {
-                $scope.protoProfiles[batchId].todosAprobados = true;
+            $scope.protoProfiles[batchId].todosAprobados = true;
 
-                $scope.protoProfiles[batchId].forEach(function (n) {
-                    if (n.status === 'Approved') {
-                        $scope.protoProfiles[batchId].todosAprobados = false;
-                    }
-                });
+            $scope.protoProfiles[batchId].forEach(function (n) {
+                if (n.status === 'Approved') {
+                    $scope.protoProfiles[batchId].todosAprobados = false;
+                }
+            });
         };
 
         $scope.show = function (index) {
             $scope.activeOption = index;
             console.log(index);
-                getAllBatches();
+            getAllBatches();
         };
 
         $scope.importAndReplicateBatch = function(batch){
@@ -375,8 +376,33 @@ define(['jquery','lodash'], function($,_) {
                 alertService.error({message: ' Hubo un error: ' + response.data});
             });
         };
-	}
-	
-	return Step2Controller;
-});
 
+        // New function to toggle replicate all
+        $scope.replicateAllToggle = function(batchId) {
+            var allReplicated = $scope.protoProfiles[batchId].allReplicated; // Get current status
+
+            // Toggle all replicate checkboxes based on current status
+            _.forEach($scope.protoProfiles[batchId], function(r) {
+                if (!r.replicateDisabled) { // Only toggle if not disabled
+                    r.replicate = !allReplicated;
+                }
+            });
+
+            // Update the allReplicated status
+            updateAllReplicatedStatus(batchId);
+        };
+
+        // Function to update the allReplicated status for a batch
+        function updateAllReplicatedStatus(batchId) {
+            var allReplicated = true;
+            _.forEach($scope.protoProfiles[batchId], function(r) {
+                if (!r.replicate && !r.replicateDisabled) {
+                    allReplicated = false;
+                }
+            });
+            $scope.protoProfiles[batchId].allReplicated = allReplicated;
+        }
+    }
+
+    return Step2Controller;
+});

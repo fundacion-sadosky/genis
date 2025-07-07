@@ -148,19 +148,26 @@ abstract class ProfileDataRepository extends DefaultDb with Transaction  {
 
   def updateInterconnectionError(globalCode: String, status: Long, interconnection_error: String): Future[Either[String, Unit]]
 
-  def addProfileReceivedApproved(labCode: String, globalCode: String, status: Long, userName: String): Future[Either[String, Unit]]
+  def addProfileReceivedApproved(labCode: String, globalCode: String, status: Long, userName: String, isCategoryModificaction: Boolean): Future[Either[String, Unit]]
 
-  def addProfileReceivedRejected(labCode: String, globalCode: String, status:Long, motive: String, userName: String): Future[Either[String, Unit]]
+  def addProfileReceivedRejected(labCode: String, globalCode: String, status:Long, motive: String, userName: String, isCategoryModificaction: Boolean): Future[Either[String, Unit]]
 
   def updateProfileReceivedStatus(
                                    labCode:String,
                                    globalCode: String,
                                    status:Long,
                                    motive:Option[String],
+                                   isCategoryModificaction: Boolean,
                                    interconnection_error:Option[String],
                                    userName:Option[String]
                                  ): Future[Either[String,Unit]]
+
+  def getPendingApprovalNotification(labCode: String): Future[Seq[ProfileReceivedRow]]
+
+  def getPendingRejectionNotification(labCode: String): Future[Seq[ProfileReceivedRow]]
 }
+
+
 
 @Singleton
 class SlickProfileDataRepository @Inject() (
@@ -1118,7 +1125,7 @@ class SlickProfileDataRepository @Inject() (
   val ProfileReceived: TableQuery[Tables.ProfileReceived] = Tables.ProfileReceived
 
 
-  override def addProfileReceivedApproved(labCode: String, globalCode: String, status: Long, userName: String): Future[Either[String, Unit]] = {
+  override def addProfileReceivedApproved(labCode: String, globalCode: String, status: Long, userName: String, isCategoryModificaction: Boolean): Future[Either[String, Unit]] = {
     Future {
       DB.withTransaction { implicit session =>
         try {
@@ -1130,6 +1137,7 @@ class SlickProfileDataRepository @Inject() (
             status,
             None,
             Some(userName),
+            isCategoryModificaction,
             None)
           logger.info(s"Inserted new profile received with ID: $nextVal, labCode: $labCode, globalCode: $globalCode")
           Right(())
@@ -1143,7 +1151,7 @@ class SlickProfileDataRepository @Inject() (
     }
   }
 
-  def addProfileReceivedRejected(labCode: String, globalCode: String, status: Long, motive: String, userName: String): Future[Either[String, Unit]] = {
+  def addProfileReceivedRejected(labCode: String, globalCode: String, status: Long, motive: String, userName: String, isCategoryModificaction: Boolean): Future[Either[String, Unit]] = {
     Future {
       DB.withTransaction { implicit session =>
         try {
@@ -1158,6 +1166,7 @@ class SlickProfileDataRepository @Inject() (
             status,
             Some("Rechazado por el motivo: " + motive),
             Some(userName),
+            isCategoryModificaction,
             None
           )
 
@@ -1192,14 +1201,14 @@ class SlickProfileDataRepository @Inject() (
     }
   }
 
-  def updateProfileReceivedStatus(labCode: String, globalCode: String,  status: Long, motive: Option[String], interconnection_error: Option[String], userName:Option [String]): Future[Either[String, Unit]] = {
+  def updateProfileReceivedStatus(labCode: String, globalCode: String,  status: Long, motive: Option[String], isCategoryModification: Boolean, interconnection_error: Option[String], userName:Option [String]): Future[Either[String, Unit]] = {
     this.runInTransactionAsync { implicit session =>
     {
       try {
         getProfileReceivedByGlobalCode(globalCode).firstOption match {
           case None => Left(Messages("error.E0940"))
           case Some(row) => { //hizo un insert con un nuevo id. row es del tipo profileDataRow y debería ser una profileRecevedRow
-            profileReceived insertOrUpdate models.Tables.ProfileReceivedRow(row.id,row.labCode,row.globalCode,status,motive, interconnection_error, userName)
+            profileReceived insertOrUpdate models.Tables.ProfileReceivedRow(row.id,row.labCode,row.globalCode,status,motive,  userName, isCategoryModification,interconnection_error)
             Right(())
           }
         }
@@ -1209,6 +1218,30 @@ class SlickProfileDataRepository @Inject() (
         }
       }
     }
+    }
+  }
+
+
+  private def queryPendingApprovalNotifications(labCode: Column[String]) =
+    profileReceived.filter(_.status === 22L).filter(_.labCode === labCode)
+
+  private def queryPendingRejectionNotifications(labCode: Column[String]) =
+    profileReceived.filter(_.status === 21L).filter(_.labCode === labCode)
+
+
+  val getPendingApprovalNotificationCompiled = Compiled(queryPendingApprovalNotifications _)
+
+  val getPendingRejectionNotificationCompiled = Compiled(queryPendingRejectionNotifications _)
+
+  override def getPendingApprovalNotification(labCode: String): Future[Seq[ProfileReceivedRow]] = {
+    this.runInTransactionAsync { implicit session =>
+      getPendingApprovalNotificationCompiled(labCode).list
+    }
+  }
+
+  override def getPendingRejectionNotification(labCode: String): Future[Seq[ProfileReceivedRow]]  = {
+    this.runInTransactionAsync { implicit session =>
+      getPendingRejectionNotificationCompiled(labCode).list
     }
   }
 }

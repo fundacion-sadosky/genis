@@ -290,7 +290,7 @@ class InterconnectionsTest extends PdgSpec with MockitoSugar with Results {
 
       val request = FakeRequest()
 
-      val resultOk: Future[Result] = target.rejectPendingProfile(globalCode, "motive", 1L, "usuario").apply(request)
+      val resultOk: Future[Result] = target.rejectPendingProfile(globalCode, "motive", 1L, "usuario", false).apply(request)
       status(resultOk) mustBe OK
 
     }

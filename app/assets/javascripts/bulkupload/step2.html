@@ -64,6 +64,10 @@
 
 		<button class="btn btn-link-action" ng-click="selectAll(l.id)" ng-disabled="l.isProcessing || protoProfiles[l.id].todosAprobados"><span class="glyphicon glyphicon-ok" aria-hidden="true"></span><span> Seleccionar todos</span></button>
 		<button class="btn btn-secondary-action" ng-click="importSelected(l)" ng-disabled="l.isProcessing || protoProfiles[l.id].todosAprobados">Aceptar seleccionados</button>
+		<button class="btn btn-secondary-action" ng-click="replicateAllToggle(l.id)" ng-disabled="l.isProcessing || protoProfiles[l.id].todosAprobados">
+			<span ng-if="!protoProfiles[l.id].allReplicated">Replicar todos</span>
+			<span ng-if="protoProfiles[l.id].allReplicated">No replicar ninguno</span>
+		</button>
         <span id="processingSpan" class="icon-refresh"
               data-ng-class="{'spinner': l.isProcessing}" data-ng-show="l.isProcessing"></span>
 		<table class="table table-striped" style="table-layout:fixed;">

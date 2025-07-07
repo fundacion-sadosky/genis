@@ -242,10 +242,10 @@ class Interconnections @Inject()(
 
                 Future.sequence(approvals.map(approval => {
                   val labCode: Option[String] = getLabCodeFromGlobalCode(approval.globalCode)
-
+                  // TODO: fijarse
                   labCode match {
                     //Insertar el perfil en PROFILE_RECEIVED table con estado pendiente de avisar a la instancia inferior
-                    case Some(code) =>  profiledataService.addProfileReceivedApproved(code, approval.globalCode, 22L, userName) // Using profiledataService to access the repository
+                    case Some(code) =>  profiledataService.addProfileReceivedApproved(code, approval.globalCode, 22L, userName, false) // Using profiledataService to access the repository
                     case None => Future.successful(Left("Invalid global code format")) // Or handle the missing labCode case
                   }
                 })).map { results =>
@@ -295,7 +295,7 @@ class Interconnections @Inject()(
   }
 
 
-  def rejectPendingProfile(id: String,motive:String,idMotive:Long, userName:String) = Action.async {
+  def rejectPendingProfile(id: String,motive:String,idMotive:Long, userName:String, isCategoryModification: Boolean) = Action.async {
     request => {
       interconnectionService.rejectProfile(ProfileApproval(id),motive,idMotive,userName).map{
         case Left(e) => BadRequest(Json.obj("message" -> e))
@@ -303,7 +303,7 @@ class Interconnections @Inject()(
           val labCode: Option[String] = getLabCodeFromGlobalCode(id)
           labCode match {
             //Insertar el perfil en PROFILE_RECEIVED table
-            case Some(code) => profiledataService.addProfileReceivedRejected(code, id, 21L,  motive,userName)// Using profiledataService to access the repository
+            case Some(code) => profiledataService.addProfileReceivedRejected(code, id, 21L,  motive,userName, isCategoryModification)// Using profiledataService to access the repository
             case None => Future.successful(Left("Invalid global code format")) // Or handle the missing labCode case
           }
           Ok.withHeaders("X-CREATED-ID" -> id)

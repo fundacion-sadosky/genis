@@ -12,6 +12,7 @@ import com.github.tototoshi.csv.{CSVWriter, DefaultCSVFormat}
 import models.Tables
 import models.Tables.ProfileUploadedRow
 import models.Tables.ProfileSentRow
+import models.Tables.ProfileReceivedRow
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import profile.{MtRCRS, Profile, ProfileRepository, ProfileService}
@@ -79,9 +80,11 @@ trait ProfileDataService {
   def updateProfileSentStatus(globalCode: String,status:Long,motive:Option[String],labCode:String,interconnection_error:Option[String], userName:Option[String]): Future[Either[String,Unit]]
   def getMtRcrs():Future[MtRCRS]
   def updateInterconnectionError(globalCode: String, status:Long, interconnection_error: String): Future[Either[String,Unit]]
-  def addProfileReceivedApproved(labCode:String,globalCode:String, status: Long, userName: String):Future[Either[String,Unit]]
-  def addProfileReceivedRejected(labCode:String,globalCode:String, status: Long, motive: String, userName: String):Future[Either[String,Unit]]
-  def updateProfileReceivedStatus(labCode:String, globalCode: String,status:Long,motive:String,interconnection_error:String, userName:Option[String]): Future[Either[String,Unit]]
+  def addProfileReceivedApproved(labCode:String,globalCode:String, status: Long, userName: String, isCategoryModification: Boolean):Future[Either[String,Unit]]
+  def addProfileReceivedRejected(labCode:String,globalCode:String, status: Long, motive: String, userName: String, isCategoryModification: Boolean):Future[Either[String,Unit]]
+  def updateProfileReceivedStatus(labCode:String, globalCode: String,status:Long,motive:String,isCategoryModification: Boolean,interconnection_error:String, userName:Option[String]): Future[Either[String,Unit]]
+  def getPendingApprovalNotification(labCode:String): Future[Seq[ProfileReceivedRow]]
+  def getPendingRejectionNotification(labCode:String): Future[Seq[ProfileReceivedRow]]
 }
 
 @Singleton
@@ -536,15 +539,23 @@ class ProfileDataServiceImpl @Inject() (
   override def updateInterconnectionError(globalCode: String, status: Long, interconnection_error: String): Future[Either[String, Unit]] = {
     this.profileDataRepository.updateInterconnectionError(globalCode,status, interconnection_error)
   }
-  override def addProfileReceivedApproved (labCode: String, globalCode: String, status: Long, userName: String): Future[Either[String, Unit]] = {
-    this.profileDataRepository.addProfileReceivedApproved(labCode, globalCode, status, userName: String)
+  override def addProfileReceivedApproved (labCode: String, globalCode: String, status: Long, userName: String, isCategoryModificaction: Boolean): Future[Either[String, Unit]] = {
+    this.profileDataRepository.addProfileReceivedApproved(labCode, globalCode, status, userName: String, isCategoryModificaction)
   }
 
-  def addProfileReceivedRejected(labCode: String, globalCode: String, status: Long, motive:String, userName:String): Future[Either[String, Unit]] = {
-    this.profileDataRepository.addProfileReceivedRejected(labCode, globalCode, status, motive, userName)
+  def addProfileReceivedRejected(labCode: String, globalCode: String, status: Long, motive:String, userName:String, isCategoryModificaction: Boolean): Future[Either[String, Unit]] = {
+    this.profileDataRepository.addProfileReceivedRejected(labCode, globalCode, status, motive, userName, isCategoryModificaction)
   }
 
-  def updateProfileReceivedStatus(labCode: String, globalCode: String, status: Long, motive: String, interconnection_error: String, userName: Option[String]): Future[Either[String, Unit]] = {
-    this.profileDataRepository.updateProfileReceivedStatus(labCode, globalCode, status, Some(motive), Some(interconnection_error), userName)
+  def updateProfileReceivedStatus(labCode: String, globalCode: String, status: Long, motive: String, isCategoryModificaction: Boolean, interconnection_error: String, userName: Option[String]): Future[Either[String, Unit]] = {
+    this.profileDataRepository.updateProfileReceivedStatus(labCode, globalCode, status, Some(motive), isCategoryModificaction, Some(interconnection_error), userName)
   }
+
+  def getPendingApprovalNotification(labCode:String): Future[Seq[ProfileReceivedRow]] = {
+    this.profileDataRepository.getPendingApprovalNotification(labCode)
+  }
+  def getPendingRejectionNotification(labCode:String): Future[Seq[ProfileReceivedRow]] = {
+    this.profileDataRepository.getPendingRejectionNotification(labCode)
+  }
+
 }
