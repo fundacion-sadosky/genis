@@ -145,14 +145,14 @@ class ProfileDataServiceTest extends PdgSpec with MockitoSugar {
       recived.crimeType.get mustBe "contra las personas"
       recived.bioMaterialType.get mustBe "sangre"
     }
-    
+
     "get several ProfileData by sampleCodes" in {
 
       val mockCacheService = mock[CacheService]
       val mockProfileDataRepository = mock[ProfileDataRepository]
-      
+
       val optReturn2: Future[Seq[ProfileData]] = Future.successful(Seq(Stubs.profileData, Stubs.profileData2nd))
-      
+
       when(mockProfileDataRepository.findByCodes(List(SampleCode("AR-C-SHDG-1"), SampleCode("AR-C-SHDG-2")))).thenReturn(optReturn2)
 
       val mockNotiService = mock[NotificationService]
@@ -175,7 +175,7 @@ class ProfileDataServiceTest extends PdgSpec with MockitoSugar {
 
       val recived = Await.result(target.findByCodes(List(SampleCode("AR-C-SHDG-1"), SampleCode("AR-C-SHDG-2"))), duration)
 
-      recived.length mustBe 2      
+      recived.length mustBe 2
       recived(0).laboratory mustBe "Servicio de Huellas Digitales"
       recived(0).crimeType.get mustBe "contra las personas"
       recived(0).bioMaterialType.get mustBe "sangre"
@@ -249,8 +249,8 @@ class ProfileDataServiceTest extends PdgSpec with MockitoSugar {
 
       verify(traceService).add(any[Trace])
     }
-    
-    
+
+
   }
 
 }
