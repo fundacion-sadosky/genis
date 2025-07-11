@@ -85,6 +85,7 @@ trait ProfileDataService {
   def updateProfileReceivedStatus(labCode:String, globalCode: String,status:Long,motive:String,isCategoryModification: Boolean,interconnection_error:String, userName:Option[String]): Future[Either[String,Unit]]
   def getPendingApprovalNotification(labCode:String): Future[Seq[ProfileReceivedRow]]
   def getPendingRejectionNotification(labCode:String): Future[Seq[ProfileReceivedRow]]
+  def gefFailedProfilesReceivedDeleted(labCode: String):Future[Seq[ProfileReceivedRow]]
 }
 
 @Singleton
@@ -197,6 +198,7 @@ class ProfileDataServiceImpl @Inject() (
 
 
   override def deleteProfile(globalCode: SampleCode, motive: DeletedMotive, userId: String,shouldUpdateSuperiorInstance:Boolean = true,validateMPI:Boolean = true): Future[Either[String, SampleCode]] = {
+    // TODO: implementar el shouldupdateSuperiorinstance y shouldUpdateInferior consultando las tablas correspondientes
     canDeleteProfile(globalCode,validateMPI) flatMap { case (allowed,msg) =>
       if (allowed) {
         delete(globalCode) flatMap { response =>
@@ -558,4 +560,7 @@ class ProfileDataServiceImpl @Inject() (
     this.profileDataRepository.getPendingRejectionNotification(labCode)
   }
 
+  def gefFailedProfilesReceivedDeleted(labCode: String): Future[Seq[_root_.models.Tables.ProfileReceivedRow]] = {
+    this.profileDataRepository.getFailedProfilesReceivedDeleted(labCode)
+  }
 }

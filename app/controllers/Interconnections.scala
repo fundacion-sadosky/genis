@@ -198,7 +198,7 @@ class Interconnections @Inject()(
     }
   }
 
-  // nstancia inferior recibe el codigo y el usuario que borró el perfil en la instancia superior
+  // Instancia inferior recibe el codigo y el usuario que borró el perfil en la instancia superior
   def deleteProfileFromSuperior(id:String, userName: String) = Action.async(BodyParsers.parse.json) {
     request =>{
       val labcode = request.headers.get(HeaderInsterconnections.labCode)

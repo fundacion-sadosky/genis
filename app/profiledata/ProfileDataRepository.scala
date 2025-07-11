@@ -46,17 +46,19 @@ import types.SampleCode
 import util.{DefaultDb, Transaction}
 import play.api.i18n.Messages
 import models.Tables.ExternalProfileDataRow
-abstract class ProfileDataRepository extends DefaultDb with Transaction  {
+abstract class ProfileDataRepository extends DefaultDb with Transaction {
   /**
    * Get by dataBase Id
    *
    */
   def get(id: Long): Future[ProfileData]
+
   /**
    * Get by globalCode only return the information in the table
    *
    */
   def findByCode(globalCode: SampleCode): Future[Option[ProfileData]]
+
   /**
    * Create a new ProfileData
    *
@@ -68,6 +70,7 @@ abstract class ProfileDataRepository extends DefaultDb with Transaction  {
            picturesList: Option[List[File]] = None,
            signaturesList: Option[List[File]] = None
          ): Future[SampleCode]
+
   /**
    * Update a ProfileData
    *
@@ -79,94 +82,113 @@ abstract class ProfileDataRepository extends DefaultDb with Transaction  {
                          picturesList: Option[List[File]] = None,
                          signaturesList: Option[List[File]] = None
                        ): Future[Boolean]
+
   /**
    * Get a complete ProfileData with data filiation if is present
    *
    */
   def get(globalCode: SampleCode): Future[Option[ProfileData]]
+
   /**
    * Get a resource by type and id
    *
    */
   def getResource(resourceType: String, id: Long): Future[Option[Array[Byte]]]
+
   /**
    * Set a profile data with deleted flag in true
    *
    */
   def delete(globalCode: SampleCode, motive: DeletedMotive): Future[Int]
+
   /**
    * Get all profile datas of a user
    *
    */
   def getTotalProfilesByUser(search: ProfileDataSearch): Future[Int]
+
   def getTotalProfilesByUser(
-                              userId : String,
-                              isSuperUser : Boolean,
-                              category:String=""
+                              userId: String,
+                              isSuperUser: Boolean,
+                              category: String = ""
                             ): Future[Int]
+
   def getProfilesByUser(search: ProfileDataSearch): Future[Seq[ProfileDataFull]]
+
   def giveGlobalCode(labCode: String): Future[String]
+
   def isDeleted(globalCode: SampleCode): Future[Option[Boolean]]
+
   def getDeletedMotive(globalCode: SampleCode): Future[Option[DeletedMotive]]
+
   def findByCodes(globalCodes: List[SampleCode]): Future[Seq[ProfileData]]
+
   def getGlobalCode(internalSampleCode: String): Future[Option[SampleCode]]
 
   def addExternalProfile(
                           profileData: ProfileData,
-                          labOrigin:String,
-                          labImmediate:String
+                          labOrigin: String,
+                          labImmediate: String
                         ): Future[SampleCode]
+
   def updateUploadStatus(
                           globalCode: String,
-                          status:Long,
-                          motive:Option[String],
-                          interconnection_error:Option[String],
-                          userName:Option[String]
-                        ): Future[Either[String,Unit]]
+                          status: Long,
+                          motive: Option[String],
+                          interconnection_error: Option[String],
+                          userName: Option[String]
+                        ): Future[Either[String, Unit]]
+
   def findUploadedProfilesByCodes(
                                    globalCodes: Seq[SampleCode]
                                  ): Future[Seq[SampleCode]]
 
   def getProfileUploadStatusByGlobalCode(
-                                          globalCode:SampleCode
-                                        ):Future[Option[Long]]
+                                          globalCode: SampleCode
+                                        ): Future[Option[Long]]
 
   def getExternalProfileDataByGlobalCode(
-                                          globalCode:String
-                                        ):Future[Option[ExternalProfileDataRow]]
-  def gefFailedProfilesUploaded():Future[List[ProfileUploadedRow]]
-  def gefFailedProfilesUploadedDeleted():Future[List[ProfileUploadedRow]]
-  def gefFailedProfilesSentDeleted(labCode:String):Future[List[ProfileSentRow]]
+                                          globalCode: String
+                                        ): Future[Option[ExternalProfileDataRow]]
+
+  def gefFailedProfilesUploaded(): Future[List[ProfileUploadedRow]]
+
+  def gefFailedProfilesUploadedDeleted(): Future[List[ProfileUploadedRow]]
+
+  def gefFailedProfilesSentDeleted(labCode: String): Future[List[ProfileSentRow]]
+
   def updateProfileSentStatus(
                                globalCode: String,
-                               status:Long,
-                               motive:Option[String],
-                               labCode:String,
-                               interconnection_error:Option[String]
-                             ): Future[Either[String,Unit]]
-  def getMtRcrs():Future[MtRCRS]
+                               status: Long,
+                               motive: Option[String],
+                               labCode: String,
+                               interconnection_error: Option[String]
+                             ): Future[Either[String, Unit]]
+
+  def getMtRcrs(): Future[MtRCRS]
 
   def updateInterconnectionError(globalCode: String, status: Long, interconnection_error: String): Future[Either[String, Unit]]
 
   def addProfileReceivedApproved(labCode: String, globalCode: String, status: Long, userName: String, isCategoryModificaction: Boolean): Future[Either[String, Unit]]
 
-  def addProfileReceivedRejected(labCode: String, globalCode: String, status:Long, motive: String, userName: String, isCategoryModificaction: Boolean): Future[Either[String, Unit]]
+  def addProfileReceivedRejected(labCode: String, globalCode: String, status: Long, motive: String, userName: String, isCategoryModificaction: Boolean): Future[Either[String, Unit]]
 
   def updateProfileReceivedStatus(
-                                   labCode:String,
+                                   labCode: String,
                                    globalCode: String,
-                                   status:Long,
-                                   motive:Option[String],
+                                   status: Long,
+                                   motive: Option[String],
                                    isCategoryModificaction: Boolean,
-                                   interconnection_error:Option[String],
-                                   userName:Option[String]
-                                 ): Future[Either[String,Unit]]
+                                   interconnection_error: Option[String],
+                                   userName: Option[String]
+                                 ): Future[Either[String, Unit]]
 
   def getPendingApprovalNotification(labCode: String): Future[Seq[ProfileReceivedRow]]
 
   def getPendingRejectionNotification(labCode: String): Future[Seq[ProfileReceivedRow]]
-}
 
+  def getFailedProfilesReceivedDeleted(labCode: String): Future[Seq[ProfileReceivedRow]]
+}
 
 
 @Singleton
@@ -207,7 +229,7 @@ class SlickProfileDataRepository @Inject() (
 
   val queryGetGlobalCode = Compiled {
     internalSampleCode: Column[String] =>
-      for{
+      for {
         pd <- profilesData if
           pd.internalSampleCode === internalSampleCode && !pd.deleted
       }
@@ -224,18 +246,25 @@ class SlickProfileDataRepository @Inject() (
 
   private def queryGetByGlobalCode(globalCode: Column[String]) =
     profilesData.filter(_.globalCode === globalCode)
+
   private def queryProfileUploadedById(id: Column[Long]) =
     profileUploaded.filter(_.id === id)
+
   private def queryProfileUploadedByGlobalCode(globalCode: Column[String]) =
     profileUploaded.filter(_.globalCode === globalCode)
+
   private def queryProfileUploadedByGlobalCodeInSet(globalCodes: Seq[String]) =
     profileUploaded.filter(_.globalCode inSet globalCodes)
+
   private def queryFailedUploadedProfiles() =
     profileUploaded.filter(_.status === 1L)
+
   private def queryFailedUploadedProfilesDeleted() =
     profileUploaded.filter(_.status === 5L)
+
   private def queryFailedSentProfilesDeleted(labCode: Column[String]) =
     profileSent.filter(_.status === 5L).filter(_.labCode === labCode)
+
   private def queryProfileReceivedByGlobalCode(globalCode: Column[String]) =
     profileReceived.filter(_.globalCode === globalCode)
 
@@ -303,14 +332,14 @@ class SlickProfileDataRepository @Inject() (
   val queryGetIdProfileData = Compiled(queryDefineGetIdProfileData _)
 
   private def queryDefineGetProfileData(id: Column[Long]) = for (
-    ((pd, pmdf),epd) <-
+    ((pd, pmdf), epd) <-
       profilesData
         leftJoin profileMetaDataFiliations
         on (_.globalCode === _.profileData)
         leftJoin externalProfileDataTable
         on (_._1.id === _.id)
     if pd.id === id
-  ) yield (pd, pmdf.?,epd.?)
+  ) yield (pd, pmdf.?, epd.?)
 
   private def queryDefineResource(id: Column[String]) = for (
     resource <- profileMetaDataFiliationResources
@@ -355,7 +384,7 @@ class SlickProfileDataRepository @Inject() (
         leftJoin externalProfileDataTable
         on (_._1.id === _.id)
     if pd.globalCode === sampleCode
-  ) yield (pd, pmdf.?,epd.?)
+  ) yield (pd, pmdf.?, epd.?)
 
   val queryGetProfileDataBySampleCode =
     Compiled(queryDefineGetProfileDataBySampleCode _)
@@ -367,7 +396,7 @@ class SlickProfileDataRepository @Inject() (
           leftJoin externalProfileDataTable
           on (_.id === _.id)
       if (pd.globalCode === code)
-    ) yield (pd,epd.?)
+    ) yield (pd, epd.?)
 
   val queryFindProfileDataByCode = Compiled(queryDefineFindByCode _)
 
@@ -400,8 +429,8 @@ class SlickProfileDataRepository @Inject() (
       if (isSuperUser || pd.assignee === userId) &&
         ((pd.deleted && inactive) || (!pd.deleted && active))
 
-    } yield (pd,pdu.?,epd.?)
-    ) sortBy(_._1.globalCode.desc)
+    } yield (pd, pdu.?, epd.?)
+    ) sortBy (_._1.globalCode.desc)
 
   private def queryDefineGetProfileDataByUserAndStatusAndCategory(
                                                                    userId: Column[String],
@@ -410,20 +439,20 @@ class SlickProfileDataRepository @Inject() (
                                                                    inactive: Column[Boolean],
                                                                    category: Column[String]
                                                                  ) = (for {
-    ((pd,pdu),epd) <- (
+    ((pd, pdu), epd) <- (
       profilesData
         leftJoin profileUploaded
-        on(_.id === _.id)
+        on (_.id === _.id)
         leftJoin externalProfileDataTable
-        on(_._1.id === _.id)
+        on (_._1.id === _.id)
       )
     if (
       (isSuperUser || pd.assignee === userId) &&
         ((pd.deleted && inactive) || (!pd.deleted && active))
-        && (pd.category===category)
+        && (pd.category === category)
       )
-  } yield (pd,pdu.?,epd.?)
-    ) sortBy(_._1.globalCode.desc)
+  } yield (pd, pdu.?, epd.?)
+    ) sortBy (_._1.globalCode.desc)
 
   private def queryDefineGetProfileDataByUser(
                                                userId: Column[String],
@@ -432,7 +461,7 @@ class SlickProfileDataRepository @Inject() (
     for {
       pd <- profilesData if (isSuperUser || pd.assignee === userId)
     } yield pd
-    ) sortBy(_.globalCode.desc)
+    ) sortBy (_.globalCode.desc)
 
   private def queryDefineGetProfileDataByUserAndCategory(
                                                           userId: Column[String],
@@ -441,9 +470,9 @@ class SlickProfileDataRepository @Inject() (
                                                         ) = (
     for {
       pd <- profilesData
-      if (isSuperUser || pd.assignee === userId) && (pd.category===category)
+      if (isSuperUser || pd.assignee === userId) && (pd.category === category)
     } yield (pd)
-    ) sortBy(_.globalCode.desc)
+    ) sortBy (_.globalCode.desc)
 
   val queryGetProfileDataByUserAndStatus =
     Compiled(queryDefineGetProfileDataByUserAndStatus _)
@@ -466,8 +495,8 @@ class SlickProfileDataRepository @Inject() (
 
   override def getProfilesByUser(search: ProfileDataSearch)
   : Future[Seq[ProfileDataFull]] = Future {
-    if(search.notUploaded.contains(true)){
-      if(search.category.isEmpty) {
+    if (search.notUploaded.contains(true)) {
+      if (search.category.isEmpty) {
         DB.withSession {
           implicit session =>
             queryGetProfileDataByUserAndStatus(
@@ -482,7 +511,7 @@ class SlickProfileDataRepository @Inject() (
               .take(search.pageSize)
               .iterator
               .toVector map {
-              case (pd,pdu,epd) =>
+              case (pd, pdu, epd) =>
                 ProfileDataFull(
                   AlphanumericId(pd.category),
                   SampleCode(pd.globalCode),
@@ -522,7 +551,7 @@ class SlickProfileDataRepository @Inject() (
             .take(search.pageSize)
             .iterator
             .toVector map {
-            case (pd,pdu,epd) =>
+            case (pd, pdu, epd) =>
               ProfileDataFull(
                 AlphanumericId(pd.category),
                 SampleCode(pd.globalCode),
@@ -563,7 +592,7 @@ class SlickProfileDataRepository @Inject() (
               .take(search.pageSize)
               .iterator
               .toVector map {
-              case (pd,pdu,epd) =>
+              case (pd, pdu, epd) =>
                 ProfileDataFull(
                   AlphanumericId(pd.category),
                   SampleCode(pd.globalCode),
@@ -590,15 +619,15 @@ class SlickProfileDataRepository @Inject() (
         }
       } else {
         DB.withSession { implicit session =>
-          queryGetProfileDataByUserAndStatusAndCategory(search.userId, search.isSuperUser, search.active, search.inactive,search.category)
+          queryGetProfileDataByUserAndStatusAndCategory(search.userId, search.isSuperUser, search.active, search.inactive, search.category)
             .list.drop(search.page * search.pageSize).take(search.pageSize).iterator.toVector map {
-            case (pd,pdu,epd) =>
+            case (pd, pdu, epd) =>
               ProfileDataFull(AlphanumericId(pd.category),
                 SampleCode(pd.globalCode), pd.attorney, pd.bioMaterialType,
                 pd.court, pd.crimeInvolved, pd.crimeType, pd.criminalCase,
                 pd.internalSampleCode, pd.assignee, pd.laboratory, pd.deleted, None,
                 pd.responsibleGeneticist, pd.profileExpirationDate, pd.sampleDate,
-                pd.sampleEntryDate, None,pdu.isDefined,epd.isDefined)
+                pd.sampleEntryDate, None, pdu.isDefined, epd.isDefined)
           }
         }
       }
@@ -606,22 +635,22 @@ class SlickProfileDataRepository @Inject() (
   }
 
   override def getTotalProfilesByUser(search: ProfileDataSearch): Future[Int] = Future {
-    if(search.notUploaded.contains(true)){
-      if(search.category.isEmpty) {
+    if (search.notUploaded.contains(true)) {
+      if (search.category.isEmpty) {
         DB.withSession { implicit session =>
           queryGetProfileDataByUserAndStatus(search.userId, search.isSuperUser, search.active, search.inactive).list.filter(_._2.isEmpty).length
         }
-      }else{
+      } else {
         DB.withSession { implicit session =>
           queryGetProfileDataByUserAndStatusAndCategory(search.userId, search.isSuperUser, search.active, search.inactive, search.category).list.filter(_._2.isEmpty).length
         }
       }
-    }else{
-      if(search.category.isEmpty) {
+    } else {
+      if (search.category.isEmpty) {
         DB.withSession { implicit session =>
           queryGetProfileDataByUserAndStatus(search.userId, search.isSuperUser, search.active, search.inactive).list.length
         }
-      }else{
+      } else {
         DB.withSession { implicit session =>
           queryGetProfileDataByUserAndStatusAndCategory(search.userId, search.isSuperUser, search.active, search.inactive, search.category).list.length
         }
@@ -629,12 +658,12 @@ class SlickProfileDataRepository @Inject() (
     }
   }
 
-  override def getTotalProfilesByUser(userId : String, isSuperUser : Boolean, category: String=""): Future[Int] = Future {
-    if (category.isEmpty){
+  override def getTotalProfilesByUser(userId: String, isSuperUser: Boolean, category: String = ""): Future[Int] = Future {
+    if (category.isEmpty) {
       DB.withSession { implicit session =>
         queryGetProfileDataByUser(userId, isSuperUser).list.length
       }
-    }else{
+    } else {
       DB.withSession { implicit session =>
         queryGetProfileDataByUserAndCategory(userId, isSuperUser, category).list.length
       }
@@ -646,7 +675,7 @@ class SlickProfileDataRepository @Inject() (
       val resp = queryDeletePd(globalCode.text).update((true, Option(motive.solicitor), Option(motive.motive)))
       val idProfile = queryGetIdProfileData(globalCode.text).first
       val now = new java.sql.Timestamp(Calendar.getInstance().getTime().getTime)
-      val id = (profileDataMotive returning profileDataMotive.map(_.id)) += models.Tables.ProfileDataMotiveRow(0L,idProfile,now,motive.selectedMotive)
+      val id = (profileDataMotive returning profileDataMotive.map(_.id)) += models.Tables.ProfileDataMotiveRow(0L, idProfile, now, motive.selectedMotive)
 
       Future.successful(resp)
     }
@@ -678,7 +707,7 @@ class SlickProfileDataRepository @Inject() (
             profile.court, profile.crimeInvolved, profile.crimeType, profile.criminalCase,
             profile.internalSampleCode, profile.assignee, profile.laboratory, profile.deleted, None,
             profile.responsibleGeneticist, profile.profileExpirationDate, profile.sampleDate,
-            profile.sampleEntryDate, posibleDataFiliation,epd.isDefined)
+            profile.sampleEntryDate, posibleDataFiliation, epd.isDefined)
       }
     }
   }
@@ -715,20 +744,20 @@ class SlickProfileDataRepository @Inject() (
         pd.court, pd.crimeInvolved, pd.crimeType, pd.criminalCase,
         pd.internalSampleCode, pd.assignee, pd.laboratory, pd.deleted, None,
         pd.responsibleGeneticist, pd.profileExpirationDate, pd.sampleDate,
-        pd.sampleEntryDate, filiationData,epd.isDefined)
+        pd.sampleEntryDate, filiationData, epd.isDefined)
     }
   }
 
   override def findByCode(globalCode: SampleCode): Future[Option[ProfileData]] = Future {
     DB.withSession { implicit session =>
 
-      queryFindProfileDataByCode(globalCode.text).firstOption map { case (prof,epd) =>
+      queryFindProfileDataByCode(globalCode.text).firstOption map { case (prof, epd) =>
         val sc = SampleCode(prof.globalCode)
         ProfileData(AlphanumericId(prof.category), sc,
           prof.attorney, prof.bioMaterialType, prof.court, prof.crimeInvolved, prof.crimeType, prof.criminalCase, prof.internalSampleCode, prof.assignee,
           prof.laboratory, prof.deleted, None,
           prof.responsibleGeneticist, prof.profileExpirationDate, prof.sampleDate,
-          prof.sampleEntryDate, None,epd.isDefined)
+          prof.sampleEntryDate, None, epd.isDefined)
       }
     }
   }
@@ -738,12 +767,13 @@ class SlickProfileDataRepository @Inject() (
     val s = lab.country + "-" + lab.province + "-" + lab.codeName
     Future.successful(s)
   }
-  def addExternalProfile(profileData: ProfileData,labOrigin:String,labImmediate:String): Future[SampleCode] = Future {
+
+  def addExternalProfile(profileData: ProfileData, labOrigin: String, labImmediate: String): Future[SampleCode] = Future {
 
     DB.withTransaction { implicit session =>
 
       val globalCode = profileData.globalCode.text
-      try{
+      try {
 
         val posibleSampleDate = profileData.sampleDate map { sd => new java.sql.Date(sd.getTime) }
         val posibleExpirationDate = profileData.profileExpirationDate map { ed => new java.sql.Date(ed.getTime) }
@@ -756,18 +786,19 @@ class SlickProfileDataRepository @Inject() (
           posibleSampleDate, posibleEntryDate)
 
         val id = profilesData returning profilesData.map(_.id) += profileDataRow
-        val externalProfileDataRow = Tables.ExternalProfileDataRow(id,labOrigin,labImmediate)
+        val externalProfileDataRow = Tables.ExternalProfileDataRow(id, labOrigin, labImmediate)
         externalProfileDataTable += externalProfileDataRow
 
       } catch {
         case e: Exception => {
-          logger.error("error addExternalProfile",e);
+          logger.error("error addExternalProfile", e);
           throw e;
         }
       }
       SampleCode(globalCode)
     }
   }
+
   override def add(profileData: ProfileData, completeLabCode: String, imageList: Option[List[File]] = None, pictureList: Option[List[File]] = None, signaturesList: Option[List[File]] = None): Future[SampleCode] = Future {
 
     DB.withTransaction { implicit session =>
@@ -962,9 +993,9 @@ class SlickProfileDataRepository @Inject() (
   }
 
   private def queryDefineGetProfilesDataBySampleCodes(globalCodes: List[String]) = for (
-    ((pd, pmdf),epd) <- profilesData leftJoin profileMetaDataFiliations on (_.globalCode === _.profileData) leftJoin externalProfileDataTable on (_._1.id === _.id)
+    ((pd, pmdf), epd) <- profilesData leftJoin profileMetaDataFiliations on (_.globalCode === _.profileData) leftJoin externalProfileDataTable on (_._1.id === _.id)
     if pd.globalCode inSetBind globalCodes
-  ) yield (pd, pmdf.?,epd.?)
+  ) yield (pd, pmdf.?, epd.?)
 
   override def findByCodes(globalCodes: List[SampleCode]): Future[Seq[ProfileData]] = Future {
 
@@ -986,18 +1017,20 @@ class SlickProfileDataRepository @Inject() (
             pd.court, pd.crimeInvolved, pd.crimeType, pd.criminalCase,
             pd.internalSampleCode, pd.assignee, pd.laboratory, pd.deleted, None,
             pd.responsibleGeneticist, pd.profileExpirationDate, pd.sampleDate,
-            pd.sampleEntryDate, posibleDataFiliation,epd.isDefined)
+            pd.sampleEntryDate, posibleDataFiliation, epd.isDefined)
       }
     }
   }
 
-  override def getGlobalCode(internalSampleCode: String): Future[Option[SampleCode]] = Future{
+  override def getGlobalCode(internalSampleCode: String): Future[Option[SampleCode]] = Future {
     DB.withSession { implicit session =>
-      queryGetGlobalCode(internalSampleCode).firstOption.map { SampleCode(_) }
+      queryGetGlobalCode(internalSampleCode).firstOption.map {
+        SampleCode(_)
+      }
     }
   }
 
-  override def getProfileUploadStatusByGlobalCode(gc:SampleCode):Future[Option[Long]] = {
+  override def getProfileUploadStatusByGlobalCode(gc: SampleCode): Future[Option[Long]] = {
     this.runInTransactionAsync { implicit session => {
       try {
         getProfileUploadedByGlobalCode(gc.text).firstOption.map(x => x.status)
@@ -1010,7 +1043,7 @@ class SlickProfileDataRepository @Inject() (
     }
   }
 
-  override def gefFailedProfilesUploaded():Future[List[ProfileUploadedRow]] = {
+  override def gefFailedProfilesUploaded(): Future[List[ProfileUploadedRow]] = {
     this.runInTransactionAsync { implicit session => {
       try {
         getFailedUploadedProfiles.list
@@ -1023,7 +1056,7 @@ class SlickProfileDataRepository @Inject() (
     }
   }
 
-  override def gefFailedProfilesUploadedDeleted():Future[List[ProfileUploadedRow]] = {
+  override def gefFailedProfilesUploadedDeleted(): Future[List[ProfileUploadedRow]] = {
     this.runInTransactionAsync { implicit session => {
       try {
         getFailedUploadedProfilesDeleted.list
@@ -1036,7 +1069,7 @@ class SlickProfileDataRepository @Inject() (
     }
   }
 
-  override def gefFailedProfilesSentDeleted(labCode:String):Future[List[ProfileSentRow]] = {
+  override def gefFailedProfilesSentDeleted(labCode: String): Future[List[ProfileSentRow]] = {
     this.runInTransactionAsync { implicit session => {
       try {
         getFailedSentProfilesDeleted(labCode).list
@@ -1048,13 +1081,14 @@ class SlickProfileDataRepository @Inject() (
     }
     }
   }
-  def updateUploadStatus(globalCode: String,status:Long,motive:Option[String], interconnection_error:Option[String], userName:Option[String]): Future[Either[String,Unit]]= {
+
+  def updateUploadStatus(globalCode: String, status: Long, motive: Option[String], interconnection_error: Option[String], userName: Option[String]): Future[Either[String, Unit]] = {
     this.runInTransactionAsync { implicit session => {
       try {
         getByGlobalCode(globalCode).firstOption match {
           case None => Left(Messages("error.E0940"))
           case Some(row) => {
-            profileUploaded insertOrUpdate models.Tables.ProfileUploadedRow(row.id,row.globalCode,status,motive, interconnection_error, userName)
+            profileUploaded insertOrUpdate models.Tables.ProfileUploadedRow(row.id, row.globalCode, status, motive, interconnection_error, userName)
             Right(())
           }
         }
@@ -1068,7 +1102,7 @@ class SlickProfileDataRepository @Inject() (
   }
 
 
-  override def getExternalProfileDataByGlobalCode(globalCode:String):Future[Option[ExternalProfileDataRow]] = {
+  override def getExternalProfileDataByGlobalCode(globalCode: String): Future[Option[ExternalProfileDataRow]] = {
     this.runInTransactionAsync { implicit session => {
       getExternalProfileDataByGlobalCodeCompiled(globalCode).firstOption
     }
@@ -1088,13 +1122,14 @@ class SlickProfileDataRepository @Inject() (
       }
     }
   }
-  def updateProfileSentStatus(globalCode: String,status:Long,motive:Option[String],labCode:String, interconnection_error: Option[String]): Future[Either[String,Unit]] = {
+
+  def updateProfileSentStatus(globalCode: String, status: Long, motive: Option[String], labCode: String, interconnection_error: Option[String]): Future[Either[String, Unit]] = {
     this.runInTransactionAsync { implicit session => {
       try {
         getByGlobalCode(globalCode).firstOption match {
           case None => Left(Messages("error.E0940"))
           case Some(row) => {
-            profileSent insertOrUpdate models.Tables.ProfileSentRow(row.id,labCode,row.globalCode,status,motive, interconnection_error: Option[String])
+            profileSent insertOrUpdate models.Tables.ProfileSentRow(row.id, labCode, row.globalCode, status, motive, interconnection_error: Option[String])
             Right(())
           }
         }
@@ -1108,7 +1143,7 @@ class SlickProfileDataRepository @Inject() (
   }
 
 
-  def getMtRcrs():Future[MtRCRS] = {
+  def getMtRcrs(): Future[MtRCRS] = {
     this.runInTransactionAsync { implicit session => {
       try {
         val tabla = mitochondrialRcrs.list.map(x => x.position -> x.base)
@@ -1131,7 +1166,7 @@ class SlickProfileDataRepository @Inject() (
         try {
           // Get the next value from the sequence
           val nextVal: Long = Q.queryNA[Long]("select nextval('\"APP\".\"PROFILE_RECEIVED_ID_seq\"')").first
-          profileReceived insertOrUpdate models.Tables.ProfileReceivedRow( nextVal, // Use the next value from the sequence
+          profileReceived insertOrUpdate models.Tables.ProfileReceivedRow(nextVal, // Use the next value from the sequence
             labCode,
             globalCode,
             status,
@@ -1182,13 +1217,13 @@ class SlickProfileDataRepository @Inject() (
     }
   }
 
-  def updateInterconnectionError(globalCode: String, status: Long, interconnection_error: String): Future[Either[String, Unit]]  = {
+  def updateInterconnectionError(globalCode: String, status: Long, interconnection_error: String): Future[Either[String, Unit]] = {
     this.runInTransactionAsync { implicit session => {
       try {
         getProfileReceivedByGlobalCode(globalCode).firstOption match {
           case None => Left(Messages("error.E0940"))
           case Some(row) => {
-            profileSent insertOrUpdate models.Tables.ProfileSentRow(row.id,row.labCode,row.globalCode,status,row.motive, Some(interconnection_error))
+            profileSent insertOrUpdate models.Tables.ProfileSentRow(row.id, row.labCode, row.globalCode, status, row.motive, Some(interconnection_error))
             Right(())
           }
         }
@@ -1201,14 +1236,13 @@ class SlickProfileDataRepository @Inject() (
     }
   }
 
-  def updateProfileReceivedStatus(labCode: String, globalCode: String,  status: Long, motive: Option[String], isCategoryModification: Boolean, interconnection_error: Option[String], userName:Option [String]): Future[Either[String, Unit]] = {
-    this.runInTransactionAsync { implicit session =>
-    {
+  def updateProfileReceivedStatus(labCode: String, globalCode: String, status: Long, motive: Option[String], isCategoryModification: Boolean, interconnection_error: Option[String], userName: Option[String]): Future[Either[String, Unit]] = {
+    this.runInTransactionAsync { implicit session => {
       try {
         getProfileReceivedByGlobalCode(globalCode).firstOption match {
           case None => Left(Messages("error.E0940"))
           case Some(row) => { //hizo un insert con un nuevo id. row es del tipo profileDataRow y debería ser una profileRecevedRow
-            profileReceived insertOrUpdate models.Tables.ProfileReceivedRow(row.id,row.labCode,row.globalCode,status,motive,  userName, isCategoryModification,interconnection_error)
+            profileReceived insertOrUpdate models.Tables.ProfileReceivedRow(row.id, row.labCode, row.globalCode, status, motive, userName, isCategoryModification, interconnection_error)
             Right(())
           }
         }
@@ -1228,10 +1262,14 @@ class SlickProfileDataRepository @Inject() (
   private def queryPendingRejectionNotifications(labCode: Column[String]) =
     profileReceived.filter(_.status === 21L).filter(_.labCode === labCode)
 
+  private def queryPendingDeletionNotifications(labCode: Column[String]) =
+    profileReceived.filter(_.status === 19L).filter(_.labCode === labCode)
 
   val getPendingApprovalNotificationCompiled = Compiled(queryPendingApprovalNotifications _)
 
   val getPendingRejectionNotificationCompiled = Compiled(queryPendingRejectionNotifications _)
+
+  val getPendingDeletionNotificationsCompiled = Compiled(queryPendingDeletionNotifications _)
 
   override def getPendingApprovalNotification(labCode: String): Future[Seq[ProfileReceivedRow]] = {
     this.runInTransactionAsync { implicit session =>
@@ -1239,9 +1277,15 @@ class SlickProfileDataRepository @Inject() (
     }
   }
 
-  override def getPendingRejectionNotification(labCode: String): Future[Seq[ProfileReceivedRow]]  = {
+  override def getPendingRejectionNotification(labCode: String): Future[Seq[ProfileReceivedRow]] = {
     this.runInTransactionAsync { implicit session =>
       getPendingRejectionNotificationCompiled(labCode).list
+    }
+  }
+
+  def getFailedProfilesReceivedDeleted(labCode: String): Future[Seq[ProfileReceivedRow]] = {
+    this.runInTransactionAsync { implicit session =>
+      getPendingDeletionNotificationsCompiled(labCode).list
     }
   }
 }
