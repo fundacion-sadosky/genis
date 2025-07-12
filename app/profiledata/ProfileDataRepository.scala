@@ -3,6 +3,7 @@ package profiledata
 import models.Tables.ProfileUploadedRow
 import models.Tables.ProfileSentRow
 import models.Tables.ProfileReceivedRow
+
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
@@ -15,6 +16,7 @@ import scala.slick.jdbc.{StaticQuery => Q}
 import scala.slick.jdbc.StaticQuery.staticQueryToInvoker
 import configdata.Category
 import configdata.Group
+
 import javax.inject.Inject
 import javax.inject.Singleton
 import javax.sql.rowset.serial.SerialBlob
@@ -24,7 +26,7 @@ import models.Tables.ProfileDataFiliationResourcesRow
 import models.Tables.ProfileDataFiliationRow
 import models.Tables.ProfileDataRow
 import models.Tables.ProfileReceivedRow
-import play.api.{Application, Logger}
+import play.api.{Application, Logger, db}
 import play.api.db.slick.Config.driver.simple.Column
 import play.api.db.slick.Config.driver.simple.Compiled
 import play.api.db.slick.Config.driver.simple.TableQuery
@@ -34,8 +36,7 @@ import play.api.db.slick.Config.driver.simple.columnExtensionMethods
 import play.api.db.slick.Config.driver.simple.longColumnType
 import play.api.db.slick.Config.driver.simple.queryToAppliedQueryInvoker
 import play.api.db.slick.Config.driver.simple.queryToInsertInvoker
-import play.api.db.slick.Config.driver.simple.
-runnableCompiledToAppliedQueryInvoker
+import play.api.db.slick.Config.driver.simple.runnableCompiledToAppliedQueryInvoker
 import play.api.db.slick.Config.driver.simple.slickDriver
 import play.api.db.slick.Config.driver.simple.stringColumnType
 import play.api.db.slick.Config.driver.simple.valueToConstColumn
@@ -188,6 +189,8 @@ abstract class ProfileDataRepository extends DefaultDb with Transaction {
   def getPendingRejectionNotification(labCode: String): Future[Seq[ProfileReceivedRow]]
 
   def getFailedProfilesReceivedDeleted(labCode: String): Future[Seq[ProfileReceivedRow]]
+
+  def getProfileReceivedStatusByGlobalCode(globalCode: SampleCode): Future[Option[Long]]
 }
 
 
@@ -1034,6 +1037,19 @@ class SlickProfileDataRepository @Inject() (
     this.runInTransactionAsync { implicit session => {
       try {
         getProfileUploadedByGlobalCode(gc.text).firstOption.map(x => x.status)
+      } catch {
+        case e: Exception => {
+          None
+        }
+      }
+    }
+    }
+  }
+
+  override def getProfileReceivedStatusByGlobalCode(gc: SampleCode): Future[Option[Long]] = {
+    this.runInTransactionAsync { implicit session => {
+      try {
+        getProfileReceivedByGlobalCode(gc.text).firstOption.map(x => x.status)
       } catch {
         case e: Exception => {
           None

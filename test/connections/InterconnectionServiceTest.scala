@@ -1878,7 +1878,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
       when(profileService.findByCode(SampleCode("AR-C-SHDG-1190"))).thenReturn(Future.successful(Some(Stubs.mixtureP1)))
       when(profileDataService.getExternalProfileDataByGlobalCode(any[String])).thenReturn(Future.successful(Some(ExternalProfileDataRow(1l, "Otro", "Otro"))))
       when(profileDataService.get(any[SampleCode])).thenReturn(Future.successful(Some(Stubs.profileData)))
-      when(profileDataService.deleteProfile(any[SampleCode],any[DeletedMotive],any[String],any[Boolean],any[Boolean])).thenReturn(Future.successful(Right(SampleCode("AR-C-SHDG-1190"))))
+      when(profileDataService.deleteProfile(any[SampleCode],any[DeletedMotive],any[String],any[Boolean])).thenReturn(Future.successful(Right(SampleCode("AR-C-SHDG-1190"))))
 
       val interconnectionService =  new InterconnectionServiceImpl(akkaSystem,connectionRepository, inferiorInstanceRepository, mock[CategoryRepository],superiorInstanceProfileApprovalRepository, client, userService, roleService, profileService, null
         , null, protocol, status, categoryTreeCombo, insertConnection, localUrl, uploadProfile, labCode,profileDataService,
@@ -1911,7 +1911,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
       when(profileService.findByCode(SampleCode("AR-C-SHDG-1190"))).thenReturn(Future.successful(Some(Stubs.mixtureP1)))
       when(profileDataService.getExternalProfileDataByGlobalCode(any[String])).thenReturn(Future.successful(Some(ExternalProfileDataRow(1l, "Otro", "Otro"))))
       when(profileDataService.get(any[SampleCode])).thenReturn(Future.successful(Some(Stubs.profileData)))
-      when(profileDataService.deleteProfile(any[SampleCode],any[DeletedMotive],any[String],any[Boolean],any[Boolean])).thenReturn(Future.successful(Left("Error")))
+      when(profileDataService.deleteProfile(any[SampleCode],any[DeletedMotive],any[String],any[Boolean])).thenReturn(Future.successful(Left("Error")))
       when(cacheService.get(ProfileLabKey("AR-C-SHDG-1190"))).thenReturn(Some("SHDG"))
       val interconnectionService =  new InterconnectionServiceImpl(akkaSystem,connectionRepository, inferiorInstanceRepository, mock[CategoryRepository],superiorInstanceProfileApprovalRepository, client, null, null, profileService, null
         , null, protocol, status, categoryTreeCombo, insertConnection, localUrl, uploadProfile, labCode,profileDataService,

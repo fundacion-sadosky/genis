@@ -41,6 +41,9 @@ import matching.CollapseRequest
 import user.UserService
 
 import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
+
+
 trait ProfileDataService {
   def get(id: Long): Future[(ProfileData, Group, Category)]
   def findByCode(globalCode: SampleCode): Future[Option[ProfileData]]
@@ -63,7 +66,6 @@ trait ProfileDataService {
                      globalCode: SampleCode,
                      motive: DeletedMotive,
                      userId: String,
-                     shouldUpdateSuperiorInstance:Boolean = true,
                      validateMPI:Boolean = true
                    ): Future[Either[String, SampleCode]]
   def findByCodes(globalCodes: List[SampleCode]): Future[Seq[ProfileData]]
@@ -86,6 +88,9 @@ trait ProfileDataService {
   def getPendingApprovalNotification(labCode:String): Future[Seq[ProfileReceivedRow]]
   def getPendingRejectionNotification(labCode:String): Future[Seq[ProfileReceivedRow]]
   def gefFailedProfilesReceivedDeleted(labCode: String):Future[Seq[ProfileReceivedRow]]
+  def shouldSendDeleteToSuperiorInstance (globalCode: SampleCode): Boolean
+  def shouldSendDeleteToInferiorInstance (globalCode: SampleCode): Boolean
+  def getLabFromGlobalCode(globalCode: SampleCode):  Option[String]
 }
 
 @Singleton
@@ -195,10 +200,39 @@ class ProfileDataServiceImpl @Inject() (
       file
     }
   */
+  def getLabFromGlobalCode(globalCode: SampleCode):  Option[String] = {
+    val parts = globalCode.text.split("-")
+    if (parts.length == 4) {
+      Some(parts(2)) // Return the "CODE" part
+    } else {
+      None // Or handle the error as appropriate for your application
+    }
+  }
 
 
-  override def deleteProfile(globalCode: SampleCode, motive: DeletedMotive, userId: String,shouldUpdateSuperiorInstance:Boolean = true,validateMPI:Boolean = true): Future[Either[String, SampleCode]] = {
-    // TODO: implementar el shouldupdateSuperiorinstance y shouldUpdateInferior consultando las tablas correspondientes
+  override def shouldSendDeleteToSuperiorInstance(globalCode: SampleCode): Boolean = {
+    // Check if the profile exists in the PROFILE_UPLOADED table
+    val profileUploadedFuture = profileDataRepository.getProfileUploadStatusByGlobalCode(globalCode)
+
+    // Await the result (you can handle this more gracefully with proper error handling)
+    val profileUploaded = Await.result(profileUploadedFuture, Duration.Inf)
+
+    // If the profile exists in the PROFILE_UPLOADED table, return true
+    profileUploaded.isDefined
+  }
+
+  override def shouldSendDeleteToInferiorInstance(globalCode: SampleCode): Boolean = {
+    // Check if the profile exists in the PROFILE_RECEIVED table
+    val profileReceivedFuture = profileDataRepository.getProfileReceivedStatusByGlobalCode(globalCode)
+
+    // Await the result (you can handle this more gracefully with proper error handling)
+    val profileReceived = Await.result(profileReceivedFuture, Duration.Inf)
+
+    // If the profile exists in the PROFILE_RECEIVED table, return true
+    profileReceived.isDefined
+  }
+
+  override def deleteProfile(globalCode: SampleCode, motive: DeletedMotive, userId: String,validateMPI:Boolean = true): Future[Either[String, SampleCode]] = {
     canDeleteProfile(globalCode,validateMPI) flatMap { case (allowed,msg) =>
       if (allowed) {
         delete(globalCode) flatMap { response =>
@@ -207,13 +241,27 @@ class ProfileDataServiceImpl @Inject() (
               if (resp == 1) {
                 // cambio el motive.solicitor en DeleteInfo por el getUser(userId)
                 traceService.add(Trace(globalCode, userId, new Date(), DeleteInfo(userId, "Solicitado por: " + motive.solicitor + " "+ motive.motive)))
-                if(shouldUpdateSuperiorInstance) {
+                if(shouldSendDeleteToSuperiorInstance(globalCode)) {
                   val supUrlFuture = connectionRepository.getSupInstanceUrl().map(_.getOrElse(""))
                   supUrlFuture.flatMap(supUrl =>
                     Future.successful(interconnectionService.inferiorDeleteProfile(globalCode, motive, supUrl, userId))
                   )
                 }
-
+                if(shouldSendDeleteToInferiorInstance(globalCode)){
+                  val infUrlFuture = getLabFromGlobalCode(globalCode) match {
+                    case Some(labCode) => {
+                      this.updateProfileReceivedStatus(labCode, globalCode.text,19L,motive = motive.motive,isCategoryModificaction = false,"",Some(userId))
+                      connectionRepository.getInfInstanceUrl(labCode).map(Some(_))
+                    }
+                    case None => Future.successful(None)
+                  }
+                  infUrlFuture.flatMap {
+                    case Some(infUrl) =>
+                      Future.successful(interconnectionService.sendDeletionToInferior(globalCode, motive,labCode, infUrl.getOrElse(""), userId))
+                    case None =>
+                      Future.successful(Left(Messages("error.E0130")))
+                  }
+                }
                 response
               } else Left(Messages("error.E0117"))
             }
