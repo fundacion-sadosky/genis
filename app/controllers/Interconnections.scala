@@ -199,34 +199,24 @@ class Interconnections @Inject()(
   }
 
   // Instancia inferior recibe el codigo y el usuario que borró el perfil en la instancia superior
-  def deleteProfileFromSuperior(id:String, userName: String) = Action.async(BodyParsers.parse.json) {
-    request =>{
-      val labcode = request.headers.get(HeaderInsterconnections.labCode)
-      val labCodeInstanceOrigin = request.headers.get(HeaderInsterconnections.laboratoryOrigin)
-      val labCodeImmediateInstance = request.headers.get(HeaderInsterconnections.laboratoryImmediateInstance)
-
-      (labcode,labCodeInstanceOrigin,labCodeImmediateInstance) match {
-        case (Some(labcode),Some(lio),Some(li)) =>{
-          val input = request.body.validate[profiledata.DeletedMotive]
-          input.fold(errors => {
-            Future.successful(BadRequest(JsError.toFlatJson(errors)))
-          },
-            motive => {
-              interconnectionService.receiveDeleteProfile(id,motive,lio,li, false, userName).map{
-                case Left(e) => BadRequest(Json.obj("message" -> e))
-                case Right(_) => Ok.withHeaders("X-CREATED-ID" -> id.toString)
-              }
-            })
-        }
-        case (_,_,_) => {
-          Future.successful(BadRequest)
-        }
+  def deleteProfileFromSuperior(id: String, userName: String, labCode: String, motive: String) = Action.async(BodyParsers.parse.json) {
+    request => {
+      // Parse the motive string into partes
+      val motiveParts = motive.split(",").map(_.trim)
+      val solicitor = if (motiveParts.nonEmpty) motiveParts(0) else ""
+      val motiveText = if (motiveParts.length > 1) motiveParts(1) else ""
+      val deletedMotive = DeletedMotive(solicitor, motiveText)
+      interconnectionService.receiveDeleteProfile(id, deletedMotive, labCode, labCode, up=false, userName).map {
+            case Left(errorMsg) =>
+              BadRequest(Json.obj("message" -> errorMsg))
+            case Right(_) =>
+              Ok.withHeaders("X-CREATED-ID" -> id)
+          }
       }
     }
-  }
+
 
   def approveProfiles(userName:String): Action[JsValue] = Action.async(BodyParsers.parse.json){
-
     request =>{
       val input = request.body.validate[List[ProfileApproval]]
       input.fold(errors => {

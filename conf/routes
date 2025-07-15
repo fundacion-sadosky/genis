@@ -342,7 +342,7 @@ DELETE   /superior/profile/approval                           @controllers.Inter
 PUT      /inferior/profile/status                             @controllers.Interconnections.updateUploadStatus(globalCode:String,status:Long,motive:Option[String],userName:String,isCategoryModification:Boolean)
 GET      /inferior/profile/status                             @controllers.Interconnections.getUploadStatus(globalCode:String)
 DELETE   /superior/profile/:id/:userName                      @controllers.Interconnections.deleteProfileFromInferior(id:String, userName: String)
-DELETE   /inferior/profile/:id/:userName                      @controllers.Interconnections.deleteProfileFromSuperior(id:String, userName: String)
+PUT      /inferior/profile/delete                             @controllers.Interconnections.deleteProfileFromSuperior(id:String, userName: String, labCode:String, motive:String)
 POST     /inferior/match/                                     @controllers.Interconnections.receiveMatchFromSuperior()
 POST     /interconection/match/status                         @controllers.Interconnections.receiveMatchStatus()
 POST     /interconnection/file                                @controllers.Interconnections.receiveFile()

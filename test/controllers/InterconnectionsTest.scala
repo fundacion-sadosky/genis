@@ -311,7 +311,7 @@ class InterconnectionsTest extends PdgSpec with MockitoSugar with Results {
         .withHeaders(HeaderInsterconnections.laboratoryImmediateInstance -> "SHDG")
         .withBody(Json.toJson(requestObj))
 
-      val resultOk: Future[Result] = target.deleteProfileFromSuperior("AR-C-SHDG-1190", "userName").apply(request)
+      val resultOk: Future[Result] = target.deleteProfileFromSuperior("AR-C-SHDG-1190", "userName","SHDG" ,"motivo").apply(request)
       status(resultOk) mustBe OK
     }
 
@@ -331,7 +331,7 @@ class InterconnectionsTest extends PdgSpec with MockitoSugar with Results {
         .withHeaders(HeaderInsterconnections.laboratoryImmediateInstance -> "SHDG")
         .withBody(Json.toJson(requestObj))
 
-      val resultOk: Future[Result] = target.deleteProfileFromSuperior("AR-C-SHDG-1190", "userName").apply(request)
+      val resultOk: Future[Result] = target.deleteProfileFromSuperior("AR-C-SHDG-1190", "userName", "SHDG", "motive").apply(request)
       status(resultOk) mustBe BAD_REQUEST
     }
     "delete Profile no ok2" in {
@@ -349,7 +349,7 @@ class InterconnectionsTest extends PdgSpec with MockitoSugar with Results {
         .withHeaders(HeaderInsterconnections.laboratoryImmediateInstance -> "SHDG")
         .withBody(Json.toJson(requestObj))
 
-      val resultOk: Future[Result] = target.deleteProfileFromSuperior("AR-C-SHDG-1190", "userName").apply(request)
+      val resultOk: Future[Result] = target.deleteProfileFromSuperior("AR-C-SHDG-1190", "userName", "SHDG", "motive").apply(request)
       status(resultOk) mustBe BAD_REQUEST
     }
   }
