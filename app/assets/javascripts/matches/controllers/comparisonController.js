@@ -10,6 +10,7 @@ define([ 'angular','lodash' ], function(angular,_) {
 		$modal,
 		$timeout,
 		$filter,
+		$q,
 		matcherService,
 		profiledataService,
 		profileService,
@@ -24,7 +25,6 @@ define([ 'angular','lodash' ], function(angular,_) {
 		notificationsService,
 		shared
 	) {
-
 		$scope.lab = "-"+appConf.labCode+"-";
 		$scope.stringency = matcherService.getStrigencyEnum();
 		$scope.profileId = $routeParams.profileId;
@@ -162,7 +162,7 @@ define([ 'angular','lodash' ], function(angular,_) {
 			if (!$scope.isCollapsingMatch) $scope.isCollapsingMatch = false;
 			if (!$scope.isScreening) $scope.isScreening = false;
 
-			matcherService
+			return matcherService
 				.getResults(
 					$scope.matchingId,
 					$scope.isPedigreeMatch,
@@ -239,10 +239,11 @@ define([ 'angular','lodash' ], function(angular,_) {
 				}
 			);
 		};
+
 		analysisTypeService.listById().then(function(response) {
 			$scope.analysisTypes = response;
-			getResults();
-			$scope.$apply();
+			getResults().then();
+			//$scope.$apply();
 		});
 		profiledataService.getProfilesData([$scope.profileId, $scope.matchedProfileId]).then(
 			function(response) {
@@ -299,7 +300,7 @@ define([ 'angular','lodash' ], function(angular,_) {
 			if (!$scope.isCollapsingMatch) $scope.isCollapsingMatch = false;
 			if (!$scope.isScreening) $scope.isScreening = false;
 
-			matcherService
+			return matcherService
 				.getComparedGenotyfications(
 					$scope.profileId,
 					$scope.matchedProfileId,
@@ -332,7 +333,7 @@ define([ 'angular','lodash' ], function(angular,_) {
 			);
 		};
 
-		$scope.setComparisions();
+		$scope.setComparisions().then();
 		function encryptedEpgs(profile, epgs) {
 			return epgs.map(function(e){
 				return cryptoService.encryptBase64("/profiles/" + profile + "/epg/" + e.fileId);
@@ -555,10 +556,6 @@ define([ 'angular','lodash' ], function(angular,_) {
 
 		$scope.hasMatches = function(){
 			var length = Object.keys($scope.matches).length;
-			console.debug("matches length: ", length);
-			if (length > 68) {
-				console.debug("$scope.matches | $scope.profileId | $scope.profileData: ", $scope.matches, $scope.profileId, $scope.profileData);
-			}
 			return length > 0;
 		};
 
@@ -570,6 +567,7 @@ define([ 'angular','lodash' ], function(angular,_) {
 
 			profiledataService.getProfileDataBySampleCode(matchedProfileId).then(function (response) {
 				$scope.matchedProfileData = response.data;
+				console.debug("Obteniendo el tipo de análisis para el reporte.");
 				var head = '<head><title>Comparación</title>';
 				$("link").each(function () {
 					head += '<link rel="stylesheet" href="' + $(this)[0].href + '" />';
@@ -577,23 +575,102 @@ define([ 'angular','lodash' ], function(angular,_) {
 				head += "</head>";
 				analysisTypeService.listById().then(function(response) {
 					$scope.analysisTypes = response;
-					$scope.setComparisions();
-					getResults();
-					$scope.$apply();
-					var report = window.open('', '_blank');
-					report.document.write(
-						'<html>' + head +
-						'<body>' +
-						$('#report').html() +
-						'</body></html>'
-					);
-					report.document.close();
-					$(report).on('load', function(){
-						report.print();
-						report.close();
-					});
-				});
+					statsService
+						.getDefaultOptions($scope.profileId)
+						.then(
+							function (opts) {
+								$scope.selectedOptions = opts;
+								console.debug("Preparando comparación para impresión.");
+								var hayFaltante = false;
+								if (!$scope.selectedOptions) {
+									console.debug('Falta: selectedOptions');
+									hayFaltante = true;
+								}
 
+								// Verifico que exista frequencyTable
+								if (!$scope.selectedOptions.frequencyTable) {
+									console.debug('Falta: selectedOptions.frequencyTable');
+									hayFaltante = true;
+								}
+
+								// Verifico que exista probabilityModel
+								if (!$scope.selectedOptions.probabilityModel) {
+									console.debug('Falta: selectedOptions.probabilityModel');
+									hayFaltante = true;
+								}
+
+								// Verifico que dropIn no sea undefined
+								if ($scope.selectedOptions.dropIn === undefined) {
+									console.debug('Falta: selectedOptions.dropIn');
+									hayFaltante = true;
+								}
+
+								// Verifico que dropOut no sea undefined
+								if ($scope.selectedOptions.dropOut === undefined) {
+									console.debug('Falta: selectedOptions.dropOut');
+									hayFaltante = true;
+								}
+
+								// Verifico que theta no sea undefined
+								if ($scope.selectedOptions.theta === undefined) {
+									console.debug('Falta: selectedOptions.theta');
+									hayFaltante = true;
+								}
+
+								// Si no hubo faltantes, procedemos con el cálculo del LR
+								if (!hayFaltante) {
+									console.debug('Todos los parámetros están presentes, procediendo con el cálculo del LR');
+								}
+								$timeout(function () {
+									$q.all([
+										$scope.setComparisions(),
+										getResults(),
+										matcherService.getLR(
+											$scope.profileId,
+											$scope.matchedProfileId,
+											$scope.matchingId,
+											$scope.selectedOptions)
+									]).then(function (responses) {
+										var lrResponse = responses[2];
+										$scope.statsResolved = lrResponse.data.detailed;
+										$scope.pvalue = lrResponse.data.total;
+										$scope.$apply();
+										console.debug("Preparando reporte para impresión");
+										var checkContent = function () {
+											console.debug("Comprobando contenido del reporte");
+											var reportContent = $('#report').html();
+											if (reportContent && reportContent.trim().length > 0) {
+												// Proceder con la impresión
+												try {
+													console.debug("Imprimiendo reporte");
+													var report = window.open('', '_blank');
+													report.document.write(
+														'<html>' + head +
+														'<body>' +
+														$('#report').html() +
+														'</body></html>'
+													);
+													report.document.close();
+													$(report).on('load', function () {
+														report.print();
+														report.close();
+													});
+												} catch (TypeError) {
+													console.debug("Reintento por error");
+													$timeout(checkContent, 10);
+												}
+
+											} else {
+												// Reintentar en el siguiente ciclo
+												console.debug("Esperando contenido del reporte");
+												$timeout(checkContent, 10);
+											}
+										};
+										checkContent();
+									}, 0);
+								});
+							});
+				});
 			});
 		};
 

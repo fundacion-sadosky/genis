@@ -68,6 +68,7 @@ define(
 					'$modal',
 					'$timeout',
 					'$filter',
+					'$q',
 					'matchesService',
 					'profileDataService',
 					'profileService',
