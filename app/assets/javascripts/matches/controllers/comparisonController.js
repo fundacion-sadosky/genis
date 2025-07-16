@@ -581,93 +581,32 @@ define([ 'angular','lodash' ], function(angular,_) {
 							function (opts) {
 								$scope.selectedOptions = opts;
 								console.debug("Preparando comparación para impresión.");
-								var hayFaltante = false;
-								if (!$scope.selectedOptions) {
-									console.debug('Falta: selectedOptions');
-									hayFaltante = true;
-								}
-
-								// Verifico que exista frequencyTable
-								if (!$scope.selectedOptions.frequencyTable) {
-									console.debug('Falta: selectedOptions.frequencyTable');
-									hayFaltante = true;
-								}
-
-								// Verifico que exista probabilityModel
-								if (!$scope.selectedOptions.probabilityModel) {
-									console.debug('Falta: selectedOptions.probabilityModel');
-									hayFaltante = true;
-								}
-
-								// Verifico que dropIn no sea undefined
-								if ($scope.selectedOptions.dropIn === undefined) {
-									console.debug('Falta: selectedOptions.dropIn');
-									hayFaltante = true;
-								}
-
-								// Verifico que dropOut no sea undefined
-								if ($scope.selectedOptions.dropOut === undefined) {
-									console.debug('Falta: selectedOptions.dropOut');
-									hayFaltante = true;
-								}
-
-								// Verifico que theta no sea undefined
-								if ($scope.selectedOptions.theta === undefined) {
-									console.debug('Falta: selectedOptions.theta');
-									hayFaltante = true;
-								}
-
-								// Si no hubo faltantes, procedemos con el cálculo del LR
-								if (!hayFaltante) {
-									console.debug('Todos los parámetros están presentes, procediendo con el cálculo del LR');
-								}
-								$timeout(function () {
-									$q.all([
-										$scope.setComparisions(),
-										getResults(),
-										matcherService.getLR(
-											$scope.profileId,
-											$scope.matchedProfileId,
-											$scope.matchingId,
-											$scope.selectedOptions)
-									]).then(function (responses) {
-										var lrResponse = responses[2];
-										$scope.statsResolved = lrResponse.data.detailed;
-										$scope.pvalue = lrResponse.data.total;
-										$scope.$apply();
-										console.debug("Preparando reporte para impresión");
-										var checkContent = function () {
-											console.debug("Comprobando contenido del reporte");
-											var reportContent = $('#report').html();
-											if (reportContent && reportContent.trim().length > 0) {
-												// Proceder con la impresión
-												try {
-													console.debug("Imprimiendo reporte");
-													var report = window.open('', '_blank');
-													report.document.write(
-														'<html>' + head +
-														'<body>' +
-														$('#report').html() +
-														'</body></html>'
-													);
-													report.document.close();
-													$(report).on('load', function () {
-														report.print();
-														report.close();
-													});
-												} catch (TypeError) {
-													console.debug("Reintento por error");
-													$timeout(checkContent, 10);
-												}
-
-											} else {
-												// Reintentar en el siguiente ciclo
-												console.debug("Esperando contenido del reporte");
-												$timeout(checkContent, 10);
-											}
-										};
-										checkContent();
-									}, 0);
+								$q.all([
+									$scope.setComparisions(),
+									getResults(),
+									matcherService.getLR(
+										$scope.profileId,
+										$scope.matchedProfileId,
+										$scope.matchingId,
+										$scope.selectedOptions)
+								]).then(function (responses) {
+									var lrResponse = responses[2];
+									$scope.statsResolved = lrResponse.data.detailed;
+									$scope.pvalue = lrResponse.data.total;
+									$scope.$apply();
+									console.debug("Imprimiendo reporte");
+									var report = window.open('', '_blank');
+									report.document.write(
+										'<html>' + head +
+										'<body>' +
+										$('#report').html() +
+										'</body></html>'
+									);
+									report.document.close();
+									$(report).on('load', function () {
+										report.print();
+										report.close();
+									});
 								});
 							});
 				});
