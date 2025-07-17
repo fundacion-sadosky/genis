@@ -199,7 +199,7 @@ class Interconnections @Inject()(
   }
 
   // Instancia inferior recibe el codigo y el usuario que borró el perfil en la instancia superior
-  def deleteProfileFromSuperior(id: String, userName: String, labCode: String, motive: String) = Action.async(BodyParsers.parse.json) {
+  /*def deleteProfileFromSuperior(id: String, userName: String, labCode: String, motive: String) = Action.async(BodyParsers.parse.json) {
     request => {
       // Parse the motive string into partes
       val motiveParts = motive.split(",").map(_.trim)
@@ -213,7 +213,7 @@ class Interconnections @Inject()(
               Ok.withHeaders("X-CREATED-ID" -> id)
           }
       }
-    }
+    }*/
 
 
   def approveProfiles(userName:String): Action[JsValue] = Action.async(BodyParsers.parse.json){

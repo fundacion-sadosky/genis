@@ -87,12 +87,18 @@ case class ProfileRejectedInSuperiorInfo(motive: String) extends TraceInfo {
 // 2 Nuevos
 case class InterconnectionDeletedInInferiorInfo(motive: String) extends TraceInfo {
   override val kind = TraceType.interconnectionDeletedInInferior
-  override val description = s"Perfil eliminado en la instancia inferior. Motivo: $motive."
+  val motiveParts = motive.split(",").map(_.trim)
+  val solicitor = if (motiveParts.nonEmpty) motiveParts(0) else ""
+  val motiveText = if (motiveParts.length > 1) motiveParts(1) else ""
+  override val description = s"Perfil eliminado en la instancia inferior. Baja solicitada por: $solicitor. Motivo: $motiveText."
 }
 
 case class InterconnectionDeletedInSuperiorInfo(motive: String) extends TraceInfo {
   override val kind = TraceType.interconnectionDeletedInSuperior
-  override val description = s"Perfil eliminado en la instancia superior. Motivo: $motive."
+  val motiveParts = motive.split(",").map(_.trim)
+  val solicitor = if (motiveParts.nonEmpty) motiveParts(0) else ""
+  val motiveText = if (motiveParts.length > 1) motiveParts(1) else ""
+  override val description = s"Perfil eliminado en la instancia superior. Baja solicitada por: $solicitor. Motivo: $motiveText."
 }
 
 case object CategoryChangeRejectedInSupInfo extends TraceInfo {

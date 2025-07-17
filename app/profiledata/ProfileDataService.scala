@@ -248,7 +248,8 @@ class ProfileDataServiceImpl @Inject() (
                   )
                 }
                 if(shouldSendDeleteToInferiorInstance(globalCode)){
-                  val infUrlFuture = getLabFromGlobalCode(globalCode) match {
+                  val labCodeOption = getLabFromGlobalCode(globalCode)
+                  val infUrlFuture = labCodeOption match {
                     case Some(labCode) => {
                       this.updateProfileReceivedStatus(labCode, globalCode.text,19L,motive = motive.motive,isCategoryModificaction = false,"",Some(userId))
                       connectionRepository.getInfInstanceUrl(labCode).map(Some(_))
@@ -257,7 +258,12 @@ class ProfileDataServiceImpl @Inject() (
                   }
                   infUrlFuture.flatMap {
                     case Some(infUrl) =>
-                      Future.successful(interconnectionService.sendDeletionToInferior(globalCode, motive,labCode, infUrl.getOrElse(""), userId))
+                      labCodeOption match {
+                        case Some(labCode) =>
+                          Future.successful(interconnectionService.sendDeletionToInferior(globalCode.text, motive, labCode, infUrl.getOrElse(""), userId))
+                        case None =>
+                          Future.successful(Left(Messages("error.E0130")))
+                      }
                     case None =>
                       Future.successful(Left(Messages("error.E0130")))
                   }

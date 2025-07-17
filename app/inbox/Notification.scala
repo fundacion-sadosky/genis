@@ -69,6 +69,18 @@ case class DeleteProfileInfo(globalCode: SampleCode) extends NotificationInfo {
   override val url = s"/profile/${globalCode.text}"
 }
 
+case class DeleteProfileInInferiorInstanceInfo(globalCode: SampleCode, userName: String) extends NotificationInfo {
+  override val kind = NotificationType.deletedProfileInInferiorInstance
+  override val description = s"El perfil: ${globalCode.text} fue dado de baja en la instancia inferior por el usuario: $userName"
+  override val url = s"/profile/${globalCode.text}"
+}
+
+case class DeleteProfileInSuperiorInstanceInfo(globalCode: SampleCode, userName: String) extends NotificationInfo {
+  override val kind = NotificationType.deletedProfileInSuperiorInstance
+  override val description = s"El perfil: ${globalCode.text} fue dado de baja en la instancia superior por el usuario: $userName"
+  override val url = s"/profile/${globalCode.text}"
+}
+
 case class AprovedProfileInfo(
                                globalCode: SampleCode,
                                userName: String,
@@ -226,6 +238,8 @@ object NotificationInfo {
   implicit val profileUploadedFormat = Json.format[ProfileUploadedInfo]
   implicit val aprovedProfileFormat = Json.format[AprovedProfileInfo]
   implicit val rejectedProfileFormat = Json.format[RejectedProfileInfo]
+  implicit val deletedProfileInInferiorFormat = Json.format[DeleteProfileInInferiorInstanceInfo]
+  implicit val deletedProfileInSuperiorFormat = Json.format[DeleteProfileInSuperiorInstanceInfo]
 
 
   def unapply(info: NotificationInfo): Option[(NotificationType.Value, JsValue)] = {
@@ -259,6 +273,10 @@ object NotificationInfo {
         Some((x.kind, Json.toJson(x)(aprovedProfileFormat)))
       case x: RejectedProfileInfo =>
         Some((x.kind, Json.toJson(x)(rejectedProfileFormat)))
+      case x: DeleteProfileInInferiorInstanceInfo =>
+        Some((x.kind, Json.toJson(x)(deletedProfileInInferiorFormat)))
+      case x: DeleteProfileInSuperiorInstanceInfo =>
+        Some((x.kind, Json.toJson(x)(deletedProfileInSuperiorFormat)))
       case _ => None
     }
   }
@@ -297,6 +315,10 @@ object NotificationInfo {
           Json.fromJson[AprovedProfileInfo](json)
         case NotificationType.rejectedProfile =>
           Json.fromJson[RejectedProfileInfo](json)
+        case NotificationType.deletedProfileInSuperiorInstance =>
+          Json.fromJson[DeleteProfileInSuperiorInstanceInfo](json)
+        case NotificationType.deletedProfileInInferiorInstance =>
+          Json.fromJson[DeleteProfileInInferiorInstanceInfo](json)
         case _ => JsError()
       }
       ).get
