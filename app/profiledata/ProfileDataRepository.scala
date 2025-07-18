@@ -1059,6 +1059,8 @@ class SlickProfileDataRepository @Inject() (
     }
   }
 
+
+
   override def gefFailedProfilesUploaded(): Future[List[ProfileUploadedRow]] = {
     this.runInTransactionAsync { implicit session => {
       try {
@@ -1180,17 +1182,14 @@ class SlickProfileDataRepository @Inject() (
     Future {
       DB.withTransaction { implicit session =>
         try {
-          // Get the next value from the sequence
-          val nextVal: Long = Q.queryNA[Long]("select nextval('\"APP\".\"PROFILE_RECEIVED_ID_seq\"')").first
-          profileReceived insertOrUpdate models.Tables.ProfileReceivedRow(nextVal, // Use the next value from the sequence
+          profileReceived insertOrUpdate models.Tables.ProfileReceivedRow(globalCode,
             labCode,
-            globalCode,
             status,
             None,
             Some(userName),
             isCategoryModificaction,
             None)
-          logger.info(s"Inserted new profile received with ID: $nextVal, labCode: $labCode, globalCode: $globalCode")
+        logger.info(s"Inserted new profile received with ID labCode: $labCode, globalCode: $globalCode")
           Right(())
         } catch {
           case e: Exception => {
@@ -1206,22 +1205,15 @@ class SlickProfileDataRepository @Inject() (
     Future {
       DB.withTransaction { implicit session =>
         try {
-          // Get the next value from the sequence
-          val nextVal: Long = Q.queryNA[Long]("select nextval('\"APP\".\"PROFILE_RECEIVED_ID_seq\"')").first
-
-          // Insert a new record
-          profileReceived insertOrUpdate models.Tables.ProfileReceivedRow(
-            nextVal, // Use the next value from the sequence
+          profileReceived insertOrUpdate models.Tables.ProfileReceivedRow(globalCode,
             labCode,
-            globalCode,
             status,
             Some("Rechazado por el motivo: " + motive),
             Some(userName),
             isCategoryModificaction,
             None
           )
-
-          logger.info(s"Inserted new profile received with ID: $nextVal, labCode: $labCode, globalCode: $globalCode, motive: $motive")
+          logger.info(s"Inserted new profile received with ID labCode: $labCode, globalCode: $globalCode, motive: $motive")
           Right(())
         } catch {
           case e: Exception => {
@@ -1239,7 +1231,7 @@ class SlickProfileDataRepository @Inject() (
         getProfileReceivedByGlobalCode(globalCode).firstOption match {
           case None => Left(Messages("error.E0940"))
           case Some(row) => {
-            profileSent insertOrUpdate models.Tables.ProfileSentRow(row.id, row.labCode, row.globalCode, status, row.motive, Some(interconnection_error))
+            profileReceived insertOrUpdate models.Tables.ProfileReceivedRow(row.globalCode, row.labCode, status, row.motive, row.userName,row.isCategoryModification , Some(interconnection_error))
             Right(())
           }
         }
@@ -1258,7 +1250,7 @@ class SlickProfileDataRepository @Inject() (
         getProfileReceivedByGlobalCode(globalCode).firstOption match {
           case None => Left(Messages("error.E0940"))
           case Some(row) => { //hizo un insert con un nuevo id. row es del tipo profileDataRow y debería ser una profileRecevedRow
-            profileReceived insertOrUpdate models.Tables.ProfileReceivedRow(row.id, row.labCode, row.globalCode, status, motive, userName, isCategoryModification, interconnection_error)
+            profileReceived insertOrUpdate models.Tables.ProfileReceivedRow( row.globalCode,row.labCode, status, motive, userName, isCategoryModification, interconnection_error)
             Right(())
           }
         }

@@ -72,13 +72,13 @@ case class DeleteProfileInfo(globalCode: SampleCode) extends NotificationInfo {
 case class DeleteProfileInInferiorInstanceInfo(globalCode: SampleCode, userName: String) extends NotificationInfo {
   override val kind = NotificationType.deletedProfileInInferiorInstance
   override val description = s"El perfil: ${globalCode.text} fue dado de baja en la instancia inferior por el usuario: $userName"
-  override val url = s"/profile/${globalCode.text}"
+  override val url = s"/trace/${globalCode.text}"
 }
 
 case class DeleteProfileInSuperiorInstanceInfo(globalCode: SampleCode, userName: String) extends NotificationInfo {
   override val kind = NotificationType.deletedProfileInSuperiorInstance
   override val description = s"El perfil: ${globalCode.text} fue dado de baja en la instancia superior por el usuario: $userName"
-  override val url = s"/profile/${globalCode.text}"
+  override val url = s"/trace/${globalCode.text}"
 }
 
 case class AprovedProfileInfo(

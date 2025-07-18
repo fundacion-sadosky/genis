@@ -1371,6 +1371,7 @@ class InterconnectionServiceImpl @Inject()(
                 // Poner el status del perfil en PROFILE_RECEIVED en REJECTED_THIS_INSTANCE_INF_INFORMED (17L)
                 profileDataService.updateProfileReceivedStatus(labCode, globalCode, REJECTED_THIS_INSTANCE_INF_INFORMED, motive, isCategoryModification, "", Some(userName))
                 logger.debug("se actualizó correctamente el status del perfil en la instancia inferior")
+                // TODO: poner el perfil en replicado NO
                 Future.successful(Right(()))
               } else {
                 logger.debug(Messages("error.E0710"))

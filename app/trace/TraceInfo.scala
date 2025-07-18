@@ -117,7 +117,7 @@ case class DeleteInfo(
                        motive: String) extends TraceInfo {
   override val kind = TraceType.delete
   override val description =
-    s"Baja del perfil solicitada por $solicitor con motivo: $motive."
+    s"Baja del perfil: $motive."
 }
 
 case class PedigreeStatusChangeInfo(status:String) extends TraceInfo{
