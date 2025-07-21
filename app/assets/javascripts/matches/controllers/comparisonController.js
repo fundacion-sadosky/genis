@@ -239,12 +239,12 @@ define([ 'angular','lodash' ], function(angular,_) {
 				}
 			);
 		};
-
+/*
 		analysisTypeService.listById().then(function(response) {
 			$scope.analysisTypes = response;
 			getResults().then();
 			//$scope.$apply();
-		});
+		});*/
 		profiledataService.getProfilesData([$scope.profileId, $scope.matchedProfileId]).then(
 			function(response) {
 				var profileDataTemp = response.data.filter(function(x){return x.globalCode === $scope.profileId;})[0];
@@ -333,7 +333,7 @@ define([ 'angular','lodash' ], function(angular,_) {
 			);
 		};
 
-		$scope.setComparisions().then();
+		//$scope.setComparisions().then();
 		function encryptedEpgs(profile, epgs) {
 			return epgs.map(function(e){
 				return cryptoService.encryptBase64("/profiles/" + profile + "/epg/" + e.fileId);
