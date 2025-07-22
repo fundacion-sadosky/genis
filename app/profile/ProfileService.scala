@@ -111,6 +111,9 @@ class ProfileServiceImpl @Inject() (
                                      matchingRepo: MatchingRepository = null,
                                      userService: UserService = null) extends ProfileService {
 
+  val RECHAZADA = 3L
+  val DELETE_IN_SUP_INSTANCE_SENT_TO_INFERIOR = 20L
+
   val logger = Logger(this.getClass())
 
   val manualKit = "Manual"

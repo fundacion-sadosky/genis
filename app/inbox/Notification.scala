@@ -95,7 +95,7 @@ case class AprovedProfileInfo(
   } else {
     s"El perfil: ${globalCode.text} fue aprobado en la instancia superior por el usuario: " + userName
   }
-  override val url = s"/search/profiledata"
+  override val url =  s"/trace/${globalCode.text}"
 }
 
 case class RejectedProfileInfo(
@@ -115,7 +115,7 @@ case class RejectedProfileInfo(
         .text
     } fue rechazado en la instancia superior" + "por el usuario: " + userName
   }
-  override val url = s"/search/profiledata"
+  override val url =  s"/trace/${globalCode.text}"
 }
 
 case class ProfileDataInfo(

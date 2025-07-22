@@ -565,6 +565,7 @@ class ProfileDataServiceImpl @Inject() (
     profileDataRepository.updateUploadStatus(globalCode,status,motive,interconnection_error,userName)
   }
 
+
   override def getProfileUploadStatusByGlobalCode(gc:SampleCode):Future[Option[Long]] = {
     this.profileDataRepository.getProfileUploadStatusByGlobalCode(gc)
   }

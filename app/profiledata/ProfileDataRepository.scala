@@ -191,6 +191,9 @@ abstract class ProfileDataRepository extends DefaultDb with Transaction {
   def getFailedProfilesReceivedDeleted(labCode: String): Future[Seq[ProfileReceivedRow]]
 
   def getProfileReceivedStatusByGlobalCode(globalCode: SampleCode): Future[Option[Long]]
+
+  def getIsProfileReplicated(globalCode: SampleCode): Boolean
+
 }
 
 
@@ -534,7 +537,8 @@ class SlickProfileDataRepository @Inject() (
                   pd.sampleDate,
                   pd.sampleEntryDate,
                   None,
-                  pdu.isDefined,
+                  this.getIsProfileReplicated(SampleCode(pd.globalCode)),
+                  //pdu.isDefined,
                   epd.isDefined
                 )
             }
@@ -574,7 +578,8 @@ class SlickProfileDataRepository @Inject() (
                 pd.sampleDate,
                 pd.sampleEntryDate,
                 None,
-                pdu.isDefined,
+                this.getIsProfileReplicated(SampleCode(pd.globalCode)),
+                //pdu.isDefined,
                 epd.isDefined
               )
           }
@@ -615,7 +620,8 @@ class SlickProfileDataRepository @Inject() (
                   pd.sampleDate,
                   pd.sampleEntryDate,
                   None,
-                  pdu.isDefined,
+                  this.getIsProfileReplicated(SampleCode(pd.globalCode)),
+                  //pdu.isDefined,
                   epd.isDefined
                 )
             }
@@ -624,13 +630,13 @@ class SlickProfileDataRepository @Inject() (
         DB.withSession { implicit session =>
           queryGetProfileDataByUserAndStatusAndCategory(search.userId, search.isSuperUser, search.active, search.inactive, search.category)
             .list.drop(search.page * search.pageSize).take(search.pageSize).iterator.toVector map {
-            case (pd, pdu, epd) =>
+            case (pd,pdu, epd) =>
               ProfileDataFull(AlphanumericId(pd.category),
                 SampleCode(pd.globalCode), pd.attorney, pd.bioMaterialType,
                 pd.court, pd.crimeInvolved, pd.crimeType, pd.criminalCase,
                 pd.internalSampleCode, pd.assignee, pd.laboratory, pd.deleted, None,
                 pd.responsibleGeneticist, pd.profileExpirationDate, pd.sampleDate,
-                pd.sampleEntryDate, None, pdu.isDefined, epd.isDefined)
+                pd.sampleEntryDate, None, this.getIsProfileReplicated(SampleCode(pd.globalCode)), epd.isDefined)
           }
         }
       }
@@ -1189,7 +1195,7 @@ class SlickProfileDataRepository @Inject() (
             Some(userName),
             isCategoryModificaction,
             None)
-        logger.info(s"Inserted new profile received with ID labCode: $labCode, globalCode: $globalCode")
+          logger.info(s"Inserted new profile received with ID labCode: $labCode, globalCode: $globalCode")
           Right(())
         } catch {
           case e: Exception => {
@@ -1273,11 +1279,13 @@ class SlickProfileDataRepository @Inject() (
   private def queryPendingDeletionNotifications(labCode: Column[String]) =
     profileReceived.filter(_.status === 19L).filter(_.labCode === labCode)
 
+
   val getPendingApprovalNotificationCompiled = Compiled(queryPendingApprovalNotifications _)
 
   val getPendingRejectionNotificationCompiled = Compiled(queryPendingRejectionNotifications _)
 
   val getPendingDeletionNotificationsCompiled = Compiled(queryPendingDeletionNotifications _)
+
 
   override def getPendingApprovalNotification(labCode: String): Future[Seq[ProfileReceivedRow]] = {
     this.runInTransactionAsync { implicit session =>
@@ -1294,6 +1302,20 @@ class SlickProfileDataRepository @Inject() (
   def getFailedProfilesReceivedDeleted(labCode: String): Future[Seq[ProfileReceivedRow]] = {
     this.runInTransactionAsync { implicit session =>
       getPendingDeletionNotificationsCompiled(labCode).list
+    }
+  }
+
+  def getIsProfileReplicated(globalCode: SampleCode): Boolean = {
+    DB.withSession { implicit session =>
+      queryProfileUploadedByGlobalCode(globalCode.text).firstOption match {
+        case Some(profile) =>
+          // Check the status to determine replication
+          profile.status match {
+            case 20L | 3L => false  // 20 - deleted in superuser, 3 - rejected in superuser
+            case _ => true          // Any other status indicates replication
+          }
+        case None => false          // If not found in PROFILE_UPLOADED, it's not replicated
+      }
     }
   }
 }
