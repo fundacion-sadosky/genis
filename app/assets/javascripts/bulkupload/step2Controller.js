@@ -244,7 +244,7 @@ define(['jquery','lodash'], function($,_) {
             if (batch.desktopSearch) {
                 $modal.open({
                     templateUrl: '/assets/javascripts/bulkupload/desktopSearchResults.html',
-                    controller: 'comparisonController',
+                    controller: 'desktopSearchReportController',
                     resolve: {
                         shared: function () {
                             return $scope.shared;
