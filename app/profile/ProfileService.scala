@@ -99,6 +99,7 @@ class ProfileServiceImpl @Inject() (
                                      cache: CacheService,
                                      profileRepository: ProfileRepository,
                                      profileDataRepository: ProfileDataRepository,
+                                     matchingRepository: MatchingRepository,
                                      kitService: StrKitService,
                                      matchingService: MatchingService,
                                      qualityParams: QualityParamsProvider,
@@ -903,6 +904,7 @@ class ProfileServiceImpl @Inject() (
 
   override def removeProfile(globalCode: SampleCode):Future[Either[String,String]] = {
     this.profileRepository.removeProfile(globalCode)
+    this.matchingRepository.removeMatchesByProfile(globalCode)
   }
 
   override def removeFile(id: String,user: String):Future[Either[String,String]] = {

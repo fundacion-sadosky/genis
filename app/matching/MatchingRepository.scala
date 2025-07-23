@@ -53,6 +53,8 @@ abstract class MatchingRepository {
   def deleteMatch(matchId: String): Future[Boolean]
   def getByFiringAndMatchingProfile(firingCode: SampleCode, matchingCode: SampleCode): Future[Option[MatchResult]]
   def matchesNotDiscarded(globalCode: SampleCode): Future[Seq[MatchResult]]
+
+  def removeMatchesByProfile(globalCode: SampleCode): Future[Either[String,String]]
   def matchesWithFullHit(globalCode: SampleCode): Future[Seq[MatchResult]]
   def matchesWithPartialHit(globalCode: SampleCode): Future[Seq[MatchResult]]
   def getGlobalMatchStatus(leftProfileStatus: MatchStatus.Value, rightProfileStatus: MatchStatus.Value): MatchGlobalStatus.Value
@@ -688,6 +690,18 @@ class MongoMatchingRepository @Inject() (@Named("mongoUri") val mongoUri: String
     matchesWithHit(globalCode, "$or")
   }
 
+  override def removeMatchesByProfile(globalCode: SampleCode): Future[Either[String,String]] = Future{
+    val query = Json.obj("$or" -> Json.arr(
+      Json.obj("leftProfile.globalCode" -> globalCode),
+      Json.obj("rightProfile.globalCode" -> globalCode))
+    )
+
+    //val query = Json.obj("$and" -> Seq(leftOrRight, Json.obj("leftProfile.status" -> MatchStatus.deleted),
+    //  Json.obj("rightProfile.status" -> MatchStatus.deleted)))
+
+    matches.remove(query)
+    Right(globalCode.text)
+  }
   private def matchesWithHit(globalCode: SampleCode, operator: String): Future[Seq[MatchResult]] = {
     val leftOrRight = Json.obj("$or" -> Json.arr(
       Json.obj("leftProfile.globalCode" -> globalCode),
