@@ -171,6 +171,10 @@ function ProfileService(playRoutes, $log, $q, userService) {
 		return playRoutes.controllers.Profiles.removeAll().delete();
 	};
 
+	this.removeProfile = function(globalCode) {
+		return playRoutes.controllers.Profiles.removeProfile(globalCode).delete();
+	};
+
 }
 
 return ProfileService;

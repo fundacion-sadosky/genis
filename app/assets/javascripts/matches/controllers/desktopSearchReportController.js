@@ -615,6 +615,7 @@ define([ 'angular','lodash' ], function(angular,_) {
 
 
 		$scope.cancel = function () {
+			console.debug("Closing from desktop search report controller");
 			$scope.$dismiss('cancel');
 		};
 

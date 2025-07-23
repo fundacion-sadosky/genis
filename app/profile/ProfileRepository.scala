@@ -98,7 +98,8 @@ abstract class ProfileRepository {
   def removeEpg(id: String):Future[Either[String,String]]
 
   def removeAll():Future[Either[String,String]]
-
+  def removeProfile(globalCode: SampleCode):Future[Either[String,String]]
+  
   def getProfileOwnerByFileId(id: String):Future[(String,SampleCode)]
 
   def getProfileOwnerByEpgId(id: String): Future[(String,SampleCode)]
@@ -604,6 +605,12 @@ class MongoProfileRepository extends ProfileRepository {
     files.remove(query)
     electropherograms.remove(query)
     Right("all")
+  }
+  
+  def removeProfile(globalCode: SampleCode):Future[Either[String,String]] = Future{
+    val query = Json.obj("_id" -> globalCode.text)
+    profiles.findAndRemove(query)
+    Right(globalCode.text)
   }
   def getProfileOwnerByFileId(id: String): Future[(String,SampleCode)] = {
     this.getProfileOwnerByEpgOrFileId(id,files);

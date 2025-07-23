@@ -1,7 +1,7 @@
 define(['jquery','lodash'], function($,_) {
 	'use strict';
 
-	function Step2Controller($scope, $routeParams, bulkuploadService, helper, $log, $modal, alertService, $q, userService, locusService, profiledataService, notificationsService, matchesService) {
+	function Step2Controller($scope, $routeParams, bulkuploadService, helper, $log, $modal, alertService, $q, userService, locusService, profiledataService, notificationsService, matchesService, profileService) {
 
 		$scope.statusMap = bulkuploadService.getStatusMap();
 		var toogle = true;
@@ -239,6 +239,17 @@ define(['jquery','lodash'], function($,_) {
             }
         });
 
+        function closeDesktopResults(){
+            console.debug("Closing from step2controller");
+
+            //remove profile and matches
+            profileService.removeProfile($scope.shared.profileId).then(function() {
+                console.log("Profile removed:", $scope.shared.profileId);
+            });
+
+
+        }
+
         $scope.desktopSearchResults = function (batch) {
             $scope.fromDesktopSearch = true;
             if (batch.desktopSearch) {
@@ -250,16 +261,22 @@ define(['jquery','lodash'], function($,_) {
                             return $scope.shared;
                         }
                     }
-                }).result.then(function () {
-                    closeDesktopResults();
-                });
+                }).result.then(
+                    function onClose() {
+                        // cerró con modalInstance.close()
+                        console.debug("Closing from step2controller (close)");
+                        console.debug("On close, profileId:", $scope.shared.profileId);
+                        closeDesktopResults();
+                    },
+                    function onDismiss(reason) {
+                        // cerró por clic fuera, ESC o modalInstance.dismiss()
+                        console.debug("Closing from step2controller (dismiss):", reason);
+                        console.debug("On close, profileId:", $scope.shared.profileId);
+                        closeDesktopResults();
+                    });
             }
         };
 
-
-        function closeDesktopResults(){
-            //remove profile and matches
-        }
 
         $scope.importBatch = function(batch){
             $scope.matches = {};
