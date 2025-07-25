@@ -265,6 +265,13 @@ class ProfileData @Inject() (
 //    }
 //  }
 
+  def removeProfile(globalCode: SampleCode) = Action.async { request =>
+    profiledataService.removeProfile(globalCode) map {
+      case Left(error) => BadRequest(Json.obj("status" -> "KO", "message" -> error))
+      case Right(_) => Ok(Json.obj("status" -> "OK", "message" -> Messages("success.S0100", globalCode.text)))
+    }
+  }
+  
   def get(id: Long) = Action.async(BodyParsers.parse.json) { request =>
     profiledataService.get(id) map {
       profileData =>

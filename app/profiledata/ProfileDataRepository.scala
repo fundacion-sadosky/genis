@@ -44,7 +44,8 @@ import types.SampleCode
 import util.{DefaultDb, Transaction}
 import play.api.i18n.Messages
 import models.Tables.ExternalProfileDataRow
-import play.api.db.slick.Config.driver.simple._
+//import play.api.db.slick.Config.driver.simple._
+import scala.slick.driver.PostgresDriver.simple._
 
 abstract class ProfileDataRepository extends DefaultDb with Transaction  {
   /**
@@ -100,7 +101,12 @@ abstract class ProfileDataRepository extends DefaultDb with Transaction  {
    */
   
   //def removeAll(): Future[Int]
-  
+
+  /** Remove a profile from the table
+   *
+   */
+  def removeProfile(globalCode: SampleCode): Future[Either[String, SampleCode]]
+
   /**
    * Get all profile datas of a user
    *
@@ -638,7 +644,21 @@ class SlickProfileDataRepository @Inject() (
     }
   }
 
-//  override def removeAll(): Future[Int] = {
+  override def removeProfile(globalCode: SampleCode): Future[Either[String, SampleCode]] = Future {
+    DB.withTransaction { implicit session =>
+      // Attempt to delete the profile by its global code
+      val deletedCount = profilesData.filter(_.globalCode === globalCode.text).delete
+      if (deletedCount == 0) {
+        // No profile found to delete
+        Left(Messages("error.E0940"))
+      } else {
+        // Successfully deleted
+        Right(globalCode)
+      }
+    }
+  }
+  
+//override def removeAll(): Future[Int] = {
 //    DB.withTransaction { implicit session =>
 //      val codes = queryGetAllProfileGlobalCodes.list
 //      val counts: Seq[Int] = codes.map { code =>

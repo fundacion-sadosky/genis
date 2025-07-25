@@ -242,11 +242,15 @@ define(['jquery','lodash'], function($,_) {
         function closeDesktopResults(){
             console.debug("Closing from step2controller");
 
-            //remove profile and matches
+            //remove profile (mongoDB)
             profileService.removeProfile($scope.shared.profileId).then(function() {
                 console.log("Profile removed:", $scope.shared.profileId);
             });
-
+            
+            //remove profile data
+            profiledataService.removeProfile($scope.shared.profileId).then(function() {
+                console.log("Profile data removed:", $scope.shared.profileId);
+            });
 
         }
 

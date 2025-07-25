@@ -93,6 +93,10 @@ define([], function() {
       return playRoutes.controllers.ProfileData.removeAll().delete();
     };
 
+    this.removeProfile = function(globalCode) {
+      return playRoutes.controllers.ProfileData.removeProfile(globalCode).delete();
+    };
+
     this.isModal = function(){return false;};
 
     this.getResourcesURL = function(){return '/resources/static';};
