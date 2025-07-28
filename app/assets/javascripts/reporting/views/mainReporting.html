@@ -1,50 +1,55 @@
-
-
 <div class="row padding-0 breadcrumb_column">
     <div class="col-md-12 padding-0">
         <div class="row padding-0">
             <div class="breadcrumb_content">
                 <ol class="breadcrumb">
-                        <li>
-                            <div class="btn volver" onclick="history.back()">
-                                <span  class="icon-atras" title="Volver"></span>
-                            </div>
-                        </li>
-                        <li class="active">Configuración de reportes</li>
-                        
-                    </ol>
-                </div>
+                    <li>
+                        <div class="btn volver" onclick="history.back()">
+                            <span class="icon-atras" title="Volver"></span>
+                        </div>
+                    </li>
+                    <li class="active">Configuración de reportes</li>
+                </ol>
             </div>
         </div>
     </div>
+</div>
 
-
-<div class="container-top" >
+<div class="container-top">
     <div class="row">
-        
-
-
-        <div class="content m-t-10 padding-0 ">
+        <div class="content m-t-10 padding-0">
             <section class="extended-section col-md-6">
-                <div class="main-report"> <!-- content-wrap-small -->
-                        <div show-permissions="SUP_INS_CRUD" class="panel panel-default">
-                                <!-- Default panel contents -->
-                                <div class="panel-heading vertical-align"><i class="icon-auditoria icon-lg icon-conf"></i> Reportes</div>
-                                
-                                <!-- List group -->
-                                <ul class="list-group">
-                                        <li class="list-group-item" ><a id="linkReportePerfilesFilters" href="#/profilesReporting" >Generar reporte perfiles</a></li>
-                                
-                                </ul>
-                            </div>
+                <div class="main-report">
+                    <!-- content-wrap-small -->
+                    <div show-permissions="SUP_INS_CRUD" class="panel panel-default">
+                        <!-- Default panel contents -->
+                        <div class="panel-heading vertical-align">
+                            <i class="icon-auditoria icon-lg icon-conf"></i> Reportes
+                        </div>
+                        <!-- List group -->
+                        <ul class="list-group">
+                            <li class="list-group-item">
+                                <a id="linkReportePerfilesFilters" href="#/profilesReporting">Generar reporte resumen de perfiles</a>
+                            </li>
+                            <li class="list-group-item">
+                                <a id="linkPerfilesPorUsuario" href="#/perfiles-por-usuario">Perfiles por usuario</a>
+                            </li>
+                            <li class="list-group-item">
+                                <a href="#/perfiles-activos-baja-por-categoria">Perfiles activos y dados de baja por categoría</a>
+                            </li>
+                            <li class="list-group-item">
+                                <a href="#/perfiles-enviados-instancia-superior">Perfiles enviados a instancia superior</a>
+                            </li>
+                            <li class="list-group-item">
+                                <a href="#/perfiles-recibidos-instancia-inferior">Perfiles recibidos de instancia inferior</a>
+                            </li>
+                            <li class="list-group-item">
+                                <a href="#/perfiles-cambiaron-categoria">Perfiles que cambiaron de categoría</a>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </section>
         </div>
-
-
-
-
-
-
     </div>
 </div>

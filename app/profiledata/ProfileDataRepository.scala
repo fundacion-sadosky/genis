@@ -47,6 +47,7 @@ import types.SampleCode
 import util.{DefaultDb, Transaction}
 import play.api.i18n.Messages
 import models.Tables.ExternalProfileDataRow
+
 abstract class ProfileDataRepository extends DefaultDb with Transaction {
   /**
    * Get by dataBase Id

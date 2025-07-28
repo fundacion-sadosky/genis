@@ -20,13 +20,26 @@ define([], function() {
 
 
         $scope.generarReporte = function () {
-            if ($scope.search === undefined  || $scope.search.hourFrom === undefined|| $scope.search.hourUntil === undefined) {
-                alertService.error({message:'Debe completar las fechas desde y hasta'});
-                return;
+            var fechaDesde = $scope.search.hourFrom ? formatDate($scope.search.hourFrom) : null;
+            var fechaHasta = $scope.search.hourUntil ? formatDate($scope.search.hourUntil) : null;
+
+            var urlPath = "/reportes/profilesReporting";  // Base URL
+
+            if (fechaDesde || fechaHasta) {  // Only add dates if at least one is present
+                urlPath += "/"; // Add a slash to separate the base URL
+
+                if (fechaDesde) {
+                    urlPath += fechaDesde;
+                }
+
+                if (fechaHasta) {
+                    urlPath += "/" + fechaHasta;  // Add the second date, include the slash
+                } else if (fechaDesde){
+                    urlPath += "/null"; // or any placeholder you prefer
+                }
             }
-            var fechaDesde = $scope.search.hourFrom.getDate() + "-" + $scope.search.hourFrom.getMonth() + "-" + $scope.search.hourFrom.getFullYear();
-            var fechaHasta = $scope.search.hourUntil.getDate() + "-" + $scope.search.hourUntil.getMonth() + "-" + $scope.search.hourUntil.getFullYear();
-            var url = cryptoService.encryptBase64("/reportes/profilesReporting/" + fechaDesde + "/" + fechaHasta);
+
+            var url = cryptoService.encryptBase64(urlPath);
             var a = document.createElement("a");
             document.body.appendChild(a);
             a.style = "display: none";
@@ -36,7 +49,133 @@ define([], function() {
             document.body.removeChild(a);
         };
 
+        $scope.generarReporteActivosBajaPorCategoria = function () {
+            var fechaDesde = $scope.search.hourFrom ? formatDate($scope.search.hourFrom) : null;
+            var fechaHasta = $scope.search.hourUntil ? formatDate($scope.search.hourUntil) : null;
+
+            var urlPath = "/reportes/perfilesActivosBajaPorCategoria";  // Base URL
+
+            if (fechaDesde || fechaHasta) {  // Only add dates if at least one is present
+                urlPath += "/"; // Add a slash to separate the base URL
+
+                if (fechaDesde) {
+                    urlPath += fechaDesde;
+                }
+
+                if (fechaHasta) {
+                    urlPath += "/" + fechaHasta;  // Add the second date, include the slash
+                } else if (fechaDesde){
+                    urlPath += "/null"; // or any placeholder you prefer
+                }
+            }
+
+            var url = cryptoService.encryptBase64(urlPath);
+            var a = document.createElement("a");
+            document.body.appendChild(a);
+            a.style = "display: none";
+            a.download = "PerfilesActivosBajaPorCategoria.pdf";
+            a.href = url;
+            a.click();
+            document.body.removeChild(a);
+        };
+
+        $scope.generarReporteEnviados = function () {
+            var fechaDesde = $scope.search.hourFrom ? formatDate($scope.search.hourFrom) : null;
+            var fechaHasta = $scope.search.hourUntil ? formatDate($scope.search.hourUntil) : null;
+
+            var urlPath = "/reportes/perfilesEnviadosInstanciaSuperior";  // Base URL
+
+            if (fechaDesde || fechaHasta) {  // Only add dates if at least one is present
+                urlPath += "/"; // Add a slash to separate the base URL
+
+                if (fechaDesde) {
+                    urlPath += fechaDesde;
+                }
+
+                if (fechaHasta) {
+                    urlPath += "/" + fechaHasta;  // Add the second date, include the slash
+                } else if (fechaDesde){
+                    urlPath += "/null"; // or any placeholder you prefer
+                }
+            }
+
+            var url = cryptoService.encryptBase64(urlPath);
+            var a = document.createElement("a");
+            document.body.appendChild(a);
+            a.style = "display: none";
+            a.download = "PerfilesEnviadosInstanciaSuperior.pdf";
+            a.href = url;
+            a.click();
+            document.body.removeChild(a);
+        };
+
+        $scope.generarReporteRecibidos = function () {
+            var fechaDesde = $scope.search.hourFrom ? formatDate($scope.search.hourFrom) : null;
+            var fechaHasta = $scope.search.hourUntil ? formatDate($scope.search.hourUntil) : null;
+
+            var urlPath = "/reportes/perfilesRecibidosInstanciaInferior";  // Base URL
+
+            if (fechaDesde || fechaHasta) {  // Only add dates if at least one is present
+                urlPath += "/"; // Add a slash to separate the base URL
+
+                if (fechaDesde) {
+                    urlPath += fechaDesde;
+                }
+
+                if (fechaHasta) {
+                    urlPath += "/" + fechaHasta;  // Add the second date, include the slash
+                } else if (fechaDesde){
+                    urlPath += "/null"; // or any placeholder you prefer
+                }
+            }
+
+            var url = cryptoService.encryptBase64(urlPath);
+            var a = document.createElement("a");
+            document.body.appendChild(a);
+            a.style = "display: none";
+            a.download = "PerfilesRecibidosInstanciaInferior.pdf";
+            a.href = url;
+            a.click();
+            document.body.removeChild(a);
+        };
+
+        $scope.generarReporteCambioCategoria = function () {
+            var fechaDesde = $scope.search.hourFrom ? formatDate($scope.search.hourFrom) : null;
+            var fechaHasta = $scope.search.hourUntil ? formatDate($scope.search.hourUntil) : null;
+
+            var urlPath = "/reportes/perfilesCambiaronCategoria";  // Base URL
+
+            if (fechaDesde || fechaHasta) {  // Only add dates if at least one is present
+                urlPath += "/"; // Add a slash to separate the base URL
+
+                if (fechaDesde) {
+                    urlPath += fechaDesde;
+                }
+
+                if (fechaHasta) {
+                    urlPath += "/" + fechaHasta;  // Add the second date, include the slash
+                } else if (fechaDesde){
+                    urlPath += "/null"; // or any placeholder you prefer
+                }
+            }
+
+            var url = cryptoService.encryptBase64(urlPath);
+            var a = document.createElement("a");
+            document.body.appendChild(a);
+            a.style = "display: none";
+            a.download = "PerfilesCambiaronCategoria.pdf";
+            a.href = url;
+            a.click();
+            document.body.removeChild(a);
+        };
+
+        function formatDate(date) {
+            return date.getDate() + "-" + date.getMonth() + "-" + date.getFullYear();
+        }
+
         $scope.checkMax = function (fieldName) {
+            if (!$scope.search[fieldName]) return; // Exit if the field is empty
+
             var aux = $scope.search[fieldName];
             var today = new Date();
 
@@ -46,23 +185,22 @@ define([], function() {
                 $scope.minDateCoin = null;
             } else {
                 if (fieldName === 'hourFrom') {
-                    if (aux !== undefined || aux !== null) {
-                        $scope.minDateCoin = aux;
-                    }
-                    else {
-                        $scope.minDateCoin = null;
-                    }
+                    $scope.minDateCoin = aux;
                 }
             }
 
         };
+
         $scope.toggleDatePicker = function ($event, witch) {
             $event.preventDefault();
             $event.stopPropagation();
 
             $scope.datepickers[witch] = !$scope.datepickers[witch];
         };
+
         $scope.checkMaxMin = function (fieldName, fechaMin) {
+            if (!$scope.search[fieldName]) return; // Exit if the field is empty
+
             var aux = $scope.search[fieldName];
             var min = $scope.search[fechaMin];
             var max = new Date();
@@ -70,20 +208,18 @@ define([], function() {
             if (min === undefined || min === null) {
                 min = $scope.search.hourFrom;
             }
+
             if (max - aux < 0) {
                 alertService.info({message: 'La fecha debe ser anterior a la actual.'});
                 $scope.search[fieldName] = undefined;
             } else {
-                if (min - aux > 0) {
-                    alertService.info({message: 'La fecha  debe ser posterior al campo desde.'});
+                if (min && min - aux > 0) { // Only compare if 'min' has a value
+                    alertService.info({message: 'La fecha debe ser posterior al campo desde.'});
                     $scope.search[fieldName] = undefined;
                 }
             }
-
         };
-
     }
 
     return reportingController;
-
 });

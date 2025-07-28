@@ -4,7 +4,6 @@ import java.util.Date
 import javax.inject.{Inject, Singleton}
 
 import play.api.mvc.Result
-import reporting.profileReports.ProfileReportService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -12,6 +11,7 @@ import scala.concurrent.Future
 trait ReportingService {
   def generatePrimerReporte() : Result
   def generateProfilesReport(fechaDesde: Date, fechaHasta: Date ) : Result
+  def generateAllProfilesReport(): Result
 
 }
 
@@ -22,6 +22,9 @@ class ReportingServiceImpl @Inject() (profileReportService : ProfileReportServic
     profileReportService.generatePrimerReporte()
   }
 
+  def generateAllProfilesReport(): Result = {
+    profileReportService.generateAllProfilesReport()
+  }
   override def generateProfilesReport(fechaDesde: Date, fechaHasta: Date ): Result = {
     profileReportService.generateProfilesReport(fechaDesde, fechaHasta)
   }

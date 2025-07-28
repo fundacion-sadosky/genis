@@ -1,12 +1,11 @@
 package reporting
 
 import com.google.inject.{AbstractModule, Provides}
-import reporting.profileReports.{MongoProfileReportRepository, ProfileReportRepository, ProfileReportService, ProfileReportServiceImpl}
 
 /**
   * Created by pdg on 3/1/18.
   */
-class ReportingModule extends AbstractModule {
+class ReportingModule () extends AbstractModule {
   override def configure(): Unit = {
     bind(classOf[ReportingService]).to(classOf[ReportingServiceImpl])
     bind(classOf[ProfileReportService]).to(classOf[ProfileReportServiceImpl])
