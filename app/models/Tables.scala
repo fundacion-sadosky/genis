@@ -1045,18 +1045,17 @@ trait Tables {
    *  @param deleted Database column DELETED DBType(BOOLEAN), Default(false)
    *  @param deletedSolicitor Database column DELETED_SOLICITOR DBType(VARCHAR), Length(100,true), Default(None)
    *  @param deletedMotive Database column DELETED_MOTIVE DBType(VARCHAR), Length(8192,true), Default(None) */
-  case class ProfileDataRow(id: Long, category: String, globalCode: String, internalCode: String, description: Option[String] = None, attorney: Option[String] = None, bioMaterialType: Option[String] = None, court: Option[String] = None, crimeInvolved: Option[String] = None, crimeType: Option[String] = None, criminalCase: Option[String] = None, internalSampleCode: String, assignee: String, laboratory: String, profileExpirationDate: Option[java.sql.Date] = None, responsibleGeneticist: Option[String] = None, sampleDate: Option[java.sql.Date] = None, sampleEntryDate: Option[java.sql.Date] = None, deleted: Boolean = false, deletedSolicitor: Option[String] = None, deletedMotive: Option[String] = None)
+  case class ProfileDataRow(id: Long, category: String, globalCode: String, internalCode: String, description: Option[String] = None, attorney: Option[String] = None, bioMaterialType: Option[String] = None, court: Option[String] = None, crimeInvolved: Option[String] = None, crimeType: Option[String] = None, criminalCase: Option[String] = None, internalSampleCode: String, assignee: String, laboratory: String, profileExpirationDate: Option[java.sql.Date] = None, responsibleGeneticist: Option[String] = None, sampleDate: Option[java.sql.Date] = None, sampleEntryDate: Option[java.sql.Date] = None, deleted: Boolean = false, deletedSolicitor: Option[String] = None, deletedMotive: Option[String] = None, fromDesktopSearch: Boolean = false)
   /** GetResult implicit for fetching ProfileDataRow objects using plain SQL queries */
   implicit def GetResultProfileDataRow(implicit e0: GR[Long], e1: GR[String], e2: GR[Option[String]], e3: GR[Option[java.sql.Date]], e4: GR[Boolean]): GR[ProfileDataRow] = GR{
     prs => import prs._
-    ProfileDataRow.tupled((<<[Long], <<[String], <<[String], <<[String], <<?[String], <<?[String], <<?[String], <<?[String], <<?[String], <<?[String], <<?[String], <<[String], <<[String], <<[String], <<?[java.sql.Date], <<?[String], <<?[java.sql.Date], <<?[java.sql.Date], <<[Boolean], <<?[String], <<?[String]))
+    ProfileDataRow.tupled((<<[Long], <<[String], <<[String], <<[String], <<?[String], <<?[String], <<?[String], <<?[String], <<?[String], <<?[String], <<?[String], <<[String], <<[String], <<[String], <<?[java.sql.Date], <<?[String], <<?[java.sql.Date], <<?[java.sql.Date], <<[Boolean], <<?[String], <<?[String], <<[Boolean]))
   }
   /** Table description of table PROFILE_DATA. Objects of this class serve as prototypes for rows in queries. */
   class ProfileData(_tableTag: Tag, schema: Option[String], tableName: String) extends Table[ProfileDataRow](_tableTag, schema, tableName) {
-    def * = (id, category, globalCode, internalCode, description, attorney, bioMaterialType, court, crimeInvolved, crimeType, criminalCase, internalSampleCode, assignee, laboratory, profileExpirationDate, responsibleGeneticist, sampleDate, sampleEntryDate, deleted, deletedSolicitor, deletedMotive) <> (ProfileDataRow.tupled, ProfileDataRow.unapply)
+    def * = (id, category, globalCode, internalCode, description, attorney, bioMaterialType, court, crimeInvolved, crimeType, criminalCase, internalSampleCode, assignee, laboratory, profileExpirationDate, responsibleGeneticist, sampleDate, sampleEntryDate, deleted, deletedSolicitor, deletedMotive, fromDesktopSearch) <> (ProfileDataRow.tupled, ProfileDataRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = (id.?, category.?, globalCode.?, internalCode.?, description, attorney, bioMaterialType, court, crimeInvolved, crimeType, criminalCase, internalSampleCode.?, assignee.?, laboratory.?, profileExpirationDate, responsibleGeneticist, sampleDate, sampleEntryDate, deleted.?, deletedSolicitor, deletedMotive).shaped.<>({r=>import r._; _1.map(_=> ProfileDataRow.tupled((_1.get, _2.get, _3.get, _4.get, _5, _6, _7, _8, _9, _10, _11, _12.get, _13.get, _14.get, _15, _16, _17, _18, _19.get, _20, _21)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
-    
+    def ? = (id.?, category.?, globalCode.?, internalCode.?, description, attorney, bioMaterialType, court, crimeInvolved, crimeType, criminalCase, internalSampleCode.?, assignee.?, laboratory.?, profileExpirationDate, responsibleGeneticist, sampleDate, sampleEntryDate, deleted.?, deletedSolicitor, deletedMotive, fromDesktopSearch).shaped.<>({r=>import r._; _1.map(_=> ProfileDataRow.tupled((_1.get, _2.get, _3.get, _4.get, _5, _6, _7, _8, _9, _10, _11, _12.get, _13.get, _14.get, _15, _16, _17, _18, _19.get, _20, _21, _22)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
     /** Database column ID DBType(BIGINT), AutoInc, PrimaryKey */
     val id: Column[Long] = column[Long]("ID", O.AutoInc, O.PrimaryKey)
     /** Database column CATEGORY DBType(VARCHAR), Length(50,true) */
@@ -1099,7 +1098,7 @@ trait Tables {
     val deletedSolicitor: Column[Option[String]] = column[Option[String]]("DELETED_SOLICITOR", O.Length(100,varying=true), O.Default(None))
     /** Database column DELETED_MOTIVE DBType(VARCHAR), Length(8192,true), Default(None) */
     val deletedMotive: Column[Option[String]] = column[Option[String]]("DELETED_MOTIVE", O.Length(8192,varying=true), O.Default(None))
-    
+    val fromDesktopSearch: Column[Boolean] = column[Boolean]("FROM_DESKTOP_SEARCH", O.Default(false))
     /** Foreign key referencing BioMaterialType (database name PROFILE_DATA_BIO_MATERIAL_TYPE) */
     lazy val bioMaterialTypeFk = foreignKey("PROFILE_DATA_BIO_MATERIAL_TYPE", bioMaterialType, BioMaterialType)(r => r.id, onUpdate=ForeignKeyAction.Cascade, onDelete=ForeignKeyAction.Restrict)
     /** Foreign key referencing Category (database name PROFILE_DATA_CATEGORY_FKEY) */
