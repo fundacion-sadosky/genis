@@ -16,7 +16,7 @@ import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
-abstract class ProfileReportRepository {
+abstract class ProfileReportMongoRepository {
 
   def countProfilesCreated(startDate: Option[Date], endDate : Option[Date]) : Future[Int]
   def countProfilesDeleted() : Future[Int]
@@ -33,7 +33,7 @@ abstract class ProfileReportRepository {
 
 }
 
-class MongoProfileReportRepository extends ProfileReportRepository
+class MongoProfileReportRepository extends ProfileReportMongoRepository
 {
   private def profiles = Await.result(play.modules.reactivemongo.ReactiveMongoPlugin.database.map(_.collection[JSONCollection]("profiles")), Duration(10, SECONDS))
   private def matches = Await.result(play.modules.reactivemongo.ReactiveMongoPlugin.database.map(_.collection[JSONCollection]("matches")), Duration(10, SECONDS))
@@ -65,7 +65,7 @@ class MongoProfileReportRepository extends ProfileReportRepository
   }
 
   override def countProfilesCreated(): Future[Int] = {
-    countProfilesCreated(None, None)
+    this.countProfilesCreated(Option.empty[Date], Option.empty[Date])
   }
 
   override def countProfilesDeleted(): Future[Int] = {
@@ -99,7 +99,7 @@ class MongoProfileReportRepository extends ProfileReportRepository
   }
 
   override def countMatches(): Future[Int] = {
-    countMatches(None, None)
+    this.countMatches(Option.empty[Date], Option.empty[Date])
   }
 
   override def countHit(startDate: Option[Date], endDate: Option[Date]): Future[Int] = {
@@ -122,7 +122,7 @@ class MongoProfileReportRepository extends ProfileReportRepository
   }
 
   override def countHit(): Future[Int] = {
-    countHit(None, None)
+    this.countHit(Option.empty[Date], Option.empty[Date])
   }
 
   override def countDescartes(startDate: Option[Date], endDate: Option[Date]): Future[Int] = {
@@ -146,6 +146,6 @@ class MongoProfileReportRepository extends ProfileReportRepository
   }
 
   override def countDescartes(): Future[Int] = {
-    countDescartes(None, None)
+    this.countDescartes(Option.empty[Date], Option.empty[Date])
   }
 }

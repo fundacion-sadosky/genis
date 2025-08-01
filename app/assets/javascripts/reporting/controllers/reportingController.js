@@ -49,26 +49,22 @@ define([], function() {
             document.body.removeChild(a);
         };
 
+        $scope.generarReportePorUsuario = function () {
+            var urlPath = "/reportes/profilesByUser";  // Base URL
+            var url = cryptoService.encryptBase64(urlPath);
+            var a = document.createElement("a");
+            document.body.appendChild(a);
+            a.style = "display: none";
+            a.download = "Perfiles Por Usuario.pdf";
+            a.href = url;
+            a.click();
+            document.body.removeChild(a);
+        };
+
+
+
         $scope.generarReporteActivosBajaPorCategoria = function () {
-            var fechaDesde = $scope.search.hourFrom ? formatDate($scope.search.hourFrom) : null;
-            var fechaHasta = $scope.search.hourUntil ? formatDate($scope.search.hourUntil) : null;
-
             var urlPath = "/reportes/perfilesActivosBajaPorCategoria";  // Base URL
-
-            if (fechaDesde || fechaHasta) {  // Only add dates if at least one is present
-                urlPath += "/"; // Add a slash to separate the base URL
-
-                if (fechaDesde) {
-                    urlPath += fechaDesde;
-                }
-
-                if (fechaHasta) {
-                    urlPath += "/" + fechaHasta;  // Add the second date, include the slash
-                } else if (fechaDesde){
-                    urlPath += "/null"; // or any placeholder you prefer
-                }
-            }
-
             var url = cryptoService.encryptBase64(urlPath);
             var a = document.createElement("a");
             document.body.appendChild(a);
@@ -80,25 +76,7 @@ define([], function() {
         };
 
         $scope.generarReporteEnviados = function () {
-            var fechaDesde = $scope.search.hourFrom ? formatDate($scope.search.hourFrom) : null;
-            var fechaHasta = $scope.search.hourUntil ? formatDate($scope.search.hourUntil) : null;
-
             var urlPath = "/reportes/perfilesEnviadosInstanciaSuperior";  // Base URL
-
-            if (fechaDesde || fechaHasta) {  // Only add dates if at least one is present
-                urlPath += "/"; // Add a slash to separate the base URL
-
-                if (fechaDesde) {
-                    urlPath += fechaDesde;
-                }
-
-                if (fechaHasta) {
-                    urlPath += "/" + fechaHasta;  // Add the second date, include the slash
-                } else if (fechaDesde){
-                    urlPath += "/null"; // or any placeholder you prefer
-                }
-            }
-
             var url = cryptoService.encryptBase64(urlPath);
             var a = document.createElement("a");
             document.body.appendChild(a);
@@ -110,25 +88,7 @@ define([], function() {
         };
 
         $scope.generarReporteRecibidos = function () {
-            var fechaDesde = $scope.search.hourFrom ? formatDate($scope.search.hourFrom) : null;
-            var fechaHasta = $scope.search.hourUntil ? formatDate($scope.search.hourUntil) : null;
-
             var urlPath = "/reportes/perfilesRecibidosInstanciaInferior";  // Base URL
-
-            if (fechaDesde || fechaHasta) {  // Only add dates if at least one is present
-                urlPath += "/"; // Add a slash to separate the base URL
-
-                if (fechaDesde) {
-                    urlPath += fechaDesde;
-                }
-
-                if (fechaHasta) {
-                    urlPath += "/" + fechaHasta;  // Add the second date, include the slash
-                } else if (fechaDesde){
-                    urlPath += "/null"; // or any placeholder you prefer
-                }
-            }
-
             var url = cryptoService.encryptBase64(urlPath);
             var a = document.createElement("a");
             document.body.appendChild(a);
@@ -140,25 +100,7 @@ define([], function() {
         };
 
         $scope.generarReporteCambioCategoria = function () {
-            var fechaDesde = $scope.search.hourFrom ? formatDate($scope.search.hourFrom) : null;
-            var fechaHasta = $scope.search.hourUntil ? formatDate($scope.search.hourUntil) : null;
-
             var urlPath = "/reportes/perfilesCambiaronCategoria";  // Base URL
-
-            if (fechaDesde || fechaHasta) {  // Only add dates if at least one is present
-                urlPath += "/"; // Add a slash to separate the base URL
-
-                if (fechaDesde) {
-                    urlPath += fechaDesde;
-                }
-
-                if (fechaHasta) {
-                    urlPath += "/" + fechaHasta;  // Add the second date, include the slash
-                } else if (fechaDesde){
-                    urlPath += "/null"; // or any placeholder you prefer
-                }
-            }
-
             var url = cryptoService.encryptBase64(urlPath);
             var a = document.createElement("a");
             document.body.appendChild(a);

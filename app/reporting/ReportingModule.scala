@@ -9,9 +9,8 @@ class ReportingModule () extends AbstractModule {
   override def configure(): Unit = {
     bind(classOf[ReportingService]).to(classOf[ReportingServiceImpl])
     bind(classOf[ProfileReportService]).to(classOf[ProfileReportServiceImpl])
-
-    bind(classOf[ProfileReportRepository]).to(classOf[MongoProfileReportRepository])
-
+    bind(classOf[ProfileReportMongoRepository]).to(classOf[MongoProfileReportRepository])
+    bind(classOf[ProfileReportPostgresRepository]).to(classOf[PostgresProfileReportRepository])
   }
 
   /**

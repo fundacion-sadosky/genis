@@ -32,19 +32,19 @@
                                 <a id="linkReportePerfilesFilters" href="#/profilesReporting">Generar reporte resumen de perfiles</a>
                             </li>
                             <li class="list-group-item">
-                                <a id="linkPerfilesPorUsuario" href="#/perfiles-por-usuario">Perfiles por usuario</a>
+                                <a ng-click="generarReportePorUsuario()" href="#/perfiles-por-usuario" >Perfiles por usuario</a>
                             </li>
                             <li class="list-group-item">
-                                <a href="#/perfiles-activos-baja-por-categoria">Perfiles activos y dados de baja por categoría</a>
+                                <a href="#" ng-click="generarReporteActivosBajaPorCategoria()">Perfiles activos y dados de baja por categoría</a>
                             </li>
                             <li class="list-group-item">
-                                <a href="#/perfiles-enviados-instancia-superior">Perfiles enviados a instancia superior</a>
+                                <a href="#" ng-click="generarReporteEnviados()">Perfiles enviados a instancia superior</a>
                             </li>
                             <li class="list-group-item">
-                                <a href="#/perfiles-recibidos-instancia-inferior">Perfiles recibidos de instancia inferior</a>
+                                <a href="#" ng-click="generarReporteRecibidos()">Perfiles recibidos de instancia inferior</a>
                             </li>
                             <li class="list-group-item">
-                                <a href="#/perfiles-cambiaron-categoria">Perfiles que cambiaron de categoría</a>
+                                <a href="#" ng-click="generarReporteCambioCategoria()">Perfiles que cambiaron de categoría</a>
                             </li>
                         </ul>
                     </div>
