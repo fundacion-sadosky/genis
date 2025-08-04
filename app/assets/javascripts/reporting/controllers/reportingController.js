@@ -76,12 +76,12 @@ define([], function() {
         };
 
         $scope.generarReporteEnviados = function () {
-            var urlPath = "/reportes/perfilesEnviadosInstanciaSuperior";  // Base URL
+            var urlPath = "/reportes/enviadosInstanciaSuperior";  // Base URL
             var url = cryptoService.encryptBase64(urlPath);
             var a = document.createElement("a");
             document.body.appendChild(a);
             a.style = "display: none";
-            a.download = "PerfilesEnviadosInstanciaSuperior.pdf";
+            a.download = "Perfiles Enviados a Instancia Superior.pdf";
             a.href = url;
             a.click();
             document.body.removeChild(a);

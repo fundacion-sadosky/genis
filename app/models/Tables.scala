@@ -2136,6 +2136,31 @@ trait Tables {
   }
   lazy val PedCheck = new TableQuery(tag => new PedCheck(tag, Some("APP"), "PEDCHECK"))
 
+
+
+  case class InferiorInstanceProfileStatusRow(id: Long, status: String)
+
+  /** GetResult implicit for fetching InferiorInstanceProfileStatusRow objects using plain SQL queries */
+  implicit def GetResultInferiorInstanceProfileStatusRow(implicit e0: GR[String]): GR[InferiorInstanceProfileStatusRow] = GR {
+    prs => import prs._
+      InferiorInstanceProfileStatusRow.tupled((<<[Long], <<[String]))
+  }
+
+  /** Table description of table INFERIOR_INSTANCE_PROFILE_STATUS. Objects of this class serve as prototypes for rows in queries. */
+  class InferiorInstanceProfileStatus(_tableTag: Tag, schema: Option[String], tableName: String)
+    extends Table[InferiorInstanceProfileStatusRow](_tableTag, schema, tableName) {
+
+    def * = (id, status) <> (InferiorInstanceProfileStatusRow.tupled, InferiorInstanceProfileStatusRow.unapply)
+
+    /** Maps whole row to an option. Useful for outer joins. */
+    def ? = (id.?, status.?).shaped.<>({ r => import r._;
+      _1.map(_ => InferiorInstanceProfileStatusRow.tupled((_1.get, _2.get))) }, (_: Any) => throw new Exception("Inserting into ? projection not supported."))
+
+    val id: Column[Long] = column[Long]("ID", O.PrimaryKey)
+    val status: Column[String] = column[String]("STATUS", O.Length(200, varying = true))
+  }
+
+  lazy val InferiorInstanceProfileStatus = new TableQuery(tag => new InferiorInstanceProfileStatus(tag, Some("APP"), "INFERIOR_INSTANCE_PROFILE_STATUS"))
 }
 
 // scalastyle:on

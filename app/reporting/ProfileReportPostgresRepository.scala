@@ -14,6 +14,7 @@ import scala.slick.driver.PostgresDriver.simple._
 abstract class ProfileReportPostgresRepository  {
   def cantidadPerfilesPorUsuarioyCategoriaActivosyEliminados(): Future[Seq[(String, String, Boolean, Boolean, Int)]]
   def cantidadPerfilesPorCategoriaActivosyEliminados(): Future[Seq[(String, Boolean , Boolean, Int)]]
+  def getPerfilesEnviadosAInstanciaSuperiorPorEstado(): Future[Seq[(String, Int)]]
 
 }
 @Singleton
@@ -23,6 +24,7 @@ class PostgresProfileReportRepository @Inject() (implicit val app: Application) 
   val profilesUploaded: TableQuery[Tables.ProfileUploaded] = Tables.ProfileUploaded
   val profilesSent: TableQuery[Tables.ProfileSent] = Tables.ProfileSent
   val profilesReceived: TableQuery[Tables.ProfileReceived] = Tables.ProfileReceived
+  val profileStatus: TableQuery[Tables.InferiorInstanceProfileStatus] = Tables.InferiorInstanceProfileStatus
   val category: TableQuery[Tables.Category] = Tables.Category
 
 
@@ -88,4 +90,22 @@ class PostgresProfileReportRepository @Inject() (implicit val app: Application) 
         queryCantidadPerfilesPorCategoriaActivosyEliminadosCompiled.list
     }
   }
+
+
+  def queryProfileUploadedCountByStatus(): Query[(Rep[String], Rep[Int]), (String, Int), Seq] = {
+    profilesUploaded
+      .join(profileStatus).on(_.status === _.id)
+      .groupBy { case (_, i) => i.status }
+      .map { case (status, group) => (status, group.length) }
+  }
+
+  val queryProfileUploadedWithStatusCompiled = Compiled(queryProfileUploadedCountByStatus())
+
+  override def getPerfilesEnviadosAInstanciaSuperiorPorEstado(): Future[Seq[(String, Int)]] = Future {
+    DB(app).withSession { implicit session =>
+      queryProfileUploadedWithStatusCompiled.list
+    }
+  }
+
+
 }

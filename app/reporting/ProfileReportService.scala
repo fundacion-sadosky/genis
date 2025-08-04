@@ -102,18 +102,15 @@ class ProfileReportServiceImpl @Inject() (profileReportMongoRepository: ProfileR
 
 
   def generateEnviados(): Future[Result] = {
-    profilePostgresReportRepository.cantidadPerfilesPorUsuarioyCategoriaActivosyEliminados().map { profiles =>
-      implicit val tupleWrites: Writes[(String, String, Boolean, Boolean, Int)] = (
-        (__ \ "username").write[String] and
-          (__ \ "category").write[String] and
-          (__ \ "isReference").write[Boolean] and
-          (__ \ "isDeleted").write[Boolean] and
+    profilePostgresReportRepository.getPerfilesEnviadosAInstanciaSuperiorPorEstado().map { profiles =>
+      implicit val tupleWrites: Writes[(String, Int)] = (
+          (__ \ "status").write[String] and
           (__ \ "int").write[Int]
         ).tupled
 
-      val reportData = Json.obj("users" -> Json.toJson(profiles)(Writes.seq(tupleWrites)))
+      val reportData = Json.obj("statusCounts" -> Json.toJson(profiles)(Writes.seq(tupleWrites)))
 
-      pdfGen.ok(views.html.profilesReportByUser("Perfiles por usuario", reportData), BASE_URL)
+      pdfGen.ok(views.html.profilesReportUploadedByState("Perfiles enviados a instancia superior", reportData), BASE_URL)
     }
   }
 
