@@ -64,12 +64,12 @@ define([], function() {
 
 
         $scope.generarReporteActivosBajaPorCategoria = function () {
-            var urlPath = "/reportes/perfilesActivosBajaPorCategoria";  // Base URL
+            var urlPath = "/reportes/activesInactiveByCategory";  // Base URL
             var url = cryptoService.encryptBase64(urlPath);
             var a = document.createElement("a");
             document.body.appendChild(a);
             a.style = "display: none";
-            a.download = "PerfilesActivosBajaPorCategoria.pdf";
+            a.download = "Perfiles Activos y Eliminados por Categoria.pdf";
             a.href = url;
             a.click();
             document.body.removeChild(a);

@@ -86,18 +86,17 @@ class ProfileReportServiceImpl @Inject() (profileReportMongoRepository: ProfileR
   }
 
   def generateActivesInactiveByCategory(): Future[Result] = {
-    profilePostgresReportRepository.cantidadPerfilesPorUsuarioyCategoriaActivosyEliminados().map { profiles =>
-      implicit val tupleWrites: Writes[(String, String, Boolean, Boolean, Int)] = (
-        (__ \ "username").write[String] and
+    profilePostgresReportRepository.cantidadPerfilesPorCategoriaActivosyEliminados().map { profiles =>
+      implicit val tupleWrites: Writes[(String, Boolean, Boolean, Int)] = (
           (__ \ "category").write[String] and
           (__ \ "isReference").write[Boolean] and
           (__ \ "isDeleted").write[Boolean] and
           (__ \ "int").write[Int]
         ).tupled
 
-      val reportData = Json.obj("users" -> Json.toJson(profiles)(Writes.seq(tupleWrites)))
+      val reportData = Json.obj("categories" -> Json.toJson(profiles)(Writes.seq(tupleWrites)))
 
-      pdfGen.ok(views.html.profilesReportByUser("Perfiles por usuario", reportData), BASE_URL)
+      pdfGen.ok(views.html.profilesReportByCategory("Perfiles por categoria", reportData), BASE_URL)
     }
   }
 
