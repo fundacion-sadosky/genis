@@ -17,7 +17,7 @@ import util.Transaction
 import util.DefaultDb
 
 abstract class ImportToProfileData extends DefaultDb with Transaction {
-  def fromProtoProfileData(id: Long, labCode: String, country: String, prov: String, assignee: String) : (SampleCode,String)
+  def fromProtoProfileData(id: Long, labCode: String, country: String, prov: String, assignee: String, desktopSearch:Boolean) : (SampleCode,String)
   def deleteProfileData(sampleCode: String) : Int
 }
 
@@ -74,7 +74,7 @@ class SlickImportToProfileData @Inject() (
 
   val queryGetFiliation = Compiled(queryDefineGetFiliation _)
 
-  override def fromProtoProfileData(id: Long, labCode: String, country: String, prov: String, assignee: String) : (SampleCode,String) = DB.withTransaction (implicit s => {
+  override def fromProtoProfileData(id: Long, labCode: String, country: String, prov: String, assignee: String, desktopSearch:Boolean=false) : (SampleCode,String) = DB.withTransaction (implicit s => {
 
     val nextVal: Long = Q.queryNA[Long]("select nextval('\"APP\".\"PROFILE_DATA_GLOBAL_CODE_seq\"')").first
 
@@ -96,7 +96,7 @@ class SlickImportToProfileData @Inject() (
         x.court, x.crimeInvolved, x.crimeType,
         x.criminalCase, x.internalSampleCode,
         assignee, x.laboratory, x.profileExpirationDate,
-        x.responsibleGeneticist, x.sampleDate, x.sampleEntryDate)
+        x.responsibleGeneticist, x.sampleDate, x.sampleEntryDate, desktopSearch)
     }
 
     profilesData.map { x =>
@@ -105,7 +105,7 @@ class SlickImportToProfileData @Inject() (
         x.court, x.crimeInvolved, x.crimeType,
         x.criminalCase, x.internalSampleCode,
         x.assignee, x.laboratory, x.profileExpirationDate,
-        x.responsibleGeneticist, x.sampleDate, x.sampleEntryDate)
+        x.responsibleGeneticist, x.sampleDate, x.sampleEntryDate, x.fromDesktopSearch)
     }.insert(queryPd)
 
     val queryPdf = protoProfileDataFil.filter(_.profileData === ppGc).map { x =>

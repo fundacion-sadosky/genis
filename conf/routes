@@ -131,7 +131,7 @@ GET      /bulkupload/step1/protoprofiles                      @controllers.BulkU
 GET      /bulkupload/step2/protoprofiles                      @controllers.BulkUpload.getProtoProfilesStep2(geneMapperId: String, batchId: Long, page: Int, pageSize: Int)
 GET      /bulkupload/step1/batches                            @controllers.BulkUpload.getBatchesStep1()
 GET      /bulkupload/step2/batches                            @controllers.BulkUpload.getBatchesStep2(geneMapperId : String)
-POST     /protoprofiles/:id/status                            @controllers.BulkUpload.updateProtoProfileStatus(id: Long, status: String,replicate:Boolean)
+POST     /protoprofiles/:id/status                            @controllers.BulkUpload.updateProtoProfileStatus(id: Long, status: String,replicate:Boolean, desktopSearch:Boolean)
 POST     /protoprofiles/multiple-status                       @controllers.BulkUpload.updateBatchStatus(idBatch: Long, status: String,replicateAll:Boolean)
 GET      /bulkupload/protoprofiles/:id                        @controllers.BulkUpload.getProtoProfileById(id: Long)
 POST     /protoprofiles/:id/subcategory                       @controllers.BulkUpload.updateProtoProfileData(id: Long, category: types.AlphanumericId)

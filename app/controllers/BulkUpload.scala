@@ -102,9 +102,9 @@ class BulkUpload @Inject() (bulkUploadService: BulkUploadService, userService: U
     bulkUploadService.rejectProtoProfile(id, motive, userId,idMotive) map {errors => Ok(Json.toJson(errors)) }
   }
   
-  def updateProtoProfileStatus(id: Long, status: String, replicate:Boolean) = Action.async { request =>
+  def updateProtoProfileStatus(id: Long, status: String, replicate:Boolean, desktopSearch:Boolean = false) = Action.async { request =>
     val userId = request.headers.get("X-USER").get
-    bulkUploadService.updateProtoProfileStatus(id, ProtoProfileStatus.withName(status), userId, replicate) map { errors =>
+    bulkUploadService.updateProtoProfileStatus(id, ProtoProfileStatus.withName(status), userId, replicate, desktopSearch) map { errors =>
       Ok(Json.toJson(errors))
     }
   }

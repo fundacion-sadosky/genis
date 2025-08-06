@@ -116,7 +116,7 @@ define(['jquery','lodash'], function($,_) {
 		var updateStatus = function(sample, status, batch) {
 			var id = parseInt(sample.id);
             batch.isProcessing = true;
-            return  bulkuploadService.changeStatus(id, status,sample.replicate).then(function(response) {
+            return  bulkuploadService.changeStatus(id, status,sample.replicate, batch.desktopSearch).then(function(response) {
 				if(response.data.length > 0) {
 					if (batch.id) {
 						$scope.protoProfiles[batch.id].forEach(function(b){

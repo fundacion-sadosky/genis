@@ -27,8 +27,11 @@ define(['lodash'], function(_) {
             return playRoutes.controllers.BulkUpload.getProtoProfilesStep2(geneMapperId, batchId, page, pageSize).get();
         };
 		
-		this.changeStatus = function(sampleName, newStatus,replicate) {
-			return playRoutes.controllers.BulkUpload.updateProtoProfileStatus(sampleName, newStatus,replicate).post();
+		this.changeStatus = function(sampleName, newStatus,replicate, desktopSearch) {
+			if (typeof desktopSearch === 'undefined') {
+				desktopSearch = false;
+			}
+			return playRoutes.controllers.BulkUpload.updateProtoProfileStatus(sampleName, newStatus, replicate, desktopSearch).post();
 		};
 
 		this.changeBatchStatus = function(idBatch, newStatus,idsNotToReplicate,replicateAll) {
