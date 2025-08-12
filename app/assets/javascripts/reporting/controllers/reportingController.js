@@ -88,7 +88,7 @@ define([], function() {
         };
 
         $scope.generarReporteRecibidos = function () {
-            var urlPath = "/reportes/perfilesRecibidosInstanciaInferior";  // Base URL
+            var urlPath = "/reportes/recibidosInstanciaInferior";  // Base URL
             var url = cryptoService.encryptBase64(urlPath);
             var a = document.createElement("a");
             document.body.appendChild(a);

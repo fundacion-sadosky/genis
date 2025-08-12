@@ -88,7 +88,7 @@ class ProfileReportServiceImpl @Inject() (profileReportMongoRepository: ProfileR
   def generateActivesInactiveByCategory(): Future[Result] = {
     profilePostgresReportRepository.cantidadPerfilesPorCategoriaActivosyEliminados().map { profiles =>
       implicit val tupleWrites: Writes[(String, Boolean, Boolean, Int)] = (
-          (__ \ "category").write[String] and
+        (__ \ "category").write[String] and
           (__ \ "isReference").write[Boolean] and
           (__ \ "isDeleted").write[Boolean] and
           (__ \ "int").write[Int]
@@ -104,7 +104,7 @@ class ProfileReportServiceImpl @Inject() (profileReportMongoRepository: ProfileR
   def generateEnviados(): Future[Result] = {
     profilePostgresReportRepository.getPerfilesEnviadosAInstanciaSuperiorPorEstado().map { profiles =>
       implicit val tupleWrites: Writes[(String, Int)] = (
-          (__ \ "status").write[String] and
+        (__ \ "status").write[String] and
           (__ \ "int").write[Int]
         ).tupled
 
@@ -116,18 +116,22 @@ class ProfileReportServiceImpl @Inject() (profileReportMongoRepository: ProfileR
 
 
   def generateRecibidos(): Future[Result] = {
-    profilePostgresReportRepository.cantidadPerfilesPorUsuarioyCategoriaActivosyEliminados().map { profiles =>
-      implicit val tupleWrites: Writes[(String, String, Boolean, Boolean, Int)] = (
-        (__ \ "username").write[String] and
+    profilePostgresReportRepository.getPerfilesRecibidosDeInstanciasInferioresPorEstado().map { profiles =>
+      implicit val tupleWrites: Writes[(String, String, Option[String],Option[String], Boolean, Option[String], String, String, Boolean)] = (
+        (__ \ "globalCode").write[String] and
+          (__ \ "labCode").write[String] and
+          (__ \ "motive").write[Option[String]] and
+          (__ \ "userName").write[Option[String]] and
+          (__ \ "isCategoryModification").write[Boolean] and
+          (__ \ "interconnectionError").write[Option[String]] and
+          (__ \ "status").write[String] and
           (__ \ "category").write[String] and
-          (__ \ "isReference").write[Boolean] and
-          (__ \ "isDeleted").write[Boolean] and
-          (__ \ "int").write[Int]
+          (__ \ "isReference").write[Boolean]
         ).tupled
 
-      val reportData = Json.obj("users" -> Json.toJson(profiles)(Writes.seq(tupleWrites)))
+      val reportData = Json.obj("profiles" -> Json.toJson(profiles)(Writes.seq(tupleWrites)))
 
-      pdfGen.ok(views.html.profilesReportByUser("Perfiles por usuario", reportData), BASE_URL)
+      pdfGen.ok(views.html.profilesPerLabReport("Perfiles recibidos por instancia y categoria y estado", reportData), BASE_URL)
     }
   }
 
