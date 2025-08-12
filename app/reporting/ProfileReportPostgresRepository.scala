@@ -111,6 +111,7 @@ class PostgresProfileReportRepository @Inject() (implicit val app: Application) 
       queryProfileUploadedWithStatusCompiled.list
     }
   }
+
   def getPerfilesRecibidosDeInstanciasInferioresPorEstado(): Future[Seq[(String, String, Option[String], Option[String], Boolean, Option[String], String, String, Boolean)]] = {
 
     // Step 1: Fetch all profiles received with joined statuses, categories
@@ -151,6 +152,18 @@ class PostgresProfileReportRepository @Inject() (implicit val app: Application) 
       }
     }
 
+    // Step 3: Fetch pending approval profiles (rejectionUser is empty)
+    val pendingProfilesQuery = superiorInstanceProfileApproval
+      .filter(_.rejectionUser.isEmpty)
+      .map(sipa => (sipa.globalCode, sipa.laboratory, sipa.profile))
+
+    val queryPendingProfilesQuery = Compiled(pendingProfilesQuery)
+    val pendingProfilesF: Future[Seq[(String, String, String)]] = Future {
+      DB(app).withSession { implicit session =>
+        queryPendingProfilesQuery.list
+      }
+    }
+
     def extractCategoryId(jsonStr: String): Option[String] = {
       val key = "\"categoryId\""
       val idx = jsonStr.indexOf(key)
@@ -166,7 +179,7 @@ class PostgresProfileReportRepository @Inject() (implicit val app: Application) 
       } else None
     }
 
-    // Step 3: Extract categoryId from profile JSON string (without circe)
+    // Step 4: Extract categoryId from profile JSON string (without circe)
     val rejectedParsedF: Future[Seq[(String, String, String, Option[String])]] = rejectedProfilesF.map { seq =>
       seq.map { case (globalCode, labCode, profileJsonStr, rejectMotive) =>
         val catIdOpt = extractCategoryId(profileJsonStr)
@@ -174,18 +187,27 @@ class PostgresProfileReportRepository @Inject() (implicit val app: Application) 
       }
     }
 
-    // Step 4: Load categories for isReference info
+    // Step 5: Extract categoryId from pending profiles JSON string
+    val pendingParsedF: Future[Seq[(String, String, String)]] = pendingProfilesF.map { seq =>
+      seq.map { case (globalCode, labCode, profileJsonStr) =>
+        val catIdOpt = extractCategoryId(profileJsonStr)
+        (globalCode, labCode, catIdOpt.getOrElse(""))
+      }
+    }
+
+    // Step 6: Load categories for isReference info
     val categoriesMapF: Future[Map[String, Boolean]] = Future {
       DB(app).withSession { implicit session =>
         category.map(c => (c.id, c.isReference)).list.toMap
       }
     }
 
-    // Step 5: Combine all data and produce the final result
+    // Step 7: Combine all data and produce the final result
     val resultF: Future[Seq[(String, String, Option[String], Option[String], Boolean, Option[String], String, String, Boolean)]] =
       for {
         baseList <- baseProfilesListF
         rejectedSeq <- rejectedParsedF
+        pendingSeq <- pendingParsedF
         catsMap <- categoriesMapF
       } yield {
         // Create a map for base profiles for easier lookup
@@ -209,8 +231,23 @@ class PostgresProfileReportRepository @Inject() (implicit val app: Application) 
             }
         }
 
-        // Combine base profiles and processed rejected profiles
-        val combinedResults = baseList ++ processedRejected
+        // Process pending profiles and add them to the result
+        val processedPending: Seq[(String, String, Option[String], Option[String], Boolean, Option[String], String, String, Boolean)] = pendingSeq.map {
+          case (gc, labCode, catId) =>
+            val isReference = catsMap.getOrElse(catId, false)
+            // Check if the global code exists in the base map
+            baseMap.get(gc) match {
+              case Some((baseLabCode, motiveOpt, userNameOpt, isCatMod, interError, status, baseCatId, isRef)) =>
+                // If it exists, merge the data with "Pendientes de aprobación"
+                (gc, baseLabCode, motiveOpt, userNameOpt, isCatMod, interError, "Pendientes de aprobación", catId, isReference)
+              case None =>
+                // If it doesn't exist, create a new entry with "Pendientes de aprobación"
+                (gc, labCode, None, None, false, None, "Pendientes de aprobación", catId, isReference)
+            }
+        }
+
+        // Combine base profiles, processed rejected profiles, and processed pending profiles
+        val combinedResults = baseList ++ processedRejected ++ processedPending
         combinedResults
       }
 
