@@ -4,6 +4,7 @@
 @import play.api.libs.json._
 
 @defining((reportData \ "statusCounts").validate[Seq[JsValue]].getOrElse(Seq.empty)) { statusData =>
+
     <html>
         <head>
             <meta charset="UTF-8">
