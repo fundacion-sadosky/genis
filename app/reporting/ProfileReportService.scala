@@ -86,7 +86,7 @@ class ProfileReportServiceImpl @Inject() (profileReportMongoRepository: ProfileR
   }
 
   def generateActivesInactiveByCategory(): Future[Result] = {
-    profilePostgresReportRepository.cantidadPerfilesPorCategoriaActivosyEliminados().map { profiles =>
+      profilePostgresReportRepository.cantidadPerfilesPorCategoriaActivosyEliminados().map { profiles =>
       implicit val tupleWrites: Writes[(String, Boolean, Boolean, Int)] = (
         (__ \ "category").write[String] and
           (__ \ "isReference").write[Boolean] and

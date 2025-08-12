@@ -225,7 +225,7 @@ class PostgresProfileReportRepository @Inject() (implicit val app: Application) 
                 (gc, baseLabCode, motiveOpt, userNameOpt, isCatMod, rejectMotive, status, catId, isReference)
               case None =>
                 // If it doesn't exist, create a new entry
-                (gc, labCode, None, None, false, rejectMotive, "Rechazado en la instancia superior", catId, isReference)
+                (gc, labCode, None, None, false, rejectMotive, "Rechazado en esta instancia", catId, isReference)
             }
         }
 
@@ -237,10 +237,10 @@ class PostgresProfileReportRepository @Inject() (implicit val app: Application) 
             baseMap.get(gc) match {
               case Some((baseLabCode, motiveOpt, userNameOpt, isCatMod, interError, status, baseCatId, isRef)) =>
                 // If it exists, merge the data with "Pendientes de aprobación"
-                (gc, baseLabCode, motiveOpt, userNameOpt, isCatMod, interError, "Pendientes de aprobación", catId, isReference)
+                (gc, baseLabCode, motiveOpt, userNameOpt, isCatMod, interError, "Pendiente de aprobación", catId, isReference)
               case None =>
                 // If it doesn't exist, create a new entry with "Pendientes de aprobación"
-                (gc, labCode, None, None, false, None, "Pendientes de aprobación", catId, isReference)
+                (gc, labCode, None, None, false, None, "Pendiente de aprobación", catId, isReference)
             }
         }
 
