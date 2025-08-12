@@ -131,7 +131,7 @@ class ProfileReportServiceImpl @Inject() (profileReportMongoRepository: ProfileR
 
       val reportData = Json.obj("profiles" -> Json.toJson(profiles)(Writes.seq(tupleWrites)))
 
-      pdfGen.ok(views.html.profilesPerLabReport("Perfiles recibidos por instancia y categoria y estado", reportData), BASE_URL)
+      pdfGen.ok(views.html.profilesPerLabReport("Perfiles recibidos por instancia y categoría y estado", reportData), BASE_URL)
     }
   }
 

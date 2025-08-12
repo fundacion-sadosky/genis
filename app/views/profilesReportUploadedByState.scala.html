@@ -6,6 +6,7 @@
 @defining((reportData \ "statusCounts").validate[Seq[JsValue]].getOrElse(Seq.empty)) { statusData =>
     <html>
         <head>
+            <meta charset="UTF-8">
             <link rel="stylesheet" type="text/css" href="@routes.Assets.versioned("stylesheets/reporting.css")">
             <link rel="stylesheet" type="text/css" href="@routes.Assets.versioned("stylesheets/main.css")">
             <title>@title</title>
@@ -28,7 +29,7 @@
                 @defining(
                     statusData.flatMap { status =>
                         val maybeStatus = (status \ "status").validate[String].asOpt
-                        val maybeCount = (status \ "int").validate[Int].asOpt // Aquí cambio "count" por "int"
+                        val maybeCount = (status \ "int").validate[Int].asOpt
                         for {
                             s <- maybeStatus
                                     c <- maybeCount

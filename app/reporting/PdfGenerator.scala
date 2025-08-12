@@ -26,6 +26,10 @@ class PdfGenerator() {
   val xhtml: Boolean = false
   /** HTML tidy checker / prettyprinter instance for XHTML strict parsing */
 
+  val fontPath = "app/assets/stylesheets/report/DejaVuSans.ttf"
+  private val renderer = new ITextRenderer()
+  renderer.getFontResolver.addFont(fontPath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED)
+
   private lazy val tidyParser = {
     val t = new Tidy()
     t.setXHTML(true)

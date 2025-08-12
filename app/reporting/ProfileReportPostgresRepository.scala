@@ -4,8 +4,6 @@ import models.Tables
 import play.api.{Application, db}
 import play.api.db.slick.Config.driver.simple.{Compiled, TableQuery, booleanColumnType, columnExtensionMethods, runnableCompiledToAppliedQueryInvoker, slickDriver, stringColumnType}
 import play.api.db.slick.DB
-import play.api.http.MediaRange.parse
-import play.api.libs.json.{JsValue, Json}
 import util.DefaultDb
 
 import javax.inject.{Inject, Singleton}
@@ -227,7 +225,7 @@ class PostgresProfileReportRepository @Inject() (implicit val app: Application) 
                 (gc, baseLabCode, motiveOpt, userNameOpt, isCatMod, rejectMotive, status, catId, isReference)
               case None =>
                 // If it doesn't exist, create a new entry
-                (gc, labCode, None, None, false, rejectMotive, "REJECTED", catId, isReference)
+                (gc, labCode, None, None, false, rejectMotive, "Rechazado en la instancia superior", catId, isReference)
             }
         }
 
