@@ -59,6 +59,10 @@ define([], function() {
       return playRoutes.controllers.Laboratories.list().get();
     };
 
+    this.getDesktopProfiles = function() {
+      return playRoutes.controllers.ProfileData.getDesktopProfiles().get();
+    };
+
     this.saveProfile = function(profileData) {
       $log.info('calling service: Profiles.create');
       return playRoutes.controllers.ProfileData.create().post(profileData);

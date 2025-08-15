@@ -59,6 +59,8 @@ trait ProfileDataService {
     allowFromOtherInstances:Boolean = false
   ): Future[Option[Boolean]]
   def getResource(resourceType: String, id: Long): Future[Option[Array[Byte]]]
+  
+  def getDesktopProfiles() : Future[Seq[SampleCode]]
   def getDeleteMotive(sampleCode: SampleCode): Future[Option[DeletedMotive]]
   def deleteProfile(
     globalCode: SampleCode,
@@ -510,6 +512,9 @@ class ProfileDataServiceImpl @Inject() (
 
   override def getDeleteMotive(sampleCode: SampleCode): Future[Option[DeletedMotive]] = profileDataRepository.getDeletedMotive(sampleCode)
 
+  override def getDesktopProfiles(): Future[Seq[SampleCode]] = {
+    profileDataRepository.getDesktopProfiles()
+  }
   def importFromAnotherInstance(profileData: ProfileData,labOrigin:String,labImmediate:String):Future[Unit] = {
     profileDataRepository.addExternalProfile(profileData,labOrigin,labImmediate).map( _ => ())
   }

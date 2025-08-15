@@ -4,7 +4,7 @@ function(angular, loginController) {
 
 angular
 	.module('pdg.login', ['pdg.users', 'pdg.signup', 'pdg.common'])
-	.controller('loginController', [ '$scope', '$log', '$location', 'userService', loginController]);
+	.controller('loginController', [ '$scope', '$log', '$location', 'userService', 'profileDataService', 'profileService', loginController]);
 
 return undefined;
 

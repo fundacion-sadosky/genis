@@ -292,6 +292,12 @@ class ProfileData @Inject() (
     }
   }
 
+  def getDesktopProfiles = Action.async { request =>
+    profiledataService.getDesktopProfiles map { result =>
+      Ok(Json.toJson(result))
+    }
+  }
+  
   def findByCode(globalCode: SampleCode) = Action.async { request =>
     profiledataService.findByCode(globalCode) map { result =>
       result.map { profileData => Ok(Json.toJson(profileData)) }.getOrElse {

@@ -111,7 +111,7 @@
           'jquery-ui': '../lib/jquery-ui/jquery-ui',
           'angular-ui-sortable': '../lib/angular-ui-sortable/sortable',
           'lodash': '../lib/lodash/lodash',
-          'jszip': '../lib/jszip/jszip.min'
+          'jszip': '../lib/jszip/dist/jszip.min'
         }
       }
     );

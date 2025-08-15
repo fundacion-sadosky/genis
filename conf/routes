@@ -66,6 +66,7 @@ GET      /profiledata-readonly                                @controllers.Profi
 GET      /profiledata-complete/:id                            @controllers.ProfileData.getByCode(id: types.SampleCode)
 GET      /profiledata-editable/:id                            @controllers.ProfileData.isEditable(id: types.SampleCode)
 GET      /profilesdata                                        @controllers.ProfileData.findByCodes(globalCode: List[types.SampleCode])
+GET      /profiledata-desktop                                 @controllers.ProfileData.getDesktopProfiles
 
 POST     /uploadImage                                         @controllers.Resources.uploadImage
 POST     /uploadFile                                          @controllers.Resources.uploadFile

@@ -123,6 +123,7 @@ abstract class ProfileDataRepository extends DefaultDb with Transaction  {
   def getDeletedMotive(globalCode: SampleCode): Future[Option[DeletedMotive]]
   def findByCodes(globalCodes: List[SampleCode]): Future[Seq[ProfileData]]
   def getGlobalCode(internalSampleCode: String): Future[Option[SampleCode]]
+  def getDesktopProfiles() : Future[Seq[SampleCode]]
 
   def addExternalProfile(
     profileData: ProfileData,
@@ -163,7 +164,7 @@ class SlickProfileDataRepository @Inject() (
 ) extends ProfileDataRepository {
   val logger: Logger = Logger(this.getClass())
 
-  val profilesData: TableQuery[Tables.ProfileData] =
+  lazy val profilesData: TableQuery[Tables.ProfileData] =
     Tables.ProfileData // Tables.ProtoProfileData
   val externalProfileDataTable: TableQuery[Tables.ExternalProfileData] =
     Tables.ExternalProfileData // Tables.ExternalProfileData
@@ -191,6 +192,11 @@ class SlickProfileDataRepository @Inject() (
   val profilesDataMotive: TableQuery[Tables.ProfileDataMotive] =
     Tables.ProfileDataMotive
 
+  lazy val queryGetDesktopProfiles = Compiled {
+    profilesData.filter(_.fromDesktopSearch === true)
+      .map(_.globalCode)
+  }
+  
   val queryGetGlobalCode = Compiled {
     internalSampleCode: Column[String] =>
       for{
@@ -1016,6 +1022,12 @@ class SlickProfileDataRepository @Inject() (
     }
   }
 
+  override def getDesktopProfiles() : Future[Seq[SampleCode]] = Future {
+    DB.withSession { implicit session =>
+      queryGetDesktopProfiles.list.map(x => SampleCode(x))
+    }
+  }
+  
   override def getProfileUploadStatusByGlobalCode(gc:SampleCode):Future[Option[Long]] = {
     this.runInTransactionAsync {
       implicit session => {
@@ -1147,7 +1159,7 @@ class SlickProfileDataRepository @Inject() (
 
 @Singleton
 class ProtoProfileDataRepository @Inject() (implicit app: Application) extends SlickProfileDataRepository {
-  override val profilesData: TableQuery[Tables.ProfileData] = new TableQuery(tag => new Tables.ProfileData(tag, Some("STASH"), "PROFILE_DATA"))
+  override lazy val profilesData: TableQuery[Tables.ProfileData] = new TableQuery(tag => new Tables.ProfileData(tag, Some("STASH"), "PROFILE_DATA"))
   override val profileMetaDataFiliations: TableQuery[Tables.ProfileDataFiliation] = new TableQuery(tag => new Tables.ProfileDataFiliation(tag, Some("STASH"), "PROFILE_DATA_FILIATION"))
   override val profileMetaDataFiliationResources: TableQuery[Tables.ProfileDataFiliationResources] = new TableQuery(tag => new Tables.ProfileDataFiliationResources(tag, Some("STASH"), "PROFILE_DATA_FILIATION_RESOURCES"))
   override def updateProfileData(globalCode: SampleCode, newProfile: ProfileData, imageList: Option[List[File]] = None, pictureList: Option[List[File]] = None, signatureList: Option[List[File]] = None): Future[Boolean] = Future {
