@@ -207,7 +207,9 @@ function searchController($scope, $log, profiledataService, searchService, $moda
 					.searchMatchesProfile(profileObj.globalCode)
 					.then(
 						function (response) {
-							$scope.profileMatches[profileObj.globalCode] = response.data.length > 0;
+							$scope.profileMatches[profileObj.globalCode] = response.data.some(function (match) {
+								return match && (match.pending > 0 || match.hit > 0);
+							});
 						}
 					)
 					.catch(
