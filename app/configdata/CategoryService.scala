@@ -70,7 +70,7 @@ abstract class CategoryService {
   def getCategoryTypeFromFullCategory(fullCategory: FullCategory): Option[String]
 
   /**
-   * Register a new allowed category modification for undoubted profiles.
+   * Register a new allowed category modification for forensic profiles.
    *
    * @param from The category id of the category that will be modified.
    * @param to   The category id of the category that will be the result
@@ -96,17 +96,17 @@ abstract class CategoryService {
   ): Int
 
   /**
-   * Retrieve all the allowed category modifications for any undoubted profile.
+   * Retrieve all the allowed category modifications for any profile.
    *
-   * @return A sequence of tuples with the source and distination categories of each modification.
+   * @return A sequence of tuples with the source and destination categories of each modification.
    */
   def retrieveAllCategoryModificationAllowed: Future[Seq[(AlphanumericId, AlphanumericId)]]
 
   /**
-   * Retrieve the allowed categories modifications for a given undoubted profile.
+   * Retrieve the allowed categories modifications for a given profile.
    *
-   * @param categoryId The undoubted profile category Id.
-   * @return A sequence of tuples with the source and distination categories of each modification.
+   * @param categoryId The  profile category Id.
+   * @return A sequence of tuples with the source and destination categories of each modification.
    */
   def getCategoryModificationAllowed(
     categoryId: AlphanumericId)

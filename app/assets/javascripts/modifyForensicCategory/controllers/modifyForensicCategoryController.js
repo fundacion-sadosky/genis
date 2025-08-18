@@ -66,13 +66,6 @@ define(
             function(response) {
               $scope.matchingCodes = response.data;
               if ($scope.matchingCodes.length > 0) {
-                var isUndoubtedCategory = $scope
-                  .categories
-                  .map(function(x) {return x.id;})
-                  .indexOf($scope.matchingCodes[0].category) !== -1;
-                if (!isUndoubtedCategory) {
-                  return Promise.reject("El perfil no es de una categoría indubitada.");
-                }
                 $scope.stage = 2;
                 $scope.models.matchingCodesModel = $scope.matchingCodes[0];
               } else {
@@ -174,7 +167,6 @@ define(
               $scope.categories = Object
                 .entries(response.categories)
                 .filter(function(x){ return x[1].tipo === 1 ;})
-                .filter(function(x){ return x[1].isReference ;})
                 .map(function(x) {return x[1];});
               $scope.models.newCategory = $scope.categories[0];
             }
