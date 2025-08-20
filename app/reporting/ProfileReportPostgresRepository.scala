@@ -16,7 +16,9 @@ abstract class ProfileReportPostgresRepository  {
   def cantidadPerfilesPorCategoriaActivosyEliminados(): Future[Seq[(String, Boolean , Boolean, Int)]]
   def getPerfilesEnviadosAInstanciaSuperiorPorEstado(): Future[Seq[(String, Int)]]
   def getPerfilesRecibidosDeInstanciasInferioresPorEstado(): Future[Seq[(String, String, Option[String], Option[String], Boolean, Option[String], String, String, Boolean)]]
-
+  def getAllProfilesListing(): Future[Seq[Tables.ProfileData#TableElementType]]
+  def getAllReplicatedToSuperior(): Future[Seq[(String, String, String, String, Boolean, Option[String], Option[String],Option[String])]]
+  def getAllReplicatedFromInferior(): Future[Seq[(String, String, String, Boolean, Option[String], Option[String],Option[String])]]
 }
 @Singleton
 class PostgresProfileReportRepository @Inject() (implicit val app: Application) extends ProfileReportPostgresRepository with DefaultDb {
@@ -28,6 +30,7 @@ class PostgresProfileReportRepository @Inject() (implicit val app: Application) 
   val profileStatus: TableQuery[Tables.InferiorInstanceProfileStatus] = Tables.InferiorInstanceProfileStatus
   val category: TableQuery[Tables.Category] = Tables.Category
   var superiorInstanceProfileApproval: TableQuery[Tables.SuperiorInstanceProfileApproval] = Tables.SuperiorInstanceProfileApproval
+  val inferiorInstanceProfileStatus: TableQuery[Tables.InferiorInstanceProfileStatus] = Tables.InferiorInstanceProfileStatus
 
 
   private def queryCantidadPerfilesPorUsuarioyCategoriaActivosyEliminados(): Query[(Rep[String], Rep[String], Rep[Boolean], Rep[Boolean], Rep[Int]), (String, String, Boolean, Boolean, Int), Seq] = {
@@ -252,4 +255,36 @@ class PostgresProfileReportRepository @Inject() (implicit val app: Application) 
     // Finally, return the Future result
     resultF
   }
+
+  def getAllProfilesListing(): Future[Seq[Tables.ProfileData#TableElementType]] = Future {
+    DB(app).withSession { implicit session =>
+      profileData.list
+    }
+  }
+
+
+  def getAllReplicatedToSuperior(): Future[Seq[(String, String, String, String, Boolean, Option[String], Option[String],Option[String])]] = Future {
+    DB(app).withSession { implicit session =>
+      profilesUploaded
+        .join(inferiorInstanceProfileStatus).on(_.status === _.id)
+        .join(profileData).on { case ((pu, sip), pd) => pu.globalCode === pd.globalCode }
+        .map { case (((pu, sip), pd)) =>
+          (pu.globalCode, pd.category, pd.internalCode, sip.status, pd.deleted, pu.userName, pd.deletedSolicitor, pd.deletedMotive)
+        }
+        .list
+    }
+  }
+
+  def getAllReplicatedFromInferior(): Future[Seq[(String, String, String, Boolean, Option[String], Option[String],Option[String])]] = Future {
+    DB(app).withSession { implicit session =>
+      profilesReceived
+        .join(inferiorInstanceProfileStatus).on(_.status === _.id)
+        .join(profileData).on { case ((pr, sip), pd) => pr.globalCode === pd.globalCode }
+        .map { case (((pr, sip), pd)) =>
+          (pr.globalCode, pd.category, sip.status, pd.deleted, pr.userName, pd.deletedSolicitor, pd.deletedMotive)
+        }
+        .list
+    }
+  }
+
 }

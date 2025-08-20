@@ -43,8 +43,32 @@
                             <li class="list-group-item">
                                 <a ng-click="generarReporteRecibidos()" href="#/reportes-main">Perfiles recibidos de instancia inferior</a>
                             </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section class="extended-section col-md-6">
+                <div class="main-report">
+                    <!-- content-wrap-small -->
+                    <div show-permissions="SUP_INS_CRUD" class="panel panel-default">
+                        <!-- Default panel contents -->
+                        <div class="panel-heading vertical-align">
+                            <span>☰&nbsp;</span> Listados
+                        </div>
+                        <!-- List group -->
+                        <ul class="list-group">
                             <li class="list-group-item">
-                                <a ng-click="generarReporteCambioCategoria()" href="#/perfiles-cambio-cat">Perfiles que cambiaron de categoría</a>
+                                <a ng-click="generarListadoComleto()" href="#/reportes-main">Listado completo de perfiles</a>
+                            </li>
+                            <li class="list-group-item">
+                                <a ng-click="generarListedoCoincidencias()" href="#/reportes-main">Listado de coincidencias</a>
+                            </li>
+                            <li class="list-group-item">
+                                <a ng-click="generarListedoReplicadosAInstanciaSuperior()" href="#/reportes-main">Listado de perfiles replicados a Instancia Superior</a>
+                            </li>
+                            <li class="list-group-item">
+                                <a ng-click="generarListedoRecibidosInstanciasInferiores()" href="#/reportes-main">Listado de perfiles recibidos de Instancias Inferiores</a>
                             </li>
                         </ul>
                     </div>

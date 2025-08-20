@@ -50,4 +50,22 @@ class ReportingController @Inject() (reportingService: ReportingService) extends
     reportingService.generateCategoriaCambio()
   }
 
+  def getListadoCompleto() = Action.async {
+    reportingService.generateAllProfilesList()
+  }
+
+  def getListadoCoincidencias() = Action.async {
+    reportingService.generateMatchesList()
+  }
+
+  def getListadoReplicadosAInstanciaSuperior() = Action.async {
+    reportingService.generateReplicatedToSuperiorList()
+  }
+
+  def getListedoRecibidosInstanciasInferiores() = Action.async {
+    reportingService.generateReplicatedFromInferiorList()
+  }
+
+
+
 }

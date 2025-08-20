@@ -17,6 +17,18 @@ import scala.concurrent.duration._
 import scala.language.postfixOps
 
 abstract class ProfileReportMongoRepository {
+  case class MatchData(
+                        date: Date,
+                        globalCode1: String,
+                        category1: String,
+                        assignee1: String,
+                        status1: String,
+                        globalCode2: String,
+                        category2: String,
+                        assignee2: String,
+                        status2: String,
+                        stringency: String
+                      )
 
   def countProfilesCreated(startDate: Option[Date], endDate : Option[Date]) : Future[Int]
   def countProfilesDeleted() : Future[Int]
@@ -30,6 +42,7 @@ abstract class ProfileReportMongoRepository {
   def countMatches(): Future[Int]
   def countHit(): Future[Int]
   def countDescartes(): Future[Int]
+  def getAllMatches: Future[Seq[MatchData]]
 
 }
 
@@ -148,4 +161,35 @@ class MongoProfileReportRepository extends ProfileReportMongoRepository
   override def countDescartes(): Future[Int] = {
     this.countDescartes(Option.empty[Date], Option.empty[Date])
   }
+
+
+  def getAllMatches: Future[Seq[MatchData]] = {
+    matches.find(Json.obj()).cursor[JsObject]().collect[Seq]().map { matches =>
+      matches.flatMap { matchObj => // Use flatMap to handle Option[MatchData]
+        val matchingDateOpt: Option[String] = (matchObj \ "matchingDate" \ "$date").asOpt[String]
+
+        matchingDateOpt.map { matchingDate =>
+          val date = new Date(java.time.OffsetDateTime.parse(matchingDate).toInstant.toEpochMilli)
+
+          val leftProfile = (matchObj \ "leftProfile").as[JsObject]
+          val globalCode1 = (leftProfile \ "globalCode").as[String]
+          val category1 = (leftProfile \ "categoryId").as[String]
+          val assignee1 = (leftProfile \ "assignee").as[String]
+          val status1 = (leftProfile \ "status").as[String]
+
+          val rightProfile = (matchObj \ "rightProfile").as[JsObject]
+          val globalCode2 = (rightProfile \ "globalCode").as[String]
+          val category2 = (rightProfile \ "categoryId").as[String]
+          val assignee2 = (rightProfile \ "assignee").as[String]
+          val status2 = (rightProfile \ "status").as[String]
+
+          val result = (matchObj \ "result").as[JsObject]
+          val stringency = (result \ "stringency").as[String]
+
+          MatchData(date, globalCode1, category1, assignee1, status1, globalCode2, category2, assignee2, status2, stringency)
+        } // If matchingDateOpt is None, this map will not execute, and flatMap will return None
+      }
+    }
+  }
+
 }

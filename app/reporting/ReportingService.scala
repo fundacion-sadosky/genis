@@ -15,6 +15,10 @@ trait ReportingService {
   def generateEnviados(): Future[Result]
   def generateRecibidos(): Future[Result]
   def generateCategoriaCambio(): Future[Result]
+  def generateAllProfilesList(): Future[Result]
+  def generateMatchesList(): Future[Result]
+  def generateReplicatedToSuperiorList (): Future[Result]
+  def generateReplicatedFromInferiorList (): Future[Result]
 
 }
 
@@ -52,4 +56,19 @@ class ReportingServiceImpl @Inject() (profileReportService : ProfileReportServic
     profileReportService.generateCategoriaCambio()
   }
 
+  def generateAllProfilesList(): Future[Result] = {
+    profileReportService.generateAllProfilesList()
+  }
+
+  def generateMatchesList(): Future[Result] = {
+    profileReportService.generateAllMatchesList()
+  }
+
+  def generateReplicatedToSuperiorList(): Future[Result] = {
+    profileReportService.generateAllReplicatedToSuperiorList()
+  }
+
+  def generateReplicatedFromInferiorList(): Future[Result] = {
+    profileReportService.generateAllReplicatedFromInferiorList()
+  }
 }

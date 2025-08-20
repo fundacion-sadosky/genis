@@ -34,7 +34,7 @@ define([], function() {
 
                 if (fechaHasta) {
                     urlPath += "/" + fechaHasta;  // Add the second date, include the slash
-                } else if (fechaDesde){
+                } else if (fechaDesde) {
                     urlPath += "/null"; // or any placeholder you prefer
                 }
             }
@@ -60,7 +60,6 @@ define([], function() {
             a.click();
             document.body.removeChild(a);
         };
-
 
 
         $scope.generarReporteActivosBajaPorCategoria = function () {
@@ -105,7 +104,7 @@ define([], function() {
             var a = document.createElement("a");
             document.body.appendChild(a);
             a.style = "display: none";
-            a.download = "PerfilesCambiaronCategoria.pdf";
+            a.download = "PerfilesCambiaronCategoria.csv";
             a.href = url;
             a.click();
             document.body.removeChild(a);
@@ -161,7 +160,58 @@ define([], function() {
                 }
             }
         };
+
+        $scope.generarListadoComleto = function () {
+            var urlPath = "/reportes/listadoCompleto";  // Base URL
+            var url = cryptoService.encryptBase64(urlPath);
+            var a = document.createElement("a");
+            document.body.appendChild(a);
+            a.style = "display: none";
+            a.download = "TodosLosPerfiles.csv";
+            a.href = url;
+            a.click();
+            document.body.removeChild(a);
+        };
+
+
+        $scope.generarListedoCoincidencias = function () {
+            var urlPath = "/reportes/listadoCoincidencias";  // Base URL
+            var url = cryptoService.encryptBase64(urlPath);
+            var a = document.createElement("a");
+            document.body.appendChild(a);
+            a.style = "display: none";
+            a.download = "PerfilesCoincidentes.csv";
+            a.href = url;
+            a.click();
+            document.body.removeChild(a);
+        };
+
+        $scope.generarListedoReplicadosAInstanciaSuperior = function () {
+            var urlPath = "/reportes/generarListedoReplicadosAInstanciaSuperior";  // Base URL
+            var url = cryptoService.encryptBase64(urlPath);
+            var a = document.createElement("a");
+            document.body.appendChild(a);
+            a.style = "display: none";
+            a.download = "PerfilesReplicadosAInstanciaSuperior.csv";
+            a.href = url;
+            a.click();
+            document.body.removeChild(a);
+        };
+
+        $scope.generarListedoRecibidosInstanciasInferiores = function () {
+            var urlPath = "/reportes/generarListedoRecibidosInstanciasInferiores";  // Base URL
+            var url = cryptoService.encryptBase64(urlPath);
+            var a = document.createElement("a");
+            document.body.appendChild(a);
+            a.style = "display: none";
+            a.download = "PerfilesRecibidosDeInstanciasInferiores.csv";
+            a.href = url;
+            a.click();
+            document.body.removeChild(a);
+        };
+
+
     }
 
-    return reportingController;
+        return reportingController;
 });

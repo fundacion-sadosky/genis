@@ -368,3 +368,7 @@ GET     /reportes/activesInactiveByCategory                                     
 GET     /reportes/enviadosInstanciaSuperior                                         @controllers.ReportingController.getEnviados()
 GET     /reportes/recibidosInstanciaInferior                                        @controllers.ReportingController.getRecibidos()
 GET     /reportes/categoriaCambio                                                   @controllers.ReportingController.getCategoriaCambio()
+GET     /reportes/listadoCompleto                                                   @controllers.ReportingController.getListadoCompleto()
+GET     /reportes/listadoCoincidencias                                              @controllers.ReportingController.getListadoCoincidencias()
+GET     /reportes/generarListedoReplicadosAInstanciaSuperior                        @controllers.ReportingController.getListadoReplicadosAInstanciaSuperior()
+GET     /reportes/generarListedoRecibidosInstanciasInferiores                       @controllers.ReportingController.getListedoRecibidosInstanciasInferiores()
