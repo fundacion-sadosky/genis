@@ -165,11 +165,11 @@ class MongoProfileReportRepository extends ProfileReportMongoRepository
 
   def getAllMatches: Future[Seq[MatchData]] = {
     matches.find(Json.obj()).cursor[JsObject]().collect[Seq]().map { matches =>
-      matches.flatMap { matchObj => // Use flatMap to handle Option[MatchData]
-        val matchingDateOpt: Option[String] = (matchObj \ "matchingDate" \ "$date").asOpt[String]
+      matches.flatMap { matchObj =>
+        val matchingDateMillisOpt: Option[Long] = (matchObj \ "matchingDate" \ "$date").asOpt[Long] // Extract as Long
 
-        matchingDateOpt.map { matchingDate =>
-          val date = new Date(java.time.OffsetDateTime.parse(matchingDate).toInstant.toEpochMilli)
+        matchingDateMillisOpt.map { matchingDateMillis => // matchingDateMillis is now a Long (timestamp)
+          val date = new Date(matchingDateMillis) // Create Date directly from the timestamp
 
           val leftProfile = (matchObj \ "leftProfile").as[JsObject]
           val globalCode1 = (leftProfile \ "globalCode").as[String]
@@ -187,7 +187,7 @@ class MongoProfileReportRepository extends ProfileReportMongoRepository
           val stringency = (result \ "stringency").as[String]
 
           MatchData(date, globalCode1, category1, assignee1, status1, globalCode2, category2, assignee2, status2, stringency)
-        } // If matchingDateOpt is None, this map will not execute, and flatMap will return None
+        }
       }
     }
   }
