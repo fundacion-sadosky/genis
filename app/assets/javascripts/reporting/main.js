@@ -12,7 +12,7 @@ define(['angular', './controllers/reportingController', 'common'],
                 }).when('/profilesReporting', {
                     templateUrl: '/assets/javascripts/reporting/views/profileReportingFilters.html',
                     controller: 'reportingController'
-                });
+                }) ;
             }]);
 
         return undefined;

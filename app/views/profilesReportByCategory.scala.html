@@ -1,0 +1,113 @@
+@import play.twirl.api.TemplateMagic.defining
+@(title: String, reportData: play.api.libs.json.JsValue)
+
+@import play.api.libs.json._
+
+@defining((reportData \ "categories").as[Seq[JsValue]]) { userData =>
+    <html>
+        <head>
+            <meta charset="UTF-8">
+            <link rel="stylesheet" type="text/css" href="@routes.Assets.versioned("stylesheets/reporting.css")">
+            <link rel="stylesheet" type="text/css" href="@routes.Assets.versioned("stylesheets/main.css")">
+            <title>@title</title>
+            @headerReporting()
+        </head>
+        <body>
+            <div class="report-title">
+            @title
+            </div>
+            <br/><br/>
+
+            @defining(userData.groupBy(jsValue => (jsValue \ "category").as[String])) { categoryGroups =>
+                @defining(categoryGroups.partition { case (_, profiles) => profiles.exists(p => (p \ "isReference").as[Boolean]) }) { partitions =>
+                    @defining(partitions._1) { referenceCategories =>
+                        @defining(partitions._2.toSeq) { evidenceCategories =>
+
+                            <!-- Table for Referencias -->
+                            <div class="subtitle">Referencias</div>
+                            <table class="table table-bordered" style="table-layout:fixed;">
+                                <thead>
+                                    <tr>
+                                        <th class="report-heading">Categoria</th>
+                                        <th class="report-heading">Activos</th>
+                                        <th class="report-heading">Eliminados</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for(categoryData <- referenceCategories) {
+                                        @defining(categoryData._1) { category =>
+                                            @defining(categoryData._2) { profiles =>
+                                                @defining(profiles.filter(p => !(p \ "isDeleted").as[Boolean]).map(p => (p \ "int").as[Int]).sum) { activos =>
+                                                    @defining(profiles.filter(p => (p \ "isDeleted").as[Boolean]).map(p => (p \ "int").as[Int]).sum) { eliminados =>
+                                                        <tr>
+                                                            <td class="report-body">@category</td>
+                                                            <td class="report-body">@activos</td>
+                                                            <td class="report-body">@eliminados</td>
+                                                        </tr>
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+
+                            <!-- Subtotal for Referencias -->
+                        @defining(referenceCategories.flatMap(_._2).filter(p => !(p \ "isDeleted").as[Boolean]).map(p => (p \ "int").as[Int]).sum) { subtotalActivosRef =>
+                            @defining(referenceCategories.flatMap(_._2).filter(p => (p \ "isDeleted").as[Boolean]).map(p => (p \ "int").as[Int]).sum) { subtotalEliminadosRef =>
+                                <div class="total-profiles">
+                                    Subtotal Referencias: Activos = @subtotalActivosRef, Eliminados = @subtotalEliminadosRef
+                                </div>
+
+                                <!-- Table for Evidencias -->
+                                <div class="subtitle">Evidencias</div>
+                                <table class="table table-bordered" style="table-layout:fixed;">
+                                    <thead>
+                                        <tr>
+                                            <th class="report-heading">Categoria</th>
+                                            <th class="report-heading">Activos</th>
+                                            <th class="report-heading">Eliminados</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    @for(categoryData <- evidenceCategories) {
+                                        @defining(categoryData._1) { category =>
+                                            @defining(categoryData._2) { profiles =>
+                                                @defining(profiles.filter(p => !(p \ "isDeleted").as[Boolean]).map(p => (p \ "int").as[Int]).sum) { activos =>
+                                                    @defining(profiles.filter(p => (p \ "isDeleted").as[Boolean]).map(p => (p \ "int").as[Int]).sum) { eliminados =>
+                                                        <tr>
+                                                            <td class="report-body">@category</td>
+                                                            <td class="report-body">@activos</td>
+                                                            <td class="report-body">@eliminados</td>
+                                                        </tr>
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    </tbody>
+                                </table>
+
+                                <!-- Subtotal for Evidencias -->
+                            @defining(evidenceCategories.flatMap(_._2).filter(p => !(p \ "isDeleted").as[Boolean]).map(p => (p \ "int").as[Int]).sum) { subtotalActivosEv =>
+                                @defining(evidenceCategories.flatMap(_._2).filter(p => (p \ "isDeleted").as[Boolean]).map(p => (p \ "int").as[Int]).sum) { subtotalEliminadosEv =>
+                                    <div class="total-profiles">
+                                        Subtotal Evidencias: Activos = @subtotalActivosEv, Eliminados = @subtotalEliminadosEv
+                                    </div>
+
+                                    <!-- Total Profiles -->
+                                @defining((subtotalActivosRef + subtotalActivosEv)) { totalActivos =>
+                                    @defining((subtotalEliminadosRef + subtotalEliminadosEv)) { totalEliminados =>
+                                        <div class="total-profiles">
+                                            Total Profiles: Activos = @totalActivos, Eliminados = @totalEliminados
+                                        </div>
+                                    }}
+                                }}
+                            }}
+                        }
+                    }
+                }
+            }
+        </body>
+    </html>
+}

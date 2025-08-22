@@ -819,7 +819,7 @@ class Pedigrees @Inject() (
     pedigreeService.getProfilesToDelete(idCourtCase) flatMap { referenceProfiles =>{
       Future.sequence(
         referenceProfiles.map( globalCode => {
-          profileDataService.deleteProfile(globalCode, deletedMotive, userId,true,false)
+          profileDataService.deleteProfile(globalCode, deletedMotive, userId,false)
         })).map(result => ()).recoverWith{
         case _:Exception => Future.successful(())
         }

@@ -1,0 +1,57 @@
+@import play.twirl.api.TemplateMagic.defining
+@(title: String, reportData: play.api.libs.json.JsValue)
+
+@import play.api.libs.json._
+
+@defining((reportData \ "statusCounts").validate[Seq[JsValue]].getOrElse(Seq.empty)) { statusData =>
+    <html>
+        <head>
+            <meta charset="UTF-8">
+            <link rel="stylesheet" type="text/css" href="@routes.Assets.versioned("stylesheets/reporting.css")">
+            <link rel="stylesheet" type="text/css" href="@routes.Assets.versioned("stylesheets/main.css")">
+            <title>@title</title>
+            @headerReporting()
+        </head>
+        <body>
+            <div class="report-title">
+            @title
+            </div>
+            <br/><br/>
+
+            <table class="table table-bordered" style="table-layout:fixed;">
+                <thead>
+                    <tr>
+                        <th class="report-heading">Estado</th>
+                        <th class="report-heading">Cantidad</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @defining(
+                    statusData.flatMap { status =>
+                        val maybeStatus = (status \ "status").validate[String].asOpt
+                        val maybeCount = (status \ "int").validate[Int].asOpt
+                        for {
+                            s <- maybeStatus
+                                    c <- maybeCount
+                        } yield (s, c)
+                    }
+                ) { validStatusCounts =>
+                    @for((estado, cantidad) <- validStatusCounts) {
+                        <tr>
+                            <td class="report-body">@estado</td>
+                            <td class="report-body">@cantidad</td>
+                        </tr>
+                    }
+
+                    @defining(validStatusCounts.map(_._2).sum) { totalProfiles =>
+                        <tr>
+                            <td class="report-body"><strong>Total</strong></td>
+                            <td class="report-body"><strong>@totalProfiles</strong></td>
+                        </tr>
+                    }
+                }
+                </tbody>
+            </table>
+        </body>
+    </html>
+}

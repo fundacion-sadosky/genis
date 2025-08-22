@@ -114,7 +114,7 @@
 		"ProfiledataCategoryModification": "Modificación de la categoria de un perfil",
 		"ProfiledataIsReadOnly": "Verifica que un perfil es de solo lectura",
 		"ProfiledataDelete": "Baja de perfiles",
-        "ProfiledataSearch": "Búsqueda de perfiles",
+		"ProfiledataSearch": "Búsqueda de perfiles",
 		"MatchAll": "Lectura de coincidencias",
 		"UploadImageAll": "Subida de imágenes de metadata",
 		"CategoryRead": "Lectura de descripciones de categorías",
@@ -166,7 +166,7 @@
 		"PedigreeCourtCaseUpdate": "Modificación de caso para pedigrí",
 		"PedigreeGenogramCreate": "Alta y modificación de genograma para pedigrí",
 		"PedigreeChangeStatus": "Modificación del estado de un pedigrí",
-        "PedigreeMatchesRead": "Lectura de coincidencias de pedigrí",
+		"PedigreeMatchesRead": "Lectura de coincidencias de pedigrí",
 		"PedigreeScenarioCreate": "Alta de escenario de pedigrí",
 		"PedigreeScenarioUpdate": "Modificación de escenario de pedigrí",
 		"PedigreeScenarioRead": "Lectura de escenarios de pedigrí",
@@ -205,7 +205,7 @@
 		"PutCatMapping": "Modificar mapeo de categorías",
 		"PostConnection": "Conectar con la instancia superior",
 		"PostIIProfile": "Agregar perfil de instancia inferior",
-		"DeleteIIProfile": "Borrar perfil de instancia inferior",
+		"DeleteIIProfile": "Instancia inferior informada de la eliminación del perfil en la instancia superior",
 		"ReceiveMatchFromSuperior": "Recibir el match de la instancia superior",
 		"MatchUpdateInterconnection": "Actualizar el match con hit o descarte de otra instancia",
 		"GetInfIns": "Obtener configuración de instancias inferiores",
@@ -280,9 +280,9 @@
 			"Deleted": "Borrado"
 		}
 	},
-   "profiles": {
-      "responsible": "Usuario administrador del perfil genético y sus coincidencias"
-   },
+	"profiles": {
+		"responsible": "Usuario administrador del perfil genético y sus coincidencias"
+	},
 	"pedigree": {
 		"boundary": "Probabilidad mínima para la aceptación de perfiles en el proceso de match por compatibilidad",
 		"frequencyBase": "Base de frecuencia que se utiliza para generar las posibles genotipificaciones de las personas de interés",
@@ -323,6 +323,8 @@
 			"profileUploaded": "Aprobación de perfiles de instancia inferior",
 			"aprovedProfile": "Interconexión",
 			"rejectedProfile": "Interconexión",
+			"deletedProfileInSuperiorInstance": "Eliminación de perfil en instancia superior",
+			"deletedProfileInInferiorInstance": "Eliminación de perfil en instancia inferior",
 			"hitMatch": "Confirmación de coincidencia",
 			"discardMatch": "Descarte de coincidencia",
 			"deleteProfile": "Baja de Perfil",
@@ -331,30 +333,30 @@
 
 		}
 	},
-  "locus": {
-    "add": {
-      "chromosome": "Cromosoma en el que se encuentra el marcador (1-22, X, Y, XY, MT)",
-      "minimumAllelesQty": "Mínima cantidad de alelos a ingresar en un análisis de referencia",
-      "maximumAllelesQty": "Máxima cantidad de alelos a ingresar en un análisis de referencia",
-      "alias": {
-        "add": "Agregar un alias para carga masiva",
-        "remove": "Descartar el alias"
-      },
-      "links": {
-        "check": "Ligar el marcador con otros marcadores del mismo tipo",
-        "add": "Ligar un marcador",
-        "remove": "Descartar el marcador ligado",
-	  	"select": "Elegir un marcador del mismo cromosoma para ligar"
-      },
-      "save": "Guardar el marcador con sus alias y posibles marcadores ligados"
-    },
-    "list": {
-      "alias": "Alias para carga masiva",
-      "links": "Marcadores ligados"
-    }
-  },
+	"locus": {
+		"add": {
+			"chromosome": "Cromosoma en el que se encuentra el marcador (1-22, X, Y, XY, MT)",
+			"minimumAllelesQty": "Mínima cantidad de alelos a ingresar en un análisis de referencia",
+			"maximumAllelesQty": "Máxima cantidad de alelos a ingresar en un análisis de referencia",
+			"alias": {
+				"add": "Agregar un alias para carga masiva",
+				"remove": "Descartar el alias"
+			},
+			"links": {
+				"check": "Ligar el marcador con otros marcadores del mismo tipo",
+				"add": "Ligar un marcador",
+				"remove": "Descartar el marcador ligado",
+				"select": "Elegir un marcador del mismo cromosoma para ligar"
+			},
+			"save": "Guardar el marcador con sus alias y posibles marcadores ligados"
+		},
+		"list": {
+			"alias": "Alias para carga masiva",
+			"links": "Marcadores ligados"
+		}
+	},
 	"mt":{
-	  "discard":"Descartar rango",
+		"discard":"Descartar rango",
 		"HV1":"Mutaciones",
 		"HV2":"Mutaciones",
 		"HV3":"Mutaciones",
@@ -368,57 +370,59 @@
 		"mutation":"\nEj. Inserción: 239.1C \nEj. Sustitución: A73G \nEj. Deleción: A249DEL"
 	},
 	"kits": {
-	  "alias": {
-		"add": "Agregar un alias para carga masiva",
-		"remove": "Descartar el alias",
-		"list": "Alias para carga masiva"
-	  },
-	  "locus":
-	  {
-		"add": "Agregar un marcador",
-		"remove": "Descartar el marcador"
-	  },
-	  "representativeParameter": "Representa K en la configuración de las categorías",
-	  "lociQuantity": "Representa N en la configuración de las categorías",
-	  "save": "Guardar el kit con sus alias y marcadores"
+		"alias": {
+			"add": "Agregar un alias para carga masiva",
+			"remove": "Descartar el alias",
+			"list": "Alias para carga masiva"
+		},
+		"locus":
+		{
+			"add": "Agregar un marcador",
+			"remove": "Descartar el marcador"
+		},
+		"representativeParameter": "Representa K en la configuración de las categorías",
+		"lociQuantity": "Representa N en la configuración de las categorías",
+		"save": "Guardar el kit con sus alias y marcadores"
 	},
-    "format": {
-      "bulkUpload": "MITOCONDRIAL: Nomenclaturas de mutaciones:\nInserciones: 239.1C\nSustitución o cambio nucleotídico: A73G\nDeleciones: A249DEL\n ",
-      "baseFrequency": "Ejemplo cabecera:\nalelo,TH01,D21S11\nEjemplo fila:\n4,0.00006,\nSeparar con coma. No usar 0.\nSe puede indicar una fmin que será utilizada en los cálculos:\nfmin,0.00006,0.00005"
-    },
+	"format": {
+		"bulkUpload": "MITOCONDRIAL: Nomenclaturas de mutaciones:\nInserciones: 239.1C\nSustitución o cambio nucleotídico: A73G\nDeleciones: A249DEL\n ",
+		"baseFrequency": "Ejemplo cabecera:\nalelo,TH01,D21S11\nEjemplo fila:\n4,0.00006,\nSeparar con coma. No usar 0.\nSe puede indicar una fmin que será utilizada en los cálculos:\nfmin,0.00006,0.00005"
+	},
 	"aliases": "Escribir el alias y luego presionar tab o enter. Para borrarlo usar el teclado o la x. No admite repetidos.",
-    "trace": {
-      "type": {
-        "analysis": "Análisis",
-        "matchProcess": "Proceso de match",
-        "match": "Coincidencia",
-        "hit": "Validación",
-        "discard": "Descarte",
-        "profileData": "Metadata",
-        "association": "Asociación",
-        "delete": "Baja",
-		"pedigreeMatchProcess": "Proceso de match de pedigrí",
-		"pedigreeMatch": "Coincidencia de pedigrí",
-		"pedigreeDiscard": "Descarte de pedigrí",
-		"pedigreeConfirm": "Confirmación de pedigrí",
-		"pedigreeMatch2": "Coincidencia de pedigrí",
-		"pedigreeDiscard2": "Descarte de pedigrí",
-		"pedigreeConfirm2": "Confirmación de pedigrí",
-		"pedigreeStatusChange": "Cambio de estado",
-		"pedigriCopy":"Copia",
-		"pedigriEdit":"Edición",
-		"pedigriNewScenario":"Escenario pedigrí",
-		"superiorInstanceCategoryModification": "Modificación de categoría",
-		"interconectionUpdload": "Interconexión",
-		"importedFromInferior": "Interconexión",
-		"interconectionAproved": "Interconexión",
-		"interconectionRejected": "Interconexión",
-		"categoryModification": "Modificación de categoría",
-		"interconectionCategoryRejected": "Interconexión",
-		"superiorInstanceCategoryRejection": "Interconexión",
-		"interconectionCategoryAproved": "Interconexión"
-	  }
-    },
+	"trace": {
+		"type": {
+			"analysis": "Análisis",
+			"matchProcess": "Proceso de match",
+			"match": "Coincidencia",
+			"hit": "Validación",
+			"discard": "Descarte",
+			"profileData": "Metadata",
+			"association": "Asociación",
+			"delete": "Baja",
+			"pedigreeMatchProcess": "Proceso de match de pedigrí",
+			"pedigreeMatch": "Coincidencia de pedigrí",
+			"pedigreeDiscard": "Descarte de pedigrí",
+			"pedigreeConfirm": "Confirmación de pedigrí",
+			"pedigreeMatch2": "Coincidencia de pedigrí",
+			"pedigreeDiscard2": "Descarte de pedigrí",
+			"pedigreeConfirm2": "Confirmación de pedigrí",
+			"pedigreeStatusChange": "Cambio de estado",
+			"pedigriCopy":"Copia",
+			"pedigriEdit":"Edición",
+			"pedigriNewScenario":"Escenario pedigrí",
+			"superiorInstanceCategoryModification": "Modificación de categoría",
+			"interconectionUpdload": "Interconexión",
+			"importedFromInferior": "Interconexión",
+			"interconectionAproved": "Interconexión",
+			"interconectionRejected": "Interconexión",
+			"categoryModification": "Modificación de categoría",
+			"interconectionCategoryRejected": "Interconexión",
+			"superiorInstanceCategoryRejection": "Interconexión",
+			"interconectionCategoryAproved": "Interconexión",
+			"interconnectionDeletedInSuperior": "Eliminación de perfil en instancia superior",
+			"interconnectionDeletedInInferior": "Eliminación de perfil en instancia inferior"
+		}
+	},
 	"superiorInstanceModifiedCategory": "Este perfil es una modificación de un perfil existente, generado por el cambio de categoria en una instancia inferior: __oldCategory__ a __newCategory__.",
 	"automaticUploadToSuperiorInstance": "Este perfil fue aprobado en una instancia superior, por lo que se replicará automáticamente."
 }

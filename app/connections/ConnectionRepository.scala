@@ -34,6 +34,7 @@ abstract class ConnectionRepository extends DefaultDb with Transaction {
   def updateConnections(connection: Connection): Future[Either[String, Connection]]
 
   def getSupInstanceUrl(): Future[Option[String]]
+  def getInfInstanceUrl (lab: String): Future[Option[String]]
   def updateMatchSendStatus(id: String, targetLab:Option[String],status:Option[Long], message:Option[String] = None): Future[Either[String,Unit]]
   def updateMatchSendStatusHitOrDiscard(id: String, targetLab:Option[String],statusHitDiscard:Option[Long] = None,message:Option[String] = None): Future[Either[String,Unit]]
   def getMatchSendStatusById(id:String, targetLab:Option[String] = None):Future[Option[Long]]
@@ -56,6 +57,10 @@ class SlickConnectionRepository @Inject()(implicit val app: Application) extends
   val instanciaSuperior = "INSTANCIA_SUPERIOR"
   val pkiName = "PKI"
 
+  val inferiorInstanceTable: TableQuery[Tables.InferiorInstance] = Tables.InferiorInstance
+
+  private def queryInferiorInstanceUrl(lab: Column[String]) = inferiorInstanceTable.filter(_.laboratory === lab).filter(_.status === 2L).map(_.url)
+
   private def queryConnectionURLByName(name: Column[String]) = connectionTable.filter(_.name === name).filter(_.deleted === false).map(_.url)
 
   private def queryConnectionByName(name: Column[String]) = connectionTable.filter(_.name === name).filter(_.deleted === false)
@@ -63,6 +68,7 @@ class SlickConnectionRepository @Inject()(implicit val app: Application) extends
   private def queryGetById(id: Column[Long]) = connectionTable.filter(_.id === id).filter(_.deleted === false)
 
   val getConectionURLByName = Compiled(queryConnectionURLByName _)
+  var getInferiorInstanceUrl = Compiled(queryInferiorInstanceUrl _)
   val getConnectionByName = Compiled(queryConnectionByName _)
   val getConnectionById = Compiled(queryGetById _)
 
@@ -220,14 +226,23 @@ class SlickConnectionRepository @Inject()(implicit val app: Application) extends
 
   override def getSupInstanceUrl(): Future[Option[String]] = {
     this.runInTransactionAsync { implicit session => {
-        getConectionURLByName(instanciaSuperior).firstOption match {
-          case Some("") => None
+      getConectionURLByName(instanciaSuperior).firstOption match {
+        case Some("") => None
+        case Some(url) => Some(url)
+        case None => None
+      }
+    }
+    }
+
+  }
+    def getInfInstanceUrl(lab: String): Future[Option[String]] = {
+      this.runInTransactionAsync { implicit session =>
+        getInferiorInstanceUrl(lab).firstOption match {
           case Some(url) => Some(url)
           case None => None
         }
+      }
     }
-    }
-  }
 
   override def updateMatchSendStatus(id: String, targetLab:Option[String],status:Option[Long],message:Option[String] = None): Future[Either[String,Unit]]= {
     this.runInTransactionAsync { implicit session => {

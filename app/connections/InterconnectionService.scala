@@ -18,7 +18,7 @@ import scala.concurrent.duration._
 import scala.concurrent.Await
 import models.Tables.ExternalProfileDataRow
 import configdata.{CategoryConfiguration, CategoryRepository, CategoryService}
-import inbox._
+import inbox.{DeleteProfileInSuperiorInstanceInfo, DeleteProfileInInferiorInstanceInfo,DeleteProfileInfo, DiscardInfoInbox, HitInfoInbox, _}
 import kits.{AnalysisType, StrKitService}
 import play.api.Logger
 import play.api.libs.json.{JsValue, Json, __}
@@ -38,12 +38,9 @@ import play.api.i18n.Messages
 
 import scala.concurrent.duration.{Duration, FiniteDuration, SECONDS}
 import scala.util.Try
-import inbox.DiscardInfoInbox
-import inbox.HitInfoInbox
-import inbox.DeleteProfileInfo
 import matching.MatchResult
 import services.CacheService
-import trace.{CategoryChangeRejectedInSupInfo, MatchInfo, MatchTypeInfo, ProfileImportedFromInferiorInfo, SuperiorCategoryChangeRejectedInfo, SuperiorInstanceCategoryModificationInfo, Trace, TraceService}
+import trace.{CategoryChangeRejectedInSupInfo, MatchInfo, MatchTypeInfo, ProfileImportedFromInferiorInfo, ProfileRejectedInSuperiorInfo, SuperiorCategoryChangeRejectedInfo, SuperiorInstanceCategoryModificationInfo, Trace, TraceInfo, TraceService}
 
 trait InterconnectionService {
 
@@ -68,42 +65,54 @@ trait InterconnectionService {
   def uploadProfileToSuperiorInstance(profile: Profile, pd: ProfileData): Unit
 
   def importProfile(
-    profile: Profile,
-    labo: String,
-    sampleEntryDate: String,
-    labCodeInstanceOrigin: String,
-    labCodeInmediateInstanceOrigin: String,
-    profileAssociated: Option[Profile] = None
-  ): Unit
+                     profile: Profile,
+                     labo: String,
+                     sampleEntryDate: String,
+                     labCodeInstanceOrigin: String,
+                     labCodeInmediateInstanceOrigin: String,
+                     profileAssociated: Option[Profile] = None
+                   ): Unit
 
-  def approveProfiles(profileApprovals: List[ProfileApproval]): Future[Either[String, Unit]]
+  def approveProfiles(profileApprovals: List[ProfileApproval], userName: String): Future[Either[String, Unit]]
 
-  def rejectProfile(profileApproval: ProfileApproval, motive: String, idMotive: Long, user: Option[String] = None): Future[Either[String, Unit]]
+  def rejectProfile(profileApproval: ProfileApproval, motive: String, idMotive: Long, user: String): Future[Either[String, Unit]]
 
   def getPendingProfiles(profileApprovalSearch: ProfileApprovalSearch): Future[List[PendingProfileApproval]]
 
   def getTotalPendingProfiles(): Future[Long]
 
-  def notifyChangeStatus(
-    globalCode: String,
-    labCode: String,
-    status: Long,
-    motive: Option[String] = None,
-    isCategoryModification:Boolean = false
-  ): Future[Unit]
+  def notifyApprovalChangeStatus(
+                                  globalCode: String,
+                                  labCode: String,
+                                  status: Long,
+                                  userName: Option[String] = None,
+                                  isCategoryModification:Boolean = false
+                                ): Future[Unit]
+
+  def notifyRejectionChangeStatus(
+                                   globalCode: String,
+                                   labCode: String,
+                                   status: Long,
+                                   motive: String,
+                                   userName: String,
+                                   isCategoryModification:Boolean = false
+                                 ): Future[Unit]
 
   def uploadProfile(globalCode: String): Future[Either[String, Unit]]
 
   def updateUploadStatus(
-    globalCode: String,
-    status: Long,
-    motive: Option[String],
-    isCategoryModification: Boolean = false
-  ): Future[Either[String, Unit]]
+                          globalCode: String,
+                          status: Long,
+                          motive: Option[String],
+                          userName: String,
+                          isCategoryModification: Boolean = false
+                        ): Future[Either[String, Unit]]
 
-  def receiveDeleteProfile(globalCode: String, motive: DeletedMotive, labCodeInstanceOrigin: String, labCodeImmediateInstance: String): Future[Either[String, Unit]]
+  def receiveDeleteProfile(globalCode: String, motive: DeletedMotive, labCodeInstanceOrigin: String, labCodeImmediateInstance: String, up: Boolean, userName:String): Future[Either[String, Unit]]
 
-  def inferiorDeleteProfile(globalCode: SampleCode, motive: DeletedMotive): Unit
+  def inferiorDeleteProfile(globalCode: SampleCode, motive: DeletedMotive, supUrl: String, userName:String): Unit
+
+  def sendDeletionToInferior(globalCode: String, motive: DeletedMotive, lab: String, url: String, userName: String): Future[Either[String, Unit]]
 
   def sendMatchToInferiorInstance(matchResult: MatchResult): Unit
 
@@ -136,38 +145,37 @@ trait InterconnectionService {
 
 @Singleton
 class InterconnectionServiceImpl @Inject()(
-  akkaSystem: ActorSystem = null,
-  connectionRepository: ConnectionRepository,
-  inferiorInstanceRepository: InferiorInstanceRepository,
-  categoryRepository: CategoryRepository,
-  superiorInstanceProfileApprovalRepository: SuperiorInstanceProfileApprovalRepository,
-  client: WSClient,
-  userService: UserService,
-  roleService: RoleService,
-  profileService: ProfileService,
-  kitService: StrKitService,
-  notificationService: NotificationService,
-  @Named("protocol") val protocol: String,
-  @Named("status") val status: String,
-  @Named("categoryTreeCombo") val categoryTreeCombo: String,
-  @Named("insertConnection") val insertConnection: String,
-  @Named("localUrl") val localUrl: String,
-  @Named("uploadProfile") val uploadProfile: String,
-  @Named("labCode") val currentInstanceLabCode: String,
-  profileDataService: ProfileDataService = null,
-  categoryService: CategoryService = null,
-  traceService: TraceService = null,
-  matchingRepository: MatchingRepository = null,
-  matchingService: MatchingService = null,
-  
-  @Named("defaultAssignee") val defaultNotificationReceiver: String = "tst-admin",
-  @Named("timeOutOnDemand") val timeOutOnDemand: String = "1 seconds",
-  @Named("timeOutQueue") val timeOutQueue: String = "1 seconds",
-  @Named("timeActorSendRequestGet") val timeActorSendRequestGet: String = "1 seconds",
-  @Named("timeActorSendRequestPutPostDelete") val timeActorSendRequestPutPostDelete: String = "1 seconds",
-  @Named("timeOutHolder") val timeOutHolder: Int = 1000,
-  cache: CacheService = null
-) extends InterconnectionService {
+                                            akkaSystem: ActorSystem = null,
+                                            connectionRepository: ConnectionRepository,
+                                            inferiorInstanceRepository: InferiorInstanceRepository,
+                                            categoryRepository: CategoryRepository,
+                                            superiorInstanceProfileApprovalRepository: SuperiorInstanceProfileApprovalRepository,
+                                            client: WSClient,
+                                            userService: UserService,
+                                            roleService: RoleService,
+                                            profileService: ProfileService,
+                                            kitService: StrKitService,
+                                            notificationService: NotificationService,
+                                            @Named("protocol") val protocol: String,
+                                            @Named("status") val status: String,
+                                            @Named("categoryTreeCombo") val categoryTreeCombo: String,
+                                            @Named("insertConnection") val insertConnection: String,
+                                            @Named("localUrl") val localUrl: String,
+                                            @Named("uploadProfile") val uploadProfile: String,
+                                            @Named("labCode") val currentInstanceLabCode: String,
+                                            profileDataService: ProfileDataService = null,
+                                            categoryService: CategoryService = null,
+                                            traceService: TraceService = null,
+                                            matchingRepository: MatchingRepository = null,
+                                            matchingService: MatchingService = null,
+                                            @Named("defaultAssignee") val defaultNotificationReceiver: String = "tst-admin",
+                                            @Named("timeOutOnDemand") val timeOutOnDemand: String = "1 seconds",
+                                            @Named("timeOutQueue") val timeOutQueue: String = "1 seconds",
+                                            @Named("timeActorSendRequestGet") val timeActorSendRequestGet: String = "1 seconds",
+                                            @Named("timeActorSendRequestPutPostDelete") val timeActorSendRequestPutPostDelete: String = "1 seconds",
+                                            @Named("timeOutHolder") val timeOutHolder: Int = 1000,
+                                            cache: CacheService = null
+                                          ) extends InterconnectionService {
   val defaultTimeoutQueue = akka.util.Timeout(Some(Duration(timeOutQueue)).collect { case d: FiniteDuration => d }.get)
   val defaultTimeoutOnDemand = akka.util.Timeout(Some(Duration(timeOutOnDemand)).collect { case d: FiniteDuration => d }.get)
   val sendRequestActorGlobal: ActorRef = akkaSystem.actorOf(SendRequestActor.props())
@@ -176,8 +184,8 @@ class InterconnectionServiceImpl @Inject()(
   val ENVIADA = 2L
   val RECHAZADA = 3L
   val APROBADA = 4L
-  val PENDING_DELETE = 5L
-  val DELETED_IN_SUP_INS = 6L
+  val DELETE_IN_INF_INSTANCE_PENDING_SEND_TO_SUPERIOR = 5L
+  val DELETE_IN_INF_INSTANCE_SENT_TO_SUPERIOR = 6L
   val MATCH_SEND_PENDING = 7L
   val MATCH_SENT = 8L
   val HIT_SENT = 9L
@@ -188,6 +196,13 @@ class InterconnectionServiceImpl @Inject()(
   val DELETE_SENT = 14L
   val FILE_PENDING = 15L
   val FILE_SENT = 16L
+  val REJECTED_THIS_INSTANCE_INF_INFORMED = 17L
+  val APPROVED_THIS_INSTANCE_INF_INFORMED = 18L
+  val DELETE_IN_SUP_INSTANCE_PENDING_SEND_TO_INFERIOR = 19L
+  val DELETE_IN_SUP_INSTANCE_SENT_TO_INFERIOR = 20L
+  val REJECTED_THIS_INSTANCE_PENDING_SEND_TO_INFERIOR = 21L
+  val APPROVED_THIS_INSTANCE_PENDING_SEND_TO_INFERIOR = 22L
+  val DELETED_IN_INF_INS = 23L
   val superiorLabCode = "SUPERIOR"
 
   override def getConnections(): Future[Either[String, Connection]] = {
@@ -207,10 +222,10 @@ class InterconnectionServiceImpl @Inject()(
   }
 
   private def sendRequestQueue(
-    holder: WSRequestHolder,
-    body: String = "",
-    timeoutParam: Timeout = defaultTimeoutQueue
-  ): Future[WSResponse] = {
+                                holder: WSRequestHolder,
+                                body: String = "",
+                                timeoutParam: Timeout = defaultTimeoutQueue
+                              ): Future[WSResponse] = {
     implicit val timeout: Timeout = timeoutParam
     (
       sendRequestActorGlobal ? (
@@ -220,8 +235,8 @@ class InterconnectionServiceImpl @Inject()(
         false,
         timeActorSendRequestPutPostDelete
       )
-    )
-    .mapTo[WSResponse]
+      )
+      .mapTo[WSResponse]
   }
 
   override def getConnectionsStatus(url: String): Future[Either[String, Unit]] = {
@@ -385,7 +400,7 @@ class InterconnectionServiceImpl @Inject()(
             admins.foreach { admin =>
               notificationService.push(admin.id, InferiorInstancePendingInfo(urlInstancia))
             }
-          userService.sendNotifToAllSuperUsers(InferiorInstancePendingInfo(urlInstancia), admins.map(_.id))
+            userService.sendNotifToAllSuperUsers(InferiorInstancePendingInfo(urlInstancia), admins.map(_.id))
         }
     }
   }
@@ -442,7 +457,7 @@ class InterconnectionServiceImpl @Inject()(
     val futureReturn = categoryService.getCategoriesMappingById(profile.categoryId).flatMap {
       case None => {
         logger.debug("No está mapeada la categoria de la instancia superior")
-        this.profileDataService.updateUploadStatus(profile.globalCode.text, PENDIENTE_ENVIO)
+        this.profileDataService.updateUploadStatus(profile.globalCode.text, PENDIENTE_ENVIO, Option.empty[String], Some(s"No se puede enviar porque no esta mapeada la categoria ${profile.categoryId.text} en la instancia superior"), Option.empty[String])
         Future.successful(Left(Messages("error.E0721")))
       }
       case Some(idCategorySuperior) => {
@@ -450,7 +465,7 @@ class InterconnectionServiceImpl @Inject()(
           case Some(supUrl) => {
             this.getConnectionsStatus(supUrl).flatMap {
               case Left(_) => {
-                this.profileDataService.updateUploadStatus(profile.globalCode.text, PENDIENTE_ENVIO)
+                this.profileDataService.updateUploadStatus(profile.globalCode.text, PENDIENTE_ENVIO, Option.empty[String], Some(s"No se puede enviar porque no se pudo conectar con la instancia superior"), Option.empty[String])
                 Future.successful(Left(Messages("error.E0723")))
               }
               case Right(_) => {
@@ -472,12 +487,12 @@ class InterconnectionServiceImpl @Inject()(
                 futureResponse.flatMap { result => {
                   if (result.status == 200) {
                     logger.debug("se envio correctamente el perfil a la instancia superior")
-                    this.profileDataService.updateUploadStatus(profile.globalCode.text, ENVIADA)
+                    this.profileDataService.updateUploadStatus(profile.globalCode.text, ENVIADA, Option.empty[String], Option.empty[String], Option.empty[String])
                     sendFiles(profile.globalCode.text, superiorLabCode)
                     Future.successful(Right(()))
                   } else {
                     logger.debug("La instancia superior rechazo el perfil")
-                    this.profileDataService.updateUploadStatus(profile.globalCode.text, PENDIENTE_ENVIO)
+                    this.profileDataService.updateUploadStatus(profile.globalCode.text, PENDIENTE_ENVIO, Option.empty[String], Option.empty[String], Option.empty[String])
                     Future.successful(Left(Messages("error.E0724")))
                   }
                 }
@@ -486,7 +501,7 @@ class InterconnectionServiceImpl @Inject()(
             }
           }
           case None => {
-            this.profileDataService.updateUploadStatus(profile.globalCode.text, PENDIENTE_ENVIO)
+            this.profileDataService.updateUploadStatus(profile.globalCode.text, PENDIENTE_ENVIO, Option.empty[String], Some(s"No se puede enviar porque no se pudo conectar con la instancia superior"), Option.empty[String])
             Future.successful(Left(Messages("error.E0722")))
           }
         }
@@ -494,7 +509,7 @@ class InterconnectionServiceImpl @Inject()(
     }.recoverWith {
       case e: Exception => {
         logger.error("Error de conexión con la instancia superior", e)
-        this.profileDataService.updateUploadStatus(profile.globalCode.text, PENDIENTE_ENVIO)
+        this.profileDataService.updateUploadStatus(profile.globalCode.text, PENDIENTE_ENVIO, Option.empty[String], Some(s"No se puede enviar porque no se pudo conectar con la instancia superior"), Option.empty[String])
         Future.successful(Left(Messages("error.E0723")))
       }
     }
@@ -536,15 +551,15 @@ class InterconnectionServiceImpl @Inject()(
     kit match {
       case "Manual" => None
       case _ => {
-        val kitOrKitFromAlias = Await.result(kitService.listFull().map{
+        val kitOrKitFromAlias = Await.result(kitService.listFull().map {
           list => {
-            if(list.map(x => x.id).contains(kit)) {
+            if (list.map(x => x.id).contains(kit)) {
               kit
             } else {
               list.filter(k => k.alias.contains(kit)).head.id
             }
           }
-        },Duration(10, SECONDS))
+        }, Duration(10, SECONDS))
 
         Some(kitOrKitFromAlias)
       }
@@ -628,13 +643,13 @@ class InterconnectionServiceImpl @Inject()(
   }
 
   override def importProfile(
-    profile: Profile,
-    labo: String,
-    sampleEntryDate: String,
-    labCodeInstanceOrigin: String,
-    labCodeInmediateInstance: String,
-    profileAssociated: Option[Profile] = None
-  ): Unit = {
+                              profile: Profile,
+                              labo: String,
+                              sampleEntryDate: String,
+                              labCodeInstanceOrigin: String,
+                              labCodeInmediateInstance: String,
+                              profileAssociated: Option[Profile] = None
+                            ): Unit = {
 
     var sampleEntryDateOption: Option[java.sql.Date] = None
     if (sampleEntryDate != null && !sampleEntryDate.isEmpty) {
@@ -644,7 +659,7 @@ class InterconnectionServiceImpl @Inject()(
       .genotypification
       .map(
         x => {
-          x.copy(_2=locusAliasToLocusId(x._2))
+          x.copy(_2 = locusAliasToLocusId(x._2))
         }
       )
     val newAnalisisWithLocusKeys = profile
@@ -714,17 +729,17 @@ class InterconnectionServiceImpl @Inject()(
             Permission.INTERCON_NOTIF
           )
         }
-    }
+      }
     ()
   }
 
   private def locusAliasToLocusId(genotipification: Profile.Genotypification): Profile.Genotypification = {
-    val locusAlias = Await.result(kitService.getLocusAlias,Duration(10,SECONDS))
+    val locusAlias = Await.result(kitService.getLocusAlias, Duration(10, SECONDS))
     // locusAlias keys are the alias
     val newGenotipification = genotipification.map(marker => {
-      if(locusAlias.keys.toList.contains(marker._1)) {
-        marker.copy(_1=locusAlias.get(marker._1).get.toString())
-      } else{
+      if (locusAlias.keys.toList.contains(marker._1)) {
+        marker.copy(_1 = locusAlias.get(marker._1).get.toString())
+      } else {
         marker
       }
     })
@@ -739,13 +754,13 @@ class InterconnectionServiceImpl @Inject()(
   }
 
   def insertOrUpdateProfile(
-    profile: Profile,
-    laboratoryInstanceOrigin: String,
-    laboratoryImmediateInstance: String,
-    laboratory: String,
-    profileAssociated: Option[Profile],
-    allowFromOtherInstances: Boolean = false
-  ): Future[SampleCode] = {
+                             profile: Profile,
+                             laboratoryInstanceOrigin: String,
+                             laboratoryImmediateInstance: String,
+                             laboratory: String,
+                             profileAssociated: Option[Profile],
+                             allowFromOtherInstances: Boolean = false
+                           ): Future[SampleCode] = {
     (getProfileAssociatedCode(profile), profileAssociated) match {
       case (None, None) => {
         this.insertOrUpdateProfileSingle(
@@ -788,12 +803,12 @@ class InterconnectionServiceImpl @Inject()(
   }
 
   def insertOrUpdateProfileSingle(
-    profile: Profile,
-    laboratoryInstanceOrigin: String,
-    laboratoryImmediateInstance: String,
-    laboratory: String,
-    allowFromOtherInstances: Boolean = false
-  ): Future[SampleCode] = {
+                                   profile: Profile,
+                                   laboratoryInstanceOrigin: String,
+                                   laboratoryImmediateInstance: String,
+                                   laboratory: String,
+                                   allowFromOtherInstances: Boolean = false
+                                 ): Future[SampleCode] = {
 
     this.existProfileData(profile.globalCode).flatMap {
       case true =>
@@ -862,9 +877,10 @@ class InterconnectionServiceImpl @Inject()(
   }
 
   def approveProfile(
-    profileApproval: ProfileApproval,
-    isCategoryModification: Boolean = false
-  ): Future[Either[String, SampleCode]] = {
+                      profileApproval: ProfileApproval,
+                      isCategoryModification: Boolean = false,
+                      user: String
+                    ): Future[Either[String, SampleCode]] = {
     superiorInstanceProfileApprovalRepository
       .findByGlobalCode(profileApproval.globalCode)
       .flatMap {
@@ -890,55 +906,57 @@ class InterconnectionServiceImpl @Inject()(
                   ),
                   allowFromOtherInstances = true
                 )
-                .flatMap {
-                  sampleCode => {
-                    // disparar el proceso de match
-                    //                Right(profileService.fireMatching(sampleCode))
-                    // notificar a la instancia inferior que la superior le aprobó el perfil
-                    this.notifyChangeStatus(
-                      row.globalCode,
-                      row.laboratoryImmediateInstance,
-                      APROBADA,
-                      isCategoryModification = isCategoryModification
-                    ).flatMap {
-                      _ => superiorInstanceProfileApprovalRepository
-                        .delete(row.globalCode)
+                  .flatMap {
+                    sampleCode => {
+                      // disparar el proceso de match
+                      //                Right(profileService.fireMatching(sampleCode))
+                      // notificar a la instancia inferior que la superior le aprobó el perfil
+                      this.notifyApprovalChangeStatus(
+                        row.globalCode,
+                        row.laboratoryImmediateInstance,
+                        APROBADA,
+                        Some(user),
+                        isCategoryModification = isCategoryModification
+                      ).flatMap {
+                        _ =>
+                          superiorInstanceProfileApprovalRepository
+                            .delete(row.globalCode)
+                      }
+                    }
+                  }.recoverWith {
+                    case e: Exception => {
+                      logger.error("Error al importar el perfil ", e)
+                      superiorInstanceProfileApprovalRepository.upsert(
+                        SuperiorInstanceProfileApproval
+                        (id = 0L,
+                          globalCode = row.globalCode,
+                          profile = row.profile,
+                          laboratory = row.laboratory,
+                          laboratoryInstanceOrigin = row.laboratoryInstanceOrigin,
+                          laboratoryImmediateInstance = row.laboratoryImmediateInstance,
+                          sampleEntryDate = row.sampleEntryDate,
+                          errors = Some(e.getMessage),
+                          receptionDate = row.receptionDate,
+                          profileAssociated = row.profileAssociated)).map { _ => Left(e.getMessage) }
                     }
                   }
-                }.recoverWith {
-                  case e: Exception => {
-                    logger.error("Error al importar el perfil ", e)
-                    superiorInstanceProfileApprovalRepository.upsert(
-                      SuperiorInstanceProfileApproval
-                      (id = 0L,
-                        globalCode = row.globalCode,
-                        profile = row.profile,
-                        laboratory = row.laboratory,
-                        laboratoryInstanceOrigin = row.laboratoryInstanceOrigin,
-                        laboratoryImmediateInstance = row.laboratoryImmediateInstance,
-                        sampleEntryDate = row.sampleEntryDate,
-                        errors = Some(e.getMessage),
-                        receptionDate = row.receptionDate,
-                        profileAssociated = row.profileAssociated)).map { _ => Left(e.getMessage) }
-                  }
+              }
+              case Left(error) => {
+                logger.error("Error al importar el perfil " + error)
+
+                superiorInstanceProfileApprovalRepository.upsert(
+                  SuperiorInstanceProfileApproval
+                  (id = 0L,
+                    globalCode = row.globalCode,
+                    profile = row.profile,
+                    laboratory = row.laboratory,
+                    laboratoryInstanceOrigin = row.laboratoryInstanceOrigin,
+                    laboratoryImmediateInstance = row.laboratoryImmediateInstance,
+                    sampleEntryDate = row.sampleEntryDate,
+                    errors = Some(error),
+                    profileAssociated = row.profileAssociated)).map { _ => Left(error) }
               }
             }
-            case Left(error) => {
-              logger.error("Error al importar el perfil " + error)
-
-              superiorInstanceProfileApprovalRepository.upsert(
-                SuperiorInstanceProfileApproval
-                (id = 0L,
-                  globalCode = row.globalCode,
-                  profile = row.profile,
-                  laboratory = row.laboratory,
-                  laboratoryInstanceOrigin = row.laboratoryInstanceOrigin,
-                  laboratoryImmediateInstance = row.laboratoryImmediateInstance,
-                  sampleEntryDate = row.sampleEntryDate,
-                  errors = Some(error),
-                  profileAssociated = row.profileAssociated)).map { _ => Left(error) }
-            }
-          }
         }
       }.map {
         case Left(msg) => Left(profileApproval.globalCode + ": " + msg)
@@ -947,28 +965,29 @@ class InterconnectionServiceImpl @Inject()(
   }
 
   def rejectProfile(
-    profileApproval: ProfileApproval,
-    motive: String,
-    idMotive: Long,
-    user: Option[String] = None
-  ): Future[Either[String, Unit]] = {
+                     profileApproval: ProfileApproval,
+                     motive: String,
+                     idMotive: Long,
+                     user: String
+                   ): Future[Either[String, Unit]] = {
     superiorInstanceProfileApprovalRepository
       .findByGlobalCode(profileApproval.globalCode)
       .flatMap {
         case Right(p) =>
-          val modSetup = getModificationSetup(profileApproval)
+          val modSetup = getModificationSetup(profileApproval, user)
           modSetup
             .flatMap(
               setup =>
                 this
-                  .notifyChangeStatus(
+                  .notifyRejectionChangeStatus(
                     p.globalCode,
                     p.laboratoryImmediateInstance,
                     RECHAZADA,
-                    Some(motive),
+                    motive,
+                    user,
                     setup.isCategoryUpdated()
                   )
-                  .map( _ => (p, setup) )
+                  .map(_ => (p, setup))
             )
             .flatMap {
               case (p, setup) =>
@@ -977,7 +996,7 @@ class InterconnectionServiceImpl @Inject()(
                     .add(
                       Trace(
                         setup.globalCode,
-                        setup.assignee,
+                        user,
                         new Date(),
                         SuperiorCategoryChangeRejectedInfo
                       )
@@ -991,7 +1010,7 @@ class InterconnectionServiceImpl @Inject()(
                 val futureResponse = superiorInstanceProfileApprovalRepository
                   .deleteLogical(
                     p.globalCode,
-                    user,
+                    Some(user),
                     Some(
                       new java.sql.Timestamp(
                         Calendar
@@ -1011,7 +1030,7 @@ class InterconnectionServiceImpl @Inject()(
               }
             }
         case Left(msg) => Future.successful(Left(msg))
-    }
+      }
   }
 
   override def getPendingProfiles(profileApprovalSearch: ProfileApprovalSearch): Future[List[PendingProfileApproval]] = {
@@ -1024,13 +1043,17 @@ class InterconnectionServiceImpl @Inject()(
               this
                 .profileService
                 .getElectropherogramsByCode(SampleCode(pendingProfile.globalCode))
-                .map(electros => { pendingProfile.copy(hasElectropherogram = !electros.isEmpty) })
+                .map(electros => {
+                  pendingProfile.copy(hasElectropherogram = !electros.isEmpty)
+                })
                 .flatMap(
                   pendingProfile => {
                     this
                       .profileService
                       .getFilesByCode(SampleCode(pendingProfile.globalCode))
-                      .map(files => { pendingProfile.copy(hasFiles = !files.isEmpty) })
+                      .map(files => {
+                        pendingProfile.copy(hasFiles = !files.isEmpty)
+                      })
                   }
                 )
             }
@@ -1038,22 +1061,22 @@ class InterconnectionServiceImpl @Inject()(
         )
       })
   }
-  
+
   override def getTotalPendingProfiles(): Future[Long] = {
     superiorInstanceProfileApprovalRepository.getTotal()
   }
- 
+
   private def traceImportedProfile(
-    setup: ProfileCategoryModificationSetup
-  ): ProfileCategoryModificationSetup = {
+                                    setup: ProfileCategoryModificationSetup
+                                  ): ProfileCategoryModificationSetup = {
     setup match {
-      case ProfileCategoryModificationSetup(code, _, _, assignee, _, Some(Right(_))) =>
+      case ProfileCategoryModificationSetup(code, _, _, assignee, _, Some(Right(_)), userName) =>
         if (!setup.isCategoryUpdated()) {
           val traceInfo = ProfileImportedFromInferiorInfo
           traceService.add(
             Trace(
               code,
-              assignee,
+              userName,
               new Date(),
               traceInfo
             )
@@ -1063,13 +1086,13 @@ class InterconnectionServiceImpl @Inject()(
     }
     setup
   }
-  
+
   private def traceApprovedProfileWithDifferentCategory(
-    setup: ProfileCategoryModificationSetup
-  ) = {
+                                                         setup: ProfileCategoryModificationSetup
+                                                       ) = {
     setup match {
       case ProfileCategoryModificationSetup(
-        globalCode, Some(cCat), nCat, assignee, _, Some(Right(_))
+      globalCode, Some(cCat), nCat, assignee, _, Some(Right(_)), userName
       ) =>
         if (nCat.text != cCat.text) {
           val traceInfo = SuperiorInstanceCategoryModificationInfo(
@@ -1079,7 +1102,7 @@ class InterconnectionServiceImpl @Inject()(
           val _ = traceService.add(
             Trace(
               globalCode,
-              assignee,
+              userName,
               new Date(),
               traceInfo
             )
@@ -1089,12 +1112,12 @@ class InterconnectionServiceImpl @Inject()(
     }
     setup
   }
-  
+
   private def uploadToSuperiorInstanceIfCategoryIsModified(
-    setup: ProfileCategoryModificationSetup
-  ): ProfileCategoryModificationSetup = {
+                                                            setup: ProfileCategoryModificationSetup
+                                                          ): ProfileCategoryModificationSetup = {
     def getProfiles(prOpt: Option[Profile], globalCode: SampleCode):
-        Future[Either[String, (Profile, Option[ProfileData], Option[Profile])]] = {
+    Future[Either[String, (Profile, Option[ProfileData], Option[Profile])]] = {
       prOpt match {
         case Some(profile) =>
           for {
@@ -1116,9 +1139,10 @@ class InterconnectionServiceImpl @Inject()(
           Future.successful(Left(Messages("error.E0109")))
       }
     }
+
     def uploadProfile(
-      profiles: Either[String, (Profile, Option[ProfileData], Option[Profile])]
-    ): Future[Either[String, Unit]] = {
+                       profiles: Either[String, (Profile, Option[ProfileData], Option[Profile])]
+                     ): Future[Either[String, Unit]] = {
       profiles match {
         case Right((profile, Some(pd), associatedProfile)) =>
           doUploadProfileToSuperiorInstance(
@@ -1134,21 +1158,26 @@ class InterconnectionServiceImpl @Inject()(
         case _ => Future.successful(Left(Messages("error.E0109")))
       }
     }
+
     setup match {
       case ProfileCategoryModificationSetup(
-        globalCode, Some(cCat), nCat, _, _, Some(Right(_))
+      globalCode, Some(cCat), nCat, _, _, Some(Right(_)), _
       ) =>
         if (cCat.text != nCat.text) {
-          val forbiddenStatusToUpload = Seq(PENDING_DELETE, DELETED_IN_SUP_INS)
+          val forbiddenStatusToUpload = Seq(DELETE_IN_INF_INSTANCE_PENDING_SEND_TO_SUPERIOR, DELETE_IN_INF_INSTANCE_SENT_TO_SUPERIOR)
           profileDataService
             .getProfileUploadStatusByGlobalCode(globalCode)
             .flatMap {
               case Some(status) if !forbiddenStatusToUpload.contains(status) => {
-                  profileService
-                    .get(globalCode)
-                    .flatMap { getProfiles (_, globalCode)}
-                    .flatMap { uploadProfile }
-                }
+                profileService
+                  .get(globalCode)
+                  .flatMap {
+                    getProfiles(_, globalCode)
+                  }
+                  .flatMap {
+                    uploadProfile
+                  }
+              }
               case _ => Future.successful(Right(()))
             }
         } else {
@@ -1163,77 +1192,81 @@ class InterconnectionServiceImpl @Inject()(
   }
 
   private def getModificationSetup(
-    profileApproval: ProfileApproval
-  ): Future[ProfileCategoryModificationSetup] = {
+                                    profileApproval: ProfileApproval,
+                                    userName: String
+                                  ): Future[ProfileCategoryModificationSetup] = {
     val globalCode = profileApproval.globalCode
     for {
-     oldProfile <- profileDataService
-       .get(SampleCode(globalCode))
-     newProfile <- superiorInstanceProfileApprovalRepository
-       .buildUploadedProfile(globalCode)
+      oldProfile <- profileDataService
+        .get(SampleCode(globalCode))
+      newProfile <- superiorInstanceProfileApprovalRepository
+        .buildUploadedProfile(globalCode)
     } yield {
-     ProfileCategoryModificationSetup(
-       newProfile.get.globalCode,
-       oldProfile.map(_.category),
-       newProfile.get.categoryId,
-       newProfile.get.assignee,
-       profileApproval,
-       None
-     )
+      ProfileCategoryModificationSetup(
+        newProfile.get.globalCode,
+        oldProfile.map(_.category),
+        newProfile.get.categoryId,
+        newProfile.get.assignee,
+        profileApproval,
+        None,
+        userName
+      )
     }
   }
-  
+
   private def approveModificationSetup(
-    setup: ProfileCategoryModificationSetup
-  ): Future[ProfileCategoryModificationSetup] = {
+                                        setup: ProfileCategoryModificationSetup
+                                      ): Future[ProfileCategoryModificationSetup] = {
     for {
       profileResult <- approveProfile(
         setup.profileApproval,
-        setup.isCategoryUpdated()
+        setup.isCategoryUpdated(),
+        setup.userName
       )
     } yield {
       setup.copy(approvalResult = Some(profileResult))
     }
   }
-  
+
   private def solveApprovalNotification(
-    setup: ProfileCategoryModificationSetup
-  ): ProfileCategoryModificationSetup = {
+                                         setup: ProfileCategoryModificationSetup
+                                       ): ProfileCategoryModificationSetup = {
     setup match {
       case ProfileCategoryModificationSetup(
-        globalCode, _, _, _, _, Some(Right(_))
+      globalCode, _, _, _, _, Some(Right(_)), _
       ) => solveNotificationProfileApproval(globalCode.text)
       case _ => ()
     }
     setup
   }
-  
+
   private def launchFindMatches(
-    setup: ProfileCategoryModificationSetup
-  ): ProfileCategoryModificationSetup = {
+                                 setup: ProfileCategoryModificationSetup
+                               ): ProfileCategoryModificationSetup = {
     setup match {
       case ProfileCategoryModificationSetup(
-        globalCode, _, _, _, _, Some(Right(_))
+      globalCode, _, _, _, _, Some(Right(_)), _
       ) => profileService.fireMatching(globalCode)
       case _ => ()
     }
     setup
   }
 
-
+  //Se fija si es cambio de categoría
   override def approveProfiles(
-    profileApprovals: List[ProfileApproval]
-  ): Future[Either[String, Unit]] = {
+                                profileApprovals: List[ProfileApproval],
+                                userName: String
+                              ): Future[Either[String, Unit]] = {
     val extractErrors:
-        ProfileCategoryModificationSetup => Either[String, Unit] = {
+      ProfileCategoryModificationSetup => Either[String, Unit] = {
       setup =>
         setup.approvalResult match {
           case Some(Left(msg)) => Left(msg)
-          case _               => Right(())
+          case _ => Right(())
         }
     }
     val compileErrors:
-        List[Either[String, Unit]] => Either[String, Unit] = {
+      List[Either[String, Unit]] => Either[String, Unit] = {
       errors =>
         if (errors.forall(_.isRight)) {
           Right(())
@@ -1246,9 +1279,9 @@ class InterconnectionServiceImpl @Inject()(
         }
     }
     Future
-      .sequence(profileApprovals.map(getModificationSetup))
+      .sequence(profileApprovals.map(profileApproval => getModificationSetup(profileApproval, userName)))
       .map(_.map(approveModificationSetup))
-      .flatMap( Future.sequence(_) )
+      .flatMap(Future.sequence(_))
       .map(_.map(traceImportedProfile))
       .map(_.map(traceApprovedProfileWithDifferentCategory))
       .map(_.map(solveApprovalNotification))
@@ -1270,35 +1303,31 @@ class InterconnectionServiceImpl @Inject()(
     }
   }
 
-  override def notifyChangeStatus(
-    globalCode: String,
-    labCode: String,
-    status: Long,
-    motive: Option[String] = None,
-    isCategoryModification:Boolean = false
-  ): Future[Unit] = {
+
+  override def notifyApprovalChangeStatus(
+                                           globalCode: String,
+                                           labCode: String,
+                                           status: Long,
+                                           userName: Option[String] = None,
+                                           isCategoryModification: Boolean = false
+                                         ): Future[Unit] = {
     Future {
       inferiorInstanceRepository
         .findByLabCode(labCode)
         .flatMap {
           case None => Future.successful(Right(()))
           case Some(inferiorInstance) => {
-            val holder: WSRequestHolder = if (motive.isEmpty) {
+            val holder: WSRequestHolder =
               client.url(protocol + inferiorInstance.url + "/inferior/profile/status")
                 .withQueryString("globalCode" -> globalCode)
                 .withQueryString("status" -> String.valueOf(status))
+                .withQueryString("userName" -> userName.get)
                 .withQueryString("isCategoryModification" -> isCategoryModification.toString)
-            }
-            else {
-              client.url(protocol + inferiorInstance.url + "/inferior/profile/status")
-                .withQueryString("globalCode" -> globalCode)
-                .withQueryString("status" -> String.valueOf(status))
-                .withQueryString("motive" -> motive.get)
-                .withQueryString("isCategoryModification" -> isCategoryModification.toString)
-            }
             val futureResponse: Future[WSResponse] = this.sendRequestQueue(holder.withMethod("PUT"))
             futureResponse.flatMap { result => {
               if (result.status == 200) {
+                // Actualizar PROFILE_RECEIVED con el perfil status en APPROVED_THIS_INSTANCE_INF_INFORMED (18L)
+                profileDataService.updateProfileReceivedStatus(labCode, globalCode, APPROVED_THIS_INSTANCE_INF_INFORMED, "", isCategoryModification, "", userName)
                 logger.debug("se actualizó correctamente el status del perfil en la instancia inferior")
                 Future.successful(Right(()))
               } else {
@@ -1311,194 +1340,244 @@ class InterconnectionServiceImpl @Inject()(
             }
           }
         }
-      }
-      Future.successful(())
+    }
+    Future.successful(())
   }
+
+  override def notifyRejectionChangeStatus(
+                                            globalCode: String,
+                                            labCode: String,
+                                            status: Long,
+                                            motive: String,
+                                            userName: String,
+                                            isCategoryModification: Boolean = false
+                                          ): Future[Unit] = {
+    Future {
+      inferiorInstanceRepository
+        .findByLabCode(labCode)
+        .flatMap {
+          case None => Future.successful(Right(()))
+          case Some(inferiorInstance) => {
+            val holder: WSRequestHolder =
+              client.url(protocol + inferiorInstance.url + "/inferior/profile/status")
+                .withQueryString("globalCode" -> globalCode)
+                .withQueryString("status" -> String.valueOf(status))
+                .withQueryString("userName" -> userName)
+                .withQueryString("motive" -> motive)
+                .withQueryString("isCategoryModification" -> isCategoryModification.toString)
+            val futureResponse: Future[WSResponse] = this.sendRequestQueue(holder.withMethod("PUT"))
+            futureResponse.flatMap { result => {
+              if (result.status == 200) {
+                // Poner el status del perfil en PROFILE_RECEIVED en REJECTED_THIS_INSTANCE_INF_INFORMED (17L)
+                profileDataService.updateProfileReceivedStatus(labCode, globalCode, REJECTED_THIS_INSTANCE_INF_INFORMED, motive, isCategoryModification, "", Some(userName))
+                logger.debug("se actualizó correctamente el status del perfil en la instancia inferior")
+                Future.successful(Right(()))
+              } else {
+                logger.debug(Messages("error.E0710"))
+                Future.successful(Left(Messages("error.E0710")))
+              }
+            }
+            }.recoverWith {
+              case _: Exception => Future.successful(Left(Messages("error.E0710")))
+            }
+          }
+        }
+    }
+    Future.successful(())
+  }
+
 
   override def uploadProfile(globalCode: String): Future[Either[String, Unit]] = {
     val sampleCode = SampleCode(globalCode)
     profileService
       .get(sampleCode)
       .flatMap {
-      prof => {
-        prof match {
-          case Some(profile) => {
-            profileDataService
-              .get(sampleCode)
-              .flatMap {
-                pd => {
-                  pd match {
-                    case Some(pd) => {
-                      categoryService.getCategory(pd.category) match {
-                        case Some(category) => {
-                          if (category.replicate) {
-                            getProfileAssociatedCode(profile) match {
-                              case None => {
-                                this.doUploadProfileToSuperiorInstance(
-                                  profile.copy(
-                                    internalSampleCode = profile.globalCode.text
-                                  ),
-                                  pd.copy(
-                                    internalSampleCode = profile.globalCode.text
+        prof => {
+          prof match {
+            case Some(profile) => {
+              profileDataService
+                .get(sampleCode)
+                .flatMap {
+                  pd => {
+                    pd match {
+                      case Some(pd) => {
+                        categoryService.getCategory(pd.category) match {
+                          case Some(category) => {
+                            if (category.replicate) {
+                              getProfileAssociatedCode(profile) match {
+                                case None => {
+                                  this.doUploadProfileToSuperiorInstance(
+                                    profile.copy(
+                                      internalSampleCode = profile.globalCode.text
+                                    ),
+                                    pd.copy(
+                                      internalSampleCode = profile.globalCode.text
+                                    )
                                   )
-                                )
-                              }
-                              case Some(sampleCode) => {
-                                profileService
-                                  .findByCode(sampleCode)
-                                  .flatMap(
-                                    profileAssociated => {
-                                      this.doUploadProfileToSuperiorInstance(
-                                        profile.copy(internalSampleCode = profile.globalCode.text),
-                                        pd.copy(internalSampleCode = profile.globalCode.text),
-                                        profileAssociated
-                                          .map(
-                                            p => p.copy(
-                                              internalSampleCode = p.globalCode.text,
-                                              labeledGenotypification = None,
-                                              matcheable = false
+                                }
+                                case Some(sampleCode) => {
+                                  profileService
+                                    .findByCode(sampleCode)
+                                    .flatMap(
+                                      profileAssociated => {
+                                        this.doUploadProfileToSuperiorInstance(
+                                          profile.copy(internalSampleCode = profile.globalCode.text),
+                                          pd.copy(internalSampleCode = profile.globalCode.text),
+                                          profileAssociated
+                                            .map(
+                                              p => p.copy(
+                                                internalSampleCode = p.globalCode.text,
+                                                labeledGenotypification = None,
+                                                matcheable = false
+                                              )
                                             )
-                                          )
-                                      )
-                                })
+                                        )
+                                      })
+                                }
                               }
+                            } else {
+                              Future.successful(Left(Messages("error.E0725")))
                             }
-                          } else {
-                            Future.successful(Left(Messages("error.E0725")))
+                          }
+                          case None => {
+                            Future.successful(Left(Messages("error.E0666")))
                           }
                         }
-                        case None => {
-                          Future.successful(Left(Messages("error.E0666")))
-                        }
                       }
-                    }
-                    case None => {
-                      Future.successful(Left(Messages("error.E0109")))
+                      case None => {
+                        Future.successful(Left(Messages("error.E0109")))
+                      }
                     }
                   }
                 }
-              }
-          }
-          case None => {
-            Future.successful(Left(Messages("error.E0109")))
+            }
+            case None => {
+              Future.successful(Left(Messages("error.E0109")))
+            }
           }
         }
       }
-    }
   }
 
-  override def updateUploadStatus(
-    globalCode: String,
-    status: Long,
-    motive: Option[String] = None,
-    isCategoryModification:Boolean = false
-  ): Future[Either[String, Unit]] = {
-      val profileData = Await
-        .result(
-          profileDataService.findByCode(SampleCode(globalCode)),
-          Duration.Inf
-        )
-      profileData match {
-        case Some(p) =>
-          logger.info("1. Encontro el perfil")
-          //enviar notificacion al assignee y grabar en la auditoria
-          status match {
-            case RECHAZADA =>
-              logger.info("2. es rechazada, envio notif de rechazo")
-              this.notify(
-                RejectedProfileInfo(
-                  SampleCode(globalCode),
-                  Some(isCategoryModification)
-                ),
-                Permission.INTERCON_NOTIF,
-                List(p.assignee)
-              )
-              logger.info("3. Notif enviada, voy a guardar trazabilidad de rechazo")
-              val c_trace = if (isCategoryModification) {
+  def updateUploadStatus(
+                          globalCode: String,
+                          status: Long,
+                          motive: Option[String] = None,
+                          userName: String,
+                          isCategoryModification: Boolean = false
+                        ): Future[Either[String, Unit]] = {
+    val profileData = Await
+      .result(
+        profileDataService.findByCode(SampleCode(globalCode)),
+        Duration.Inf
+      )
+    profileData match {
+      case Some(p) =>
+        logger.info("1. Encontro el perfil")
+        //enviar notificacion al assignee y grabar en la auditoria
+        status match {
+          case RECHAZADA =>
+            logger.info("2. es rechazada, envio notif de rechazo")
+            this.notify(
+              RejectedProfileInfo(
+                SampleCode(globalCode),
+                userName,
+                Some(isCategoryModification)
+              ),
+              Permission.INTERCON_NOTIF,
+              List(userName)
+              //List(p.assignee)
+            )
+            logger.info("3. Notif enviada, voy a guardar trazabilidad de rechazo")
+            val c_trace: TraceInfo = // Explicit type annotation here!
+              if (isCategoryModification) {
                 trace.CategoryChangeRejectedInSupInfo
               } else {
-                trace.ProfileRejectedInSuperiorInfo
+                // create an instance passing motive
+                ProfileRejectedInSuperiorInfo(motive.getOrElse("Motivo no especificado"))
               }
-              traceService.add(
-                Trace(
-                  SampleCode(globalCode),
-                  p.assignee,
-                  new Date(),
-                  c_trace
-                )
+            traceService.add(
+              Trace(
+                SampleCode(globalCode),
+                userName,
+                new Date(),
+                c_trace
               )
-              logger.info("4. Trazabilidad guardada")
-            case APROBADA =>
-              logger.info("2. es aprobada, envio notif de aprobada")
-              this.notify(
-                AprovedProfileInfo(SampleCode(globalCode), Some(isCategoryModification)),
-                Permission.INTERCON_NOTIF,
-                List(p.assignee)
+            )
+            logger.info("4. Trazabilidad guardada")
+          case DELETE_IN_SUP_INSTANCE_SENT_TO_INFERIOR => // Add this case
+            logger.info("2. Status is pending delete")
+            val motiveParts = motive.getOrElse("").split(",").map(_.trim)
+            val solicitor = if (motiveParts.nonEmpty) motiveParts(0) else ""
+            val motiveText = if (motiveParts.length > 1) motiveParts(1) else ""
+            val deletedMotive = DeletedMotive(solicitor, motiveText)
+            this.receiveDeleteProfile(globalCode, deletedMotive, currentInstanceLabCode, "SUPERIOR", false, userName)
+          //Agregar trazabilidad de pendiente de baja
+          case APROBADA =>
+            logger.info("2. es aprobada, envio notif de aprobada")
+            this.notify(
+              AprovedProfileInfo(SampleCode(globalCode), userName, Some(isCategoryModification)),
+              Permission.INTERCON_NOTIF,
+              List(userName)
+            )
+            logger.info("3. Notif enviada, voy a guardar trazabilidad de aprobada")
+            val c_trace: TraceInfo = if (isCategoryModification) {
+              trace.ProfileCategoryChangeAprovedInSuperiorInfo
+            } else {
+              trace.ProfileAprovedInSuperiorInfo
+            }
+            traceService.add(
+              Trace(
+                SampleCode(globalCode),
+                userName,
+                new Date(),
+                c_trace
               )
-              logger.info("3. Notif enviada, voy a guardar trazabilidad de aprobada")
-              val c_trace = if (isCategoryModification) {
-                trace.ProfileCategoryChangeAprovedInSuperiorInfo
-              } else {
-                trace.ProfileAprovedInSuperiorInfo
-              }
-              traceService.add(
-                Trace(
-                  SampleCode(globalCode),
-                  p.assignee,
-                  new Date(),
-                  c_trace
-                )
-              )
-              logger.info("4. Trazabilidad guardada")
-          }
-        case None => ()
-      }
-    profileDataService.updateUploadStatus(globalCode, status, motive)
-  }
-
-  override def receiveDeleteProfile(globalCode: String, motive: DeletedMotive, labCodeInstanceOrigin: String, labCodeImmediateInstance: String): Future[Either[String, Unit]] = {
-    //    Forward to rest of the laboratory network
-    Future {
-      if (labCodeImmediateInstance != superiorLabCode) {
-        this.sendDeletionToSuperiorInstance(SampleCode(globalCode), motive)
-      }
-      this.sendDeletionToAllInferiorInstancesExceptPrevious(SampleCode(globalCode), motive, labCodeInstanceOrigin)
-    }
-    async {
-      val deleteProfile = await(this.deleteProf(SampleCode(globalCode), motive, motive.solicitor))
-      deleteProfile match {
-        case Left(_) => deleteProfile
-        case Right(_) => await(this.deleteApproval(globalCode
-          , Some(motive.solicitor)
-          , Some(new java.sql.Timestamp(Calendar.getInstance().getTime().getTime()))
-          , Some(motive.selectedMotive)
-          , Some(motive.motive)))
-      }
-    }
-  }
-
-  def deleteProf(globalCode: SampleCode, motive: DeletedMotive, userId: String): Future[Either[String, Unit]] = {
-    async {
-      await(profileService.findByCode(globalCode)) match {
-        case None => Right(())
-        case Some(p) => {
-          if (!this.isFromCurrentInstance(globalCode)) {
-            await(profileDataService.deleteProfile(globalCode, motive, userId, false).map {
-              case Left(m) => Left(m)
-              case _ => {
-                if (!p.deleted) {
-                  this.notify(DeleteProfileInfo(globalCode), Permission.INTERCON_NOTIF)
-                }
-                Right(())
-              }
-            })
-          } else {
-            Left("No puede borrar un perfil de la propia instancia")
-          }
+            )
+            logger.info("4. Trazabilidad guardada")
         }
-      }
+      case _ => // Add default case to handle unexpected values
+        logger.warn(s"Unexpected status value: $status")
+      case None => ()
+    }
+    profileDataService.updateUploadStatus(globalCode, status, motive, Option.empty[String], Some(userName))
+  }
+
+  // Se ejecuta cada vez que se recibe la notificación del borrado de un perfil en una instancia inferior (up:true) o en una superior(up:false)
+  override def receiveDeleteProfile(globalCode: String, motive: DeletedMotive, labCodeInstanceOrigin: String, labCodeImmediateInstance: String, up: Boolean, userName: String): Future[Either[String, Unit]] = {
+    // Si se va notificar el borrado de un perfil desde una instancia inferior (up: quiere decir que el pedido viene de una instanica infeiror)
+    // Hay que hacer un update en PROFILE_RECEIVED cambiando el estado a 6
+    if (up) {
+      logger.info(s"ReceiveDeleteProfile from inferior instance called for globalCode: $globalCode, labCodeInstanceOrigin: $labCodeInstanceOrigin, labCodeImmediateInstance: $labCodeImmediateInstance")
+      // Hago el update de la tabla PROFILE_RECEIVED con status 6 (Notificación de eliminación recibida en instancia superior)
+      this.profileDataService.updateProfileReceivedStatus(labCodeInstanceOrigin, globalCode, DELETED_IN_INF_INS, s"Solicitante: ${motive.solicitor}. Motivo: ${motive.motive}.", false, interconnection_error = "", Some(userName))
+      // Agregar al trace del perfil que fue eliminado en la instancia inferior
+      val c_trace: TraceInfo = trace.InterconnectionDeletedInInferiorInfo(Option(motive.solicitor + "," + motive.motive).getOrElse("Motivo no especificado"))
+      traceService.add(Trace(SampleCode(globalCode), userName, new Date(), c_trace)).map { _ => Right(()) }
+      this.notify(
+        DeleteProfileInInferiorInstanceInfo(SampleCode(globalCode), userName),
+        Permission.INTERCON_NOTIF,
+        List(userName)
+      )
+      Future.successful(Right(()))
+    }
+    else {
+      // Recibo un delete de un perfil de la instancia superior
+      // Debo actualizar el estado en PROFILE_UPLOADED a 20: Instancia inferior notificada de la eliminación del perfil en la instancia superior
+      logger.info(s"ReceiveDeleteProfile from superior instance called for globalCode: $globalCode, labCodeInstanceOrigin: $labCodeInstanceOrigin, labCodeImmediateInstance: $labCodeImmediateInstance")
+      this.profileDataService.updateUploadStatus(globalCode, DELETE_IN_SUP_INSTANCE_SENT_TO_INFERIOR, Some(s"Solicitante: ${motive.solicitor}. Motivo: ${motive.motive}."), Some(""), Some(userName))
+      val c_trace: TraceInfo = trace.InterconnectionDeletedInSuperiorInfo(Option(motive.solicitor + "," + motive.motive).getOrElse("Motivo no especificado"))
+      traceService.add(Trace(SampleCode(globalCode), userName, new Date(), c_trace)).map { _ => Right(()) }
+      this.notify(
+        DeleteProfileInSuperiorInstanceInfo(SampleCode(globalCode), userName),
+        Permission.INTERCON_NOTIF,
+        List(userName)
+      )
+      // TODO: Poner el perfil en REPLICADO NO: QUE LO HAGO EN FullTextSearchService invcando ProfileDataRepository.getIsProfileReplicated
+      Future.successful(Right(()))
     }
   }
+
 
   def deleteApproval(globalCode: String,
                      rejectionUser: Option[String] = None,
@@ -1517,88 +1596,91 @@ class InterconnectionServiceImpl @Inject()(
     }
   }
 
-  override def inferiorDeleteProfile(globalCode: SampleCode, motive: DeletedMotive): Unit = {
-    doInferiorDeleteProfile(globalCode, motive)
-    ()
+  // Llamado desde profileDataServiceImpl.deleteProfile cuando se borra un perfil que debe notificar a la instancia superior
+  def inferiorDeleteProfile(globalCode: SampleCode, motive: DeletedMotive, supUrl: String, userName: String): Unit = {
+    doInferiorDeleteProfile(globalCode, motive, supUrl, userName)
   }
 
-  def sendDeletionToSuperiorInstance(globalCode: SampleCode, motive: DeletedMotive): Future[Either[String, Unit]] = {
-
-    connectionRepository.getSupInstanceUrl().flatMap {
-      case Some(supUrl) => {
-        sendDeletionToInstance(globalCode, motive, protocol + supUrl, currentInstanceLabCode, currentInstanceLabCode, superiorLabCode)
-      }
-      case _ => {
-        Future.successful(Left("No está configurada la instancia superior"))
-      }
-    }.recoverWith {
-      case _: Exception => Future.successful(Left("No se pudo notificar el status a la instancia inferior"))
-    }
+  // Mando la información de borrado a la instancia superior
+  def sendDeletionToSuperiorInstance(globalCode: SampleCode, motive: DeletedMotive, supUrl: String, userName: String): Future[Either[String, Unit]] = {
+    sendDeletionToInstance(globalCode, motive, protocol + supUrl, currentInstanceLabCode, currentInstanceLabCode, superiorLabCode, true, userName)
   }
 
-  def sendDeletionToAllInferiorInstancesExceptPrevious(globalCode: SampleCode, motive: DeletedMotive, laboratoryOrigin: String): Future[Either[String, Unit]] = {
-    inferiorInstanceRepository.findAll().flatMap {
+
+  def sendDeletionToInstance(globalCode: SampleCode, motive: DeletedMotive, url: String, laboratoryOrigin: String, laboratoryImmediateInstance: String, labCode: String, up: Boolean, userName: String): Future[Either[String, Unit]] = {
+    profileDataService.updateProfileSentStatus(globalCode.text, DELETE_IN_INF_INSTANCE_PENDING_SEND_TO_SUPERIOR, Some(s"Usuario: ${motive.solicitor}. Motivo: ${motive.motive}."), labCode, Option.empty[String], Some(userName)).flatMap {
       case Left(l) => Future.successful(Left(l))
-      case Right(inferiorInstances) => {
-        val inferiorInstancesToSend = inferiorInstances.filter(_.laboratory != laboratoryOrigin)
-        Future.sequence(inferiorInstancesToSend.map(inferiorInstanceFull => {
-          sendDeletionToInstance(globalCode, motive, protocol + inferiorInstanceFull.url, laboratoryOrigin, superiorLabCode, inferiorInstanceFull.laboratory)
-            .recoverWith {
-              case _: Exception => Future.successful(Left("No se pudo notificar el status a la instancia inferior"))
-            }
-        })).map(list => {
-          if (list.forall(_.isRight)) {
-            Right(())
-          } else {
-            Left("No se pudo notificar el status a la instancia inferior")
-          }
-        })
+      case Right(_) => this.doSendDeletionToInstance(globalCode, motive, url, laboratoryOrigin, laboratoryImmediateInstance, labCode, up, userName).recoverWith {
+        case ex: Exception =>
+          logger.error(s"Error during doSendDeletionToInstance for $globalCode at $url", ex)
+          // Return a Left with an error message but DO NOT modify the motive in profile_uploaded table
+          Future.successful(Left("Failed to notify deletion due to: " + ex.getMessage))
       }
     }
   }
 
-  def sendDeletionToInstance(globalCode: SampleCode, motive: DeletedMotive, url: String, laboratoryOrigin: String, laboratoryImmediateInstance: String, labCode: String): Future[Either[String, Unit]] = {
-    profileDataService.updateProfileSentStatus(globalCode.text, PENDING_DELETE, Some(motive.motive), labCode).flatMap {
-      case Left(l) => Future.successful(Left(l))
-      case Right(_) => this.doSendDeletionToInstance(globalCode, motive, url, laboratoryOrigin, laboratoryImmediateInstance, labCode)
-    }
-  }
+  def doSendDeletionToInstance(globalCode: SampleCode, motive: DeletedMotive, url: String, laboratoryOrigin: String, laboratoryImmediateInstance: String, labCode: String, up: Boolean, userName: String): Future[Either[String, Unit]] = {
+    logger.debug(s"Attempting to delete profile ${globalCode.text} at URL: $url") // Added logging
+    val deleteUrl = url + "/superior/profile/" + globalCode.text + "/" + userName
+    async {
+      val holder: WSRequestHolder = addHeadersURL(client.url(deleteUrl))
+        .withHeaders(
+          "Content-Type" -> "application/json",
+          HeaderInsterconnections.labCode -> currentInstanceLabCode,
+          HeaderInsterconnections.laboratoryOrigin -> laboratoryOrigin,
+          HeaderInsterconnections.laboratoryImmediateInstance -> laboratoryImmediateInstance
+        )
+        .withBody(InMemoryBody(Json.toJson(motive).toString().getBytes))
 
-  def doSendDeletionToInstance(globalCode: SampleCode, motive: DeletedMotive, url: String, laboratoryOrigin: String, laboratoryImmediateInstance: String, labCode: String): Future[Either[String, Unit]] = {
-    this.getConnectionsStatus(url).flatMap {
-      case Left(_) => Future.successful(Left("No se pudo notificar el borrado a la instancia inferior"))
-      case Right(_) => {
-        async {
-          val holder: WSRequestHolder = addHeadersURL(client.url(url + "/superior/profile/" + globalCode.text))
-            .withHeaders("Content-Type" -> "application/json")
-            .withHeaders(HeaderInsterconnections.labCode -> currentInstanceLabCode)
-            .withHeaders(HeaderInsterconnections.laboratoryOrigin -> laboratoryOrigin)
-            .withHeaders(HeaderInsterconnections.laboratoryImmediateInstance -> laboratoryImmediateInstance)
-            .withBody(InMemoryBody(Json.toJson(motive).toString().getBytes))
-          val result = await(this.sendRequestQueue(holder.withMethod("DELETE")))
+      logger.debug(s"Sending DELETE request to: $deleteUrl")
+      val result = await(this.sendRequestQueue(holder.withMethod("DELETE")))
 
-          if (result.status == play.api.http.Status.OK) {
-            if (labCode == superiorLabCode) {
-              profileDataService.updateUploadStatus(globalCode.text, DELETED_IN_SUP_INS, Some(motive.motive))
-            } else {
-              profileDataService.updateProfileSentStatus(globalCode.text, DELETED_IN_SUP_INS, Some(motive.motive), labCode)
-            }
-          } else if (result.status == play.api.http.Status.BAD_REQUEST) {
-            val node = play.libs.Json.parse(result.body).findValue("message")
-            Future.successful(Left(node.asText("No se pudo notificar el borrado a la instancia inferior")))
-          } else {
-            Future.successful(Left("No se pudo notificar el borrado a la instancia inferior"))
-          }
-          Right(())
-        }.recoverWith {
-          case _: Exception => Future.successful(Left("No se pudo notificar el borrado a la instancia inferior"))
-        }
+      logger.debug(s"DELETE request to $deleteUrl returned status: ${result.status}")
+
+      if (result.status == play.api.http.Status.OK) {
+        logger.debug(s"DELETE request to $deleteUrl was successful")
+        await(profileDataService.updateProfileReceivedStatus(labCode, globalCode.text, DELETE_IN_INF_INSTANCE_SENT_TO_SUPERIOR, motive.motive, false, "", Some(userName)))
+        Right(())
+      } else if (result.status == play.api.http.Status.BAD_REQUEST) {
+        logger.warn(s"DELETE request to $deleteUrl returned BAD_REQUEST")
+        val node = play.libs.Json.parse(result.body).findValue("message")
+        val errorMessage = node.asText(s"No se pudo notificar el borrado a la instancia $deleteUrl")
+        logger.warn(s"BAD_REQUEST error message: $errorMessage")
+        Left(errorMessage)
+      } else {
+        logger.error(s"DELETE request to $deleteUrl failed with status: ${result.status} and body: ${result.body}")
+        Left(s"No se pudo notificar el borrado a la instancia: $url")
       }
     }
-
   }
 
-  def doInferiorDeleteProfile(globalCode: SampleCode, motive: DeletedMotive): Future[Unit] = {
+  // Si el borrado es en una instancia superior, envío el delete a la instancia inferior
+  def sendDeletionToInferior(globalCode: String, motive: DeletedMotive, labCode: String, url: String, userName: String): Future[Either[String, Unit]] =  {
+    //Acá hago la lógica del borrado desde una instancia superior a la inferior
+    val holder: WSRequestHolder =
+      client.url(protocol + url + "/inferior/profile/status")
+        .withQueryString("globalCode" -> globalCode)
+        .withQueryString("status" -> DELETE_IN_SUP_INSTANCE_SENT_TO_INFERIOR.toString)
+        .withQueryString("userName" -> userName)
+        .withQueryString("motive" -> s"${motive.solicitor}, ${motive.motive}")
+        .withQueryString("isCategoryModification" -> false.toString)
+    val futureResponse: Future[WSResponse] = this.sendRequestQueue(holder.withMethod("PUT"))
+    futureResponse.flatMap { result => {
+      if (result.status == 200) {
+        // Poner el status del perfil en PROFILE_RECEIVED en DELETE_IN_SUP_INSTANCE_SENT_TO_INFERIOR
+        profileDataService.updateProfileReceivedStatus(labCode, globalCode, DELETE_IN_SUP_INSTANCE_SENT_TO_INFERIOR, s"Solicitante de la baja: " + motive.solicitor + ". Motivo: " + motive.motive, false, "", Some(userName))
+        logger.debug("se actualizó correctamente el status del perfil en la instancia inferior")
+        Future.successful(Right(()))
+      } else {
+        logger.error(s"Exception while sending deletion to inferior instance: ${result.body}")
+        Future.successful(Left(Messages("error.E0710")))
+      }
+    }
+    }
+  }
+
+
+  def doInferiorDeleteProfile(globalCode: SampleCode, motive: DeletedMotive, supUrl: String, userName: String): Future[Unit] = {
     async {
       val statusProfileUploaded = await(this.profileDataService.getProfileUploadStatusByGlobalCode(globalCode))
       val shouldDeleteProfileOnSupInst = statusProfileUploaded match {
@@ -1606,18 +1688,19 @@ class InterconnectionServiceImpl @Inject()(
         case Some(ENVIADA) => true
         case Some(RECHAZADA) => false
         case Some(APROBADA) => true
-        case Some(PENDING_DELETE) => true
+        case Some(DELETE_IN_INF_INSTANCE_PENDING_SEND_TO_SUPERIOR) => true
         case Some(_) => false
         case None => false
       }
       if (shouldDeleteProfileOnSupInst) {
-        await(this.profileDataService.updateUploadStatus(globalCode.text, PENDING_DELETE))
-        sendDeletionToSuperiorInstance(globalCode, motive).map {
+        await(this.profileDataService.updateUploadStatus(globalCode.text, DELETE_IN_INF_INSTANCE_PENDING_SEND_TO_SUPERIOR, Some(motive.motive), Option.empty[String], Some(userName)))
+        sendDeletionToSuperiorInstance(globalCode, motive, supUrl,userName).map {
           case Left(m) => {
-            this.profileDataService.updateUploadStatus(globalCode.text, PENDING_DELETE, Some(m))
+            logger.info(s"Error sending deletion to superior instance: $m")
+            this.profileDataService.updateUploadStatus(globalCode.text, DELETE_IN_INF_INSTANCE_PENDING_SEND_TO_SUPERIOR, Some(motive.motive), Some(s"Instancia $currentInstanceLabCode no pudo notificar la baja a la instancia superior: $m"), Some(userName))
           }
           case _ => {
-            this.profileDataService.updateUploadStatus(globalCode.text, DELETED_IN_SUP_INS)
+            this.profileDataService.updateUploadStatus(globalCode.text, DELETE_IN_INF_INSTANCE_SENT_TO_SUPERIOR, Some(motive.motive) ,Option.empty[String], Some(userName))
           }
         }
       }
@@ -1787,10 +1870,10 @@ class InterconnectionServiceImpl @Inject()(
         var fut = this.getCategoryReverseOptional(matchSuperiorInstance.superiorProfileAssociated).flatMap(categoryAssociated => {
           categoryService.getCategoriesMappingReverseById(matchSuperiorInstance.superiorProfile.categoryId).flatMap(categoryInferiorProfile => {
             this.insertOrUpdateProfile(matchSuperiorInstance.superiorProfile.copy(internalSampleCode = matchSuperiorInstance.superiorProfile.globalCode.text, matcheable = false, categoryId = categoryInferiorProfile.getOrElse(matchSuperiorInstance.superiorProfile.categoryId)),
-              matchSuperiorInstance.superiorProfileData.laboratoryOrigin,
-              matchSuperiorInstance.superiorProfileData.laboratoryImmediate,
-              matchSuperiorInstance.superiorProfileData.laboratory
-              , matchSuperiorInstance.superiorProfileAssociated.map(p => p.copy(internalSampleCode = p.globalCode.text, labeledGenotypification = None, matcheable = false, categoryId = categoryAssociated.getOrElse(p.categoryId))))
+                matchSuperiorInstance.superiorProfileData.laboratoryOrigin,
+                matchSuperiorInstance.superiorProfileData.laboratoryImmediate,
+                matchSuperiorInstance.superiorProfileData.laboratory
+                , matchSuperiorInstance.superiorProfileAssociated.map(p => p.copy(internalSampleCode = p.globalCode.text, labeledGenotypification = None, matcheable = false, categoryId = categoryAssociated.getOrElse(p.categoryId))))
               .flatMap { sampleCode => {
 
                 matchingRepository.insertMatchingResult(
@@ -1801,7 +1884,7 @@ class InterconnectionServiceImpl @Inject()(
           })
         })
         fut.onSuccess{ case _ =>
-         Await.result(this.forwardMatchToInferiorInstances(matchSuperiorInstance), Duration.Inf)
+          Await.result(this.forwardMatchToInferiorInstances(matchSuperiorInstance), Duration.Inf)
         }
         Future.successful(Right(()))
       }
@@ -1810,7 +1893,7 @@ class InterconnectionServiceImpl @Inject()(
   }
   private def forwardMatchToInferiorInstances(matchSuperiorInstance: MatchSuperiorInstance): Future[Unit] = {
     val profiles = List(matchSuperiorInstance.matchResult.leftProfile.globalCode,
-                        matchSuperiorInstance.matchResult.rightProfile.globalCode)
+      matchSuperiorInstance.matchResult.rightProfile.globalCode)
     val globalCode = profiles.filter(profile => profile != matchSuperiorInstance.superiorProfile.globalCode).head
     if(!this.isFromCurrentInstance(globalCode)){
       profileDataService.getExternalProfileDataByGlobalCode(globalCode.text).flatMap(externalProfile => {
@@ -1828,8 +1911,8 @@ class InterconnectionServiceImpl @Inject()(
       case None => Future.successful(Right(()))
       case Some(inferiorInstance) => {
         this.updateMatchSendStatus(matchSuperiorInstance.matchResult._id.id, Some(laboratory), Some(MATCH_SEND_PENDING), None, Some(outputJsonString)).flatMap(_ => {
-        this.sendRequestMatch(outputJsonString, inferiorInstance.url, laboratory, matchSuperiorInstance.matchResult._id.id,
-          List(matchSuperiorInstance.superiorProfile.globalCode.text) ::: matchSuperiorInstance.superiorProfile.associatedTo.map(list => list.map(_.text)).getOrElse(Nil))
+          this.sendRequestMatch(outputJsonString, inferiorInstance.url, laboratory, matchSuperiorInstance.matchResult._id.id,
+            List(matchSuperiorInstance.superiorProfile.globalCode.text) ::: matchSuperiorInstance.superiorProfile.associatedTo.map(list => list.map(_.text)).getOrElse(Nil))
         })
       }
     }.map(x => ())
@@ -1843,9 +1926,9 @@ class InterconnectionServiceImpl @Inject()(
     }
   }
 
-  def traceMatch(left: SampleCode, right: SampleCode, matchingId: String, analysisType: Int, assignee: String): Unit = {
+  def traceMatch(left: SampleCode, right: SampleCode, matchingId: String, analysisType: Int, userName: String): Unit = {
     if (left.text.contains(currentInstanceLabCode)) {
-      traceService.add(Trace(left, assignee, new Date(),
+      traceService.add(Trace(left, userName, new Date(),
         MatchInfo(matchingId, right, analysisType, MatchTypeInfo.Insert)))
     }
   }
@@ -1970,7 +2053,7 @@ class InterconnectionServiceImpl @Inject()(
       case Some(ENVIADA) => true
       case Some(RECHAZADA) => false
       case Some(APROBADA) => true
-      case Some(PENDING_DELETE) => false
+      case Some(DELETE_IN_INF_INSTANCE_PENDING_SEND_TO_SUPERIOR) => false
       case Some(_) => false
       case None => false
     }
@@ -1989,8 +2072,8 @@ class InterconnectionServiceImpl @Inject()(
           .filter(_._2 != labImmediate)
           .filter(x => (x._2 != superiorLabCode && !onlyUpload) || (x._2 == superiorLabCode && sendToSuperior) )
           .foreach(url => {
-          sendConvertStatus(convertStatus, url._1, url._2)
-        })
+            sendConvertStatus(convertStatus, url._1, url._2)
+          })
       }
     }
   }
@@ -2030,31 +2113,31 @@ class InterconnectionServiceImpl @Inject()(
     val outputJson = Json.toJson(convertStatus)
     val outputJsonString = outputJson.toString
     this.markHitOrDiscardPending(convertStatus, Some(outputJsonString), labcode).map {
-      case Left(_) => {
-        Future.successful(())
-      }
-      case Right(()) => {
-        this.getConnectionsStatus(url).flatMap {
-          case Left(_) => Future.successful(Left("No se pudo enviar el status del match"))
-          case Right(_) => {
-            this.sendRequestQueue(holder.withMethod("POST"), outputJsonString).flatMap { result => {
-              if (result.status == 200) {
-                logger.debug("Se envió correctamente el status del match")
-                // Actualizar el estado a enviado
-                this.markHitOrDiscardSent(convertStatus, Some(outputJsonString), labcode)
-                Future.successful(Right(()))
-              } else {
-                logger.error(result.body)
-                // Actualizar el estado a error
-                logger.debug("No se pudo enviar el status del match")
-                Future.successful(Left("No se pudo enviar el status del match"))
+        case Left(_) => {
+          Future.successful(())
+        }
+        case Right(()) => {
+          this.getConnectionsStatus(url).flatMap {
+            case Left(_) => Future.successful(Left("No se pudo enviar el status del match"))
+            case Right(_) => {
+              this.sendRequestQueue(holder.withMethod("POST"), outputJsonString).flatMap { result => {
+                if (result.status == 200) {
+                  logger.debug("Se envió correctamente el status del match")
+                  // Actualizar el estado a enviado
+                  this.markHitOrDiscardSent(convertStatus, Some(outputJsonString), labcode)
+                  Future.successful(Right(()))
+                } else {
+                  logger.error(result.body)
+                  // Actualizar el estado a error
+                  logger.debug("No se pudo enviar el status del match")
+                  Future.successful(Left("No se pudo enviar el status del match"))
+                }
               }
-            }
+              }
             }
           }
         }
       }
-    }
       .recoverWith {
         case _: Exception => Future.successful(Left("No se pudo enviar el status del match"))
       }
@@ -2111,7 +2194,7 @@ class InterconnectionServiceImpl @Inject()(
                       , onlyUpload: Boolean = false): Future[Unit] = Future {
     var sendToSuperior = wasMatchUploaded(matchResult, labImmediate)
     if (isInterconnectionMatch(matchResult)) {
-//      val convertStatus = ConvertStatusInterconnection(matchId, firingCode, matchResult.leftProfile.globalCode, matchResult.rightProfile.globalCode, status, labOrigin, labImmediate)
+      //      val convertStatus = ConvertStatusInterconnection(matchId, firingCode, matchResult.leftProfile.globalCode, matchResult.rightProfile.globalCode, status, labOrigin, labImmediate)
       val convertStatus = ConvertStatusInterconnection(matchId, firingCode, matchResult.leftProfile.globalCode, matchResult.rightProfile.globalCode, status, labOrigin, currentInstanceLabCode)
       if (shouldBeForwarded(matchResult.leftProfile.globalCode, labOrigin, labImmediate) && matchResult.leftProfile.globalCode.text != firingCode.text) {
         logger.debug("Sube estado match perfile izquierdo al superior")
@@ -2131,7 +2214,7 @@ class InterconnectionServiceImpl @Inject()(
       case Some(matchingResult) => {
         if (shouldBeForwarded(matchingResult.leftProfile.globalCode, labOrigin, labImmediate) ||
           shouldBeForwarded(matchingResult.rightProfile.globalCode, labOrigin, labImmediate)) {
-//          doConvertStatus(matchId, firingCode, status, matchingResult, labOrigin, currentInstanceLabCode)
+          //          doConvertStatus(matchId, firingCode, status, matchingResult, labOrigin, currentInstanceLabCode)
           doConvertStatus(matchId, firingCode, status, matchingResult, labOrigin, labImmediate)
         }
         val isAdmin = true
@@ -2158,7 +2241,6 @@ class InterconnectionServiceImpl @Inject()(
             Future.successful(())
           }
         }
-        //Future.successful(())
       }
     }
   }
@@ -2221,13 +2303,14 @@ class InterconnectionServiceImpl @Inject()(
     ()
   }
 
-  def retryDeleteProfilesToSuperior(lab: String): Future[Unit] = {
+  def retryDeleteProfilesToSuperior(lab: String, url: String): Future[Unit] = {
     if (lab == superiorLabCode) {
       logger.info("Reintento Baja de perfiles laboratorio:" + lab)
       this.profileDataService.gefFailedProfilesUploadedDeleted().flatMap(listFailed => {
         logger.info("Cantidad de perfiles para volver a borrar:" + lab + " " + listFailed.size)
         Future.successful(listFailed.foreach(profileFailedRow => {
-          doInferiorDeleteProfile(SampleCode(profileFailedRow.globalCode), DeletedMotive(currentInstanceLabCode, profileFailedRow.motive.getOrElse(""), 0))
+          logger.info("Intentando borrar el perfil: " + profileFailedRow.globalCode + " en la instancia: " + currentInstanceLabCode)
+          doInferiorDeleteProfile(SampleCode(profileFailedRow.globalCode), DeletedMotive(profileFailedRow.userName.getOrElse(""), profileFailedRow.motive.getOrElse("")), url, profileFailedRow.userName.getOrElse(""))
         }))
       })
     } else {
@@ -2235,17 +2318,39 @@ class InterconnectionServiceImpl @Inject()(
     }
   }
 
-  def retryDeleteProfilesToInferior(lab: String, url: String): Future[Unit] = {
+  def retryDeleteProfilesToInferior(lab: String): Future[Unit] = {
     if (lab != superiorLabCode) {
       logger.info("Reintento Baja de perfiles laboratorio:" + lab)
-      this.profileDataService.gefFailedProfilesSentDeleted(lab).flatMap(listFailed => {
+      val url = Await.result(this.connectionRepository.getInfInstanceUrl(lab), Duration.Inf)
+      this.profileDataService.gefFailedProfilesReceivedDeleted(lab).flatMap(listFailed => {
         logger.info("Cantidad de perfiles para volver a borrar:" + lab + " " + listFailed.size)
         Future.successful(listFailed.foreach(profileFailedRow => {
-          sendDeletionToInstance(SampleCode(profileFailedRow.globalCode), DeletedMotive(currentInstanceLabCode, profileFailedRow.motive.getOrElse(""), 0), protocol + url, superiorLabCode, superiorLabCode, lab)
-        }))
+          sendDeletionToInferior(profileFailedRow.globalCode, DeletedMotive(profileFailedRow.userName.getOrElse(""), profileFailedRow.motive.getOrElse(""), 0), lab, url.getOrElse(""), profileFailedRow.userName.getOrElse("")) }))
       })
     } else {
       Future.successful(())
+    }
+  }
+
+  def retrySendApprovalToInferior(lab: String, url: String): Future[Unit] = {
+    logger.info(s"Reintento de envío de aprobación a instancia inferior: lab=$lab, url=$url")
+    this.profileDataService.getPendingApprovalNotification(lab).flatMap { receivedRows =>
+      logger.info(s"Cantidad de notificaciones de aprobaciones de perfiles de la instancia inferior a aprobar del lab=$lab, url=$url :" + receivedRows.size )
+      Future.successful(receivedRows.foreach(row => {
+        //Este status: APROBADA es lo que baja para que se updete el PROFILE_UPLOADED de la instancia inferior
+        notifyApprovalChangeStatus(row.globalCode, lab, APROBADA, row.userName, row.isCategoryModification)
+      }))
+    }
+  }
+
+  def retrySendRejectionToInferior(lab: String, url: String): Future[Unit] = {
+    logger.info(s"Reintento de envío de rechazos a instancia inferior: lab=$lab, url=$url")
+    this.profileDataService.getPendingRejectionNotification(lab).flatMap { receivedRows =>
+      logger.info(s"Cantidad de notificaciones de rechazos de perfiles de la instancia inferior a aprobar del lab=$lab, url=$url :" + receivedRows.size )
+      Future.successful(receivedRows.foreach(row => {
+        //Este status: RECHAZADA es lo que baja para que se updete el PROFILE_UPLOADED de la instancia inferior
+        notifyRejectionChangeStatus(row.globalCode, lab, RECHAZADA, row.motive.getOrElse(""), row.userName.getOrElse(""), row.isCategoryModification)
+      }))
     }
   }
 
@@ -2331,11 +2436,19 @@ class InterconnectionServiceImpl @Inject()(
       ,
       // Reintento envio de electroferogramas y archivos
       this.retrySendFiles(lab, url)
-      //,
+      ,
       // Reintento envio Baja de Perfil desde instancia inferior hacia instancia superior
-      //this.retryDeleteProfilesToSuperior(lab)
-      //,
-      //this.retryDeleteProfilesToInferior(lab,url)
+      //logger.info("Reintento envio Baja de Perfil desde instancia inferior hacia instancia superior"),
+      this.retryDeleteProfilesToSuperior(lab, url)
+      ,
+      // Reintento envio Baja de Perfil desde instancia superior hacia instancia inferior
+      this.retryDeleteProfilesToInferior(lab)
+      ,
+      // Reintento de reenvío de notificación de aprobación de un perfil en la instancia superior a la inferior
+      this.retrySendApprovalToInferior(lab,url)
+      //Reintento de reenvío de notificación de rechazo de un perfil en la instancia superior a la inferior
+      ,
+      this.retrySendRejectionToInferior(lab,url)
     )).map(_ => ())
   }
 
@@ -2353,7 +2466,7 @@ class InterconnectionServiceImpl @Inject()(
       case Some(superiorUrl) => {
         getConnectionsStatus(superiorUrl).flatMap {
           case Left(_) => {
-            logger.error("Reintentos: laboratorio:superior no operativo")
+            logger.error("Reintentos: " + superiorUrl + " superior no operativo")
             Future.successful(())
           }
           case Right(_) => {
@@ -2420,7 +2533,7 @@ class InterconnectionServiceImpl @Inject()(
 
   def sendFiles(globalCode: String, targetLab: String): Unit = {
     Future.sequence(List(this.profileService.getFullElectropherogramsByCode(SampleCode(globalCode)),
-      this.profileService.getFullFilesByCode(SampleCode(globalCode))))
+        this.profileService.getFullFilesByCode(SampleCode(globalCode))))
       .map(listListFiles => {
         val listFiles = listListFiles.flatten.toSeq
         if (!listFiles.isEmpty) {
@@ -2442,7 +2555,7 @@ class InterconnectionServiceImpl @Inject()(
 
   def doRetrySendFiles(id: String, targetLab: String): Unit = {
     Future.sequence(List(this.profileService.getFullElectropherogramsById(id),
-      this.profileService.getFullFilesById(id)))
+        this.profileService.getFullFilesById(id)))
       .map(listListFiles => {
         val listFiles = listListFiles.flatten.toSeq
         if (!listFiles.isEmpty) {
@@ -2464,6 +2577,5 @@ class InterconnectionServiceImpl @Inject()(
       )
     ()
   }
-
 
 }

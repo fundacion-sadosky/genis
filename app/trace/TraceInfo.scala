@@ -11,24 +11,24 @@ trait TraceInfo {
 }
 
 case class AnalysisInfo(
-  loci: Seq[Profile.Marker],
-  kit: Option[String],
-  analysisType: Option[Int],
-  categoryConfiguration: CategoryConfiguration) extends TraceInfo {
+                         loci: Seq[Profile.Marker],
+                         kit: Option[String],
+                         analysisType: Option[Int],
+                         categoryConfiguration: CategoryConfiguration) extends TraceInfo {
   override val kind = TraceType.analysis
   override val description =
     if (kit.isDefined) {
       s"Alta de análisis del " +
-      s"Kit ${kit.get} con Marcadores ${loci.mkString(", ")}."
+        s"Kit ${kit.get} con Marcadores ${loci.mkString(", ")}."
     } else {
       s"Alta de análisis con Marcadores ${loci.mkString(", ")}."
     }
 }
 
 case class AssociationInfo(
-  profile: SampleCode,
-  user: String,
-  categoryAssociations: Seq[CategoryAssociation]) extends TraceInfo {
+                            profile: SampleCode,
+                            user: String,
+                            categoryAssociations: Seq[CategoryAssociation]) extends TraceInfo {
   override val kind = TraceType.association
   override val description =
     s"Asociación con el perfil ${profile.text} cuyo responsable es $user."
@@ -40,18 +40,18 @@ case object ProfileDataInfo extends TraceInfo {
 }
 
 case class ProfileCategoryModificationInfo(
-  oldCategory: String,
-  newCategory: String
-) extends TraceInfo {
+                                            oldCategory: String,
+                                            newCategory: String
+                                          ) extends TraceInfo {
   override val kind = TraceType.categoryModification
   override val description =
     s"Modificación de la categoría $oldCategory a $newCategory."
 }
 
 case class SuperiorInstanceCategoryModificationInfo(
-  oldCategory: String,
-  newCategory: String
-) extends TraceInfo {
+                                                     oldCategory: String,
+                                                     newCategory: String
+                                                   ) extends TraceInfo {
   override val kind = TraceType.superiorInstanceCategoryModification
   override val description = s"Se aceptó el cambio de categoría de la" +
     s" instancia inferior." +
@@ -80,9 +80,25 @@ case object ProfileImportedFromInferiorInfo extends TraceInfo {
   override val description = s"Importado desde una instancia inferior."
 }
 
-case object ProfileRejectedInSuperiorInfo extends TraceInfo {
+case class ProfileRejectedInSuperiorInfo(motive: String) extends TraceInfo {
   override val kind = TraceType.interconectionRejected
-  override val description = s"Rechazado en instancia superior."
+  override val description = s"Rechazado en instancia superior. Motivo: $motive."
+}
+// 2 Nuevos
+case class InterconnectionDeletedInInferiorInfo(motive: String) extends TraceInfo {
+  override val kind = TraceType.interconnectionDeletedInInferior
+  val motiveParts = motive.split(",").map(_.trim)
+  val solicitor = if (motiveParts.nonEmpty) motiveParts(0) else ""
+  val motiveText = if (motiveParts.length > 1) motiveParts(1) else ""
+  override val description = s"Perfil eliminado en la instancia inferior. Baja solicitada por: $solicitor. Motivo: $motiveText."
+}
+
+case class InterconnectionDeletedInSuperiorInfo(motive: String) extends TraceInfo {
+  override val kind = TraceType.interconnectionDeletedInSuperior
+  val motiveParts = motive.split(",").map(_.trim)
+  val solicitor = if (motiveParts.nonEmpty) motiveParts(0) else ""
+  val motiveText = if (motiveParts.length > 1) motiveParts(1) else ""
+  override val description = s"Perfil eliminado en la instancia superior. Baja solicitada por: $solicitor. Motivo: $motiveText."
 }
 
 case object CategoryChangeRejectedInSupInfo extends TraceInfo {
@@ -97,11 +113,11 @@ case object ProfileInterconectionUploadInfo extends TraceInfo {
 }
 
 case class DeleteInfo(
-  solicitor: String,
-  motive: String) extends TraceInfo {
+                       solicitor: String,
+                       motive: String) extends TraceInfo {
   override val kind = TraceType.delete
   override val description =
-    s"Baja del perfil solicitada por $solicitor con motivo: $motive."
+    s"Baja del perfil: $motive."
 }
 
 case class PedigreeStatusChangeInfo(status:String) extends TraceInfo{
@@ -169,12 +185,12 @@ object TraceInfo {
   implicit val categoryAprovedInSuperiorFormat = Format(
     new Reads[ProfileCategoryChangeAprovedInSuperiorInfo.type] {
       def reads(js: JsValue)
-        :JsResult[ProfileCategoryChangeAprovedInSuperiorInfo.type]
-        = JsSuccess(ProfileCategoryChangeAprovedInSuperiorInfo)
+      :JsResult[ProfileCategoryChangeAprovedInSuperiorInfo.type]
+      = JsSuccess(ProfileCategoryChangeAprovedInSuperiorInfo)
     },
     new Writes[ProfileCategoryChangeAprovedInSuperiorInfo.type] {
       def writes(ti: ProfileCategoryChangeAprovedInSuperiorInfo.type)
-        :JsValue = Json.obj()
+      :JsValue = Json.obj()
     }
   )
   implicit val profileImportedFromInferiorFormat = Format(
@@ -186,14 +202,10 @@ object TraceInfo {
       def writes(ti: ProfileImportedFromInferiorInfo.type): JsValue = Json.obj()
     }
   )
-  implicit val profileRejectedInSuperiorFormat = Format(
-    new Reads[ProfileRejectedInSuperiorInfo.type] {
-      def reads(js: JsValue): JsResult[ProfileRejectedInSuperiorInfo.type] =
-        JsSuccess(ProfileRejectedInSuperiorInfo)
-    },
-    new Writes[ProfileRejectedInSuperiorInfo.type] {
-      def writes(ti: ProfileRejectedInSuperiorInfo.type): JsValue = Json.obj()
-    })
+  implicit val profileRejectedInSuperiorFormat: Format[ProfileRejectedInSuperiorInfo] = Json.format[ProfileRejectedInSuperiorInfo]
+  // 2 Nuevos
+  implicit val interconnectionDeletedInInferiorFormat: Format[InterconnectionDeletedInInferiorInfo] = Json.format[InterconnectionDeletedInInferiorInfo]
+  implicit val interconnectionDeletedInSuperiorFormat: Format[InterconnectionDeletedInSuperiorInfo] = Json.format[InterconnectionDeletedInSuperiorInfo]
 
   implicit val catModRejectedInSupFormat = Format(
     new Reads[CategoryChangeRejectedInSupInfo.type] {
@@ -204,7 +216,7 @@ object TraceInfo {
       def writes(ti: CategoryChangeRejectedInSupInfo.type): JsValue = Json.obj()
     }
   )
-  
+
   implicit val superiorInstCatRejectFormat = Format(
     new Reads[SuperiorCategoryChangeRejectedInfo.type] {
       def reads(js: JsValue): JsResult[SuperiorCategoryChangeRejectedInfo.type] =
@@ -214,7 +226,7 @@ object TraceInfo {
       def writes(ti: SuperiorCategoryChangeRejectedInfo.type): JsValue =
         Json.obj()
     })
-  
+
   implicit val deleteFormat = Json.format[DeleteInfo]
   implicit val pedigreeMatchProcessFormat = Json.format[PedigreeMatchProcessInfo]
   implicit val pedigreeMatchFormat = Json.format[PedigreeMatchInfo]
@@ -231,7 +243,7 @@ object TraceInfo {
     .format[ProfileCategoryModificationInfo]
   implicit val superiorInstCatModFormat = Json
     .format[SuperiorInstanceCategoryModificationInfo]
-  
+
   def unapply(info: TraceInfo): Option[(TraceType.Value, JsValue)] = {
     info match {
       case x: AnalysisInfo => Some((x.kind, Json.toJson(x)(analysisFormat)))
@@ -275,7 +287,7 @@ object TraceInfo {
         Some((x.kind, Json.toJson(x)(categoryAprovedInSuperiorFormat)))
       case x: ProfileImportedFromInferiorInfo.type =>
         Some((x.kind, Json.toJson(x)(profileImportedFromInferiorFormat)))
-      case x: ProfileRejectedInSuperiorInfo.type =>
+      case x: ProfileRejectedInSuperiorInfo =>
         Some((x.kind, Json.toJson(x)(profileRejectedInSuperiorFormat)))
       case x: CategoryChangeRejectedInSupInfo.type =>
         Some((x.kind, Json.toJson(x)(catModRejectedInSupFormat)))
@@ -285,6 +297,10 @@ object TraceInfo {
         Some((x.kind, Json.toJson(x)(superiorInstCatModFormat)))
       case x: SuperiorCategoryChangeRejectedInfo.type =>
         Some((x.kind, Json.toJson(x)(superiorInstCatRejectFormat)))
+      case x: InterconnectionDeletedInInferiorInfo =>
+        Some((x.kind, Json.toJson(x)(interconnectionDeletedInInferiorFormat)))
+      case x: InterconnectionDeletedInSuperiorInfo =>
+        Some((x.kind, Json.toJson(x)(interconnectionDeletedInSuperiorFormat)))
       case _ => None
     }
   }
@@ -327,7 +343,7 @@ object TraceInfo {
         case TraceType.importedFromInferior =>
           Json.fromJson[ProfileImportedFromInferiorInfo.type](json)
         case TraceType.interconectionRejected =>
-          Json.fromJson[ProfileRejectedInSuperiorInfo.type](json)
+          Json.fromJson[ProfileRejectedInSuperiorInfo](json)(profileRejectedInSuperiorFormat)
         case TraceType.interconectionCategoryRejected => Json
           .fromJson[CategoryChangeRejectedInSupInfo.type](json)
         case TraceType.categoryModification => Json
@@ -336,9 +352,13 @@ object TraceInfo {
           .fromJson[SuperiorInstanceCategoryModificationInfo](json)
         case TraceType.superiorInstanceCategoryRejection => Json
           .fromJson[SuperiorCategoryChangeRejectedInfo.type](json)
+        case TraceType.interconnectionDeletedInInferior =>
+          Json.fromJson[InterconnectionDeletedInInferiorInfo](json)(interconnectionDeletedInInferiorFormat)
+        case TraceType.interconnectionDeletedInSuperior =>
+          Json.fromJson[InterconnectionDeletedInSuperiorInfo](json)(interconnectionDeletedInSuperiorFormat)
         case _ => JsError()
       }
-    ).get
+      ).get
   }
 
   implicit val writes = new Writes[TraceInfo] {

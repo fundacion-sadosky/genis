@@ -1,18 +1,16 @@
 package reporting
 
 import com.google.inject.{AbstractModule, Provides}
-import reporting.profileReports.{MongoProfileReportRepository, ProfileReportRepository, ProfileReportService, ProfileReportServiceImpl}
 
 /**
   * Created by pdg on 3/1/18.
   */
-class ReportingModule extends AbstractModule {
+class ReportingModule () extends AbstractModule {
   override def configure(): Unit = {
     bind(classOf[ReportingService]).to(classOf[ReportingServiceImpl])
     bind(classOf[ProfileReportService]).to(classOf[ProfileReportServiceImpl])
-
-    bind(classOf[ProfileReportRepository]).to(classOf[MongoProfileReportRepository])
-
+    bind(classOf[ProfileReportMongoRepository]).to(classOf[MongoProfileReportRepository])
+    bind(classOf[ProfileReportPostgresRepository]).to(classOf[PostgresProfileReportRepository])
   }
 
   /**
@@ -23,7 +21,7 @@ class ReportingModule extends AbstractModule {
   @Provides
   def providePdfGenerator(): PdfGenerator = {
     val pdfGen = new PdfGenerator()
-    pdfGen.loadLocalFonts(Seq("fonts/Lato-Bold.ttf", "fonts/Lato-Light.ttf"))
+    pdfGen.loadLocalFonts(Seq("app/assets/stylesheets/report/DejaVuSans.ttf", "app/assets/stylesheets/report/DejaVuSans-Bold.ttf"))
     pdfGen
   }
 
