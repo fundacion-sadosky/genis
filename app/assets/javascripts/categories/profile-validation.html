@@ -35,5 +35,24 @@
 				<form-validation input="profileValidationForm.maxAllelesPerLocus" pattern="número entero" min="1" max="9"></form-validation>
 			</div>
 		</div>
+
+		<div class="col-md-12 padding-bottom-20" ng-if="categories[currCatId].isReference">
+			<div class="col-md-8">
+				<label>Multialélico</label>
+			</div>
+
+			<div class="col-md-4">
+				<div class="checkbox">
+					<label>
+						<input id="multiallelicCheckbox"
+							   type="checkbox"
+							   ng-model="categories[currCatId].configurations[activeAnalysis].multiallelic"
+						       name="multiallelic" />
+						<form-validation input="profileValidationForm.multiallelic"></form-validation>
+
+					</label>
+				</div>
+			</div>
+		</div>
 	</form>
 </div>

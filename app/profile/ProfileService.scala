@@ -350,6 +350,8 @@ class ProfileServiceImpl @Inject() (
         val minLocusQuantityAllowed = qualityParams.minLocusQuantityAllowedPerProfile(category, modifiedKit)
         val maxAllelesPerLocus = qualityParams.maxAllelesPerLocus(category, kit)
         val maxOverageDeviatedLociPerProfile = qualityParams.maxOverageDeviatedLociPerProfile(category, kit)
+        val multiallelic = qualityParams.multiallelic(category, kit)
+        val trisomyTreshold = if (multiallelic) 4 else 2
 
         val categoryConfiguration = category.configurations.getOrElse(kit.`type`, CategoryConfiguration("", "", "K", "0", 6))
 
@@ -377,7 +379,7 @@ class ProfileServiceImpl @Inject() (
                   case (marker, alleles) => {
                     val locus = loci.find(l => l.id == marker).get
                     if (contributors == 1) {
-                      alleles.size > locus.minimumAllelesQty && alleles.size > 2
+                      alleles.size > locus.minimumAllelesQty && alleles.size > trisomyTreshold
                     } else false
                   }
                 }) > maxOverageDeviatedLociPerProfile

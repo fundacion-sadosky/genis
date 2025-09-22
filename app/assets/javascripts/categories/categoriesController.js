@@ -309,7 +309,7 @@ define(['angular', 'jquery','lodash'], function(ng, $,_) {
               var exists = cat.configurations.hasOwnProperty(id);
               if (!exists) {
                 cat.configurations[id] = {collectionUri: '', draftUri: '',
-                  minLocusPerProfile: 'K', maxOverageDeviatedLoci: '0', 'maxAllelesPerLocus': 6};
+                  minLocusPerProfile: 'K', maxOverageDeviatedLoci: '0', 'maxAllelesPerLocus': 6, multiallelic: false};
               }
             }
           }

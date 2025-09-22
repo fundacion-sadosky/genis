@@ -234,7 +234,7 @@ class SlickCategoryRepository @Inject() (implicit app: Application) extends Cate
 
         val thisConf = conf.filter { _.category == cat.id }.map { x =>
           x.`type` -> CategoryConfiguration(x.collectionUri, x.draftUri,
-            x.minLocusPerProfile, x.maxOverageDeviatedLoci, x.maxAllelesPerLocus)
+            x.minLocusPerProfile, x.maxOverageDeviatedLoci, x.maxAllelesPerLocus, x.multiallelic)
         }.toMap
 
         val thisMatchRules = matchs.filter { _._1.category == cat.id }.map {
@@ -419,7 +419,7 @@ class SlickCategoryRepository @Inject() (implicit app: Application) extends Cate
       val rows = configurations.map {
         case (analysisType, conf) =>
           CategoryConfigurationRow(0, categoryId.text, analysisType, conf.collectionUri, conf.draftUri,
-            conf.minLocusPerProfile, conf.maxOverageDeviatedLoci, conf.maxAllelesPerLocus) }
+            conf.minLocusPerProfile, conf.maxOverageDeviatedLoci, conf.maxAllelesPerLocus, conf.multiallelic) }
       categoryConfiguration ++= rows
       Right(categoryId)
     } catch {

@@ -190,18 +190,20 @@ trait Tables {
     *  @param draftUri Database column DRAFT_URI DBType(VARCHAR), Length(500,true), Default()
     *  @param minLocusPerProfile Database column MIN_LOCUS_PER_PROFILE DBType(VARCHAR), Length(1024,true), Default(K)
     *  @param maxOverageDeviatedLoci Database column MAX_OVERAGE_DEVIATED_LOCI DBType(VARCHAR), Length(1024,true), Default(0)
-    *  @param maxAllelesPerLocus Database column MAX_ALLELES_PER_LOCI DBType(SMALLINT), Default(6) */
-  case class CategoryConfigurationRow(id: Long, category: String, `type`: Int, collectionUri: String = "", draftUri: String = "", minLocusPerProfile: String = "K", maxOverageDeviatedLoci: String = "0", maxAllelesPerLocus: Int = 6)
+    *  @param maxAllelesPerLocus Database column MAX_ALLELES_PER_LOCI DBType(SMALLINT), Default(6) 
+    *  @param multiallelic Database column MULTIALLELIC DBType(BOOLEAN), Default(false)
+   *  */
+  case class CategoryConfigurationRow(id: Long, category: String, `type`: Int, collectionUri: String = "", draftUri: String = "", minLocusPerProfile: String = "K", maxOverageDeviatedLoci: String = "0", maxAllelesPerLocus: Int = 6, multiallelic: Boolean = false)
   /** GetResult implicit for fetching CategoryConfigurationRow objects using plain SQL queries */
   implicit def GetResultCategoryConfigurationRow(implicit e0: GR[String], e1: GR[Option[String]], e2: GR[Boolean]): GR[CategoryConfigurationRow] = GR{
     prs => import prs._
-      CategoryConfigurationRow.tupled((<<[Long], <<[String], <<[Int], <<[String], <<[String], <<[String], <<[String], <<[Int]))
+      CategoryConfigurationRow.tupled((<<[Long], <<[String], <<[Int], <<[String], <<[String], <<[String], <<[String], <<[Int], <<[Boolean]))
   }
   /** Table description of table CATEGORY_CONFIGURATION. Objects of this class serve as prototypes for rows in queries. */
   class CategoryConfiguration(_tableTag: Tag, schema: Option[String], tableName: String) extends Table[CategoryConfigurationRow](_tableTag, schema, tableName) {
-    def * = (id, category, `type`, collectionUri, draftUri, minLocusPerProfile, maxOverageDeviatedLoci, maxAllelesPerLocus) <> (CategoryConfigurationRow.tupled, CategoryConfigurationRow.unapply)
+    def * = (id, category, `type`, collectionUri, draftUri, minLocusPerProfile, maxOverageDeviatedLoci, maxAllelesPerLocus, multiallelic) <> (CategoryConfigurationRow.tupled, CategoryConfigurationRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = (id.?, category.?, `type`.?, collectionUri.?, draftUri.?, minLocusPerProfile.?, maxOverageDeviatedLoci.?, maxAllelesPerLocus.?).shaped.<>({r=>import r._; _1.map(_=> CategoryConfigurationRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get, _7.get, _8.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? = (id.?, category.?, `type`.?, collectionUri.?, draftUri.?, minLocusPerProfile.?, maxOverageDeviatedLoci.?, maxAllelesPerLocus.?, multiallelic.?).shaped.<>({r=>import r._; _1.map(_=> CategoryConfigurationRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get, _7.get, _8.get, _9.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
 
     /** Database column ID DBType(BIGINT), AutoInc, PrimaryKey */
     val id: Column[Long] = column[Long]("ID", O.AutoInc, O.PrimaryKey)
@@ -220,6 +222,8 @@ trait Tables {
     val maxOverageDeviatedLoci: Column[String] = column[String]("MAX_OVERAGE_DEVIATED_LOCI", O.Length(1024,varying=true), O.Default("0"))
     /** Database column MAX_ALLELES_PER_LOCUS DBType(SMALLINT), Default(6) */
     val maxAllelesPerLocus: Column[Int] = column[Int]("MAX_ALLELES_PER_LOCUS", O.Default(6))
+    /** Database column MULTIALLELIC DBType(BOOLEAN), Default(false) */
+    val multiallelic: Column[Boolean] = column[Boolean]("MULTIALLELIC", O.Default(false))
 
   }
   /** Collection-like TableQuery object for table CategoryConfiguration */
