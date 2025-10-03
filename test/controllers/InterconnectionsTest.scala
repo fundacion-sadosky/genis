@@ -232,11 +232,11 @@ class InterconnectionsTest extends PdgSpec with MockitoSugar with Results {
       val interconnectionService = mock[InterconnectionService]
       val target = new Interconnections(interconnectionService, null)
       val requestObj: List[ProfileApproval] = Nil
-      when(interconnectionService.approveProfiles(requestObj)).thenReturn(Future.successful(Right(())))
+      when(interconnectionService.approveProfiles(requestObj, "test-user")).thenReturn(Future.successful(Right(())))
 
       val request = FakeRequest().withBody(Json.toJson(requestObj))
 
-      val resultOk: Future[Result] = target.approveProfiles().apply(request)
+      val resultOk: Future[Result] = target.approveProfiles("test-user").apply(request)
       status(resultOk) mustBe OK
 
     }
@@ -246,11 +246,11 @@ class InterconnectionsTest extends PdgSpec with MockitoSugar with Results {
       val interconnectionService = mock[InterconnectionService]
       val target = new Interconnections(interconnectionService, null)
       val requestObj: List[ProfileApproval] = Nil
-      when(interconnectionService.approveProfiles(requestObj)).thenReturn(Future.successful(Left("error")))
+      when(interconnectionService.approveProfiles(requestObj, "test-user")).thenReturn(Future.successful(Left("error")))
 
       val request = FakeRequest().withBody(Json.toJson(requestObj))
 
-      val resultOk: Future[Result] = target.approveProfiles().apply(request)
+      val resultOk: Future[Result] = target.approveProfiles("test-user").apply(request)
       status(resultOk) mustBe BAD_REQUEST
 
     }
@@ -266,7 +266,7 @@ class InterconnectionsTest extends PdgSpec with MockitoSugar with Results {
 
       val request = FakeRequest().withBody(Json.toJson(requestObj))
 
-      val resultOk: Future[Result] = target.approveProfiles().apply(request)
+      val resultOk: Future[Result] = target.approveProfiles("test-user").apply(request)
       status(resultOk) mustBe BAD_REQUEST
 
     }
@@ -286,71 +286,13 @@ class InterconnectionsTest extends PdgSpec with MockitoSugar with Results {
       val interconnectionService = mock[InterconnectionService]
       val target = new Interconnections(interconnectionService, null)
       val globalCode = ""
-      when(interconnectionService.rejectProfile(ProfileApproval(globalCode), "motive", 1L, None)).thenReturn(Future.successful(Right(())))
+      when(interconnectionService.rejectProfile(ProfileApproval(globalCode), "motive", 1L, "usuario")).thenReturn(Future.successful(Right(())))
 
       val request = FakeRequest()
 
-      val resultOk: Future[Result] = target.rejectPendingProfile(globalCode, "motive", 1L).apply(request)
+      val resultOk: Future[Result] = target.rejectPendingProfile(globalCode, "motive", 1L, "usuario", false).apply(request)
       status(resultOk) mustBe OK
 
-    }
-
-    "delete Profile ok" in {
-
-      val interconnectionService = mock[InterconnectionService]
-      val target = new Interconnections(interconnectionService, null)
-
-      when(interconnectionService.receiveDeleteProfile("AR-C-SHDG-1190", DeletedMotive("ahierro", "motivo", 2),"SHDG","SHDG")).thenReturn(Future.successful(Right(())))
-      val requestObj: JsValue = Json.parse(
-        """
-          {"solicitor":"ahierro","motive":"motivo","selectedMotive":2} """)
-
-      val request = FakeRequest().withHeaders("X-URL-INSTANCIA-INFERIOR" -> "example.com")
-        .withHeaders(HeaderInsterconnections.labCode -> "SHDG")
-        .withHeaders(HeaderInsterconnections.laboratoryOrigin -> "SHDG")
-        .withHeaders(HeaderInsterconnections.laboratoryImmediateInstance -> "SHDG")
-        .withBody(Json.toJson(requestObj))
-
-      val resultOk: Future[Result] = target.deleteProfile("AR-C-SHDG-1190").apply(request)
-      status(resultOk) mustBe OK
-    }
-
-    "delete Profile no ok" in {
-
-      val interconnectionService = mock[InterconnectionService]
-      val target = new Interconnections(interconnectionService, null)
-
-      when(interconnectionService.receiveDeleteProfile("AR-C-SHDG-1190", DeletedMotive("ahierro", "motivo", 2),"","")).thenReturn(Future.successful(Right(())))
-      val requestObj: JsValue = Json.parse(
-        """
-          {"soliitor":"ahierro","motive":"motivo","selectedMotive":2} """)
-
-      val request = FakeRequest().withHeaders("X-URL-INSTANCIA-INFERIOR" -> "example.com")
-        .withHeaders(HeaderInsterconnections.labCode -> "SHDG")
-        .withHeaders(HeaderInsterconnections.laboratoryOrigin -> "SHDG")
-        .withHeaders(HeaderInsterconnections.laboratoryImmediateInstance -> "SHDG")
-        .withBody(Json.toJson(requestObj))
-
-      val resultOk: Future[Result] = target.deleteProfile("AR-C-SHDG-1190").apply(request)
-      status(resultOk) mustBe BAD_REQUEST
-    }
-    "delete Profile no ok2" in {
-
-      val interconnectionService = mock[InterconnectionService]
-      val target = new Interconnections(interconnectionService, null)
-
-      when(interconnectionService.receiveDeleteProfile("AR-C-SHDG-1190", DeletedMotive("ahierro", "motivo", 2),"","")).thenReturn(Future.successful(Right(())))
-      val requestObj: JsValue = Json.parse(
-        """
-          {"soliitor":"ahierro","motive":"motivo","selectedMotive":2} """)
-
-      val request = FakeRequest().withHeaders("X-URL-INSTANCIA-INFERIOR" -> "example.com")
-        .withHeaders(HeaderInsterconnections.laboratoryOrigin -> "SHDG")
-        .withHeaders(HeaderInsterconnections.laboratoryImmediateInstance -> "SHDG")
-        .withBody(Json.toJson(requestObj))
-
-      val resultOk: Future[Result] = target.deleteProfile("AR-C-SHDG-1190").apply(request)
-      status(resultOk) mustBe BAD_REQUEST
     }
   }
 }

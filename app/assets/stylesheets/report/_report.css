@@ -1,3 +1,16 @@
+.subtitle {
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+.total-profiles {
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: 20px;
+}
+
 .report-table-title {
     text-align: right;
     font-weight: bold;
@@ -12,6 +25,13 @@
     text-align: center;
     font-weight: bold;
     font-size: 2em;
+    padding-bottom: 2em;
+}
+
+.report-subtitle {
+    text-align: left;
+    font-weight: bold;
+    font-size: 1.5em;
     padding-bottom: 2em;
 }
 
