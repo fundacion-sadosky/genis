@@ -230,7 +230,7 @@ define(['angular'], function(angular) {
 
 	$scope.getRowColor = function(profileCode) {
 		if($scope.profileMatches[profileCode]){
-			return '#d500f9';
+			return '#bb77a7';
 		} else {
 			return '#e4e7ec';
 		}
