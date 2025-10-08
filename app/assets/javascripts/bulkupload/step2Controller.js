@@ -240,19 +240,38 @@ define(['jquery','lodash'], function($,_) {
             }
         });
 
+        $scope.removeDesktopProfiles = function() {
+            profiledataService.getDesktopProfiles().then(function(profiles) {
+                console.debug("removing desktop profiles: ", profiles.data);
+                profiles.data.forEach(function(profile) {
+                    profileService.removeProfile(profile).then(function () {
+                        console.log("Desktop profile removed:", profile);
+                    });
+
+                    profiledataService.removeProfile(profile).then(function () {
+                        console.log("Desktop profile data removed:", profile);
+                    });
+                });
+            });
+        };
+
         function closeDesktopResults(){
             console.debug("Closing from step2controller");
 
-            //remove profile (mongoDB)
-            profileService.removeProfile($scope.shared.profileId).then(function() {
-                console.log("Profile removed:", $scope.shared.profileId);
-            });
+            if ($scope.shared.profileId === 0){ // if not defined, remove all desktop profiles
+                $scope.removeDesktopProfiles();
+                console.log("All desktop profiles removed");
+            } else {
+                //remove profile (mongoDB)
+                profileService.removeProfile($scope.shared.profileId).then(function() {
+                    console.log("Profile removed:", $scope.shared.profileId);
+                });
 
-            //remove profile data
-            profiledataService.removeProfile($scope.shared.profileId).then(function() {
-                console.log("Profile data removed:", $scope.shared.profileId);
-            });
-
+                //remove profile data
+                profiledataService.removeProfile($scope.shared.profileId).then(function() {
+                    console.log("Profile data removed:", $scope.shared.profileId);
+                });
+            }
         }
 
         $scope.desktopSearchResults = function (batch) {
