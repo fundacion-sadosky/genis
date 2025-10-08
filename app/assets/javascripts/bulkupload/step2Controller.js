@@ -207,7 +207,7 @@ define(['jquery','lodash'], function($,_) {
             }
         };
 
-        $scope.importSelected = function(batch){
+        $scope.importSelected = function(batch) {
             var promises = [];
             $scope.protoProfiles[batch.id].forEach(function(sample) {
                 if (sample.selected) {
@@ -217,12 +217,15 @@ define(['jquery','lodash'], function($,_) {
                 }
             });
             $q.all(promises).then(function() {
+                // If "Busqueda de Escritorio" is selected, trigger desktopSearchResults
+                if (batch.desktopSearch) {
+                    $scope.desktopSearchResults(batch);
+                }
                 alertService.success({message: 'Se ha realizado el cambio de estado satisfactoriamente'});
             }, function(response) {
                 alertService.error({message: ' Hubo un error: ' + response.toString()});
             });
         };
-
 
         notificationsService.onNotification(function(msg){
             if (msg.kind === 'matching'){
@@ -440,6 +443,41 @@ define(['jquery','lodash'], function($,_) {
             });
         };
 
+        // Add the handleReplicateChange function
+        $scope.handleReplicateChange = function(batch) {
+            if (batch.replicate) {
+                // Uncheck and disable "Búsqueda de Escritorio"
+                batch.desktopSearch = false;
+                batch.desktopSearchDisabled = true;
+            } else {
+                // Enable "Búsqueda de Escritorio"
+                batch.desktopSearchDisabled = false;
+            }
+        };
+
+        // Add the handleDesktopSearchChange function
+        $scope.handleDesktopSearchChange = function(batch) {
+            if (batch.desktopSearch) {
+                // Uncheck and disable "Replicar a Instancia Superior"
+                _.forEach($scope.protoProfiles[batch.id], function(r) {
+                    r.replicate = false; // Uncheck the checkbox
+                });
+                batch.replicateDisabled = true; // Disable the checkbox
+
+                // Disable "Aceptar y replicar" and "Aceptar y replicar seleccionados" buttons
+                batch.acceptAndReplicateDisabled = true;
+                batch.acceptAndReplicateSelectedDisabled = true;
+            } else {
+                // Enable "Replicar a Instancia Superior"
+                batch.replicateDisabled = false;
+
+                // Enable "Aceptar y replicar" and "Aceptar y replicar seleccionados" buttons
+                batch.acceptAndReplicateDisabled = false;
+                batch.acceptAndReplicateSelectedDisabled = false;
+            }
+        };
+
+
         // New function to toggle replicate all
         $scope.replicateAllToggle = function(batchId) {
             var allReplicated = $scope.protoProfiles[batchId].allReplicated; // Get current status
@@ -466,6 +504,5 @@ define(['jquery','lodash'], function($,_) {
             $scope.protoProfiles[batchId].allReplicated = allReplicated;
         }
     }
-
     return Step2Controller;
 });
