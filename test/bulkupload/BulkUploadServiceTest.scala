@@ -43,7 +43,7 @@ class BulkUploadServiceTest extends PdgSpec with MockitoSugar {
       val cache: CacheService = mock[CacheService]
       val bulkUploadService = new BulkUploadServiceImpl(protoProfileRepository,
         userService, kitService, categoryRepo, profileService, protoProfiledataService, profileDataRepo,
-        notificationService,importToProfileData,labCode,country,province,ppGcD,categoryService,cache
+        notificationService,importToProfileData,labCode,country,province,ppGcD,categoryService,cache, interconnectionService = mock[InterconnectionService]
       );
 
       val result = Await.result(bulkUploadService.deleteBatch(1L), duration);
@@ -73,7 +73,7 @@ class BulkUploadServiceTest extends PdgSpec with MockitoSugar {
       val cache: CacheService = mock[CacheService]
       val bulkUploadService = new BulkUploadServiceImpl(protoProfileRepository,
         userService, kitService, categoryRepo, profileService, protoProfiledataService, profileDataRepo,
-        notificationService,importToProfileData,labCode,country,province,ppGcD,categoryService,cache
+        notificationService,importToProfileData,labCode,country,province,ppGcD,categoryService,cache, interconnectionService = mock[InterconnectionService]
       );
 
       val result = Await.result(bulkUploadService.deleteBatch(1L), duration);
@@ -104,7 +104,7 @@ class BulkUploadServiceTest extends PdgSpec with MockitoSugar {
       val cache: CacheService = mock[CacheService]
       val bulkUploadService = new BulkUploadServiceImpl(protoProfileRepository,
         userService, kitService, categoryRepo, profileService, protoProfiledataService, profileDataRepo,
-        notificationService,importToProfileData,labCode,country,province,ppGcD,categoryService,cache
+        notificationService,importToProfileData,labCode,country,province,ppGcD,categoryService,cache, interconnectionService = mock[InterconnectionService]
       );
 
       val result = Await.result(bulkUploadService.deleteBatch(1L), duration);

@@ -68,6 +68,9 @@
 						<span ng-if="!protoProfiles[l.id].allReplicated">Replicar todos</span>
 						<span ng-if="protoProfiles[l.id].allReplicated">No replicar ninguno</span>
 					</button>
+					<button class="btn btn-secondary-action" ng-click="replicateSelected(l.id)" ng-disabled="l.isProcessing || !anySelectedForReplication(l.id)">
+						Replicar Seleccionados
+					</button>
 					<span id="processingSpan" class="icon-refresh" data-ng-class="{'spinner': l.isProcessing}" data-ng-show="l.isProcessing"></span>
 					<table class="table table-striped" style="table-layout:fixed;">
 						<thead>
@@ -118,7 +121,9 @@
 							<td class="text-center">{{r.kit}}</td>
 							<td class="text-center">{{statusMap[r.status]}}</td>
 							<td class="text-center">
-								<input type="checkbox" ng-model="r.replicate" ng-disabled="r.status != 'Approved' || l.replicateDisabled" ng-change="handleReplicateChange(l)">
+								<input type="checkbox" ng-model="r.replicate"
+									   ng-disabled="r.replicateDisabled || !$parent.subcategory[r.category].replicate || r.replicated"
+								>
 							</td>
 							<td class="text-center">
 								<input type="checkbox" ng-model="l.desktopSearch" ng-disabled="protoProfiles[l.id].length !== 1 || l.desktopSearchDisabled" ng-change="handleDesktopSearchChange(l)">

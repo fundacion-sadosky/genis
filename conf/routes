@@ -67,6 +67,7 @@ GET      /profiledata-complete/:id                            @controllers.Profi
 GET      /profiledata-editable/:id                            @controllers.ProfileData.isEditable(id: types.SampleCode)
 GET      /profilesdata                                        @controllers.ProfileData.findByCodes(globalCode: List[types.SampleCode])
 GET      /profiledata-desktop                                 @controllers.ProfileData.getDesktopProfiles
+GET      /profileData/isProfileReplicated/:internalCode       @controllers.ProfileData.getIsProfileReplicatedInternalCode(internalCode: String)
 
 POST     /uploadImage                                         @controllers.Resources.uploadImage
 POST     /uploadFile                                          @controllers.Resources.uploadFile

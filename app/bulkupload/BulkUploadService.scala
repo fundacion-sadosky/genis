@@ -1,9 +1,16 @@
 package bulkupload
 
+import javax.inject.Inject
+import play.api.libs.ws.WSClient
+
+import scala.concurrent.{ExecutionContext, Future}
+import play.api.mvc.Call
+
 import java.io.File
 import java.util.Calendar
 import javax.inject.{Inject, Named, Singleton}
 import configdata._
+import connections.InterconnectionService
 import inbox._
 import kits.StrKitService
 import play.api.Logger
@@ -13,7 +20,7 @@ import profile.{NewAnalysis, Profile, ProfileService}
 import profiledata._
 import search.PaginationSearch
 import services.CacheService
-import types.AlphanumericId
+import types.{AlphanumericId, SampleCode}
 import user.{UserService, UserView}
 import play.api.i18n.Messages
 
@@ -21,43 +28,48 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.language.{implicitConversions, postfixOps}
 
-
-abstract class BulkUploadService {
+abstract class BulkUploadService @Inject() (
+                                             profileDataRepo: ProfileDataRepository,
+                                             interconnectionService: InterconnectionService // Inject InterconnectionService
+                                           ) {
   def getBatchesStep1(userId: String, isSuperUser: Boolean): Future[Seq[ProtoProfilesBatchView]]
-  def getBatchesStep2(userId: String, geneMapperId : String, isSuperUser: Boolean): Future[Seq[ProtoProfilesBatchView]]
+  def getBatchesStep2(userId: String, geneMapperId: String, isSuperUser: Boolean): Future[Seq[ProtoProfilesBatchView]]
   def getProtoProfile(id: Long): Future[Option[ProtoProfile]]
   def getProtoProfileWithBatchId(id: Long): Future[Option[(ProtoProfile, Long)]]
   def getProtoProfilesStep1(batchId: Long, paginationSearch: Option[PaginationSearch]): Future[Seq[ProtoProfile]]
   def getProtoProfilesStep2(batchId: Long, geneMapperId: String, isSuperUser: Boolean, paginationSearch: Option[PaginationSearch] = None): Future[Seq[ProtoProfile]]
   def uploadProtoProfiles(user: String, csvFile: TemporaryFile, label: Option[String], analysisType: String): Future[Either[String, Long]]
   //def getBatchDetails(batchId: Long, paginationSearch: PaginationSearch): Future[Option[BatchDetails]]
-  def rejectProtoProfile(id: Long, motive: String, userId: String,idMotive:Long): Future[Seq[String]]
-  def updateProtoProfileStatus(id: Long, status: ProtoProfileStatus.Value, userId: String,replicate : Boolean, desktopSearch:Boolean): Future[Seq[String]]
+  def rejectProtoProfile(id: Long, motive: String, userId: String, idMotive: Long): Future[Seq[String]]
+  def updateProtoProfileStatus(id: Long, status: ProtoProfileStatus.Value, userId: String, replicate: Boolean, desktopSearch: Boolean): Future[Seq[String]]
   def updateProtoProfileData(id: Long, category: AlphanumericId, userId: String): Future[Either[Seq[String], ProtoProfile]]
-  def updateBatchStatus(idBatch: Long, status: ProtoProfileStatus.Value, userId: String, isSuperUser: Boolean,replicateAll:Boolean,idsToReplicate: scala.List[Long]): Future[Either[String, Long]]
+  def updateBatchStatus(idBatch: Long, status: ProtoProfileStatus.Value, userId: String, isSuperUser: Boolean, replicateAll: Boolean, idsToReplicate: scala.List[Long]): Future[Either[String, Long]]
   def updateProtoProfileRulesMismatch(id: Long, matchingRules: Seq[MatchingRule], mismatches: Profile.Mismatch): Future[Boolean]
-  def deleteBatch(id: Long):Future[Either[String,Long]]
-  def searchBatch(userId: String, isSuperUser: Boolean,search : String) : Future[Seq[ProtoProfilesBatchView]]
-  def getBatchSearchModalViewByIdOrLabel(input:String,idCase:Long):Future[List[BatchModelView]]
+  def deleteBatch(id: Long): Future[Either[String, Long]]
+  def searchBatch(userId: String, isSuperUser: Boolean, search: String): Future[Seq[ProtoProfilesBatchView]]
+  def getBatchSearchModalViewByIdOrLabel(input: String, idCase: Long): Future[List[BatchModelView]]
+  protected def replicateProtoProfile(protoProfile: ProtoProfile, userId: String): Future[Seq[String]] //Declared Abstract
 }
 
 @Singleton
 class BulkUploadServiceImpl @Inject() (
-    val protoRepo: ProtoProfileRepository,
-    val userService: UserService,
-    val kitService: StrKitService,
-    val categoryRepo: CategoryRepository,
-    profileService: ProfileService,
-    @Named("stashed") protoProfiledataService: ProfileDataService,
-    profileDataRepo: ProfileDataRepository,
-    notificationService: NotificationService,
-    importToProfileData: ImportToProfileData,
-    @Named("labCode") val labCode: String,
-    @Named("country") val country: String,
-    @Named("province") val province: String,
-    @Named("protoProfileGcDummy") val ppGcD: String,
-    categoryService: CategoryService,
-    cache: CacheService) extends BulkUploadService {
+                                        val protoRepo: ProtoProfileRepository,
+                                        val userService: UserService,
+                                        val kitService: StrKitService,
+                                        val categoryRepo: CategoryRepository,
+                                        profileService: ProfileService,
+                                        @Named("stashed") protoProfiledataService: ProfileDataService,
+                                        profileDataRepo: ProfileDataRepository,
+                                        notificationService: NotificationService,
+                                        importToProfileData: ImportToProfileData,
+                                        @Named("labCode") val labCode: String,
+                                        @Named("country") val country: String,
+                                        @Named("province") val province: String,
+                                        @Named("protoProfileGcDummy") val ppGcD: String,
+                                        categoryService: CategoryService,
+                                        cache: CacheService,
+                                        val interconnectionService: InterconnectionService // And inject in the Implementation class
+                                      ) extends BulkUploadService(profileDataRepo, interconnectionService) { //Pass the dependencies to the Abstract class
 
   implicit private def stringToAlphanumericId(s: String) = AlphanumericId(s)
 
@@ -71,6 +83,8 @@ class BulkUploadServiceImpl @Inject() (
     case (ProtoProfileStatus.ReadyForApproval, ProtoProfileStatus.Disapproved) => true
     case (ProtoProfileStatus.Approved, ProtoProfileStatus.Imported) => true
     case (ProtoProfileStatus.Approved, ProtoProfileStatus.Rejected) => true
+    case (ProtoProfileStatus.Imported, ProtoProfileStatus.Uploaded) => true
+    case (ProtoProfileStatus.Uploaded, ProtoProfileStatus.Imported) => true
     case (_, _) => false
   }
 
@@ -94,16 +108,16 @@ class BulkUploadServiceImpl @Inject() (
     protoRepo.getBatchesStep1(userId, isSuperUser)
   }
 
-  override def getBatchesStep2(userId: String, geneMapperId : String, isSuperUser: Boolean): Future[Seq[ProtoProfilesBatchView]] = {
+  override def getBatchesStep2(userId: String, geneMapperId: String, isSuperUser: Boolean): Future[Seq[ProtoProfilesBatchView]] = {
     protoRepo.getBatchesStep2(userId, geneMapperId, isSuperUser)
   }
 
   override def uploadProtoProfiles(
-    user: String,
-    tempFile: TemporaryFile,
-    label: Option[String],
-    analysisType: String
-  ): Future[Either[String, Long]] = {
+                                    user: String,
+                                    tempFile: TemporaryFile,
+                                    label: Option[String],
+                                    analysisType: String
+                                  ): Future[Either[String, Long]] = {
     val aliasKits = kitService.getKitAlias
     val lociAlias = kitService.getLocusAlias
     val kitsPromise = kitService.list() flatMap { kits =>
@@ -189,9 +203,9 @@ class BulkUploadServiceImpl @Inject() (
   }
 
   private def updateStatus(
-    id: Long,
-    status: ProtoProfileStatus.Value
-  ): Future[Seq[String]] = {
+                            id: Long,
+                            status: ProtoProfileStatus.Value
+                          ): Future[Seq[String]] = {
     protoRepo
       .updateProtoProfileStatus(id, status)
       .map {
@@ -201,7 +215,7 @@ class BulkUploadServiceImpl @Inject() (
           } else {
             Seq(Messages("error.E0100", count))
           }
-    }
+      }
   }
 
   /*private def couldImport(protoProfile: ProtoProfile): Future[Boolean] = {
@@ -211,6 +225,23 @@ class BulkUploadServiceImpl @Inject() (
       protoRepo.hasProfileDataFiliation(protoProfile.id)
     }
   }*/
+  //Now is protected and is implemented on the Implementation class
+  override protected def replicateProtoProfile(protoProfile: ProtoProfile, userId: String): Future[Seq[String]] = {
+    //protoProfile.preexistence.fold[Future[Seq[String]]](Future.successful(Seq(Messages("error.E0101"))))(gc => {
+    profileDataRepo.getGlobalCode(protoProfile.sampleName).flatMap {
+      _.fold(Future.successful(Seq(Messages("error.E0101")))) {
+        case SampleCode(globalCode) => {
+          interconnectionService.uploadProfile(globalCode).map {
+            case Right(success) => Seq("Success") //success is Unit.
+            case Left(error) =>
+              logger.error(s"Failed to upload profile: $error")
+              Seq(Messages("error.E0304", error))
+          }
+        }
+      }
+    }
+  }
+
 
   private def importLinkedProtoProfile(protoProfile: ProtoProfile, userId: String,replicate : Boolean = false): Future[Seq[String]] = {
 
@@ -236,6 +267,8 @@ class BulkUploadServiceImpl @Inject() (
     }
   }
 
+
+
   private def importToProfile(protoProfile: ProtoProfile, assignee: String, userId: String,replicate : Boolean = false, desktopSearch:Boolean = false): Future[Seq[String]] = {
     val (sampleCode, labo) = importToProfileData.fromProtoProfileData(protoProfile.id, labCode, country, province, assignee, desktopSearch)
 
@@ -253,7 +286,7 @@ class BulkUploadServiceImpl @Inject() (
         sampleCode, None, None, None, None, None, None, protoProfile.sampleName,
         assignee, labo, false, None, None, None, None, None, None,false))(_.pdAttempToPd(labo))
 
-      profileService.importProfile(pd, analysis,replicate).map {
+    profileService.importProfile(pd, analysis,replicate).map {
       case Left(list) => {
         importToProfileData.deleteProfileData(sampleCode.text)
 
@@ -278,11 +311,11 @@ class BulkUploadServiceImpl @Inject() (
   }
 
   override def rejectProtoProfile(
-    id: Long,
-    motive: String,
-    userId: String,
-    idMotive:Long
-  ): Future[Seq[String]] = {
+                                   id: Long,
+                                   motive: String,
+                                   userId: String,
+                                   idMotive:Long
+                                 ): Future[Seq[String]] = {
     this
       .updateProtoProfileStatus(
         id,
@@ -311,23 +344,24 @@ class BulkUploadServiceImpl @Inject() (
           } else {
             Future.successful(Nil)
           }
-    }
+      }
   }
 
-  override def updateBatchStatus(
-    idBatch: Long,
-    status: ProtoProfileStatus.Value,
-    userId: String,
-    isSuperUser: Boolean,
-    replicateAll:Boolean,
-    idsToReplicate: scala.List[Long]
-  ): Future[Either[String, Long]] = {
+ override def updateBatchStatus(
+                                  idBatch: Long,
+                                  status: ProtoProfileStatus.Value,
+                                  userId: String,
+                                  isSuperUser: Boolean,
+                                  replicateAll:Boolean,
+                                  idsToReplicate: scala.List[Long]
+                                ): Future[Either[String, Long]] = {
     val result = userService
       .listAllUsers()
       .flatMap {
         users =>
           val loggedUser = users.find(u => u.userName == userId).get
-          val profiles = if (status == ProtoProfileStatus.Imported) {
+
+          val profiles = if (status == ProtoProfileStatus.Imported || status == ProtoProfileStatus.Uploaded ) {
             protoRepo.getProtoProfilesStep2(
               idBatch,
               loggedUser.geneMapperId,
@@ -349,28 +383,52 @@ class BulkUploadServiceImpl @Inject() (
                       )
                     }
                     val performTransition = (geneticist:UserView) => {
-                      if (allowTransition(protoProfile.status, status)) {
-                        var replicate = false;
-                        if (replicateAll) {
-                          val category = categoryService
-                            .getCategory(protoProfile.category)
-                          if (category.isDefined && category.get.replicate) {
-                            replicate = true;
-                          }
-                        } else {
-                          if (idsToReplicate.contains(protoProfile.id)) {
-                            replicate = true;
-                          }
+                      // Determine whether to replicate or not
+
+                      var replicate = false
+                      if (replicateAll) {
+                        val category = categoryService
+                          .getCategory(protoProfile.category)
+                        if (category.isDefined && category.get.replicate) {
+                          replicate = true;
                         }
-                        transitionStatus(
-                          status,
-                          protoProfile,
-                          geneticist.userName,
-                          userId,
-                          replicate
-                        )
                       } else {
-                        Future.successful(Seq())
+                        if (idsToReplicate.contains(protoProfile.id)) {
+                          replicate = true;
+                        }
+                      }
+
+                      //Only import if is not in idsToReplicate List
+                      if ((status == ProtoProfileStatus.Imported || status == ProtoProfileStatus.Approved) && !idsToReplicate.contains(protoProfile.id)) {
+                        if (allowTransition(protoProfile.status, status)) {
+                          transitionStatus(
+                            status,
+                            protoProfile,
+                            geneticist.userName,
+                            userId,
+                            replicate
+                          )
+                        } else {
+                          Future.successful(Seq())
+                        }
+                      } else if (replicate && idsToReplicate.contains(protoProfile.id)) {
+                        // If we are only replicating, and this profile should be replicated
+                        if (allowTransition(protoProfile.status, status)) {
+                          //transitionStatus with replicate = true only
+                          transitionStatus(
+                            status,
+                            protoProfile,
+                            geneticist.userName,
+                            userId,
+                            true //FORCE REPLICATE TO TRUE
+                          )
+                        } else {
+                          Future.successful(Seq())
+                        }
+
+                      }
+                      else{
+                        Future.successful(Seq()) // do nothing
                       }
                     }
                     geneticistOpt.fold(errorMessage())(performTransition)
@@ -378,35 +436,149 @@ class BulkUploadServiceImpl @Inject() (
                 )
               )
           }
-    }
-    result.map {
-      sequences =>
-        if (sequences.exists(_.nonEmpty)) {
-          val joinedMessage = (
-            sequences
-              .flatten
-              ++ Seq(Messages("error.E0103"))
-            )
-            .distinct
-            .map(msg => s"<br>${msg}")
-            .mkString("")
-          Left(joinedMessage)
-        } else {
-          Right(idBatch)
-        }
+      }
+   result.map { sequences =>
+     // Check if any sequence contains "Success"
+     if (sequences.exists(_.contains("Success"))) {
+       Right(idBatch) // Return Right(idBatch) if "Success" is found
+     } else if (sequences.exists(_.nonEmpty)) {
+       // If there are non-empty sequences but no "Success", return the error message
+       val joinedMessage = (
+         sequences
+           .flatten
+           ++ Seq(Messages("error.E0103"))
+         )
+         .distinct
+         .map(msg => s"<br>${msg}")
+         .mkString("")
+       Left(joinedMessage)
+     } else {
+       Right(idBatch) // If all sequences are empty, return Right(idBatch)
+     }
     }
   }
+ /*override def updateBatchStatus(
+                                 idBatch: Long,
+                                 status: ProtoProfileStatus.Value,
+                                 userId: String,
+                                 isSuperUser: Boolean,
+                                 replicateAll:Boolean,
+                                 idsToReplicate: scala.List[Long]
+                               ): Future[Either[String, Long]] = {
+   val result = userService
+     .listAllUsers()
+     .flatMap {
+       users =>
+         val loggedUser = users.find(u => u.userName == userId).get
+         val profiles = if (status == ProtoProfileStatus.Imported) {
+           protoRepo.getProtoProfilesStep2(
+             idBatch,
+             loggedUser.geneMapperId,
+             loggedUser.superuser
+           )
+         } else {
+           protoRepo.getProtoProfilesStep1(idBatch)
+         }
+         profiles.flatMap {
+           protoProfiles =>
+             Future.sequence(
+               protoProfiles.map(
+                 protoProfile => {
+                   val geneticistOpt = users
+                     .find(u => u.geneMapperId == protoProfile.assignee)
+                   val errorMessage = () => {
+                     Future.successful(
+                       Seq(Messages("error.E0200", protoProfile.assignee))
+                     )
+                   }
+                   val performTransition = (geneticist:UserView) => {
+                     if (allowTransition(protoProfile.status, status)) {
+                       var replicate = false;
+                       if (replicateAll) {
+                         val category = categoryService
+                           .getCategory(protoProfile.category)
+                         if (category.isDefined && category.get.replicate) {
+                           replicate = true;
+                         }
+                       } else {
+                         if (idsToReplicate.contains(protoProfile.id)) {
+                           replicate = true;
+                         }
+                       }
+                       transitionStatus(
+                         status,
+                         protoProfile,
+                         geneticist.userName,
+                         userId,
+                         replicate
+                       )
+                     } else {
+                       Future.successful(Seq())
+                     }
+                   }
+                   geneticistOpt.fold(errorMessage())(performTransition)
+                 }
+               )
+             )
+         }
+     }
+   result.map {
+     sequences =>
+       if (sequences.exists(_.nonEmpty)) {
+         val joinedMessage = (
+           sequences
+             .flatten
+             ++ Seq(Messages("error.E0103"))
+           )
+           .distinct
+           .map(msg => s"<br>${msg}")
+           .mkString("")
+         Left(joinedMessage)
+       } else {
+         Right(idBatch)
+       }
+   }
+ }*/
 
   private def transitionStatus(
-    status: ProtoProfileStatus.Value,
-    protoProfile: ProtoProfile,
-    assignee: String,
-    userId: String,
-    replicate: Boolean = false
-    , desktopSearch: Boolean = false
-  ): Future[Seq[String]] = {
+                                status: ProtoProfileStatus.Value,
+                                protoProfile: ProtoProfile,
+                                assignee: String,
+                                userId: String,
+                                replicate: Boolean = false
+                                , desktopSearch: Boolean = false
+                              ): Future[Seq[String]] = {
     if (allowTransition(protoProfile.status, status)) {
       status match {
+        case ProtoProfileStatus.Uploaded => {
+          // If preexistence present, replicate to superior via importLinkedProtoProfile,
+          // otherwise perform a normal import but with replicate=true to force replication.
+          val perform: Future[Seq[String]] =
+            replicateProtoProfile(protoProfile, userId)
+            updateStatus(protoProfile.id, status)
+          perform.flatMap {
+            errors =>
+              if (errors.isEmpty) {
+                // mark as Uploaded and notify assignee and superusers
+                notificationService.solve(
+                  assignee,
+                  BulkUploadInfo(protoProfile.id.toString, protoProfile.sampleName)
+                )
+                updateStatus(protoProfile.id, status).map { res =>
+                  if (res.isEmpty) {
+                    userService.sendNotifToAllSuperUsers(
+                      BulkUploadInfo(protoProfile.id.toString, protoProfile.sampleName),
+                      Seq(assignee)
+                    )
+                  }
+                  res
+                }
+              } else {
+                Future.successful(errors)
+              }
+          }
+        }
+
         case ProtoProfileStatus.Imported => {
           val res = if (protoProfile.preexistence.isDefined) {
             importLinkedProtoProfile(protoProfile, userId, replicate)
@@ -451,7 +623,7 @@ class BulkUploadServiceImpl @Inject() (
                     Seq(assignee)
                   )
                 x
-          }
+            }
         }
         case ProtoProfileStatus.Disapproved => {
           updateStatus(protoProfile.id, status)
@@ -483,12 +655,12 @@ class BulkUploadServiceImpl @Inject() (
   }
 
   override def updateProtoProfileStatus(
-    id: Long,
-    status: ProtoProfileStatus.Value,
-    userId: String,
-    replicate : Boolean = false,
-    desktopSearch: Boolean = false
-  ): Future[Seq[String]] = {
+                                         id: Long,
+                                         status: ProtoProfileStatus.Value,
+                                         userId: String,
+                                         replicate : Boolean = false,
+                                         desktopSearch: Boolean = false
+                                       ): Future[Seq[String]] = {
     protoRepo
       .getProtoProfile(id)
       .flatMap {
@@ -505,27 +677,27 @@ class BulkUploadServiceImpl @Inject() (
           }
           val transitionWithGeneticist =
             (protoProfile: ProtoProfile) =>
-            (g:UserView) => {
-              transitionStatus(
-                status,
-                protoProfile,
-                g.userName,
-                userId,
-                replicate,
-                desktopSearch
-              )
-          }
+              (g:UserView) => {
+                transitionStatus(
+                  status,
+                  protoProfile,
+                  g.userName,
+                  userId,
+                  replicate,
+                  desktopSearch
+                )
+              }
           val transitionate = (protoProfile:ProtoProfile) => {
             userService
               .findByGeneMapper(protoProfile.assignee)
               .flatMap(
                 _.fold
-                  (genError200(protoProfile.assignee))
-                  (transitionWithGeneticist(protoProfile))
+                (genError200(protoProfile.assignee))
+                (transitionWithGeneticist(protoProfile))
               )
-            }
+          }
           protoProfileOpt.fold(error105)(transitionate)
-    }
+      }
   }
 
   override def updateProtoProfileRulesMismatch(id: Long, matchingRules: Seq[MatchingRule], mismatches: Profile.Mismatch): Future[Boolean] = {
@@ -547,24 +719,24 @@ class BulkUploadServiceImpl @Inject() (
             case None => Future.successful(Left(Seq(Messages("error.E0900", id))))
 
             case Some(protoProfile) =>
-                  protoProfile.preexistence.fold[Future[Option[String]]](Future.successful(None))(gc =>
-                    protoRepo.validateAssigneAndCategory(gc, protoProfile.assignee, Some(category.id)))
-                 .flatMap {
-                   _.fold(protoRepo.updateProtoProfileData(id, category.id) flatMap {
-                     case 1 => {
+              protoProfile.preexistence.fold[Future[Option[String]]](Future.successful(None))(gc =>
+                  protoRepo.validateAssigneAndCategory(gc, protoProfile.assignee, Some(category.id)))
+                .flatMap {
+                  _.fold(protoRepo.updateProtoProfileData(id, category.id) flatMap {
+                    case 1 => {
 
-                       if(ProtoProfileStatus.Approved == protoProfile.status){
+                      if(ProtoProfileStatus.Approved == protoProfile.status){
                         Future.successful(Right((protoProfile.copy(category=category.id.text))))
-                       }else{
-                         updateProtoProfileStatus(id, ProtoProfileStatus.ReadyForApproval, userId) flatMap {
-                           case Nil => this.getProtoProfile(id) map { optPPp => Right(optPPp.get) }
-                           case err => Future.successful(Left(err))
-                         }
-                       }
-                     }
-                     case count => Future.successful(Left(Seq(Messages("error.E0660" , count ))))
-                   })(ss => Future.successful(Left(Seq(ss))))
-                 }
+                      }else{
+                        updateProtoProfileStatus(id, ProtoProfileStatus.ReadyForApproval, userId) flatMap {
+                          case Nil => this.getProtoProfile(id) map { optPPp => Right(optPPp.get) }
+                          case err => Future.successful(Left(err))
+                        }
+                      }
+                    }
+                    case count => Future.successful(Left(Seq(Messages("error.E0660" , count ))))
+                  })(ss => Future.successful(Left(Seq(ss))))
+                }
           }
       }
     }
@@ -601,4 +773,3 @@ class BulkUploadServiceImpl @Inject() (
     }
   }
 }
-

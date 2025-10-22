@@ -1,5 +1,7 @@
 package controllers
 
+import bulkupload.ProtoProfileRepository
+
 import javax.inject.{Inject, Singleton}
 import play.api.libs.json.{JsError, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, BodyParsers, Controller}
@@ -18,7 +20,7 @@ import types.SampleCode
 import profiledata.{DeletedMotive, ProfileDataService}
 
 @Singleton
-class Interconnections @Inject()(
+class Interconnections @Inject()( val protoRepo: ProtoProfileRepository,
                                   interconnectionService : InterconnectionService,
                                   profiledataService: ProfileDataService
                                 ) extends Controller {
@@ -293,7 +295,9 @@ class Interconnections @Inject()(
           val labCode: Option[String] = getLabCodeFromGlobalCode(id)
           labCode match {
             //Insertar el perfil en PROFILE_RECEIVED table
-            case Some(code) => profiledataService.addProfileReceivedRejected(code, id, 21L,  motive,userName, isCategoryModification)// Using profiledataService to access the repository
+            case Some(code) => {
+              profiledataService.addProfileReceivedRejected(code, id, 21L,  motive,userName, isCategoryModification)
+            }// Using profiledataService to access the repository
             case None => Future.successful(Left("Invalid global code format")) // Or handle the missing labCode case
           }
           Ok.withHeaders("X-CREATED-ID" -> id)

@@ -155,7 +155,8 @@ object Permission {
       StaticAuthorisationOperation("""/notifications.*""".r, """.*""".r, "NotificationsAll"),
       StaticAuthorisationOperation("""/bulkupload.*""".r, """DELETE""".r, "BulkuploaderBatchesDelete"),
       StaticAuthorisationOperation("""/motive.*""".r, """GET""".r, "GetMotives"),
-      StaticAuthorisationOperation("""/locus.*""".r, """GET""".r, "LocusRead"))
+      StaticAuthorisationOperation("""/locus.*""".r, """GET""".r, "LocusRead"),
+      StaticAuthorisationOperation("""/profileData/isProfileReplicated/.*""".r, """GET""".r, "ProfileDataRead"))
   }
   case object USER_CRUD extends Permission {
     override val operations: Set[StaticAuthorisationOperation] = Set(

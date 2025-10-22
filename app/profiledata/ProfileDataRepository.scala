@@ -49,6 +49,8 @@ import play.api.i18n.Messages
 import models.Tables.ExternalProfileDataRow
 //import play.api.db.slick.Config.driver.simple._
 import scala.slick.driver.PostgresDriver.simple._
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Success, Failure}
 
 abstract class ProfileDataRepository extends DefaultDb with Transaction  {
   /**
@@ -139,6 +141,7 @@ abstract class ProfileDataRepository extends DefaultDb with Transaction  {
   def findByCodes(globalCodes: List[SampleCode]): Future[Seq[ProfileData]]
 
   def getGlobalCode(internalSampleCode: String): Future[Option[SampleCode]]
+
   def getDesktopProfiles() : Future[Seq[SampleCode]]
 
   def addExternalProfile(
@@ -208,6 +211,8 @@ abstract class ProfileDataRepository extends DefaultDb with Transaction  {
   def getProfileReceivedStatusByGlobalCode(globalCode: SampleCode): Future[Option[Long]]
 
   def getIsProfileReplicated(globalCode: SampleCode): Boolean
+
+  def getIsProfileReplicatedInternalCode(internalCode: String): Boolean
 
 }
 
@@ -508,6 +513,7 @@ class SlickProfileDataRepository @Inject() (
       if (isSuperUser || pd.assignee === userId) && (pd.category === category)
     } yield (pd)
     ) sortBy (_.globalCode.desc)
+
 
   val queryGetProfileDataByUserAndStatus =
     Compiled(queryDefineGetProfileDataByUserAndStatus _)
@@ -1107,7 +1113,7 @@ class SlickProfileDataRepository @Inject() (
         getProfileUploadedByGlobalCode(gc.text).firstOption.map(x => x.status)
       } catch {
         case e: Exception => {
-          None
+          Option.empty[Long]
         }
       }
     }
@@ -1120,7 +1126,7 @@ class SlickProfileDataRepository @Inject() (
         getProfileReceivedByGlobalCode(gc.text).firstOption.map(x => x.status)
       } catch {
         case e: Exception => {
-          None
+          Option.empty[Long]
         }
       }
     }
@@ -1380,6 +1386,21 @@ class SlickProfileDataRepository @Inject() (
       }
     }
   }
+
+  def getIsProfileReplicatedInternalCode(internalCode: String): Boolean = {
+    import scala.concurrent.Await
+    import scala.concurrent.duration._
+
+    try {
+      Await.result(getGlobalCode(internalCode).map {
+        case Some(globalCode) => getIsProfileReplicated(globalCode)
+        case None => false
+      }, 3.seconds) // Timeout after 3 seconds (adjust as needed)
+    } catch {
+      case _: Throwable => false // Handle any exceptions, return false
+    }
+  }
+
 }
 
 @Singleton
