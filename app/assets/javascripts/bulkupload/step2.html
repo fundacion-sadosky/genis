@@ -61,7 +61,9 @@
 							ng-disabled="l.isProcessing || protoProfiles[l.id].todosAprobados || l.acceptSelectedDisabled">
 						Aceptar seleccionados
 					</button>
-					<button class="btn btn-secondary-action" ng-click="replicateAllToggle(l.id)" ng-disabled="l.isProcessing || protoProfiles[l.id].todosAprobados || l.acceptAndReplicateSelectedDisabled">
+					<button class="btn btn-secondary-action"
+							ng-click="replicateAllToggle(l.id)"
+							ng-disabled="l.isProcessing || !protoProfiles[l.id].anyReplicable || protoProfiles[l.id].disableReplicateAll">
 						<span ng-if="!protoProfiles[l.id].allReplicated">Replicar todos</span>
 						<span ng-if="protoProfiles[l.id].allReplicated">No replicar ninguno</span>
 					</button>
@@ -123,7 +125,7 @@
 								>
 							</td>
 							<td class="text-center">
-								<input type="checkbox" ng-model="l.desktopSearch" ng-disabled="protoProfiles[l.id].length !== 1 || l.desktopSearchDisabled" ng-change="handleDesktopSearchChange(l)">
+								<input type="checkbox" ng-model="l.desktopSearch" ng-disabled="protoProfiles[l.id].length !== 1 || l.desktopSearchDisabled || !r.status == 'Approved'" ng-change="handleDesktopSearchChange(l)">
 							</td>
 							<td class="text-center">
 								<button ng-if="r.status === 'Approved'" ng-disabled="l.isProcessing" class="btn btn-default btn-link-action btn-link-border" title="Rechazar análisis" ng-click="reject(r, l)">

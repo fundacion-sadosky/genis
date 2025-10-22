@@ -64,15 +64,19 @@ define(['jquery', 'lodash'], function($, _) {
                     return $q.all(profileUpdatePromises)
                         .then(function(updatedProfiles) {
                             $scope.protoProfiles[batch.id] = updatedProfiles;
+                            $scope.protoProfiles[batch.id].allReplicated = false;
+                            $scope.protoProfiles[batch.id].anyReplicable = false;
                             aprobados(batch.id);
                             batch.isProcessing = false;
                             updateAllReplicatedStatus(batch.id);
+                            updateDisableReplicateAllStatus(batch.id);
                         });
                 })
                 .catch(function() {
                     batch.isProcessing = false;
                 });
         };
+
 
         var loadLocus = function() {
             return locusService.listFull().then(function(response) {
@@ -138,7 +142,7 @@ define(['jquery', 'lodash'], function($, _) {
                         isReplicatedPromise.then(function(isReplicated) {
                             sample.replicateDisabled = !$scope.subcategory[sample.category].replicate || isReplicated || sample.status !== 'Imported';
                             sample.replicate = sample.replicate && !sample.replicateDisabled;
-
+                            updateDisableReplicateAllStatus(batch.id); // Update the disableReplicateAll status
                         });
                     }
                     aprobados(batch.id);
@@ -420,40 +424,41 @@ define(['jquery', 'lodash'], function($, _) {
         };
 
         $scope.handleDesktopSearchChange = function(batch) {
-            if (batch.desktopSearch) {
-                batch.replicateDisabled = true;
-                batch.acceptAndReplicateDisabled = true;
-                batch.acceptAndReplicateSelectedDisabled = true;
-            } else {
-                batch.replicateDisabled = false;
-                batch.acceptAndReplicateDisabled = false;
-                batch.acceptAndReplicateSelectedDisabled = false;
-            }
+            // No actions needed here, the UI handles the disabled state correctly
         };
 
         $scope.replicateAllToggle = function(batchId) {
             var allReplicated = $scope.protoProfiles[batchId].allReplicated;
 
             _.forEach($scope.protoProfiles[batchId], function(r) {
-                if (!r.replicateDisabled) {
+                if (!r.replicateDisabled && r.status === 'Imported') {
                     r.replicate = !allReplicated;
                 }
             });
+
             updateAllReplicatedStatus(batchId);
             var batch = _.find($scope.batches, {id: batchId});
             batch.replicateSelectedDisabled = !$scope.anySelectedForReplication(batchId);
-
         };
 
+
         function updateAllReplicatedStatus(batchId) {
+            var anyReplicable = false;
             var allReplicated = true;
+
             _.forEach($scope.protoProfiles[batchId], function(r) {
-                if (!r.replicate && !r.replicateDisabled) {
-                    allReplicated = false;
+                if (!r.replicateDisabled && r.status === 'Imported') {
+                    anyReplicable = true;
+                    if (!r.replicate) {
+                        allReplicated = false;
+                    }
                 }
             });
-            $scope.protoProfiles[batchId].allReplicated = allReplicated;
+
+            $scope.protoProfiles[batchId].allReplicated = allReplicated && anyReplicable;
+            $scope.protoProfiles[batchId].anyReplicable = anyReplicable;
         }
+
 
         $scope.replicateSelected = function(batchId) {
             var batch = _.find($scope.batches, {id: batchId});
@@ -492,12 +497,23 @@ define(['jquery', 'lodash'], function($, _) {
             });
         };
 
+        function updateDisableReplicateAllStatus(batchId) {
+            $scope.protoProfiles[batchId].disableReplicateAll = !_.some($scope.protoProfiles[batchId], function(r) {
+                return !r.replicateDisabled && r.status === 'Imported';
+            });
+        }
+
+
         // Watch for changes in selected checkboxes and replicate checkboxes, and update the "Replicar seleccionados" button state
         $scope.$watch(function() {
             if (!$scope.protoProfiles) {
                 return {};
             }
+            _.forEach($scope.protoProfiles, function(profiles, batchId) {
+                updateDisableReplicateAllStatus(batchId);
+            });
 
+            return $scope.protoProfiles;
         }, true);
     }
 
