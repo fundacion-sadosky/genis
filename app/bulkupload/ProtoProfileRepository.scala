@@ -67,7 +67,7 @@ abstract class ProtoProfileRepository  extends DefaultDb with Transaction {
   def getSearchBachLabelID(userId: String, isSuperUser: Boolean, filter: String) : Future[Seq[ProtoProfilesBatchView]]
   def getBatchSearchModalViewByIdOrLabel(input:String,idCase:Long):Future[List[BatchModelView]]
   def mtExistente(sampleName:String ) : Future[Boolean]
-  def updateProtoProfileExistance(internalCode: String, globalCode: SampleCode): Future[Int]
+  def updateProtoProfileStatus(internalCode: String, status: String): Future[Int]
 }
 
 @Singleton
@@ -207,7 +207,7 @@ class SlickProtoProfileRepository @Inject() (
                             	SELECT COUNT(*) as "TOTAL" FROM "APP"."PROTO_PROFILE" pp
                             	WHERE pp."ID_BATCH" = bpp."ID"
                             	AND (pp."ASSIGNEE" = ? OR ?)
-                            	AND pp."STATUS" IN ('Approved','Rejected','Imported')
+                            	AND pp."STATUS" IN ('Approved','Rejected','Imported','Uploaded')
                             ) as "TOTAL",
                             bpp."LABEL", (
                             SELECT COUNT(*) as "TOTAL_APPROVED" FROM "APP"."PROTO_PROFILE" pp
@@ -268,12 +268,12 @@ class SlickProtoProfileRepository @Inject() (
 
   def countImported(idBatch: Long) = sql"""select COUNT(*) from "APP"."PROTO_PROFILE" where "ID_BATCH" = $idBatch and "STATUS" = 'Imported'""".as[Int]
 
-  override def updateProtoProfileExistance(internalCode: String, globalCode: SampleCode): Future[Int] = Future {
+  override def updateProtoProfileStatus(internalCode: String, status: String): Future[Int] = Future {
     DB.withTransaction { implicit session =>
       val q = for {
         pp <- protoProfiles if pp.sampleName === internalCode
-      } yield (pp.preexistence)
-      q.update(Some(globalCode.text))
+      } yield (pp.status)
+      q.update(status)
     }
   }
 

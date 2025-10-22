@@ -1,8 +1,9 @@
 package connections
 
 
-import java.util.Date
+import bulkupload.ProtoProfileRepository
 
+import java.util.Date
 import configdata.{CategoryConfiguration, CategoryRepository, CategoryService}
 import inbox.NotificationService
 import kits.AnalysisType
@@ -143,7 +144,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
   val profileDataServiceMock = mock[ProfileDataService]
 
   def interconnectionServiceFactory(connectionRepository: ConnectionRepository, inferiorInstanceRepository: InferiorInstanceRepository,
-                                    wsClient: WSClient): InterconnectionServiceImpl = {
+                                    wsClient: WSClient, protoRepo: ProtoProfileRepository): InterconnectionServiceImpl = {
     new InterconnectionServiceImpl(akkaSystem,connectionRepository, inferiorInstanceRepository, mock[CategoryRepository], mock[SuperiorInstanceProfileApprovalRepository], wsClient, null, null, null, null,
       null , protocol, status, categoryTreeCombo, insertConnection, localUrl, uploadProfile, labCode,
       profileDataServiceMock,
@@ -157,7 +158,9 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
       "1 seconds",
       "1 seconds",
       1000,
-      cacheService
+      cacheService,
+      protoRepo
+
     )
   }
 
@@ -166,7 +169,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
     "get connections ok" in {
       val connectionRepository = mock[ConnectionRepository]
       val inferiorInstanceRepository = mock[InferiorInstanceRepository]
-      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, client)
+      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, client, protoRepo = mock[ProtoProfileRepository])
       when(connectionRepository.getConnections()).
         thenReturn(Future.successful(Right(Connection("192.168.0.1", "192.168.0.2"))))
 
@@ -178,7 +181,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
     "get connections no ok" in {
       val connectionRepository = mock[ConnectionRepository]
       val inferiorInstanceRepository = mock[InferiorInstanceRepository]
-      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, client)
+      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, client, protoRepo = mock[ProtoProfileRepository])
 
       when(connectionRepository.getConnections()).
         thenReturn(Future.successful(Left("Db Error")))
@@ -191,7 +194,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
     "update connections no ok E0708" in {
       val connectionRepository = mock[ConnectionRepository]
       val inferiorInstanceRepository = mock[InferiorInstanceRepository]
-      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, client)
+      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, client, protoRepo = mock[ProtoProfileRepository])
 
       when(connectionRepository.updateConnections(Connection("A", "B"))).
         thenReturn(Future.successful(Left("Db Error")))
@@ -213,7 +216,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
       val holder: WSRequestHolder = mock[WSRequestHolder]
       val inferiorInstanceRepository = mock[InferiorInstanceRepository]
       val dummyUrl = "localhost:9000"
-      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, ws)
+      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, ws, protoRepo = mock[ProtoProfileRepository])
       when(connectionRepository.updateConnections(Connection(dummyUrl, dummyUrl))).
         thenReturn(Future.successful(Right(Connection(dummyUrl, dummyUrl))))
 
@@ -231,7 +234,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
       }
       val connectionRepository = mock[ConnectionRepository]
       val inferiorInstanceRepository = mock[InferiorInstanceRepository]
-      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, ws)
+      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, ws,protoRepo = mock[ProtoProfileRepository])
 
       val result = Await.result(interconnectionService.getConnectionsStatus("test no ok"), duration);
 
@@ -248,7 +251,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
           BadRequest
         }
       }
-      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, ws)
+      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, ws,protoRepo = mock[ProtoProfileRepository])
 
       val result = Await.result(interconnectionService.getConnectionsStatus("pdg-devclient"), duration);
 
@@ -274,7 +277,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
 
       val connectionRepository = mock[ConnectionRepository]
       val inferiorInstanceRepository = mock[InferiorInstanceRepository]
-      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, ws)
+      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, ws,protoRepo = mock[ProtoProfileRepository])
 
       val result = Await.result(interconnectionService.getConnectionsStatus(dummyUrl), duration);
 
@@ -299,7 +302,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
       when(connectionRepository.getConnections()).
         thenReturn(Future.successful(Right(Connection("Dummyurl.com", "Dummyurl.com"))))
       val inferiorInstanceRepository = mock[InferiorInstanceRepository]
-      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, ws)
+      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, ws,protoRepo = mock[ProtoProfileRepository])
 
       val result = Await.result(interconnectionService.getCategoryConsumer, duration);
 
@@ -323,7 +326,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
       when(connectionRepository.getConnections()).
         thenReturn(Future.successful(Right(Connection("Dummyurl.com", "Dummyurl.com"))))
       val inferiorInstanceRepository = mock[InferiorInstanceRepository]
-      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, ws)
+      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, ws,protoRepo = mock[ProtoProfileRepository])
 
       val result = Await.result(interconnectionService.getCategoryConsumer, duration);
 
@@ -347,7 +350,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
       when(connectionRepository.getSupInstanceUrl()).thenReturn(Future.failed(new RuntimeException()))
 
       val inferiorInstanceRepository = mock[InferiorInstanceRepository]
-      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, ws)
+      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, ws,protoRepo = mock[ProtoProfileRepository])
 
       val result = Await.result(interconnectionService.getCategoryConsumer, duration);
 
@@ -372,7 +375,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         None)
 
       val interconnectionService = new InterconnectionServiceImpl(akkaSystem,null, null, mock[CategoryRepository],
-        mock[SuperiorInstanceProfileApprovalRepository], null, null, null, null, null, null, protocol, status, categoryTreeCombo, insertConnection, localUrl, uploadProfile, labCode,profileDataServiceMock,null,null,new MongoMatchingRepository(""))
+        mock[SuperiorInstanceProfileApprovalRepository], null, null, null, null, null, null, protocol, status, categoryTreeCombo, insertConnection, localUrl, uploadProfile, labCode,profileDataServiceMock,null,null,new MongoMatchingRepository(""), protoRepo = mock[ProtoProfileRepository])
       val outputString = interconnectionService.convertToJson(msi)
       outputString.length>0 mustBe true
     }
@@ -393,7 +396,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
       when(connectionRepository.getConnections()).
         thenReturn(Future.successful(Right(Connection("Dummyurl.com", "Dummyurl.com"))))
       val inferiorInstanceRepository = mock[InferiorInstanceRepository]
-      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, clientMock)
+      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, clientMock, protoRepo = mock[ProtoProfileRepository])
 
       val result = Await.result(interconnectionService.getCategoryConsumer, duration);
 
@@ -416,7 +419,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
       when(connectionRepository.getSupInstanceUrl()).thenReturn(Future.failed(new RuntimeException()))
       when(connectionRepository.getConnections()).thenReturn(Future.failed(new RuntimeException()))
       val inferiorInstanceRepository = mock[InferiorInstanceRepository]
-      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, clientMock)
+      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, clientMock, protoRepo = mock[ProtoProfileRepository])
 
       val result = Await.result(interconnectionService.getCategoryConsumer, duration);
 
@@ -441,7 +444,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
       when(connectionRepository.getConnections()).
         thenReturn(Future.successful(Right(Connection("Dummyurl.com", "Dummyurl.com"))))
       val inferiorInstanceRepository = mock[InferiorInstanceRepository]
-      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, clientMock)
+      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, clientMock, protoRepo = mock[ProtoProfileRepository])
 
       val result = Await.result(interconnectionService.getCategoryConsumer, duration);
 
@@ -478,7 +481,9 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         "1 seconds",
         "1 seconds",
         1000,
-        cacheService)
+        cacheService,
+        protoRepo = mock[ProtoProfileRepository]
+      )
 
       when(inferiorInstanceRepository.insert(InferiorInstance(url = "a", laboratory = "lab"))).thenReturn(Future.successful(Right(1L)))
 
@@ -492,7 +497,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
       val connectionRepository = mock[ConnectionRepository]
       val inferiorInstanceRepository = mock[InferiorInstanceRepository]
       when(inferiorInstanceRepository.countByURL("a")).thenReturn(Future.successful(0L))
-      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, client)
+      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, client, protoRepo = mock[ProtoProfileRepository])
 
       when(inferiorInstanceRepository.insert(InferiorInstance(url = "a"))).thenReturn(Future.failed(new RuntimeException()))
 
@@ -505,7 +510,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
       val connectionRepository = mock[ConnectionRepository]
       val inferiorInstanceRepository = mock[InferiorInstanceRepository]
       when(inferiorInstanceRepository.countByURL("a")).thenReturn(Future.successful(1L))
-      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, client)
+      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, client, protoRepo = mock[ProtoProfileRepository])
 
       when(inferiorInstanceRepository.insert(InferiorInstance(url = "a"))).thenReturn(Future.failed(new RuntimeException()))
 
@@ -520,7 +525,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
       val connectionRepository = mock[ConnectionRepository]
       val inferiorInstanceRepository = mock[InferiorInstanceRepository]
       when(inferiorInstanceRepository.countByURL("a")).thenReturn(Future.failed(new RuntimeException()))
-      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, client)
+      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, client, protoRepo = mock[ProtoProfileRepository])
       when(connectionRepository.getSupInstanceUrl()).thenReturn(Future.successful(Some("Dummyurl.com")))
 
       when(inferiorInstanceRepository.insert(InferiorInstance(url = "a"))).thenReturn(Future.failed(new RuntimeException()))
@@ -545,7 +550,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
       when(connectionRepository.getConnections()).
         thenReturn(Future.successful(Right(Connection(dummyUrl, dummyUrl))))
 
-      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, ws)
+      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, ws, protoRepo = mock[ProtoProfileRepository])
 
       val result = Await.result(interconnectionService.connect(), duration);
       result.isRight mustBe true
@@ -567,7 +572,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
       when(connectionRepository.getConnections()).
         thenReturn(Future.successful(Right(Connection(dummyUrl, dummyUrl))))
 
-      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, ws)
+      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, ws, protoRepo = mock[ProtoProfileRepository])
 
       val result = Await.result(interconnectionService.connect(), duration);
       result.isLeft mustBe true
@@ -585,7 +590,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
       when(connectionRepository.getConnections()).
         thenReturn(Future.successful(Right(Connection(dummyUrl, dummyUrl))))
 
-      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, client)
+      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, client, protoRepo = mock[ProtoProfileRepository])
 
       val result = Await.result(interconnectionService.connect(), duration);
       result.isLeft mustBe true
@@ -601,7 +606,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
       when(connectionRepository.getSupInstanceUrl()).thenReturn(Future.failed(new RuntimeException()))
       when(connectionRepository.getConnections()).thenReturn(Future.failed(new RuntimeException()))
 
-      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, client)
+      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, client, protoRepo = mock[ProtoProfileRepository])
 
       val result = Await.result(interconnectionService.connect(), duration);
       result.isLeft mustBe true
@@ -612,7 +617,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
     "getAllInferiorInstances" in {
       val connectionRepository = mock[ConnectionRepository]
       val inferiorInstanceRepository = mock[InferiorInstanceRepository]
-      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, client)
+      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, client, protoRepo = mock[ProtoProfileRepository])
 
       when(inferiorInstanceRepository.findAll()).thenReturn(Future.successful(Left("")))
 
@@ -622,7 +627,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
     "getAllInferiorInstanceStatus" in {
       val connectionRepository = mock[ConnectionRepository]
       val inferiorInstanceRepository = mock[InferiorInstanceRepository]
-      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, client)
+      val interconnectionService = interconnectionServiceFactory(connectionRepository, inferiorInstanceRepository, client, protoRepo = mock[ProtoProfileRepository])
 
       when(inferiorInstanceRepository.findAllInstanceStatus()).thenReturn(Future.successful(Left("")))
 
@@ -653,7 +658,9 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         "1 seconds",
         "1 seconds",
         1000,
-        cacheService)
+        cacheService,
+      protoRepo = mock[ProtoProfileRepository]
+      )
 
       when(inferiorInstanceRepository.update(InferiorInstanceFull(id = 1, url = "", connectivity = "", idStatus = 1))).thenReturn(Future.successful(Left("")))
 
@@ -716,7 +723,8 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         "1 seconds",
         "1 seconds",
         1000,
-        cacheService)
+        cacheService,
+        protoRepo = mock[ProtoProfileRepository])
 
       interconnectionService.uploadProfileToSuperiorInstance(profile, profileData)
 
@@ -778,7 +786,9 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         "1 seconds",
         "1 seconds",
         1000,
-        cacheService)
+        cacheService,
+        protoRepo = mock[ProtoProfileRepository]
+        )
 
       interconnectionService.uploadProfileToSuperiorInstance(profile, profileData)
 
@@ -831,7 +841,9 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         "1 seconds",
         "1 seconds",
         1000,
-        cacheService)
+        cacheService,
+        protoRepo = mock[ProtoProfileRepository])
+        
 
 
       interconnectionService.importProfile(profile, "SHDG", "", "SHDG", "SHDG")
@@ -882,7 +894,8 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         "1 seconds",
         "1 seconds",
         1000,
-        cacheService)
+        cacheService,
+        protoRepo = mock[ProtoProfileRepository])
 
       interconnectionService.importProfile(profile, "SHDG", "", "SHDG", "SHDG")
 
@@ -931,7 +944,8 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         "1 seconds",
         "1 seconds",
         1000,
-        cacheService)
+        cacheService,
+        protoRepo = mock[ProtoProfileRepository])
 
       interconnectionService.importProfile(profile, "SHDG", "1", "SHDG", "SHDG")
 
@@ -1000,7 +1014,8 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         "1 seconds",
         "1 seconds",
         1000,
-        cacheService)
+        cacheService,
+        protoRepo = mock[ProtoProfileRepository])
 
       val result = Await.result(interconnectionService.approveProfile(profileApproval, false, ""), Duration.Inf)
       result.isLeft mustBe true
@@ -1074,7 +1089,8 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         "1 seconds",
         "1 seconds",
         1000,
-        cacheService)
+        cacheService,
+        protoRepo = mock[ProtoProfileRepository])
 
       val result = Await.result(interconnectionService.approveProfile(profileApproval, false, ""), Duration.Inf)
       result.isLeft mustBe true
@@ -1147,7 +1163,8 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         "1 seconds",
         "1 seconds",
         1000,
-        cacheService)
+        cacheService,
+        protoRepo = mock[ProtoProfileRepository])
 
       val result = Await.result(interconnectionService.approveProfile(profileApproval, false,""), Duration.Inf)
       result.isLeft mustBe true
@@ -1218,7 +1235,8 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         "1 seconds",
         "1 seconds",
         1000,
-        cacheService)
+        cacheService,
+        protoRepo = mock[ProtoProfileRepository])
 
       val result = Await.result(interconnectionService.approveProfiles(List(profileApproval), "test-user"), Duration.Inf)
       result.isLeft mustBe true
@@ -1267,7 +1285,8 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         "1 seconds",
         "1 seconds",
         1000,
-        cacheService)
+        cacheService,
+        protoRepo = mock[ProtoProfileRepository])
 
       val result = Await.result(interconnectionService.getPendingProfiles(approvalSearch), Duration.Inf)
       result.isEmpty mustBe true
@@ -1316,7 +1335,8 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         "1 seconds",
         "1 seconds",
         1000,
-        cacheService)
+        cacheService,
+        protoRepo = mock[ProtoProfileRepository])
 
       Await.result(interconnectionService.notifyApprovalChangeStatus(profile.globalCode.text, "SHDG", 1L), Duration.Inf)
 
@@ -1444,7 +1464,8 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         "1 seconds",
         "1 seconds",
         1000,
-        cacheService)
+        cacheService,
+        protoRepo = mock[ProtoProfileRepository])
 
       val result = Await.result(interconnectionService.uploadProfile(profile.globalCode.text), Duration.Inf)
       result.isLeft mustBe true
@@ -1505,7 +1526,8 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         "1 seconds",
         "1 seconds",
         1000,
-        cacheService)
+        cacheService,
+        protoRepo = mock[ProtoProfileRepository])
 
       val result = Await.result(interconnectionService.uploadProfile(profile.globalCode.text), Duration.Inf)
       result.isLeft mustBe true
@@ -1583,7 +1605,8 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         "1 seconds",
         "1 seconds",
         1000,
-        cacheService)
+        cacheService,
+        protoRepo = mock[ProtoProfileRepository])
 
       val result = Await.result(interconnectionService.rejectProfile(ProfileApproval(profile.globalCode.text),"motivo",1L, "usuario"), Duration.Inf)
       result.isRight mustBe true
@@ -1659,7 +1682,8 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         "1 seconds",
         "1 seconds",
         1000,
-        cacheService)
+        cacheService,
+        protoRepo = mock[ProtoProfileRepository])
 
       val result = Await.result(interconnectionService.rejectProfile(ProfileApproval(profile.globalCode.text),"motivo",1L, "usuario"), Duration.Inf)
       result.isRight mustBe true
@@ -1711,7 +1735,8 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         "1 seconds",
         "1 seconds",
         1000,
-        cacheService)
+        cacheService,
+        protoRepo = mock[ProtoProfileRepository])
 
       val result = Await.result(interconnectionService.rejectProfile(ProfileApproval(profile.globalCode.text),"motivo",1L, "usuario"), Duration.Inf)
       result.isLeft mustBe true
@@ -1766,7 +1791,8 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         "1 seconds",
         "1 seconds",
         1000,
-        cacheService)
+        cacheService,
+        protoRepo = mock[ProtoProfileRepository])
 
       val result = Await.result(interconnectionService.validateAnalysis(profile), Duration.Inf)
       result.forall(x => x.isRight) mustBe true
@@ -1790,7 +1816,8 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         "1 seconds",
         "1 seconds",
         1000,
-        cacheService)
+        cacheService,
+        protoRepo = mock[ProtoProfileRepository])
 
       val result = Await.result(interconnectionService.updateUploadStatus("GLOBALCODE",1L,None,"",false), duration)
 
@@ -1820,7 +1847,8 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         "1 seconds",
         "1 seconds",
         1000,
-        cacheService)
+        cacheService,
+        protoRepo = mock[ProtoProfileRepository])
 
       val result = Await.result(interconnectionService.receiveDeleteProfile("AR-C-SHDG-1190",DeletedMotive("ahierro", "motivo", 2),"","", true, "user"), duration)
 
@@ -1850,7 +1878,8 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         "1 seconds",
         "1 seconds",
         1000,
-        cacheService)
+        cacheService,
+        protoRepo = mock[ProtoProfileRepository])
 
       val result = Await.result(interconnectionService.receiveDeleteProfile("AR-C-SHDG-1190",DeletedMotive("ahierro", "motivo", 2),"","", true, "user"), duration)
 
@@ -1892,7 +1921,8 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         "1 seconds",
         "1 seconds",
         1000,
-        cacheService)
+        cacheService,
+        protoRepo = mock[ProtoProfileRepository])
 
       val result = Await.result(interconnectionService.receiveDeleteProfile("AR-C-SHDG-1190",DeletedMotive("ahierro", "motivo", 2),"","", true, "user"), duration)
 
@@ -1925,7 +1955,8 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         "1 seconds",
         "1 seconds",
         1000,
-        cacheService)
+        cacheService,
+        protoRepo = mock[ProtoProfileRepository])
 
       val result = Await.result(interconnectionService.receiveDeleteProfile("AR-C-SHDG-1190",DeletedMotive("ahierro", "motivo", 2L),"","", true, "user"), duration)
 
@@ -1950,7 +1981,8 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         "1 seconds",
         "1 seconds",
         1000,
-        cacheService)
+        cacheService,
+        protoRepo = mock[ProtoProfileRepository])
 
       interconnectionService.inferiorDeleteProfile(SampleCode("AR-C-SHDG-1190"),DeletedMotive("solicitor","motive",2L),Option.empty[String].getOrElse(""), "userName")
 
@@ -1975,7 +2007,8 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         "1 seconds",
         "1 seconds",
         1000,
-        cacheService)
+        cacheService,
+        protoRepo = mock[ProtoProfileRepository])
 
       val result = Await.result(interconnectionService.doInferiorDeleteProfile(SampleCode("AR-C-SHDG-1190"),DeletedMotive("solicitor","motive"),Option.empty[String].getOrElse(""),Option.empty[String].getOrElse("")), duration)
       result.mustBe(())
@@ -2008,7 +2041,8 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         "1 seconds",
         "1 seconds",
         1000,
-        cacheService)
+        cacheService,
+        protoRepo = mock[ProtoProfileRepository])
 
       val result = Await.result(interconnectionService.doInferiorDeleteProfile(SampleCode("AR-C-SHDG-1190"),DeletedMotive("solicitor","motive"), url, "SomeUser"), duration)
       result.mustBe(())
@@ -2042,7 +2076,8 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         "1 seconds",
         "1 seconds",
         1000,
-        cacheService)
+        cacheService,
+        protoRepo = mock[ProtoProfileRepository])
 
       val result = Await.result(interconnectionService.doInferiorDeleteProfile(SampleCode("AR-C-SHDG-1190"),DeletedMotive("solicitor","motive"),url,"SomeUser"), duration)
       result.mustBe(())

@@ -12,6 +12,7 @@ import org.apache.commons.codec.binary.Base64
 import akka.actor.{ActorRef, ActorSystem}
 import akka.util.Timeout
 import audit.PEOSignerActor
+import bulkupload.ProtoProfileRepository
 import connections.ProfileTransfer
 
 import scala.concurrent.duration._
@@ -182,7 +183,8 @@ class InterconnectionServiceImpl @Inject()(
                                             @Named("timeActorSendRequestGet") val timeActorSendRequestGet: String = "1 seconds",
                                             @Named("timeActorSendRequestPutPostDelete") val timeActorSendRequestPutPostDelete: String = "1 seconds",
                                             @Named("timeOutHolder") val timeOutHolder: Int = 1000,
-                                            cache: CacheService = null
+                                            cache: CacheService = null,
+                                            val protoRepo: ProtoProfileRepository
                                           ) extends InterconnectionService {
   val defaultTimeoutQueue = akka.util.Timeout(Some(Duration(timeOutQueue)).collect { case d: FiniteDuration => d }.get)
   val defaultTimeoutOnDemand = akka.util.Timeout(Some(Duration(timeOutOnDemand)).collect { case d: FiniteDuration => d }.get)
@@ -1503,10 +1505,12 @@ def updateUploadStatus(
   profileData match {
     case Some(p) =>
       logger.info("1. Encontro el perfil")
-      //enviar notificacion al assignee y grabar en la auditoria
+      //enviar notificacion al assignee y grabar en la auditoria.
       status match {
         case RECHAZADA =>
           logger.info("2. es rechazada, envio notif de rechazo")
+          // Además si fue rechazado un  perfil subido desde bulkupload hay que actualizar la tabla PROTO_PROFILE status a "Imported"
+          protoRepo.updateProtoProfileStatus(p.internalSampleCode, "Imported")
           this.notify(
             RejectedProfileInfo(
               SampleCode(globalCode),

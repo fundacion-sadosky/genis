@@ -42,19 +42,13 @@ define(['jquery', 'lodash'], function($, _) {
             return function(profile) {
                 return getIsProfileReplicatedInternalCode(profile.sampleName)
                     .then(function(isReplicated) {
-                        if (subcategory[profile.category].replicate && !isReplicated) {
-                            profile.replicate = false;
-                            profile.replicateDisabled = (profile.status === 'Approved'); // Enable if status is Imported
-                        } else {
-                            profile.replicate = false;
-                            profile.replicateDisabled = true; // Disable otherwise
-                        }
+                        profile.replicateDisabled = !subcategory[profile.category].replicate || isReplicated || profile.status !== 'Imported';
+                        profile.replicate = profile.replicate && !profile.replicateDisabled;
                         _.forEach(profile.genotypification, _.partial(bulkuploadService.fillRange, $scope.locusById, locusService.isOutOfLadder));
                         return profile;
                     });
             };
         }
-
 
         var getBatchProtoProfiles = function(batch) {
             batch.isProcessing = true;
@@ -73,9 +67,6 @@ define(['jquery', 'lodash'], function($, _) {
                             aprobados(batch.id);
                             batch.isProcessing = false;
                             updateAllReplicatedStatus(batch.id);
-
-                            // Update "Replicar Seleccionados" button state after loading profiles
-                            //batch.replicateSelectedDisabled = !$scope.anySelectedForReplication(batch.id);
                         });
                 })
                 .catch(function() {
@@ -94,57 +85,31 @@ define(['jquery', 'lodash'], function($, _) {
             $scope.isProcessing = true;
             return bulkuploadService.getBatchesStep2(user.geneMapperId).then(function(response) {
                 if ($scope.activeOption === 0) {
-                    $scope.batches = response.data.filter(function (t) {
+                    $scope.batches = response.data.filter(function(t) {
                         return t.totalForApprovalOrImport !== 0;
                     });
                 } else {
                     $scope.batches = response.data;
                 }
-                $scope.batches.forEach(function(batch){
+
+                $scope.batches.forEach(function(batch) {
                     batch.pageSize = 50;
                     batch.page = 1;
                     var isOpen = false;
-                    // Initialize replicateSelectedDisabled
                     batch.replicateSelectedDisabled = true;
 
-                    Object.defineProperty(batch, "isOpen",
-                        {
-                            get : function(){ return isOpen; },
-                            set : function(newValue) {
-                                isOpen = newValue;
-                                if (isOpen) {
-                                    getBatchProtoProfiles(batch);
-                                }
-                            }});
+                    Object.defineProperty(batch, "isOpen", {
+                        get: function() { return isOpen; },
+                        set: function(newValue) {
+                            isOpen = newValue;
+                            if (isOpen) {
+                                getBatchProtoProfiles(batch);
+                            }
+                        }
+                    });
                 });
                 $scope.isProcessing = false;
             });
-        };
-
-        $scope.changePage = function(batch) {
-            getBatchProtoProfiles(batch);
-        };
-
-        var getBatchItem = function(id, batch) {
-            if (batch) {
-                batch.isProcessing = true;
-            }
-
-            bulkuploadService.getProtoProfileBySampleId(id).then(function(response) {
-                if (batch && batch.id) {
-                    $scope.protoProfiles[batch.id] = $scope.protoProfiles[batch.id].map(function(x){
-                        return (x.id === id)? response.data: x;
-                    });
-                } else {
-                    $scope.protoProfiles = helper.groupBy([response.data], 'batchId');
-                    $scope.batches = Object.keys($scope.protoProfiles).map(function(id) {
-                        return {id: id, isOpen: true};
-                    });
-                }
-                if (batch) {
-                    batch.isProcessing = false;
-                }
-            }, function() { if (batch) { batch.isProcessing = false; } });
         };
 
         $scope.protoprofileId = $routeParams.protoprofileId;
@@ -165,7 +130,17 @@ define(['jquery', 'lodash'], function($, _) {
                                 if (b.id === id) {b.errors = response.data;}
                             });
                         } else { $scope.protoProfiles[0].errors = response.data; }
-                    } else { sample.status = status; }
+                    } else {
+                        sample.status = status;
+
+                        // Refresh replicate checkbox state after import
+                        var isReplicatedPromise = $scope.getIsProfileReplicatedInternalCode(sample.sampleName);
+                        isReplicatedPromise.then(function(isReplicated) {
+                            sample.replicateDisabled = !$scope.subcategory[sample.category].replicate || isReplicated || sample.status !== 'Imported';
+                            sample.replicate = sample.replicate && !sample.replicateDisabled;
+
+                        });
+                    }
                     aprobados(batch.id);
                     batch.isProcessing = false;
                 },
@@ -199,8 +174,8 @@ define(['jquery', 'lodash'], function($, _) {
                 });
         };
 
-        $scope.import = function(id, batch) {
-            updateStatus(id, 'Imported', batch);
+        $scope.import = function(r, batch) {
+            updateStatus(r, 'Imported', batch);
         };
 
         $scope.onChangeMotive = function(selectedMotive) {
@@ -430,30 +405,6 @@ define(['jquery', 'lodash'], function($, _) {
             getAllBatches();
         };
 
-        $scope.importAndReplicateBatch = function(batch) {
-            batch.isProcessing = true;
-            var protoprofilesFromBatch = $scope.protoProfiles[batch.id];
-            var replicateAll = true;
-            var idsToReplicate = [];
-            if (!_.isUndefined(protoprofilesFromBatch)) {
-                protoprofilesFromBatch.forEach(function(sample) {
-                    if (sample.replicate) {
-                        idsToReplicate.push(sample.id);
-                    }
-                });
-            }
-            bulkuploadService.changeBatchStatus(batch.id, 'Imported', idsToReplicate, replicateAll).then(function() {
-                batch.isProcessing = false;
-                getBatchProtoProfiles(batch);
-                alertService.success({message: 'Se ha importado el lote exitosamente y se ha replicado.'});
-            }, function(response) {
-                batch.isProcessing = false;
-                getBatchProtoProfiles(batch);
-                alertService.error({message: ' Hubo un error: ' + response.data});
-            });
-        };
-
-
         $scope.handleReplicateChange = function(batch) {
             if (batch.replicate) {
                 // Uncheck and disable "Busqueda de Escritorio"
@@ -541,47 +492,12 @@ define(['jquery', 'lodash'], function($, _) {
             });
         };
 
-
         // Watch for changes in selected checkboxes and replicate checkboxes, and update the "Replicar seleccionados" button state
         $scope.$watch(function() {
             if (!$scope.protoProfiles) {
                 return {};
             }
 
-            var map = {};
-            $scope.batches.forEach(function(batch) { // Iterate over batches
-                var batchId = batch.id;
-
-                // Check if protoProfiles for this batch exist
-                if ($scope.protoProfiles[batchId]) {
-                    // Create a string that represents the state of the relevant properties
-                    var key = $scope.protoProfiles[batchId].map(function(r) {
-                        return r.selected + ':' + r.replicate + ':' + r.replicateDisabled + ':' + r.status;
-                    }).join(';');  // Join the strings to create a single key for the batch
-                    map[batchId] = key;
-
-                } else {
-                    map[batchId] = null; // Or any other default value
-                }
-            });
-            return map;
-        }, function(newMap, oldMap) {
-            if (!newMap) {
-                return;
-            }
-
-           /* Object.keys(newMap).forEach(function(batchId) {
-                if (newMap[batchId] !== oldMap[batchId]) {  // Only update if the key has changed
-                    // batchId from keys is string; batches ids may be numbers
-                    var parsedId = isNaN(parseInt(batchId, 10)) ? batchId : parseInt(batchId, 10);
-                    var batch = _.find($scope.batches, {
-                        id: parsedId
-                    });
-                    if (batch) {
-                        batch.replicateSelectedDisabled = !$scope.anySelectedForReplication(batchId);
-                    }
-                }
-            });*/
         }, true);
     }
 
