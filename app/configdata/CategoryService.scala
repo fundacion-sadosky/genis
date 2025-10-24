@@ -24,6 +24,7 @@ import play.api.libs.json.{JsValue, Json, Writes}
 
 import java.io.PrintWriter
 import models.Tables.{CategoryRow, Category => CategoryTable}
+import play.api.Logger
 
 import javax.sql.DataSource
 import scala.slick.driver.PostgresDriver.simple._
@@ -175,7 +176,9 @@ class CachedCategoryService @Inject() (cache: CacheService, categoryRepository: 
 
   override def listCategories: Map[AlphanumericId, FullCategory] = {
     cache.getOrElse(Keys.categories) {
+      Logger.info("Listando categorías")
       val list = Await.result(categoryRepository.listCategories, Duration(10, SECONDS))
+      Logger.info("Categorías listadas: " + list.size)
       list.map { category => category.id -> category }.toMap
     }
   }
@@ -222,7 +225,9 @@ class CachedCategoryService @Inject() (cache: CacheService, categoryRepository: 
       val deleteMatchingRulesResult = deleteAssociationsResult.fold(Left(_), r=>categoryRepository.deleteMatchingRules(categoryId))
       val deleteConfigurationsResult = deleteMatchingRulesResult.fold(Left(_), r=>categoryRepository.deleteConfigurations(categoryId))
 
+      Logger.info("Desde removeCategory, llamo a get con id: " + categoryId)
       val category = this.getCategory(categoryId).getOrElse(throw new Exception("Category not found"))
+      Logger.info("Desde removeCategory, obtuve: " + category.id)
       val matchingRules = category.matchingRules.filterNot(p => categoryId == p.categoryRelated)
 
       val deleteReciprocateRulesResult = deleteConfigurationsResult.fold(Left(_), r =>

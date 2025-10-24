@@ -102,37 +102,27 @@ function HeaderController($scope, userService, categoriesService, kitService, pr
 				var locusFile = zip.file("locus.json");
 				var rolesFile = zip.file("roles.json");
 
-				var categoryPromise = Promise.resolve();
-				var locusPromise = Promise.resolve();
-				var rolesPromise = Promise.resolve();
-				
+				// CADENA 1: Categorías → Locus → Kits (secuencial)
+				var mainChain = Promise.resolve();
+
 				if (categoriesFile) {
-					categoryPromise = categoriesFile.async("blob").then(function(blob) {
+					mainChain = categoriesFile.async("blob").then(function(blob) {
 						var file = new File([blob], "categories.json", { type: "application/json" });
 						return $scope.importCategories(file);
 					});
 				} else {
 					alertService.error({ message: "El archivo no contiene categorías." });
 				}
-				
-				if (rolesFile) {
-					rolesPromise = rolesFile.async("blob").then(function(blob) {
-						var file = new File([blob], "roles.json", { type: "application/json" });
-						return $scope.importRoles(file);
-					});
-				}
 
-				if (locusFile) {
-					locusPromise = locusFile.async("blob").then(function(blob) {
-						var file = new File([blob], "locus.json", { type: "application/json" });
-						return $scope.importLocus(file);
-					});
-				} else {
-					alertService.error({ message: "El archivo no contiene loci." });
-				}
-
-				return categoryPromise.then(function() {
-					return locusPromise;
+				mainChain = mainChain.then(function() {
+					if (locusFile) {
+						return locusFile.async("blob").then(function(blob) {
+							var file = new File([blob], "locus.json", { type: "application/json" });
+							return $scope.importLocus(file);
+						});
+					} else {
+						alertService.error({ message: "El archivo no contiene loci." });
+					}
 				}).then(function() {
 					if (kitsFile) {
 						return kitsFile.async("blob").then(function(blob) {
@@ -141,9 +131,21 @@ function HeaderController($scope, userService, categoriesService, kitService, pr
 						});
 					} else {
 						alertService.error({ message: "El archivo no contiene kits." });
-						return Promise.resolve(); // Para continuar la cadena sin interrumpir
 					}
 				});
+
+				// CADENA 2: Roles (independiente)
+				var rolesChain = Promise.resolve();
+
+				if (rolesFile) {
+					rolesChain = rolesFile.async("blob").then(function(blob) {
+						var file = new File([blob], "roles.json", { type: "application/json" });
+						return $scope.importRoles(file);
+					});
+				}
+
+				// ✅ Ejecutar ambas cadenas EN PARALELO y esperar a que terminen las dos
+				return Promise.all([mainChain, rolesChain]);
 
 			}).then(function() {
 				alertService.success({ message: 'Configuración importada con éxito' });

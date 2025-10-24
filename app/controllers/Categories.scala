@@ -1,5 +1,7 @@
 package controllers
 
+import play.api.Logger
+
 import javax.inject.Inject
 import javax.inject.Singleton
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -115,15 +117,14 @@ class Categories @Inject() (
 
   // Método auxiliar para procesar la importación de categorías
   private def processImportCategories(importedCategories: List[CategoryRow]): Future[Result] = {
-    // 0. Eliminar todos los perfiles (y demás)
-    //profileService.removeAll()
-    //profileDataService.removeAll()
-
+    // 0. Supongo no existencia de perfiles
+    Logger.info("Buscando categorías")
     // 1. Obtener las categorías existentes
     val existingCategoriesFuture = Future.successful(categoryService.listCategories)
 
     existingCategoriesFuture.flatMap { existingCategories =>
       // 2. Eliminar categorías existentes
+      Logger.info("Cantidad de categorías existentes: " + existingCategories.keys.size)
       val deleteFutures = existingCategories.keys.map { categoryId =>
         categoryService.removeCategory(categoryId)
       }
@@ -131,6 +132,7 @@ class Categories @Inject() (
       Future.sequence(deleteFutures.toSeq).flatMap { deleteResults =>
         // Verificar errores de eliminación
         val deleteErrors = deleteResults.collect { case Left(error) => error }
+        Logger.info("Cantidad de errores en delete: " + deleteErrors.size)
 
         if (deleteErrors.nonEmpty) {
           Future.successful(InternalServerError(Json.obj(
@@ -149,13 +151,14 @@ class Categories @Inject() (
               categoryRow.isReference,
               categoryRow.description
             )
-
+            Logger.info("Agregando categoría: " + category)
             categoryService.addCategory(category)
           }
 
           Future.sequence(addFutures).map { addResults =>
             // Verificar errores de adición
             val addErrors = addResults.collect { case Left(error) => error }
+            Logger.info("Cantidad de errores en adds: " + addErrors.size)
 
             if (addErrors.nonEmpty) {
               InternalServerError(Json.obj(

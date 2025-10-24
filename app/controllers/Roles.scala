@@ -116,11 +116,11 @@ class Roles @Inject() (userService: UserService, roleService: RoleService) exten
   // Método auxiliar para procesar la importación de kits
   private def processImportRoles(importedRoles: List[Role]): Future[Result] = {
 
-    // 1. Obtener los Kits existentes
+    // 1. Obtener los roles existentes
     val existingRolesFuture = roleService.getRoles()
 
     existingRolesFuture.flatMap { existingRoles =>
-      // 2. Eliminar Locus existentes
+      // 2. Eliminar roles existentes
       val deleteFutures = existingRoles.map(_.id).map { roleId =>
         roleService.deleteRole(roleId)
       }
@@ -134,7 +134,7 @@ class Roles @Inject() (userService: UserService, roleService: RoleService) exten
           Logger.warn("Some roles could not be deleted: " + deleteErrors.mkString(", "))
           
         }
-        // 3. Agregar nuevas categorías
+        // 3. Agregar nuevos roles
         val addFutures = importedRoles.map { role =>
           roleService.addRole(role)
         }
