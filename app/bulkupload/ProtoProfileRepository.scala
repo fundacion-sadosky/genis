@@ -67,6 +67,7 @@ abstract class ProtoProfileRepository  extends DefaultDb with Transaction {
   def getSearchBachLabelID(userId: String, isSuperUser: Boolean, filter: String) : Future[Seq[ProtoProfilesBatchView]]
   def getBatchSearchModalViewByIdOrLabel(input:String,idCase:Long):Future[List[BatchModelView]]
   def mtExistente(sampleName:String ) : Future[Boolean]
+  def updateProtoProfileStatus(internalCode: String, status: String): Future[Int]
 }
 
 @Singleton
@@ -120,7 +121,7 @@ class SlickProtoProfileRepository @Inject() (
   val queryGetProtoProfiles = Compiled(queryDefineGetProtoProfiles _)
 
   private def queryDefineGetProtoProfilesStep2(batchId: Column[Long], user: Column[String], isSuperUser: Column[Boolean]) = for {
-    pp <- protoProfiles if ((pp.idBatch === batchId) && (isSuperUser || pp.assignee === user) && (pp.status === "Approved" || pp.status === "Rejected" || pp.status === "Imported"))
+    pp <- protoProfiles if ((pp.idBatch === batchId) && (isSuperUser || pp.assignee === user) && (pp.status === "Approved" || pp.status === "Rejected" || pp.status === "Imported"|| pp.status === "Uploaded"))
   } yield (pp)
 
   val queryGetProtoProfilesStep2 = Compiled(queryDefineGetProtoProfilesStep2 _)
@@ -206,7 +207,7 @@ class SlickProtoProfileRepository @Inject() (
                             	SELECT COUNT(*) as "TOTAL" FROM "APP"."PROTO_PROFILE" pp
                             	WHERE pp."ID_BATCH" = bpp."ID"
                             	AND (pp."ASSIGNEE" = ? OR ?)
-                            	AND pp."STATUS" IN ('Approved','Rejected','Imported')
+                            	AND pp."STATUS" IN ('Approved','Rejected','Imported','Uploaded')
                             ) as "TOTAL",
                             bpp."LABEL", (
                             SELECT COUNT(*) as "TOTAL_APPROVED" FROM "APP"."PROTO_PROFILE" pp
@@ -267,6 +268,15 @@ class SlickProtoProfileRepository @Inject() (
 
   def countImported(idBatch: Long) = sql"""select COUNT(*) from "APP"."PROTO_PROFILE" where "ID_BATCH" = $idBatch and "STATUS" = 'Imported'""".as[Int]
 
+  override def updateProtoProfileStatus(internalCode: String, status: String): Future[Int] = Future {
+    DB.withTransaction { implicit session =>
+      val q = for {
+        pp <- protoProfiles if pp.sampleName === internalCode
+      } yield (pp.status)
+      q.update(status)
+    }
+  }
+
   override def hasProfileDataFiliation(id: Long): Future[Boolean] = Future {
     DB.withSession { implicit session =>
       logger.debug(s"id: ${id}")
@@ -294,7 +304,7 @@ class SlickProtoProfileRepository @Inject() (
 
   override def getProtoProfilesStep2(batchId: Long, user: String, isSuperUser: Boolean, paginationSearch: Option[PaginationSearch] = None): Future[Seq[ProtoProfile]] = Future {
     DB.withSession { implicit session =>
-      var query = queryDefineGetProtoProfilesStep2(batchId, user, isSuperUser).sortBy(x=>(x.errors.isDefined.desc,(x.status==="Approved").desc,x.id.asc))
+      var query = queryDefineGetProtoProfilesStep2(batchId, user, isSuperUser).sortBy(x=>(x.errors.isDefined.desc,x.id.asc))
       if (paginationSearch.isDefined) {
         query = query.drop(paginationSearch.get.page * paginationSearch.get.pageSize)
           .take(paginationSearch.get.pageSize)

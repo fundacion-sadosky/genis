@@ -312,13 +312,13 @@ class ProfileServiceImpl @Inject() (
 
   }
   def validateAnalysis(
-    analysis: Profile.Genotypification,
-    categoryId: AlphanumericId,
-    kitId: Option[String],
-    contributors: Int,
-    `type`: Option[Int],
-    analysisType: AnalysisType
-  ): Future[Either[List[String], CategoryConfiguration]] = {
+                        analysis: Profile.Genotypification,
+                        categoryId: AlphanumericId,
+                        kitId: Option[String],
+                        contributors: Int,
+                        `type`: Option[Int],
+                        analysisType: AnalysisType
+                      ): Future[Either[List[String], CategoryConfiguration]] = {
 
     async {
 
@@ -350,44 +350,44 @@ class ProfileServiceImpl @Inject() (
         modifiedKit = kit.copy(representative_parameter = newK)
       }
 
-        val minLocusQuantityAllowed = qualityParams.minLocusQuantityAllowedPerProfile(category, modifiedKit)
-        val maxAllelesPerLocus = qualityParams.maxAllelesPerLocus(category, kit)
-        val maxOverageDeviatedLociPerProfile = qualityParams.maxOverageDeviatedLociPerProfile(category, kit)
-        val multiallelic = qualityParams.multiallelic(category, kit)
-        val trisomyTreshold = if (multiallelic) 4 else 2
+      val minLocusQuantityAllowed = qualityParams.minLocusQuantityAllowedPerProfile(category, modifiedKit)
+      val maxAllelesPerLocus = qualityParams.maxAllelesPerLocus(category, kit)
+      val maxOverageDeviatedLociPerProfile = qualityParams.maxOverageDeviatedLociPerProfile(category, kit)
+      val multiallelic = qualityParams.multiallelic(category, kit)
+      val trisomyTreshold = if (multiallelic) 4 else 2
 
       val categoryConfiguration = category.configurations.getOrElse(kit.`type`, CategoryConfiguration("", "", "K", "0", 6))
 
       def cond[T](p: => Boolean, v: T): Option[T] = if (p) Some(v) else None
 
-        if (analysisType.mitochondrial) {
-          Right(categoryConfiguration)
-        } else {
-          val errors = (cond(getNumberOfLocusInAnalysis(analysis,fullLocus) < minLocusQuantityAllowed, Messages("error.E0683",minLocusQuantityAllowed)) ::
-            cond(
-              {
-                getRequiredLocusInAnalysis(analysis,fullLocus) < requiredLociKit
-              }, Messages("error.E0698")) ::
-            cond(
-              {
-                !category.isReference && analysis.exists({
-                  case (marker, alleles) => {
-                    alleles.size > maxAllelesPerLocus
-                  }
-                })
-              }, Messages("error.E0684",maxAllelesPerLocus )) ::
-            cond(
-              {
-                analysis.count({
-                  case (marker, alleles) => {
-                    val locus = loci.find(l => l.id == marker).get
-                    if (contributors == 1) {
-                      alleles.size > locus.minimumAllelesQty && alleles.size > trisomyTreshold
-                    } else false
-                  }
-                }) > maxOverageDeviatedLociPerProfile
-              }, Messages("error.E0685", maxOverageDeviatedLociPerProfile)) ::
-            Nil).flatten
+      if (analysisType.mitochondrial) {
+        Right(categoryConfiguration)
+      } else {
+        val errors = (cond(getNumberOfLocusInAnalysis(analysis,fullLocus) < minLocusQuantityAllowed, Messages("error.E0683",minLocusQuantityAllowed)) ::
+          cond(
+            {
+              getRequiredLocusInAnalysis(analysis,fullLocus) < requiredLociKit
+            }, Messages("error.E0698")) ::
+          cond(
+            {
+              !category.isReference && analysis.exists({
+                case (marker, alleles) => {
+                  alleles.size > maxAllelesPerLocus
+                }
+              })
+            }, Messages("error.E0684",maxAllelesPerLocus )) ::
+          cond(
+            {
+              analysis.count({
+                case (marker, alleles) => {
+                  val locus = loci.find(l => l.id == marker).get
+                  if (contributors == 1) {
+                    alleles.size > locus.minimumAllelesQty && alleles.size > trisomyTreshold
+                  } else false
+                }
+              }) > maxOverageDeviatedLociPerProfile
+            }, Messages("error.E0685", maxOverageDeviatedLociPerProfile)) ::
+          Nil).flatten
 
         if (errors.nonEmpty) Left(errors)
         else Right(categoryConfiguration)
@@ -782,11 +782,12 @@ class ProfileServiceImpl @Inject() (
                         )
                         res.onSuccess {
                           case Right(_) => if (profileOpt.isEmpty) {
+
                             notificationService
                               .solve(
                                 profileData.assignee,
                                 ProfileDataInfo(
-                                  profileData.internalSampleCode,
+                                  profileData.internalSampleCode.trim,
                                   profileData.globalCode
                                 )
                               )

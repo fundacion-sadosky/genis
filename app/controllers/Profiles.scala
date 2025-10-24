@@ -21,14 +21,14 @@ import scala.util.{Left, Right};
 
 @Singleton
 class Profiles @Inject()(
-  categoryService: CategoryService,
-  profileService: ProfileService,
-  cache: CacheService,
-  profileExportService:
-  ProfileExporterService,
-  limsArchivesExporterService:
-  LimsArchivesExporterService
-) extends Controller with MongoController with JsonActions {
+                          categoryService: CategoryService,
+                          profileService: ProfileService,
+                          cache: CacheService,
+                          profileExportService:
+                          ProfileExporterService,
+                          limsArchivesExporterService:
+                          LimsArchivesExporterService
+                        ) extends Controller with MongoController with JsonActions {
 
   def create = Action.async(BodyParsers.parse.json) { request =>
     val input = request.body.validate[NewAnalysis]
@@ -59,7 +59,7 @@ class Profiles @Inject()(
       case profiles => Ok(Json.toJson(profiles))
     }
   }
-  
+
   def addElectropherograms(token: String, globalCode: SampleCode, idAnalysis: String, name: String) = Action.async { req =>
     profileService.saveElectropherograms(token, globalCode, idAnalysis,name) map { l =>
       val (right, left) = l.partition(elem => elem.isRight)
@@ -199,7 +199,7 @@ class Profiles @Inject()(
       case Right(pp) => Ok(Json.obj("fileId" -> pp))
     }
   }
-  
+
   def removeProfile(globalCode: SampleCode) = Action.async { request =>
     profileService.removeProfile(globalCode).map {
       case Left(e) => BadRequest(Json.obj("error" -> e))
@@ -280,17 +280,17 @@ class Profiles @Inject()(
           },
           input => {
             Await.result(
-    /*
-              profileExportService.filterProfiles(input).flatMap {
-                case Nil => Future.successful(BadRequest(Messages("error.E2000")))
-                case profileList =>
-                  profileExportService.exportProfiles(profileList, user).map {
-                    case Right(resourceName) => {
-                      Ok(resourceName);
-                    }
-                    case Left(error) => BadRequest(error)
-                  }
-    */
+              /*
+                        profileExportService.filterProfiles(input).flatMap {
+                          case Nil => Future.successful(BadRequest(Messages("error.E2000")))
+                          case profileList =>
+                            profileExportService.exportProfiles(profileList, user).map {
+                              case Right(resourceName) => {
+                                Ok(resourceName);
+                              }
+                              case Left(error) => BadRequest(error)
+                            }
+              */
               limsArchivesExporterService
                 .exportLimsFiles(input)
                 .flatMap{

@@ -20,6 +20,7 @@ import profiledata._
 import configdata.CategoryService
 import matching.MatchingService
 import connections.InterconnectionService
+import org.apache.spark.sql.catalyst.dsl.expressions.booleanToLiteral
 import play.api.data.validation.ValidationError
 import types._
 
@@ -327,4 +328,10 @@ class ProfileData @Inject() (
     }
   }
 
+  def getIsProfileReplicatedInternalCode(internalCode: String): Action[AnyContent] = Action.async { request =>
+    Future { // Wrap the synchronous call in a Future
+      val isReplicated = profiledataService.getIsProfileReplicatedInternalCode(internalCode)
+      Ok(Json.toJson(isReplicated)) // Return the boolean as JSON
+    }
+  }
 }

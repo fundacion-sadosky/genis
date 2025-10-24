@@ -28,7 +28,9 @@ class ProtoProfileData @Inject() (@Named("stashed") protoProfiledataService: Pro
       profileData => {
         protoProfiledataService.create(profileData).map {
           case Left(error) => BadRequest(Json.obj("status" -> "KO", "message" -> error))
-          case Right(sampleCode) => Ok(Json.obj("sampleCode" -> sampleCode)).withHeaders("X-CREATED-ID" -> sampleCode.text)
+          case Right(sampleCode) => {
+            Ok(Json.obj("sampleCode" -> sampleCode)).withHeaders("X-CREATED-ID" -> sampleCode.text)
+          }
         }
       })
   }

@@ -6,7 +6,7 @@ define(['lodash'], function(_) {
 		this.getStatusMap = function() {
 			return {'Invalid': 'Inválido', 'Incomplete': 'Incompleto', 
 					'ReadyForApproval': 'Listo para aprobación', 'Approved': 'Aprobado', 
-					'Disapproved': 'Desaprobado', 'Imported': 'Aceptado', 'Rejected': 'Rechazado'};
+					'Disapproved': 'Desaprobado', 'Imported': 'Aceptado', 'Rejected': 'Rechazado', 'Uploaded': 'Replicado'};
 		};
         this.getSubcategories = function() {
             return playRoutes.controllers.Categories.list().get();
@@ -34,16 +34,18 @@ define(['lodash'], function(_) {
 			return playRoutes.controllers.BulkUpload.updateProtoProfileStatus(sampleName, newStatus, replicate, desktopSearch).post();
 		};
 
-		this.changeBatchStatus = function(idBatch, newStatus,idsNotToReplicate,replicateAll) {
-			if(idsNotToReplicate===undefined) {
-                idsNotToReplicate = [];
+		this.changeBatchStatus = function(idBatch, newStatus,idsToReplicate,replicateAll) {
+			if(idsToReplicate===undefined) {
+				idsToReplicate = [];
             }
             if(replicateAll===undefined){
                 replicateAll = false;
 			}
-			return playRoutes.controllers.BulkUpload.updateBatchStatus(idBatch, newStatus,replicateAll).post(idsNotToReplicate);
+			return playRoutes.controllers.BulkUpload.updateBatchStatus(idBatch, newStatus,replicateAll).post(idsToReplicate);
 		};
-		
+
+
+
 		this.getProtoProfileBySampleId = function(sampleId) {
 			return playRoutes.controllers.BulkUpload.getProtoProfileById(sampleId).get();
 		};

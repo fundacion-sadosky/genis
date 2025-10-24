@@ -40,6 +40,7 @@ import pedigree.PedigreeService
 import matching.CollapseRequest
 import user.UserService
 
+import scala.Option.option2Iterable
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -61,7 +62,7 @@ trait ProfileDataService {
                   allowFromOtherInstances:Boolean = false
                 ): Future[Option[Boolean]]
   def getResource(resourceType: String, id: Long): Future[Option[Array[Byte]]]
-  
+
   def getDesktopProfiles() : Future[Seq[SampleCode]]
   def getDeleteMotive(sampleCode: SampleCode): Future[Option[DeletedMotive]]
   def deleteProfile(
@@ -72,7 +73,7 @@ trait ProfileDataService {
                    ): Future[Either[String, SampleCode]]
   def findByCodes(globalCodes: List[SampleCode]): Future[Seq[ProfileData]]
   def delete(globalCode: SampleCode): Future[Either[String, SampleCode]]
-  
+
   def removeAll():Future[Int]
   def removeProfile(globalCode: SampleCode): Future[Either[String, SampleCode]]
   def importFromAnotherInstance(profileData: ProfileData,labOrigin:String,labImmediate:String):Future[Unit]
@@ -96,6 +97,7 @@ trait ProfileDataService {
   def shouldSendDeleteToSuperiorInstance (globalCode: SampleCode): Boolean
   def shouldSendDeleteToInferiorInstance (globalCode: SampleCode): Boolean
   def getLabFromGlobalCode(globalCode: SampleCode):  Option[String]
+  def getIsProfileReplicatedInternalCode(internalCode: String): Boolean
 }
 
 @Singleton
@@ -296,9 +298,9 @@ class ProfileDataServiceImpl @Inject() (
   }
 
   override def removeAll(): Future[Int] = ???
-//    profileDataRepository.removeAll()
-//  }
-  
+  //    profileDataRepository.removeAll()
+  //  }
+
   override def removeProfile(globalCode: SampleCode): Future[Either[String, SampleCode]] = {
     profileDataRepository.removeProfile(globalCode) flatMap { response =>
       response.fold(fa => Future.successful(Left(fa)), fb => {
@@ -306,7 +308,7 @@ class ProfileDataServiceImpl @Inject() (
       })
     }
   }
-  
+
   override def get(id: Long): Future[(ProfileData, Group, Category)] = {
     for {
       profile <- profileDataRepository.get(id)
@@ -369,6 +371,7 @@ class ProfileDataServiceImpl @Inject() (
       }
     })
   }
+
   override def findByCode(globalCode: SampleCode): Future[Option[ProfileData]] = {
     profileDataRepository.findByCode(globalCode) flatMap {
       getDetails(_)
@@ -637,5 +640,10 @@ class ProfileDataServiceImpl @Inject() (
 
   def gefFailedProfilesReceivedDeleted(labCode: String): Future[Seq[_root_.models.Tables.ProfileReceivedRow]] = {
     this.profileDataRepository.getFailedProfilesReceivedDeleted(labCode)
+  }
+
+  def getIsProfileReplicatedInternalCode(internalCode: String): Boolean = {
+    Logger.info(s"getIsProfileReplicatedInternalCode called with internalCode: $internalCode")
+    this.profileDataRepository.getIsProfileReplicatedInternalCode(internalCode)
   }
 }
