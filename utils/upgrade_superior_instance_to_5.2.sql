@@ -28,5 +28,5 @@ FROM
     ON POSITION(ii."LABORATORY" IN pd."GLOBAL_CODE") > 0
 WHERE
     (pd."DELETED" = FALSE OR pd."DELETED" IS NULL)
-   OR
-    (pd."DELETED" = TRUE);
+    OR (pd."DELETED" = TRUE)
+    AND pd."GLOBAL_CODE" NOT LIKE '%' || :excluded_chars || '%';
