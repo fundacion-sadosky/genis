@@ -246,7 +246,8 @@ JsEngineKeys.command := Some(new sbt.File("//usr//bin//nodejs"))
 // rjs = RequireJS, uglifies, shrinks to one file, replaces WebJars with CDN
 // digest = Adds hash to filename
 // gzip = Zips all assets, Asset controller serves them automatically when client accepts them
-pipelineStages := Seq(digest, rjs, gzip)
+includeFilter in (Assets, JshintKeys.jshint) := NothingFilter
+pipelineStages := Seq(digest, gzip)
 
 // RequireJS with sbt-rjs (https://github.com/sbt/sbt-rjs#sbt-rjs)
 // ~~~
