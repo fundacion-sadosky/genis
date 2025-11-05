@@ -1,7 +1,9 @@
 package inbox
 
-import java.util.Date
+//import com.esotericsoftware.minlog.Log.Logger
 
+import play.api.Logger
+import java.util.Date
 import pedigree.PedigreeMatchKind
 import play.api.libs.json.{Json, Writes, _}
 import types.SampleCode
@@ -220,6 +222,7 @@ case class PedigreeConsistencyInfo(
 }
 
 object NotificationInfo {
+  val logger = Logger(this.getClass())
   implicit val userPendingFormat = Json.format[UserPendingInfo]
   implicit val profileDataFormat = Json.format[ProfileDataInfo]
   implicit val profileDataAssociationFormat =
@@ -282,7 +285,7 @@ object NotificationInfo {
   }
 
   def apply(kind: NotificationType.Value, json: JsValue): NotificationInfo = {
-    (
+    val result: JsResult[NotificationInfo] =
       kind match {
         case NotificationType.matching =>
           Json.fromJson[MatchingInfo](json)
@@ -319,9 +322,16 @@ object NotificationInfo {
           Json.fromJson[DeleteProfileInSuperiorInstanceInfo](json)
         case NotificationType.deletedProfileInInferiorInstance =>
           Json.fromJson[DeleteProfileInInferiorInstanceInfo](json)
-        case _ => JsError()
+        case _ =>
+          val msg =
+            s"Error: NotificationType '$kind' no reconocido. Contenido JSON: ${Json.prettyPrint(json)}"
+          logger.debug(msg)
+          JsError(msg)
       }
-      ).get
+    result.fold(
+      errors => throw new RuntimeException(s"Error parseando notificación '$kind': $errors"),
+      identity
+    )
   }
 
   implicit val writes = new Writes[NotificationInfo] {
