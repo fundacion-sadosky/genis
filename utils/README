@@ -1,9 +1,9 @@
-Pasos para resolver el problema de notifications en el upgrade a la nueva versión.
+Pasos para resolver el problema de notifications.
 1) En la instancia superior entrar con psql y
 \c genisdb;
 COPY "APP"."TRACE" TO '/home/genis-user/trace_data.csv' CSV HEADER;
 2) En la base de la instancia inferior entro con sql:
- \c genidb;
+ \c genisdb;
  CREATE TABLE "APP"."TRACE2" (
     "ID" bigint,
     "PROFILE" varchar,
@@ -12,7 +12,7 @@ COPY "APP"."TRACE" TO '/home/genis-user/trace_data.csv' CSV HEADER;
     "TRACE" varchar,
     "KIND" varchar
 );
-ALTER TABLE IF EXISTS "APP"."NOTIFICATION"
+ALTER TABLE IF EXISTS "APP"."TRACE2"
     OWNER to genissqladmin;
 COPY "APP"."TRACE2" FROM '/home/genis-user/trace_data.csv' CSV HEADER;
 3) WITH ProcessedNotifications AS (
