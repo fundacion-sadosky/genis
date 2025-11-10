@@ -1,6 +1,7 @@
 package trace
 
 import configdata.{CategoryAssociation, CategoryConfiguration}
+import play.api.Logger.logger
 import play.api.libs.json.{Json, Writes, _}
 import profile.Profile
 import types.SampleCode
@@ -306,7 +307,7 @@ object TraceInfo {
   }
 
   def apply(kind: TraceType.Value, json: JsValue): TraceInfo = {
-    (
+    val result: JsResult[TraceInfo] =
       kind match {
         case TraceType.analysis => Json.fromJson[AnalysisInfo](json)
         case TraceType.matchProcess => Json.fromJson[MatchProcessInfo](json)
@@ -356,10 +357,16 @@ object TraceInfo {
           Json.fromJson[InterconnectionDeletedInInferiorInfo](json)(interconnectionDeletedInInferiorFormat)
         case TraceType.interconnectionDeletedInSuperior =>
           Json.fromJson[InterconnectionDeletedInSuperiorInfo](json)(interconnectionDeletedInSuperiorFormat)
-        case _ => JsError()
+        case _ =>
+          val msg =
+            s"Error: TraceType '$kind' no reconocido. Contenido JSON: ${Json.prettyPrint(json)}"
+          logger.debug(msg)
+          JsError(msg)
       }
-      ).get
-  }
+    result.fold(
+      errors => throw new RuntimeException(s"Error parseando trazabilidad '$kind': $errors"),
+      identity
+    )}
 
   implicit val writes = new Writes[TraceInfo] {
     def writes(ti: TraceInfo): JsValue = {
