@@ -42,7 +42,7 @@ services:
       - ./mongo_init:/docker-entrypoint-initdb.d
   
   mongo-express:
-    image: mongo-express
+    image: mongo-express:0.54.0
     container_name: genis_mongo-express
     restart: always    
     ports:
