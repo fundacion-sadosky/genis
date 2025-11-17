@@ -1148,15 +1148,15 @@ object Stubs {
     override def findMatches(pedigreeId: Long): Unit = {}
     override def getComparedMixtureGenotypification(globalCodes: Seq[SampleCode],matchId:String,isCollapsing:Option[Boolean] = None,isScreening:Option[Boolean]): Future[Seq[CompareMixtureGenotypification]] = ???
     override def getByMatchedProfileId(matchingId: String,isCollapsing:Option[Boolean] = None,isScreening:Option[Boolean] = None): Future[Option[JsValue]] = ???
-    override def convertHit(matchId: String, firingCode: SampleCode,replicate:Boolean = true): Future[Either[String, Seq[SampleCode]]] = ???
+    override def convertHit(matchId: String, firingCode: SampleCode,replicate:Boolean = true, userName: String): Future[Either[String, Seq[SampleCode]]] = ???
     override def findMatchingResults(globalCode: SampleCode): Future[Option[MatchingResults]] = ???
-    override def validate(scenario: Scenario): Future[Either[String, String]] = ???
-    override def convertDiscard(matchId: String, firingCode: SampleCode, isSuperUser: Boolean,replicate:Boolean = true): Future[Either[String, Seq[SampleCode]]] = ???
+    override def validate(scenario: Scenario, userName: String): Future[Either[String, String]] = ???
+    override def convertDiscard(matchId: String, firingCode: SampleCode, isSuperUser: Boolean,replicate:Boolean = true, userName:String): Future[Either[String, Seq[SampleCode]]] = ???
     override def getByFiringAndMatchingProfile(firingCode: SampleCode, matchingCode: SampleCode): Future[Option[MatchingResult]] = ???
     override def deleteForce(matchId: String, globalCode: SampleCode): Future[Boolean] = ???
     override def validProfilesAssociated(labels: Option[LabeledGenotypification]): Seq[String] = ???
     override def getMatchResultById(matchingId: Option[String]): Future[Option[MatchResult]] = Future.successful(None)
-    override def convertHitOrDiscard(matchId: String, firingCode: SampleCode, isSuperUser: Boolean,action:String): Future[Either[String, Seq[SampleCode]]] = ???
+    override def convertHitOrDiscard(matchId: String, firingCode: SampleCode, isSuperUser: Boolean,action:String, userName:String): Future[Either[String, Seq[SampleCode]]] = ???
     override def matchesNotDiscarded(globalCode: SampleCode): Future[Seq[MatchResult]] = ???
     override def collapse(idCourtCase:Long,user:String):Unit = ()
     override def discardCollapsingMatches(ids:List[String],courtCaseId:Long) : Future[Unit] = Future.successful(())
@@ -1170,10 +1170,10 @@ object Stubs {
     override def getMatchesPaginated(search: MatchCardSearch): Future[Seq[MatchResult]] = Future.successful(Nil)
     override def getAllTotalMatches(search: MatchCardSearch): Future[Int] = Future.successful(1)
 
-    override def masiveGroupDiscardByGlobalCode(firingCode: SampleCode, isSuperUser: Boolean, replicate: Boolean): Future[Either[String, Seq[SampleCode]]] = ???
+    override def masiveGroupDiscardByGlobalCode(firingCode: SampleCode, isSuperUser: Boolean, replicate: Boolean, username:String): Future[Either[String, Seq[SampleCode]]] = ???
 
-    override def masiveGroupDiscardByMatchesList(firingCode: SampleCode, matches: List[String], isSuperUser: Boolean, replicate: Boolean): Future[Either[String, Seq[SampleCode]]] = ???
-    override def uploadStatus(matchId: String, firingCode: SampleCode, isSuperUser: Boolean): Future[String] = ???
+    override def masiveGroupDiscardByMatchesList(firingCode: SampleCode, matches: List[String], isSuperUser: Boolean, replicate: Boolean, userName:String): Future[Either[String, Seq[SampleCode]]] = ???
+    override def uploadStatus(matchId: String, firingCode: SampleCode, isSuperUser: Boolean, userName: String): Future[String] = ???
     override def canUploadMatchStatus(matchId: String, isCollapsing:Option[Boolean] = None,isScreening:Option[Boolean] = None): Future[Boolean] = ???
   }
 

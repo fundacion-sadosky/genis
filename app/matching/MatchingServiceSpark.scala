@@ -3,11 +3,10 @@ package matching
 import java.io.File
 import java.util.Date
 import javax.inject.{Inject, Named, Singleton}
-
 import com.github.tototoshi.csv.{CSVWriter, DefaultCSVFormat}
 import profiledata.ProfileData
 import configdata.{CategoryService, QualityParamsProvider}
-import inbox.{MatchingInfo, NotificationService}
+import inbox.{MatchingHit, MatchingInfo, NotificationService}
 import matching.MatchGlobalStatus.MatchGlobalStatus
 import matching.MatchStatus.MatchStatus
 import pedigree.{PedigreeGenotypificationService, PedigreeRepository, PedigreeService, PedigreeSparkMatcher}
@@ -141,7 +140,8 @@ class MatchingServiceSparkImpl @Inject() (
     matchId: String,
     firingCodeParam: SampleCode,
     isSuperUser: Boolean,
-    replicate: Boolean = true
+    replicate: Boolean = true,
+    userName: String
   ): Future[Either[String, Seq[SampleCode]]] = {
     matchingRepo
       .getByMatchingProfileId(matchId)
@@ -173,15 +173,15 @@ class MatchingServiceSparkImpl @Inject() (
                     DiscardInfo(matchResult.get._id.id, matchingProfile.globalCode, matchingProfile.assignee, matchResult.get.`type`)))
                   traceService.add(Trace(matchingProfile.globalCode, userId, new Date(),
                     DiscardInfo(matchResult.get._id.id, firingCode, matchingProfile.assignee, matchResult.get.`type`)))
-                  notificationService.solve(userId, MatchingInfo(leftCode, rightCode, matchId))
-                  notificationService.solve(userId, MatchingInfo(rightCode, leftCode, matchId))
+                  notificationService.solve(userName, MatchingInfo(leftCode, rightCode, matchId))
+                  notificationService.solve(userName, MatchingInfo(rightCode, leftCode, matchId))
     /*
                   if(exportaALims) {
                     createMatchLimsArchive(leftCode, rightCode, matchId, discarded)
                   }
     */
                   if (replicate) {
-                    this.interconnectionService.convertStatus(matchId, firingCode, discarded, matchResult.get)
+                    this.interconnectionService.convertStatus(matchId, firingCode, discarded, matchResult.get, false, userName)
                   }
                 }
                 })
@@ -194,12 +194,12 @@ class MatchingServiceSparkImpl @Inject() (
     }
   }
 
-  override def uploadStatus(matchId: String, firingCodeParam: SampleCode, isSuperUser: Boolean): Future[String] = {
+  override def uploadStatus(matchId: String, firingCodeParam: SampleCode, isSuperUser: Boolean, userName: String): Future[String] = {
     matchingRepo.getByMatchingProfileId(matchId) flatMap { matchResult =>
         val leftCode = matchResult.get.leftProfile.globalCode
         val rightCode = matchResult.get.rightProfile.globalCode
-        this.interconnectionService.convertStatus(matchId, leftCode, matchResult.get.leftProfile.status.toString, matchResult.get,true)
-        this.interconnectionService.convertStatus(matchId, rightCode, matchResult.get.rightProfile.status.toString, matchResult.get,true)
+        this.interconnectionService.convertStatus(matchId, leftCode, matchResult.get.leftProfile.status.toString, matchResult.get,true, userName)
+        this.interconnectionService.convertStatus(matchId, rightCode, matchResult.get.rightProfile.status.toString, matchResult.get,true, userName)
         Future.successful("Se envio la actualizacion de estado de match")
       }
   }
@@ -210,7 +210,7 @@ class MatchingServiceSparkImpl @Inject() (
     }
   }
 
-  override def convertHit(matchId: String, firingCodeParam: SampleCode, replicate: Boolean = true): Future[Either[String, Seq[SampleCode]]] = {
+  override def convertHit(matchId: String, firingCodeParam: SampleCode, replicate: Boolean = true, userName: String): Future[Either[String, Seq[SampleCode]]] = {
     matchingRepo.getByMatchingProfileId(matchId) flatMap { matchResult =>
       if (replicate && this.interconnectionService.isExternalMatch(matchResult.get)) {
         Future.successful(Left(Messages("error.E0726")))
@@ -225,18 +225,19 @@ class MatchingServiceSparkImpl @Inject() (
         val firingCode = getFiringCode(firingCodeParam, leftCode, rightCode, replicate)
 
         val isRight = rightCode == firingCode
+        //Cambiar userId por el usuario conectado
         val userId = if (isRight) matchResult.get.rightProfile.assignee else matchResult.get.leftProfile.assignee
         val matchingProfile = if (isRight) matchResult.get.leftProfile else matchResult.get.rightProfile
 
         val res = matchingRepo.convertStatus(matchId, firingCode, hit)
         res.onSuccess({
           case _ => {
-            traceService.add(Trace(firingCode, userId, new Date(),
-              HitInfo(matchResult.get._id.id, matchingProfile.globalCode, matchingProfile.assignee, matchResult.get.`type`)))
+            traceService.add(Trace(firingCode, userName, new Date(),
+              HitInfo(matchResult.get._id.id, matchingProfile.globalCode, userName, matchResult.get.`type`)))
             traceService.add(Trace(matchingProfile.globalCode, userId, new Date(),
-              HitInfo(matchResult.get._id.id, firingCode, matchingProfile.assignee, matchResult.get.`type`)))
-            notificationService.solve(userId, MatchingInfo(leftCode, rightCode, matchId))
-            notificationService.solve(userId, MatchingInfo(rightCode, leftCode, matchId))
+              HitInfo(matchResult.get._id.id, firingCode, userName, matchResult.get.`type`)))
+            notificationService.push(userName, MatchingHit(leftCode, rightCode, matchId, userName))
+            notificationService.push(userName, MatchingHit(rightCode, leftCode, matchId, userName))
 /*
             if (exportaALims) {
               createMatchLimsArchive(leftCode, rightCode, matchId, hit)
@@ -244,7 +245,7 @@ class MatchingServiceSparkImpl @Inject() (
 */
 
             if (replicate) {
-              this.interconnectionService.convertStatus(matchId, firingCode, hit, matchResult.get)
+              this.interconnectionService.convertStatus(matchId, firingCode, hit, matchResult.get, false, userName)
             }
           }
         })
@@ -534,12 +535,12 @@ class MatchingServiceSparkImpl @Inject() (
     Json.toJson(resultJson) //Json.obj("result" -> resultJson)
   }*/
 
-  override def validate(scenario: Scenario): Future[Either[String,String]] = {
+  override def validate(scenario: Scenario, userName: String): Future[Either[String,String]] = {
     val sampleCodes: Set[SampleCode] = scenario.calculationScenario.prosecutor.selected.union(scenario.calculationScenario.defense.selected).toSet
 
     val futures = sampleCodes.map(sampleCode => {
       getByFiringAndMatchingProfile(scenario.calculationScenario.sample, sampleCode) flatMap {
-        case Some(matchingResult) => convertHit(matchingResult.oid, if (!scenario.isRestricted) scenario.calculationScenario.sample else sampleCode)
+        case Some(matchingResult) => convertHit(matchingResult.oid, if (!scenario.isRestricted) scenario.calculationScenario.sample else sampleCode, true, userName)
         case None => Future.successful(Right(Seq(sampleCode)))
       }
     })
@@ -575,13 +576,14 @@ class MatchingServiceSparkImpl @Inject() (
     false
   }
 
-  override def convertHitOrDiscard(matchId: String, firingCode: SampleCode, isSuperUser: Boolean,action:String): Future[Either[String, Seq[SampleCode]]] = {
+  override def convertHitOrDiscard(matchId: String, firingCode: SampleCode, isSuperUser: Boolean,action:String, userName:String): Future[Either[String, Seq[SampleCode]]] = {
+    // Get connected userID and pass to convertHit and convertDiscard as parameter
     action match {
       case this.hit => {
-        this.convertHit(matchId,firingCode,false)
+        this.convertHit(matchId,firingCode,false, userName)
       }
       case this.discarded => {
-        this.convertDiscard(matchId,firingCode,isSuperUser,false)
+        this.convertDiscard(matchId,firingCode,isSuperUser,false, userName)
       }
       case this.deleted => {
         this.delete(matchId).map{
@@ -636,13 +638,13 @@ class MatchingServiceSparkImpl @Inject() (
     )
   }
 
-  override def masiveGroupDiscardByGlobalCode(firingCode: SampleCode, isSuperUser: Boolean,replicate:Boolean = true) : Future[Either[String, Seq[SampleCode]]] = {
+  override def masiveGroupDiscardByGlobalCode(firingCode: SampleCode, isSuperUser: Boolean,replicate:Boolean = true, userName:String) : Future[Either[String, Seq[SampleCode]]] = {
     val matches = Await.result(matchingRepo.matchesNotDiscarded(firingCode), Duration.Inf)
 
     if(matches.isEmpty) {
       Future.successful(Left("Sin matches"))
     } else {
-      val futures = for (matchResult <- matches) yield convertDiscard(matchResult._id.id, firingCode, isSuperUser, replicate)
+      val futures = for (matchResult <- matches) yield convertDiscard(matchResult._id.id, firingCode, isSuperUser, replicate, userName)
 
       Future.sequence(futures) flatMap { result => {
         if (result.forall(_.isRight)) {
@@ -656,11 +658,11 @@ class MatchingServiceSparkImpl @Inject() (
 
   }
 
-  def masiveGroupDiscardByMatchesList(firingCode: types.SampleCode, matches: List[String], isSuperUser: Boolean,replicate:Boolean = true) : Future[Either[String, Seq[SampleCode]]] = {
+  def masiveGroupDiscardByMatchesList(firingCode: types.SampleCode, matches: List[String], isSuperUser: Boolean,replicate:Boolean = true, userName: String) : Future[Either[String, Seq[SampleCode]]] = {
     if(matches.isEmpty) {
       Future.successful(Left("Sin matches"))
     } else {
-      val futures = for (matchId <- matches) yield convertDiscard(matchId, firingCode, isSuperUser, replicate)
+      val futures = for (matchId <- matches) yield convertDiscard(matchId, firingCode, isSuperUser, replicate, userName)
 
       Future.sequence(futures) flatMap { result => {
         if (result.forall(_.isRight)) {

@@ -361,7 +361,7 @@ class Spark2Matcher @Inject() (
     matchesToDeleteRDD
       .collect
       .foreach { case ((rightProfile, analysisType), matchingId) =>
-        this.interconnectionService.deleteMatch(matchingId,rightProfile)
+        this.interconnectionService.deleteMatch(matchingId,rightProfile, null)
       }
 
   }

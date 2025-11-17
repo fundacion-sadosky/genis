@@ -41,25 +41,27 @@ case class InferiorInstancePendingInfo(urlInstance: String) extends Notification
   override val url = s"/inferior-instances"
 }
 
-case class HitInfoInbox(
+case class HitInfoFormat(
                          globalCode: SampleCode,
                          matchedProfile: SampleCode,
-                         matchingId: String
+                         matchingId: String,
+                         userName: String
                        ) extends NotificationInfo {
   override val kind = NotificationType.hitMatch
   override val description =
-    s"Se confirmó el match del perfil: ${matchedProfile.text} "
+    s"El usuario ${userName} confirmó el match del perfil: ${matchedProfile.text} "
   override val url =
     s"/comparison/${globalCode.text}/matchedProfileId/" +
       s"${matchedProfile.text}/matchingId/$matchingId"
 }
 
-case class DiscardInfoInbox(globalCode: SampleCode,
+case class DiscardInfoFormat(globalCode: SampleCode,
                             matchedProfile: SampleCode,
-                            matchingId: String) extends NotificationInfo {
+                            matchingId: String,
+                            userName: String) extends NotificationInfo {
   override val kind = NotificationType.discardMatch
   override val description =
-    s"Se descartó el match del perfil: ${matchedProfile.text} "
+    s"El usuario ${userName} descartó el match del perfil: ${matchedProfile.text} "
   override val url =
     s"/comparison/${globalCode.text}/matchedProfileId/" +
       s"${matchedProfile.text}/matchingId/$matchingId"
@@ -161,6 +163,36 @@ case class MatchingInfo(
       s"${matchedProfile.text}/matchingId/$matchingId"
 }
 
+case class MatchingHit(
+                         globalCode: SampleCode,
+                         matchedProfile: SampleCode,
+                         matchingId: String,
+                         userName: String
+                       ) extends NotificationInfo {
+  override val kind = NotificationType.hitMatch
+  override val description =
+    s"Coincidencia validada entre: ${globalCode.text} y " +
+      s"${matchedProfile.text}" + s" por el usuario: $userName"
+  override val url =
+    s"/comparison/${globalCode.text}/matchedProfileId/" +
+      s"${matchedProfile.text}/matchingId/$matchingId"
+}
+
+case class MatchingDiscard(
+                        globalCode: SampleCode,
+                        matchedProfile: SampleCode,
+                        matchingId: String,
+                        userName: String
+                      ) extends NotificationInfo {
+  override val kind = NotificationType.discardMatch
+  override val description =
+    s"Coincidencia descartada entre: ${globalCode.text} y " +
+      s"${matchedProfile.text}" + s" por el usuario: $userName"
+  override val url =
+    s"/comparison/${globalCode.text}/matchedProfileId/" +
+      s"${matchedProfile.text}/matchingId/$matchingId"
+}
+
 case class PedigreeMatchingInfo(
                                  matchedProfile: SampleCode,
                                  caseType: Option[String] = None,
@@ -231,10 +263,11 @@ object NotificationInfo {
   implicit val bulkUploadFormat = Json.format[BulkUploadInfo]
   implicit val pedigreeMatchingFormat = Json.format[PedigreeMatchingInfo]
   implicit val pedigreeLRFormat = Json.format[PedigreeLRInfo]
-  implicit val inferiorInstancePendingFormat =
-    Json.format[InferiorInstancePendingInfo]
-  implicit val hitMatchFormat = Json.format[HitInfoInbox]
-  implicit val discardMatchFormat = Json.format[DiscardInfoInbox]
+  implicit val inferiorInstancePendingFormat = Json.format[InferiorInstancePendingInfo]
+  implicit val hitInfoFormat = Json.format[HitInfoFormat]
+  implicit val hitMatchWrites = Json.writes[MatchingHit]
+  implicit val discardMatchWrites = Json.writes[MatchingDiscard]
+    implicit val discardInfoFormat = Json.format[DiscardInfoFormat]
   implicit val deleteProfileFormat = Json.format[DeleteProfileInfo]
   implicit val collapsingFormat = Json.format[CollapsingInfo]
   implicit val pedigreeConsistencyFormat = Json.format[PedigreeConsistencyInfo]
@@ -243,6 +276,7 @@ object NotificationInfo {
   implicit val rejectedProfileFormat = Json.format[RejectedProfileInfo]
   implicit val deletedProfileInInferiorFormat = Json.format[DeleteProfileInInferiorInstanceInfo]
   implicit val deletedProfileInSuperiorFormat = Json.format[DeleteProfileInSuperiorInstanceInfo]
+
 
 
   def unapply(info: NotificationInfo): Option[(NotificationType.Value, JsValue)] = {
@@ -261,9 +295,6 @@ object NotificationInfo {
         Some((x.kind, Json.toJson(x)(pedigreeLRFormat)))
       case x: InferiorInstancePendingInfo =>
         Some((x.kind, Json.toJson(x)(inferiorInstancePendingFormat)))
-      case x: HitInfoInbox => Some((x.kind, Json.toJson(x)(hitMatchFormat)))
-      case x: DiscardInfoInbox =>
-        Some((x.kind, Json.toJson(x)(discardMatchFormat)))
       case x: DeleteProfileInfo =>
         Some((x.kind, Json.toJson(x)(deleteProfileFormat)))
       case x: CollapsingInfo =>
@@ -280,6 +311,10 @@ object NotificationInfo {
         Some((x.kind, Json.toJson(x)(deletedProfileInInferiorFormat)))
       case x: DeleteProfileInSuperiorInstanceInfo =>
         Some((x.kind, Json.toJson(x)(deletedProfileInSuperiorFormat)))
+      case x: MatchingHit =>
+        Some((x.kind, Json.toJson(x)(hitMatchWrites)))
+      case x: MatchingDiscard =>
+        Some((x.kind, Json.toJson(x)(discardMatchWrites)))
       case _ => None
     }
   }
@@ -303,9 +338,10 @@ object NotificationInfo {
           Json.fromJson[PedigreeLRInfo](json)
         case NotificationType.inferiorInstancePending =>
           Json.fromJson[InferiorInstancePendingInfo](json)
-        case NotificationType.hitMatch => Json.fromJson[HitInfoInbox](json)
+        case NotificationType.hitMatch =>
+          Json.fromJson[HitInfoFormat](json)
         case NotificationType.discardMatch =>
-          Json.fromJson[DiscardInfoInbox](json)
+          Json.fromJson[DiscardInfoFormat](json)(discardInfoFormat)
         case NotificationType.deleteProfile =>
           Json.fromJson[DeleteProfileInfo](json)
         case NotificationType.collapsing =>
@@ -322,6 +358,10 @@ object NotificationInfo {
           Json.fromJson[DeleteProfileInSuperiorInstanceInfo](json)
         case NotificationType.deletedProfileInInferiorInstance =>
           Json.fromJson[DeleteProfileInInferiorInstanceInfo](json)
+        case NotificationType.hitMatch => Json.fromJson[HitInfoFormat](json)
+          Json.fromJson[HitInfoFormat](json)
+        case NotificationType.discardMatch =>
+          Json.fromJson[DiscardInfoFormat](json)
         case _ =>
           val msg =
             s"Error: NotificationType '$kind' no reconocido. Contenido JSON: ${Json.prettyPrint(json)}"

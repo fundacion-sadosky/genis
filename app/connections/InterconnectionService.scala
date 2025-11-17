@@ -39,8 +39,7 @@ import play.api.i18n.Messages
 
 import scala.concurrent.duration.{Duration, FiniteDuration, SECONDS}
 import scala.util.Try
-import inbox.DiscardInfoInbox
-import inbox.HitInfoInbox
+
 import inbox.DeleteProfileInfo
 import matching.MatchResult
 import services.CacheService
@@ -122,11 +121,11 @@ trait InterconnectionService {
 
   def receiveMatchFromSuperior(matchSuperiorInstance: MatchSuperiorInstance): Future[Either[Unit, Unit]]
 
-  def convertStatus(matchId: String, firingCode: SampleCode, status: String, matchRes: MatchResult, onlyUpload: Boolean = false): Unit
+  def convertStatus(matchId: String, firingCode: SampleCode, status: String, matchRes: MatchResult, onlyUpload: Boolean = false, userName: String): Unit
 
-  def receiveMatchStatus(matchId: String, firingCode: SampleCode, leftCode: SampleCode, rightCode: SampleCode, status: String, labOrigin: String, labImmediate: String): Future[Unit]
+  def receiveMatchStatus(matchId: String, firingCode: SampleCode, leftCode: SampleCode, rightCode: SampleCode, status: String, labOrigin: String, labImmediate: String, userName: String): Future[Unit]
 
-  def updateMatchSendStatus(id: String, targetLab: Option[String] = None, status: Option[Long], statusHitDiscard: Option[Long] = None, message: Option[String] = None): Future[Either[String, Unit]]
+  def updateMatchSendStatus(id: String, targetLab: Option[String] = None, status: Option[Long], statusHitDiscard: Option[Long] = None, message: Option[String] = None, userName: String): Future[Either[String, Unit]]
 
   def isInterconnectionMatch(matchResult: MatchResult): Boolean
 
@@ -134,7 +133,7 @@ trait InterconnectionService {
 
   def isFromCurrentInstance(globalCode: SampleCode): Boolean
 
-  def deleteMatch(matchId: String, firingCode: String): Unit
+  def deleteMatch(matchId: String, firingCode: String, userName: String): Unit
 
   def retry(): Unit
 
@@ -1759,7 +1758,7 @@ def sendRequestMatch(outputJsonString: String, url: String, laboratory: String, 
         if (result.status == 200) {
           logger.debug("Se envió correctamente el match a la instancia inferior")
           // Actualizar el estado a enviado
-          val fut = this.updateMatchSendStatus(matchId, Some(laboratory), Some(MATCH_SENT), None, Some(outputJsonString))
+          val fut = this.updateMatchSendStatus(matchId, Some(laboratory), Some(MATCH_SENT), None, Some(outputJsonString), null)
           listProfiles.foreach(globalCode => {
             sendFiles(globalCode, laboratory)
           })
@@ -1812,7 +1811,7 @@ def sendMatchToLaboratory(laboratory: String, matchResult: MatchResult, matching
         inferiorInstanceRepository.findByLabCode(laboratory).flatMap {
           case None => Future.successful(Right(()))
           case Some(inferiorInstance) => {
-            this.updateMatchSendStatus(matchResult._id.id, Some(laboratory), Some(MATCH_SEND_PENDING), None, Some(outputJsonString)).flatMap(_ => {
+            this.updateMatchSendStatus(matchResult._id.id, Some(laboratory), Some(MATCH_SEND_PENDING), None, Some(outputJsonString), null).flatMap(_ => {
               this.sendRequestMatch(outputJsonString, inferiorInstance.url, laboratory, matchResult._id.id, Seq(Some(profile.globalCode.text), pAssociated.map(_.globalCode.text)).flatten)
             })
           }
@@ -1943,7 +1942,7 @@ def forwardMatchToInferiorInstance(matchSuperiorInstance: MatchSuperiorInstance,
   inferiorInstanceRepository.findByLabCode(laboratory).flatMap {
     case None => Future.successful(Right(()))
     case Some(inferiorInstance) => {
-      this.updateMatchSendStatus(matchSuperiorInstance.matchResult._id.id, Some(laboratory), Some(MATCH_SEND_PENDING), None, Some(outputJsonString)).flatMap(_ => {
+      this.updateMatchSendStatus(matchSuperiorInstance.matchResult._id.id, Some(laboratory), Some(MATCH_SEND_PENDING), None, Some(outputJsonString), null).flatMap(_ => {
         this.sendRequestMatch(outputJsonString, inferiorInstance.url, laboratory, matchSuperiorInstance.matchResult._id.id,
           List(matchSuperiorInstance.superiorProfile.globalCode.text) ::: matchSuperiorInstance.superiorProfile.associatedTo.map(list => list.map(_.text)).getOrElse(Nil))
       })
@@ -1966,17 +1965,17 @@ def traceMatch(left: SampleCode, right: SampleCode, matchingId: String, analysis
   }
 }
 
-override def convertStatus(matchId: String, firingCode: SampleCode, status: String, matchRes: MatchResult, onlyUpload: Boolean = false): Unit = {
-  doConvertStatus(matchId, firingCode, status, matchRes, currentInstanceLabCode, currentInstanceLabCode,onlyUpload)
+override def convertStatus(matchId: String, firingCode: SampleCode, status: String, matchRes: MatchResult, onlyUpload: Boolean = false, userName: String): Unit = {
+  doConvertStatus(matchId, firingCode, status, matchRes, currentInstanceLabCode, currentInstanceLabCode,onlyUpload, userName)
   ()
 }
 
-override def deleteMatch(matchId: String, firingCode: String): Unit = {
+override def deleteMatch(matchId: String, firingCode: String, userName: String): Unit = {
   Future {
     this.matchingRepository.getByMatchingProfileId(matchId).map {
       case None => ()
       case Some(matchResult) => {
-        this.convertStatus(matchId, SampleCode(firingCode), MatchStatus.deleted.toString, matchResult)
+        this.convertStatus(matchId, SampleCode(firingCode), MatchStatus.deleted.toString, matchResult, false, userName)
       }
     }
   }
@@ -2092,7 +2091,7 @@ def isUploaded(globalCode: SampleCode): Boolean = {
 }
 
 def handleDeliveryConvertStatus(globalCode: SampleCode, convertStatus: ConvertStatusInterconnection, labImmediate: String, sendToSuperior: Boolean,
-                                onlyUpload: Boolean = false): Unit = {
+                                onlyUpload: Boolean = false, userName: String): Unit = {
   getUrl(globalCode).foreach {
     case Nil => {
       logger.error("No deberia pasar por aca porque se supone que tiene configurada la url")
@@ -2103,47 +2102,47 @@ def handleDeliveryConvertStatus(globalCode: SampleCode, convertStatus: ConvertSt
         .filter(_._2 != labImmediate)
         .filter(x => (x._2 != superiorLabCode && !onlyUpload) || (x._2 == superiorLabCode && sendToSuperior) )
         .foreach(url => {
-          sendConvertStatus(convertStatus, url._1, url._2)
+          sendConvertStatus(convertStatus, url._1, url._2, userName)
         })
     }
   }
 }
 
-def markHitOrDiscardSent(convertStatus: ConvertStatusInterconnection, outputJsonString: Option[String], labcode: String): Future[Either[String, Unit]] = {
+def markHitOrDiscardSent(convertStatus: ConvertStatusInterconnection, outputJsonString: Option[String], labcode: String, userName: String): Future[Either[String, Unit]] = {
   convertStatus.status match {
     case "hit" => {
-      this.updateMatchSendStatus(convertStatus.matchId, Some(labcode), None, Some(HIT_SENT), outputJsonString)
+      this.updateMatchSendStatus(convertStatus.matchId, Some(labcode), None, Some(HIT_SENT), outputJsonString, userName)
     }
     case "discarded" => {
-      this.updateMatchSendStatus(convertStatus.matchId, Some(labcode), None, Some(DISCARD_SENT), outputJsonString)
+      this.updateMatchSendStatus(convertStatus.matchId, Some(labcode), None, Some(DISCARD_SENT), outputJsonString,  userName)
     }
     case _ => {
-      this.updateMatchSendStatus(convertStatus.matchId, Some(labcode), None, Some(DELETE_SENT), outputJsonString)
+      this.updateMatchSendStatus(convertStatus.matchId, Some(labcode), None, Some(DELETE_SENT), outputJsonString,  userName)
     }
   }
 }
 
-def markHitOrDiscardPending(convertStatus: ConvertStatusInterconnection, outputJsonString: Option[String], labcode: String): Future[Either[String, Unit]] = {
+def markHitOrDiscardPending(convertStatus: ConvertStatusInterconnection, outputJsonString: Option[String], labcode: String, userName: String): Future[Either[String, Unit]] = {
   convertStatus.status match {
     case "hit" => {
-      this.updateMatchSendStatus(convertStatus.matchId, Some(labcode), None, Some(HIT_PENDING), outputJsonString)
+      this.updateMatchSendStatus(convertStatus.matchId, Some(labcode), None, Some(HIT_PENDING), outputJsonString, userName)
     }
     case "discarded" => {
-      this.updateMatchSendStatus(convertStatus.matchId, Some(labcode), None, Some(DISCARD_PENDING), outputJsonString)
+      this.updateMatchSendStatus(convertStatus.matchId, Some(labcode), None, Some(DISCARD_PENDING), outputJsonString, userName)
     }
     case _ => {
-      this.updateMatchSendStatus(convertStatus.matchId, Some(labcode), None, Some(DELETE_PENDING), outputJsonString)
+      this.updateMatchSendStatus(convertStatus.matchId, Some(labcode), None, Some(DELETE_PENDING), outputJsonString, userName)
     }
   }
 }
 
-def sendConvertStatus(convertStatus: ConvertStatusInterconnection, url: String, labcode: String): Unit = {
+def sendConvertStatus(convertStatus: ConvertStatusInterconnection, url: String, labcode: String, userName: String): Unit = {
 
   val holder: WSRequestHolder = client.url(protocol + url + "/interconection/match/status")
     .withHeaders("Content-Type" -> "application/json")
   val outputJson = Json.toJson(convertStatus)
   val outputJsonString = outputJson.toString
-  this.markHitOrDiscardPending(convertStatus, Some(outputJsonString), labcode).map {
+  this.markHitOrDiscardPending(convertStatus, Some(outputJsonString), labcode, userName).map {
       case Left(_) => {
         Future.successful(())
       }
@@ -2155,7 +2154,7 @@ def sendConvertStatus(convertStatus: ConvertStatusInterconnection, url: String, 
               if (result.status == 200) {
                 logger.debug("Se envió correctamente el status del match")
                 // Actualizar el estado a enviado
-                this.markHitOrDiscardSent(convertStatus, Some(outputJsonString), labcode)
+                this.markHitOrDiscardSent(convertStatus, Some(outputJsonString), labcode, userName)
                 Future.successful(Right(()))
               } else {
                 logger.error(result.body)
@@ -2221,18 +2220,18 @@ def shouldBeForwarded(globalCode: SampleCode, labOrigin: String, labImmediate: S
 }
 
 def doConvertStatus(matchId: String, firingCode: SampleCode, status: String, matchResult: MatchResult, labOrigin: String, labImmediate: String
-                    , onlyUpload: Boolean = false): Future[Unit] = Future {
+                    , onlyUpload: Boolean = false, userName: String): Future[Unit] = Future {
   var sendToSuperior = wasMatchUploaded(matchResult, labImmediate)
   if (isInterconnectionMatch(matchResult)) {
     //      val convertStatus = ConvertStatusInterconnection(matchId, firingCode, matchResult.leftProfile.globalCode, matchResult.rightProfile.globalCode, status, labOrigin, labImmediate)
-    val convertStatus = ConvertStatusInterconnection(matchId, firingCode, matchResult.leftProfile.globalCode, matchResult.rightProfile.globalCode, status, labOrigin, currentInstanceLabCode)
+    val convertStatus = ConvertStatusInterconnection(matchId, firingCode, matchResult.leftProfile.globalCode, matchResult.rightProfile.globalCode, status, labOrigin, currentInstanceLabCode, userName)
     if (shouldBeForwarded(matchResult.leftProfile.globalCode, labOrigin, labImmediate) && matchResult.leftProfile.globalCode.text != firingCode.text) {
       logger.debug("Sube estado match perfile izquierdo al superior")
-      handleDeliveryConvertStatus(matchResult.leftProfile.globalCode, convertStatus,labImmediate, sendToSuperior,onlyUpload)
+      handleDeliveryConvertStatus(matchResult.leftProfile.globalCode, convertStatus,labImmediate, sendToSuperior,onlyUpload,userName)
     }
     if (shouldBeForwarded(matchResult.rightProfile.globalCode, labOrigin, labImmediate) && matchResult.rightProfile.globalCode.text != firingCode.text) {
       logger.debug("Sube estado match perfile derecho al superior")
-      handleDeliveryConvertStatus(matchResult.rightProfile.globalCode, convertStatus,labImmediate,sendToSuperior,onlyUpload)
+      handleDeliveryConvertStatus(matchResult.rightProfile.globalCode, convertStatus,labImmediate,sendToSuperior,onlyUpload,userName)
     }
   }
   ()
@@ -2245,25 +2244,26 @@ def receiveMatchStatus(
                         rightCode: SampleCode,
                         status: String,
                         labOrigin: String,
-                        labImmediate: String
+                        labImmediate: String,
+                        userName: String
                       ): Future[Unit] = Future {
-
   val _ = matchingRepository.getByMatchingProfileId(matchId).flatMap {
     case Some(matchingResult) => {
       if (shouldBeForwarded(matchingResult.leftProfile.globalCode, labOrigin, labImmediate) ||
         shouldBeForwarded(matchingResult.rightProfile.globalCode, labOrigin, labImmediate)) {
         //          doConvertStatus(matchId, firingCode, status, matchingResult, labOrigin, currentInstanceLabCode)
-        doConvertStatus(matchId, firingCode, status, matchingResult, labOrigin, labImmediate)
+        doConvertStatus(matchId, firingCode, status, matchingResult, labOrigin, labImmediate, false, userName)
       }
       val isAdmin = true
-      matchingService.convertHitOrDiscard(matchId, firingCode, isAdmin, status)
+      matchingService.convertHitOrDiscard(matchId, firingCode, isAdmin, status, userName)
       notifyHitOrDiscard(
         matchId,
         firingCode,
         status,
         matchingResult.leftProfile.globalCode,
         matchingResult.rightProfile.globalCode,
-        getAssignee(matchingResult)
+        getAssignee(matchingResult),
+        userName
       )
       // matching service hit or discard
       Future.successful(())
@@ -2274,17 +2274,18 @@ def receiveMatchStatus(
         case Some(matchingResult) => {
           if (shouldBeForwarded(matchingResult.leftProfile.globalCode, labOrigin, labImmediate) ||
             shouldBeForwarded(matchingResult.rightProfile.globalCode, labOrigin, labImmediate)) {
-            doConvertStatus(matchingResult._id.id, firingCode, status, matchingResult, labOrigin, labImmediate)
+            doConvertStatus(matchingResult._id.id, firingCode, status, matchingResult, labOrigin, labImmediate, false, userName)
           }
           val isAdmin = true
-          matchingService.convertHitOrDiscard(matchingResult._id.id, firingCode, isAdmin, status)
+          matchingService.convertHitOrDiscard(matchingResult._id.id, firingCode, isAdmin, status, userName)
           notifyHitOrDiscard(
             matchingResult._id.id,
             firingCode,
             status,
             matchingResult.leftProfile.globalCode,
             matchingResult.rightProfile.globalCode,
-            getAssignee(matchingResult)
+            getAssignee(matchingResult),
+            userName
           )
           // matching service hit or discard
           Future.successful(())
@@ -2309,17 +2310,17 @@ private def getAssignee(matchingResult: MatchResult): List[String] = {
 
 }
 
-private def notifyHitOrDiscard(matchId: String, firingCode: SampleCode, action: String, left: SampleCode, right: SampleCode, users: List[String]): Unit = {
+private def notifyHitOrDiscard(matchId: String, firingCode: SampleCode, action: String, left: SampleCode, right: SampleCode, users: List[String], userName:String): Unit = {
 
   val globalCode = if (firingCode == left) right else left
   val matchedProfile = if (globalCode == left) right else left
 
   action match {
     case "hit" => {
-      this.notify(HitInfoInbox(globalCode, matchedProfile, matchId), Seq(Permission.INTERCON_NOTIF), users)
+      this.notify(HitInfoFormat(globalCode, matchedProfile, matchId,userName), Seq(Permission.INTERCON_NOTIF), users)
     }
     case "discarded" => {
-      this.notify(DiscardInfoInbox(globalCode, matchedProfile, matchId), Seq(Permission.INTERCON_NOTIF), users)
+      this.notify(DiscardInfoFormat(globalCode, matchedProfile, matchId, userName), Seq(Permission.INTERCON_NOTIF), users)
     }
     case "deleted" => {
       ()
@@ -2330,7 +2331,7 @@ private def notifyHitOrDiscard(matchId: String, firingCode: SampleCode, action: 
   }
 }
 
-override def updateMatchSendStatus(id: String, targetLab: Option[String] = None, status: Option[Long], statusHitDiscard: Option[Long] = None, message: Option[String] = None): Future[Either[String, Unit]] = {
+override def updateMatchSendStatus(id: String, targetLab: Option[String] = None, status: Option[Long], statusHitDiscard: Option[Long] = None, message: Option[String] = None, userName: String): Future[Either[String, Unit]] = {
   status match {
     case Some(s) => {
       connectionRepository.updateMatchSendStatus(id, targetLab, status, message)
@@ -2338,10 +2339,10 @@ override def updateMatchSendStatus(id: String, targetLab: Option[String] = None,
     case None => {
       connectionRepository.getMatchUpdateSendStatusById(id, targetLab).flatMap {
         case Some(status) => {
-          connectionRepository.updateMatchSendStatusHitOrDiscard(id, targetLab, statusHitDiscard, message)
+          connectionRepository.updateMatchSendStatusHitOrDiscard(id, targetLab, statusHitDiscard, message, userName)
         }
         case None => {
-          connectionRepository.insertMatchUpdateSendStatus(id, targetLab, statusHitDiscard, message)
+          connectionRepository.insertMatchUpdateSendStatus(id, targetLab, statusHitDiscard, message, userName)
         }
       }
     }
@@ -2438,7 +2439,7 @@ def retryHitOrDiscard(labcode: String, url: String): Future[Unit] = {
     Future.successful(listFailed.foreach(matchUpdateFailed => {
       if (matchUpdateFailed.message.isDefined) {
         val convertStatus = Json.fromJson[ConvertStatusInterconnection](Json.parse(matchUpdateFailed.message.get)).get
-        Future.successful(sendConvertStatus(convertStatus, url, labcode))
+        Future.successful(sendConvertStatus(convertStatus, url, labcode, matchUpdateFailed.userName))
       }
     }))
   })
