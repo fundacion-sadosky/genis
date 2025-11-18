@@ -257,8 +257,7 @@ object NotificationInfo {
   val logger = Logger(this.getClass())
   implicit val userPendingFormat = Json.format[UserPendingInfo]
   implicit val profileDataFormat = Json.format[ProfileDataInfo]
-  implicit val profileDataAssociationFormat =
-    Json.format[ProfileDataAssociationInfo]
+  implicit val profileDataAssociationFormat = Json.format[ProfileDataAssociationInfo]
   implicit val matchingFormat = Json.format[MatchingInfo]
   implicit val bulkUploadFormat = Json.format[BulkUploadInfo]
   implicit val pedigreeMatchingFormat = Json.format[PedigreeMatchingInfo]
@@ -267,7 +266,7 @@ object NotificationInfo {
   implicit val hitInfoFormat = Json.format[HitInfoFormat]
   implicit val hitMatchWrites = Json.writes[MatchingHit]
   implicit val discardMatchWrites = Json.writes[MatchingDiscard]
-    implicit val discardInfoFormat = Json.format[DiscardInfoFormat]
+  implicit val discardInfoFormat = Json.format[DiscardInfoFormat]
   implicit val deleteProfileFormat = Json.format[DeleteProfileInfo]
   implicit val collapsingFormat = Json.format[CollapsingInfo]
   implicit val pedigreeConsistencyFormat = Json.format[PedigreeConsistencyInfo]
