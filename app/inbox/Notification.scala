@@ -42,11 +42,11 @@ case class InferiorInstancePendingInfo(urlInstance: String) extends Notification
 }
 
 case class HitInfoFormat(
-                         globalCode: SampleCode,
-                         matchedProfile: SampleCode,
-                         matchingId: String,
-                         userName: String
-                       ) extends NotificationInfo {
+                          globalCode: SampleCode,
+                          matchedProfile: SampleCode,
+                          matchingId: String,
+                          userName: String
+                        ) extends NotificationInfo {
   override val kind = NotificationType.hitMatch
   override val description =
     s"El usuario ${userName} confirmó el match del perfil: ${matchedProfile.text} "
@@ -56,9 +56,9 @@ case class HitInfoFormat(
 }
 
 case class DiscardInfoFormat(globalCode: SampleCode,
-                            matchedProfile: SampleCode,
-                            matchingId: String,
-                            userName: String) extends NotificationInfo {
+                             matchedProfile: SampleCode,
+                             matchingId: String,
+                             userName: String) extends NotificationInfo {
   override val kind = NotificationType.discardMatch
   override val description =
     s"El usuario ${userName} descartó el match del perfil: ${matchedProfile.text} "
@@ -112,7 +112,7 @@ case class RejectedProfileInfo(
     s"El cambio de categoría del perfil ${
       globalCode
         .text
-    } fue rechazado en la instancia superior"
+    } fue rechazado en la instancia superior" + "por el usuario: " + userName
   } else {
     s"El perfil: ${
       globalCode
@@ -164,11 +164,11 @@ case class MatchingInfo(
 }
 
 case class MatchingHit(
-                         globalCode: SampleCode,
-                         matchedProfile: SampleCode,
-                         matchingId: String,
-                         userName: String
-                       ) extends NotificationInfo {
+                        globalCode: SampleCode,
+                        matchedProfile: SampleCode,
+                        matchingId: String,
+                        userName: String
+                      ) extends NotificationInfo {
   override val kind = NotificationType.hitMatch
   override val description =
     s"Coincidencia validada entre: ${globalCode.text} y " +
@@ -179,11 +179,11 @@ case class MatchingHit(
 }
 
 case class MatchingDiscard(
-                        globalCode: SampleCode,
-                        matchedProfile: SampleCode,
-                        matchingId: String,
-                        userName: String
-                      ) extends NotificationInfo {
+                            globalCode: SampleCode,
+                            matchedProfile: SampleCode,
+                            matchingId: String,
+                            userName: String
+                          ) extends NotificationInfo {
   override val kind = NotificationType.discardMatch
   override val description =
     s"Coincidencia descartada entre: ${globalCode.text} y " +
@@ -257,7 +257,8 @@ object NotificationInfo {
   val logger = Logger(this.getClass())
   implicit val userPendingFormat = Json.format[UserPendingInfo]
   implicit val profileDataFormat = Json.format[ProfileDataInfo]
-  implicit val profileDataAssociationFormat = Json.format[ProfileDataAssociationInfo]
+  implicit val profileDataAssociationFormat =
+    Json.format[ProfileDataAssociationInfo]
   implicit val matchingFormat = Json.format[MatchingInfo]
   implicit val bulkUploadFormat = Json.format[BulkUploadInfo]
   implicit val pedigreeMatchingFormat = Json.format[PedigreeMatchingInfo]
@@ -314,6 +315,10 @@ object NotificationInfo {
         Some((x.kind, Json.toJson(x)(hitMatchWrites)))
       case x: MatchingDiscard =>
         Some((x.kind, Json.toJson(x)(discardMatchWrites)))
+      case x: HitInfoFormat =>
+        Some((x.kind, Json.toJson(x)(hitInfoFormat)))
+      case x: DiscardInfoFormat =>
+        Some((x.kind, Json.toJson(x)(discardInfoFormat)))
       case _ => None
     }
   }
