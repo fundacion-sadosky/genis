@@ -6,7 +6,7 @@ import javax.inject.{Inject, Named, Singleton}
 import com.github.tototoshi.csv.{CSVWriter, DefaultCSVFormat}
 import profiledata.ProfileData
 import configdata.{CategoryService, QualityParamsProvider}
-import inbox.{MatchingHit, MatchingInfo, NotificationService}
+import inbox.{MatchingHit, MatchingInfo, NotificationService, MatchingDiscard}
 import matching.MatchGlobalStatus.MatchGlobalStatus
 import matching.MatchStatus.MatchStatus
 import pedigree.{PedigreeGenotypificationService, PedigreeRepository, PedigreeService, PedigreeSparkMatcher}
@@ -149,12 +149,12 @@ class MatchingServiceSparkImpl @Inject() (
         matchResult =>
           if (replicate && this.interconnectionService.isExternalMatch(matchResult.get)) {
             Future.successful(Left(Messages("error.E0726")))
-          } else if (
+          } /*else if (
             (matchResult.get.leftProfile.status == MatchStatus.deleted || matchResult.get.rightProfile.status == MatchStatus.deleted) ||
               !(matchResult.get.leftProfile.status == MatchStatus.pending || matchResult.get.rightProfile.status == MatchStatus.pending)
           ) {
             Future.successful(Left(Messages("error.E1000")))
-          }
+          }*/
           else {
             val leftCode = matchResult.get.leftProfile.globalCode
             val rightCode = matchResult.get.rightProfile.globalCode
@@ -173,8 +173,10 @@ class MatchingServiceSparkImpl @Inject() (
                       DiscardInfo(matchResult.get._id.id, matchingProfile.globalCode, userName, matchResult.get.`type`)))
                     traceService.add(Trace(matchingProfile.globalCode, userName, new Date(),
                       DiscardInfo(matchResult.get._id.id, firingCode, userName, matchResult.get.`type`)))
-                    notificationService.solve(userName, MatchingInfo(leftCode, rightCode, matchId))
-                    notificationService.solve(userName, MatchingInfo(rightCode, leftCode, matchId))
+                    notificationService.push(userName, MatchingDiscard(leftCode, rightCode, matchId, userName))
+                    notificationService.push(userName, MatchingDiscard(rightCode, leftCode, matchId, userName))
+                    //notificationService.solve(userName, MatchingInfo(leftCode, rightCode, matchId))
+                    //notificationService.solve(userName, MatchingInfo(rightCode, leftCode, matchId))
                     /*
                                   if(exportaALims) {
                                     createMatchLimsArchive(leftCode, rightCode, matchId, discarded)
@@ -214,12 +216,12 @@ class MatchingServiceSparkImpl @Inject() (
     matchingRepo.getByMatchingProfileId(matchId) flatMap { matchResult =>
       if (replicate && this.interconnectionService.isExternalMatch(matchResult.get)) {
         Future.successful(Left(Messages("error.E0726")))
-      } else if (
+      } /*else if (
         (matchResult.get.leftProfile.status == MatchStatus.deleted || matchResult.get.rightProfile.status == MatchStatus.deleted) ||
           !(matchResult.get.leftProfile.status == MatchStatus.pending || matchResult.get.rightProfile.status == MatchStatus.pending)
       ) {
         Future.successful(Left(Messages("error.E1000")))
-      } else {
+      }*/ else {
         val leftCode = matchResult.get.leftProfile.globalCode
         val rightCode = matchResult.get.rightProfile.globalCode
         val firingCode = getFiringCode(firingCodeParam, leftCode, rightCode, replicate)
@@ -237,7 +239,7 @@ class MatchingServiceSparkImpl @Inject() (
             traceService.add(Trace(matchingProfile.globalCode, userName, new Date(),
               HitInfo(matchResult.get._id.id, firingCode, userName, matchResult.get.`type`)))
             notificationService.push(userName, MatchingHit(leftCode, rightCode, matchId, userName))
-            notificationService.push(userName, MatchingHit(rightCode, leftCode, matchId, userName))
+            //notificationService.push(userName, MatchingHit(rightCode, leftCode, matchId, userName))
             /*
                         if (exportaALims) {
                           createMatchLimsArchive(leftCode, rightCode, matchId, hit)
