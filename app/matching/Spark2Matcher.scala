@@ -275,8 +275,8 @@ class Spark2Matcher @Inject() (
       .foreach { case ((rightProfile, analysisType), matchingId) =>
         traceService.add(Trace(searched.globalCode, searched.assignee, new Date(),
           MatchInfo(matchingId, SampleCode(rightProfile), analysisType, MatchTypeInfo.Delete)))
-        traceService.add(Trace(SampleCode(rightProfile), searched.assignee, new Date(),
-          MatchInfo(matchingId, searched.globalCode, analysisType, MatchTypeInfo.Delete)))
+        //traceService.add(Trace(SampleCode(rightProfile), searched.assignee, new Date(),
+        //  MatchInfo(matchingId, searched.globalCode, analysisType, MatchTypeInfo.Delete)))
     }
 
     matchesToReplaceRDD
@@ -291,8 +291,8 @@ class Spark2Matcher @Inject() (
 
         traceService.add(Trace(searched.globalCode, searched.assignee, new Date(),
           MatchInfo(matchingId, SampleCode(matchProfile), analysisType, MatchTypeInfo.Update)))
-        traceService.add(Trace(SampleCode(matchProfile), searched.assignee, new Date(),
-          MatchInfo(matchingId, searched.globalCode, analysisType, MatchTypeInfo.Update)))
+        //traceService.add(Trace(SampleCode(matchProfile), searched.assignee, new Date(),
+        //  MatchInfo(matchingId, searched.globalCode, analysisType, MatchTypeInfo.Update)))
     }
 
     matchesToInsertRDD
@@ -305,8 +305,8 @@ class Spark2Matcher @Inject() (
 
         traceService.add(Trace(searched.globalCode, searched.assignee, new Date(),
           MatchInfo(matchingId, SampleCode(rightProfile), analysisType, MatchTypeInfo.Insert)))
-        traceService.add(Trace(SampleCode(rightProfile), searched.assignee, new Date(),
-          MatchInfo(matchingId, searched.globalCode, analysisType, MatchTypeInfo.Insert)))
+        //traceService.add(Trace(SampleCode(rightProfile), searched.assignee, new Date(),
+        //  MatchInfo(matchingId, searched.globalCode, analysisType, MatchTypeInfo.Insert)))
 
     }
 

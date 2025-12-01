@@ -6,7 +6,7 @@ import javax.inject.{Inject, Named, Singleton}
 import com.github.tototoshi.csv.{CSVWriter, DefaultCSVFormat}
 import profiledata.ProfileData
 import configdata.{CategoryService, QualityParamsProvider}
-import inbox.{MatchingHit, MatchingInfo, NotificationService}
+import inbox.{MatchingHit, NotificationService, MatchingDiscard}
 import matching.MatchGlobalStatus.MatchGlobalStatus
 import matching.MatchStatus.MatchStatus
 import pedigree.{PedigreeGenotypificationService, PedigreeRepository, PedigreeService, PedigreeSparkMatcher}
@@ -28,25 +28,25 @@ import connections.InterconnectionService
 import scala.concurrent.duration._
 @Singleton
 class MatchingServiceSparkImpl @Inject() (
-    profileRepo: ProfileRepository,
-    matchingRepo: MatchingRepository,
-    notificationService: NotificationService,
-    categoryService: CategoryService,
-    profileDataRepo: ProfileDataRepository,
-    scenarioRepository: ScenarioRepository,
-    spak2Matcher: Spark2Matcher,
-    traceService: TraceService,
-    pedigreeSparkMatcher: PedigreeSparkMatcher,
-    pedigreeRepo: PedigreeRepository,
-    pedigreeGenotypificationService: PedigreeGenotypificationService,
-    interconnectionService: InterconnectionService,
-    spark2MatcherCollapsing: Spark2MatcherCollapsing,
-    spark2MatcherScreening: Spark2MatcherScreening
-    /*,
-    /*@Named("limsArchivesPath")*/ exportProfilesPath: String = "",
-    /*@Named("generateLimsFiles")*/ exportaALims: Boolean = false
-    */
-) extends MatchingService {
+                                           profileRepo: ProfileRepository,
+                                           matchingRepo: MatchingRepository,
+                                           notificationService: NotificationService,
+                                           categoryService: CategoryService,
+                                           profileDataRepo: ProfileDataRepository,
+                                           scenarioRepository: ScenarioRepository,
+                                           spak2Matcher: Spark2Matcher,
+                                           traceService: TraceService,
+                                           pedigreeSparkMatcher: PedigreeSparkMatcher,
+                                           pedigreeRepo: PedigreeRepository,
+                                           pedigreeGenotypificationService: PedigreeGenotypificationService,
+                                           interconnectionService: InterconnectionService,
+                                           spark2MatcherCollapsing: Spark2MatcherCollapsing,
+                                           spark2MatcherScreening: Spark2MatcherScreening
+                                           /*,
+                                           /*@Named("limsArchivesPath")*/ exportProfilesPath: String = "",
+                                           /*@Named("generateLimsFiles")*/ exportaALims: Boolean = false
+                                           */
+                                         ) extends MatchingService {
 
   val discarded = MatchStatus.discarded.toString
   val hit = MatchStatus.hit.toString
@@ -68,22 +68,22 @@ class MatchingServiceSparkImpl @Inject() (
   }
 
   private def canDiscardMatch(
-    firingCode: SampleCode,
-    matchingCode: SampleCode,
-    userId: String,
-    isSuperUser: Boolean
-  ): Future[Boolean] = {
+                               firingCode: SampleCode,
+                               matchingCode: SampleCode,
+                               userId: String,
+                               isSuperUser: Boolean
+                             ): Future[Boolean] = {
     scenarioRepository
       .getByMatch(firingCode, matchingCode, userId, isSuperUser)
       .map { scenarios => scenarios.isEmpty }
   }
 
   private def getFiringCode(
-    firingCodeParam: SampleCode,
-    leftCode: SampleCode,
-    rightCode: SampleCode,
-    replicate: Boolean
-  ): SampleCode = {
+                             firingCodeParam: SampleCode,
+                             leftCode: SampleCode,
+                             rightCode: SampleCode,
+                             replicate: Boolean
+                           ): SampleCode = {
     if (replicate && !this.interconnectionService.isFromCurrentInstance(firingCodeParam)) {
       if (this.interconnectionService.isFromCurrentInstance(leftCode)) {
         leftCode
@@ -95,113 +95,115 @@ class MatchingServiceSparkImpl @Inject() (
     }
   }
 
-/*
-  implicit object MatchArchiveFormat extends DefaultCSVFormat {
-    override val delimiter = '\t'
-  }
-
-  private def createMatchLimsArchive(leftCode: SampleCode, rightCode: SampleCode, matchId: String, status: String) = {
-    val folder = s"$exportProfilesPath${File.separator}"
-    val folderFile = new File(folder)
-
-    folderFile.mkdirs
-
-    generateMatchesFile(folder, leftCode, rightCode, matchId, status)
-
-  }
-
-  private def generateMatchesFile(folder: String, leftCode: SampleCode, rightCode: SampleCode, matchId: String, status: String) = {
-    var name = folder +"MatchesPerfil" + leftCode.text
-    if (status.equals(MatchStatus.hit.toString) || status.equals(MatchStatus.discarded.toString)) {
-      name = name + status + ".txt"
-    } else {
-      name = name + ".txt"
+  /*
+    implicit object MatchArchiveFormat extends DefaultCSVFormat {
+      override val delimiter = '\t'
     }
-//    val file = new File(s"${folder}MatchesPerfil${leftCode.text}.csv")
-    val file = new File(name)
-    val format = new java.text.SimpleDateFormat("dd/MM/yyyy hh:mm:ss a")
-    val leftProfileFuture = profileRepo.findByCode(leftCode)
-    val leftProfile = Await.result(leftProfileFuture, Duration(100, SECONDS))
 
-    val rightProfileFuture = profileRepo.findByCode(rightCode)
-    val rightProfile = Await.result(rightProfileFuture, Duration(100, SECONDS))
+    private def createMatchLimsArchive(leftCode: SampleCode, rightCode: SampleCode, matchId: String, status: String) = {
+      val folder = s"$exportProfilesPath${File.separator}"
+      val folderFile = new File(folder)
 
-    val writer = CSVWriter.open(file)
-    writer.writeAll(List(List("MatchId", "Sample GENis Code", "Sample Name", "MatchedSample GENis Code", "MatchedSample Name", "status", "Datetime" )))
+      folderFile.mkdirs
 
-    writer.writeAll(List(List(matchId, leftCode.text, leftProfile.get.internalSampleCode, rightCode.text, rightProfile.get.internalSampleCode, status, format.format(new Date()))))
+      generateMatchesFile(folder, leftCode, rightCode, matchId, status)
 
-    writer.close()
-    file
-  }
-*/
+    }
+
+    private def generateMatchesFile(folder: String, leftCode: SampleCode, rightCode: SampleCode, matchId: String, status: String) = {
+      var name = folder +"MatchesPerfil" + leftCode.text
+      if (status.equals(MatchStatus.hit.toString) || status.equals(MatchStatus.discarded.toString)) {
+        name = name + status + ".txt"
+      } else {
+        name = name + ".txt"
+      }
+  //    val file = new File(s"${folder}MatchesPerfil${leftCode.text}.csv")
+      val file = new File(name)
+      val format = new java.text.SimpleDateFormat("dd/MM/yyyy hh:mm:ss a")
+      val leftProfileFuture = profileRepo.findByCode(leftCode)
+      val leftProfile = Await.result(leftProfileFuture, Duration(100, SECONDS))
+
+      val rightProfileFuture = profileRepo.findByCode(rightCode)
+      val rightProfile = Await.result(rightProfileFuture, Duration(100, SECONDS))
+
+      val writer = CSVWriter.open(file)
+      writer.writeAll(List(List("MatchId", "Sample GENis Code", "Sample Name", "MatchedSample GENis Code", "MatchedSample Name", "status", "Datetime" )))
+
+      writer.writeAll(List(List(matchId, leftCode.text, leftProfile.get.internalSampleCode, rightCode.text, rightProfile.get.internalSampleCode, status, format.format(new Date()))))
+
+      writer.close()
+      file
+    }
+  */
 
   override def convertDiscard(
-    matchId: String,
-    firingCodeParam: SampleCode,
-    isSuperUser: Boolean,
-    replicate: Boolean = true,
-    userName: String
-  ): Future[Either[String, Seq[SampleCode]]] = {
+                               matchId: String,
+                               firingCodeParam: SampleCode,
+                               isSuperUser: Boolean,
+                               replicate: Boolean = true,
+                               userName: String
+                             ): Future[Either[String, Seq[SampleCode]]] = {
     matchingRepo
       .getByMatchingProfileId(matchId)
       .flatMap {
         matchResult =>
           if (replicate && this.interconnectionService.isExternalMatch(matchResult.get)) {
             Future.successful(Left(Messages("error.E0726")))
-          } else if (
+          } /*else if (
             (matchResult.get.leftProfile.status == MatchStatus.deleted || matchResult.get.rightProfile.status == MatchStatus.deleted) ||
               !(matchResult.get.leftProfile.status == MatchStatus.pending || matchResult.get.rightProfile.status == MatchStatus.pending)
           ) {
             Future.successful(Left(Messages("error.E1000")))
-          }
+          }*/
           else {
             val leftCode = matchResult.get.leftProfile.globalCode
             val rightCode = matchResult.get.rightProfile.globalCode
             val firingCode = getFiringCode(firingCodeParam, leftCode, rightCode, replicate)
             val isRight = rightCode == firingCode
-            val userId = if (isRight) matchResult.get.rightProfile.assignee else matchResult.get.leftProfile.assignee
+            //val userId = if (isRight) matchResult.get.rightProfile.assignee else matchResult.get.leftProfile.assignee
             val matchingProfile = if (isRight) matchResult.get.leftProfile else matchResult.get.rightProfile
 
-            canDiscardMatch(leftCode, rightCode, userId, isSuperUser) flatMap {
+            canDiscardMatch(leftCode, rightCode, userName, isSuperUser) flatMap {
               allowed =>
-              if (allowed) {
-                val res = matchingRepo.convertStatus(matchId, firingCode, discarded)
+                if (allowed) {
+                  val res = matchingRepo.convertStatus(matchId, firingCode, discarded)
 
-                res.onSuccess({ case _ => {
-                  traceService.add(Trace(firingCode, userId, new Date(),
-                    DiscardInfo(matchResult.get._id.id, matchingProfile.globalCode, matchingProfile.assignee, matchResult.get.`type`)))
-                  traceService.add(Trace(matchingProfile.globalCode, userId, new Date(),
-                    DiscardInfo(matchResult.get._id.id, firingCode, matchingProfile.assignee, matchResult.get.`type`)))
-                  notificationService.solve(userName, MatchingInfo(leftCode, rightCode, matchId))
-                  notificationService.solve(userName, MatchingInfo(rightCode, leftCode, matchId))
-    /*
-                  if(exportaALims) {
-                    createMatchLimsArchive(leftCode, rightCode, matchId, discarded)
+                  res.onSuccess({ case _ => {
+                    traceService.add(Trace(firingCode, userName, new Date(),
+                      DiscardInfo(matchResult.get._id.id, matchingProfile.globalCode, userName, matchResult.get.`type`)))
+                    traceService.add(Trace(matchingProfile.globalCode, userName, new Date(),
+                      DiscardInfo(matchResult.get._id.id, firingCode, userName, matchResult.get.`type`)))
+                    notificationService.push(userName, MatchingDiscard(leftCode, rightCode, matchId, userName))
+                    notificationService.push(userName, MatchingDiscard(rightCode, leftCode, matchId, userName))
+                    //notificationService.solve(userName, MatchingInfo(leftCode, rightCode, matchId))
+                    //notificationService.solve(userName, MatchingInfo(rightCode, leftCode, matchId))
+                    /*
+                                  if(exportaALims) {
+                                    createMatchLimsArchive(leftCode, rightCode, matchId, discarded)
+                                  }
+                    */
+                    if (replicate) {
+                      this.interconnectionService.convertStatus(matchId, firingCode, discarded, matchResult.get, false, userName)
+                    }
                   }
-    */
-                  if (replicate) {
-                    this.interconnectionService.convertStatus(matchId, firingCode, discarded, matchResult.get, false, userName)
-                  }
+                  })
+                  res map { codes => Right(codes) }
+                } else {
+                  Future.successful(Left(Messages("error.E0902")))
                 }
-                })
-                res map { codes => Right(codes) }
-              } else {
-                Future.successful(Left(Messages("error.E0902")))
-              }
             }
           }
-    }
+      }
   }
 
   override def uploadStatus(matchId: String, firingCodeParam: SampleCode, isSuperUser: Boolean, userName: String): Future[String] = {
     matchingRepo.getByMatchingProfileId(matchId) flatMap { matchResult =>
-        val leftCode = matchResult.get.leftProfile.globalCode
-        val rightCode = matchResult.get.rightProfile.globalCode
-        this.interconnectionService.convertStatus(matchId, leftCode, matchResult.get.leftProfile.status.toString, matchResult.get,true, userName)
-        this.interconnectionService.convertStatus(matchId, rightCode, matchResult.get.rightProfile.status.toString, matchResult.get,true, userName)
-        Future.successful("Se envio la actualizacion de estado de match")
-      }
+      val leftCode = matchResult.get.leftProfile.globalCode
+      val rightCode = matchResult.get.rightProfile.globalCode
+      this.interconnectionService.convertStatus(matchId, leftCode, matchResult.get.leftProfile.status.toString, matchResult.get,true, userName)
+      this.interconnectionService.convertStatus(matchId, rightCode, matchResult.get.rightProfile.status.toString, matchResult.get,true, userName)
+      Future.successful("Se envio la actualizacion de estado de match")
+    }
   }
 
   override def canUploadMatchStatus(matchId: String, isCollapsing:Option[Boolean] = None, isScreening:Option[Boolean] = None): Future[Boolean] = {
@@ -214,19 +216,19 @@ class MatchingServiceSparkImpl @Inject() (
     matchingRepo.getByMatchingProfileId(matchId) flatMap { matchResult =>
       if (replicate && this.interconnectionService.isExternalMatch(matchResult.get)) {
         Future.successful(Left(Messages("error.E0726")))
-      } else if (
+      } /*else if (
         (matchResult.get.leftProfile.status == MatchStatus.deleted || matchResult.get.rightProfile.status == MatchStatus.deleted) ||
           !(matchResult.get.leftProfile.status == MatchStatus.pending || matchResult.get.rightProfile.status == MatchStatus.pending)
       ) {
         Future.successful(Left(Messages("error.E1000")))
-      } else {
+      }*/ else {
         val leftCode = matchResult.get.leftProfile.globalCode
         val rightCode = matchResult.get.rightProfile.globalCode
         val firingCode = getFiringCode(firingCodeParam, leftCode, rightCode, replicate)
 
         val isRight = rightCode == firingCode
         //Cambiar userId por el usuario conectado
-        val userId = if (isRight) matchResult.get.rightProfile.assignee else matchResult.get.leftProfile.assignee
+        //val userId = if (isRight) matchResult.get.rightProfile.assignee else matchResult.get.leftProfile.assignee
         val matchingProfile = if (isRight) matchResult.get.leftProfile else matchResult.get.rightProfile
 
         val res = matchingRepo.convertStatus(matchId, firingCode, hit)
@@ -234,15 +236,15 @@ class MatchingServiceSparkImpl @Inject() (
           case _ => {
             traceService.add(Trace(firingCode, userName, new Date(),
               HitInfo(matchResult.get._id.id, matchingProfile.globalCode, userName, matchResult.get.`type`)))
-            traceService.add(Trace(matchingProfile.globalCode, userId, new Date(),
+            traceService.add(Trace(matchingProfile.globalCode, userName, new Date(),
               HitInfo(matchResult.get._id.id, firingCode, userName, matchResult.get.`type`)))
             notificationService.push(userName, MatchingHit(leftCode, rightCode, matchId, userName))
-            notificationService.push(userName, MatchingHit(rightCode, leftCode, matchId, userName))
-/*
-            if (exportaALims) {
-              createMatchLimsArchive(leftCode, rightCode, matchId, hit)
-            }
-*/
+            //notificationService.push(userName, MatchingHit(rightCode, leftCode, matchId, userName))
+            /*
+                        if (exportaALims) {
+                          createMatchLimsArchive(leftCode, rightCode, matchId, hit)
+                        }
+            */
 
             if (replicate) {
               this.interconnectionService.convertStatus(matchId, firingCode, hit, matchResult.get, false, userName)
@@ -265,7 +267,7 @@ class MatchingServiceSparkImpl @Inject() (
     }
   }
 
-   override def searchMatchesProfile(globalCode: String): Future[Seq[MatchCard]] = {
+  override def searchMatchesProfile(globalCode: String): Future[Seq[MatchCard]] = {
     matchingRepo.matchesByGlobalCode(SampleCode(globalCode)) flatMap { list =>
       Future.sequence(list.map { card =>
         val grouper = card._id.id
@@ -292,31 +294,31 @@ class MatchingServiceSparkImpl @Inject() (
 
   def doGetMatches(search: MatchCardSearch): Future[Seq[MatchCardForense]] = {
     matchingRepo.getMatches(search) flatMap { list =>
-     Future.sequence (list.map { card =>
-         val grouper = (card \ "_id").as[String]
-         val pending = (card \ MatchGlobalStatus.pending.toString).as[Int]
-         val hit = (card \ MatchGlobalStatus.hit.toString).as[Int]
-         val discarded = (card \ MatchGlobalStatus.discarded.toString).as[Int]
-         val conflict = (card \ MatchGlobalStatus.conflict.toString).as[Int]
-         val date = (card \ "lastDate").as[MongoDate]
+      Future.sequence (list.map { card =>
+        val grouper = (card \ "_id").as[String]
+        val pending = (card \ MatchGlobalStatus.pending.toString).as[Int]
+        val hit = (card \ MatchGlobalStatus.hit.toString).as[Int]
+        val discarded = (card \ MatchGlobalStatus.discarded.toString).as[Int]
+        val conflict = (card \ MatchGlobalStatus.conflict.toString).as[Int]
+        val date = (card \ "lastDate").as[MongoDate]
 
-         for {
-           profileOpt <- this.profileFind(SampleCode(grouper))
-           profileDataOpt <- this.profileFindData(SampleCode(grouper))
-           profileMatch <- matchingRepo.getProfileLr(SampleCode(grouper), search.isCollapsing.contains(true))
-           profileDataMatch <- this.profileFind(profileMatch.globalCode)
-         } yield {
-           var matchCardMLr = MatchCardMejorLr(profileDataMatch.get.internalSampleCode,profileMatch.categoryId,profileMatch.totalAlleles,
-             profileMatch.ownerStatus,profileMatch.otherStatus,profileMatch.sharedAllelePonderation,profileMatch.mismatches,profileMatch.lr,profileDataMatch.get.globalCode, profileMatch.typeAnalisis)
-           val profile = profileOpt.get
-           val profileData = profileDataOpt.get
-           var mC = MatchCard(profile.globalCode, pending, hit, discarded, conflict, profile.contributors.getOrElse(1),
-             profileData.internalSampleCode, profile.categoryId, date.date, profileData.laboratory, profile.assignee)
-           MatchCardForense(mC, matchCardMLr)
+        for {
+          profileOpt <- this.profileFind(SampleCode(grouper))
+          profileDataOpt <- this.profileFindData(SampleCode(grouper))
+          profileMatch <- matchingRepo.getProfileLr(SampleCode(grouper), search.isCollapsing.contains(true))
+          profileDataMatch <- this.profileFind(profileMatch.globalCode)
+        } yield {
+          var matchCardMLr = MatchCardMejorLr(profileDataMatch.get.internalSampleCode,profileMatch.categoryId,profileMatch.totalAlleles,
+            profileMatch.ownerStatus,profileMatch.otherStatus,profileMatch.sharedAllelePonderation,profileMatch.mismatches,profileMatch.lr,profileDataMatch.get.globalCode, profileMatch.typeAnalisis)
+          val profile = profileOpt.get
+          val profileData = profileDataOpt.get
+          var mC = MatchCard(profile.globalCode, pending, hit, discarded, conflict, profile.contributors.getOrElse(1),
+            profileData.internalSampleCode, profile.categoryId, date.date, profileData.laboratory, profile.assignee)
+          MatchCardForense(mC, matchCardMLr)
 
-         }
-       }
-     )
+        }
+      }
+      )
     }
   }
 
@@ -360,9 +362,9 @@ class MatchingServiceSparkImpl @Inject() (
   }
 
   override def findMatches(
-    globalCode: SampleCode,
-    matchType: Option[String] = None
-  ): Unit = {
+                            globalCode: SampleCode,
+                            matchType: Option[String] = None
+                          ): Unit = {
     logger.debug(s"Enqueue profile $globalCode to spark matcher")
     matchType match {
       case None =>
@@ -385,11 +387,11 @@ class MatchingServiceSparkImpl @Inject() (
         case toResume =>
           toResume.
             foreach { globalCode =>
-            logger.debug(s"Resuming find matches for profile $globalCode")
+              logger.debug(s"Resuming find matches for profile $globalCode")
               profileDataRepo.get(globalCode).map(_.map(profileData => {
                 findMatches(globalCode, categoryService.getCategoryType(profileData.category))
-            }))
-          }
+              }))
+            }
       }
 
     pedigreeRepo.getUnprocessed
@@ -441,24 +443,24 @@ class MatchingServiceSparkImpl @Inject() (
       mr.rightProfile.globalCode
 
     profileRepo.findByCode(firingCode) flatMap { profileOption =>
+    {
+      val profile = profileOption.get
+      profileRepo.findByCode(globalCodeC) map { matchingProfileOpt =>
       {
-        val profile = profileOption.get
-        profileRepo.findByCode(globalCodeC) map { matchingProfileOpt =>
-          {
-            val matchingProfile = matchingProfileOpt.get
+        val matchingProfile = matchingProfileOpt.get
 
-            val ownerStatus = if (right) mr.rightProfile.status else mr.leftProfile.status
-            val otherStatus = if (right) mr.leftProfile.status else mr.rightProfile.status
+        val ownerStatus = if (right) mr.rightProfile.status else mr.leftProfile.status
+        val otherStatus = if (right) mr.leftProfile.status else mr.rightProfile.status
 
-            val status = matchingRepo.getGlobalMatchStatus(mr.leftProfile.status, mr.rightProfile.status)
+        val status = matchingRepo.getGlobalMatchStatus(mr.leftProfile.status, mr.rightProfile.status)
 
-            MatchingResult(mr._id.id, globalCodeC, matchingProfile.internalSampleCode, mr.result.stringency,
-              mr.result.matchingAlleles, mr.result.totalAlleles, matchingProfile.categoryId, ownerStatus,
-              otherStatus, status, MatchingAlgorithm.uniquePonderation(mr, profile, matchingProfile),
-              matchingProfile.contributors.getOrElse(1), matchingProfile.isReference, mr.result.algorithm, mr.`type`,None, mr.lr)
-          }
-        }
+        MatchingResult(mr._id.id, globalCodeC, matchingProfile.internalSampleCode, mr.result.stringency,
+          mr.result.matchingAlleles, mr.result.totalAlleles, matchingProfile.categoryId, ownerStatus,
+          otherStatus, status, MatchingAlgorithm.uniquePonderation(mr, profile, matchingProfile),
+          matchingProfile.contributors.getOrElse(1), matchingProfile.isReference, mr.result.algorithm, mr.`type`,None, mr.lr)
       }
+      }
+    }
     }
   }
 
@@ -470,19 +472,19 @@ class MatchingServiceSparkImpl @Inject() (
   }
 
   override def getComparedMixtureGenotypification(globalCodes: Seq[SampleCode],matchId:String,isCollapsing:Option[Boolean] = None,isScreening:Option[Boolean] = None): Future[Seq[CompareMixtureGenotypification]] = {
-      profileRepo.findByCodes(globalCodes) flatMap {
-        results =>
-          if(results.size<globalCodes.size){
-            matchingRepo.getByMatchingProfileId(matchId,isCollapsing,isScreening).map{ case Some(mr) =>{
-              mr.superiorProfileInfo.fold(obtainCompareMixtureGenotypification(results))
-                {superiorProfileInfo => obtainCompareMixtureGenotypification(results.:+(superiorProfileInfo.profile))}
-            }
-            case None => obtainCompareMixtureGenotypification(results)
-            }
-          }else{
-            Future.successful(obtainCompareMixtureGenotypification(results))
+    profileRepo.findByCodes(globalCodes) flatMap {
+      results =>
+        if(results.size<globalCodes.size){
+          matchingRepo.getByMatchingProfileId(matchId,isCollapsing,isScreening).map{ case Some(mr) =>{
+            mr.superiorProfileInfo.fold(obtainCompareMixtureGenotypification(results))
+            {superiorProfileInfo => obtainCompareMixtureGenotypification(results.:+(superiorProfileInfo.profile))}
           }
-      }
+          case None => obtainCompareMixtureGenotypification(results)
+          }
+        }else{
+          Future.successful(obtainCompareMixtureGenotypification(results))
+        }
+    }
   }
   override def obtainCompareMixtureGenotypification(results:scala.Seq[Profile]):Seq[CompareMixtureGenotypification] = {
     val types = results.foldLeft(Set[Int]()) { (a, b) => a.union(b.genotypification.keySet) }
@@ -565,8 +567,8 @@ class MatchingServiceSparkImpl @Inject() (
   }
 
   override def getMatchesByGroup(search: MatchGroupSearch): Future[Seq[MatchingResult]] = {
-     val listMatchingResult = matchingRepo.getMatchesByGroup(search)
-     val result =  Future.sequence(listMatchingResult.map( mr => {
+    val listMatchingResult = matchingRepo.getMatchesByGroup(search)
+    val result =  Future.sequence(listMatchingResult.map( mr => {
       this.canUploadMatchStatus(mr.oid,search.isCollapsing).map(isInterconection => mr.copy(isInterconnectionMatch = isInterconection))
     }))
     result
@@ -615,10 +617,10 @@ class MatchingServiceSparkImpl @Inject() (
     this.matchingRepo.discardCollapsingByLeftAndRightProfile(id,courtCaseId)
   }
   override def findScreeningMatches(
-    profile:Profile,
-    queryProfiles:List[String],
-    numberOfMismatches: Option[Int]
-  ):Future[(Set[MatchResultScreening],Set[MatchResultScreening])]  = Future{
+                                     profile:Profile,
+                                     queryProfiles:List[String],
+                                     numberOfMismatches: Option[Int]
+                                   ):Future[(Set[MatchResultScreening],Set[MatchResultScreening])]  = Future{
     val result = this
       .spark2MatcherScreening
       .findMatchesBlocking(profile, queryProfiles, numberOfMismatches)

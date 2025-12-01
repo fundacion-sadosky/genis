@@ -112,7 +112,7 @@ case class RejectedProfileInfo(
     s"El cambio de categoría del perfil ${
       globalCode
         .text
-    } fue rechazado en la instancia superior"
+    } fue rechazado en la instancia superior" + "por el usuario: " + userName
   } else {
     s"El perfil: ${
       globalCode
@@ -315,6 +315,10 @@ object NotificationInfo {
         Some((x.kind, Json.toJson(x)(hitMatchWrites)))
       case x: MatchingDiscard =>
         Some((x.kind, Json.toJson(x)(discardMatchWrites)))
+      case x: HitInfoFormat =>
+        Some((x.kind, Json.toJson(x)(hitInfoFormat)))
+      case x: DiscardInfoFormat =>
+        Some((x.kind, Json.toJson(x)(discardInfoFormat)))
       case _ => None
     }
   }
