@@ -42,11 +42,11 @@ case class InferiorInstancePendingInfo(urlInstance: String) extends Notification
 }
 
 case class HitInfoFormat(
-                         globalCode: SampleCode,
-                         matchedProfile: SampleCode,
-                         matchingId: String,
-                         userName: String
-                       ) extends NotificationInfo {
+                          globalCode: SampleCode,
+                          matchedProfile: SampleCode,
+                          matchingId: String,
+                          userName: String
+                        ) extends NotificationInfo {
   override val kind = NotificationType.hitMatch
   override val description =
     s"El usuario ${userName} confirmó el match del perfil: ${matchedProfile.text} "
@@ -56,9 +56,9 @@ case class HitInfoFormat(
 }
 
 case class DiscardInfoFormat(globalCode: SampleCode,
-                            matchedProfile: SampleCode,
-                            matchingId: String,
-                            userName: String) extends NotificationInfo {
+                             matchedProfile: SampleCode,
+                             matchingId: String,
+                             userName: String) extends NotificationInfo {
   override val kind = NotificationType.discardMatch
   override val description =
     s"El usuario ${userName} descartó el match del perfil: ${matchedProfile.text} "
@@ -164,11 +164,11 @@ case class MatchingInfo(
 }
 
 case class MatchingHit(
-                         globalCode: SampleCode,
-                         matchedProfile: SampleCode,
-                         matchingId: String,
-                         userName: String
-                       ) extends NotificationInfo {
+                        globalCode: SampleCode,
+                        matchedProfile: SampleCode,
+                        matchingId: String,
+                        userName: String
+                      ) extends NotificationInfo {
   override val kind = NotificationType.hitMatch
   override val description =
     s"Coincidencia validada entre: ${globalCode.text} y " +
@@ -179,11 +179,11 @@ case class MatchingHit(
 }
 
 case class MatchingDiscard(
-                        globalCode: SampleCode,
-                        matchedProfile: SampleCode,
-                        matchingId: String,
-                        userName: String
-                      ) extends NotificationInfo {
+                            globalCode: SampleCode,
+                            matchedProfile: SampleCode,
+                            matchingId: String,
+                            userName: String
+                          ) extends NotificationInfo {
   override val kind = NotificationType.discardMatch
   override val description =
     s"Coincidencia descartada entre: ${globalCode.text} y " +
@@ -267,7 +267,7 @@ object NotificationInfo {
   implicit val hitInfoFormat = Json.format[HitInfoFormat]
   implicit val hitMatchWrites = Json.writes[MatchingHit]
   implicit val discardMatchWrites = Json.writes[MatchingDiscard]
-    implicit val discardInfoFormat = Json.format[DiscardInfoFormat]
+  implicit val discardInfoFormat = Json.format[DiscardInfoFormat]
   implicit val deleteProfileFormat = Json.format[DeleteProfileInfo]
   implicit val collapsingFormat = Json.format[CollapsingInfo]
   implicit val pedigreeConsistencyFormat = Json.format[PedigreeConsistencyInfo]

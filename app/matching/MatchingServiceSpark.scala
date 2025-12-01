@@ -6,7 +6,7 @@ import javax.inject.{Inject, Named, Singleton}
 import com.github.tototoshi.csv.{CSVWriter, DefaultCSVFormat}
 import profiledata.ProfileData
 import configdata.{CategoryService, QualityParamsProvider}
-import inbox.{MatchingHit, NotificationService, MatchingDiscard}
+import inbox.{MatchingHit, MatchingInfo, NotificationService}
 import matching.MatchGlobalStatus.MatchGlobalStatus
 import matching.MatchStatus.MatchStatus
 import pedigree.{PedigreeGenotypificationService, PedigreeRepository, PedigreeService, PedigreeSparkMatcher}
