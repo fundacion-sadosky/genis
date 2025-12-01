@@ -1861,32 +1861,63 @@ override def receiveMatchFromSuperior(matchSuperiorInstance: MatchSuperiorInstan
     }
     case false => {
       // el superiorProfile es el del otro laboratorio, si el left es el superiorProfile entonces el propio es el right
-      if (matchSuperiorInstance.matchResult.leftProfile.globalCode == matchSuperiorInstance.superiorProfile.globalCode) {
-        this.notificationService.push(matchSuperiorInstance.matchResult.rightProfile.assignee,
-          MatchingInfo(
+      val rightCode  = matchSuperiorInstance.matchResult.rightProfile.globalCode
+      val leftCode   = matchSuperiorInstance.matchResult.leftProfile.globalCode
+      val matchingId = matchSuperiorInstance.matchResult._id.id
+      val assignee   = matchSuperiorInstance.matchResult.rightProfile.assignee
+      
+      val isDesktopF: Future[Option[Boolean]] = for {
+        rightDesktopOpt <- profileDataService.isDesktopProfile(rightCode)
+        leftDesktopOpt  <- profileDataService.isDesktopProfile(leftCode)
+      } yield {
+        // combinamos las dos opciones
+        (rightDesktopOpt, leftDesktopOpt) match {
+          case (Some(r), Some(l)) => Some(r || l)
+          case (Some(r), None)    => Some(r)
+          case (None, Some(l))    => Some(l)
+          case _                  => None
+        }
+      }
+      
+      isDesktopF.foreach { isDesktopOpt =>
+        
+        val isDesktop = isDesktopOpt.getOrElse(false)
+
+        if (matchSuperiorInstance.matchResult.leftProfile.globalCode ==
+          matchSuperiorInstance.superiorProfile.globalCode) {
+
+          this.notificationService.push(
+            assignee,
+            MatchingInfo(
+              rightCode,
+              leftCode,
+              matchingId,
+              isDesktop
+            )
+          )
+          userService.sendNotifToAllSuperUsers(MatchingInfo(
             matchSuperiorInstance.matchResult.rightProfile.globalCode,
             matchSuperiorInstance.matchResult.leftProfile.globalCode,
-            matchSuperiorInstance.matchResult._id.id
+            matchSuperiorInstance.matchResult._id.id,
+            isDesktop
+          ), Seq(matchSuperiorInstance.matchResult.rightProfile.assignee))
+
+        } else {
+          this.notificationService.push(matchSuperiorInstance.matchResult.leftProfile.assignee,
+            MatchingInfo(
+              matchSuperiorInstance.matchResult.leftProfile.globalCode,
+              matchSuperiorInstance.matchResult.rightProfile.globalCode,
+              matchSuperiorInstance.matchResult._id.id,
+              isDesktop
+            )
           )
-        )
-        userService.sendNotifToAllSuperUsers(MatchingInfo(
-          matchSuperiorInstance.matchResult.rightProfile.globalCode,
-          matchSuperiorInstance.matchResult.leftProfile.globalCode,
-          matchSuperiorInstance.matchResult._id.id
-        ), Seq(matchSuperiorInstance.matchResult.rightProfile.assignee))
-      } else {
-        this.notificationService.push(matchSuperiorInstance.matchResult.leftProfile.assignee,
-          MatchingInfo(
+          userService.sendNotifToAllSuperUsers(MatchingInfo(
             matchSuperiorInstance.matchResult.leftProfile.globalCode,
             matchSuperiorInstance.matchResult.rightProfile.globalCode,
-            matchSuperiorInstance.matchResult._id.id
-          )
-        )
-        userService.sendNotifToAllSuperUsers(MatchingInfo(
-          matchSuperiorInstance.matchResult.leftProfile.globalCode,
-          matchSuperiorInstance.matchResult.rightProfile.globalCode,
-          matchSuperiorInstance.matchResult._id.id
-        ), Seq(matchSuperiorInstance.matchResult.leftProfile.assignee))
+            matchSuperiorInstance.matchResult._id.id,
+            isDesktop
+          ), Seq(matchSuperiorInstance.matchResult.leftProfile.assignee))
+        }
       }
 
       this.traceMatch(matchSuperiorInstance.matchResult.leftProfile.globalCode,

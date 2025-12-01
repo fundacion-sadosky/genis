@@ -116,6 +116,28 @@ define(['jquery', 'lodash'], function($, _) {
             });
         };
 
+        var getBatchItem = function(id, batch) {
+            if (batch){
+                batch.isProcessing = true;
+            }
+
+            bulkuploadService.getProtoProfileBySampleId(id).then(function(response) {
+                if (batch && batch.id) {
+                    $scope.protoProfiles[batch.id] = $scope.protoProfiles[batch.id].map(function(x){
+                        return (x.id === id)? response.data: x;
+                    });
+                } else {
+                    $scope.protoProfiles = helper.groupBy([response.data], 'batchId');
+                    $scope.batches = Object.keys($scope.protoProfiles).map(function(id) {
+                        return {id: id, isOpen: true};
+                    });
+                }
+                if (batch){
+                    batch.isProcessing = false;
+                }
+            }, function() { if (batch) { batch.isProcessing = false; } });
+        };
+
         $scope.protoprofileId = $routeParams.protoprofileId;
         if ($scope.protoprofileId) {
             getBatchItem($scope.protoprofileId, undefined);
@@ -240,17 +262,40 @@ define(['jquery', 'lodash'], function($, _) {
 
         notificationsService.onNotification(function(msg){
             if (msg.kind === 'matching') {
-                var url = msg.url;
-                var parts = url.split('/');
-                $scope.shared.profileId = parts[2];
-                var matchedProfileId = parts[4];
-                $scope.shared.matches[matchedProfileId] = parts[6];
+                $scope.shared.profileId = msg.info.globalCode;
+                console.debug("Profile defined on notification: ", $scope.shared.profileId);
+                $scope.shared.matches[msg.info.matchedProfile] = msg.info.matchingId;
+                console.debug("Profile match defined on notification: ", msg.info.matchedProfile);
 
                 profiledataService.getProfileDataBySampleCode($scope.shared.profileId).then(function(response) {
                     $scope.shared.profileData = response.data;
                 });
+
             }
         });
+
+        notificationsService.onMatchStatusNotification(function() {
+            // profiledataService.getDesktopProfiles().then(function (profiles) {
+            //     if (profiles.data.length === 1){
+            //         var profileId = profiles.data[0];
+            //         $scope.shared.profileId = profileId;
+            //         profiledataService.getProfileDataBySampleCode(profileId).then(function(response) {
+            //             $scope.shared.profileData = response.data;
+            //         });
+            //         console.debug("Profile ID defined in match status notification: ", profileId)
+            //         matchesService.searchMatchesByCode(profileId)
+            //             .then(function (matches){
+            //            console.debug("Profile matches:", matches)
+            //         })
+            //             .catch(function (err) {
+            //                 console.error("Error al buscar matches para", profileId, err);
+            //             });
+            //     } else {
+            //         console.debug("Desktop profiles length: ", profiles.data.length)
+            //     }
+            // });
+        });
+
 
         $scope.removeDesktopProfiles = function() {
             profiledataService.getDesktopProfiles().then(function(profiles) {

@@ -43,23 +43,23 @@ define(
 
             });
 
-            notificationsService.onNotification(function(msg){
-                if (msg.kind === 'matching'){
-                    var url = msg.url;
-                    var parts = url.split('/');  // in an url like /comparison/<profile id>/matchedProfileId/<matched profile id>/matchingId/<matching id>
-                    $scope.profileId  = parts[2];
-                    var matchedProfileId = parts[4];
-                    $scope.matches.push(matchedProfileId);
-                    console.log("New match found:", matchedProfileId);
-                    if (!$scope.profileData){
-                        profiledataService.getProfileDataBySampleCode($scope.profileId).then(function (response) {
-                            $scope.profileData = response.data;
-                        });
-                    }
-
-
-                }
-            });
+            // notificationsService.onNotification(function(msg){
+            //     if (msg.kind === 'matching'){
+            //         var url = msg.url;
+            //         var parts = url.split('/');  // in an url like /comparison/<profile id>/matchedProfileId/<matched profile id>/matchingId/<matching id>
+            //         $scope.profileId  = parts[2];
+            //         var matchedProfileId = parts[4];
+            //         $scope.matches.push(matchedProfileId);
+            //         console.log("New match found:", matchedProfileId);
+            //         if (!$scope.profileData){
+            //             profiledataService.getProfileDataBySampleCode($scope.profileId).then(function (response) {
+            //                 $scope.profileData = response.data;
+            //             });
+            //         }
+            //
+            //
+            //     }
+            // });
 
             $scope.printReport = function(matchedProfileId) {
                 $scope.matchedProfileId = matchedProfileId;

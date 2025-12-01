@@ -150,15 +150,28 @@ case class ProfileUploadedInfo(globalCode: SampleCode) extends NotificationInfo 
 case class MatchingInfo(
                          globalCode: SampleCode,
                          matchedProfile: SampleCode,
-                         matchingId: String
+                         matchingId: String,
+                         isDesktop : Boolean
                        ) extends NotificationInfo {
   override val kind = NotificationType.matching
-  override val description =
-    s"Nueva coincidencia pendiente entre: ${globalCode.text} y " +
-      s"${matchedProfile.text}"
-  override val url =
+
+  override val description: String =
+    if (isDesktop)
+      s"Coincidencia con perfil de escritorio"
+    else
+      s"Nueva coincidencia pendiente entre: ${globalCode.text} y ${matchedProfile.text}"
+      
+  override val url = {
+    if (isDesktop)
+      "/profiles/bulkupload-step1"
+    else
     s"/comparison/${globalCode.text}/matchedProfileId/" +
       s"${matchedProfile.text}/matchingId/$matchingId"
+  }
+
+  val profileId = globalCode
+  val matchedProfileId = matchedProfile
+  val matchId = matchingId
 }
 
 case class PedigreeMatchingInfo(
@@ -353,7 +366,8 @@ object Notification {
         "flagged" -> ni.flagged,
         "pending" -> ni.pending,
         "description" -> ni.description,
-        "url" -> ni.url
+        "url" -> ni.url,
+        "info" -> Json.toJson(ni.info)
       )
     }
   }

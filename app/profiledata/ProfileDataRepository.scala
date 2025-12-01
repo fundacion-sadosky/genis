@@ -136,6 +136,8 @@ abstract class ProfileDataRepository extends DefaultDb with Transaction  {
 
   def isDeleted(globalCode: SampleCode): Future[Option[Boolean]]
 
+  def isDesktopProfile(globalCode: SampleCode): Future[Option[Boolean]]
+
   def getDeletedMotive(globalCode: SampleCode): Future[Option[DeletedMotive]]
 
   def findByCodes(globalCodes: List[SampleCode]): Future[Seq[ProfileData]]
@@ -311,6 +313,11 @@ class SlickProfileDataRepository @Inject() (
     pd <- profilesData if pd.globalCode === globalCode
   } yield (pd.deleted, pd.deletedSolicitor, pd.deletedMotive)
 
+  private def queryDefineDesktopPd(globalCode: Column[String]) = for {
+    pd <- profilesData if pd.globalCode === globalCode
+  } yield (pd.fromDesktopSearch)
+
+
   private def queryUpdatePd(globalCode: Column[String]) = for {
     pd <- profilesData if pd.globalCode === globalCode
   } yield (
@@ -395,6 +402,8 @@ class SlickProfileDataRepository @Inject() (
   } yield (resource.resource)
 
   val queryDeletePd = Compiled(queryDefineDeletePd _)
+
+  val queryDesktopPd = Compiled(queryDefineDesktopPd _)
 
   val queryGetResource = Compiled(queryDefineGetResource _)
 
@@ -534,6 +543,12 @@ class SlickProfileDataRepository @Inject() (
     }
   }
 
+  override def isDesktopProfile(globalCode: SampleCode)
+  : Future[Option[Boolean]] = Future {
+    DB.withSession { implicit session =>
+      queryDesktopPd(globalCode.text).firstOption
+    }
+  }
   override def getProfilesByUser(search: ProfileDataSearch)
   : Future[Seq[ProfileDataFull]] = Future {
     if (search.notUploaded.contains(true)) {

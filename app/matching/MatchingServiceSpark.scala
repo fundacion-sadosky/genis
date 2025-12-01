@@ -173,8 +173,23 @@ class MatchingServiceSparkImpl @Inject() (
                     DiscardInfo(matchResult.get._id.id, matchingProfile.globalCode, matchingProfile.assignee, matchResult.get.`type`)))
                   traceService.add(Trace(matchingProfile.globalCode, userId, new Date(),
                     DiscardInfo(matchResult.get._id.id, firingCode, matchingProfile.assignee, matchResult.get.`type`)))
-                  notificationService.solve(userId, MatchingInfo(leftCode, rightCode, matchId))
-                  notificationService.solve(userId, MatchingInfo(rightCode, leftCode, matchId))
+                  
+                  val isDesktopF: Future[Option[Boolean]] = for {
+                    rightDesktopOpt <- profileDataRepo.isDesktopProfile(rightCode)
+                    leftDesktopOpt  <- profileDataRepo.isDesktopProfile(leftCode)
+                  } yield {
+                    (rightDesktopOpt, leftDesktopOpt) match {
+                      case (Some(r), Some(l)) => Some(r || l)
+                      case (Some(r), None)    => Some(r)
+                      case (None, Some(l))    => Some(l)
+                      case _                  => None
+                    }
+                  }
+                  isDesktopF.foreach { isDesktopOpt =>
+                    val isDesktop = isDesktopOpt.getOrElse(false)
+                    notificationService.solve(userId, MatchingInfo(leftCode, rightCode, matchId, isDesktop))
+                    notificationService.solve(userId, MatchingInfo(rightCode, leftCode, matchId, isDesktop))
+                  }
     /*
                   if(exportaALims) {
                     createMatchLimsArchive(leftCode, rightCode, matchId, discarded)
@@ -235,8 +250,22 @@ class MatchingServiceSparkImpl @Inject() (
               HitInfo(matchResult.get._id.id, matchingProfile.globalCode, matchingProfile.assignee, matchResult.get.`type`)))
             traceService.add(Trace(matchingProfile.globalCode, userId, new Date(),
               HitInfo(matchResult.get._id.id, firingCode, matchingProfile.assignee, matchResult.get.`type`)))
-            notificationService.solve(userId, MatchingInfo(leftCode, rightCode, matchId))
-            notificationService.solve(userId, MatchingInfo(rightCode, leftCode, matchId))
+            val isDesktopF: Future[Option[Boolean]] = for {
+              rightDesktopOpt <- profileDataRepo.isDesktopProfile(rightCode)
+              leftDesktopOpt  <- profileDataRepo.isDesktopProfile(leftCode)
+            } yield {
+              (rightDesktopOpt, leftDesktopOpt) match {
+                case (Some(r), Some(l)) => Some(r || l)
+                case (Some(r), None)    => Some(r)
+                case (None, Some(l))    => Some(l)
+                case _                  => None
+              }
+            }
+            isDesktopF.foreach { isDesktopOpt =>
+              val isDesktop = isDesktopOpt.getOrElse(false)
+              notificationService.solve(userId, MatchingInfo(leftCode, rightCode, matchId, isDesktop))
+              notificationService.solve(userId, MatchingInfo(rightCode, leftCode, matchId, isDesktop))
+            }
 /*
             if (exportaALims) {
               createMatchLimsArchive(leftCode, rightCode, matchId, hit)

@@ -83,6 +83,7 @@ define(
           .join(" ");
       };
       $scope.markers = function() {
+        console.debug("Comparison report controller - Markers being sorted")
         var markers = $scope
           .comparision
           .filter(function(x) {return !x.locus.startsWith("HV");})
