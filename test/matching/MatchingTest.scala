@@ -865,28 +865,28 @@ class MatchingTest extends Specification with MockitoSugar with Results {
   "convert discard" should {
     "return bad request if service returns left" in {
       val matchingService = mock[MatchingService]
-      when(matchingService.convertDiscard(any[String], any[SampleCode], any[Boolean], any[Boolean])).thenReturn(Future.successful(Left("error message")))
+      when(matchingService.convertDiscard(any[String], any[SampleCode], any[Boolean], any[Boolean], any[String])).thenReturn(Future.successful(Left("error message")))
       val userService = mock[UserService]
       when(userService.isSuperUser("pdg")).thenReturn(Future.successful((false)))
 
       val matching = new Matching(matchingService, null, null, null, null, userService )
 
       val request = FakeRequest().withHeaders("X-USER" -> "pdg")
-      val result: Future[Result] = matching.convertDiscard("5343243u23d1kl", SampleCode("AR-B-IMBICE-501")).apply(request)
+      val result: Future[Result] = matching.convertDiscard("5343243u23d1kl", SampleCode("AR-B-IMBICE-501"), "userName").apply(request)
 
       status(result) must beEqualTo(BAD_REQUEST)
     }
 
     "be ok if service returns right" in {
       val matchingService = mock[MatchingService]
-      when(matchingService.convertDiscard(any[String], any[SampleCode], any[Boolean], any[Boolean])).thenReturn(Future.successful(Right(Seq(Stubs.sampleCode))))
+      when(matchingService.convertDiscard(any[String], any[SampleCode], any[Boolean], any[Boolean], any[String])).thenReturn(Future.successful(Right(Seq(Stubs.sampleCode))))
       val userService = mock[UserService]
       when(userService.isSuperUser("pdg")).thenReturn(Future.successful((false)))
 
       val matching = new Matching(matchingService, null, null, null, null, userService)
 
       val request = FakeRequest().withHeaders("X-USER" -> "pdg")
-      val result: Future[Result] = matching.convertDiscard("5343243u23d1kl", SampleCode("AR-B-IMBICE-501")).apply(request)
+      val result: Future[Result] = matching.convertDiscard("5343243u23d1kl", SampleCode("AR-B-IMBICE-501"), "userName").apply(request)
 
       status(result) must beEqualTo(OK)
     }

@@ -22,15 +22,15 @@ trait MatchingService {
 
   def findMatchingResults(globalCode: SampleCode): Future[Option[MatchingResults]]
 
-  def convertHit(matchId: String, firingCode: SampleCode,replicate:Boolean = true): Future[Either[String, Seq[SampleCode]]]
+  def convertHit(matchId: String, firingCode: SampleCode,replicate:Boolean = true, userName: String): Future[Either[String, Seq[SampleCode]]]
 
-  def convertDiscard(matchId: String, firingCode: SampleCode, isSuperUser: Boolean,replicate:Boolean = true): Future[Either[String, Seq[SampleCode]]]
+  def convertDiscard(matchId: String, firingCode: SampleCode, isSuperUser: Boolean,replicate:Boolean = true, userName: String): Future[Either[String, Seq[SampleCode]]]
 
-  def uploadStatus(matchId: String, firingCode: SampleCode, isSuperUser: Boolean): Future[String]
+  def uploadStatus(matchId: String, firingCode: SampleCode, isSuperUser: Boolean, userName:String): Future[String]
 
   def canUploadMatchStatus(matchId: String, isCollapsing:Option[Boolean] = None, isScreening:Option[Boolean] = None): Future[Boolean]
 
-  def convertHitOrDiscard(matchId: String, firingCode: SampleCode, isSuperUser: Boolean,action:String): Future[Either[String, Seq[SampleCode]]]
+  def convertHitOrDiscard(matchId: String, firingCode: SampleCode, isSuperUser: Boolean,action:String, userName: String): Future[Either[String, Seq[SampleCode]]]
 
   def getComparedMixtureGenotypification(globalCodes: Seq[SampleCode],matchId:String,isCollapsing:Option[Boolean] = None,isScreening:Option[Boolean] = None): Future[Seq[CompareMixtureGenotypification]]
 
@@ -38,7 +38,7 @@ trait MatchingService {
 
   def getByFiringAndMatchingProfile(firingCode: SampleCode, matchingCode: SampleCode): Future[Option[MatchingResult]]
 
-  def validate(scenario: Scenario) : Future[Either[String,String]]
+  def validate(scenario: Scenario, userName: String) : Future[Either[String,String]]
 
   def validProfilesAssociated(labels: Option[Profile.LabeledGenotypification]): Seq[String]
 
@@ -72,11 +72,11 @@ trait MatchingService {
 
   def findScreeningMatches(profile:Profile, queryProfiles:List[String],numberOfMismatches: Option[Int]):Future[(Set[MatchResultScreening],Set[MatchResultScreening])]
 
-  def masiveGroupDiscardByGlobalCode(firingCode: SampleCode, isSuperUser: Boolean,replicate:Boolean = true) : Future[Either[String, Seq[SampleCode]]]
+  def masiveGroupDiscardByGlobalCode(firingCode: SampleCode, isSuperUser: Boolean,replicate:Boolean = true, userName:String) : Future[Either[String, Seq[SampleCode]]]
 
   def searchMatchesProfile(globalCode: String): Future[Seq[MatchCard]]
 
   def updateMatchesLR(matchingLRs: Set[(String, Double)]):Future[Unit]
 
-  def masiveGroupDiscardByMatchesList(firingCode: types.SampleCode, matches: List[String], isSuperUser: Boolean,replicate:Boolean = true) : Future[Either[String, Seq[SampleCode]]]
+  def masiveGroupDiscardByMatchesList(firingCode: types.SampleCode, matches: List[String], isSuperUser: Boolean,replicate:Boolean = true, userName:String) : Future[Either[String, Seq[SampleCode]]]
 }

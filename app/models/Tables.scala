@@ -1917,25 +1917,26 @@ trait Tables {
 
   lazy val MatchSendStatus = new TableQuery(tag => new MatchSendStatus(tag, Some("APP"), "MATCH_SEND_STATUS"))
 
-  case class MatchUpdateSendStatusRow(id: String,targetLab: String, status:Option[Long] = None,message:Option[String] = None,date:Option[java.sql.Timestamp] = None)
+  case class MatchUpdateSendStatusRow(id: String,targetLab: String, status:Option[Long] = None,message:Option[String] = None,date:Option[java.sql.Timestamp] = None, userName: String)
   /** GetResult implicit for fetching MatchUpdateSendStatus objects using plain SQL queries */
   implicit def GetResultMatchUpdateSendStatus(implicit e0: GR[String], e1: GR[Option[String]]): GR[MatchUpdateSendStatusRow] = GR{
     prs => import prs._
-      MatchUpdateSendStatusRow.tupled((<<[String],<<[String], <<[Option[Long]], <<[Option[String]], <<[Option[java.sql.Timestamp]]))
+      MatchUpdateSendStatusRow.tupled((<<[String],<<[String], <<[Option[Long]], <<[Option[String]], <<[Option[java.sql.Timestamp]], <<[String]))
   }
 
   /** Table description of table MATCH_UPDATE_SEND_STATUS. Objects of this class serve as prototypes for rows in queries. */
   class MatchUpdateSendStatus(_tableTag: Tag, schema: Option[String], tableName: String) extends Table[MatchUpdateSendStatusRow](_tableTag, schema, tableName) {
-    def * = (id, targetLab, status, message, date) <> (MatchUpdateSendStatusRow.tupled, MatchUpdateSendStatusRow.unapply)
+    def * = (id, targetLab, status, message, date, userName) <> (MatchUpdateSendStatusRow.tupled, MatchUpdateSendStatusRow.unapply)
 
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = (id.?, targetLab.?, status, message, date).shaped.<>({ r => import r._; _1.map(_ => MatchUpdateSendStatusRow.tupled((_1.get, _2.get, _3, _4, _5))) }, (_: Any) => throw new Exception("Inserting into ? projection not supported."))
+    def ? = (id.?, targetLab.?, status, message, date, userName).shaped.<>({ r => import r._; _1.map(_ => MatchUpdateSendStatusRow.tupled((_1.get, _2.get, _3, _4, _5, _6))) }, (_: Any) => throw new Exception("Inserting into ? projection not supported."))
 
     val id: Column[String] = column[String]("ID", O.PrimaryKey)
     val targetLab: Column[String] = column[String]("TARGET_LAB", O.PrimaryKey)
     val status: Column[Option[Long]] = column[Option[Long]]("STATUS")
     val message: Column[Option[String]] = column[Option[String]]("MESSAGE")
     val date: Column[Option[java.sql.Timestamp]] = column[Option[java.sql.Timestamp]]("DATE", O.Default(Some(new java.sql.Timestamp(System.currentTimeMillis()))))
+    val userName: Column[String] = column[String]("USER_NAME", O.Length(50,varying=true))
   }
   lazy val MatchUpdateSendStatus = new TableQuery(tag => new MatchUpdateSendStatus(tag, Some("APP"), "MATCH_UPDATE_SEND_STATUS"))
 

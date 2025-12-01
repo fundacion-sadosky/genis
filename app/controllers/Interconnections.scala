@@ -374,7 +374,8 @@ class Interconnections @Inject()( val protoRepo: ProtoProfileRepository,
             convertStatusInterconnection.rightProfileCode,
             convertStatusInterconnection.status,
             convertStatusInterconnection.labOrigin,
-            convertStatusInterconnection.labImmediate).map{
+            convertStatusInterconnection.labImmediate,
+            convertStatusInterconnection.userName).map{
             case _ => Ok.withHeaders("X-CREATED-ID" -> "")
           }
         }

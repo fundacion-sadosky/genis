@@ -157,17 +157,17 @@ POST     /user-total-matches                                  @controllers.Match
 POST     /user-matches-group                                  @controllers.Matching.getMatchesByGroup
 POST     /user-total-matches-group                            @controllers.Matching.getTotalMatchesByGroup
 GET      /mixture/compare                                     @controllers.Matching.getComparedMixtureGene(globalCodes: List[String],matchId:String,isCollapsing:Option[Boolean],isScreening:Option[Boolean])
-POST     /convertHit                                          @controllers.Matching.convertHit(matchingId: String, firingCode: types.SampleCode)
-POST     /convertDiscard                                      @controllers.Matching.convertDiscard(matchId: String, firingCode: types.SampleCode)
-POST     /uploadStatus                                        @controllers.Matching.uploadStatus(matchId: String, firingCode: types.SampleCode)
+POST     /convertHit                                          @controllers.Matching.convertHit(matchingId: String, firingCode: types.SampleCode, userName: String)
+POST     /convertDiscard                                      @controllers.Matching.convertDiscard(matchId: String, firingCode: types.SampleCode, userName: String)
+POST     /uploadStatus                                        @controllers.Matching.uploadStatus(matchId: String, firingCode: types.SampleCode, userName: String)
 GET      /canUploadMatchStatus                                @controllers.Matching.canUploadMatchStatus(matchId: String)
 GET      /getByMatchedProfileId                               @controllers.Matching.getByMatchedProfileId(matchingId: String, isPedigreeMatch: Boolean,isCollapsing:Option[Boolean],isScreening:Option[Boolean])
 #GET      /comparedGenotyfications                             @controllers.Matching.getComparedGenotyfications(globalCode: types.SampleCode, matchedGlobalCode: types.SampleCode)
 POST     /lr                                                  @controllers.Matching.getLR
 #POST     /mixture/lr                                          @controllers.Matching.getMixtureLRByLocus
 DELETE   /collapsing/partial                                  @controllers.Matching.deleteByLeftProfile(globalCode: String,courtCaseId:Long)
-POST     /masiveDiscardByGlobalCode                           @controllers.Matching.masiveDiscardByGlobalCode(firingCode: types.SampleCode)
-POST     /masiveDiscardByMatchesList                          @controllers.Matching.masiveDiscardByMatchesList(firingCode: types.SampleCode, matches: List[String])
+POST     /masiveDiscardByGlobalCode                           @controllers.Matching.masiveDiscardByGlobalCode(firingCode: types.SampleCode, userName: String)
+POST     /masiveDiscardByMatchesList                          @controllers.Matching.masiveDiscardByMatchesList(firingCode: types.SampleCode, matches: List[String], userName: String)
 GET      /matching-profile                                    @controllers.Matching.searchMatchesProfile(globalCode: String)
 
 # Notifications

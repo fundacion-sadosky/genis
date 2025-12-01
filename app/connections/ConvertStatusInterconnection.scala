@@ -10,7 +10,8 @@ case class ConvertStatusInterconnection(
                             rightProfileCode: SampleCode,
                             status: String,
                             labOrigin:String,
-                            labImmediate:String
+                            labImmediate:String,
+                            userName: String
                           )
 
 object ConvertStatusInterconnection {

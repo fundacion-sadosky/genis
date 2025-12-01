@@ -36,9 +36,9 @@ abstract class ConnectionRepository extends DefaultDb with Transaction {
   def getSupInstanceUrl(): Future[Option[String]]
   def getInfInstanceUrl (lab: String): Future[Option[String]]
   def updateMatchSendStatus(id: String, targetLab:Option[String],status:Option[Long], message:Option[String] = None): Future[Either[String,Unit]]
-  def updateMatchSendStatusHitOrDiscard(id: String, targetLab:Option[String],statusHitDiscard:Option[Long] = None,message:Option[String] = None): Future[Either[String,Unit]]
+  def updateMatchSendStatusHitOrDiscard(id: String, targetLab:Option[String],statusHitDiscard:Option[Long] = None,message:Option[String] = None, userName: String): Future[Either[String,Unit]]
   def getMatchSendStatusById(id:String, targetLab:Option[String] = None):Future[Option[Long]]
-  def insertMatchUpdateSendStatus(id: String, targetLab:Option[String],statusHitDiscard:Option[Long] = None,message:Option[String] = None): Future[Either[String,Unit]]
+  def insertMatchUpdateSendStatus(id: String, targetLab:Option[String],statusHitDiscard:Option[Long] = None,message:Option[String] = None, userName: String): Future[Either[String,Unit]]
   def getMatchUpdateSendStatusById(id:String, targetLab:Option[String] = None):Future[Option[Long]]
   def getFailedMatchSent(labCode:String):Future[Seq[MatchSendStatusRow]]
   def getFailedMatchUpdateSent(labCode:String):Future[Seq[MatchUpdateSendStatusRow]]
@@ -270,10 +270,10 @@ class SlickConnectionRepository @Inject()(implicit val app: Application) extends
     }
     }
   }
-  override def insertMatchUpdateSendStatus(id: String, targetLab:Option[String],statusHitDiscard:Option[Long] = None,message:Option[String] = None): Future[Either[String,Unit]]= {
+  override def insertMatchUpdateSendStatus(id: String, targetLab:Option[String],statusHitDiscard:Option[Long] = None,message:Option[String] = None, userName: String): Future[Either[String,Unit]]= {
     this.runInTransactionAsync { implicit session => {
       try {
-        matchUpdateSendStatus insertOrUpdate models.Tables.MatchUpdateSendStatusRow(id,targetLab.getOrElse("SUPERIOR"),statusHitDiscard,message,Some(new java.sql.Timestamp(System.currentTimeMillis())))
+        matchUpdateSendStatus insertOrUpdate models.Tables.MatchUpdateSendStatusRow(id,targetLab.getOrElse("SUPERIOR"),statusHitDiscard,message,Some(new java.sql.Timestamp(System.currentTimeMillis())), userName)
         Right(())
       } catch {
         case e: Exception => {
@@ -283,14 +283,14 @@ class SlickConnectionRepository @Inject()(implicit val app: Application) extends
     }
     }
   }
-  override def updateMatchSendStatusHitOrDiscard(id: String, targetLab:Option[String],statusHitDiscard:Option[Long] = None,message:Option[String] = None): Future[Either[String,Unit]]= {
+  override def updateMatchSendStatusHitOrDiscard(id: String, targetLab:Option[String],statusHitDiscard:Option[Long] = None,message:Option[String] = None, userName: String): Future[Either[String,Unit]]= {
     this.runInTransactionAsync { implicit session => {
       try {
         matchUpdateSendStatus.filter(_.id === id)
           .filter(_.targetLab === targetLab.getOrElse("SUPERIOR"))
-          .map(x => (x.status,x.message,x.date))
+          .map(x => (x.status, x.message, x.date))
           .update(
-            (statusHitDiscard,message,Some(new java.sql.Timestamp(System.currentTimeMillis())))
+            (statusHitDiscard, message, Some(new java.sql.Timestamp(System.currentTimeMillis())))
           )
         Right(())
       } catch {
