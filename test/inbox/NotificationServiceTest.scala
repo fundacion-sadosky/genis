@@ -76,8 +76,9 @@ class NotificationServiceTest extends PdgSpec with MockitoSugar {
       when(notificationRepository.get(any[String], any[String], any[String])).thenReturn(Future.successful(Seq()))
 
       val service = new NotificationServiceImpl(Akka.system, notificationRepository)
+      
 
-      service.solve(user, MatchingInfo(SampleCode("AR-C-SHDG-1"), SampleCode("AR-C-SHDG-2"), "12"))
+      service.solve(user, MatchingInfo(SampleCode("AR-C-SHDG-1"), SampleCode("AR-C-SHDG-2"), "12", isDesktop = false))
       Thread.sleep(1000)
 
       verify(notificationRepository, times(0)).update(any[Notification])

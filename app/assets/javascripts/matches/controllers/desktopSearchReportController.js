@@ -260,17 +260,17 @@ define([ 'angular','lodash' ], function(angular,_) {
 		
 		$scope.labeledGenotypifications = {};
 		$scope.labels = {};
-		profileService.getProfile($scope.profileId).then(
-			function(response) {
-				$scope.assignProfile($scope.profileId,response.data);
-				$scope.$apply();
-			});
-		profileService.getProfile($scope.matchedProfileId).then(
-			function(response) {
-				$scope.assignProfile($scope.matchedProfileId,response.data);
-				$scope.$apply();
-			}
-		);
+		// profileService.getProfile($scope.profileId).then(
+		// 	function(response) {
+		// 		$scope.assignProfile($scope.profileId,response.data);
+		// 		$scope.$apply();
+		// 	});
+		// profileService.getProfile($scope.matchedProfileId).then(
+		// 	function(response) {
+		// 		$scope.assignProfile($scope.matchedProfileId,response.data);
+		// 		$scope.$apply();
+		// 	}
+		// );
 		$scope.assignProfile = function (profileId, profile){
 			if (profile.labeledGenotypification) {
 				$scope.labeledGenotypifications[profileId] = profile.labeledGenotypification;
@@ -548,15 +548,18 @@ define([ 'angular','lodash' ], function(angular,_) {
 				console.log("Pedigree Match ended");
 			}
 			$scope.profileId = shared.profileId;
+			console.debug("Desktop Search: Profile ID defined: " + $scope.profileId)
 			$scope.profileData = shared.profileData;
 			$scope.matches = shared.matches;
 			$scope.$apply();
 
 		});
 
-		$scope.hasMatches = function(){
-			var length = Object.keys($scope.matches).length;
-			return length > 0;
+		$scope.hasMatches = function() {
+			if (!$scope.matches) {
+				return false;
+			}
+			return Object.keys($scope.matches).length > 0;
 		};
 
 		$scope.printDesktopSearchReport = function(matchedProfileId) {

@@ -1865,26 +1865,30 @@ class InterconnectionServiceImpl @Inject()(
             MatchingInfo(
               matchSuperiorInstance.matchResult.rightProfile.globalCode,
               matchSuperiorInstance.matchResult.leftProfile.globalCode,
-              matchSuperiorInstance.matchResult._id.id
+              matchSuperiorInstance.matchResult._id.id,
+              isDesktop = false
             )
           )
           userService.sendNotifToAllSuperUsers(MatchingInfo(
             matchSuperiorInstance.matchResult.rightProfile.globalCode,
             matchSuperiorInstance.matchResult.leftProfile.globalCode,
-            matchSuperiorInstance.matchResult._id.id
+            matchSuperiorInstance.matchResult._id.id,
+            isDesktop = false
           ), Seq(matchSuperiorInstance.matchResult.rightProfile.assignee))
         } else {
           this.notificationService.push(matchSuperiorInstance.matchResult.leftProfile.assignee,
             MatchingInfo(
               matchSuperiorInstance.matchResult.leftProfile.globalCode,
               matchSuperiorInstance.matchResult.rightProfile.globalCode,
-              matchSuperiorInstance.matchResult._id.id
+              matchSuperiorInstance.matchResult._id.id,
+              isDesktop = false
             )
           )
           userService.sendNotifToAllSuperUsers(MatchingInfo(
             matchSuperiorInstance.matchResult.leftProfile.globalCode,
             matchSuperiorInstance.matchResult.rightProfile.globalCode,
-            matchSuperiorInstance.matchResult._id.id
+            matchSuperiorInstance.matchResult._id.id,
+            isDesktop = false
           ), Seq(matchSuperiorInstance.matchResult.leftProfile.assignee))
         }
 

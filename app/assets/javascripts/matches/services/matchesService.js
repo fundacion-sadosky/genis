@@ -57,8 +57,22 @@ define([], function() {
             var user = userService.getUser();
             search.user = user.name;
             search.isSuperUser = user.superuser;
+			console.debug("Searching matches with: ", search)
 			return playRoutes.controllers.Matching.getMatches().post(search);
 		};
+
+		this.searchMatchesByCode = function (globalCode) {
+			var searchObject = {};
+
+			searchObject.profile = globalCode;
+
+			searchObject.page = 0;
+			searchObject.pageSize = 30;
+			searchObject.ascending = false;
+
+			return this.searchMatches(searchObject);
+
+		}
 
 		this.getTotalMatches = function(search){
 			var user = userService.getUser();
