@@ -1,7 +1,7 @@
 define(['jquery', 'lodash'], function($, _) {
     'use strict';
 
-    function Step2Controller($scope, $routeParams, bulkuploadService, helper, $log, $modal, alertService, $q, userService, locusService, profiledataService, notificationsService, matchesService, profileService) {
+    function Step2Controller($scope, $routeParams, $timeout, bulkuploadService, helper, $log, $modal, alertService, $q, userService, locusService, profiledataService, notificationsService, matchesService, profileService) {
 
         $scope.statusMap = bulkuploadService.getStatusMap();
         var toogle = true;
@@ -262,6 +262,8 @@ define(['jquery', 'lodash'], function($, _) {
 
         notificationsService.onNotification(function(msg){
             if (msg.kind === 'matching') {
+                $timeout(() => {}, 500);
+
                 $scope.shared.profileId = msg.info.globalCode;
                 console.debug("Profile defined on notification: ", $scope.shared.profileId);
                 $scope.shared.matches[msg.info.matchedProfile] = msg.info.matchingId;
