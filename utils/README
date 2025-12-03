@@ -80,4 +80,16 @@ WHERE
     n."ID" = pn."ID";
 
 
+UPDATE "APP"."NOTIFICATION"
+SET "INFO" = jsonb_set(
+    "INFO"::jsonb,          -- Cast varchar to jsonb
+    '{isDesktop}',          -- The key to add
+    'false'::jsonb,         -- The value (as jsonb)
+    true                    -- 'true' means create the key if it doesn't exist
+)::text                     -- Cast back to text/varchar to save
+WHERE 
+    "KIND" = 'matching'
+    AND "INFO"::jsonb ? 'isDesktop' = false;
+
+
  
