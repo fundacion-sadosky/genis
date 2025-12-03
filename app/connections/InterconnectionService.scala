@@ -2226,11 +2226,11 @@ class InterconnectionServiceImpl @Inject()(
       //      val convertStatus = ConvertStatusInterconnection(matchId, firingCode, matchResult.leftProfile.globalCode, matchResult.rightProfile.globalCode, status, labOrigin, labImmediate)
       val convertStatus = ConvertStatusInterconnection(matchId, firingCode, matchResult.leftProfile.globalCode, matchResult.rightProfile.globalCode, status, labOrigin, currentInstanceLabCode, userName)
       if (shouldBeForwarded(matchResult.leftProfile.globalCode, labOrigin, labImmediate) && matchResult.leftProfile.globalCode.text != firingCode.text) {
-        logger.debug("Sube estado match perfil izquierdo al superior")
+        logger.debug("Sube estado match perfile izquierdo al superior")
         handleDeliveryConvertStatus(matchResult.leftProfile.globalCode, convertStatus,labImmediate, sendToSuperior,onlyUpload,userName)
       }
       if (shouldBeForwarded(matchResult.rightProfile.globalCode, labOrigin, labImmediate) && matchResult.rightProfile.globalCode.text != firingCode.text) {
-        logger.debug("Sube estado match perfil derecho al superior")
+        logger.debug("Sube estado match perfile derecho al superior")
         handleDeliveryConvertStatus(matchResult.rightProfile.globalCode, convertStatus,labImmediate,sendToSuperior,onlyUpload,userName)
       }
     }
