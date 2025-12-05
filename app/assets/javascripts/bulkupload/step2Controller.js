@@ -276,28 +276,6 @@ define(['jquery', 'lodash'], function($, _) {
             }
         });
 
-        notificationsService.onMatchStatusNotification(function() {
-            // profiledataService.getDesktopProfiles().then(function (profiles) {
-            //     if (profiles.data.length === 1){
-            //         var profileId = profiles.data[0];
-            //         $scope.shared.profileId = profileId;
-            //         profiledataService.getProfileDataBySampleCode(profileId).then(function(response) {
-            //             $scope.shared.profileData = response.data;
-            //         });
-            //         console.debug("Profile ID defined in match status notification: ", profileId)
-            //         matchesService.searchMatchesByCode(profileId)
-            //             .then(function (matches){
-            //            console.debug("Profile matches:", matches)
-            //         })
-            //             .catch(function (err) {
-            //                 console.error("Error al buscar matches para", profileId, err);
-            //             });
-            //     } else {
-            //         console.debug("Desktop profiles length: ", profiles.data.length)
-            //     }
-            // });
-        });
-
 
         $scope.removeDesktopProfiles = function() {
             profiledataService.getDesktopProfiles().then(function(profiles) {
