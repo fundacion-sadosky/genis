@@ -277,11 +277,11 @@ class InterconnectionsTest extends PdgSpec with MockitoSugar with Results {
       val interconnectionService = mock[InterconnectionService]
       val target = new Interconnections(mock[ProtoProfileRepository], interconnectionService, null)
       val globalCode = ""
-      when(interconnectionService.uploadProfile(globalCode)).thenReturn(Future.successful(Right(())))
+      when(interconnectionService.uploadProfile(globalCode,"tst-admin")).thenReturn(Future.successful(Right(())))
 
       val request = FakeRequest()
 
-      val resultOk: Future[Result] = target.uploadProfile(globalCode).apply(request)
+      val resultOk: Future[Result] = target.uploadProfile(globalCode, "tst-admin").apply(request)
       status(resultOk) mustBe OK
     }
 

@@ -19,7 +19,8 @@ define([], function() {
     };
 
     this.updateProfileCategoryData = function (globalCode, profileData, replicate) {
-      return playRoutes.controllers.ProfileData.modifyCategory(globalCode, replicate).put(profileData);
+      var userName = userService.getUser().name;
+      return playRoutes.controllers.ProfileData.modifyCategory(globalCode, replicate, userName).put(profileData);
     };
 
     this.isReadOnly = function (globalCode) {

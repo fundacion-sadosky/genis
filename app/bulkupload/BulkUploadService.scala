@@ -231,7 +231,7 @@ class BulkUploadServiceImpl @Inject() (
     profileDataRepo.getGlobalCode(protoProfile.sampleName).flatMap {
       _.fold(Future.successful(Seq(Messages("error.E0101")))) {
         case SampleCode(globalCode) => {
-          interconnectionService.uploadProfile(globalCode).map {
+          interconnectionService.uploadProfile(globalCode, userId).map {
             case Right(success) => Seq("Success") //success is Unit.
             case Left(error) =>
               logger.error(s"Failed to upload profile: $error")

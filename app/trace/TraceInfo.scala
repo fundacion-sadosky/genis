@@ -42,11 +42,12 @@ case object ProfileDataInfo extends TraceInfo {
 
 case class ProfileCategoryModificationInfo(
                                             oldCategory: String,
-                                            newCategory: String
+                                            newCategory: String,
+                                            userName: String
                                           ) extends TraceInfo {
   override val kind = TraceType.categoryModification
   override val description =
-    s"Modificación de la categoría $oldCategory a $newCategory."
+    s"Modificación de la categoría $oldCategory a $newCategory por el usuario $userName."
 }
 
 case class SuperiorInstanceCategoryModificationInfo(
@@ -240,8 +241,7 @@ object TraceInfo {
   implicit val pedigreeMatchFormat2 = Json.format[PedigreeMatchInfo2]
   implicit val pedigreeDiscardFormat2 = Json.format[PedigreeDiscardInfo2]
   implicit val pedigreeConfirmFormat2 = Json.format[PedigreeConfirmInfo2]
-  implicit val profileCategoryModificationFormat = Json
-    .format[ProfileCategoryModificationInfo]
+  implicit val profileCategoryModificationFormat = Json.format[ProfileCategoryModificationInfo]
   implicit val superiorInstCatModFormat = Json
     .format[SuperiorInstanceCategoryModificationInfo]
 

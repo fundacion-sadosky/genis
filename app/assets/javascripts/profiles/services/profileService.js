@@ -152,8 +152,8 @@ function ProfileService(playRoutes, $log, $q, userService) {
 	this.getLabels = function(sampleCode) {
 		return playRoutes.controllers.Profiles.getLabels(sampleCode).get();
 	};
-    this.uploadProfile = function(globalGlode) {
-        return playRoutes.controllers.Interconnections.uploadProfile(globalGlode).post();
+    this.uploadProfile = function(globalGlode, userName) {
+        return playRoutes.controllers.Interconnections.uploadProfile(globalGlode, userName).post();
     };
     this.isReadOnly = function(sampleCode) {
         return playRoutes.controllers.Profiles.isReadOnly(sampleCode).get();

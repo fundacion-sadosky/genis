@@ -12,7 +12,19 @@ define(['angular', './controllers/reportingController', 'common'],
                 }).when('/profilesReporting', {
                     templateUrl: '/assets/javascripts/reporting/views/profileReportingFilters.html',
                     controller: 'reportingController'
-                }) ;
+                }).when('/profilesByUser', {
+                    templateUrl: '/assets/javascripts/reporting/views/profilesByUser.html',
+                    controller: 'reportingController'
+                }).when('/activesInactivesByCategory', {
+                    templateUrl: '/assets/javascripts/reporting/views/activesInactivesByCategory.html',
+                    controller: 'reportingController'
+                }).when('/enviadosInstanciaSuperior', {
+                    templateUrl: '/assets/javascripts/reporting/views/enviadosInstanciaSuperior.html',
+                    controller: 'reportingController'
+                }).when('/recibidosInstanciaInferior', {
+                    templateUrl: '/assets/javascripts/reporting/views/recibidosInstanciaInferior.html',
+                    controller: 'reportingController'
+                });
             }]);
 
         return undefined;

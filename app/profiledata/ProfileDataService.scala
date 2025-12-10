@@ -55,7 +55,7 @@ trait ProfileDataService {
                          profileData: ProfileDataAttempt,
                          allowFromOtherInstances: Boolean = false
                        ): Future[Boolean]
-  def updateProfileCategoryData(globalCode: SampleCode, profileData: ProfileDataAttempt): Future[Option[String]]
+  def updateProfileCategoryData(globalCode: SampleCode, profileData: ProfileDataAttempt, userName: String): Future[Option[String]]
   def get(sampleCode: SampleCode): Future[Option[ProfileData]]
   def isEditable(
                   sampleCode: SampleCode,
@@ -443,7 +443,8 @@ class ProfileDataServiceImpl @Inject() (
 
   override def updateProfileCategoryData(
                                           globalCode: SampleCode,
-                                          profileData: ProfileDataAttempt
+                                          profileData: ProfileDataAttempt,
+                                          userName: String
                                         ): Future[Option[String]] = {
     profileService
       .isReadOnlySampleCode(globalCode, uploadedIsAllowed = true)
@@ -490,7 +491,8 @@ class ProfileDataServiceImpl @Inject() (
                         trace
                           .ProfileCategoryModificationInfo(
                             oldProfile.get.category.text,
-                            profileData.category.text
+                            profileData.category.text,
+                            userName
                           )
                       )
                     )

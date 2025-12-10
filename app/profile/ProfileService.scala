@@ -701,7 +701,7 @@ class ProfileServiceImpl @Inject() (
             newfut.onSuccess{
               case Right(profile) => {
                 interconnectionService
-                  .uploadProfileToSuperiorInstance(profile, profileData)
+                  .uploadProfileToSuperiorInstance(profile, profileData, null)
               }
             }
           }

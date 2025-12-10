@@ -56,12 +56,12 @@ POST     /operationLogLot                                     @controllers.Opera
 GET      /profiledata/:id                                     @controllers.ProfileData.get(id: Long)
 GET      /profiledata                                         @controllers.ProfileData.findByCode(globalCode: types.SampleCode)
 POST     /profiledata                                         @controllers.ProfileData.create
-DELETE   /profiledata/:globalCode                                     @controllers.ProfileData.removeProfile(globalCode: types.SampleCode)
+DELETE   /profiledata/:globalCode                             @controllers.ProfileData.removeProfile(globalCode: types.SampleCode)
 GET      /profiles-deleted/motive/:id                         @controllers.ProfileData.getDeleteMotive(id: types.SampleCode)
 PUT      /profiledata-deleted/:id                             @controllers.ProfileData.deleteProfile(id: types.SampleCode)
 GET      /profiledataWithAssociations                         @controllers.ProfileData.findByCodeWithAssociations(globalCode: types.SampleCode)
 PUT      /profiledata/:id/                                    @controllers.ProfileData.update(id: types.SampleCode)
-PUT      /profiledata/modify-category/:id/                    @controllers.ProfileData.modifyCategory(id: types.SampleCode, replicate: Boolean)
+PUT      /profiledata/modify-category/:id/                    @controllers.ProfileData.modifyCategory(id: types.SampleCode, replicate: Boolean, userName: String)
 GET      /profiledata-readonly                                @controllers.ProfileData.isReadOnly(globalCode: types.SampleCode)
 GET      /profiledata-complete/:id                            @controllers.ProfileData.getByCode(id: types.SampleCode)
 GET      /profiledata-editable/:id                            @controllers.ProfileData.isEditable(id: types.SampleCode)
@@ -349,7 +349,7 @@ GET      /instances/inferior                                  @controllers.Inter
 GET      /instances/inferior/status                           @controllers.Interconnections.getInferiorInstancesStatus
 PUT      /instances/inferior                                  @controllers.Interconnections.updateInferiorInstance
 POST     /superior/profile                                    @controllers.Interconnections.importProfile
-POST     /inferior/profile                                    @controllers.Interconnections.uploadProfile(globalCode:String)
+POST     /inferior/profile                                    @controllers.Interconnections.uploadProfile(globalCode:String, userName: String)
 POST     /superior/profile/approval                           @controllers.Interconnections.approveProfiles(userName:String)
 GET      /superior/profile/approval                           @controllers.Interconnections.getPendingProfiles(page:Int,pageSize:Int)
 GET      /superior/profile/approval-total                     @controllers.Interconnections.getTotalPendingProfiles

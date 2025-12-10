@@ -308,9 +308,9 @@ class Interconnections @Inject()( val protoRepo: ProtoProfileRepository,
 
 
 
-  def uploadProfile(globalCode:String) = Action.async {
+  def uploadProfile(globalCode:String, userName: String) = Action.async {
     _ => {
-      interconnectionService.uploadProfile(globalCode).map{
+      interconnectionService.uploadProfile(globalCode, userName).map{
         case Left(e) => BadRequest(Json.obj("message" -> e))
         case Right(()) => Ok.withHeaders("X-CREATED-ID" -> globalCode)
       }
