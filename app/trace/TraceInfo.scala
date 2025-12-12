@@ -42,11 +42,12 @@ case object ProfileDataInfo extends TraceInfo {
 
 case class ProfileCategoryModificationInfo(
                                             oldCategory: String,
-                                            newCategory: String
+                                            newCategory: String,
+                                            userName: String
                                           ) extends TraceInfo {
   override val kind = TraceType.categoryModification
   override val description =
-    s"Modificación de la categoría $oldCategory a $newCategory."
+    s"Modificación de la categoría $oldCategory a $newCategory por el usuario $userName."
 }
 
 case class SuperiorInstanceCategoryModificationInfo(

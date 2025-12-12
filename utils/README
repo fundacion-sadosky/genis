@@ -92,4 +92,13 @@ WHERE
     AND "INFO"::jsonb ? 'isDesktop' = false;
 
 
+UPDATE "APP"."TRACE"
+SET "TRACE" = jsonb_set(
+    "TRACE"::jsonb,           -- Cast the existing TRACE string to a JSONB type
+    '{userName}',             -- The path to the key you want to add/update
+    to_jsonb("USER"::text),   -- Convert the USER column's value to a JSONB string
+    true                      -- 'true' ensures the key is created if it doesn't exist
+)::character varying          -- Cast the modified JSONB back to character varying
+WHERE "KIND" = 'categoryModification';
+
  

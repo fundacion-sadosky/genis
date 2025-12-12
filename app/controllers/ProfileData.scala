@@ -57,7 +57,8 @@ class ProfileData @Inject() (
 
   def modifyCategory(
     globalCode: SampleCode,
-    replicate: Boolean
+    replicate: Boolean,
+    userName: String
   ): Action[JsValue] = Action
     .async(BodyParsers.parse.json) {
       request =>
@@ -195,7 +196,7 @@ class ProfileData @Inject() (
             }
           }
           profiledataService
-            .updateProfileCategoryData(globalCode, profileData)
+            .updateProfileCategoryData(globalCode, profileData, userName)
             .map(getProfileId)
             .flatMap(getProfile)
             .map(copyAndModifyProfile(profileData))

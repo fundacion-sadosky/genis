@@ -484,7 +484,7 @@ class InterconnectionServiceImpl @Inject()(
 
   private def doUploadProfileToSuperiorInstance(profile: Profile, pd: ProfileData, profileAssociated: Option[Profile] = None): Future[Either[String, Unit]] = {
 
-    traceService.add(Trace(profile.globalCode, profile.assignee, new Date(), trace.ProfileInterconectionUploadInfo))
+
     val futureReturn = categoryService.getCategoriesMappingById(profile.categoryId).flatMap {
       case None => {
         logger.debug("No está mapeada la categoria de la instancia superior")
@@ -516,7 +516,8 @@ class InterconnectionServiceImpl @Inject()(
                 val outputJsonString = outputJson.toString
                 val futureResponse: Future[WSResponse] = this.sendRequestQueue(holder.withMethod("POST"), outputJsonString)
                 futureResponse.flatMap { result => {
-                  if (result.status == 200) {
+                  if (result.status == 200) { //Acá empiezo por poner una sola vez el upload en el trace cuando el
+                    traceService.add(Trace(profile.globalCode, profile.assignee, new Date(), trace.ProfileInterconectionUploadInfo))
                     logger.debug("se envio correctamente el perfil a la instancia superior")
                     this.profileDataService.updateUploadStatus(profile.globalCode.text, ENVIADA, Option.empty[String], Option.empty[String], Option.empty[String])
                     sendFiles(profile.globalCode.text, superiorLabCode)
