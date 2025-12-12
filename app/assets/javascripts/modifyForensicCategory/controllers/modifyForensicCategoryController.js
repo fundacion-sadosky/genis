@@ -11,7 +11,8 @@ define(
       searchService,
       categoriesService,
       profileDataService,
-      profileService
+      profileService,
+      userService
     ) {
       var buildSearchObject = function(profileId) {
         return {

@@ -55,7 +55,7 @@ trait ProfileDataService {
                          profileData: ProfileDataAttempt,
                          allowFromOtherInstances: Boolean = false
                        ): Future[Boolean]
-  def updateProfileCategoryData(globalCode: SampleCode, profileData: ProfileDataAttempt): Future[Option[String]]
+  def updateProfileCategoryData(globalCode: SampleCode, profileData: ProfileDataAttempt, userName: String): Future[Option[String]]
   def get(sampleCode: SampleCode): Future[Option[ProfileData]]
   def isEditable(
                   sampleCode: SampleCode,
@@ -64,7 +64,7 @@ trait ProfileDataService {
   def getResource(resourceType: String, id: Long): Future[Option[Array[Byte]]]
 
   def getDesktopProfiles() : Future[Seq[SampleCode]]
-  
+
   def isDesktopProfile(globalCode: SampleCode) :  Future[Option[Boolean]]
   def getDeleteMotive(sampleCode: SampleCode): Future[Option[DeletedMotive]]
   def deleteProfile(
@@ -443,7 +443,8 @@ class ProfileDataServiceImpl @Inject() (
 
   override def updateProfileCategoryData(
                                           globalCode: SampleCode,
-                                          profileData: ProfileDataAttempt
+                                          profileData: ProfileDataAttempt,
+                                          userName: String
                                         ): Future[Option[String]] = {
     profileService
       .isReadOnlySampleCode(globalCode, uploadedIsAllowed = true)
@@ -481,7 +482,7 @@ class ProfileDataServiceImpl @Inject() (
                 joined.onComplete {
                   joinedResult =>
                     val (oldProfile, _) = joinedResult.get
-                    traceService.add(Trace(globalCode, profileData.assignee, new Date(), trace.ProfileDataInfo))
+                    traceService.add(Trace(globalCode, userName, new Date(), trace.ProfileDataInfo))
                     traceService.add(
                       Trace(
                         globalCode,
@@ -490,7 +491,8 @@ class ProfileDataServiceImpl @Inject() (
                         trace
                           .ProfileCategoryModificationInfo(
                             oldProfile.get.category.text,
-                            profileData.category.text
+                            profileData.category.text,
+                            userName
                           )
                       )
                     )

@@ -4,8 +4,8 @@
 define([], function() {
   'use strict';
 
-  function ProfileDataService(playRoutes, $log) {
-    ProfileDataService.$inject = ['playRoutes', '$log'];
+  function ProfileDataService(playRoutes, userService, $log) {
+    ProfileDataService.$inject = ['playRoutes', 'userService', '$log'];
     this.getCategories = function () {
       return playRoutes.controllers.Categories.categoryTree().get();
     };
@@ -19,7 +19,8 @@ define([], function() {
     };
 
     this.updateProfileCategoryData = function (globalCode, profileData, replicate) {
-      return playRoutes.controllers.ProfileData.modifyCategory(globalCode, replicate).put(profileData);
+      var userName = userService.getUser();
+      return playRoutes.controllers.ProfileData.modifyCategory(globalCode, replicate, userName).put(profileData);
     };
 
     this.isReadOnly = function (globalCode) {
