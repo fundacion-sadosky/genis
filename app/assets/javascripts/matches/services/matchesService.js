@@ -160,7 +160,7 @@ define([], function() {
 		};
 
 		this.descarteMasivoByList = function (globalCode, matches) {
-			var userName = userService.getUser();
+			var userName = userService.getUser().name;
 			return playRoutes.controllers.Matching.masiveDiscardByMatchesList(globalCode, matches, userName).post();
 		};
 	}
