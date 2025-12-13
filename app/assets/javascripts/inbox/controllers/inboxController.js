@@ -96,10 +96,20 @@ define([], function() {
             $scope.searchNotifications($scope.search);
         };
 
-        $scope.goTo = function(url) {
-            $location.url(url);
+        $scope.goTo = function(notification) {
+            // 1. Update the UI immediately (removes bold)
+            notification.pending = false;
+
+            // 2. Tell the server to save the change
+            // We pass 'false' because we want pending to be false (read)
+            inboxService.changePending(notification.id, false);
+
+            // 3. Navigate to the link
+            $location.url(notification.url);
         };
-        
+
+
+
         $scope.changeFlag = function(notification) {
             notification.flagged = !notification.flagged;
             inboxService.changeFlag(notification.id, notification.flagged).then(

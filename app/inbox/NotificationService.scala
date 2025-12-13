@@ -23,6 +23,7 @@ abstract class NotificationService {
   def delete(id: Long): Future[Either[String, Long]]
   def changeFlag(id: Long, flag: Boolean): Future[Either[String, Long]]
   def getNotifications(userId: String): Enumerator[Notification]
+  def changePending(id: Long, pending: Boolean): Future[Either[String, Long]]
 }
 
 @Singleton
@@ -91,5 +92,10 @@ class NotificationServiceImpl @Inject() (akkaSystem: ActorSystem,
   override def changeFlag(id: Long, flag: Boolean): Future[Either[String, Long]] = {
     notificationRepository.changeFlag(id, flag)
   }
+
+  override def changePending(id: Long, pending: Boolean): Future[Either[String, Long]] = {
+    notificationRepository.updatePending(id, pending)
+  }
+
 
 }

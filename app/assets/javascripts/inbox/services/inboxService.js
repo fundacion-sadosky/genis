@@ -19,6 +19,16 @@ define([], function() {
             return playRoutes.controllers.Notifications.delete(id).delete();
         };
 
+        this.changeFlag = function(id, flagged){
+            return playRoutes.controllers.Notifications.changeFlag(id, flagged).post();
+        };
+
+        // --- ADD THIS FUNCTION ---
+        this.changePending = function(id, pending){
+            // Note: Make sure 'changePending' exists in your Play Framework routes file!
+            // If your backend calls it 'markAsRead', change this line accordingly.
+            return playRoutes.controllers.Notifications.changePending(id, pending).post();
+        };
     }
 
     return InboxService;
