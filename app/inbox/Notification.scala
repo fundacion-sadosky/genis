@@ -343,6 +343,8 @@ object NotificationInfo {
         Some((x.kind, Json.toJson(x)(hitInfoFormat)))
       case x: DiscardInfoFormat =>
         Some((x.kind, Json.toJson(x)(discardInfoFormat)))
+      case x: CategoryChangeInfo =>
+        Some((x.kind, Json.toJson(x)(categoryChangeFormat)))
       case _ => None
     }
   }
@@ -390,6 +392,8 @@ object NotificationInfo {
           Json.fromJson[HitInfoFormat](json)
         case NotificationType.discardMatch =>
           Json.fromJson[DiscardInfoFormat](json)
+        case NotificationType.profileChangeCategory =>
+          Json.fromJson[CategoryChangeInfo](json)
         case _ =>
           val msg =
             s"Error: NotificationType '$kind' no reconocido. Contenido JSON: ${Json.prettyPrint(json)}"

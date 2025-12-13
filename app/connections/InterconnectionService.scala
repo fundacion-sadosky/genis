@@ -18,7 +18,7 @@ import connections.ProfileTransfer
 import scala.concurrent.duration._
 import scala.concurrent.Await
 import models.Tables.ExternalProfileDataRow
-import configdata.{CategoryConfiguration, CategoryRepository, CategoryService}
+import configdata.{CategoryConfiguration, CategoryRepository, CategoryService, FullCategory}
 import inbox._
 import kits.{AnalysisType, StrKitService}
 import play.api.Logger
@@ -39,12 +39,10 @@ import play.api.i18n.Messages
 
 import scala.concurrent.duration.{Duration, FiniteDuration, SECONDS}
 import scala.util.Try
-
 import inbox.DeleteProfileInfo
 import matching.MatchResult
 import services.CacheService
 import trace.{CategoryChangeRejectedInSupInfo, MatchInfo, MatchTypeInfo, ProfileImportedFromInferiorInfo, ProfileRejectedInSuperiorInfo, SuperiorCategoryChangeRejectedInfo, SuperiorInstanceCategoryModificationInfo, Trace, TraceInfo, TraceService}
-
 trait InterconnectionService {
 
   def getConnections(): Future[Either[String, Connection]]
@@ -687,6 +685,7 @@ class InterconnectionServiceImpl @Inject()(
     if (sampleEntryDate != null && sampleEntryDate.nonEmpty) {
       sampleEntryDateOption = Some(new java.sql.Date(java.lang.Long.valueOf(sampleEntryDate)))
     }
+
     val newGenotipificationWithLocusKeys = profile
       .genotypification
       .map(x => x.copy(_2 = locusAliasToLocusId(x._2)))
@@ -703,64 +702,89 @@ class InterconnectionServiceImpl @Inject()(
         genotypification = newGenotipificationWithLocusKeys,
         analyses = Some(newAnalisisWithLocusKeys)
       )
-    importProfileValidator(profileChanged1)
-      .map {
-        case Right(()) =>
-          val newAnalisis = profileChanged1
-            .analyses
-            .get
-            .map(
-              analysis => {
-                val kitOpt = kitToOptionKit(analysis.kit)
-                if (kitOpt.isDefined) {
-                  analysis.copy(kit = kitOpt.get)
-                } else {
-                  analysis
-                }
-              }
-            )
-          val profileChanged2 = profileChanged1.copy(analyses = Some(newAnalisis))
-          superiorInstanceProfileApprovalRepository
-            .upsert(
-              SuperiorInstanceProfileApproval(
-                id = 0L,
-                globalCode = profile._id.text,
-                profile = Json.toJson(profileChanged2).toString(),
-                laboratory = labo,
-                laboratoryInstanceOrigin = labCodeInstanceOrigin,
-                laboratoryImmediateInstance = labCodeInmediateInstance,
-                sampleEntryDate = sampleEntryDateOption,
-                profileAssociated = profileAssociated.map(profile => Json.toJson(profile).toString())
-              )
-            )
-          this.notify(
-            ProfileUploadedInfo(profile.globalCode),
-            Seq(Permission.INTERCON_NOTIF, Permission.IMP_PERF_INS),
-            usersToNotify = List(),
-            notifySuperUsers = false
-          )
-        case Left(error) =>
-          superiorInstanceProfileApprovalRepository
-            .upsert(
-              SuperiorInstanceProfileApproval(
-                id = 0L,
-                globalCode = profile._id.text,
-                profile = Json.toJson(profile).toString(),
-                laboratory = labo,
-                laboratoryInstanceOrigin = labCodeInstanceOrigin,
-                laboratoryImmediateInstance = labCodeInmediateInstance,
-                sampleEntryDate = sampleEntryDateOption,
-                errors = Some(error),
-                profileAssociated = profileAssociated.map(profile => Json.toJson(profile).toString())
-              )
-            )
-          this.notify(
-            ProfileUploadedInfo(profile.globalCode),
-            Seq(Permission.INTERCON_NOTIF, Permission.IMP_PERF_INS),
-            usersToNotify = List(),
-            notifySuperUsers = false
-          )
+
+    val newAnalisis = profileChanged1
+      .analyses
+      .get
+      .map(
+        analysis => {
+          val kitOpt = kitToOptionKit(analysis.kit)
+          if (kitOpt.isDefined) {
+            analysis.copy(kit = kitOpt.get)
+          } else {
+            analysis
+          }
+        }
+      )
+    // This `processedProfile` represents the profile after initial transformations (locus/kit mapping)
+    val processedProfile = profileChanged1.copy(analyses = Some(newAnalisis))
+
+    // -- START OF MODIFICATION --
+    // Orchestrate validation, check for existing profile, and determine notification type
+    val futureNotificationAndUpsert: Future[(Either[String, Unit], NotificationInfo)] = for {
+      // 1. Validate the incoming profile
+      validationResult <- importProfileValidator(processedProfile)
+
+      // 2. Check if a profile with this globalCode already exists in the superior instance's main DB
+      existingProfileDataOpt <- profileDataService.get(processedProfile.globalCode)
+
+      // 3. Determine the correct NotificationInfo based on conditions
+      notificationInfo <- { // Note: This block now returns Future[NotificationInfo]
+        (existingProfileDataOpt, validationResult) match {
+          case (Some(existingProfileData), Right(_)) if existingProfileData.category != processedProfile.categoryId =>
+            // Case: Profile exists, validation passed, AND category has changed
+            // Get descriptions for existing and new categories from the synchronous service call
+            val oldCategoryOpt: Option[FullCategory] = categoryService.getCategory(existingProfileData.category)
+            // Access the 'name' field of FullCategory, and then use getOrElse for the Option[FullCategory]
+            val oldCatDesc = oldCategoryOpt.map(_.name).getOrElse(existingProfileData.category.text)
+
+            val newCategoryOpt: Option[FullCategory] = categoryService.getCategory(processedProfile.categoryId)
+            val newCatDesc = newCategoryOpt.map(_.name).getOrElse(processedProfile.categoryId.text)
+
+            // Wrap the result in Future.successful to fit the for-comprehension
+            Future.successful(CategoryChangeInfo(
+              processedProfile.globalCode,
+              oldCatDesc,
+              newCatDesc
+            ))
+          case (_, _) =>
+            // Case: New profile, or existing profile but category did not change, or validation failed
+            Future.successful(ProfileUploadedInfo(processedProfile.globalCode))
+        }
       }
+    } yield (validationResult, notificationInfo)
+
+    futureNotificationAndUpsert.map { case (validationResult, notificationInfo) =>
+      val errors: Option[String] = validationResult match {
+        case Left(msg) => Some(msg)
+        case Right(_) => None
+      }
+
+      // Perform the upsert operation into the approval repository
+      superiorInstanceProfileApprovalRepository.upsert(
+        SuperiorInstanceProfileApproval(
+          id = 0L,
+          globalCode = processedProfile.globalCode.text,
+          profile = Json.toJson(processedProfile).toString(), // Store the processed profile (with updated kit/locus)
+          laboratory = labo,
+          laboratoryInstanceOrigin = labCodeInstanceOrigin,
+          laboratoryImmediateInstance = labCodeInmediateInstance,
+          sampleEntryDate = sampleEntryDateOption,
+          errors = errors, // Store any validation errors
+          profileAssociated = profileAssociated.map(p => Json.toJson(p).toString()) // Store the original associated profile
+        )
+      )
+
+      // Send the determined notification
+      this.notify(
+        notificationInfo,
+        Seq(Permission.INTERCON_NOTIF, Permission.IMP_PERF_INS), // Permissions for interconnection notifications/profile imports
+        usersToNotify = List(),
+        notifySuperUsers = false
+      )
+    }
+    // -- END OF MODIFICATION --
+    () // Return Unit, as the original method signature requires
   }
 
 
