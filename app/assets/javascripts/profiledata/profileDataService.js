@@ -112,7 +112,7 @@ define([], function() {
 
     this.getIsProfileReplicatedInternalCode = function (internalCode) {
       return playRoutes.controllers.ProfileData.getIsProfileReplicatedInternalCode(internalCode).get();
-      };
+    };
   }
 
   return ProfileDataService;

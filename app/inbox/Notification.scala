@@ -86,10 +86,10 @@ case class DeleteProfileInSuperiorInstanceInfo(globalCode: SampleCode, userName:
 }
 
 case class ApprovedProfileInfo(
-                               globalCode: SampleCode,
-                               userName: String,
-                               isCategoryModification: Option[Boolean] = Some(false)
-                             ) extends NotificationInfo {
+                                globalCode: SampleCode,
+                                userName: String,
+                                isCategoryModification: Option[Boolean] = Some(false)
+                              ) extends NotificationInfo {
   override val kind = NotificationType.aprovedProfile
   override val description = if (isCategoryModification.getOrElse(false)) {
     s"El cambio de categoría del perfil ${
@@ -170,13 +170,13 @@ case class MatchingInfo(
       s"Coincidencia con perfil de escritorio"
     else
       s"Nueva coincidencia pendiente entre: ${globalCode.text} y ${matchedProfile.text}"
-      
+
   override val url = {
     if (isDesktop)
       "/profiles/bulkupload-step1"
     else
-    s"/comparison/${globalCode.text}/matchedProfileId/" +
-      s"${matchedProfile.text}/matchingId/$matchingId"
+      s"/comparison/${globalCode.text}/matchedProfileId/" +
+        s"${matchedProfile.text}/matchingId/$matchingId"
   }
 
   val profileId = globalCode
