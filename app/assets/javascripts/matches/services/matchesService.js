@@ -155,7 +155,7 @@ define([], function() {
 		};
 
 		this.descarteMasivoByGlobalCode = function (globalCode) {
-			var userName = userService.getUser();
+			var userName = userService.getUser().name;
 			return playRoutes.controllers.Matching.masiveDiscardByGlobalCode(globalCode, userName).post();
 		};
 
