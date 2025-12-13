@@ -482,11 +482,11 @@ class ProfileDataServiceImpl @Inject() (
                 joined.onComplete {
                   joinedResult =>
                     val (oldProfile, _) = joinedResult.get
-                    traceService.add(Trace(globalCode, userName, new Date(), trace.ProfileDataInfo))
+                    //traceService.add(Trace(globalCode, userName, new Date(), trace.ProfileDataInfo))
                     traceService.add(
                       Trace(
                         globalCode,
-                        profileData.assignee,
+                        userName,
                         new Date(),
                         trace
                           .ProfileCategoryModificationInfo(
