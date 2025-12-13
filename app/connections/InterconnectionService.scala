@@ -1549,7 +1549,7 @@ class InterconnectionServiceImpl @Inject()(
           case APROBADA =>
             logger.info("2. es aprobada, envio notif de aprobada")
             this.notify(
-              AprovedProfileInfo(SampleCode(globalCode), userName, Some(isCategoryModification)),
+              ApprovedProfileInfo(SampleCode(globalCode), userName, Some(isCategoryModification)),
               Seq(Permission.INTERCON_NOTIF),
               List(userName)
             )

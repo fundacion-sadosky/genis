@@ -85,7 +85,7 @@ case class DeleteProfileInSuperiorInstanceInfo(globalCode: SampleCode, userName:
   override val url = s"/trace/${globalCode.text}"
 }
 
-case class AprovedProfileInfo(
+case class ApprovedProfileInfo(
                                globalCode: SampleCode,
                                userName: String,
                                isCategoryModification: Option[Boolean] = Some(false)
@@ -148,6 +148,14 @@ case class ProfileUploadedInfo(globalCode: SampleCode) extends NotificationInfo 
       "instancia inferior esta pendiente de aprobación"
   override val url = s"/profile-approval"
 }
+
+case class CategoryChangeInfo(globalCode1: SampleCode, cat1: String, cat2: String) extends NotificationInfo {
+  override val kind = NotificationType.profileChangeCategory
+  override val description =
+    s"El cambio de categoría del perfil ${globalCode1.text} de ${cat1} a ${cat2} está pendiente de aprobación"
+  override val url = s"/profile-approval"
+}
+
 
 case class MatchingInfo(
                          globalCode: SampleCode,
@@ -285,7 +293,8 @@ object NotificationInfo {
   implicit val collapsingFormat = Json.format[CollapsingInfo]
   implicit val pedigreeConsistencyFormat = Json.format[PedigreeConsistencyInfo]
   implicit val profileUploadedFormat = Json.format[ProfileUploadedInfo]
-  implicit val aprovedProfileFormat = Json.format[AprovedProfileInfo]
+  implicit val categoryChangeFormat = Json.format[CategoryChangeInfo]
+  implicit val approvedProfileFormat = Json.format[ApprovedProfileInfo]
   implicit val rejectedProfileFormat = Json.format[RejectedProfileInfo]
   implicit val deletedProfileInInferiorFormat = Json.format[DeleteProfileInInferiorInstanceInfo]
   implicit val deletedProfileInSuperiorFormat = Json.format[DeleteProfileInSuperiorInstanceInfo]
@@ -316,8 +325,10 @@ object NotificationInfo {
         Some((x.kind, Json.toJson(x)(pedigreeConsistencyFormat)))
       case x: ProfileUploadedInfo =>
         Some((x.kind, Json.toJson(x)(profileUploadedFormat)))
-      case x: AprovedProfileInfo =>
-        Some((x.kind, Json.toJson(x)(aprovedProfileFormat)))
+      case x: CategoryChangeInfo =>
+        Some((x.kind, Json.toJson(x)(categoryChangeFormat)))
+      case x: ApprovedProfileInfo =>
+        Some((x.kind, Json.toJson(x)(approvedProfileFormat)))
       case x: RejectedProfileInfo =>
         Some((x.kind, Json.toJson(x)(rejectedProfileFormat)))
       case x: DeleteProfileInInferiorInstanceInfo =>
@@ -368,7 +379,7 @@ object NotificationInfo {
         case NotificationType.profileUploaded =>
           Json.fromJson[ProfileUploadedInfo](json)
         case NotificationType.aprovedProfile =>
-          Json.fromJson[AprovedProfileInfo](json)
+          Json.fromJson[ApprovedProfileInfo](json)
         case NotificationType.rejectedProfile =>
           Json.fromJson[RejectedProfileInfo](json)
         case NotificationType.deletedProfileInSuperiorInstance =>
