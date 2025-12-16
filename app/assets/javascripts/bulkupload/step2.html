@@ -119,9 +119,11 @@
 							</td>
 							<td class="text-center">{{r.kit}}</td>
 							<td class="text-center">
-								<!-- Show "Replicado" if replicated, otherwise show normal status -->
 								<span ng-if="r.status == 'Uploaded'">Replicado</span>
-								<span ng-if="!r.replicateDisabled">{{statusMap[r.status]}}</span>
+								<span ng-if="r.status == 'Rejected'">Rechazado</span>
+								<span ng-if="r.status == 'Imported'">Aceptado</span>
+								<span ng-if="r.status == 'Approved'">Aprobado</span>
+								<span {{statusMap[r.status]}}</span>
 							</td>
 							<td class="text-center">
 								<input type="checkbox"
