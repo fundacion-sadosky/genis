@@ -1074,6 +1074,8 @@ object Stubs {
     override def delete(id: Long) = Future.successful(Right(id))
     override def changeFlag(id: Long, flag: Boolean) = Future.successful(Right(id))
     def getNotifications(userId: String): Enumerator[Notification] = Enumerator.empty
+
+    def changePending(id: Long, pending: Boolean): Future[Either[String, Long]] = ???
   }
 
   val notificationServiceMock = new NotificationServiceMock(null)

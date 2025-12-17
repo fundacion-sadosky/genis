@@ -178,6 +178,7 @@ POST     /notifications/search                                @controllers.Notif
 POST     /notifications/total                                 @controllers.Notifications.count
 DELETE   /notifications/:id    								  @controllers.Notifications.delete(id: Long)
 POST     /notifications/flag/:id							  @controllers.Notifications.changeFlag(id: Long, flag: Boolean)
+POST    /notifications/:id/pending                            @controllers.Notifications.changePending(id: Long, pending: Boolean)
 
 # Scenarios
 POST     /default-scenario                                    @controllers.Scenarios.getDefaultScenario(firingProfile: types.SampleCode, matchingProfile: types.SampleCode)

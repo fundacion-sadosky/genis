@@ -87,4 +87,8 @@ class Notifications @Inject() (notificationService: NotificationService, matchSt
       &> EventSource()).as(EVENT_STREAM)
   }
 
+  def changePending(id: Long, pending: Boolean) = Action {
+    notificationService.changePending(id, pending)
+    Ok
+  }
 }

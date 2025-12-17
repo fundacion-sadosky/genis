@@ -874,8 +874,8 @@ class ProfileServiceImpl @Inject() (
       profileDataOpt.fold(Future.successful(unexisting))({ profileData =>
 
         val cat = categoryService.listCategories(profileData.category)
-        val labelable = cat.associations.isEmpty && !cat.isReference
-
+        val labelable = !cat.associations.isEmpty && !cat.isReference
+        //val labelable = !cat.isReference
         for {
           profileOpt <- this.findProfileLocalOrSuperior(globalCode)
           imageList <- profileRepository.getElectropherogramsByCode(globalCode)

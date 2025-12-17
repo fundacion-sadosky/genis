@@ -19,7 +19,7 @@ define([], function() {
     };
 
     this.updateProfileCategoryData = function (globalCode, profileData, replicate) {
-      var userName = userService.getUser();
+      var userName = userService.getUser().name;
       return playRoutes.controllers.ProfileData.modifyCategory(globalCode, replicate, userName).put(profileData);
     };
 
@@ -112,7 +112,7 @@ define([], function() {
 
     this.getIsProfileReplicatedInternalCode = function (internalCode) {
       return playRoutes.controllers.ProfileData.getIsProfileReplicatedInternalCode(internalCode).get();
-      };
+    };
   }
 
   return ProfileDataService;

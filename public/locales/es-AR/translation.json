@@ -325,6 +325,7 @@
 			"rejectedProfile": "Interconexión",
 			"deletedProfileInSuperiorInstance": "Eliminación de perfil en instancia superior",
 			"deletedProfileInInferiorInstance": "Eliminación de perfil en instancia inferior",
+			"profileChangeCategory": "Cambio de catgoría de perfil",
 			"hitMatch": "Confirmación de coincidencia",
 			"discardMatch": "Descarte de coincidencia",
 			"deleteProfile": "Baja de Perfil",
