@@ -62,6 +62,12 @@ class Categories @Inject() (
     }
   }
 
+  def exportGroups = Action.async {
+    categoryService.listGroups map { group =>
+      val json = Json.toJson(group)
+      Ok(json).as("application/json").withHeaders("Content-Disposition" -> "attachment; filename=groups.json")
+    }
+  }
   def exportCategories: Action[AnyContent] = Action {
     categoryService.exportCategories("/tmp/categories.json") match {
       case Right(_) =>
@@ -117,68 +123,51 @@ class Categories @Inject() (
 
   // Método auxiliar para procesar la importación de categorías
   private def processImportCategories(importedCategories: List[CategoryRow]): Future[Result] = {
-    // 0. Supongo no existencia de perfiles
+    // Supongo no existencia de perfiles
     Logger.info("Buscando categorías")
-    // 1. Obtener las categorías existentes
-    val existingCategoriesFuture = Future.successful(categoryService.listCategories)
 
-    existingCategoriesFuture.flatMap { existingCategories =>
-      // 2. Eliminar categorías existentes
-      Logger.info("Cantidad de categorías existentes: " + existingCategories.keys.size)
-      val deleteFutures = existingCategories.keys.map { categoryId =>
-        categoryService.removeCategory(categoryId)
-      }
+    categoryService.removeAllCategories().flatMap { nCategoriesRemoved =>
 
-      Future.sequence(deleteFutures.toSeq).flatMap { deleteResults =>
-        // Verificar errores de eliminación
-        val deleteErrors = deleteResults.collect { case Left(error) => error }
-        Logger.info("Cantidad de errores en delete: " + deleteErrors.size)
+        Logger.info("Cantidad de categorías eliminadas: " + nCategoriesRemoved)
 
-        if (deleteErrors.nonEmpty) {
-          Future.successful(InternalServerError(Json.obj(
-            "status" -> "error",
-            "message" -> "Error al eliminar categorías existentes",
-            "details" -> deleteErrors
-          )))
-        } else {
-          // 3. Agregar nuevas categorías
-          val addFutures = importedCategories.map { categoryRow =>
-            // Convertir CategoryRow a Category
-            val category = Category(
-              AlphanumericId(categoryRow.id),
-              AlphanumericId(categoryRow.group),
-              categoryRow.name,
-              categoryRow.isReference,
-              categoryRow.description
-            )
-            Logger.info("Agregando categoría: " + category)
-            categoryService.addCategory(category)
-          }
+        val addFutures = importedCategories.map { categoryRow =>
+          // Convertir CategoryRow a Category
+          val category = Category(
+            AlphanumericId(categoryRow.id),
+            AlphanumericId(categoryRow.group),
+            categoryRow.name,
+            categoryRow.isReference,
+            categoryRow.description
+          )
+          Logger.info("Agregando categoría: " + category)
+          categoryService.addCategory(category)
+        }
 
-          Future.sequence(addFutures).map { addResults =>
-            // Verificar errores de adición
-            val addErrors = addResults.collect { case Left(error) => error }
-            Logger.info("Cantidad de errores en adds: " + addErrors.size)
+        Future.sequence(addFutures).map { addResults =>
+          // Verificar errores de adición
+          val addErrors = addResults.collect { case Left(error) => error }
+          Logger.info("Cantidad de errores en adds: " + addErrors.size)
 
-            if (addErrors.nonEmpty) {
-              InternalServerError(Json.obj(
-                "status" -> "error",
-                "message" -> "Error al importar categorías",
-                "details" -> addErrors
-              ))
-            } else {
-              // Importación exitosa
-              Ok(Json.obj(
-                "status" -> "success",
-                "message" -> "Importación de categorías exitosa",
-                "count" -> importedCategories.size
-              ))
-            }
+          if (addErrors.nonEmpty) {
+            InternalServerError(Json.obj(
+              "status" -> "error",
+              "message" -> "Error al importar categorías",
+              "details" -> addErrors
+            ))
+          } else {
+            // Importación exitosa
+            Ok(Json.obj(
+              "status" -> "success",
+              "message" -> "Importación de categorías exitosa",
+              "count" -> importedCategories.size
+            ))
           }
         }
       }
     }
-  }
+
+
+
   def listWithProfiles = Action.async {
     val fcs = Future.successful(categoryService.listCategoriesWithProfiles)
     fcs map { list =>
