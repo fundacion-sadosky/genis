@@ -38,7 +38,7 @@ define(['jquery', 'lodash'], function($, _) {
                 });
         };
 
-       function createProfileUpdateHandler(subcategory, getIsProfileReplicatedInternalCode) {
+        function createProfileUpdateHandler(subcategory, getIsProfileReplicatedInternalCode) {
             return function(profile) {
                 return getIsProfileReplicatedInternalCode(profile.sampleName)
                     .then(function(isReplicated) {

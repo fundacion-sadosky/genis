@@ -509,7 +509,12 @@ class InterconnectionServiceImpl @Inject()(
                   .withHeaders(HeaderInsterconnections.laboratoryOrigin -> currentInstanceLabCode)
                   .withHeaders(HeaderInsterconnections.sampleEntryDate -> sampleEntryDateString)
 
-                val supProfile: Profile = profile.copy(categoryId = AlphanumericId(idCategorySuperior))
+                // Hacer que Profile.internalSampleCode=profile.globalcode.text
+
+                val supProfile: Profile = profile.copy(
+                  categoryId = AlphanumericId(idCategorySuperior),
+                  internalSampleCode = profile.globalCode.text
+                )
                 val request = ProfileTransfer(supProfile, Option(profileAssociated).flatten)
                 val outputJson = Json.toJson(request)
                 val outputJsonString = outputJson.toString
