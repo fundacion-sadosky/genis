@@ -80,6 +80,8 @@ WHERE
     n."ID" = pn."ID";
 
 
+--EN TODAS LAS INSTANCIAS: 
+
 UPDATE "APP"."NOTIFICATION"
 SET "INFO" = jsonb_set(
     "INFO"::jsonb,          -- Cast varchar to jsonb
