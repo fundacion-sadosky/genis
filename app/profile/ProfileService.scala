@@ -398,11 +398,11 @@ class ProfileServiceImpl @Inject() (
   override def importProfile(profileData: ProfileData, analysis: NewAnalysis,replicate : Boolean = false): Future[Either[List[String], Profile]] = {
     profileRepository.findByCode(analysis.globalCode).flatMap { profileOpt =>
       if (profileOpt.isEmpty) {
-        this.upsert(profileData, None, analysis, false,replicate)
+        this.upsert(profileData, None, analysis, false,replicate, null)
       } else if (validProfilesAssociated(profileOpt.get.labeledGenotypification).nonEmpty){
         Future.successful(Left(List(Messages("error.E0111"))))
       } else {
-        this.upsert(profileData, profileOpt, analysis, false,replicate)
+        this.upsert(profileData, profileOpt, analysis, false,replicate, null)
       }
     }
   }
@@ -521,7 +521,8 @@ class ProfileServiceImpl @Inject() (
                       profileOpt: Option[Profile],
                       newAnalysis: NewAnalysis,
                       savePictures: Boolean,
-                      replicate : Boolean = false
+                      replicate : Boolean = false,
+                      userName: String
                     ): Future[Either[List[String], Profile]] = {
     this
       .isReadOnly(profileOpt)
@@ -701,7 +702,7 @@ class ProfileServiceImpl @Inject() (
             newfut.onSuccess{
               case Right(profile) => {
                 interconnectionService
-                  .uploadProfileToSuperiorInstance(profile, profileData)
+                  .uploadProfileToSuperiorInstance(profile, profileData, userName)
               }
             }
           }
@@ -778,7 +779,8 @@ class ProfileServiceImpl @Inject() (
                           profileOpt,
                           newAnalysis,
                           savePictures,
-                          replicate
+                          replicate,
+                          profileData.assignee
                         )
                         res.onSuccess {
                           case Right(_) => if (profileOpt.isEmpty) {

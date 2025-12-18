@@ -231,7 +231,7 @@ class BulkUploadServiceImpl @Inject() (
     profileDataRepo.getGlobalCode(protoProfile.sampleName).flatMap {
       _.fold(Future.successful(Seq(Messages("error.E0101")))) {
         case SampleCode(globalCode) => {
-          interconnectionService.uploadProfile(globalCode).map {
+          interconnectionService.uploadProfile(globalCode, userId).map {
             case Right(success) => Seq("Success") //success is Unit.
             case Left(error) =>
               logger.error(s"Failed to upload profile: $error")
@@ -347,7 +347,7 @@ class BulkUploadServiceImpl @Inject() (
       }
   }
 
- override def updateBatchStatus(
+  override def updateBatchStatus(
                                   idBatch: Long,
                                   status: ProtoProfileStatus.Value,
                                   userId: String,
@@ -437,108 +437,108 @@ class BulkUploadServiceImpl @Inject() (
               )
           }
       }
-   result.map { sequences =>
-     // Check if any sequence contains "Success"
-     if (sequences.exists(_.contains("Success"))) {
-       Right(idBatch) // Return Right(idBatch) if "Success" is found
-     } else if (sequences.exists(_.nonEmpty)) {
-       // If there are non-empty sequences but no "Success", return the error message
-       val joinedMessage = (
-         sequences
-           .flatten
-           ++ Seq(Messages("error.E0103"))
-         )
-         .distinct
-         .map(msg => s"<br>${msg}")
-         .mkString("")
-       Left(joinedMessage)
-     } else {
-       Right(idBatch) // If all sequences are empty, return Right(idBatch)
-     }
+    result.map { sequences =>
+      // Check if any sequence contains "Success"
+      if (sequences.exists(_.contains("Success"))) {
+        Right(idBatch) // Return Right(idBatch) if "Success" is found
+      } else if (sequences.exists(_.nonEmpty)) {
+        // If there are non-empty sequences but no "Success", return the error message
+        val joinedMessage = (
+          sequences
+            .flatten
+            ++ Seq(Messages("error.E0103"))
+          )
+          .distinct
+          .map(msg => s"<br>${msg}")
+          .mkString("")
+        Left(joinedMessage)
+      } else {
+        Right(idBatch) // If all sequences are empty, return Right(idBatch)
+      }
     }
   }
- /*override def updateBatchStatus(
-                                 idBatch: Long,
-                                 status: ProtoProfileStatus.Value,
-                                 userId: String,
-                                 isSuperUser: Boolean,
-                                 replicateAll:Boolean,
-                                 idsToReplicate: scala.List[Long]
-                               ): Future[Either[String, Long]] = {
-   val result = userService
-     .listAllUsers()
-     .flatMap {
-       users =>
-         val loggedUser = users.find(u => u.userName == userId).get
-         val profiles = if (status == ProtoProfileStatus.Imported) {
-           protoRepo.getProtoProfilesStep2(
-             idBatch,
-             loggedUser.geneMapperId,
-             loggedUser.superuser
-           )
-         } else {
-           protoRepo.getProtoProfilesStep1(idBatch)
-         }
-         profiles.flatMap {
-           protoProfiles =>
-             Future.sequence(
-               protoProfiles.map(
-                 protoProfile => {
-                   val geneticistOpt = users
-                     .find(u => u.geneMapperId == protoProfile.assignee)
-                   val errorMessage = () => {
-                     Future.successful(
-                       Seq(Messages("error.E0200", protoProfile.assignee))
-                     )
-                   }
-                   val performTransition = (geneticist:UserView) => {
-                     if (allowTransition(protoProfile.status, status)) {
-                       var replicate = false;
-                       if (replicateAll) {
-                         val category = categoryService
-                           .getCategory(protoProfile.category)
-                         if (category.isDefined && category.get.replicate) {
-                           replicate = true;
-                         }
-                       } else {
-                         if (idsToReplicate.contains(protoProfile.id)) {
-                           replicate = true;
-                         }
-                       }
-                       transitionStatus(
-                         status,
-                         protoProfile,
-                         geneticist.userName,
-                         userId,
-                         replicate
-                       )
-                     } else {
-                       Future.successful(Seq())
-                     }
-                   }
-                   geneticistOpt.fold(errorMessage())(performTransition)
-                 }
-               )
-             )
-         }
-     }
-   result.map {
-     sequences =>
-       if (sequences.exists(_.nonEmpty)) {
-         val joinedMessage = (
-           sequences
-             .flatten
-             ++ Seq(Messages("error.E0103"))
-           )
-           .distinct
-           .map(msg => s"<br>${msg}")
-           .mkString("")
-         Left(joinedMessage)
-       } else {
-         Right(idBatch)
-       }
-   }
- }*/
+  /*override def updateBatchStatus(
+                                  idBatch: Long,
+                                  status: ProtoProfileStatus.Value,
+                                  userId: String,
+                                  isSuperUser: Boolean,
+                                  replicateAll:Boolean,
+                                  idsToReplicate: scala.List[Long]
+                                ): Future[Either[String, Long]] = {
+    val result = userService
+      .listAllUsers()
+      .flatMap {
+        users =>
+          val loggedUser = users.find(u => u.userName == userId).get
+          val profiles = if (status == ProtoProfileStatus.Imported) {
+            protoRepo.getProtoProfilesStep2(
+              idBatch,
+              loggedUser.geneMapperId,
+              loggedUser.superuser
+            )
+          } else {
+            protoRepo.getProtoProfilesStep1(idBatch)
+          }
+          profiles.flatMap {
+            protoProfiles =>
+              Future.sequence(
+                protoProfiles.map(
+                  protoProfile => {
+                    val geneticistOpt = users
+                      .find(u => u.geneMapperId == protoProfile.assignee)
+                    val errorMessage = () => {
+                      Future.successful(
+                        Seq(Messages("error.E0200", protoProfile.assignee))
+                      )
+                    }
+                    val performTransition = (geneticist:UserView) => {
+                      if (allowTransition(protoProfile.status, status)) {
+                        var replicate = false;
+                        if (replicateAll) {
+                          val category = categoryService
+                            .getCategory(protoProfile.category)
+                          if (category.isDefined && category.get.replicate) {
+                            replicate = true;
+                          }
+                        } else {
+                          if (idsToReplicate.contains(protoProfile.id)) {
+                            replicate = true;
+                          }
+                        }
+                        transitionStatus(
+                          status,
+                          protoProfile,
+                          geneticist.userName,
+                          userId,
+                          replicate
+                        )
+                      } else {
+                        Future.successful(Seq())
+                      }
+                    }
+                    geneticistOpt.fold(errorMessage())(performTransition)
+                  }
+                )
+              )
+          }
+      }
+    result.map {
+      sequences =>
+        if (sequences.exists(_.nonEmpty)) {
+          val joinedMessage = (
+            sequences
+              .flatten
+              ++ Seq(Messages("error.E0103"))
+            )
+            .distinct
+            .map(msg => s"<br>${msg}")
+            .mkString("")
+          Left(joinedMessage)
+        } else {
+          Right(idBatch)
+        }
+    }
+  }*/
 
   private def transitionStatus(
                                 status: ProtoProfileStatus.Value,
@@ -555,7 +555,7 @@ class BulkUploadServiceImpl @Inject() (
           // otherwise perform a normal import but with replicate=true to force replication.
           val perform: Future[Seq[String]] =
             replicateProtoProfile(protoProfile, userId)
-            updateStatus(protoProfile.id, status)
+          updateStatus(protoProfile.id, status)
           perform.flatMap {
             errors =>
               if (errors.isEmpty) {
@@ -772,4 +772,5 @@ class BulkUploadServiceImpl @Inject() (
       this.protoRepo.getBatchSearchModalViewByIdOrLabel(input,idCase)
     }
   }
+
 }

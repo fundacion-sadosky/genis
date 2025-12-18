@@ -1,7 +1,7 @@
 define(['jquery', 'lodash'], function($, _) {
     'use strict';
 
-    function Step2Controller($scope, $routeParams, $timeout, bulkuploadService, helper, $log, $modal, alertService, $q, userService, locusService, profiledataService, notificationsService, matchesService, profileService) {
+    function Step2Controller($scope, $routeParams, $timeout, bulkuploadService, helper, $log, $modal, alertService, $q, userService, locusService, profiledataService, notificationsService, matchesService, profileService, superiorInstanceService) {
 
         $scope.statusMap = bulkuploadService.getStatusMap();
         var toogle = true;
@@ -38,7 +38,7 @@ define(['jquery', 'lodash'], function($, _) {
                 });
         };
 
-        function createProfileUpdateHandler(subcategory, getIsProfileReplicatedInternalCode) {
+       function createProfileUpdateHandler(subcategory, getIsProfileReplicatedInternalCode) {
             return function(profile) {
                 return getIsProfileReplicatedInternalCode(profile.sampleName)
                     .then(function(isReplicated) {

@@ -143,7 +143,7 @@ class ProfileData @Inject() (
                   .map {
                     case Some(pdata) =>
                       interconnectionService
-                        .uploadProfileToSuperiorInstance(p, pdata)
+                        .uploadProfileToSuperiorInstance(p, pdata, userName)
                   }
             }
         }

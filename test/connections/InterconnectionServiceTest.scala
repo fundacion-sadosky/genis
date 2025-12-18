@@ -726,7 +726,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         cacheService,
         protoRepo = mock[ProtoProfileRepository])
 
-      interconnectionService.uploadProfileToSuperiorInstance(profile, profileData)
+      interconnectionService.uploadProfileToSuperiorInstance(profile, profileData, "tst-admin")
 
     }
 
@@ -790,7 +790,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         protoRepo = mock[ProtoProfileRepository]
         )
 
-      interconnectionService.uploadProfileToSuperiorInstance(profile, profileData)
+      interconnectionService.uploadProfileToSuperiorInstance(profile, profileData, "tst-admin")
 
     }
     "importProfile ok" in {
@@ -1467,7 +1467,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         cacheService,
         protoRepo = mock[ProtoProfileRepository])
 
-      val result = Await.result(interconnectionService.uploadProfile(profile.globalCode.text), Duration.Inf)
+      val result = Await.result(interconnectionService.uploadProfile(profile.globalCode.text, "tst-admin"), Duration.Inf)
       result.isLeft mustBe true
 
     }
@@ -1529,7 +1529,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         cacheService,
         protoRepo = mock[ProtoProfileRepository])
 
-      val result = Await.result(interconnectionService.uploadProfile(profile.globalCode.text), Duration.Inf)
+      val result = Await.result(interconnectionService.uploadProfile(profile.globalCode.text, "tst-admin"), Duration.Inf)
       result.isLeft mustBe true
 
     }
