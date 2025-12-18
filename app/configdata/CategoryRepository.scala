@@ -2,12 +2,10 @@ package configdata
 
 import java.sql.SQLException
 import javax.inject.{Inject, Singleton}
-
 import matching.{Algorithm, Stringency}
 import models.Tables
 import models.Tables._
-import play.api.Application
-
+import play.api.{Application, Logger}
 import play.api.db.slick.Config.driver.simple._
 import play.api.db.slick.DB
 import play.api.i18n.Messages
@@ -27,6 +25,7 @@ abstract class CategoryRepository extends DefaultDb with Transaction {
   def addCategory(cat: Category): Future[AlphanumericId]
   def updateCategory(category: Category): Future[Int]
   def removeCategory(categoryId: AlphanumericId): Future[Int]
+  def removeAllCategories(): Future[Int]
 
   def updateFullCategory(category: FullCategory)(implicit session: Session): Either[String, AlphanumericId]
 
@@ -167,6 +166,8 @@ class SlickCategoryRepository @Inject() (implicit app: Application) extends Cate
     cm <- categoryMatching if (cm.category === categoryId)
   ) yield (cm)
 
+
+
   val querysubCategoryMatching = Compiled(queryDefineCategoryMatching _)
 
   private def queryDefineSubcategoryAssociationRules(categoryId: Column[String]) = for (
@@ -191,6 +192,27 @@ class SlickCategoryRepository @Inject() (implicit app: Application) extends Cate
   val getMappingById = Compiled(queryGetMappingById _)
   private def queryGetMappingReverseById(id: Column[String]) = categoryMappingTable.filter(_.idSuperior === id)
   val getMappingReverseById = Compiled(queryGetMappingReverseById _)
+  
+  private val deleteAllCategoryMatching =
+    Compiled(categoryMatching.filter(_ => LiteralColumn(true)))
+
+  private val deleteAllCategoryAssoc =
+    Compiled(categoryAssoc.filter(_ => LiteralColumn(true)))
+
+  private val deleteAllCategoryAlias =
+    Compiled(categoriesAlias.filter(_ => LiteralColumn(true)))
+
+  private val deleteAllCategoryConfiguration =
+    Compiled(categoryConfiguration.filter(_ => LiteralColumn(true)))
+
+  private val deleteAllCategoryMapping =
+    Compiled(categoryMappingTable.filter(_ => LiteralColumn(true)))
+
+  private val deleteAllCategoryModifications =
+    Compiled(categoriesModifications.filter(_ => LiteralColumn(true)))
+
+  private val deleteAllCategories =
+    Compiled(categories.filter(_ => LiteralColumn(true)))
   override def listGroupsAndCategories: Future[Seq[(Group, Option[Category])]] = Future {
     DB.withSession { implicit session =>
       queryGetGroupsCategories.list.map {
@@ -406,6 +428,44 @@ class SlickCategoryRepository @Inject() (implicit app: Application) extends Cate
       res
     }
   }
+  override def removeAllCategories(): Future[Int] = Future {
+    try {
+      DB.withTransaction { implicit session =>
+
+        val m1 = deleteAllCategoryMatching.delete
+        val m2 = deleteAllCategoryAssoc.delete
+        val m3 = deleteAllCategoryAlias.delete
+        val m4 = deleteAllCategoryConfiguration.delete
+        val m5 = deleteAllCategoryMapping.delete
+        val m6 = deleteAllCategoryModifications.delete
+
+        val allCategories = deleteAllCategories.run
+        Logger.info("Categories to remove: " + (allCategories).toString())
+
+        val m7 = deleteAllCategories.delete
+
+        Logger.info(
+          s"""
+             |Deleted:
+             |matching=$m1
+             |assoc=$m2
+             |alias=$m3
+             |config=$m4
+             |mapping=$m5
+             |modifications=$m6
+             |categories=$m7
+         """.stripMargin
+        )
+
+        m7
+      }
+    } catch {
+      case e: Throwable =>
+        Logger.error("Error removing all categories", e)
+        throw e
+    }
+  }
+
 
   override def updateCategory(category: Category): Future[Int] = Future {
     DB.withTransaction { implicit session =>

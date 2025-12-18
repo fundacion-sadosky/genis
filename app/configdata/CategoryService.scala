@@ -38,6 +38,7 @@ abstract class CategoryService {
 
   def listCategories: Map[AlphanumericId, FullCategory]
 
+  def listGroups : Future[Seq[Group]]
   def listCategoriesWithProfiles: Map[AlphanumericId, String]
 
   def categoryTreeManualLoading: Category.CategoryTree
@@ -45,6 +46,7 @@ abstract class CategoryService {
   def addCategory(category: Category): Future[Either[String, FullCategory]]
 
   def removeCategory(categoryId: AlphanumericId): Future[Either[String, Int]]
+  def removeAllCategories(): Future[Int]
 
   def updateCategory(category: FullCategory): Future[Either[String, Int]]
 
@@ -138,7 +140,6 @@ class CachedCategoryService @Inject() (cache: CacheService, categoryRepository: 
   }
 
   override def exportCategories(filePath: String): Either[String, String] = {
-    // Esto se está usando?
     Try {
       // Obtener las categorías desde el repositorio
       val futureCategories = categoryRepository.listCategories
@@ -182,6 +183,15 @@ class CachedCategoryService @Inject() (cache: CacheService, categoryRepository: 
       list.map { category => category.id -> category }.toMap
     }
   }
+  override def listGroups: Future[Seq[Group]] = {
+    categoryRepository
+      .listGroupsAndCategories
+      .map { list =>
+        list
+          .map(_._1)            // me quedo solo con los Group
+          .distinct             // uno solo por grupo
+      }
+  }
 
   override def listCategoriesWithProfiles: Map[AlphanumericId,String] = {
    // cache.getOrElse(Keys.categories) {
@@ -197,6 +207,16 @@ class CachedCategoryService @Inject() (cache: CacheService, categoryRepository: 
     }
   }
 
+  override def removeAllCategories(): Future[Int] = {
+    val promise = categoryRepository.removeAllCategories()
+
+    promise.foreach { _ =>
+      cleanCache
+    }
+
+    promise
+  }
+  
   override def addCategory(category: Category): Future[Either[String, FullCategory]] = {
     val fc = FullCategory(
       category.id,
@@ -214,7 +234,7 @@ class CachedCategoryService @Inject() (cache: CacheService, categoryRepository: 
     promise.foreach { _ => cleanCache }
     promise
       .map { _ => Right(fc) }
-      .recover { case e: SQLException if e.getSQLState.startsWith("23") => Left(Messages("error.E0664")) }
+      .recover { case e: SQLException if e.getSQLState.startsWith("23") => Left(Messages("error.E0664") + category.name)}
   }
 
   override def removeCategory(categoryId: AlphanumericId): Future[Either[String, Int]] = {

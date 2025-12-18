@@ -172,6 +172,7 @@ object Permission {
       StaticAuthorisationOperation("""/categories.*""".r, """POST""".r, "CategoryCreate"),
       StaticAuthorisationOperation("""/categories.*""".r, """DELETE""".r, "CategoryDelete"),
       StaticAuthorisationOperation("""/categoryTree|/categories|/categoryTreeManualLoading""".r,"""GET""".r, "CategoryTreeRead"),
+      StaticAuthorisationOperation("""/group.*""".r,"""GET""".r, "GroupExport"),
       StaticAuthorisationOperation("""/group.*""".r,"""POST""".r, "GroupCreate"),
       StaticAuthorisationOperation("""/group.*""".r,"""PUT""".r, "GroupUpdate"),
       StaticAuthorisationOperation("""/group.*""".r,"""DELETE""".r, "GroupDelete"),

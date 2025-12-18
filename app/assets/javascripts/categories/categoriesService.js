@@ -82,6 +82,10 @@ function CategoriesService($q, $http, playRoutes) {
       .get();
   };
 
+  this.exportGroups = function() {
+    return playRoutes.controllers.Categories.exportGroups().get();
+  };
+
   this.exportCategories = function() {
     return playRoutes.controllers.Categories.exportCategories().get();
   };

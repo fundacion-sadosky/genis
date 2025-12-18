@@ -58,19 +58,22 @@ function HeaderController($scope, userService, categoriesService, kitService, pr
 			categoriesService.exportCategories(),
 			kitService.exportKits(),
 			locusService.exportLocus(),
-			roleService.exportRoles()
+			roleService.exportRoles(),
+			categoriesService.exportGroups()
 		]).then(function(responses) {
 			var categoriesData = responses[0].data;
 			var kitsData = responses[1].data;
 			var locusData = responses[2].data;
 			var rolesData = responses[3].data;
+			var groupsData = responses[4].data;
 
 			var zip = new JSZip();
 			zip.file("categories.json", JSON.stringify(categoriesData, null, 2));
 			zip.file("kits.json", JSON.stringify(kitsData, null, 2));
 			zip.file("locus.json", JSON.stringify(locusData, null, 2));
 			zip.file("roles.json", JSON.stringify(rolesData, null, 2));
-			
+			zip.file("groups.json", JSON.stringify(groupsData, null, 2));
+
 			zip.generateAsync({ type: "blob" })
 				.then(downloadJSON);
 
