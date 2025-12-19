@@ -86,6 +86,17 @@ function CategoriesService($q, $http, playRoutes) {
     return playRoutes.controllers.Categories.exportGroups().get();
   };
 
+  this.importGroups = function(formData) {
+    // Extract the URL from the Play routes object.
+    var url = playRoutes.controllers.Categories.importGroups().url;
+
+    // Use $http directly to ensure proper FormData handling.
+    return $http.post(url, formData, {
+      transformRequest: angular.identity,
+      headers: { 'Content-Type': undefined }  // Let the browser set multipart/form-data with boundary.
+    });
+  };
+  
   this.exportCategories = function() {
     return playRoutes.controllers.Categories.exportCategories().get();
   };

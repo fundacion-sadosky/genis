@@ -43,6 +43,7 @@ abstract class CategoryRepository extends DefaultDb with Transaction {
   def addGroup(group: Group): Future[AlphanumericId]
   def updateGroup(group: Group): Future[Int]
   def removeGroup(groupId: AlphanumericId): Future[Int]
+  def removeAllGroups(): Future[Int]
 
   def insertOrUpdateMapping(categoryMapping: CategoryMappingList): Future[Either[String, Unit]]
   def listCategoriesMapping: Future[List[FullCategoryMapping]]
@@ -193,26 +194,28 @@ class SlickCategoryRepository @Inject() (implicit app: Application) extends Cate
   private def queryGetMappingReverseById(id: Column[String]) = categoryMappingTable.filter(_.idSuperior === id)
   val getMappingReverseById = Compiled(queryGetMappingReverseById _)
   
-  private val deleteAllCategoryMatching =
+  private val queryGetAllCategoryMatching =
     Compiled(categoryMatching.filter(_ => LiteralColumn(true)))
 
-  private val deleteAllCategoryAssoc =
+  private val queryGetAllCategoryAssoc =
     Compiled(categoryAssoc.filter(_ => LiteralColumn(true)))
 
-  private val deleteAllCategoryAlias =
+  private val queryGetAllCategoryAlias =
     Compiled(categoriesAlias.filter(_ => LiteralColumn(true)))
 
-  private val deleteAllCategoryConfiguration =
+  private val queryGetAllCategoryConfiguration =
     Compiled(categoryConfiguration.filter(_ => LiteralColumn(true)))
 
-  private val deleteAllCategoryMapping =
+  private val queryGetAllCategoryMapping =
     Compiled(categoryMappingTable.filter(_ => LiteralColumn(true)))
 
-  private val deleteAllCategoryModifications =
+  private val queryGetAllCategoryModifications =
     Compiled(categoriesModifications.filter(_ => LiteralColumn(true)))
 
-  private val deleteAllCategories =
+  private val queryGetAllCategories =
     Compiled(categories.filter(_ => LiteralColumn(true)))
+
+  private val queryGetAllGroups =
   override def listGroupsAndCategories: Future[Seq[(Group, Option[Category])]] = Future {
     DB.withSession { implicit session =>
       queryGetGroupsCategories.list.map {
@@ -432,17 +435,17 @@ class SlickCategoryRepository @Inject() (implicit app: Application) extends Cate
     try {
       DB.withTransaction { implicit session =>
 
-        val m1 = deleteAllCategoryMatching.delete
-        val m2 = deleteAllCategoryAssoc.delete
-        val m3 = deleteAllCategoryAlias.delete
-        val m4 = deleteAllCategoryConfiguration.delete
-        val m5 = deleteAllCategoryMapping.delete
-        val m6 = deleteAllCategoryModifications.delete
+        val m1 = queryGetAllCategoryMatching.delete
+        val m2 = queryGetAllCategoryAssoc.delete
+        val m3 = queryGetAllCategoryAlias.delete
+        val m4 = queryGetAllCategoryConfiguration.delete
+        val m5 = queryGetAllCategoryMapping.delete
+        val m6 = queryGetAllCategoryModifications.delete
 
-        val allCategories = deleteAllCategories.run
+        val allCategories = queryGetAllCategories.run
         Logger.info("Categories to remove: " + (allCategories).toString())
 
-        val m7 = deleteAllCategories.delete
+        val m7 = queryGetAllCategories.delete
 
         Logger.info(
           s"""

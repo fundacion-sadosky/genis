@@ -68,6 +68,76 @@ class Categories @Inject() (
       Ok(json).as("application/json").withHeaders("Content-Disposition" -> "attachment; filename=groups.json")
     }
   }
+
+  def importGroups: Action[MultipartFormData[play.api.libs.Files.TemporaryFile]] = Action.async(parse.multipartFormData) { request =>
+    request.body.file("file").map { file =>
+      // Guardar archivo temporalmente
+      val path = new java.io.File("/tmp/" + file.filename)
+      file.ref.moveTo(path, replace = true)
+
+      // Leer contenido del archivo
+      val source = scala.io.Source.fromFile(path, "UTF-8")
+      val jsonString = try source.mkString finally source.close()
+
+      // Parsear JSON a lista de Group
+      Json.parse(jsonString).validate[List[Group]] match {
+        case JsSuccess(importedGroups, _) =>
+          // Proceso de importación: eliminar grupos existentes y añadir los nuevos
+          processImportGroups(importedGroups)
+        case JsError(errors) =>
+          Future.successful(BadRequest(Json.obj(
+            "status" -> "error",
+            "message" -> "Error en el formato JSON",
+            "details" -> JsError.toFlatJson(errors)
+          )))
+      }
+    }.getOrElse {
+      Future.successful(BadRequest(Json.obj(
+        "status" -> "error",
+        "message" -> "No se encontró ningún archivo"
+      )))
+    }
+  }
+
+  // Método auxiliar para procesar la importación de categorías
+  private def processImportGroups(importedGroups: List[Group]): Future[Result] = {
+    // Supongo no existencia de perfiles
+    Logger.info("Eliminando grupos")
+
+    categoryService.removeAllGroups().flatMap { nGroupsRemoved =>
+
+      Logger.info("Cantidad de grupos eliminados: " + nGroupsRemoved)
+
+      val addFutures = importedGroups.map { group =>
+        Logger.info("Agregando grupo: " + group)
+        categoryService.addGroup(group)
+      }
+
+      Future.sequence(addFutures).map { addResults =>
+        // Verificar errores de adición
+        val addErrors = addResults.collect { case Left(error) => error }
+        Logger.info("Cantidad de errores en adds: " + addErrors.size)
+
+        if (addErrors.nonEmpty) {
+          InternalServerError(Json.obj(
+            "status" -> "error",
+            "message" -> "Error al importar grupos",
+            "details" -> addErrors
+          ))
+        } else {
+          // Importación exitosa
+          Ok(Json.obj(
+            "status" -> "success",
+            "message" -> "Importación de grupos exitosa",
+            "count" -> importedGroups.size
+          ))
+        }
+      }
+    }
+  }
+
+
+
   def exportCategories: Action[AnyContent] = Action {
     categoryService.exportCategories("/tmp/categories.json") match {
       case Right(_) =>

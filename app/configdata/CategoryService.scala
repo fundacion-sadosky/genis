@@ -53,6 +53,7 @@ abstract class CategoryService {
   def addGroup(group: Group): Future[Either[String, AlphanumericId]]
 
   def removeGroup(groupId: AlphanumericId): Future[Either[String, Int]]
+  def removeAllGroups(): Future[Int]
 
   def updateGroup(group: Group): Future[Either[String, Int]]
 
@@ -328,6 +329,16 @@ class CachedCategoryService @Inject() (cache: CacheService, categoryRepository: 
     promise
       .map { Right(_) }
       .recover { case e: SQLException if e.getSQLState.startsWith("23") => Left(Messages("error.E0671")) }
+  }
+
+  override def removeAllGroups(): Future[Int] = {
+    val promise = categoryRepository.removeAllGroups()
+
+    promise.foreach { _ =>
+      cleanCache
+    }
+
+    promise
   }
 
   override def updateGroup(group: Group): Future[Either[String, Int]] = {

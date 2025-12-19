@@ -30,6 +30,8 @@ POST     /group                                               @controllers.Categ
 PUT      /group/:groupId                                      @controllers.Categories.updateGroup(groupId: types.AlphanumericId)
 DELETE   /group/:groupId                                      @controllers.Categories.removeGroup(groupId: types.AlphanumericId)
 GET      /group/export                                        @controllers.Categories.exportGroups
+POST     /group/import                                        @controllers.Categories.importGroups
+
 
 GET      /crimeTypes                                          @controllers.CrimeTypes.list
 GET      /bioMaterialTypes                                    @controllers.BioMaterialTypes.list

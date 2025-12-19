@@ -104,20 +104,30 @@ function HeaderController($scope, userService, categoriesService, kitService, pr
 				var kitsFile = zip.file("kits.json");
 				var locusFile = zip.file("locus.json");
 				var rolesFile = zip.file("roles.json");
+				var groupsFile = zip.file("groups.json");
 
-				// CADENA 1: Categorías → Locus → Kits (secuencial)
+				// CADENA 1: Groups → Categorías → Locus → Kits (secuencial)
 				var mainChain = Promise.resolve();
 
-				if (categoriesFile) {
-					mainChain = categoriesFile.async("blob").then(function(blob) {
-						var file = new File([blob], "categories.json", { type: "application/json" });
-						return $scope.importCategories(file);
+				if (groupsFile) {
+					mainChain = groupsFile.async("blob").then(function(blob) {
+						var file = new File([blob], "groups.json", { type: "application/json" });
+						return $scope.importGroups(file);
 					});
 				} else {
-					alertService.error({ message: "El archivo no contiene categorías." });
+					alertService.error({ message: "El archivo no contiene grupos." });
 				}
 
 				mainChain = mainChain.then(function() {
+					if (categoriesFile) {
+						return categoriesFile.async("blob").then(function(blob) {
+							var file = new File([blob], "categories.json", { type: "application/json" });
+							return $scope.importCategories(file);
+						});
+					} else {
+						alertService.error({ message: "El archivo no contiene categorías." });
+					}
+				}).then(function() {
 					if (locusFile) {
 						return locusFile.async("blob").then(function(blob) {
 							var file = new File([blob], "locus.json", { type: "application/json" });
@@ -136,6 +146,7 @@ function HeaderController($scope, userService, categoriesService, kitService, pr
 						alertService.error({ message: "El archivo no contiene kits." });
 					}
 				});
+
 
 				// CADENA 2: Roles (independiente)
 				var rolesChain = Promise.resolve();
@@ -165,6 +176,18 @@ function HeaderController($scope, userService, categoriesService, kitService, pr
 		reader.readAsArrayBuffer(file);
 	};
 
+	$scope.importGroups = function(file) {
+		if (!file) return;
+
+		var formData = new FormData();
+		formData.append("file", file);
+
+		categoriesService.importGroups(formData).then(function(response) {
+			console.log({message: 'Grupos importados con éxito'});
+		}, function(error) {
+			console.log("Error al importar grupos: " + error.data);
+		});
+	};
 
 	$scope.importCategories = function(file) {
 		if (!file) return;
