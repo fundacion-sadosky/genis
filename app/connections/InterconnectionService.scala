@@ -42,6 +42,7 @@ import scala.concurrent.duration.{Duration, FiniteDuration, SECONDS}
 import scala.util.Try
 import inbox.DeleteProfileInfo
 import matching.MatchResult
+import org.apache.hadoop.yarn.util.resource.Resources.none
 import services.CacheService
 import trace.{CategoryChangeRejectedInSupInfo, MatchInfo, MatchTypeInfo, ProfileImportedFromInferiorInfo, ProfileRejectedInSuperiorInfo, SuperiorCategoryChangeRejectedInfo, SuperiorInstanceCategoryModificationInfo, Trace, TraceInfo, TraceService}
 trait InterconnectionService {
@@ -974,6 +975,8 @@ class InterconnectionServiceImpl @Inject()(
                       // disparar el proceso de match
                       //                Right(profileService.fireMatching(sampleCode))
                       // notificar a la instancia inferior que la superior le aprobó el perfil
+                      // Cambiar el estado del PROFILE_RECEIVED así no reintenta
+                      profileDataService.updateProfileReceivedStatus(row.laboratory, row.globalCode, APPROVED_THIS_INSTANCE_INF_INFORMED, "", isCategoryModification, "", Some(user))
                       this.notifyApprovalChangeStatus(
                         row.globalCode,
                         row.laboratoryImmediateInstance,
@@ -1039,22 +1042,33 @@ class InterconnectionServiceImpl @Inject()(
         case Right(p) =>
           val modSetup = getModificationSetup(profileApproval, user)
           modSetup
-            .flatMap(
-              setup =>
-                this
-                  .notifyRejectionChangeStatus(
-                    p.globalCode,
-                    p.laboratoryImmediateInstance,
-                    RECHAZADA,
-                    motive,
-                    user,
-                    setup.isCategoryUpdated()
-                  )
-                  .map(_ => (p, setup))
-            )
+            .flatMap { setup =>
+              // Add the line here to update profile received status if modSetup is defined
+              profileDataService.updateProfileReceivedStatus(
+                profileDataService.getLabFromGlobalCode(SampleCode(profileApproval.globalCode)).toString,
+                profileApproval.globalCode,
+                REJECTED_THIS_INSTANCE_INF_INFORMED,
+                "",
+                false, // Set to false as requested
+                "",
+                Some(user)
+              )
+
+              this
+                .notifyRejectionChangeStatus(
+                  p.globalCode,
+                  p.laboratoryImmediateInstance,
+                  RECHAZADA,
+                  motive,
+                  user,
+                  setup.isCategoryUpdated()
+                )
+                .map(_ => (p, setup))
+            }
             .flatMap {
               case (p, setup) =>
                 if (setup.isCategoryUpdated()) {
+                  profileDataService.updateProfileReceivedStatus(profileDataService.getLabFromGlobalCode(SampleCode(profileApproval.globalCode)).toString, profileApproval.globalCode, REJECTED_THIS_INSTANCE_INF_INFORMED, "", true, "", Some(user))
                   traceService
                     .add(
                       Trace(
@@ -1095,6 +1109,7 @@ class InterconnectionServiceImpl @Inject()(
         case Left(msg) => Future.successful(Left(msg))
       }
   }
+
 
   override def getPendingProfiles(profileApprovalSearch: ProfileApprovalSearch): Future[List[PendingProfileApproval]] = {
     superiorInstanceProfileApprovalRepository

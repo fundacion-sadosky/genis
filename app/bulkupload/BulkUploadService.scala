@@ -235,7 +235,7 @@ class BulkUploadServiceImpl @Inject() (
             case Right(success) => Seq("Success") //success is Unit.
             case Left(error) =>
               logger.error(s"Failed to upload profile: $error")
-              Seq(Messages("error.E0304", error))
+              Seq(Messages("error.E0731", error))
           }
         }
       }
@@ -574,7 +574,11 @@ class BulkUploadServiceImpl @Inject() (
                   res
                 }
               } else {
-                Future.successful(errors)
+                // ADDED: Return E0731 if replication fails
+                val replicationErrors = errors.map(error =>
+                  if (error.contains("replication")) Messages("error.E0731") else error
+                )
+                Future.successful(replicationErrors)
               }
           }
         }
@@ -653,6 +657,7 @@ class BulkUploadServiceImpl @Inject() (
       )
     }
   }
+
 
   override def updateProtoProfileStatus(
                                          id: Long,

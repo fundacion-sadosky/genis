@@ -261,6 +261,7 @@ class Interconnections @Inject()( val protoRepo: ProtoProfileRepository,
 
     }
   }
+
   private def getLabCodeFromGlobalCode(globalCode: String): Option[String] = {
     val parts = globalCode.split("-")
     if (parts.length >= 4) {
