@@ -488,7 +488,7 @@ class InterconnectionServiceImpl @Inject()(
     val futureReturn = categoryService.getCategoriesMappingById(profile.categoryId).flatMap {
       case None => {
         logger.debug("No está mapeada la categoria de la instancia superior")
-        this.profileDataService.updateUploadStatus(profile.globalCode.text, PENDIENTE_ENVIO, Option.empty[String], Some(s"No se puede enviar porque no esta mapeada la categoria ${profile.categoryId.text} en la instancia superior"), Option.empty[String])
+        this.profileDataService.updateUploadStatus(profile.globalCode.text, PENDIENTE_ENVIO, Option.empty[String], Some(s"No se puede enviar porque no esta mapeada la categoria ${profile.categoryId.text} en la instancia superior"), Some(userName))
         Future.successful(Left(Messages("error.E0721")))
       }
       case Some(idCategorySuperior) => {
@@ -496,7 +496,7 @@ class InterconnectionServiceImpl @Inject()(
           case Some(supUrl) => {
             this.getConnectionsStatus(supUrl).flatMap {
               case Left(_) => {
-                this.profileDataService.updateUploadStatus(profile.globalCode.text, PENDIENTE_ENVIO, Option.empty[String], Some(s"No se puede enviar porque no se pudo conectar con la instancia superior"), Option.empty[String])
+                this.profileDataService.updateUploadStatus(profile.globalCode.text, PENDIENTE_ENVIO, Option.empty[String], Some(s"No se puede enviar porque no se pudo conectar con la instancia superior"), Some(userName))
                 Future.successful(Left(Messages("error.E0723")))
               }
               case Right(_) => {
@@ -524,14 +524,14 @@ class InterconnectionServiceImpl @Inject()(
                   if (result.status == 200) { //Acá empiezo por poner una sola vez el upload en el trace cuando el
                     traceService.add(Trace(profile.globalCode, userName, new Date(), trace.ProfileInterconectionUploadInfo))
                     logger.debug("se envio correctamente el perfil a la instancia superior")
-                    this.profileDataService.updateUploadStatus(profile.globalCode.text, ENVIADA, Option.empty[String], Option.empty[String], Option.empty[String])
+                    this.profileDataService.updateUploadStatus(profile.globalCode.text, ENVIADA, Option.empty[String], Option.empty[String], Some(userName))
                     //Si el perfil existe en PROTO_PROFILE hay que hacer el update del STATUS a Uploaded
                     this.protoRepo.updateProtoProfileStatus(profile.internalSampleCode, "Uploaded")
                     sendFiles(profile.globalCode.text, superiorLabCode)
                     Future.successful(Right(()))
                   } else {
                     logger.debug("La instancia superior rechazo el perfil")
-                    this.profileDataService.updateUploadStatus(profile.globalCode.text, PENDIENTE_ENVIO, Option.empty[String], Option.empty[String], Option.empty[String])
+                    this.profileDataService.updateUploadStatus(profile.globalCode.text, PENDIENTE_ENVIO, Option.empty[String], Option.empty[String], Some(userName))
                     Future.successful(Left(Messages("error.E0724")))
                   }
                 }
@@ -540,7 +540,7 @@ class InterconnectionServiceImpl @Inject()(
             }
           }
           case None => {
-            this.profileDataService.updateUploadStatus(profile.globalCode.text, PENDIENTE_ENVIO, Option.empty[String], Some(s"No se puede enviar porque no se pudo conectar con la instancia superior"), Option.empty[String])
+            this.profileDataService.updateUploadStatus(profile.globalCode.text, PENDIENTE_ENVIO, Option.empty[String], Some(s"No se puede enviar porque no se pudo conectar con la instancia superior"), Some(userName))
             Future.successful(Left(Messages("error.E0722")))
           }
         }
@@ -548,7 +548,7 @@ class InterconnectionServiceImpl @Inject()(
     }.recoverWith {
       case e: Exception => {
         logger.error("Error de conexión con la instancia superior", e)
-        this.profileDataService.updateUploadStatus(profile.globalCode.text, PENDIENTE_ENVIO, Option.empty[String], Some(s"No se puede enviar porque no se pudo conectar con la instancia superior"), Option.empty[String])
+        this.profileDataService.updateUploadStatus(profile.globalCode.text, PENDIENTE_ENVIO, Option.empty[String], Some(s"No se puede enviar porque no se pudo conectar con la instancia superior"), Some(userName))
         Future.successful(Left(Messages("error.E0723")))
       }
     }
