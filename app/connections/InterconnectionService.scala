@@ -149,6 +149,8 @@ trait InterconnectionService {
             ): Unit
 
   def wasMatchUploaded(matchResult: MatchResult, labImmediate: String): Boolean
+
+  def isCategoryModification(globalCode: String): Future[Boolean]
 }
 
 @Singleton
@@ -1410,6 +1412,7 @@ class InterconnectionServiceImpl @Inject()(
                 logger.debug("se actualizó correctamente el status del perfil en la instancia inferior")
                 Future.successful(Right(()))
               } else {
+                profileDataService.updateProfileReceivedStatus(labCode, globalCode, APPROVED_THIS_INSTANCE_PENDING_SEND_TO_INFERIOR, "", isCategoryModification, "", userName)
                 logger.debug(Messages("error.E0710"))
                 Future.successful(Left(Messages("error.E0710")))
               }
@@ -2683,5 +2686,18 @@ class InterconnectionServiceImpl @Inject()(
       }
       )
     ()
+  }
+
+  override def isCategoryModification(globalCode: String): Future[Boolean] = {
+    // Reuse the logic found in getModificationSetup
+    for {
+      oldProfile <- profileDataService.get(SampleCode(globalCode))
+      newProfile <- superiorInstanceProfileApprovalRepository.buildUploadedProfile(globalCode)
+    } yield {
+      (oldProfile, newProfile) match {
+        case (Some(oldP), Some(newP)) => oldP.category != newP.categoryId
+        case _ => false // If new profile doesn't exist or old doesn't exist, it's not a modification in this context
+      }
+    }
   }
 }
