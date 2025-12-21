@@ -1,6 +1,7 @@
 package reporting
 
 import models.Tables
+import play.api.Logger.logger
 import play.api.{Application, db}
 import play.api.db.slick.Config.driver.simple.{Compiled, TableQuery, booleanColumnType, columnExtensionMethods, runnableCompiledToAppliedQueryInvoker, slickDriver, stringColumnType}
 import play.api.db.slick.DB
@@ -15,10 +16,11 @@ abstract class ProfileReportPostgresRepository  {
   def cantidadPerfilesPorUsuarioyCategoriaActivosyEliminados(): Future[Seq[(String, String, Boolean, Boolean, Int)]]
   def cantidadPerfilesPorCategoriaActivosyEliminados(): Future[Seq[(String, Boolean , Boolean, Int)]]
   def getPerfilesEnviadosAInstanciaSuperiorPorEstado(): Future[Seq[(String, Int)]]
-  def getPerfilesRecibidosDeInstanciasInferioresPorEstado(): Future[Seq[(String, String, Option[String], Option[String], Boolean, Option[String], String, String, Boolean)]]
+  def getPerfilesRecibidosDeInstanciasInferioresPorEstado(): Future[Seq[(String, Seq[(String, String, Int)])]]
   def getAllProfilesListing(): Future[Seq[Tables.ProfileData#TableElementType]]
   def getAllReplicatedToSuperior(): Future[Seq[(String, String, String, String, Boolean, Option[String], Option[String],Option[String])]]
   def getAllReplicatedFromInferior(): Future[Seq[(String, String, String, Boolean, Option[String], Option[String],Option[String])]]
+  def getLabCodeFromGlobalCode(globalCode: String): Option[String]
 }
 @Singleton
 class PostgresProfileReportRepository @Inject() (implicit val app: Application) extends ProfileReportPostgresRepository with DefaultDb {
@@ -113,7 +115,7 @@ class PostgresProfileReportRepository @Inject() (implicit val app: Application) 
     }
   }
 
-  def getPerfilesRecibidosDeInstanciasInferioresPorEstado(): Future[Seq[(String, String, Option[String], Option[String], Boolean, Option[String], String, String, Boolean)]] = {
+  def getPerfilesRecibidosDeInstanciasInferioresPorEstado(): Future[Seq[(String, Seq[(String, String, Int)])]] = {
 
     // Step 1: Fetch all profiles received with joined statuses, categories
     val baseProfilesQuery = for {
@@ -204,56 +206,103 @@ class PostgresProfileReportRepository @Inject() (implicit val app: Application) 
     }
 
     // Step 7: Combine all data and produce the final result
-    val resultF: Future[Seq[(String, String, Option[String], Option[String], Boolean, Option[String], String, String, Boolean)]] =
+    val resultF: Future[Seq[(String, Seq[(String, String, Int)])]] =
       for {
         baseList <- baseProfilesListF
         rejectedSeq <- rejectedParsedF
         pendingSeq <- pendingParsedF
         catsMap <- categoriesMapF
       } yield {
-        // Create a map for base profiles for easier lookup
+        // CORRECTION HERE:
+        // 1. Match the raw values coming from the DB (gc, dbLabCode, ...)
+        // 2. Calculate the 'resolvedLabCode' inside the block using your helper method
         val baseMap: Map[String, (String, Option[String], Option[String], Boolean, Option[String], String, String, Boolean)] = baseList.map {
-          case (gc, labCode, motiveOpt, userNameOpt, isCatMod, interError, status, catId, isRef) =>
-            gc -> (labCode, motiveOpt, userNameOpt, isCatMod, interError, status, catId, isRef)
+          case (gc, dbLabCode, motiveOpt, userNameOpt, isCatMod, interError, status, catId, isRef) =>
+
+            // Logic: Try to extract from GlobalCode. If it fails or returns None, fallback to the DB value.
+            val resolvedLabCode = getLabCodeFromGlobalCode(gc).getOrElse(dbLabCode)
+
+            gc -> (resolvedLabCode, motiveOpt, userNameOpt, isCatMod, interError, status, catId, isRef)
         }.toMap
 
-        // Process rejected profiles and merge/add them to the result
+        // Process rejected profiles (No changes needed here, just ensuring it uses baseMap correctly)
         val processedRejected: Seq[(String, String, Option[String], Option[String], Boolean, Option[String], String, String, Boolean)] = rejectedSeq.map {
           case (gc, labCode, catId, rejectMotive) =>
             val isReference = catsMap.getOrElse(catId, false)
-            // Check if the global code exists in the base map
             baseMap.get(gc) match {
               case Some((baseLabCode, motiveOpt, userNameOpt, isCatMod, interError, status, baseCatId, isRef)) =>
-                // If it exists, merge the data
                 (gc, baseLabCode, motiveOpt, userNameOpt, isCatMod, rejectMotive, status, catId, isReference)
               case None =>
-                // If it doesn't exist, create a new entry
-                (gc, labCode, None, None, false, rejectMotive, "Rechazado en esta instancia", catId, isReference)
+                // Resolve lab code here as well for consistency
+                val resolvedLabCode = getLabCodeFromGlobalCode(gc).getOrElse(labCode)
+                (gc, resolvedLabCode, None, None, false, rejectMotive, "Rechazado en esta instancia", catId, isReference)
             }
         }
 
-        // Process pending profiles and add them to the result
+        // Process pending profiles (No changes needed here)
         val processedPending: Seq[(String, String, Option[String], Option[String], Boolean, Option[String], String, String, Boolean)] = pendingSeq.map {
           case (gc, labCode, catId) =>
             val isReference = catsMap.getOrElse(catId, false)
-            // Check if the global code exists in the base map
             baseMap.get(gc) match {
               case Some((baseLabCode, motiveOpt, userNameOpt, isCatMod, interError, status, baseCatId, isRef)) =>
-                // If it exists, merge the data with "Pendientes de aprobación"
                 (gc, baseLabCode, motiveOpt, userNameOpt, isCatMod, interError, "Pendiente de aprobación", catId, isReference)
               case None =>
-                // If it doesn't exist, create a new entry with "Pendientes de aprobación"
-                (gc, labCode, None, None, false, None, "Pendiente de aprobación", catId, isReference)
+                val resolvedLabCode = getLabCodeFromGlobalCode(gc).getOrElse(labCode)
+                (gc, resolvedLabCode, None, None, false, None, "Pendiente de aprobación", catId, isReference)
             }
         }
 
         // Combine base profiles, processed rejected profiles, and processed pending profiles
-        val combinedResults = baseList ++ processedRejected ++ processedPending
-        combinedResults
+        val combinedResults = baseList.map {
+          // We need to remap baseList to use the resolvedLabCode as well to match the structure
+          case (gc, dbLabCode, motiveOpt, userNameOpt, isCatMod, interError, status, catId, isRef) =>
+            val resolvedLabCode = getLabCodeFromGlobalCode(gc).getOrElse(dbLabCode)
+            (gc, resolvedLabCode, motiveOpt, userNameOpt, isCatMod, interError, status, catId, isRef)
+        } ++ processedRejected ++ processedPending
+
+        // Deduplicate: If a profile exists in multiple lists (e.g. Received AND Rejected), take the one with the most specific status
+        // The logic below prioritizes the last occurrence if we simply group.
+        // However, usually "Pending" or "Rejected" from the Approval table is more recent than "Received".
+        // Since we check `baseMap.get` inside processedRejected/Pending, those lists contain the merged info.
+
+        // Strategy: Group by GlobalCode and pick the "best" one.
+        // Here we assume processedRejected/Pending have precedence.
+        val uniqueMap = scala.collection.mutable.Map[String, (String, String, Option[String], Option[String], Boolean, Option[String], String, String, Boolean)]()
+
+        combinedResults.foreach { item =>
+          // Simple overwrite logic: Later items in the list overwrite earlier ones.
+          // Order in combinedResults: Base ++ Rejected ++ Pending.
+          // This means Pending overwrites Rejected which overwrites Base.
+          uniqueMap.put(item._1, item)
+        }
+
+        val deduplicatedResults = uniqueMap.values.toSeq
+
+        deduplicatedResults
+          .groupBy(_._2) // Group by labCode (Element 2)
+          .map { case (labCode, seq) =>
+            // Group by Category (Element 8) and Status (Element 7)
+            val subGrouped = seq.groupBy(t => (t._8, t._7))
+
+            val subSeq = subGrouped.map { case ((category, status), innerSeq) =>
+              (category, status, innerSeq.size)
+            }.toSeq
+
+            (labCode, subSeq.sortBy(_._1))
+          }
+          .toSeq.sortBy(_._1)
       }
 
-    // Finally, return the Future result
     resultF
+  }
+
+  def getLabCodeFromGlobalCode(globalCode: String): Option[String] = {
+    val parts = globalCode.split("-")
+    if (parts.length >= 4) {
+      Some(parts(2))
+    } else {
+      None  // Or handle the case where the globalCode doesn't have the expected format
+    }
   }
 
   def getAllProfilesListing(): Future[Seq[Tables.ProfileData#TableElementType]] = Future {
