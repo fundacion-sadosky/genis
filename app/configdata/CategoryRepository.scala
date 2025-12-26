@@ -22,6 +22,11 @@ abstract class CategoryRepository extends DefaultDb with Transaction {
 
   def listCategoriesWithProfiles: Future[List[Category]]
 
+  def listConfigurations: Future[Seq[CategoryConfigurationRow]]
+  def listAssociations: Future[Seq[CategoryAssociation]]
+  def listAlias: Future[Seq[CategoryAliasRow]]
+  def listMatchingRules: Future[Seq[CategoryMatchingRow]]
+
   def addCategory(cat: Category): Future[AlphanumericId]
   def updateCategory(category: Category): Future[Int]
   def removeCategory(categoryId: AlphanumericId): Future[Int]
@@ -216,6 +221,8 @@ class SlickCategoryRepository @Inject() (implicit app: Application) extends Cate
     Compiled(categories.filter(_ => LiteralColumn(true)))
 
   private val queryGetAllGroups =
+    Compiled(groups.filter(_ => LiteralColumn(true)))
+
   override def listGroupsAndCategories: Future[Seq[(Group, Option[Category])]] = Future {
     DB.withSession { implicit session =>
       queryGetGroupsCategories.list.map {
@@ -284,6 +291,65 @@ class SlickCategoryRepository @Inject() (implicit app: Application) extends Cate
           thisAlias,
           thisMatchRules,
           Some(cat.tipo))
+      }
+    }
+  }
+
+  override def listConfigurations: Future[Seq[CategoryConfigurationRow]] = Future {
+    DB.withSession { implicit session =>
+      confQuery.list map {conf =>
+        CategoryConfigurationRow(
+          conf.id,
+          conf.category,
+          conf.`type`,
+          conf.collectionUri,
+          conf.draftUri,
+          conf.minLocusPerProfile,
+          conf.maxOverageDeviatedLoci,
+          conf.maxAllelesPerLocus,
+          conf.multiallelic
+          )
+        }
+      }
+    }
+  override def listAssociations: Future[Seq[CategoryAssociation]] = Future {
+    DB.withSession { implicit session =>
+      assocQuery.list map {assoc =>
+        CategoryAssociation(
+          assoc.`type`,
+          AlphanumericId(assoc.categoryRelated),
+          assoc.mismatchs
+        )
+      }
+    }
+  }
+  override def listAlias: Future[Seq[CategoryAliasRow]] = Future {
+    DB.withSession { implicit session =>
+      aliasQuery.list map {alias =>
+        CategoryAliasRow(
+          alias.alias,
+          alias.category
+        )
+      }
+    }
+  }
+  override def listMatchingRules: Future[Seq[CategoryMatchingRow]] = Future {
+    DB.withSession { implicit session =>
+      queryGetAllCategoryMatching.list map {matchingRule =>
+        CategoryMatchingRow(
+          matchingRule.id,
+          matchingRule.category,
+          matchingRule.categoryRelated,
+          matchingRule.priority,
+          matchingRule.minimumStringency,
+          matchingRule.failOnMatch,
+          matchingRule.forwardToUpper,
+          matchingRule.matchingAlgorithm,
+          matchingRule.minLocusMatch,
+          matchingRule.mismatchsAllowed,
+          matchingRule.`type`,
+          matchingRule.considerForN
+        )
       }
     }
   }
@@ -450,12 +516,6 @@ class SlickCategoryRepository @Inject() (implicit app: Application) extends Cate
         Logger.info(
           s"""
              |Deleted:
-             |matching=$m1
-             |assoc=$m2
-             |alias=$m3
-             |config=$m4
-             |mapping=$m5
-             |modifications=$m6
              |categories=$m7
          """.stripMargin
         )
@@ -465,6 +525,30 @@ class SlickCategoryRepository @Inject() (implicit app: Application) extends Cate
     } catch {
       case e: Throwable =>
         Logger.error("Error removing all categories", e)
+        throw e
+    }
+  }
+
+
+  override def removeAllGroups(): Future[Int] = Future {
+    try {
+      DB.withTransaction { implicit session =>
+
+        val allGroups = queryGetAllGroups.run
+        Logger.info("Groups to remove: " + (allGroups).toString())
+
+        val res = queryGetAllGroups.delete
+
+        Logger.info(
+          s"""
+             |Deleted:=$res
+         """
+        )
+        res
+      }
+    } catch {
+      case e: Throwable =>
+        Logger.error("Error removing all groups", e)
         throw e
     }
   }

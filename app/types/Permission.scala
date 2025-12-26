@@ -180,7 +180,11 @@ object Permission {
       StaticAuthorisationOperation("""/catmodification""".r, """POST""".r, "CategoryModificationCreate"),
       StaticAuthorisationOperation("""/catmodification""".r, """DELETE""".r, "CategoryModificationDelete"),
       StaticAuthorisationOperation("""/catmodification""".r, """GET""".r, "CategoryModificationRead"),
-      StaticAuthorisationOperation("""/catmodifications""".r, """GET""".r, "CategoryModificationRead")
+      StaticAuthorisationOperation("""/catmodifications.*""".r, """GET""".r, "CategoryModificationRead"),
+      StaticAuthorisationOperation("""/category-configurations.*""".r, """GET""".r, "CategoryConfigurationRead"),
+      StaticAuthorisationOperation("""/category-associations.*""".r, """GET""".r, "CategoryAssociationsRead"),
+      StaticAuthorisationOperation("""/category-alias.*""".r, """GET""".r, "CategoryAliasesRead"),
+      StaticAuthorisationOperation("""/category-matching-rules.*""".r, """GET""".r, "CategoryMatchingRulesRead")
     )
   }
   case object ROLE_CRUD extends Permission {

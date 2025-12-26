@@ -101,9 +101,10 @@ function CategoriesService($q, $http, playRoutes) {
     return playRoutes.controllers.Categories.exportCategories().get();
   };
 
-  this.importCategories = function(formData) {
+
+  this.importGroupsAndCategories = function(formData) {
     // Extract the URL from the Play routes object.
-    var url = playRoutes.controllers.Categories.importCategories().url;
+    var url = playRoutes.controllers.Categories.importGroupsAndCategories().url;
 
     // Use $http directly to ensure proper FormData handling.
     return $http.post(url, formData, {
@@ -111,6 +112,31 @@ function CategoriesService($q, $http, playRoutes) {
       headers: { 'Content-Type': undefined }  // Let the browser set multipart/form-data with boundary.
     });
   };
+
+  this.exportCategoryConfigurations = function() {
+    return playRoutes.controllers.Categories.exportConfigurations().get();
+  };
+
+  this.exportCategoryAssociations = function() {
+    return playRoutes.controllers.Categories.exportAssociations().get();
+  };
+
+  this.exportCategoryAlias = function() {
+    return playRoutes.controllers.Categories.exportAlias().get();
+  };
+
+  this.exportCategoryMatchingRules = function() {
+    return playRoutes.controllers.Categories.exportMatchingRules().get();
+  };
+
+  this.exportCategoryModifications = function() {
+    return playRoutes.controllers.Categories.exportModifications().get();
+  };
+
+  this.exportCategoryMappings = function() {
+    return playRoutes.controllers.Categories.exportMappings().get();
+  };
+
 }
 
 return CategoriesService;
