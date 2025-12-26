@@ -225,42 +225,55 @@ class Interconnections @Inject()( val protoRepo: ProtoProfileRepository,
         Future.successful(BadRequest(JsError.toFlatJson(errors)))
       },
         approvals => {
-          interconnectionService
-            .approveProfiles(approvals,userName)
-            .flatMap{
-              case Left(e) => Future.successful(BadRequest(Json.obj("message" -> e)))
-              case Right(()) => {
-                // After successful approval, insert into PROFILE_RECEIVED
+          // 1. We need to calculate isCategoryModification for each approval BEFORE calling the service,
+          // because the service might delete the approval record upon success.
+          val approvalsWithModStatusFuture: Future[List[(ProfileApproval, Boolean)]] = Future.sequence(approvals.map { approval =>
+            // We need to check if the category in the approval matches the existing profile data
+            interconnectionService.isCategoryModification(approval.globalCode).map { isMod =>
+              (approval, isMod)
+            }
+          })
 
-                Future.sequence(approvals.map(approval => {
-                  val labCode: Option[String] = getLabCodeFromGlobalCode(approval.globalCode)
-                  // TODO: fijarse
-                  labCode match {
-                    //Insertar el perfil en PROFILE_RECEIVED table con estado pendiente de avisar a la instancia inferior
-                    case Some(code) =>  profiledataService.addProfileReceivedApproved(code, approval.globalCode, 22L, userName, false) // Using profiledataService to access the repository
-                    case None => Future.successful(Left("Invalid global code format")) // Or handle the missing labCode case
-                  }
-                })).map { results =>
-                  // Handle results of addProfileReceived calls
-                  if (results.forall(_.isRight)) {
-                    Ok.withHeaders(
-                      "X-CREATED-ID" -> approvals
-                        .map(a=>a.globalCode)
-                        .mkString(start = "[",sep =",",end ="]")
-                    )
-                  } else {
-                    // If any insertion fails, return an error (you might want more specific error handling)
-                    InternalServerError(Json.obj("message" -> "Error inserting into PROFILE_RECEIVED"))
+          approvalsWithModStatusFuture.flatMap { approvalsWithStatus =>
+            interconnectionService
+              .approveProfiles(approvals, userName)
+              .flatMap {
+                case Left(e) => Future.successful(BadRequest(Json.obj("message" -> e)))
+                case Right(()) => {
+                  // After successful approval, insert into PROFILE_RECEIVED using the pre-calculated status
+                  Future.sequence(approvalsWithStatus.map { case (approval, isCatMod) =>
+                    val labCode: Option[String] = getLabCodeFromGlobalCode(approval.globalCode)
+                    labCode match {
+                      case Some(code) =>
+                        profiledataService.addProfileReceivedApproved(
+                          code,
+                          approval.globalCode,
+                          22L,
+                          userName,
+                          isCategoryModification = isCatMod // <--- Use the value here
+                        )
+                      case None => Future.successful(Left("Invalid global code format"))
+                    }
+                  }).map { results =>
+                    if (results.forall(_.isRight)) {
+                      Ok.withHeaders(
+                        "X-CREATED-ID" -> approvals
+                          .map(a => a.globalCode)
+                          .mkString(start = "[", sep = ",", end = "]")
+                      )
+                    } else {
+                      InternalServerError(Json.obj("message" -> "Error inserting into PROFILE_RECEIVED"))
+                    }
                   }
                 }
-
               }
-            }
+          }
         }
       )
-
     }
   }
+
+
   private def getLabCodeFromGlobalCode(globalCode: String): Option[String] = {
     val parts = globalCode.split("-")
     if (parts.length >= 4) {
@@ -308,9 +321,9 @@ class Interconnections @Inject()( val protoRepo: ProtoProfileRepository,
 
 
 
-  def uploadProfile(globalCode:String) = Action.async {
+  def uploadProfile(globalCode:String, userName: String) = Action.async {
     _ => {
-      interconnectionService.uploadProfile(globalCode).map{
+      interconnectionService.uploadProfile(globalCode, userName).map{
         case Left(e) => BadRequest(Json.obj("message" -> e))
         case Right(()) => Ok.withHeaders("X-CREATED-ID" -> globalCode)
       }

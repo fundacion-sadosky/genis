@@ -122,22 +122,25 @@ class ProfileReportServiceImpl @Inject() (profileReportMongoRepository: ProfileR
 
 
   def generateRecibidos(): Future[Result] = {
-    profilePostgresReportRepository.getPerfilesRecibidosDeInstanciasInferioresPorEstado().map { profiles =>
-      implicit val tupleWrites: Writes[(String, String, Option[String],Option[String], Boolean, Option[String], String, String, Boolean)] = (
-        (__ \ "globalCode").write[String] and
-          (__ \ "labCode").write[String] and
-          (__ \ "motive").write[Option[String]] and
-          (__ \ "userName").write[Option[String]] and
-          (__ \ "isCategoryModification").write[Boolean] and
-          (__ \ "interconnectionError").write[Option[String]] and
+    profilePostgresReportRepository.getPerfilesRecibidosDeInstanciasInferioresPorEstado().map { groupedData =>
+      // Define Writes for the inner tuple (category, status, count)
+      implicit val innerWrites: Writes[(String, String, Int)] = (
+        (__ \ "category").write[String] and
           (__ \ "status").write[String] and
-          (__ \ "category").write[String] and
-          (__ \ "isReference").write[Boolean]
+          (__ \ "count").write[Int]
         ).tupled
 
-      val reportData = Json.obj("profiles" -> Json.toJson(profiles)(Writes.seq(tupleWrites)))
+      // Define Writes for the outer tuple (labCode, Seq[(category, status, count)])
+      implicit val outerWrites: Writes[(String, Seq[(String, String, Int)])] = (
+        (__ \ "labCode").write[String] and
+          (__ \ "details").write[Seq[(String, String, Int)]](Writes.seq(innerWrites))
+        ).tupled
 
-      pdfGen.ok(views.html.profilesPerLabReport("Perfiles recibidos por instancia y categoría y estado", reportData), BASE_URL)
+      // Create the JSON object
+      val reportData = Json.obj("labs" -> Json.toJson(groupedData)(Writes.seq(outerWrites)))
+
+      // Generate the PDF report
+      pdfGen.ok(views.html.profilesPerLabReport("Perfiles recibidos por instancia, categoría y estado", reportData), BASE_URL)
     }
   }
 
