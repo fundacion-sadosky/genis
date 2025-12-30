@@ -22,6 +22,11 @@ abstract class CategoryRepository extends DefaultDb with Transaction {
 
   def listCategoriesWithProfiles: Future[List[Category]]
 
+  def listConfigurations: Future[Seq[CategoryConfigurationRow]]
+  def listAssociations: Future[Seq[CategoryAssociation]]
+  def listAlias: Future[Seq[CategoryAliasRow]]
+  def listMatchingRules: Future[Seq[CategoryMatchingRow]]
+
   def addCategory(cat: Category): Future[AlphanumericId]
   def updateCategory(category: Category): Future[Int]
   def removeCategory(categoryId: AlphanumericId): Future[Int]
@@ -43,6 +48,7 @@ abstract class CategoryRepository extends DefaultDb with Transaction {
   def addGroup(group: Group): Future[AlphanumericId]
   def updateGroup(group: Group): Future[Int]
   def removeGroup(groupId: AlphanumericId): Future[Int]
+  def removeAllGroups(): Future[Int]
 
   def insertOrUpdateMapping(categoryMapping: CategoryMappingList): Future[Either[String, Unit]]
   def listCategoriesMapping: Future[List[FullCategoryMapping]]
@@ -193,26 +199,30 @@ class SlickCategoryRepository @Inject() (implicit app: Application) extends Cate
   private def queryGetMappingReverseById(id: Column[String]) = categoryMappingTable.filter(_.idSuperior === id)
   val getMappingReverseById = Compiled(queryGetMappingReverseById _)
   
-  private val deleteAllCategoryMatching =
+  private val queryGetAllCategoryMatching =
     Compiled(categoryMatching.filter(_ => LiteralColumn(true)))
 
-  private val deleteAllCategoryAssoc =
+  private val queryGetAllCategoryAssoc =
     Compiled(categoryAssoc.filter(_ => LiteralColumn(true)))
 
-  private val deleteAllCategoryAlias =
+  private val queryGetAllCategoryAlias =
     Compiled(categoriesAlias.filter(_ => LiteralColumn(true)))
 
-  private val deleteAllCategoryConfiguration =
+  private val queryGetAllCategoryConfiguration =
     Compiled(categoryConfiguration.filter(_ => LiteralColumn(true)))
 
-  private val deleteAllCategoryMapping =
+  private val queryGetAllCategoryMapping =
     Compiled(categoryMappingTable.filter(_ => LiteralColumn(true)))
 
-  private val deleteAllCategoryModifications =
+  private val queryGetAllCategoryModifications =
     Compiled(categoriesModifications.filter(_ => LiteralColumn(true)))
 
-  private val deleteAllCategories =
+  private val queryGetAllCategories =
     Compiled(categories.filter(_ => LiteralColumn(true)))
+
+  private val queryGetAllGroups =
+    Compiled(groups.filter(_ => LiteralColumn(true)))
+
   override def listGroupsAndCategories: Future[Seq[(Group, Option[Category])]] = Future {
     DB.withSession { implicit session =>
       queryGetGroupsCategories.list.map {
@@ -281,6 +291,65 @@ class SlickCategoryRepository @Inject() (implicit app: Application) extends Cate
           thisAlias,
           thisMatchRules,
           Some(cat.tipo))
+      }
+    }
+  }
+
+  override def listConfigurations: Future[Seq[CategoryConfigurationRow]] = Future {
+    DB.withSession { implicit session =>
+      confQuery.list map {conf =>
+        CategoryConfigurationRow(
+          conf.id,
+          conf.category,
+          conf.`type`,
+          conf.collectionUri,
+          conf.draftUri,
+          conf.minLocusPerProfile,
+          conf.maxOverageDeviatedLoci,
+          conf.maxAllelesPerLocus,
+          conf.multiallelic
+          )
+        }
+      }
+    }
+  override def listAssociations: Future[Seq[CategoryAssociation]] = Future {
+    DB.withSession { implicit session =>
+      assocQuery.list map {assoc =>
+        CategoryAssociation(
+          assoc.`type`,
+          AlphanumericId(assoc.categoryRelated),
+          assoc.mismatchs
+        )
+      }
+    }
+  }
+  override def listAlias: Future[Seq[CategoryAliasRow]] = Future {
+    DB.withSession { implicit session =>
+      aliasQuery.list map {alias =>
+        CategoryAliasRow(
+          alias.alias,
+          alias.category
+        )
+      }
+    }
+  }
+  override def listMatchingRules: Future[Seq[CategoryMatchingRow]] = Future {
+    DB.withSession { implicit session =>
+      queryGetAllCategoryMatching.list map {matchingRule =>
+        CategoryMatchingRow(
+          matchingRule.id,
+          matchingRule.category,
+          matchingRule.categoryRelated,
+          matchingRule.priority,
+          matchingRule.minimumStringency,
+          matchingRule.failOnMatch,
+          matchingRule.forwardToUpper,
+          matchingRule.matchingAlgorithm,
+          matchingRule.minLocusMatch,
+          matchingRule.mismatchsAllowed,
+          matchingRule.`type`,
+          matchingRule.considerForN
+        )
       }
     }
   }
@@ -432,27 +501,21 @@ class SlickCategoryRepository @Inject() (implicit app: Application) extends Cate
     try {
       DB.withTransaction { implicit session =>
 
-        val m1 = deleteAllCategoryMatching.delete
-        val m2 = deleteAllCategoryAssoc.delete
-        val m3 = deleteAllCategoryAlias.delete
-        val m4 = deleteAllCategoryConfiguration.delete
-        val m5 = deleteAllCategoryMapping.delete
-        val m6 = deleteAllCategoryModifications.delete
+        val m1 = queryGetAllCategoryMatching.delete
+        val m2 = queryGetAllCategoryAssoc.delete
+        val m3 = queryGetAllCategoryAlias.delete
+        val m4 = queryGetAllCategoryConfiguration.delete
+        val m5 = queryGetAllCategoryMapping.delete
+        val m6 = queryGetAllCategoryModifications.delete
 
-        val allCategories = deleteAllCategories.run
+        val allCategories = queryGetAllCategories.run
         Logger.info("Categories to remove: " + (allCategories).toString())
 
-        val m7 = deleteAllCategories.delete
+        val m7 = queryGetAllCategories.delete
 
         Logger.info(
           s"""
              |Deleted:
-             |matching=$m1
-             |assoc=$m2
-             |alias=$m3
-             |config=$m4
-             |mapping=$m5
-             |modifications=$m6
              |categories=$m7
          """.stripMargin
         )
@@ -462,6 +525,30 @@ class SlickCategoryRepository @Inject() (implicit app: Application) extends Cate
     } catch {
       case e: Throwable =>
         Logger.error("Error removing all categories", e)
+        throw e
+    }
+  }
+
+
+  override def removeAllGroups(): Future[Int] = Future {
+    try {
+      DB.withTransaction { implicit session =>
+
+        val allGroups = queryGetAllGroups.run
+        Logger.info("Groups to remove: " + (allGroups).toString())
+
+        val res = queryGetAllGroups.delete
+
+        Logger.info(
+          s"""
+             |Deleted:=$res
+         """
+        )
+        res
+      }
+    } catch {
+      case e: Throwable =>
+        Logger.error("Error removing all groups", e)
         throw e
     }
   }

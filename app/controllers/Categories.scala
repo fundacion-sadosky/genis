@@ -14,7 +14,7 @@ import configdata._
 import play.api.i18n.Messages
 
 import scala.concurrent.Future
-import profiledata._//{ProfileDataAttempt, ProfileDataRepository}
+import profiledata._
 
 import scala.util.{Left, Right}
 import play.api.mvc._
@@ -24,9 +24,11 @@ import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
 import java.nio.file.{Files, Paths}
 import models.Tables.CategoryRow
+import play.api.libs.Files.TemporaryFile
 import play.api.libs.functional.syntax.toFunctionalBuilderOps
 import play.api.libs.functional.syntax._
 import profile.{ProfileRepository, ProfileService}
+import models.Tables.{CategoryAliasRow, CategoryMatchingRow, CategoryConfigurationRow}
 
 @Singleton
 class Categories @Inject() (
@@ -68,6 +70,132 @@ class Categories @Inject() (
       Ok(json).as("application/json").withHeaders("Content-Disposition" -> "attachment; filename=groups.json")
     }
   }
+  
+  implicit val categoryConfigurationRowWrites: Writes[CategoryConfigurationRow] = Json.writes[CategoryConfigurationRow]
+
+  def exportConfigurations = Action.async {
+    categoryService.listConfigurations map { conf =>
+      val json = Json.toJson(conf)
+      Ok(json).as("application/json").withHeaders("Content-Disposition" -> "attachment; filename=categoryConfigurations.json")
+    }
+  }
+
+  def exportAssociations = Action.async {
+    categoryService.listAssociations map { assoc =>
+      val json = Json.toJson(assoc)
+      Ok(json).as("application/json").withHeaders("Content-Disposition" -> "attachment; filename=categoryAssociations.json")
+    }
+  }
+  implicit val categoryAliasRowWrites: Writes[CategoryAliasRow] = Json.writes[CategoryAliasRow]
+  def exportAlias = Action.async {
+    categoryService.listAlias map { alias =>
+      val json = Json.toJson(alias)
+      Ok(json).as("application/json").withHeaders("Content-Disposition" -> "attachment; filename=categoryAlias.json")
+    }
+  }
+  implicit val categoryMatchingRowWrites: Writes[CategoryMatchingRow] = Json.writes[CategoryMatchingRow]
+  def exportMatchingRules = Action.async {
+    categoryService.listMatchingRules map { matchingRule =>
+      val json = Json.toJson(matchingRule)
+      Ok(json).as("application/json").withHeaders("Content-Disposition" -> "attachment; filename=categoryMatchingRules.json")
+    }
+  }
+
+  def exportModifications = Action.async {
+    categoryService.retrieveAllCategoryModificationAllowed.map { mods =>
+      val json = Json.toJson(
+        mods.map {
+          case (from, to) =>
+            Json.obj(
+              "from" -> from.text,
+              "to"   -> to.text
+            )
+        }
+      )
+
+      Ok(json)
+        .as("application/json")
+        .withHeaders("Content-Disposition" -> "attachment; filename=categoryModifications.json")
+    }
+  }
+
+
+  def exportMappings = Action.async {
+    categoryService.listCategoriesMapping map { mapping =>
+      val json = Json.toJson(mapping)
+      Ok(json).as("application/json").withHeaders("Content-Disposition" -> "attachment; filename=categoryMappings.json")
+    }
+  }
+  
+  def importGroups: Action[MultipartFormData[play.api.libs.Files.TemporaryFile]] = Action.async(parse.multipartFormData) { request =>
+    request.body.file("file").map { file =>
+      // Guardar archivo temporalmente
+      val path = new java.io.File("/tmp/" + file.filename)
+      file.ref.moveTo(path, replace = true)
+
+      // Leer contenido del archivo
+      val source = scala.io.Source.fromFile(path, "UTF-8")
+      val jsonString = try source.mkString finally source.close()
+
+      // Parsear JSON a lista de Group
+      Json.parse(jsonString).validate[List[Group]] match {
+        case JsSuccess(importedGroups, _) =>
+          // Proceso de importación: eliminar grupos existentes y añadir los nuevos
+          processImportGroups(importedGroups)
+        case JsError(errors) =>
+          Future.successful(BadRequest(Json.obj(
+            "status" -> "error",
+            "message" -> "Error en el formato JSON",
+            "details" -> JsError.toFlatJson(errors)
+          )))
+      }
+    }.getOrElse {
+      Future.successful(BadRequest(Json.obj(
+        "status" -> "error",
+        "message" -> "No se encontró ningún archivo"
+      )))
+    }
+  }
+
+  // Método auxiliar para procesar la importación de categorías
+  private def processImportGroups(importedGroups: List[Group]): Future[Result] = {
+    // Supongo no existencia de perfiles
+    Logger.info("Eliminando grupos")
+
+    categoryService.removeAllGroups().flatMap { nGroupsRemoved =>
+
+      Logger.info("Cantidad de grupos eliminados: " + nGroupsRemoved)
+
+      val addFutures = importedGroups.map { group =>
+        Logger.info("Agregando grupo: " + group)
+        categoryService.addGroup(group)
+      }
+
+      Future.sequence(addFutures).map { addResults =>
+        // Verificar errores de adición
+        val addErrors = addResults.collect { case Left(error) => error }
+        Logger.info("Cantidad de errores en adds: " + addErrors.size)
+
+        if (addErrors.nonEmpty) {
+          InternalServerError(Json.obj(
+            "status" -> "error",
+            "message" -> "Error al importar grupos",
+            "details" -> addErrors
+          ))
+        } else {
+          // Importación exitosa
+          Ok(Json.obj(
+            "status" -> "success",
+            "message" -> "Importación de grupos exitosa",
+            "count" -> importedGroups.size
+          ))
+        }
+      }
+    }
+  }
+
+
+
   def exportCategories: Action[AnyContent] = Action {
     categoryService.exportCategories("/tmp/categories.json") match {
       case Right(_) =>
@@ -91,80 +219,97 @@ class Categories @Inject() (
     )(CategoryRow.apply _)
   //Json.reads[CategoryRow]
 
-  def importCategories: Action[MultipartFormData[play.api.libs.Files.TemporaryFile]] = Action.async(parse.multipartFormData) { request =>
-    request.body.file("file").map { file =>
-      // Guardar archivo temporalmente
-      val path = new java.io.File("/tmp/" + file.filename)
-      file.ref.moveTo(path, replace = true)
+  private def readJsonFile[T: Reads](
+                                      file: MultipartFormData.FilePart[TemporaryFile]
+                                    ): Future[T] = Future {
 
-      // Leer contenido del archivo
-      val source = scala.io.Source.fromFile(path, "UTF-8")
-      val jsonString = try source.mkString finally source.close()
+    val path = new java.io.File("/tmp/" + file.filename)
+    file.ref.moveTo(path, replace = true)
 
-      // Parsear JSON a lista de CategoryRow
-      Json.parse(jsonString).validate[List[CategoryRow]] match {
-        case JsSuccess(importedCategories, _) =>
-          // Proceso de importación: eliminar categorías existentes y añadir las nuevas
-          processImportCategories(importedCategories)
-        case JsError(errors) =>
-          Future.successful(BadRequest(Json.obj(
-            "status" -> "error",
-            "message" -> "Error en el formato JSON",
-            "details" -> JsError.toFlatJson(errors)
-          )))
-      }
-    }.getOrElse {
-      Future.successful(BadRequest(Json.obj(
-        "status" -> "error",
-        "message" -> "No se encontró ningún archivo"
-      )))
+    val source = scala.io.Source.fromFile(path, "UTF-8")
+    val jsonString = try source.mkString finally source.close()
+
+    Json.parse(jsonString).as[T]
+  }
+  private def addAllCategories(categories: List[CategoryRow]): Future[Unit] = {
+    val futures = categories.map { c =>
+      categoryService.addCategory(
+        Category(
+          AlphanumericId(c.id),
+          AlphanumericId(c.group),
+          c.name,
+          c.isReference,
+          c.description
+        )
+      )
     }
+
+    Future.sequence(futures).map(_ => ())
   }
 
-  // Método auxiliar para procesar la importación de categorías
-  private def processImportCategories(importedCategories: List[CategoryRow]): Future[Result] = {
-    // Supongo no existencia de perfiles
-    Logger.info("Buscando categorías")
+  private def addAllGroups(groups: List[Group]): Future[Unit] = {
+    val futures = groups.map { g =>
+      categoryService.addGroup(
+        Group(
+          g.id,
+          g.name,
+          g.description
+        )
+      )
+    }
 
-    categoryService.removeAllCategories().flatMap { nCategoriesRemoved =>
+    Future.sequence(futures).map(_ => ())
+  }
+  def importGroupsAndCategories: Action[MultipartFormData[TemporaryFile]] =
+    Action.async(parse.multipartFormData) { request =>
 
-        Logger.info("Cantidad de categorías eliminadas: " + nCategoriesRemoved)
+      val maybeGroupsFile     = request.body.file("groups")
+      val maybeCategoriesFile = request.body.file("categories")
 
-        val addFutures = importedCategories.map { categoryRow =>
-          // Convertir CategoryRow a Category
-          val category = Category(
-            AlphanumericId(categoryRow.id),
-            AlphanumericId(categoryRow.group),
-            categoryRow.name,
-            categoryRow.isReference,
-            categoryRow.description
-          )
-          Logger.info("Agregando categoría: " + category)
-          categoryService.addCategory(category)
-        }
+      (maybeGroupsFile, maybeCategoriesFile) match {
+        case (Some(groups), Some(categories)) =>
 
-        Future.sequence(addFutures).map { addResults =>
-          // Verificar errores de adición
-          val addErrors = addResults.collect { case Left(error) => error }
-          Logger.info("Cantidad de errores en adds: " + addErrors.size)
+          val groupsJsonF     = readJsonFile[List[Group]](groups)
+          val categoriesJsonF = readJsonFile[List[CategoryRow]](categories)
 
-          if (addErrors.nonEmpty) {
-            InternalServerError(Json.obj(
+          for {
+            groups     <- groupsJsonF
+            categories <- categoriesJsonF
+            result     <- processImport(groups, categories)
+          } yield result
+
+        case _ =>
+          Future.successful(
+            BadRequest(Json.obj(
               "status" -> "error",
-              "message" -> "Error al importar categorías",
-              "details" -> addErrors
+              "message" -> "Se requieren los archivos groups y categories"
             ))
-          } else {
-            // Importación exitosa
-            Ok(Json.obj(
-              "status" -> "success",
-              "message" -> "Importación de categorías exitosa",
-              "count" -> importedCategories.size
-            ))
-          }
-        }
+          )
       }
     }
+
+  // Método auxiliar para procesar la importación de categorías
+  private def processImport(
+                             groups: List[Group],
+                             categories: List[CategoryRow]
+                           ): Future[Result] = {
+
+    for {
+      _ <- categoryService.removeAllCategories()
+      _ <- categoryService.removeAllGroups()
+
+      _ <- addAllGroups(groups)
+
+      _ <- addAllCategories(categories)
+
+    } yield {
+      Ok(Json.obj(
+        "status" -> "success",
+        "groups" -> groups.size,
+        "categories" -> categories.size
+      ))
+    }
+  }
 
 
 

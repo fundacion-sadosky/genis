@@ -20,16 +20,25 @@ POST     /catmodification                                     @controllers.Categ
 DELETE   /catmodification                                     @controllers.Categories.unregisterCategoryModification(from: types.AlphanumericId, to: types.AlphanumericId)
 GET      /catmodification                                     @controllers.Categories.getCategoryModifications(catId: types.AlphanumericId)
 GET      /catmodifications                                    @controllers.Categories.allCategoryModifications
+GET      /catmodifications/export                             @controllers.Categories.exportModifications
 GET      /categories/export                                   @controllers.Categories.exportCategories
-POST     /categories/import                                   @controllers.Categories.importCategories
+POST     /categories/import                                   @controllers.Categories.importGroupsAndCategories
 
 GET      /categories-mapping                                  @controllers.Categories.listCategoriesMapping
 PUT      /categories-mapping                                  @controllers.Categories.insertOrUpdateCategoriesMapping
+GET      /categories-mapping/export                           @controllers.Categories.exportMappings
+
+GET      /category-configurations/export                      @controllers.Categories.exportConfigurations
+GET      /category-associations/export                        @controllers.Categories.exportAssociations
+GET      /category-alias/export                               @controllers.Categories.exportAlias
+GET      /category-matching-rules/export                      @controllers.Categories.exportMatchingRules
 
 POST     /group                                               @controllers.Categories.addGroup
 PUT      /group/:groupId                                      @controllers.Categories.updateGroup(groupId: types.AlphanumericId)
 DELETE   /group/:groupId                                      @controllers.Categories.removeGroup(groupId: types.AlphanumericId)
 GET      /group/export                                        @controllers.Categories.exportGroups
+POST     /group/import                                        @controllers.Categories.importGroups
+
 
 GET      /crimeTypes                                          @controllers.CrimeTypes.list
 GET      /bioMaterialTypes                                    @controllers.BioMaterialTypes.list

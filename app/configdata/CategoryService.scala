@@ -23,7 +23,7 @@ import play.api.i18n.Messages
 import play.api.libs.json.{JsValue, Json, Writes}
 
 import java.io.PrintWriter
-import models.Tables.{CategoryRow, Category => CategoryTable}
+import models.Tables.{CategoryAliasRow, CategoryMatchingRow, CategoryConfigurationRow, Category => CategoryTable}
 import play.api.Logger
 
 import javax.sql.DataSource
@@ -39,6 +39,10 @@ abstract class CategoryService {
   def listCategories: Map[AlphanumericId, FullCategory]
 
   def listGroups : Future[Seq[Group]]
+  def listConfigurations: Future[Seq[CategoryConfigurationRow]]
+  def listAssociations: Future[Seq[CategoryAssociation]]
+  def listAlias: Future[Seq[CategoryAliasRow]]
+  def listMatchingRules: Future[Seq[CategoryMatchingRow]]
   def listCategoriesWithProfiles: Map[AlphanumericId, String]
 
   def categoryTreeManualLoading: Category.CategoryTree
@@ -53,6 +57,7 @@ abstract class CategoryService {
   def addGroup(group: Group): Future[Either[String, AlphanumericId]]
 
   def removeGroup(groupId: AlphanumericId): Future[Either[String, Int]]
+  def removeAllGroups(): Future[Int]
 
   def updateGroup(group: Group): Future[Either[String, Int]]
 
@@ -122,7 +127,7 @@ class CachedCategoryService @Inject() (cache: CacheService, categoryRepository: 
   
   // Serializador para CategoryConfiguration
   implicit val categoryConfigWrites: Writes[CategoryConfiguration] = Json.writes[CategoryConfiguration]
-
+  
   // Serializador para FullCategory, incluyendo Map[Int, CategoryConfiguration]
   implicit val fullCategoryWrites: Writes[FullCategory] = new Writes[FullCategory] {
     def writes(fc: FullCategory): JsValue = Json.obj(
@@ -191,6 +196,19 @@ class CachedCategoryService @Inject() (cache: CacheService, categoryRepository: 
           .map(_._1)            // me quedo solo con los Group
           .distinct             // uno solo por grupo
       }
+  }
+
+  override def listConfigurations: Future[Seq[CategoryConfigurationRow]] = {
+    categoryRepository.listConfigurations
+  }
+  override def listAssociations: Future[Seq[CategoryAssociation]] = {
+    categoryRepository.listAssociations
+  }
+  override def listAlias: Future[Seq[CategoryAliasRow]] = {
+    categoryRepository.listAlias
+  }
+  override def listMatchingRules: Future[Seq[CategoryMatchingRow]] = {
+    categoryRepository.listMatchingRules
   }
 
   override def listCategoriesWithProfiles: Map[AlphanumericId,String] = {
@@ -328,6 +346,16 @@ class CachedCategoryService @Inject() (cache: CacheService, categoryRepository: 
     promise
       .map { Right(_) }
       .recover { case e: SQLException if e.getSQLState.startsWith("23") => Left(Messages("error.E0671")) }
+  }
+
+  override def removeAllGroups(): Future[Int] = {
+    val promise = categoryRepository.removeAllGroups()
+
+    promise.foreach { _ =>
+      cleanCache
+    }
+
+    promise
   }
 
   override def updateGroup(group: Group): Future[Either[String, Int]] = {
