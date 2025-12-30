@@ -39,6 +39,7 @@ define([ 'jquery' ], function() {
 		});
 
 		profileDataService.getLaboratories().then(function(response) {
+			console.log('Laboratories array:', response.data);
 			$scope.laboratories = response.data;
 		});
 
