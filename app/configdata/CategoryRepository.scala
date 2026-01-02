@@ -23,7 +23,7 @@ abstract class CategoryRepository extends DefaultDb with Transaction {
   def listCategoriesWithProfiles: Future[List[Category]]
 
   def listConfigurations: Future[Seq[CategoryConfigurationRow]]
-  def listAssociations: Future[Seq[CategoryAssociation]]
+  def listAssociations: Future[Seq[CategoryAssociationRow]]
   def listAlias: Future[Seq[CategoryAliasRow]]
   def listMatchingRules: Future[Seq[CategoryMatchingRow]]
 
@@ -312,13 +312,15 @@ class SlickCategoryRepository @Inject() (implicit app: Application) extends Cate
         }
       }
     }
-  override def listAssociations: Future[Seq[CategoryAssociation]] = Future {
+  override def listAssociations: Future[Seq[CategoryAssociationRow]] = Future {
     DB.withSession { implicit session =>
       assocQuery.list map {assoc =>
-        CategoryAssociation(
-          assoc.`type`,
-          AlphanumericId(assoc.categoryRelated),
-          assoc.mismatchs
+        CategoryAssociationRow(
+          assoc.id,
+          assoc.category,
+          assoc.categoryRelated,
+          assoc.mismatchs,
+          assoc.`type`
         )
       }
     }

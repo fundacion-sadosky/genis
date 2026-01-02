@@ -111,6 +111,7 @@ function HeaderController($scope, userService, categoriesService, kitService, pr
 
 
 	$scope.importConfiguration = function(fileInput) {
+		console.log("Importando configuración")
 		if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
 			alertService.error({ message: 'No se seleccionó ningún archivo.' });
 			return;
@@ -118,110 +119,135 @@ function HeaderController($scope, userService, categoriesService, kitService, pr
 
 		var file = fileInput.files[0];
 		var reader = new FileReader();
+		console.debug("Leyendo archivos")
 
 		reader.onload = function(event) {
+			console.debug("Leyendo archivos: reader abierto")
 			JSZip.loadAsync(event.target.result).then(function(zip) {
 
-				var groupsFile     = zip.file("groups.json");
-				var categoriesFile = zip.file("categories.json");
-				var locusFile      = zip.file("locus.json");
-				var kitsFile       = zip.file("kits.json");
+				console.debug("Descomprimiendo archivos")
+				var groupsFile                   = zip.file("groups.json");
+				var categoriesFile               = zip.file("categories.json");
+				var categoryConfigurationsFile   = zip.file("category-configurations.json");
+				var categoryAssociationsFile     = zip.file("category-associations.json");
+				var categoryAliasFile            = zip.file("category-alias.json");
+				var categoryMatchingRulesFile    = zip.file("category-matching-rules.json");
+				var categoryModificationsFile    = zip.file("category-modifications.json");
+				var categoryMappingsFile         = zip.file("category-mappings.json");
 
-				// CADENA: Groups + Categories → Locus → Kits
-				var mainChain = Promise.resolve();
+				var locusFile = zip.file("locus.json");
+				var kitsFile  = zip.file("kits.json");
+				console.debug("Validando archivos")
 
-				if (groupsFile && categoriesFile) {
-					mainChain = Promise.all([
-						groupsFile.async("blob"),
-						categoriesFile.async("blob")
-					]).then(function(blobs) {
-
-						var groups = new File(
-							[blobs[0]],
-							"groups.json",
-							{ type: "application/json" }
-						);
-
-						var categories = new File(
-							[blobs[1]],
-							"categories.json",
-							{ type: "application/json" }
-						);
-
-						return $scope.importGroupsAndCategories(groups, categories);
-					});
-				} else {
+				// Validación temprana
+				if (
+					!groupsFile ||
+					!categoriesFile ||
+					!categoryConfigurationsFile ||
+					!categoryAssociationsFile ||
+					!categoryAliasFile ||
+					!categoryMatchingRulesFile ||
+					!categoryModificationsFile ||
+					!categoryMappingsFile
+				) {
 					alertService.error({
-						message: "El archivo no contiene grupos y/o categorías."
+						message: "El archivo no contiene todos los archivos obligatorios de categorías."
 					});
+					console.debug("Archivos validados")
+					return Promise.reject();
 				}
 
-				mainChain = mainChain.then(function() {
-					if (locusFile) {
-						return locusFile.async("blob").then(function(blob) {
-							var file = new File([blob], "locus.json", {
-								type: "application/json"
-							});
-							return $scope.importLocus(file);
-						});
-					} else {
-						alertService.error({ message: "El archivo no contiene loci." });
-					}
+				console.debug("Importar configuración: archivos abiertos")
+				// CADENA: Categorías (completo) → Locus → Kits
+				return Promise.all([
+					groupsFile.async("blob"),
+					categoriesFile.async("blob"),
+					categoryConfigurationsFile.async("blob"),
+					categoryAssociationsFile.async("blob"),
+					categoryAliasFile.async("blob"),
+					categoryMatchingRulesFile.async("blob"),
+					categoryModificationsFile.async("blob"),
+					categoryMappingsFile.async("blob")
+				]).then(function(blobs) {
+					console.debug("Importando configuración de categorías y sus grupos")
+					var formData = new FormData();
+
+					formData.append("groups",
+						new File([blobs[0]], "groups.json", { type: "application/json" })
+					);
+					formData.append("categories",
+						new File([blobs[1]], "categories.json", { type: "application/json" })
+					);
+					formData.append("categoryConfigurations",
+						new File([blobs[2]], "category-configurations.json", { type: "application/json" })
+					);
+					formData.append("categoryAssociations",
+						new File([blobs[3]], "category-associations.json", { type: "application/json" })
+					);
+					formData.append("categoryAlias",
+						new File([blobs[4]], "category-alias.json", { type: "application/json" })
+					);
+					formData.append("categoryMatchingRules",
+						new File([blobs[5]], "category-matching-rules.json", { type: "application/json" })
+					);
+					formData.append("categoryModifications",
+						new File([blobs[6]], "category-modifications.json", { type: "application/json" })
+					);
+					formData.append("categoryMappings",
+						new File([blobs[7]], "category-mappings.json", { type: "application/json" })
+					);
+
+					return $scope.importGroupsAndCategories(formData);
 				}).then(function() {
-					if (kitsFile) {
-						return kitsFile.async("blob").then(function(blob) {
-							var file = new File([blob], "kits.json", {
-								type: "application/json"
-							});
-							return $scope.importKits(file);
-						});
-					} else {
-						alertService.error({ message: "El archivo no contiene kits." });
+					console.debug("Importando configuración de loci")
+
+					// Locus
+					if (!locusFile) {
+						alertService.error({ message: "El archivo no contiene loci." });
+						return Promise.reject();
 					}
-				});
 
-				return mainChain;
+					return locusFile.async("blob").then(function(blob) {
+						return $scope.importLocus(
+							new File([blob], "locus.json", { type: "application/json" })
+						);
+					});
 
-			}).then(function() {
-				alertService.success({ message: 'Configuración importada con éxito' });
-			}).catch(function(error) {
-				console.error('Error al importar la configuración:', error);
-				alertService.error({
-					message: "Ocurrió un error al importar la configuración."
-				});
+				}).then(function() {
+					console.debug("Importando configuración de kits")
+
+					// Kits
+					if (!kitsFile) {
+						alertService.error({ message: "El archivo no contiene kits." });
+						return Promise.reject();
+					}
+
+					return kitsFile.async("blob").then(function(blob) {
+						return $scope.importKits(
+							new File([blob], "kits.json", { type: "application/json" })
+						);
+					});
+				})
+					.then(function() {
+						alertService.success({ message: 'Configuración importada con éxito' });
+					})
+					.catch(function(error) {
+						if (error) {
+							console.error('Error al importar la configuración:', error);
+							alertService.error({
+								message: "Ocurrió un error al importar la configuración."
+							});
+						}
+					});
 			});
 		};
-
 		reader.onerror = function() {
 			alertService.error({ message: 'No se pudo leer el archivo.' });
 		};
-
 		reader.readAsArrayBuffer(file);
 	};
 
-
-	$scope.importGroups = function(file) {
-		if (!file) return;
-
-		var formData = new FormData();
-		formData.append("file", file);
-
-		categoriesService.importGroups(formData).then(function(response) {
-			console.log({message: 'Grupos importados con éxito'});
-		}, function(error) {
-			console.log("Error al importar grupos: " + error.data);
-		});
-	};
-
-	$scope.importGroupsAndCategories = function(groupsFile, categoriesFile) {
-		if (!groupsFile || !categoriesFile) {
-			console.log("Faltan archivos de grupos/categorías");
-			return;
-		}
-
-		var formData = new FormData();
-		formData.append("groups", groupsFile);
-		formData.append("categories", categoriesFile);
+	$scope.importGroupsAndCategories = function(formData) {
 
 		categoriesService.importGroupsAndCategories(formData).then(
 			function(response) {

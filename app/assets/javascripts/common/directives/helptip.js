@@ -42,7 +42,7 @@ define(['angular'], function(angular) {
             }
 			var helpTipContent = $compile('<div style="width: 230px;white-space: pre-wrap;" font-weight: normal" class="text-center">'+helpTipScope.img+'{{key | i18next}}</div>')(helpTipScope);
 			
-			$log.debug('crating help tip for key: ' + attrs.helpTip);
+			$log.debug('creating help tip for key: ' + attrs.helpTip);
 			el.popover({
 				content : helpTipContent, 
 				trigger: 'manual',

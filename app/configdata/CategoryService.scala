@@ -23,7 +23,7 @@ import play.api.i18n.Messages
 import play.api.libs.json.{JsValue, Json, Writes}
 
 import java.io.PrintWriter
-import models.Tables.{CategoryAliasRow, CategoryMatchingRow, CategoryConfigurationRow, Category => CategoryTable}
+import models.Tables.{CategoryAliasRow, CategoryMatchingRow, CategoryConfigurationRow, CategoryAssociationRow, Category => CategoryTable}
 import play.api.Logger
 
 import javax.sql.DataSource
@@ -40,7 +40,7 @@ abstract class CategoryService {
 
   def listGroups : Future[Seq[Group]]
   def listConfigurations: Future[Seq[CategoryConfigurationRow]]
-  def listAssociations: Future[Seq[CategoryAssociation]]
+  def listAssociations: Future[Seq[CategoryAssociationRow]]
   def listAlias: Future[Seq[CategoryAliasRow]]
   def listMatchingRules: Future[Seq[CategoryMatchingRow]]
   def listCategoriesWithProfiles: Map[AlphanumericId, String]
@@ -201,7 +201,7 @@ class CachedCategoryService @Inject() (cache: CacheService, categoryRepository: 
   override def listConfigurations: Future[Seq[CategoryConfigurationRow]] = {
     categoryRepository.listConfigurations
   }
-  override def listAssociations: Future[Seq[CategoryAssociation]] = {
+  override def listAssociations: Future[Seq[CategoryAssociationRow]] = {
     categoryRepository.listAssociations
   }
   override def listAlias: Future[Seq[CategoryAliasRow]] = {

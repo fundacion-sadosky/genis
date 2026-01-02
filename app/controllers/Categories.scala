@@ -11,6 +11,7 @@ import types.AlphanumericId
 
 import scala.collection.immutable.Map
 import configdata._
+import matching.{Algorithm, Stringency}
 import play.api.i18n.Messages
 
 import scala.concurrent.Future
@@ -28,7 +29,7 @@ import play.api.libs.Files.TemporaryFile
 import play.api.libs.functional.syntax.toFunctionalBuilderOps
 import play.api.libs.functional.syntax._
 import profile.{ProfileRepository, ProfileService}
-import models.Tables.{CategoryAliasRow, CategoryMatchingRow, CategoryConfigurationRow}
+import models.Tables.{CategoryAliasRow, CategoryAssociationRow, CategoryConfigurationRow, CategoryMatchingRow}
 
 @Singleton
 class Categories @Inject() (
@@ -70,7 +71,7 @@ class Categories @Inject() (
       Ok(json).as("application/json").withHeaders("Content-Disposition" -> "attachment; filename=groups.json")
     }
   }
-  
+
   implicit val categoryConfigurationRowWrites: Writes[CategoryConfigurationRow] = Json.writes[CategoryConfigurationRow]
 
   def exportConfigurations = Action.async {
@@ -79,6 +80,7 @@ class Categories @Inject() (
       Ok(json).as("application/json").withHeaders("Content-Disposition" -> "attachment; filename=categoryConfigurations.json")
     }
   }
+  implicit val categoryAssociationRowWrites: Writes[CategoryAssociationRow] = Json.writes[CategoryAssociationRow]
 
   def exportAssociations = Action.async {
     categoryService.listAssociations map { assoc =>
@@ -126,7 +128,7 @@ class Categories @Inject() (
       Ok(json).as("application/json").withHeaders("Content-Disposition" -> "attachment; filename=categoryMappings.json")
     }
   }
-  
+
   def importGroups: Action[MultipartFormData[play.api.libs.Files.TemporaryFile]] = Action.async(parse.multipartFormData) { request =>
     request.body.file("file").map { file =>
       // Guardar archivo temporalmente
@@ -260,29 +262,173 @@ class Categories @Inject() (
 
     Future.sequence(futures).map(_ => ())
   }
+
+  // Defino reads para importar
+  implicit val categoryConfigurationRowReads: Reads[CategoryConfigurationRow] = (
+    (JsPath \ "id").read[Long] and
+      (JsPath \ "category").read[String] and
+      (JsPath \ "type").read[Int] and
+      (JsPath \ "collectionUri").read[String].orElse(Reads.pure("")) and
+      (JsPath \ "draftUri").read[String].orElse(Reads.pure("")) and
+      (JsPath \ "minLocusPerProfile").read[String].orElse(Reads.pure("K")) and
+      (JsPath \ "maxOverageDeviatedLoci").read[String].orElse(Reads.pure("0")) and
+      (JsPath \ "maxAllelesPerLocus").read[Int].orElse(Reads.pure(6)) and
+      (JsPath \ "multiallelic").read[Boolean].orElse(Reads.pure(false))
+    )(CategoryConfigurationRow.apply _)
+
+  implicit val categoryAliasRowReads: Reads[CategoryAliasRow] = (
+    (JsPath \ "alias").read[String] and
+      (JsPath \ "category").read[String]
+    )(CategoryAliasRow.apply _)
+
+  implicit val categoryMatchingRowReads: Reads[CategoryMatchingRow] = (
+    (JsPath \ "id").read[Long] and
+      (JsPath \ "category").read[String] and
+      (JsPath \ "categoryRelated").read[String] and
+      (JsPath \ "priority").read[Int].orElse(Reads.pure(1)) and
+      (JsPath \ "minimumStringency").read[String].orElse(Reads.pure("ImpossibleMatch")) and
+      (JsPath \ "failOnMatch").readNullable[Boolean].map(_.orElse(Some(false))) and
+      (JsPath \ "forwardToUpper").readNullable[Boolean].map(_.orElse(Some(false))) and
+      (JsPath \ "matchingAlgorithm").read[String].orElse(Reads.pure("ENFSI")) and
+      (JsPath \ "minLocusMatch").read[Int].orElse(Reads.pure(10)) and
+      (JsPath \ "mismatchsAllowed").read[Int].orElse(Reads.pure(0)) and
+      (JsPath \ "type").read[Int] and
+      (JsPath \ "considerForN").read[Boolean].orElse(Reads.pure(true))
+    )(CategoryMatchingRow.apply _)
+
+  implicit val categoryAssociationReads: Reads[CategoryAssociationRow] = (
+    (JsPath \ "id").read[Long] and
+      (JsPath \ "category").read[String] and
+      (JsPath \ "categoryRelated").read[String] and
+      (JsPath \ "mismatchs").read[Int] and
+      (JsPath \ "type").read[Int]
+    )(CategoryAssociationRow.apply _)
+
+
+  implicit val alphanumericIdReads: Reads[AlphanumericId] =
+    Reads.StringReads.map(AlphanumericId.apply)
+
+  implicit val categoryModificationReads: Reads[(AlphanumericId, AlphanumericId)] = (
+    (JsPath \ "from").read[AlphanumericId] and
+      (JsPath \ "to").read[AlphanumericId]
+    )((from, to) => (from, to))
+
+  // Mappers de XRow a X. Necesarios para import
+  private def toCategoryConfiguration(
+                                       row: CategoryConfigurationRow
+                                     ): CategoryConfiguration =
+    CategoryConfiguration(
+      collectionUri = row.collectionUri,
+      draftUri = row.draftUri,
+      minLocusPerProfile = row.minLocusPerProfile,
+      maxOverageDeviatedLoci = row.maxOverageDeviatedLoci,
+      maxAllelesPerLocus = row.maxAllelesPerLocus,
+      multiallelic = row.multiallelic
+    )
+
+  private def toCategoryAssociation(
+                                     row: CategoryAssociationRow
+                                   ): CategoryAssociation =
+    CategoryAssociation(
+      `type`          = row.`type`,
+      categoryRelated = AlphanumericId(row.categoryRelated),
+      mismatches      = row.mismatchs
+    )
+
+  private def toMatchingRule(
+                              row: CategoryMatchingRow
+                            ): MatchingRule =
+    MatchingRule(
+      `type`              = row.`type`,
+      categoryRelated     = AlphanumericId(row.categoryRelated),
+      minimumStringency   = Stringency.withName(row.minimumStringency),
+      failOnMatch         = row.failOnMatch.getOrElse(false),
+      forwardToUpper      = row.forwardToUpper.getOrElse(false),
+      matchingAlgorithm   = Algorithm.withName(row.matchingAlgorithm),
+      minLocusMatch       = row.minLocusMatch,
+      mismatchsAllowed    = row.mismatchsAllowed,
+      considerForN        = row.considerForN,
+      mitochondrial       = false
+    )
+
+  private def toCategoryMapping(
+                                 row: FullCategoryMapping
+                               ): CategoryMapping =
+    CategoryMapping(
+      id         = row.id,
+      idSuperior = row.idSuperior
+    )
+
   def importGroupsAndCategories: Action[MultipartFormData[TemporaryFile]] =
     Action.async(parse.multipartFormData) { request =>
 
-      val maybeGroupsFile     = request.body.file("groups")
-      val maybeCategoriesFile = request.body.file("categories")
+      val maybeGroups                 = request.body.file("groups")
+      val maybeCategories             = request.body.file("categories")
+      val maybeConfigurations         = request.body.file("categoryConfigurations")
+      val maybeAssociations           = request.body.file("categoryAssociations")
+      val maybeAlias                  = request.body.file("categoryAlias")
+      val maybeMatchingRules          = request.body.file("categoryMatchingRules")
+      val maybeModifications          = request.body.file("categoryModifications")
+      val maybeMappings               = request.body.file("categoryMappings")
 
-      (maybeGroupsFile, maybeCategoriesFile) match {
-        case (Some(groups), Some(categories)) =>
+      (
+        maybeGroups,
+        maybeCategories,
+        maybeConfigurations,
+        maybeAssociations,
+        maybeAlias,
+        maybeMatchingRules,
+        maybeModifications,
+        maybeMappings
+      ) match {
 
-          val groupsJsonF     = readJsonFile[List[Group]](groups)
-          val categoriesJsonF = readJsonFile[List[CategoryRow]](categories)
+        case (
+          Some(groupsFile),
+          Some(categoriesFile),
+          Some(configurationsFile),
+          Some(associationsFile),
+          Some(aliasFile),
+          Some(matchingRulesFile),
+          Some(modificationsFile),
+          Some(mappingsFile)
+          ) =>
+
+          val groupsF         = readJsonFile[List[Group]](groupsFile)
+          val categoriesF     = readJsonFile[List[CategoryRow]](categoriesFile)
+          val configurationsF = readJsonFile[List[CategoryConfigurationRow]](configurationsFile)
+          val associationsF   = readJsonFile[List[CategoryAssociationRow]](associationsFile)
+          val aliasF          = readJsonFile[List[CategoryAliasRow]](aliasFile)
+          val matchingRulesF  = readJsonFile[List[CategoryMatchingRow]](matchingRulesFile)
+          val modificationsF  = readJsonFile[List[(AlphanumericId, AlphanumericId)]](modificationsFile)
+          val mappingsF       = readJsonFile[List[FullCategoryMapping]](mappingsFile)
 
           for {
-            groups     <- groupsJsonF
-            categories <- categoriesJsonF
-            result     <- processImport(groups, categories)
+            groups          <- groupsF
+            categories      <- categoriesF
+            configurations  <- configurationsF
+            associations    <- associationsF
+            alias            <- aliasF
+            matchingRules   <- matchingRulesF
+            modifications   <- modificationsF
+            mappings        <- mappingsF
+
+            result <- processImport(
+              groups,
+              categories,
+              configurations,
+              associations,
+              alias,
+              matchingRules,
+              modifications,
+              mappings
+            )
           } yield result
 
         case _ =>
           Future.successful(
             BadRequest(Json.obj(
-              "status" -> "error",
-              "message" -> "Se requieren los archivos groups y categories"
+              "status"  -> "error",
+              "message" -> "Faltan uno o más archivos obligatorios de la configuración de categorías"
             ))
           )
       }
@@ -291,26 +437,117 @@ class Categories @Inject() (
   // Método auxiliar para procesar la importación de categorías
   private def processImport(
                              groups: List[Group],
-                             categories: List[CategoryRow]
+                             categories: List[CategoryRow],
+                             configurations: List[CategoryConfigurationRow],
+                             associations: List[CategoryAssociationRow],
+                             alias: List[CategoryAliasRow],
+                             matchingRules: List[CategoryMatchingRow],
+                             modifications: List[(AlphanumericId, AlphanumericId)],
+                             mappings: List[FullCategoryMapping]
                            ): Future[Result] = {
 
+    val configurationsByCategory =
+      configurations.groupBy(_.category)
+
+    val associationsByCategory =
+      associations.groupBy(_.category)
+
+    val aliasByCategory =
+      alias.groupBy(_.category)
+
+    val matchingRulesByCategory =
+      matchingRules.groupBy(_.category)
+
     for {
+      // reset
       _ <- categoryService.removeAllCategories()
       _ <- categoryService.removeAllGroups()
 
-      _ <- addAllGroups(groups)
+      // grupos
+      _ <- Future.sequence(groups.map(categoryService.addGroup))
 
-      _ <- addAllCategories(categories)
+      // categorías base
+      _ <- Future.sequence(
+        categories.map { c =>
+          categoryService.addCategory(
+            Category(
+              AlphanumericId(c.id),
+              AlphanumericId(c.group),
+              c.name,
+              c.isReference,
+              c.description
+            )
+          )
+        }
+      )
+
+      // categorías completas
+      _ <- Future.sequence(
+        categories.map { c =>
+
+          val catId = AlphanumericId(c.id)
+
+          val fullCategory = FullCategory(
+            id = catId,
+            name = c.name,
+            description = c.description,
+            group = AlphanumericId(c.group),
+            isReference = c.isReference,
+            filiationDataRequired = c.filiationData,
+            configurations =
+              configurationsByCategory
+                .getOrElse(c.id, Nil)
+                .map(cc => cc.`type` -> toCategoryConfiguration(cc))
+                .toMap,
+            associations =
+              associationsByCategory
+                .getOrElse(c.id, Nil)
+                .map(toCategoryAssociation),
+            aliases =
+              aliasByCategory
+                .getOrElse(c.id, Nil)
+                .map(_.alias),
+            matchingRules =
+              matchingRulesByCategory
+                .getOrElse(c.id, Nil)
+                .map(toMatchingRule),
+            tipo = Some(c.tipo),
+            pedigreeAssociation = c.pedigreeAssociation
+          )
+
+          categoryService.updateCategory(fullCategory)
+        }
+      )
+
+      // modifications
+      _ <- Future {
+        modifications.foreach {
+          case (from, to) =>
+            categoryService.registerCategoryModification(from, to)
+        }
+      }
+
+      // mappings
+      _ <- categoryService.insertOrUpdateMapping(
+        CategoryMappingList(
+          mappings.map(toCategoryMapping)
+        )
+      )
 
     } yield {
       Ok(Json.obj(
         "status" -> "success",
         "groups" -> groups.size,
-        "categories" -> categories.size
+        "categories" -> categories.size,
+        "configurations" -> configurations.size,
+        "associations" -> associations.size,
+        "aliases" -> alias.size,
+        "matchingRules" -> matchingRules.size,
+        "modifications" -> modifications.size,
+        "mappings" -> mappings.size
       ))
     }
   }
-
 
 
   def listWithProfiles = Action.async {
