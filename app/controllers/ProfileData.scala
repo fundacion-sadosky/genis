@@ -23,6 +23,7 @@ import connections.InterconnectionService
 import org.apache.spark.sql.catalyst.dsl.expressions.booleanToLiteral
 import play.api.data.validation.ValidationError
 import types._
+import profiledata.ProfileDataService
 
 @Singleton
 class ProfileData @Inject() (
@@ -46,7 +47,7 @@ class ProfileData @Inject() (
           },
           profileData =>
             profiledataService
-              .updateProfileData(globalCode, profileData) map { result => Ok(Json.toJson(result)) }
+              .updateProfileData(globalCode,profileData) map { result => Ok(Json.toJson(result)) }
         )
   }
 
@@ -329,10 +330,12 @@ class ProfileData @Inject() (
     }
   }
 
+  
   def getIsProfileReplicatedInternalCode(internalCode: String): Action[AnyContent] = Action.async { request =>
     Future { // Wrap the synchronous call in a Future
       val isReplicated = profiledataService.getIsProfileReplicatedInternalCode(internalCode)
       Ok(Json.toJson(isReplicated)) // Return the boolean as JSON
     }
   }
+
 }

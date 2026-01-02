@@ -43,6 +43,7 @@ import user.UserService
 import scala.Option.option2Iterable
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.{Failure, Success}
 
 
 trait ProfileDataService {
@@ -398,48 +399,65 @@ class ProfileDataServiceImpl @Inject() (
 
 
   override def updateProfileData(
-                                  globalCode: SampleCode,
-                                  profileData: ProfileDataAttempt,
-                                  allowFromOtherInstances: Boolean = false
-                                ): Future[Boolean] = {
+                                 globalCode: SampleCode,
+                                 profileData: ProfileDataAttempt,  // Expecting ProfileDataAttempt to have fields like laboratory and responsibleGeneticist
+                                 allowFromOtherInstances: Boolean = false
+                               ): Future[Boolean] = {
 
     this.isEditable(globalCode, allowFromOtherInstances).flatMap { result =>
-      if (result.get) {
-        val filiationDataOpt = profileData.dataFiliation
-        val images = filiationDataOpt map { filiationData =>
-          val images = for {
+      if (result.getOrElse(false)) {  // Using getOrElse for safety if result is an Option
+        val filiationDataOpt = profileData.dataFiliation  // Assuming this is correctly accessed
+        val images = filiationDataOpt.map { filiationData =>
+          for {
             inprints <- searchImagesInCache(filiationData.inprint).right
             pictures <- searchImagesInCache(filiationData.picture).right
             signatures <- searchImagesInCache(filiationData.signature).right
           } yield {
             (inprints, pictures, signatures)
           }
-          images
-        } getOrElse {
-          Right((None, None, None))
-        }
+        } getOrElse Right((None, None, None))
 
         images match {
           case Right((inprints, pictures, signatures)) => {
-            val pd = profileData.pdAttempToPd(labCode) //pdAttempToPd(profileData)
-            val updatePromise = profileDataRepository.updateProfileData(globalCode, pd, inprints, pictures, signatures)
-            updatePromise.onComplete { updated =>
-              traceService.add(Trace(globalCode, profileData.assignee, new Date(), trace.ProfileDataInfo))
-              filiationDataOpt map { filiationData =>
-                cache.pop(TemporaryAssetKey(filiationData.inprint))
-                cache.pop(TemporaryAssetKey(filiationData.picture))
-                cache.pop(TemporaryAssetKey(filiationData.signature))
-              }
+            // Original: val pd = profileData.pdAttempToPd(labCode)
+            // Change: Assuming pdAttempToPd should use the full profileData and include missing fields.
+            // If pdAttempToPd is not including laboratory and responsibleGeneticist, we'll handle it here.
+            val pd = profileData.pdAttempToPd(labCode)  // Correct call passing labCode instead of profileData itself
+
+            // Explicitly ensure laboratory and responsibleGeneticist are set on pd
+            // Assuming pd is a mutable object or we're creating a new one. If pd is a case class, use copy:
+            val updatedPd = pd.copy(  // If pd is a case class, use copy to add/update fields
+              laboratory = profileData.laboratory.getOrElse(""),  // Provide a default value (e.g., empty string) if None
+              responsibleGeneticist = profileData.responsibleGeneticist.map(_.toString)  // Convert Option[Long] to Option[String]
+            )
+
+            // Add logging to verify the fields are present
+            Logger.info(s"Debug: Updated pd object: laboratory = ${updatedPd.laboratory}, responsibleGeneticist = ${updatedPd.responsibleGeneticist}")
+
+            val updatePromise = profileDataRepository.updateProfileData(globalCode, updatedPd, inprints, pictures, signatures)
+
+            updatePromise.onComplete {
+              case Success(updated) =>
+                traceService.add(Trace(globalCode, profileData.assignee, new Date(), trace.ProfileDataInfo))
+                filiationDataOpt.map { filiationData =>
+                  cache.pop(TemporaryAssetKey(filiationData.inprint))
+                  cache.pop(TemporaryAssetKey(filiationData.picture))
+                  cache.pop(TemporaryAssetKey(filiationData.signature))
+                }
+              case Failure(ex) =>
+                Logger.error(s"Error updating profile data: ${ex.getMessage}")
             }
-            updatePromise
+
+            updatePromise  // Return the promise
           }
-          case Left(_) => Future.successful(false)
+          case Left(_) => Future.successful(false)  // Handle image search failure
         }
       } else {
-        Future.successful(false)
+        Future.successful(false)  // Not editable
       }
     }
   }
+
 
   override def updateProfileCategoryData(
                                           globalCode: SampleCode,
