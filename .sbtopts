@@ -1,0 +1,3 @@
+-Dcom.sun.jndi.rmi.object.trustURLCodebase=false
+-XX:+IgnoreUnrecognizedVMOptions
+--add-opens=java.base/java.lang=ALL-UNNAMED

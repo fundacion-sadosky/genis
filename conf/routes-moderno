@@ -1,0 +1,46 @@
+# =============================================================================
+# GENis 6.0 Routes - API REST Moderna
+# =============================================================================
+
+# ==================== AUTENTICACIÓN ====================
+POST    /api/auth/login                 controllers.AuthController.login()
+POST    /api/auth/logout                controllers.AuthController.logout()
+GET     /api/auth/validate              controllers.AuthController.validateToken()
+
+# ==================== SALUD DE LA APLICACIÓN ====================
+GET     /api/health                     controllers.HealthController.health()
+GET     /api/health/db                  controllers.HealthController.healthDb()
+
+# ==================== PERFILES GENÉTICOS ====================
+# GET     /api/profiles                   controllers.ProfileController.listProfiles()
+# POST    /api/profiles                   controllers.ProfileController.createProfile()
+# GET     /api/profiles/:id               controllers.ProfileController.getProfile(id: String)
+# PUT     /api/profiles/:id               controllers.ProfileController.updateProfile(id: String)
+# DELETE  /api/profiles/:id               controllers.ProfileController.deleteProfile(id: String)
+
+# ==================== MATCHING ====================
+# POST    /api/matching                   controllers.MatchingController.createMatching()
+# GET     /api/matching/:id               controllers.MatchingController.getMatching(id: String)
+
+# ==================== BÚSQUEDA ====================
+# GET     /api/search                     controllers.SearchController.search(query: String)
+
+# ==================== ESTADÍSTICAS ====================
+# GET     /api/stats                      controllers.StatsController.getStats()
+
+# ==================== ARCHIVOS ====================
+# POST    /api/files/upload               controllers.FileController.upload()
+# GET     /api/files/:id                  controllers.FileController.download(id: String)
+
+# ==================== ADMINISTRACIÓN ====================
+# GET     /api/admin/users                controllers.AdminController.listUsers()
+# POST    /api/admin/users                controllers.AdminController.createUser()
+# PUT     /api/admin/users/:id            controllers.AdminController.updateUser(id: String)
+# DELETE  /api/admin/users/:id            controllers.AdminController.deleteUser(id: String)
+
+# ==================== HERRAMIENTAS ====================
+# GET     /api/info                       controllers.InfoController.applicationInfo()
+
+# ==================== STATIC FILES ====================
+GET     /                               controllers.Assets.at(path = "/public", file = "index.html")
+GET     /assets/*file                   controllers.Assets.versioned(path = "/public", file: String)

@@ -15,20 +15,19 @@ services:
       - ./pgsql_init:/docker-entrypoint-initdb.d
   
   openldap:
-    image: docker.io/bitnamilegacy/openldap:2.6
+    image: osixia/openldap:latest
     container_name: genis_ldap
     restart: always
     ports:
-      - '1389:1389'
-      - '1636:1636'
+      - '1389:389'
+      - '1636:636'
     environment:
-      - LDAP_ROOT=dc=genis,dc=local
-      - LDAP_SKIP_DEFAULT_TREE=yes
-      - LDAP_ADMIN_USERNAME=admin
+      - LDAP_ORGANISATION=Genis
+      - LDAP_DOMAIN=genis.local
       - LDAP_ADMIN_PASSWORD=adminp
-      - LDAP_CUSTOM_LDIF_DIR=/ldifs
     volumes:
-      - 'openldap_data:/bitnami/openldap'
+      - 'openldap_data:/var/lib/ldap'
+      - 'slapd_data:/etc/ldap/slapd.d'
       - ./openldap_init:/ldifs        
 
   mongo:
@@ -52,6 +51,8 @@ services:
 
 volumes:
   openldap_data:
+    driver: local
+  slapd_data:
     driver: local
   pgsql_data:
     driver: local
