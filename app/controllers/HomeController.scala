@@ -16,4 +16,8 @@ class HomeController @Inject()(cc: ControllerComponents) extends AbstractControl
   def login(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
     Ok(views.html.login())
   }
+  
+  def dashboard(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
+    Ok(views.html.dashboard())
+  }
 }

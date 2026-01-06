@@ -4,6 +4,7 @@
 # Static routes
 GET     /                             controllers.HomeController.index()
 GET     /login                        controllers.HomeController.login()
+GET     /dashboard                    controllers.HomeController.dashboard()
 GET     /assets/*file                 controllers.Assets.versioned(path="/public", file)
 
 # Health endpoints
@@ -20,3 +21,8 @@ POST    /api/v2/auth/login            controllers.AuthControllerV2.login()
 POST    /api/v2/auth/logout           controllers.AuthControllerV2.logout()
 GET     /api/v2/auth/validate         controllers.AuthControllerV2.validateToken()
 POST    /api/v2/auth/refresh          controllers.AuthControllerV2.refreshToken()
+
+
+
+# Users Module
+GET     /api/v2/users                 controllers.UserController.list

@@ -33,12 +33,13 @@ sbt compile
 sbt run -Dconfig.file=./conf/application-moderno.conf
 
 # 4. Abrir navegador
-# http://localhost:9000/api/health
+# http://localhost:9000/login
 
 # 5. Probar login (otra terminal)
-curl -X POST http://localhost:9000/api/auth/login \
+# Credenciales: setup / pass / OTP: 123456
+curl -X POST http://localhost:9000/api/v2/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"username":"usuario","password":"pass"}'
+  -d '{"username":"setup","password":"pass","otp":"123456"}'
 ```
 
 ---
@@ -47,20 +48,20 @@ curl -X POST http://localhost:9000/api/auth/login \
 
 | Archivo | Qué Contiene |
 |---------|-------------|
-| `README-MODERNO.md` | Documentación completa |
-| `MARCO-TRABAJO-MODERNO.md` | Resumen ejecutivo |
+| `03-README-MODERNO.md` | Documentación oficial actualizada |
+| `01-TENER_EN_CUENTA.md` | Notas sobre limpieza y backup (⚠️ Leer antes) |
 | `setup-moderno.sh` | Script de automatización |
 | `conf/application-moderno.conf` | Configuración |
-| `build-moderno.sbt` | Dependencias Scala |
+| `build.sbt` | Configuración de compilación |
 
 ---
 
 ## 🏗️ Qué Cambió
 
-✅ **Scala 3.3.1** (era 2.11.11)
+✅ **Scala 2.13.12** (era 2.11.11)
 ✅ **Play 3.x** (era 2.3)
-✅ **PostgreSQL 18.x** (era 9.4.4)
-✅ **JWT + LDAP moderno** (era solo LDAP)
+✅ **PostgreSQL 14.9** (Docker) y **18.1** (Cliente)
+✅ **JWT + LDAP moderno** (era solo LDAP legacy)
 ✅ **SBT 1.9.7** (era 0.13.15)
 
 ---
@@ -68,12 +69,12 @@ curl -X POST http://localhost:9000/api/auth/login \
 ## 📁 Archivos Nuevos Principales
 
 ```
-✨ app/services/AuthService.scala       → JWT + LDAP
-✨ app/services/LdapService.scala       → LDAP moderno
-✨ app/controllers/AuthController.scala → API de auth
+✨ app/services/AuthServiceV2.scala     → JWT + LDAP Renovado
+✨ app/services/LdapService.scala       → LDAP moderno (UnboundID)
+✨ app/controllers/AuthControllerV2.scala → API de auth V2
 ✨ app/controllers/HealthController.scala → Health check
-✨ conf/application-moderno.conf        → Config moderna
-✨ build-moderno.sbt                    → Build moderno
+✨ conf/application-moderno.conf        → Configuración moderna
+✨ build.sbt                            → Build actualizado
 ✨ setup-moderno.sh                     → Setup automático
 ```
 

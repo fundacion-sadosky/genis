@@ -12,14 +12,23 @@ El proyecto ha sido compilado exitosamente con un framework completamente modern
 
 ## 🚀 Ejecutar el Servidor
 
+Para iniciar la aplicación con la configuración moderna y limpiar posibles bloqueos anteriores:
+
 ```bash
 cd /home/cdiaz/Descargas/genis
-sbt run
+rm -f target/universal/stage/RUNNING_PID && sbt -Dconfig.file=./conf/application-moderno.conf run
 ```
 
 Luego abre en tu navegador:
 - **Login**: http://localhost:9000/login
-- **Home**: http://localhost:9000/
+
+### 🔑 Credenciales por defecto
+
+| Usuario | Password | TOTP Secret |
+| :--- | :--- | :--- |
+| `setup` | `pass` | `ETZK6M66LFH3PHIG` |
+
+> **Nota para TOTP**: Puedes usar una app como Google Authenticator o Authy, o generar el código en [gauth.apps.gbraad.nl](https://gauth.apps.gbraad.nl/) usando el secret.
 
 ## 🔐 Interfaz de Login
 
@@ -74,16 +83,17 @@ GET    /login                     # Página de login
 
 ### Desde cURL
 ```bash
-# Login
+# Login (usa credenciales setup/pass + TOTP generado)
+# TOTP Secret: ETZK6M66LFH3PHIG
 curl -X POST http://localhost:9000/api/v2/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"password123"}'
+  -d '{"username":"setup","password":"pass","otp":"123456"}'
 
 # Respuesta
 {
   "success": true,
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "user": "admin",
+  "user": "setup",
   "expiresAt": 1735939200
 }
 ```
@@ -150,7 +160,7 @@ Para más detalles, ver:
 ## 📞 Información Técnica
 
 - **Play Framework Documentation**: https://www.playframework.com/documentation/3.0.x
-- **Scala Documentation**: https://scala-lang.org/api/3.x
+- **Scala Documentation**: https://scala-lang.org/api/2.13.x/
 - **JWT Tokens**: Auth0 java-jwt 4.4.0
 - **LDAP**: UnboundID SDK 7.0.1
 

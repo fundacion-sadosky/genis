@@ -23,6 +23,10 @@ libraryDependencies ++= Seq(
   "org.playframework" %% "play-json" % "3.0.0",
   "org.playframework" %% "play-guice" % "3.0.0",
   
+  // ORM - Slick
+  "org.playframework" %% "play-slick" % "6.1.0",
+  "org.playframework" %% "play-slick-evolutions" % "6.1.0",
+
   // Database - PostgreSQL direct JDBC
   "org.postgresql" % "postgresql" % "42.7.1",
   

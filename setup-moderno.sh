@@ -20,7 +20,7 @@ NC='\033[0m' # No Color
 # Variables
 JAVA_VERSION_REQUIRED="11"
 SBT_VERSION_REQUIRED="1.9"
-POSTGRES_PORT=5432
+POSTGRES_PORT=5455
 LDAP_PORT=389
 
 # ============================================================================
@@ -73,9 +73,17 @@ fi
 # Verificar PostgreSQL
 if command -v psql &> /dev/null; then
     PSQL_VERSION=$(psql --version | awk '{print $3}')
-    print_success "PostgreSQL $PSQL_VERSION encontrado"
+    print_success "Cliente PostgreSQL (psql) $PSQL_VERSION encontrado"
 else
-    print_warning "PostgreSQL CLI no está instalado, pero puede estar corriendo como servicio"
+    print_warning "PostgreSQL CLI no está instalado"
+fi
+
+# Verificar Contenedor PostgreSQL (Si existe)
+if docker ps --format '{{.Names}}' | grep -q "genis_postgres"; then
+    PG_CONTAINER_VERSION=$(docker inspect -f '{{.Config.Image}}' genis_postgres | cut -d: -f2)
+    print_success "Contenedor PostgreSQL corriendo (Versión: $PG_CONTAINER_VERSION)"
+else
+    print_warning "Contenedor 'genis_postgres' no detectado."
 fi
 
 # ============================================================================
@@ -91,14 +99,14 @@ fi
 
 cat > .env << 'EOF'
 # Database
-DATABASE_URL=jdbc:postgresql://localhost:5432/genisdb
+DATABASE_URL=jdbc:postgresql://localhost:5455/genisdb
 DATABASE_USER=genissqladmin
-DATABASE_PASSWORD=genisadmin
+DATABASE_PASSWORD=genissqladminp
 
 # Log Database  
-LOG_DATABASE_URL=jdbc:postgresql://localhost:5432/genislogdb
+LOG_DATABASE_URL=jdbc:postgresql://localhost:5455/genislogdb
 LOG_DATABASE_USER=genissqladmin
-LOG_DATABASE_PASSWORD=genisadmin
+LOG_DATABASE_PASSWORD=genissqladminp
 
 # LDAP
 LDAP_ENABLED=true
@@ -201,9 +209,9 @@ echo "4. Acceder a:"
 echo "   http://localhost:9000"
 echo ""
 echo "5. Probar autenticación:"
-echo "   curl -X POST http://localhost:9000/api/auth/login \\"
+echo "   curl -X POST http://localhost:9000/api/v2/auth/login \\"
 echo "     -H 'Content-Type: application/json' \\"
-echo "     -d '{\"username\": \"usuario\", \"password\": \"contraseña\"}'"
+echo "     -d '{\"username\": \"setup\", \"password\": \"pass\", \"otp\": \"123456\"}'"
 echo ""
 
 print_success "¡Listo para comenzar!"

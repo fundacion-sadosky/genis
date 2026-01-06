@@ -20,16 +20,17 @@ class AuthControllerV2 @Inject()(
   /**
    * Endpoint de login mejorado
    * POST /api/auth/login
-   * Body: {"username": "usuario", "password": "contraseña"}
+   * Body: {"username": "usuario", "password": "contraseña", "otp": "123456"}
    * Response: {"success": true, "token": "...", "user": {...}}
    */
   def login(): Action[JsValue] = Action.async(parse.json) { implicit request =>
     val usernameOpt = (request.body \ "username").asOpt[String]
     val passwordOpt = (request.body \ "password").asOpt[String]
+    val totpOpt = (request.body \ "otp").asOpt[String].orElse((request.body \ "totp").asOpt[String])
 
     (usernameOpt, passwordOpt) match {
       case (Some(username), Some(password)) =>
-        authService.authenticateWithDetails(username, password).map {
+        authService.authenticateWithDetails(username, password, totpOpt).map {
           case Right((token, details)) =>
             Ok(Json.obj(
               "success" -> true,

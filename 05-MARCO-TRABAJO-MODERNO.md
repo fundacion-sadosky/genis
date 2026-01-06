@@ -10,31 +10,30 @@ Se ha creado exitosamente un nuevo marco de trabajo moderno en la rama **`de-cer
 
 ### 1. **Configuración de Build Moderna**
 - ✅ SBT 1.9.7 (actualizado de 0.13.15)
-- ✅ Scala 3.3.1 (actualizado de 2.11.11)
-- ✅ Play Framework 3.x (actualizado de 2.3)
-- ✅ Archivo: `build-moderno.sbt`
+- ✅ Scala 2.13.12 (actualizado de 2.11.11)
+- ✅ Play Framework 3.0.0 (actualizado de 2.3)
+- ✅ Archivo: `build.sbt`
 
 ### 2. **Servicios de Autenticación**
-- ✅ `AuthService.scala` - Gestión de JWT + LDAP
-- ✅ `LdapService.scala` - Conexión y búsqueda LDAP
+- ✅ `AuthServiceV2.scala` - Gestión de JWT + TOTP + LDAP
+- ✅ `LdapService.scala` - Conexión y búsqueda LDAP (UnboundID)
 - ✅ Autenticación moderna con tokens JWT
 - ✅ Pool de conexiones LDAP
 
 ### 3. **Controladores REST**
-- ✅ `AuthController.scala` - Endpoints de login/logout/validate
+- ✅ `AuthControllerV2.scala` - Endpoints de login/logout/validate
 - ✅ `HealthController.scala` - Monitoreo de salud del sistema
 - ✅ Validación de BD PostgreSQL
 
 ### 4. **Configuración de Aplicación**
 - ✅ `application-moderno.conf` - Configuración moderna
-- ✅ `routes-moderno` - Rutas REST API
+- ✅ `routes` - Rutas REST API limpias
 - ✅ Variables de entorno soportadas
 
 ### 5. **Base de Datos**
-- ✅ PostgreSQL 18.x (actualizado de 9.4.4)
+- ✅ PostgreSQL 14.9 (Docker) / 18.1 (Cliente)
 - ✅ Soporte para FerretDB como alternativa a MongoDB
 - ✅ Pool de conexiones HikariCP
-- ✅ Migraciones automáticas con Evolutions
 
 ### 6. **Seguridad**
 - ✅ Autenticación JWT con expiración configurable

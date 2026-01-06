@@ -11,6 +11,9 @@ resolvers ++= Seq(
 // Play Framework 3.x Plugin - ONLY THIS
 addSbtPlugin("org.playframework" % "sbt-plugin" % "3.0.0")
 
+// Check for updates
+addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.6.4")
+
 // =================== Plugins legacy - COMENTADOS PARA PLAY 3 ===================
 // Estos plugins no son necesarios ni compatibles con Play 3.x + Scala 3.3.1
 // addSbtPlugin("com.typesafe.sbt" % "sbt-digest" % "1.0.0")

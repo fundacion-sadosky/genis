@@ -3,102 +3,59 @@
 ## Fase 1: ✅ Marco de Trabajo Moderno (COMPLETADO)
 
 Se ha creado un marco de trabajo limpio y moderno en la rama **`de-cero`** con:
-- ✅ Autenticación JWT + LDAP
+- ✅ Autenticación JWT + LDAP (V2)
 - ✅ Servicios REST
-- ✅ PostgreSQL 18.x
-- ✅ Scala 3.3.1 + Play 3.x
+- ✅ PostgreSQL 14.9 (Docker) / 18.1 (Cliente)
+- ✅ Scala 2.13.12 + Play 3.0.0
 - ✅ Documentación completa
 
-## Fase 2: 📥 Compilación y Verificación (PRÓXIMO)
+## Fase 2: ✅ Compilación y Verificación (COMPLETADO)
 
-### 2.1 - Setup Automático
-```bash
-cd /home/cdiaz/Descargas/genis
-./setup-moderno.sh
-```
+### 2.1 - Setup
+Se completó el setup y la generación de entorno:
+- ✅ Java 11+ verificado
+- ✅ `.env` configurado
+- ✅ Proyecto compilando exitosamente
 
-Este script:
-- ✅ Verifica Java 11+
-- ✅ Crea archivo `.env`
-- ✅ Configura PostgreSQL
-- ✅ Verifica LDAP
-- ✅ Compila proyecto
-
-### 2.2 - Compilación Manual
-```bash
-sbt clean
-sbt compile
-```
-
-### 2.3 - Prueba de Ejecución
+### 2.2 - Comprobación
+El servidor corre correctamente con:
 ```bash
 sbt run -Dconfig.file=./conf/application-moderno.conf
 ```
+Endpoints disponibles: `http://localhost:9000/login`
 
-Acceder a: `http://localhost:9000/api/health`
+## Fase 3: ✅ Migración del Login (COMPLETADO)
 
-## Fase 3: 🔄 Migración del Login Original
+Se migró la lógica de `Login.scala` (Legacy) a una arquitectura de servicios moderna:
 
-Una vez que el marco compile y ejecute correctamente:
+- ✅ **LdapService.scala**: Implementado con UnboundID SDK.
+- ✅ **AuthServiceV2.scala**: Gestión de JWT, TOTP y sesiones.
+- ✅ **AuthControllerV2.scala**: Endpoints REST puros.
+- ✅ **Frontend**: Login HTML5 + JS nativo (sin dependencias viejas).
 
-### 3.1 - Analizar Código Original
-```bash
-git show dev:app/controllers/security/Login.scala
-```
+## Fase 4: 🔄 Limpieza y Estrategia de Archivos (COMPLETADO)
 
-Identificar:
-- ✓ Métodos de autenticación
-- ✓ Validaciones LDAP
-- ✓ Flujo de tokens (si existen)
-- ✓ Modelos de usuario
+Se optó por una estrategia de "Pizarra Limpia":
+- ✅ Código legacy movido a `_LEGACY_BACKUP/`.
+- ✅ Raíz del proyecto limpia solo con código Play 3.0.
+- ✅ Configuración separada (`application-moderno.conf`).
 
-### 3.2 - Adaptar a AuthService Moderno
+## Fase 5: 🧪 Testing y Próximos Pasos (EN CURSO)
 
-Integrar lógica original en:
-- `AuthService.scala` → Métodos de autenticación
-- `LdapService.scala` → Búsquedas LDAP
-- `AuthController.scala` → Endpoints
+### 5.1 - Verificación Funcional
+- [ ] Probar login con usuario `setup` en el navegador.
+- [ ] Verificar persistencia del token JWT.
+- [ ] Probar logout y expiración.
 
-### 3.3 - Mantener Compatibilidad
+### 5.2 - Migración de Módulos Restantes
+Ahora que el Login funciona, migrar gradualmente desde backup:
+- [ ] Dashboard (Vista principal).
+- [ ] Gestión de Laboratorios (CRUD).
+- [ ] Integración completa con BD Legacy (si aplica).
 
-Considerar:
-- ✓ Migración de datos LDAP existentes
-- ✓ Compatibilidad de contraseñas
-- ✓ Mantenimiento de roles y permisos
-- ✓ Auditoría de cambios
-
-## Fase 4: 🧪 Testing
-
-```bash
-# Tests unitarios
-sbt test
-
-# Test de autenticación
-curl -X POST http://localhost:9000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"usuario","password":"password"}'
-
-# Validar token
-TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-curl -H "Authorization: Bearer $TOKEN" \
-  http://localhost:9000/api/auth/validate
-```
-
-## Fase 5: 🔀 Integración Selectiva
-
-Cuando el login funcione:
-
-```bash
-# Mergear código selectivamente desde dev
-git merge dev --no-commit
-
-# Resolver conflictos
-git status
-git add [archivos]
-
-# Commit
-git commit -m "feat: Integrar código existente compatible con 6.0"
-```
+### 5.3 - Conexión Real
+- [ ] Configurar conexión a LDAP de producción (si existe).
+- [ ] Apuntar BD a datos reales.
 
 ## 🎯 Checklist de Migración
 

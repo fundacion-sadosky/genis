@@ -34,28 +34,29 @@ def login = Action.async(BodyParsers.parse.json) { request =>
 - Valida contra LDAP directo
 - Manejo de cache de usuarios
 
-### Sistema Nuevo (app - Play 3.x, Scala 2.13)
+### Sistema Nuevo (app - Play 3.0, Scala 2.13)
 ```scala
-def login(): Action[JsValue] = Action.async(parse.json) { implicit request =>
-  val usernameOpt = (request.body \ "username").asOpt[String]
-  val passwordOpt = (request.body \ "password").asOpt[String]
-  
-  (usernameOpt, passwordOpt) match {
-    case (Some(username), Some(password)) =>
-      authService.authenticate(username, password).map {
+// controllers/AuthControllerV2.scala
+def login = Action.async(parse.json) { implicit request =>
+  (request.body \ "username").asOpt[String] zip
+  (request.body \ "password").asOpt[String] zip
+  (request.body \ "otp").asOpt[String] match {
+    case Some((username, password), otp) =>
+      authService.authenticate(username, password, Some(otp)).map {
         case Right(token) => Ok(Json.obj("success" -> true, "token" -> token))
-        case Left(error) => Unauthorized(Json.obj("success" -> false, "error" -> error))
+        case Left(msg) => Unauthorized(Json.obj("success" -> false, "message" -> msg))
       }
+    case _ =>
+      Future.successful(BadRequest(Json.obj("success" -> false, "message" -> "Faltan credenciales")))
   }
 }
 ```
 
-**Características principales:**
-- Basado en JWT tokens
-- Más simple, sin OTP obligatorio (puede agregarse opcionalmente)
-- Stateless, sin sesiones Play
-- Autenticación LDAP mediante servicio dedicado
-- Respuesta JSON estructurada
+**Mejoras:**
+- ✅ **Stateless**: No usa sesión de servidor, usa JWT.
+- ✅ **Clean Architecture**: Lógica en `AuthServiceV2`.
+- ✅ **LDAP Moderno**: Usa UnboundID SDK.
+- ✅ **TOTP Integrado**: Soporte nativo para 2FA.
 
 ## 2. Cambios de Componentes
 
