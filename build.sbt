@@ -21,6 +21,7 @@ libraryDependencies ++= Seq(
   // Play Framework 3.x core
   "org.playframework" %% "play" % "3.0.0",
   "org.playframework" %% "play-json" % "3.0.0",
+  "org.playframework" %% "play-guice" % "3.0.0",
   
   // Database - PostgreSQL direct JDBC
   "org.postgresql" % "postgresql" % "42.7.1",

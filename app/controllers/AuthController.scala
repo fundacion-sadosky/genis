@@ -4,6 +4,7 @@ import play.api.mvc._
 import play.api.libs.json._
 import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
+import services.AuthServiceV2
 
 /**
  * Controlador de Autenticación Moderno
@@ -12,7 +13,7 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class AuthController @Inject()(
     cc: ControllerComponents,
-    authService: services.AuthService
+    authService: AuthServiceV2
 )(implicit ec: ExecutionContext) extends AbstractController(cc) {
 
   /**

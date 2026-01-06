@@ -1,6 +1,11 @@
 # Routes moderno para GENis 6.0
 # Endpoints REST para autenticación y salud
 
+# Static routes
+GET     /                             controllers.HomeController.index()
+GET     /login                        controllers.HomeController.login()
+GET     /assets/*file                 controllers.Assets.versioned(path="/public", file)
+
 # Health endpoints
 GET     /api/health                   controllers.HealthController.health()
 GET     /api/health/db                controllers.HealthController.dbHealth()
