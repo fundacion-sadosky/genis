@@ -4,6 +4,7 @@ import play.api.mvc._
 import play.api.libs.json._
 import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
+import slick.jdbc.PostgresProfile.api._
 
 /**
  * Controlador de Salud del Sistema
@@ -11,7 +12,8 @@ import scala.concurrent.{ExecutionContext, Future}
  */
 @Singleton
 class HealthController @Inject()(
-    cc: ControllerComponents
+    cc: ControllerComponents,
+    db: Database
 )(implicit ec: ExecutionContext) extends AbstractController(cc) {
 
   /**
@@ -29,14 +31,25 @@ class HealthController @Inject()(
   }
 
   /**
-   * Verifica el estado del sistema
+   * Verifica la conexión a la base de datos
    * GET /api/health/db
    */
-  def dbHealth(): Action[AnyContent] = Action.async { implicit request =>
-    Future.successful(Ok(Json.obj(
-      "status" -> "UP",
-      "database" -> "PostgreSQL",
-      "message" -> "Health check OK"
-    )))
+  def healthDb(): Action[AnyContent] = Action.async { implicit request =>
+    val query = sql"SELECT 1".as[Int]
+    
+    db.run(query).map { _ =>
+      Ok(Json.obj(
+        "status" -> "UP",
+        "database" -> "PostgreSQL",
+        "message" -> "Conexión a base de datos exitosa"
+      ))
+    }.recover {
+      case e: Exception =>
+        ServiceUnavailable(Json.obj(
+          "status" -> "DOWN",
+          "database" -> "PostgreSQL",
+          "error" -> e.getMessage
+        ))
+    }
   }
 }

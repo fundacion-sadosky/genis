@@ -1,2 +1,2 @@
-400:com.google.inject.guice.GuiceInjectorPlugin
-1100:play.modules.reactivemongo.ReactiveMongoPlugin
+# Play Framework 3.x - No plugins needed
+# Dependency injection via Guice is automatic
