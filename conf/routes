@@ -5,7 +5,13 @@
 GET     /api/health                   controllers.HealthController.health()
 GET     /api/health/db                controllers.HealthController.dbHealth()
 
-# Auth endpoints
+# Auth endpoints (Legacy)
 POST    /api/auth/login               controllers.AuthController.login()
 POST    /api/auth/logout              controllers.AuthController.logout()
 GET     /api/auth/validate            controllers.AuthController.validateToken()
+
+# Auth endpoints V2 (Enhanced JWT + LDAP)
+POST    /api/v2/auth/login            controllers.AuthControllerV2.login()
+POST    /api/v2/auth/logout           controllers.AuthControllerV2.logout()
+GET     /api/v2/auth/validate         controllers.AuthControllerV2.validateToken()
+POST    /api/v2/auth/refresh          controllers.AuthControllerV2.refreshToken()

@@ -8,6 +8,7 @@ import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.exceptions.JWTVerificationException
 import java.time.Instant
 import java.util.Date
+import repositories.UserRepository
 
 /**
  * Servicio de Autenticación con JWT + LDAP (Mejorado)
@@ -16,7 +17,8 @@ import java.util.Date
  */
 @Singleton
 class AuthServiceV2 @Inject()(
-    ldapService: LdapService
+    ldapService: LdapService,
+    userRepository: UserRepository
 )(implicit ec: ExecutionContext) {
 
   private val SECRET_KEY = sys.env.getOrElse("JWT_SECRET", "your-secret-key-change-me")
