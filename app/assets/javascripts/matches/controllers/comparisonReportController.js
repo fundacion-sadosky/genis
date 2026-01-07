@@ -79,7 +79,7 @@ define(
         return markerMap
           .get(marker)
           .get(profileId)
-          .map(function(x){return x+"/"+x;})
+          .map(function(x){return x;})
           .join(" ");
       };
       $scope.markers = function() {

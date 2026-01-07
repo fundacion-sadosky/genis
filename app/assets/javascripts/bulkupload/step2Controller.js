@@ -262,7 +262,7 @@ define(['jquery', 'lodash'], function($, _) {
 
         notificationsService.onNotification(function(msg){
             if (msg.kind === 'matching') {
-                $timeout(() => {}, 500);
+                $timeout(() => {}, 1500);
 
                 $scope.shared.profileId = msg.info.globalCode;
                 console.debug("Profile defined on notification: ", $scope.shared.profileId);
