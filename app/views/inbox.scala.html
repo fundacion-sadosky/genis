@@ -1,0 +1,401 @@
+@()
+
+<div id="inboxContainer">
+    <div class="inbox-header">
+        <h2>Bandeja de Entrada</h2>
+        <div class="inbox-controls">
+            <span id="totalNotifications" class="badge">0</span>
+            <button class="btn btn-sm btn-default" onclick="location.reload();">
+                <span class="glyphicon glyphicon-refresh"></span> Actualizar
+            </button>
+        </div>
+    </div>
+
+    <div class="inbox-toolbar">
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-sm" id="filterAll" onclick="filterNotifications('all')" style="background: #764ba2; color: white;">
+                Todo (<span id="countAll">0</span>)
+            </button>
+            <button type="button" class="btn btn-sm btn-default" id="filterPending" onclick="filterNotifications('pending')">
+                Pendiente (<span id="countPending">0</span>)
+            </button>
+            <button type="button" class="btn btn-sm btn-default" id="filterFlagged" onclick="filterNotifications('flagged')">
+                Marcado (<span id="countFlagged">0</span>)
+            </button>
+        </div>
+        <div class="inbox-actions" style="float: right;">
+            <button class="btn btn-sm btn-danger" onclick="deleteSelectedNotifications()" title="Eliminar seleccionados">
+                <span class="glyphicon glyphicon-trash"></span> Eliminar
+            </button>
+        </div>
+    </div>
+
+    <div class="inbox-search">
+        <div class="form-inline">
+            <div class="form-group">
+                <input type="text" class="form-control" id="searchTitle" placeholder="Buscar por título o descripción..." onkeyup="debounceSearch()">
+            </div>
+            <div class="form-group">
+                <select class="form-control" id="filterType" onchange="debounceSearch()">
+                    <option value="">Todos los tipos</option>
+                    <option value="matching">Matching</option>
+                    <option value="bulkImport">Importación en Lote</option>
+                    <option value="userNotification">Notificación de Usuario</option>
+                    <option value="profileData">Datos de Perfil</option>
+                    <option value="pedigreeMatching">Matching de Pedigree</option>
+                    <option value="analysis">Análisis</option>
+                    <option value="report">Reporte</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label style="margin-right: 0.5rem;">Desde:</label>
+                <input type="date" class="form-control" id="dateFrom" onchange="debounceSearch()" style="width: 150px;">
+            </div>
+            <div class="form-group">
+                <label style="margin-right: 0.5rem;">Hasta:</label>
+                <input type="date" class="form-control" id="dateTo" onchange="debounceSearch()" style="width: 150px;">
+            </div>
+            <button class="btn btn-sm btn-default" onclick="clearFilters()" title="Limpiar filtros">
+                <span class="glyphicon glyphicon-remove"></span> Limpiar
+            </button>
+        </div>
+    </div>
+
+    <div id="loadingSpinner" class="spinner" style="display: none; text-align: center; padding: 2rem;">
+        <div class="spinner-border" role="status">
+            <span class="sr-only">Cargando...</span>
+        </div>
+    </div>
+
+    <div id="noResults" class="alert alert-info" style="display: none; margin: 1rem;">
+        No se encontraron notificaciones según su búsqueda.
+    </div>
+
+    <div id="notificationsTable" style="display: none;">
+        <table class="table table-hover inbox-table">
+            <thead class="table-light">
+                <tr>
+                    <th style="width: 3%">
+                        <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()">
+                    </th>
+                    <th style="width: 3%"></th>
+                    <th style="width: 15%">
+                        <a href="#" onclick="sortBy('createdAt'); return false;">
+                            Fecha <span id="sortIcon" class="glyphicon"></span>
+                        </a>
+                    </th>
+                    <th style="width: 12%">Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody id="notificationsList">
+            </tbody>
+        </table>
+    </div>
+
+    <nav id="paginationNav" style="display: none; text-align: center; margin-top: 2rem;">
+        <ul class="pagination" id="paginationList">
+        </ul>
+    </nav>
+</div>
+
+<script>
+    let currentFilter = 'all';
+    let currentPage = 1;
+    let pageSize = 30;
+    let sortField = 'createdAt';
+    let sortAscending = false;
+    let allNotifications = [];
+    let filteredNotifications = [];
+    let searchTimeout;
+
+    // Inicializar
+    document.addEventListener('DOMContentLoaded', function() {
+        loadNotifications();
+        setInterval(loadNotifications, 30000); // Actualizar cada 30 segundos
+    });
+
+    function loadNotifications() {
+        showSpinner(true);
+        fetch('/api/notifications')
+            .then(response => {
+                if (!response.ok) throw new Error('Error al cargar notificaciones');
+                return response.json();
+            })
+            .then(data => {
+                allNotifications = data;
+                filterNotifications('all');
+                updateCounts();
+                showSpinner(false);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showSpinner(false);
+                document.getElementById('noResults').style.display = 'block';
+            });
+    }
+
+    function updateCounts() {
+        let countAll = allNotifications.length;
+        let countPending = allNotifications.filter(n => n.pending).length;
+        let countFlagged = allNotifications.filter(n => n.flagged).length;
+
+        document.getElementById('countAll').textContent = countAll;
+        document.getElementById('countPending').textContent = countPending;
+        document.getElementById('countFlagged').textContent = countFlagged;
+        document.getElementById('totalNotifications').textContent = countPending;
+    }
+
+    function filterNotifications(filter) {
+        currentFilter = filter;
+        currentPage = 1;
+        updateFilterButtons();
+        performSearch();
+    }
+
+    function updateFilterButtons() {
+        document.getElementById('filterAll').style.background = currentFilter === 'all' ? '#764ba2' : '';
+        document.getElementById('filterAll').style.color = currentFilter === 'all' ? 'white' : 'inherit';
+        
+        document.getElementById('filterPending').classList.toggle('active', currentFilter === 'pending');
+        document.getElementById('filterFlagged').classList.toggle('active', currentFilter === 'flagged');
+    }
+
+    function debounceSearch() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(performSearch, 300);
+    }
+
+    function clearFilters() {
+        document.getElementById('searchTitle').value = '';
+        document.getElementById('filterType').value = '';
+        document.getElementById('dateFrom').value = '';
+        document.getElementById('dateTo').value = '';
+        currentPage = 1;
+        performSearch();
+    }
+
+    function performSearch() {
+        const searchTitle = document.getElementById('searchTitle').value.toLowerCase();
+        const filterType = document.getElementById('filterType').value;
+        const dateFromInput = document.getElementById('dateFrom').value;
+        const dateToInput = document.getElementById('dateTo').value;
+        
+        const dateFrom = dateFromInput ? new Date(dateFromInput + 'T00:00:00') : null;
+        const dateTo = dateToInput ? new Date(dateToInput + 'T23:59:59') : null;
+
+        // Validar que Desde <= Hasta
+        if (dateFrom && dateTo && dateFrom > dateTo) {
+            alert('La fecha "Desde" debe ser anterior o igual a "Hasta"');
+            return;
+        }
+
+        filteredNotifications = allNotifications.filter(n => {
+            // Buscar en título o descripción
+            let matchTitle = !searchTitle || 
+                             n.title.toLowerCase().includes(searchTitle) || 
+                             (n.description && n.description.toLowerCase().includes(searchTitle));
+            
+            let matchType = !filterType || n.notificationType === filterType;
+            let matchFilter = true;
+            let matchDate = true;
+
+            if (currentFilter === 'pending') matchFilter = n.pending;
+            if (currentFilter === 'flagged') matchFilter = n.flagged;
+
+            // Validar rango de fechas
+            if (dateFrom || dateTo) {
+                const notifDate = new Date(n.createdAt);
+                if (dateFrom && notifDate < dateFrom) matchDate = false;
+                if (dateTo && notifDate > dateTo) matchDate = false;
+            }
+
+            return matchTitle && matchType && matchFilter && matchDate;
+        });
+
+        // Ordenar
+        filteredNotifications.sort((a, b) => {
+            let aVal = a[sortField];
+            let bVal = b[sortField];
+            
+            if (sortField === 'createdAt') {
+                aVal = new Date(aVal);
+                bVal = new Date(bVal);
+            }
+
+            if (sortAscending) {
+                return aVal > bVal ? 1 : -1;
+            } else {
+                return aVal < bVal ? 1 : -1;
+            }
+        });
+
+        renderNotifications();
+        renderPagination();
+    }
+
+    function renderNotifications() {
+        const tbody = document.getElementById('notificationsList');
+        tbody.innerHTML = '';
+
+        if (filteredNotifications.length === 0) {
+            document.getElementById('notificationsTable').style.display = 'none';
+            document.getElementById('noResults').style.display = 'block';
+            document.getElementById('paginationNav').style.display = 'none';
+            return;
+        }
+
+        document.getElementById('notificationsTable').style.display = 'block';
+        document.getElementById('noResults').style.display = 'none';
+
+        const start = (currentPage - 1) * pageSize;
+        const end = start + pageSize;
+        const pageNotifications = filteredNotifications.slice(start, end);
+
+        pageNotifications.forEach(notif => {
+            const row = document.createElement('tr');
+            row.className = notif.pending ? 'inbox-pending' : '';
+            row.id = 'notif-' + notif.id;
+
+            const typeClass = 'type-' + (notif.notificationType || 'default').toLowerCase();
+            const createdAt = new Date(notif.createdAt).toLocaleString('es-AR');
+
+            row.innerHTML = `
+                <td><input type="checkbox" class="notif-checkbox" data-id="${notif.id}"></td>
+                <td>
+                    <i class="glyphicon glyphicon-flag" 
+                       style="cursor: pointer; color: ${notif.flagged ? '#ffc107' : '#ccc'};"
+                       onclick="toggleFlag(${notif.id}, ${!notif.flagged})"></i>
+                </td>
+                <td class="notif-clickable" onclick="markAsRead(${notif.id}, '${notif.url || '#'}')">
+                    ${createdAt}
+                </td>
+                <td class="notif-clickable" onclick="markAsRead(${notif.id}, '${notif.url || '#'}')">
+                    <span class="badge ${typeClass}">${getNotificationTypeLabel(notif.notificationType)}</span>
+                </td>
+                <td class="notif-clickable" onclick="markAsRead(${notif.id}, '${notif.url || '#'}')">
+                    <strong style="color: ${notif.pending ? '#764ba2' : 'inherit'};">${notif.title}</strong>
+                    <br>
+                    <small style="color: #666;">${notif.description || ''}</small>
+                </td>
+            `;
+
+            tbody.appendChild(row);
+        });
+
+        if (filteredNotifications.length > pageSize) {
+            document.getElementById('paginationNav').style.display = 'block';
+        } else {
+            document.getElementById('paginationNav').style.display = 'none';
+        }
+    }
+
+    function renderPagination() {
+        const totalPages = Math.ceil(filteredNotifications.length / pageSize);
+        if (totalPages <= 1) return;
+
+        const paginationList = document.getElementById('paginationList');
+        paginationList.innerHTML = '';
+
+        for (let i = 1; i <= totalPages; i++) {
+            const li = document.createElement('li');
+            li.className = i === currentPage ? 'active' : '';
+            li.innerHTML = `<a href="#" onclick="goToPage(${i}); return false;">${i}</a>`;
+            paginationList.appendChild(li);
+        }
+    }
+
+    function goToPage(page) {
+        currentPage = page;
+        renderNotifications();
+        document.querySelector('.active')?.scrollIntoView();
+    }
+
+    function sortBy(field) {
+        if (sortField === field) {
+            sortAscending = !sortAscending;
+        } else {
+            sortField = field;
+            sortAscending = false;
+        }
+        currentPage = 1;
+
+        const icon = document.getElementById('sortIcon');
+        if (sortAscending) {
+            icon.className = 'glyphicon glyphicon-chevron-up';
+        } else {
+            icon.className = 'glyphicon glyphicon-chevron-down';
+        }
+
+        performSearch();
+    }
+
+    function toggleFlag(notifId, newFlag) {
+        fetch(`/api/notifications/${notifId}/flag?flag=${newFlag}`, {method: 'POST'})
+            .then(response => {
+                if (!response.ok) throw new Error('Error al actualizar');
+                loadNotifications();
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    function markAsRead(notifId, url) {
+        // Marcar como leído
+        fetch(`/api/notifications/${notifId}/read`, {method: 'POST'})
+            .then(() => {
+                if (url && url !== '#') {
+                    window.location.href = url;
+                } else {
+                    loadNotifications();
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    function toggleSelectAll() {
+        const checkboxes = document.querySelectorAll('.notif-checkbox');
+        const isChecked = document.getElementById('selectAllCheckbox').checked;
+        checkboxes.forEach(cb => cb.checked = isChecked);
+    }
+
+    function deleteSelectedNotifications() {
+        const selected = document.querySelectorAll('.notif-checkbox:checked');
+        if (selected.length === 0) {
+            alert('Selecciona al menos una notificación');
+            return;
+        }
+
+        if (!confirm(`¿Eliminar ${selected.length} notificación(es)?`)) return;
+
+        const ids = Array.from(selected).map(cb => cb.dataset.id);
+        let completed = 0;
+
+        ids.forEach(id => {
+            fetch(`/api/notifications/${id}`, {method: 'DELETE'})
+                .then(() => {
+                    completed++;
+                    if (completed === ids.length) {
+                        loadNotifications();
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        });
+    }
+
+    function getNotificationTypeLabel(type) {
+        const labels = {
+            'matching': '📊 Matching',
+            'bulkImport': '📥 Importación',
+            'userNotification': '👤 Usuario',
+            'profileData': '📋 Perfil',
+            'pedigreeMatching': '👨‍👩‍👧 Pedigree',
+            'analysis': '🔬 Análisis',
+            'report': '📄 Reporte'
+        };
+        return labels[type] || type || 'Notificación';
+    }
+
+    function showSpinner(show) {
+        document.getElementById('loadingSpinner').style.display = show ? 'block' : 'none';
+    }
+</script>

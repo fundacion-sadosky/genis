@@ -1,0 +1,135 @@
+#inboxContainer {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 1.5rem;
+}
+
+.inbox-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #764ba2;
+    padding-bottom: 1rem;
+}
+
+.inbox-header h2 {
+    margin: 0;
+    color: #764ba2;
+}
+
+.inbox-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.inbox-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+.inbox-search {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+.inbox-search .form-inline {
+    display: flex;
+    gap: 1rem;
+}
+
+.inbox-search .form-group {
+    margin-bottom: 0;
+    flex: 1;
+    max-width: 300px;
+}
+
+.inbox-table tbody tr {
+    transition: background-color 0.2s;
+}
+
+.inbox-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.inbox-pending {
+    background-color: #f0f4ff !important;
+    font-weight: 500;
+}
+
+.notif-clickable {
+    cursor: pointer;
+    padding: 0.75rem !important;
+}
+
+.notif-clickable:hover {
+    text-decoration: underline;
+    color: #764ba2;
+}
+
+.badge {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+}
+
+.type-matching {
+    background-color: #007bff;
+}
+
+.type-bulkimport {
+    background-color: #28a745;
+}
+
+.type-usernotification {
+    background-color: #ffc107;
+    color: #333;
+}
+
+.type-profiledata {
+    background-color: #17a2b8;
+}
+
+.type-pedigreematching {
+    background-color: #e83e8c;
+}
+
+.type-analysis {
+    background-color: #6f42c1;
+}
+
+.type-report {
+    background-color: #fd7e14;
+}
+
+.type-default {
+    background-color: #6c757d;
+}
+
+.spinner-border {
+    display: inline-block;
+    width: 2rem;
+    height: 2rem;
+    vertical-align: text-bottom;
+    border: 0.25em solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spinner-border 0.75s linear infinite;
+}
+
+@keyframes spinner-border {
+    to { transform: rotate(360deg); }
+}
+
+.btn.active {
+    background-color: #764ba2;
+    color: white;
+}

@@ -6,86 +6,92 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - GENis 6.0</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f4f7f6;
-            margin: 0;
-            padding: 0;
-        }
-        .header {
-            background-color: #667eea;
-            color: white;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-        }
-        .card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        .btn {
-            background: #764ba2;
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            cursor: pointer;
-            text-decoration: none;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
-        }
-        th, td {
-            text-align: left;
-            padding: 0.75rem;
-            border-bottom: 1px solid #eee;
-        }
-        th {
-            color: #666;
-            font-weight: 600;
-        }
-        .error-msg {
-            color: red;
-            background: #ffe6e6;
-            padding: 1rem;
-            border-radius: 4px;
-            display: none;
-        }
-        #logoutBtn {
-            background: rgba(255,255,255,0.2);
-        }
-        #logoutBtn:hover {
-            background: rgba(255,255,255,0.3);
-        }
-    </style>
+    <link rel="stylesheet" href="@routes.Assets.versioned("stylesheets/dashboard.css")">
+    <link rel="stylesheet" href="@routes.Assets.versioned("stylesheets/inbox.css")">
 </head>
 <body>
+    <!-- Header -->
     <div class="header">
-        <h1>GENis Dashboard</h1>
-        <div>
-            <span id="userInfo" style="margin-right: 1rem;"></span>
+        <h1>📊 GENis 6.0 Dashboard</h1>
+        <div class="header-right">
+            <span id="userInfo" style="font-size: 0.95rem;"></span>
             <button id="logoutBtn" class="btn" onclick="logout()">Cerrar Sesión</button>
         </div>
     </div>
 
-    <div class="container">
-        <div id="error" class="error-msg"></div>
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <ul class="sidebar-menu">
+            <li><a href="#" onclick="showSection('inbox'); return false;" class="nav-link active" data-section="inbox">
+                <i>📬</i> Bandeja de Entrada
+            </a></li>
+            <li><a href="#" onclick="showSection('home'); return false;" class="nav-link" data-section="home">
+                <i>🏠</i> Inicio
+            </a></li>
+            <li><a href="#" onclick="showSection('search'); return false;" class="nav-link" data-section="search">
+                <i>🔍</i> Búsqueda
+            </a></li>
+            <li><a href="#" onclick="showSection('analysis'); return false;" class="nav-link" data-section="analysis">
+                <i>📈</i> Análisis
+            </a></li>
+            <li><a href="#" onclick="showSection('reports'); return false;" class="nav-link" data-section="reports">
+                <i>📄</i> Reportes
+            </a></li>
+            <li style="border-top: 2px solid #f0f0f0; margin-top: 1rem;"></li>
+            <li><a href="#" onclick="showSection('settings'); return false;" class="nav-link" data-section="settings">
+                <i>⚙️</i> Configuración
+            </a></li>
+        </ul>
+    </div>
 
-        <!-- Dashboard Widgets Placeholders -->
-        <div style="text-align: center; color: #666; margin-top: 2rem;">
-            Dashboard vacío.
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container">
+            <div id="error" class="error-msg"></div>
+
+            <!-- Inbox Section -->
+            <div id="inbox" class="content-section active"></div>
+
+            <!-- Home Section -->
+            <div id="home" class="content-section">
+                <div class="card">
+                    <h2>Bienvenido a GENis 6.0</h2>
+                    <p>Sistema moderno para análisis de perfiles genéticos.</p>
+                    <p>Utiliza el menú lateral para navegar entre las diferentes secciones.</p>
+                </div>
+            </div>
+
+            <!-- Search Section -->
+            <div id="search" class="content-section">
+                <div class="card">
+                    <h2>Búsqueda</h2>
+                    <p>Funcionalidad de búsqueda disponible próximamente.</p>
+                </div>
+            </div>
+
+            <!-- Analysis Section -->
+            <div id="analysis" class="content-section">
+                <div class="card">
+                    <h2>Análisis</h2>
+                    <p>Herramientas de análisis disponibles próximamente.</p>
+                </div>
+            </div>
+
+            <!-- Reports Section -->
+            <div id="reports" class="content-section">
+                <div class="card">
+                    <h2>Reportes</h2>
+                    <p>Generador de reportes disponible próximamente.</p>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div id="settings" class="content-section">
+                <div class="card">
+                    <h2>Configuración</h2>
+                    <p>Opciones de configuración disponibles próximamente.</p>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -97,21 +103,63 @@
         }
 
         const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-        document.getElementById('userInfo').textContent = userData.username || 'Usuario';
+        document.getElementById('userInfo').textContent = 'Usuario: ' + (userData.username || 'Usuario');
 
+        // Sección de inbox
+        function loadInbox() {
+            const inboxSection = document.getElementById('inbox');
+            fetch('/inbox-content')
+                .then(response => response.text())
+                .then(html => {
+                    inboxSection.innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Error al cargar el inbox:', error);
+                    inboxSection.innerHTML = '<div class="alert alert-info">No se pudo cargar la bandeja de entrada.</div>';
+                });
+        }
+
+        // Mostrar sección
+        function showSection(sectionId) {
+            // Ocultar todas las secciones
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+
+            // Actualizar estado del menú
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            document.querySelector(`[data-section="${sectionId}"]`).classList.add('active');
+
+            // Mostrar la sección activa
+            const section = document.getElementById(sectionId);
+            section.classList.add('active');
+
+            // Cargar el contenido del inbox si es necesario
+            if (sectionId === 'inbox' && !section.querySelector('#inboxContainer')) {
+                loadInbox();
+            }
+        }
+
+        // Cerrar sesión
         function logout() {
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('userData');
-            window.location.href = '/login';
-        }
-        
-        function showError(msg) {
-            const el = document.getElementById('error');
-            el.textContent = msg;
-            el.style.display = 'block';
+            fetch('/api/v2/auth/logout', {method: 'POST'})
+                .then(() => {
+                    localStorage.removeItem('authToken');
+                    localStorage.removeItem('userData');
+                    window.location.href = '/login';
+                })
+                .catch(error => {
+                    console.error('Error al cerrar sesión:', error);
+                    window.location.href = '/login';
+                });
         }
 
-        // Iniciar
+        // Cargar inbox al iniciar
+        document.addEventListener('DOMContentLoaded', function() {
+            loadInbox();
+        });
     </script>
 </body>
 </html>
