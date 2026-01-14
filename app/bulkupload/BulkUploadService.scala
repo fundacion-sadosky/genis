@@ -32,7 +32,8 @@ abstract class BulkUploadService @Inject() (
                                              profileDataRepo: ProfileDataRepository,
                                              interconnectionService: InterconnectionService // Inject InterconnectionService
                                            ) {
-  def getBatchesStep1(userId: String, isSuperUser: Boolean): Future[Seq[ProtoProfilesBatchView]]
+  def getBatchesStep1(userId: String, isSuperUser: Boolean, offset: Int, limit: Int): Future[Seq[ProtoProfilesBatchView]]
+  def countBatchesStep1(userId: String, isSuperUser: Boolean): Future[Int]
   def getBatchesStep2(userId: String, geneMapperId: String, isSuperUser: Boolean): Future[Seq[ProtoProfilesBatchView]]
   def getProtoProfile(id: Long): Future[Option[ProtoProfile]]
   def getProtoProfileWithBatchId(id: Long): Future[Option[(ProtoProfile, Long)]]
@@ -104,9 +105,16 @@ class BulkUploadServiceImpl @Inject() (
     protoRepo.getProtoProfileWithBatchId(id)
   }
 
-  override def getBatchesStep1(userId: String, isSuperUser: Boolean): Future[Seq[ProtoProfilesBatchView]] = {
-    protoRepo.getBatchesStep1(userId, isSuperUser)
-  }
+  override def getBatchesStep1(
+                       userId: String,
+                       isSuperUser: Boolean,
+                       offset: Int,
+                       limit: Int
+                     ): Future[Seq[ProtoProfilesBatchView]] =
+    protoRepo.getBatchesStep1(userId, isSuperUser, offset, limit)
+
+  override def countBatchesStep1(userId: String, isSuperUser: Boolean): Future[Int] =
+    protoRepo.countBatchesStep1(userId, isSuperUser)
 
   override def getBatchesStep2(userId: String, geneMapperId: String, isSuperUser: Boolean): Future[Seq[ProtoProfilesBatchView]] = {
     protoRepo.getBatchesStep2(userId, geneMapperId, isSuperUser)

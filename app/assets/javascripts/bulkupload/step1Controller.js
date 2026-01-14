@@ -6,7 +6,12 @@ define(['lodash'], function(_) {
 		$scope.protoProfiles = {};
 		$scope.batches = [];
 		$scope.editedSubcats = {};
-    $scope.pageSize = 50;
+
+        $scope.batchesPage = 1;
+        $scope.batchesPageSize = 10;
+        $scope.totalBatches = 0;
+
+    $scope.protoprofilesPageSize = 50;
     $scope.editedIds = [];
 		var toogle = true;
 		$scope.pendientes = false;
@@ -18,14 +23,14 @@ define(['lodash'], function(_) {
     var getAllBatches = function() {
       $scope.isProcessing = true;
       return bulkuploadService
-        .getBatchesStep1()
+        .getBatchesStep1($scope.batchesPage, $scope.batchesPageSize)
         .then(
           function(response) {
             $scope.batches = response.data;
             $scope.batchesById = _.keyBy($scope.batches, 'id');
             $scope.batches.forEach(
               function(batch){
-                batch.pageSize = $scope.pageSize;
+                batch.pageSize = $scope.protoprofilesPageSize;
                 batch.page = 1;
               }
             );
@@ -33,6 +38,15 @@ define(['lodash'], function(_) {
           }
         );
     };
+
+    $scope.loadBatchesCount = function () {
+        bulkuploadService.countBatchesStep1(
+        ).then(function (response) {
+            $scope.totalBatches = response.data.total;
+        });
+    };
+
+
     var loadLocus = function() {
         return locusService
           .listFull()
@@ -45,9 +59,12 @@ define(['lodash'], function(_) {
               );
         });
     };
+
     getAllBatches();
     loadLocus();
-		profileDataService.getCategories().then(
+    $scope.loadBatchesCount();
+
+    profileDataService.getCategories().then(
       function(response) {
         $scope.categories = response.data;
       }
@@ -78,7 +95,7 @@ define(['lodash'], function(_) {
 					else {
 						var batchId = file.result;
                         getAllBatches().then(function() {
-                            getBatchProtoProfiles(batchId,1,$scope.pageSize).then(function() {
+                            getBatchProtoProfiles(batchId,1,$scope.protoprofilesPageSize).then(function() {
                                 $scope.openAccordian = batchId;
                                 $scope.addedBatchId = batchId;
                             });
@@ -293,7 +310,7 @@ define(['lodash'], function(_) {
                 }
                 $scope.batchesById = _.keyBy($scope.batches, 'id');
                 $scope.batches.forEach(function(batch){
-                    batch.pageSize = $scope.pageSize;
+                    batch.pageSize = $scope.protoprofilesPageSize;
                     batch.page = 1;
                 });
                 $scope.isProcessing = false;
@@ -304,6 +321,11 @@ define(['lodash'], function(_) {
         $scope.clean = function() {
             $scope.search = {input: ''};
             $scope.pendientes = false;
+            $scope.batchesPage = 1;
+            getAllBatches();
+        };
+
+        $scope.changeBatchesPage = function () {
             getAllBatches();
         };
 

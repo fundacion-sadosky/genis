@@ -11,11 +11,14 @@ define(['lodash'], function(_) {
         this.getSubcategories = function() {
             return playRoutes.controllers.Categories.list().get();
         };
-        this.getBatchesStep1 = function() {
-			return playRoutes.controllers.BulkUpload.getBatchesStep1().get();
+		this.countBatchesStep1 = function() {
+			return playRoutes.controllers.BulkUpload.countBatchesStep1().get();
 		};
-        
-        this.getBatchesStep2 = function(geneMapperId) {
+		this.getBatchesStep1 = function(page, pageSize) {
+			return playRoutes.controllers.BulkUpload.getBatchesStep1(page, pageSize).get();
+		};
+
+		this.getBatchesStep2 = function(geneMapperId) {
             return playRoutes.controllers.BulkUpload.getBatchesStep2(geneMapperId).get();
         };
 		

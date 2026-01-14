@@ -15,7 +15,7 @@ class BulkUploadRepositoryTest extends PdgSpec {
       
       val repo = new SlickProtoProfileRepository(null,"",app)
       
-      val result = Await.result(repo.getBatchesStep1("user", false), duration)
+      val result = Await.result(repo.getBatchesStep1("user", false, 1, 10), duration) //chequear parámetros offset y limit
       
       result.size mustBe 0
     }

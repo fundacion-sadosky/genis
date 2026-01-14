@@ -30,13 +30,25 @@ import scala.util.{Left, Right}
 @Singleton
 class BulkUpload @Inject() (bulkUploadService: BulkUploadService, userService: UserService) extends Controller with JsonActions {
 
-  def getBatchesStep1 = Action.async { request =>
+  def getBatchesStep1(page: Int, pageSize: Int) = Action.async { request =>
     val userId = request.headers.get("X-USER").get
-    userService.isSuperUser(userId).flatMap(isSuperUser => {
-      bulkUploadService.getBatchesStep1(userId, isSuperUser) map { batch =>
-        Ok(Json.toJson(batch))
+    val offset = (page - 1) * pageSize
+
+    userService.isSuperUser(userId).flatMap { isSuperUser =>
+      bulkUploadService
+        .getBatchesStep1(userId, isSuperUser, offset, pageSize)
+        .map(batches => Ok(Json.toJson(batches)))
+    }
+  }
+
+
+  def countBatchesStep1 = Action.async { request =>
+    val userId = request.headers.get("X-USER").get
+    userService.isSuperUser(userId).flatMap { isSuperUser =>
+      bulkUploadService.countBatchesStep1(userId, isSuperUser).map { total =>
+        Ok(Json.obj("total" -> total))
       }
-    })
+    }
   }
 
   def getBatchesStep2 (geneMapperId : String) = Action.async { request =>
