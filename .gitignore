@@ -58,3 +58,8 @@ public/export/
 # dev conf files 
 application-dev.conf
 logger-dev.xml
+
+# Utils sample files
+utils/*.csv
+utils/*.tsv
+utils/*.txt
