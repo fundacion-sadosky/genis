@@ -6,7 +6,7 @@
 GET      /                                                    @controllers.Application.index
 
 GET      /status                                              @controllers.Status.status
-
+# Categories Configuration
 GET      /categoryTree                                        @controllers.Categories.categoryTree
 GET      /categories                                          @controllers.Categories.list
 GET      /categoriesWithProfiles                              @controllers.Categories.listWithProfiles
@@ -39,8 +39,10 @@ DELETE   /group/:groupId                                      @controllers.Categ
 GET      /group/export                                        @controllers.Categories.exportGroups
 POST     /group/import                                        @controllers.Categories.importGroups
 
-
+# Crime Types
 GET      /crimeTypes                                          @controllers.CrimeTypes.list
+
+# BioMaterial Types
 GET      /bioMaterialTypes                                    @controllers.BioMaterialTypes.list
 POST	 /bioMaterialTypes									  @controllers.BioMaterialTypes.insert
 PUT	     /bioMaterialTypes									  @controllers.BioMaterialTypes.update
