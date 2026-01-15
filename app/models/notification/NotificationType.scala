@@ -26,5 +26,5 @@ object NotificationType extends Enumeration {
   implicit val reads: play.api.libs.json.Reads[NotificationType.Value] =
     play.api.libs.json.Reads.enumNameReads(NotificationType)
   implicit val writes: play.api.libs.json.Writes[NotificationType.Value] =
-    play.api.libs.json.Writes.enumNameWrites
+    play.api.libs.json.Writes { value => play.api.libs.json.JsString(value.toString) }
 }

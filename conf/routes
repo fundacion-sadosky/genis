@@ -37,3 +37,14 @@ POST     /api/notifications/:id/read             controllers.NotificationControl
 POST     /api/notifications/:id/flag             controllers.NotificationController.toggleFlag(id: Long, flag: Boolean)
 DELETE   /api/notifications/:id                  controllers.NotificationController.delete(id: Long)
 
+# ============================================================================
+# CrimeTypes Module - Tipos de Crimen
+# ============================================================================
+GET      /api/crimeTypes                         controllers.CrimeTypeController.list()
+GET      /api/crimeTypes/:id                     controllers.CrimeTypeController.findById(id: String)
+POST     /api/crimeTypes                         controllers.CrimeTypeController.createCrimeType()
+DELETE   /api/crimeTypes/:id                     controllers.CrimeTypeController.deleteCrimeType(id: String)
+GET      /api/crimeTypes/:crimeTypeId/crimes     controllers.CrimeTypeController.getCrimesByType(crimeTypeId: String)
+POST     /api/crimeTypes/:crimeTypeId/crimes     controllers.CrimeTypeController.createCrime(crimeTypeId: String)
+DELETE   /api/crimes/:id                         controllers.CrimeTypeController.deleteCrime(id: String)
+
