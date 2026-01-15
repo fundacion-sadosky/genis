@@ -1603,7 +1603,7 @@ class InterconnectionServiceImpl @Inject()(
             val solicitor = if (motiveParts.nonEmpty) motiveParts(0) else ""
             val motiveText = if (motiveParts.length > 1) motiveParts(1) else ""
             val deletedMotive = DeletedMotive(solicitor, motiveText)
-            this.receiveDeleteProfile(globalCode, deletedMotive, operationOriginatedInInstance, currentInstanceLabCode, false, userName)
+            this.receiveDeleteProfile(globalCode, deletedMotive, currentInstanceLabCode, operationOriginatedInInstance, false, userName)
           //Agregar trazabilidad de pendiente de baja
           case APROBADA =>
             logger.info("2. es aprobada, envio notif de aprobada")

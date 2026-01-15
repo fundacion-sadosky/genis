@@ -284,9 +284,9 @@ class ProfileDataServiceImpl @Inject() (
                   //TODO: Acá el labCodeOption debe ser el LABCODE en PROFILE_RECEIVED que representa el laboratorio desde el cual se recibió el perfil
                   val labCodeOption = getProfileReceivedLabCode(globalCode)
                   val infUrlFuture = labCodeOption match {
-                    case Some(labCode) => {
-                      this.updateProfileReceivedStatus(labCode, globalCode.text, 19L, motive.motive, false, "", Some(userId), labCode)
-                      connectionRepository.getInfInstanceUrl(labCode).map(Some(_))
+                    case Some(labCodeInf) => {
+                      this.updateProfileReceivedStatus(labCodeInf, globalCode.text, 19L, motive.motive, false, "", Some(userId), labCode)
+                      connectionRepository.getInfInstanceUrl(labCodeInf).map(Some(_))
                     }
                     case None => Future.successful(None)
                   }
