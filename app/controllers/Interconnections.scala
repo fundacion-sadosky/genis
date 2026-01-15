@@ -343,11 +343,12 @@ class Interconnections @Inject()( val protoRepo: ProtoProfileRepository,
                           status:Long,
                           motive:Option[String],
                           userName:String,
-                          isCategoryModification:Boolean = false
+                          isCategoryModification:Boolean = false,
+                          operationOriginatedInInstance: Option[String] = None
                         ): Action[AnyContent] = Action.async {
     _ => {
       interconnectionService
-        .updateUploadStatus(globalCode, status, motive, userName,isCategoryModification)
+        .updateUploadStatus(globalCode, status, motive, userName, isCategoryModification, operationOriginatedInInstance.getOrElse(""))
         .map{
           case Left(e) => BadRequest(Json.obj("message" -> e))
           case Right(()) => Ok.withHeaders("X-CREATED-ID" -> globalCode)

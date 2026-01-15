@@ -80,7 +80,7 @@ trait ProfileDataService {
   def removeAll():Future[Int]
   def removeProfile(globalCode: SampleCode): Future[Either[String, SampleCode]]
   def importFromAnotherInstance(profileData: ProfileData,labOrigin:String,labImmediate:String):Future[Unit]
-  def updateUploadStatus(globalCode: String,status:Long,motive:Option[String], interconnection_error:Option[String], userName:Option[String]): Future[Either[String,Unit]]
+  def updateUploadStatus(globalCode: String,status:Long,motive:Option[String], interconnection_error:Option[String], userName:Option[String], operationOriginatedInInstance: String): Future[Either[String,Unit]]
   def getProfileUploadStatusByGlobalCode(globalCode:SampleCode):Future[Option[Long]]
   def getExternalProfileDataByGlobalCode(globalCode:String):Future[Option[ExternalProfileDataRow]]
   def findProfileDataLocalOrSuperior(globalCode:SampleCode):Future[Option[ProfileData]]
@@ -93,7 +93,7 @@ trait ProfileDataService {
   def updateInterconnectionError(globalCode: String, status:Long, interconnection_error: String): Future[Either[String,Unit]]
   def addProfileReceivedApproved(labCode:String,globalCode:String, status: Long, userName: String, isCategoryModification: Boolean):Future[Either[String,Unit]]
   def addProfileReceivedRejected(labCode:String,globalCode:String, status: Long, motive: String, userName: String, isCategoryModification: Boolean):Future[Either[String,Unit]]
-  def updateProfileReceivedStatus(labCode:String, globalCode: String,status:Long,motive:String,isCategoryModification: Boolean,interconnection_error:String, userName:Option[String]): Future[Either[String,Unit]]
+  def updateProfileReceivedStatus(labCode:String, globalCode: String,status:Long,motive:String,isCategoryModification: Boolean,interconnection_error:String, userName:Option[String], operationOriginatedIninstance: String): Future[Either[String,Unit]]
   def getPendingApprovalNotification(labCode:String): Future[Seq[ProfileReceivedRow]]
   def getPendingRejectionNotification(labCode:String): Future[Seq[ProfileReceivedRow]]
   def gefFailedProfilesReceivedDeleted(labCode: String):Future[Seq[ProfileReceivedRow]]
@@ -245,7 +245,7 @@ class ProfileDataServiceImpl @Inject() (
 
   def getProfileReceivedLabCode(globalCode: SampleCode): Option[String] = {
 
-    val profileReceivedFuture = profileDataRepository.getProfileReceivedLabImmediate(globalCode.text)
+    val profileReceivedFuture = profileDataRepository.getProfileReceivedLabInferior(globalCode.text)
 
     // Await the result (you can handle this more gracefully with proper error handling)
     val inferiorLab = Await.result(profileReceivedFuture, Duration.Inf)
@@ -266,7 +266,7 @@ class ProfileDataServiceImpl @Inject() (
                 if(shouldSendDeleteToSuperiorInstance(globalCode)) {
                   val supUrlFuture = connectionRepository.getSupInstanceUrl().map(_.getOrElse(""))
                   supUrlFuture.flatMap(supUrl =>
-                    Future.successful(interconnectionService.inferiorDeleteProfile(globalCode, motive, supUrl, userId))
+                    Future.successful(interconnectionService.inferiorDeleteProfile(globalCode, motive, supUrl, userId, labCode))
                   )
                 }
                 if(shouldSendDeleteToInferiorInstance(globalCode)){
@@ -274,7 +274,7 @@ class ProfileDataServiceImpl @Inject() (
                   val labCodeOption = getProfileReceivedLabCode(globalCode)
                   val infUrlFuture = labCodeOption match {
                     case Some(labCode) => {
-                      this.updateProfileReceivedStatus(labCode, globalCode.text,19L,motive = motive.motive,isCategoryModificaction = false,"",Some(userId))
+                      this.updateProfileReceivedStatus(labCode, globalCode.text, 19L, motive.motive, false, "", Some(userId), labCodeOption.getOrElse(""))
                       connectionRepository.getInfInstanceUrl(labCode).map(Some(_))
                     }
                     case None => Future.successful(None)
@@ -283,7 +283,7 @@ class ProfileDataServiceImpl @Inject() (
                     case Some(infUrl) =>
                       labCodeOption match {
                         case Some(labCode) =>
-                          Future.successful(interconnectionService.sendDeletionToInferior(globalCode.text, motive, labCode, infUrl.getOrElse(""), userId))
+                          Future.successful(interconnectionService.sendDeletionToInferior(globalCode.text, motive, labCode, infUrl.getOrElse(""), userId,labCode))
                         case None =>
                           Future.successful(Left(Messages("error.E0130")))
                       }
@@ -624,8 +624,8 @@ class ProfileDataServiceImpl @Inject() (
     profileDataRepository.addExternalProfile(profileData,labOrigin,labImmediate).map( _ => ())
   }
 
-  def updateUploadStatus(globalCode: String,status:Long,motive:Option[String], interconnection_error:Option[String], userName:Option[String]): Future[Either[String,Unit]] = {
-    profileDataRepository.updateUploadStatus(globalCode,status,motive,interconnection_error,userName)
+  def updateUploadStatus(globalCode: String,status:Long,motive:Option[String], interconnection_error:Option[String], userName:Option[String], operationOriginatedInInstance: String): Future[Either[String,Unit]] = {
+    profileDataRepository.updateUploadStatus(globalCode,status,motive,interconnection_error,userName, operationOriginatedInInstance)
   }
 
 
@@ -667,8 +667,8 @@ class ProfileDataServiceImpl @Inject() (
     this.profileDataRepository.addProfileReceivedRejected(labCode, globalCode, status, motive, userName, isCategoryModificaction)
   }
 
-  def updateProfileReceivedStatus(labCode: String, globalCode: String, status: Long, motive: String, isCategoryModificaction: Boolean, interconnection_error: String, userName: Option[String]): Future[Either[String, Unit]] = {
-    this.profileDataRepository.updateProfileReceivedStatus(labCode, globalCode, status, Some(motive), isCategoryModificaction, Some(interconnection_error), userName)
+  def updateProfileReceivedStatus(labCode: String, globalCode: String, status: Long, motive: String, isCategoryModificaction: Boolean, interconnection_error: String, userName: Option[String], operationOriginatedInInstance: String): Future[Either[String, Unit]] = {
+    this.profileDataRepository.updateProfileReceivedStatus(labCode, globalCode, status, Some(motive), isCategoryModificaction, Some(interconnection_error), userName, operationOriginatedInInstance)
   }
 
   def getPendingApprovalNotification(labCode:String): Future[Seq[ProfileReceivedRow]] = {

@@ -158,7 +158,8 @@ abstract class ProfileDataRepository extends DefaultDb with Transaction  {
                           status: Long,
                           motive: Option[String],
                           interconnection_error: Option[String],
-                          userName: Option[String]
+                          userName: Option[String],
+                          operationOriginatedInInstance: String
                         ): Future[Either[String, Unit]]
 
   def findUploadedProfilesByCodes(
@@ -202,7 +203,8 @@ abstract class ProfileDataRepository extends DefaultDb with Transaction  {
                                    motive: Option[String],
                                    isCategoryModificaction: Boolean,
                                    interconnection_error: Option[String],
-                                   userName: Option[String]
+                                   userName: Option[String],
+                                   operationOriginatedInInstance: String
                                  ): Future[Either[String, Unit]]
 
   def getPendingApprovalNotification(labCode: String): Future[Seq[ProfileReceivedRow]]
@@ -221,7 +223,6 @@ abstract class ProfileDataRepository extends DefaultDb with Transaction  {
 
   def getProfileReceivedLabInferior(globalCode: String): Future[String]
 
-  def getProfileReceivedLabImmediate(globalCode: String): Future[String]
 
 }
 
@@ -1233,13 +1234,13 @@ class SlickProfileDataRepository @Inject() (
     }
   }
 
-  def updateUploadStatus(globalCode: String, status: Long, motive: Option[String], interconnection_error: Option[String], userName: Option[String]): Future[Either[String, Unit]] = {
+  def updateUploadStatus(globalCode: String, status: Long, motive: Option[String], interconnection_error: Option[String], userName: Option[String], operationOriginatedInInstance: String): Future[Either[String, Unit]] = {
     this.runInTransactionAsync { implicit session => {
       try {
         getByGlobalCode(globalCode).firstOption match {
           case None => Left(Messages("error.E0940"))
           case Some(row) => {
-            profileUploaded insertOrUpdate models.Tables.ProfileUploadedRow(row.id, row.globalCode, status, motive, interconnection_error, userName)
+            profileUploaded insertOrUpdate models.Tables.ProfileUploadedRow(row.id, row.globalCode, status, motive, interconnection_error, userName, Some(operationOriginatedInInstance))
             Right(())
           }
         }
@@ -1321,7 +1322,7 @@ class SlickProfileDataRepository @Inject() (
             None,
             Some(userName),
             isCategoryModificaction,
-            None)
+            None, labCode)
           logger.info(s"Inserted new profile received with ID labCode: $labCode, globalCode: $globalCode")
           Right(())
         } catch {
@@ -1344,7 +1345,7 @@ class SlickProfileDataRepository @Inject() (
             Some("Rechazado por el motivo: " + motive),
             Some(userName),
             isCategoryModificaction,
-            None
+            None, labCode
           )
           logger.info(s"Inserted new profile received with ID labCode: $labCode, globalCode: $globalCode, motive: $motive")
           Right(())
@@ -1364,7 +1365,7 @@ class SlickProfileDataRepository @Inject() (
         getProfileReceivedByGlobalCode(globalCode).firstOption match {
           case None => Left(Messages("error.E0940"))
           case Some(row) => {
-            profileReceived insertOrUpdate models.Tables.ProfileReceivedRow(row.globalCode, row.labCode, status, row.motive, row.userName, row.isCategoryModification, Some(interconnection_error))
+            profileReceived insertOrUpdate models.Tables.ProfileReceivedRow(row.globalCode, row.labCode, status, row.motive, row.userName, row.isCategoryModification, Some(interconnection_error), "")
             Right(())
           }
         }
@@ -1377,13 +1378,13 @@ class SlickProfileDataRepository @Inject() (
     }
   }
 
-  def updateProfileReceivedStatus(labCode: String, globalCode: String, status: Long, motive: Option[String], isCategoryModification: Boolean, interconnection_error: Option[String], userName: Option[String]): Future[Either[String, Unit]] = {
+  def updateProfileReceivedStatus(labCode: String, globalCode: String, status: Long, motive: Option[String], isCategoryModification: Boolean, interconnection_error: Option[String], userName: Option[String], operationOriginatedInInstance: String): Future[Either[String, Unit]] = {
     this.runInTransactionAsync { implicit session => {
       try {
         getProfileReceivedByGlobalCode(globalCode).firstOption match {
           case None => Left(Messages("error.E0940"))
           case Some(row) => { //hizo un insert con un nuevo id. row es del tipo profileDataRow y debería ser una profileRecevedRow
-            profileReceived insertOrUpdate models.Tables.ProfileReceivedRow(row.globalCode, row.labCode, status, motive, userName, isCategoryModification, interconnection_error)
+            profileReceived insertOrUpdate models.Tables.ProfileReceivedRow(row.globalCode, row.labCode, status, motive, userName, isCategoryModification, interconnection_error, operationOriginatedInInstance)
             Right(())
           }
         }
@@ -1474,21 +1475,6 @@ class SlickProfileDataRepository @Inject() (
           "" // Return an empty string in case of an exception to match the String type
       }
     }
-
-  override def getProfileReceivedLabImmediate(globalCode: String): Future[String] = {
-    this.runInTransactionAsync { implicit session =>
-      try {
-        getProfileReceivedByGlobalCode(globalCode)
-          .firstOption  // Returns Option[ProfileReceivedRow]
-          .map(x => x.labCode)  // If Some(ProfileReceivedRow), maps to Some(labCode), else None
-          .getOrElse("")       // If Option is None, returns an empty string
-      } catch {
-        case e: Exception =>
-          logger.error(s"Error retrieving labCode for globalCode ${globalCode}: ${e.getMessage}")
-          ""  // Return an empty string in case of an exception
-      }
-    }
-  }
 
 }
 

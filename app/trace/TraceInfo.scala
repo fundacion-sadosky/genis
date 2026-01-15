@@ -87,20 +87,20 @@ case class ProfileRejectedInSuperiorInfo(motive: String) extends TraceInfo {
   override val description = s"Rechazado en instancia superior. Motivo: $motive."
 }
 // 2 Nuevos
-case class InterconnectionDeletedInInferiorInfo(motive: String) extends TraceInfo {
+case class InterconnectionDeletedInInferiorInfo(motive: String, operationOriginatedInInstance: String) extends TraceInfo {
   override val kind = TraceType.interconnectionDeletedInInferior
   val motiveParts = motive.split(",").map(_.trim)
   val solicitor = if (motiveParts.nonEmpty) motiveParts(0) else ""
   val motiveText = if (motiveParts.length > 1) motiveParts(1) else ""
-  override val description = s"Perfil eliminado en la instancia inferior. Baja solicitada por: $solicitor. Motivo: $motiveText."
+  override val description = s"Perfil eliminado en la instancia inferior: $operationOriginatedInInstance. Baja solicitada por: $solicitor. Motivo: $motiveText."
 }
 
-case class InterconnectionDeletedInSuperiorInfo(motive: String) extends TraceInfo {
+case class InterconnectionDeletedInSuperiorInfo(motive: String, operationOriginatedInInstance:String) extends TraceInfo {
   override val kind = TraceType.interconnectionDeletedInSuperior
   val motiveParts = motive.split(",").map(_.trim)
   val solicitor = if (motiveParts.nonEmpty) motiveParts(0) else ""
   val motiveText = if (motiveParts.length > 1) motiveParts(1) else ""
-  override val description = s"Perfil eliminado en la instancia superior. Baja solicitada por: $solicitor. Motivo: $motiveText."
+  override val description = s"Perfil eliminado en la instancia superior: $operationOriginatedInInstance. Baja solicitada por: $solicitor. Motivo: $motiveText."
 }
 
 case object CategoryChangeRejectedInSupInfo extends TraceInfo {
