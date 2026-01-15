@@ -214,6 +214,8 @@ class InterconnectionServiceImpl @Inject()(
   val REJECTED_THIS_INSTANCE_PENDING_SEND_TO_INFERIOR = 21L
   val APPROVED_THIS_INSTANCE_PENDING_SEND_TO_INFERIOR = 22L
   val DELETED_IN_INF_INS = 23L
+  //Nuevo para verificar en Profile Uploaded y deshabilitar la posibiliad de replicar el perfil de nuevo
+  val DELETED_IN_SUP_INS = 24L
   val superiorLabCode = "SUPERIOR"
 
   override def getConnections(): Future[Either[String, Connection]] = {
@@ -1633,8 +1635,9 @@ class InterconnectionServiceImpl @Inject()(
     // Hay que hacer un update en PROFILE_RECEIVED cambiando el estado a 6
     if (up) {
       logger.info(s"ReceiveDeleteProfile from inferior instance called for globalCode: $globalCode, labCodeInstanceOrigin: $labCodeInstanceOrigin, labCodeImmediateInstance: $labCodeImmediateInstance")
-      // Hago el update de la tabla PROFILE_RECEIVED con status 6 (Notificación de eliminación recibida en instancia superior)
-      this.profileDataService.updateProfileReceivedStatus(labCodeInstanceOrigin, globalCode, DELETED_IN_INF_INS, s"Solicitante: ${motive.solicitor}. Motivo: ${motive.motive}.", false, interconnection_error = "", Some(userName))
+      // Hago el update de la tabla PROFILE_RECEIVED con status 6 (Notificación de eliminación recibida en instancia superior
+      //Cambio labCodeInstanceOrigin por labCodeImmediateInstance
+      this.profileDataService.updateProfileReceivedStatus(labCodeImmediateInstance, globalCode, DELETED_IN_INF_INS, s"Solicitante: ${motive.solicitor}. Motivo: ${motive.motive}.", false, interconnection_error = "", Some(userName))
       // Agregar al trace del perfil que fue eliminado en la instancia inferior
       val c_trace: TraceInfo = trace.InterconnectionDeletedInInferiorInfo(Option(motive.solicitor + "," + motive.motive).getOrElse("Motivo no especificado"))
       traceService.add(Trace(SampleCode(globalCode), userName, new Date(), c_trace)).map { _ => Right(()) }
@@ -1649,7 +1652,7 @@ class InterconnectionServiceImpl @Inject()(
       // Recibo un delete de un perfil de la instancia superior
       // Debo actualizar el estado en PROFILE_UPLOADED a 20: Instancia inferior notificada de la eliminación del perfil en la instancia superior
       logger.info(s"ReceiveDeleteProfile from superior instance called for globalCode: $globalCode, labCodeInstanceOrigin: $labCodeInstanceOrigin, labCodeImmediateInstance: $labCodeImmediateInstance")
-      this.profileDataService.updateUploadStatus(globalCode, DELETE_IN_SUP_INSTANCE_SENT_TO_INFERIOR, Some(s"Solicitante: ${motive.solicitor}. Motivo: ${motive.motive}."), Some(""), Some(userName))
+      this.profileDataService.updateUploadStatus(globalCode, DELETED_IN_SUP_INS, Some(s"Solicitante: ${motive.solicitor}. Motivo: ${motive.motive}."), Some(""), Some(userName))
       val c_trace: TraceInfo = trace.InterconnectionDeletedInSuperiorInfo(Option(motive.solicitor + "," + motive.motive).getOrElse("Motivo no especificado"))
       traceService.add(Trace(SampleCode(globalCode), userName, new Date(), c_trace)).map { _ => Right(()) }
       this.notify(

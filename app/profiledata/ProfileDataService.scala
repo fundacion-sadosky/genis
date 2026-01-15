@@ -101,6 +101,7 @@ trait ProfileDataService {
   def shouldSendDeleteToInferiorInstance (globalCode: SampleCode): Boolean
   def getLabFromGlobalCode(globalCode: SampleCode):  Option[String]
   def getIsProfileReplicatedInternalCode(internalCode: String): Boolean
+  def getProfileReceivedLabCode(globalCode: SampleCode): Option[String]
 }
 
 @Singleton
@@ -242,6 +243,17 @@ class ProfileDataServiceImpl @Inject() (
     profileReceived.isDefined
   }
 
+  def getProfileReceivedLabCode(globalCode: SampleCode): Option[String] = {
+
+    val profileReceivedFuture = profileDataRepository.getProfileReceivedLabImmediate(globalCode.text)
+
+    // Await the result (you can handle this more gracefully with proper error handling)
+    val inferiorLab = Await.result(profileReceivedFuture, Duration.Inf)
+
+    // If the profile exists in the PROFILE_RECEIVED table, return true
+    Some(inferiorLab)
+  }
+
   override def deleteProfile(globalCode: SampleCode, motive: DeletedMotive, userId: String,validateMPI:Boolean = true): Future[Either[String, SampleCode]] = {
     canDeleteProfile(globalCode,validateMPI) flatMap { case (allowed,msg) =>
       if (allowed) {
@@ -258,7 +270,8 @@ class ProfileDataServiceImpl @Inject() (
                   )
                 }
                 if(shouldSendDeleteToInferiorInstance(globalCode)){
-                  val labCodeOption = getLabFromGlobalCode(globalCode)
+                  //TODO: Acá el labCodeOption debe ser el LABCODE en PROFILE_RECEIVED que representa el laboratorio desde el cual se recibió el perfil
+                  val labCodeOption = getProfileReceivedLabCode(globalCode)
                   val infUrlFuture = labCodeOption match {
                     case Some(labCode) => {
                       this.updateProfileReceivedStatus(labCode, globalCode.text,19L,motive = motive.motive,isCategoryModificaction = false,"",Some(userId))

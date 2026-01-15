@@ -1,70 +1,67 @@
-# Routes
-# This file defines all application routes (Higher priority routes first)
-# ~~~~
+    # Routes
+    # This file defines all application routes (Higher priority routes first)
+    # ~~~~
 
-# Home page
-GET      /                                                    @controllers.Application.index
+    # Home page
+    GET      /                                                    @controllers.Application.index
+    # Configuración de categorías
+    GET      /status                                              @controllers.Status.status
+    GET      /categoryTree                                        @controllers.Categories.categoryTree
+    GET      /categories                                          @controllers.Categories.list
+    GET      /categoriesWithProfiles                              @controllers.Categories.listWithProfiles
+    GET      /categoryTreeManualLoading                           @controllers.Categories.categoryTreeManualLoading
 
-GET      /status                                              @controllers.Status.status
-# Categories Configuration
-GET      /categoryTree                                        @controllers.Categories.categoryTree
-GET      /categories                                          @controllers.Categories.list
-GET      /categoriesWithProfiles                              @controllers.Categories.listWithProfiles
-GET      /categoryTreeManualLoading                           @controllers.Categories.categoryTreeManualLoading
+    POST     /categories                                          @controllers.Categories.addCategory
+    PUT      /categories/:catId                                   @controllers.Categories.updateCategory(catId: types.AlphanumericId)
+    PUT      /categories/:catId/details                           @controllers.Categories.updateFullCategory(catId: types.AlphanumericId)
+    DELETE   /categories/:catId                                   @controllers.Categories.removeCategory(catId: types.AlphanumericId)
+    POST     /catmodification                                     @controllers.Categories.registerCategoryModification(from: types.AlphanumericId, to: types.AlphanumericId)
+    DELETE   /catmodification                                     @controllers.Categories.unregisterCategoryModification(from: types.AlphanumericId, to: types.AlphanumericId)
+    GET      /catmodification                                     @controllers.Categories.getCategoryModifications(catId: types.AlphanumericId)
+    GET      /catmodifications                                    @controllers.Categories.allCategoryModifications
+    GET      /catmodifications/export                             @controllers.Categories.exportModifications
+    GET      /categories/export                                   @controllers.Categories.exportCategories
+    POST     /categories/import                                   @controllers.Categories.importGroupsAndCategories
 
-POST     /categories                                          @controllers.Categories.addCategory
-PUT      /categories/:catId                                   @controllers.Categories.updateCategory(catId: types.AlphanumericId)
-PUT      /categories/:catId/details                           @controllers.Categories.updateFullCategory(catId: types.AlphanumericId)
-DELETE   /categories/:catId                                   @controllers.Categories.removeCategory(catId: types.AlphanumericId)
-POST     /catmodification                                     @controllers.Categories.registerCategoryModification(from: types.AlphanumericId, to: types.AlphanumericId)
-DELETE   /catmodification                                     @controllers.Categories.unregisterCategoryModification(from: types.AlphanumericId, to: types.AlphanumericId)
-GET      /catmodification                                     @controllers.Categories.getCategoryModifications(catId: types.AlphanumericId)
-GET      /catmodifications                                    @controllers.Categories.allCategoryModifications
-GET      /catmodifications/export                             @controllers.Categories.exportModifications
-GET      /categories/export                                   @controllers.Categories.exportCategories
-POST     /categories/import                                   @controllers.Categories.importGroupsAndCategories
+    GET      /categories-mapping                                  @controllers.Categories.listCategoriesMapping
+    PUT      /categories-mapping                                  @controllers.Categories.insertOrUpdateCategoriesMapping
+    GET      /categories-mapping/export                           @controllers.Categories.exportMappings
 
-GET      /categories-mapping                                  @controllers.Categories.listCategoriesMapping
-PUT      /categories-mapping                                  @controllers.Categories.insertOrUpdateCategoriesMapping
-GET      /categories-mapping/export                           @controllers.Categories.exportMappings
+    GET      /category-configurations/export                      @controllers.Categories.exportConfigurations
+    GET      /category-associations/export                        @controllers.Categories.exportAssociations
+    GET      /category-alias/export                               @controllers.Categories.exportAlias
+    GET      /category-matching-rules/export                      @controllers.Categories.exportMatchingRules
 
-GET      /category-configurations/export                      @controllers.Categories.exportConfigurations
-GET      /category-associations/export                        @controllers.Categories.exportAssociations
-GET      /category-alias/export                               @controllers.Categories.exportAlias
-GET      /category-matching-rules/export                      @controllers.Categories.exportMatchingRules
+    POST     /group                                               @controllers.Categories.addGroup
+    PUT      /group/:groupId                                      @controllers.Categories.updateGroup(groupId: types.AlphanumericId)
+    DELETE   /group/:groupId                                      @controllers.Categories.removeGroup(groupId: types.AlphanumericId)
+    GET      /group/export                                        @controllers.Categories.exportGroups
+    POST     /group/import                                        @controllers.Categories.importGroups
 
-POST     /group                                               @controllers.Categories.addGroup
-PUT      /group/:groupId                                      @controllers.Categories.updateGroup(groupId: types.AlphanumericId)
-DELETE   /group/:groupId                                      @controllers.Categories.removeGroup(groupId: types.AlphanumericId)
-GET      /group/export                                        @controllers.Categories.exportGroups
-POST     /group/import                                        @controllers.Categories.importGroups
+    #
+    GET      /crimeTypes                                          @controllers.CrimeTypes.list
+    GET      /bioMaterialTypes                                    @controllers.BioMaterialTypes.list
+    POST	 /bioMaterialTypes									  @controllers.BioMaterialTypes.insert
+    PUT	     /bioMaterialTypes									  @controllers.BioMaterialTypes.update
+    DELETE	 /bioMaterialTypes/:bmtId							  @controllers.BioMaterialTypes.remove(bmtId: String)
 
-# Crime Types
-GET      /crimeTypes                                          @controllers.CrimeTypes.list
+    # Population Base Frequency
+    POST     /populationBaseFreq                                  @controllers.PopulationBaseFreq.uploadPopulationFile
+    GET      /populationBaseFreq                                  @controllers.PopulationBaseFreq.getAllBaseNames
+    PUT      /populationBaseFreq-fmin/:id                         @controllers.PopulationBaseFreq.insertFmin(id: String)
+    GET      /populationBaseFreq/:name                            @controllers.PopulationBaseFreq.getByName(name: String)
+    PUT      /populationBaseFreq/:name                            @controllers.PopulationBaseFreq.toggleStateBase(name: String)
+    PUT      /populationBaseFreqDefault/:name                     @controllers.PopulationBaseFreq.setBaseAsDefault(name: String)
+    GET      /populationBaseFreqCharacteristics                   @controllers.PopulationBaseFreq.getAllBasesCharacteristics
 
-# BioMaterial Types
-GET      /bioMaterialTypes                                    @controllers.BioMaterialTypes.list
-POST	 /bioMaterialTypes									  @controllers.BioMaterialTypes.insert
-PUT	     /bioMaterialTypes									  @controllers.BioMaterialTypes.update
-DELETE	 /bioMaterialTypes/:bmtId							  @controllers.BioMaterialTypes.remove(bmtId: String)
+    # Operation Logs
+    GET      /operationLog                                        @controllers.OperationLogs.getLogLots(page: Int ?= 0, pageSize: Int ?= 50)
+    POST     /operationLogSearch                                  @controllers.OperationLogs.searchLogs
+    GET      /operationLog/:id/verification                       @controllers.OperationLogs.checkLogLot(id: Long)
+    HEAD     /operationLog                                        @controllers.OperationLogs.getTotalLots
+    POST     /operationLogLot                                     @controllers.OperationLogs.getTotalLogs
 
-# Population Base Frequency
-POST     /populationBaseFreq                                  @controllers.PopulationBaseFreq.uploadPopulationFile
-GET      /populationBaseFreq                                  @controllers.PopulationBaseFreq.getAllBaseNames
-PUT      /populationBaseFreq-fmin/:id                         @controllers.PopulationBaseFreq.insertFmin(id: String)
-GET      /populationBaseFreq/:name                            @controllers.PopulationBaseFreq.getByName(name: String)
-PUT      /populationBaseFreq/:name                            @controllers.PopulationBaseFreq.toggleStateBase(name: String)
-PUT      /populationBaseFreqDefault/:name                     @controllers.PopulationBaseFreq.setBaseAsDefault(name: String)
-GET      /populationBaseFreqCharacteristics                   @controllers.PopulationBaseFreq.getAllBasesCharacteristics
-
-# Operation Logs
-GET      /operationLog                                        @controllers.OperationLogs.getLogLots(page: Int ?= 0, pageSize: Int ?= 50)
-POST     /operationLogSearch                                  @controllers.OperationLogs.searchLogs
-GET      /operationLog/:id/verification                       @controllers.OperationLogs.checkLogLot(id: Long)
-HEAD     /operationLog                                        @controllers.OperationLogs.getTotalLots
-POST     /operationLogLot                                     @controllers.OperationLogs.getTotalLogs
-
-# ProfileData
+    # ProfileData
 GET      /profiledata/:id                                     @controllers.ProfileData.get(id: Long)
 GET      /profiledata                                         @controllers.ProfileData.findByCode(globalCode: types.SampleCode)
 POST     /profiledata                                         @controllers.ProfileData.create
@@ -143,8 +140,7 @@ DELETE   /profiles/:profileId                                 @controllers.Profi
 POST     /bulkuploader                                        @controllers.BulkUpload.uploadProtoProfiles(label: Option[String], analysisType: String)
 GET      /bulkupload/step1/protoprofiles                      @controllers.BulkUpload.getProtoProfilesStep1(batchId: Long, page: Int, pageSize: Int)
 GET      /bulkupload/step2/protoprofiles                      @controllers.BulkUpload.getProtoProfilesStep2(geneMapperId: String, batchId: Long, page: Int, pageSize: Int)
-GET      /bulkupload/step1/batches                            @controllers.BulkUpload.getBatchesStep1(page: Int, pageSize: Int)
-GET      /bulkupload/step1/count                              @controllers.BulkUpload.countBatchesStep1()
+GET      /bulkupload/step1/batches                            @controllers.BulkUpload.getBatchesStep1()
 GET      /bulkupload/step2/batches                            @controllers.BulkUpload.getBatchesStep2(geneMapperId : String)
 POST     /protoprofiles/:id/status                            @controllers.BulkUpload.updateProtoProfileStatus(id: Long, status: String,replicate:Boolean, desktopSearch:Boolean)
 POST     /protoprofiles/multiple-status                       @controllers.BulkUpload.updateBatchStatus(idBatch: Long, status: String,replicateAll:Boolean)

@@ -659,7 +659,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         "1 seconds",
         1000,
         cacheService,
-      protoRepo = mock[ProtoProfileRepository]
+        protoRepo = mock[ProtoProfileRepository]
       )
 
       when(inferiorInstanceRepository.update(InferiorInstanceFull(id = 1, url = "", connectivity = "", idStatus = 1))).thenReturn(Future.successful(Left("")))
@@ -788,7 +788,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         1000,
         cacheService,
         protoRepo = mock[ProtoProfileRepository]
-        )
+      )
 
       interconnectionService.uploadProfileToSuperiorInstance(profile, profileData, "tst-admin")
 
@@ -843,7 +843,7 @@ class InterconnectionServiceTest extends PdgSpec with MockitoSugar {
         1000,
         cacheService,
         protoRepo = mock[ProtoProfileRepository])
-        
+
 
 
       interconnectionService.importProfile(profile, "SHDG", "", "SHDG", "SHDG")
