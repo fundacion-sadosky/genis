@@ -223,6 +223,8 @@ abstract class ProfileDataRepository extends DefaultDb with Transaction  {
 
   def getProfileReceivedLabInferior(globalCode: String): Future[String]
 
+  def getProfileReceiveOperationOriginatedInInstance(globalCode: SampleCode): Future[Option[String]]
+
 
 }
 
@@ -579,6 +581,17 @@ class SlickProfileDataRepository @Inject() (
     profileReceived.filter(_.globalCode === globalCode).map(_.labCode)
 
   val getProfileReceivedLabImmediateCompiled = Compiled(queryGetProfileReceivedLabImmediate _)
+
+  private def queryGetProfileReceivedOperationOriginatedInInstance(globalCode: Column[String]) =
+    profileReceived.filter(_.globalCode === globalCode).map(_.operationOriginatedInInstance)
+
+  var getProfileReceivedOperationOriginatedInInstanceCompiled = Compiled(queryGetProfileReceivedOperationOriginatedInInstance _)
+
+  def getProfileReceiveOperationOriginatedInInstance(globalCode: SampleCode): Future[Option[String]] = Future {
+    DB.withSession { implicit session =>
+      getProfileReceivedOperationOriginatedInInstanceCompiled(globalCode.text).firstOption
+    }
+  }
 
   override def isDeleted(globalCode: SampleCode)
   : Future[Option[Boolean]] = Future {

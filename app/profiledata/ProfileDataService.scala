@@ -254,6 +254,17 @@ class ProfileDataServiceImpl @Inject() (
     Some(inferiorLab)
   }
 
+  def getProfileReceivedOpereationOriginatedInInstance(globalCode: SampleCode): Option[String] = {
+
+    val profileReceivedFuture = profileDataRepository.getProfileReceiveOperationOriginatedInInstance(globalCode)
+
+    // Await the result (you can handle this more gracefully with proper error handling)
+    val profileReceivedOperationOriginatedInInstance = Await.result(profileReceivedFuture, Duration.Inf)
+
+    // If the profile exists in the PROFILE_RECEIVED table, return true
+    profileReceivedOperationOriginatedInInstance
+  }
+
   override def deleteProfile(globalCode: SampleCode, motive: DeletedMotive, userId: String,validateMPI:Boolean = true): Future[Either[String, SampleCode]] = {
     canDeleteProfile(globalCode,validateMPI) flatMap { case (allowed,msg) =>
       if (allowed) {
@@ -274,7 +285,7 @@ class ProfileDataServiceImpl @Inject() (
                   val labCodeOption = getProfileReceivedLabCode(globalCode)
                   val infUrlFuture = labCodeOption match {
                     case Some(labCode) => {
-                      this.updateProfileReceivedStatus(labCode, globalCode.text, 19L, motive.motive, false, "", Some(userId), labCodeOption.getOrElse(""))
+                      this.updateProfileReceivedStatus(labCode, globalCode.text, 19L, motive.motive, false, "", Some(userId), getProfileReceivedOpereationOriginatedInInstance(globalCode).getOrElse(""))
                       connectionRepository.getInfInstanceUrl(labCode).map(Some(_))
                     }
                     case None => Future.successful(None)
