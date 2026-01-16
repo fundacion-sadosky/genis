@@ -1394,13 +1394,13 @@ class SlickProfileDataRepository @Inject() (
   def updateProfileReceivedStatus(labCode: String, globalCode: String, status: Long, motive: Option[String], isCategoryModification: Boolean, interconnection_error: Option[String], userName: Option[String], operationOriginatedInInstance: String): Future[Either[String, Unit]] = {
     this.runInTransactionAsync { implicit session => {
       try {
-        getProfileReceivedByGlobalCode(globalCode).firstOption match {
-          case None => Left(Messages("error.E0940"))
-          case Some(row) => { //hizo un insert con un nuevo id. row es del tipo profileDataRow y debería ser una profileRecevedRow
-            profileReceived insertOrUpdate models.Tables.ProfileReceivedRow(row.globalCode, row.labCode, status, motive, userName, isCategoryModification, interconnection_error, operationOriginatedInInstance)
+        //getProfileReceivedByGlobalCode(globalCode).firstOption match {
+        //  case None => Left(Messages("error.E0940"))
+       //   case Some(row) => { //hizo un insert con un nuevo id. row es del tipo profileDataRow y debería ser una profileRecevedRow
+            profileReceived insertOrUpdate models.Tables.ProfileReceivedRow(globalCode, labCode, status, motive, userName, isCategoryModification, interconnection_error, operationOriginatedInInstance)
             Right(())
-          }
-        }
+          //}
+       // }
       } catch {
         case e: Exception => {
           Left(e.getMessage)

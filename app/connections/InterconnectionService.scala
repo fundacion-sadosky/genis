@@ -983,7 +983,7 @@ class InterconnectionServiceImpl @Inject()(
                       //                Right(profileService.fireMatching(sampleCode))
                       // notificar a la instancia inferior que la superior le aprobó el perfil
                       // Cambiar el estado del PROFILE_RECEIVED así no reintenta
-                      profileDataService.updateProfileReceivedStatus(row.laboratory, row.globalCode, APPROVED_THIS_INSTANCE_INF_INFORMED, "", isCategoryModification, "", Some(user), row.laboratoryInstanceOrigin)
+                      //profileDataService.updateProfileReceivedStatus(row.laboratory, row.globalCode, APPROVED_THIS_INSTANCE_INF_INFORMED, "", isCategoryModification, "", Some(user), row.laboratoryInstanceOrigin)
                       this.notifyApprovalChangeStatus(
                         row.globalCode,
                         row.laboratoryImmediateInstance,
@@ -1397,40 +1397,55 @@ class InterconnectionServiceImpl @Inject()(
                                            userName: Option[String] = None,
                                            isCategoryModification: Boolean = false
                                          ): Future[Unit] = {
-    Future {
-      inferiorInstanceRepository
-        .findByLabCode(labCode)
-        .flatMap {
-          case None => Future.successful(Right(()))
-          case Some(inferiorInstance) => {
-            val holder: WSRequestHolder =
-              client.url(protocol + inferiorInstance.url + "/inferior/profile/status")
-                .withQueryString("globalCode" -> globalCode)
-                .withQueryString("status" -> String.valueOf(status))
-                .withQueryString("userName" -> userName.get)
-                .withQueryString("isCategoryModification" -> isCategoryModification.toString)
-                .withQueryString("operationOriginatedInInstance" -> currentInstanceLabCode)
-            val futureResponse: Future[WSResponse] = this.sendRequestQueue(holder.withMethod("PUT"))
-            futureResponse.flatMap { result => {
-              if (result.status == 200) {
-                // Actualizar PROFILE_RECEIVED con el perfil status en APPROVED_THIS_INSTANCE_INF_INFORMED (18L)
-                profileDataService.updateProfileReceivedStatus(labCode, globalCode, APPROVED_THIS_INSTANCE_INF_INFORMED, "", isCategoryModification, "", userName, currentInstanceLabCode)
-                logger.debug("se actualizó correctamente el status del perfil en la instancia inferior")
-                Future.successful(Right(()))
-              } else {
-                profileDataService.updateProfileReceivedStatus(labCode, globalCode, APPROVED_THIS_INSTANCE_PENDING_SEND_TO_INFERIOR, "", isCategoryModification, "", userName, currentInstanceLabCode)
-                logger.debug(Messages("error.E0710"))
-                Future.successful(Left(Messages("error.E0710")))
-              }
+    // 1. Remove the outer 'Future { }' wrapper. Start directly with the repository call.
+    inferiorInstanceRepository
+      .findByLabCode(labCode)
+      .flatMap {
+        case None => Future.successful(()) // Return Unit directly
+        case Some(inferiorInstance) => {
+          val holder: WSRequestHolder =
+            client.url(protocol + inferiorInstance.url + "/inferior/profile/status")
+              .withQueryString("globalCode" -> globalCode)
+              .withQueryString("status" -> String.valueOf(status))
+              // Handle userName safely (getOrElse or map) to avoid runtime errors if None
+              .withQueryString("userName" -> userName.getOrElse(""))
+              .withQueryString("isCategoryModification" -> isCategoryModification.toString)
+              .withQueryString("operationOriginatedInInstance" -> currentInstanceLabCode)
+
+          val futureResponse: Future[WSResponse] = this.sendRequestQueue(holder.withMethod("PUT"))
+
+          futureResponse.flatMap { result =>
+            if (result.status == 200) {
+              // Success case
+              profileDataService.updateProfileReceivedStatus(
+                labCode, globalCode, APPROVED_THIS_INSTANCE_INF_INFORMED, "", isCategoryModification, "", userName, currentInstanceLabCode
+              )
+              logger.debug("se actualizó correctamente el status del perfil en la instancia inferior")
+              Future.successful(())
+            } else {
+              // Failure case (NOW THIS WILL EXECUTE)
+              profileDataService.updateProfileReceivedStatus(
+                labCode, globalCode, APPROVED_THIS_INSTANCE_PENDING_SEND_TO_INFERIOR, "", isCategoryModification, "", userName, currentInstanceLabCode
+              )
+              logger.debug(Messages("error.E0710") + s" Status was: ${result.status}")
+              // We return Unit here, but we logged the error.
+              // If you want the caller to know it failed, you should return Future.failed usually,
+              // but based on your signature Future[Unit], this is correct.
+              Future.successful(())
             }
-            }.recoverWith {
-              case _: Exception => Future.successful(Left(Messages("error.E0710")))
-            }
+          }.recover {
+            case e: Exception =>
+              // Network error case
+              logger.error(s"Exception notifying approval: ${e.getMessage}")
+              profileDataService.updateProfileReceivedStatus(
+                labCode, globalCode, APPROVED_THIS_INSTANCE_PENDING_SEND_TO_INFERIOR, "", isCategoryModification, "", userName, currentInstanceLabCode
+              )
+              () // Return Unit
           }
         }
-    }
-    Future.successful(())
+      }
   }
+
 
   override def notifyRejectionChangeStatus(
                                             globalCode: String,
