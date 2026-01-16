@@ -17,9 +17,11 @@ define(['lodash'], function(_) {
 		this.getBatchesStep1 = function(page, pageSize) {
 			return playRoutes.controllers.BulkUpload.getBatchesStep1(page, pageSize).get();
 		};
-
-		this.getBatchesStep2 = function(geneMapperId) {
-            return playRoutes.controllers.BulkUpload.getBatchesStep2(geneMapperId).get();
+		this.countBatchesStep2 = function(geneMapperId) {
+			return playRoutes.controllers.BulkUpload.countBatchesStep2(geneMapperId).get();
+		};
+		this.getBatchesStep2 = function(geneMapperId, page, pageSize) {
+            return playRoutes.controllers.BulkUpload.getBatchesStep2(geneMapperId, page, pageSize).get();
         };
 		
 		this.getProtoProfilesStep1 = function(batchId, page, pageSize) {

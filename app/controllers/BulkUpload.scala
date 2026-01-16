@@ -51,14 +51,24 @@ class BulkUpload @Inject() (bulkUploadService: BulkUploadService, userService: U
     }
   }
 
-  def getBatchesStep2 (geneMapperId : String) = Action.async { request =>
+  def getBatchesStep2 (geneMapperId : String, page: Int, pageSize: Int) = Action.async { request =>
     val userId = request.headers.get("X-USER").get
+    val offset = (page - 1) * pageSize
 
     userService.isSuperUser(userId).flatMap(isSuperUser => {
-      bulkUploadService.getBatchesStep2(userId, geneMapperId, isSuperUser) map { batch =>
+      bulkUploadService.getBatchesStep2(userId, geneMapperId, isSuperUser, offset, pageSize) map { batch =>
         Ok(Json.toJson(batch))
       }
     })
+  }
+
+  def countBatchesStep2(geneMapperId: String) = Action.async { request =>
+    val userId = request.headers.get("X-USER").get
+    userService.isSuperUser(userId).flatMap { isSuperUser =>
+      bulkUploadService.countBatchesStep2(userId, geneMapperId, isSuperUser).map { total =>
+        Ok(Json.obj("total" -> total))
+      }
+    }
   }
 
   def getProtoProfileById(id: Long) = Action.async { request =>

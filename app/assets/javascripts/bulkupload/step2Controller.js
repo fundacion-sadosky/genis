@@ -15,6 +15,11 @@ define(['jquery', 'lodash'], function($, _) {
         $scope.shared = { profileId: 0, matches: {}, profileData: [] };
         $scope.editedSubcats = {};
         $scope.batches = [];
+
+        $scope.batchesPage = 1;
+        $scope.batchesPageSize = 10;
+        $scope.totalBatches = 0;
+
         $scope.protoProfiles = {};
         $scope.showOptions = [{label: 'Pendientes', filters: {pending: true}, placement: 'bottom'},
             {label: 'Todo', filters: {}, placement: 'top'}];
@@ -26,6 +31,12 @@ define(['jquery', 'lodash'], function($, _) {
         profiledataService.getCategories().then(function(response) {
             $scope.categories = response.data;
         });
+
+        $scope.loadBatchesCount = function () {
+            bulkuploadService.countBatchesStep2(user.geneMapperId).then(function (response) {
+                $scope.totalBatches = response.data.total;
+            });
+        };
 
         $scope.getIsProfileReplicatedInternalCode = function(internalCode) {
             return profiledataService.getIsProfileReplicatedInternalCode(internalCode)
@@ -87,7 +98,7 @@ define(['jquery', 'lodash'], function($, _) {
 
         var getAllBatches = function() {
             $scope.isProcessing = true;
-            return bulkuploadService.getBatchesStep2(user.geneMapperId).then(function(response) {
+            return bulkuploadService.getBatchesStep2(user.geneMapperId, $scope.batchesPage, $scope.batchesPageSize).then(function(response) {
                 if ($scope.activeOption === 0) {
                     $scope.batches = response.data.filter(function(t) {
                         return t.totalForApprovalOrImport !== 0;
@@ -114,6 +125,10 @@ define(['jquery', 'lodash'], function($, _) {
                 });
                 $scope.isProcessing = false;
             });
+        };
+        
+        $scope.changeBatchesPage = function () {
+            getAllBatches();
         };
 
         var getBatchItem = function(id, batch) {
@@ -571,6 +586,8 @@ define(['jquery', 'lodash'], function($, _) {
 
             return $scope.protoProfiles;
         }, true);
+
+        $scope.loadBatchesCount();
     }
 
     return Step2Controller;
