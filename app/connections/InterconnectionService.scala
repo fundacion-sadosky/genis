@@ -1409,7 +1409,7 @@ class InterconnectionServiceImpl @Inject()(
                 .withQueryString("status" -> String.valueOf(status))
                 .withQueryString("userName" -> userName.get)
                 .withQueryString("isCategoryModification" -> isCategoryModification.toString)
-                .withQueryString("operationOriginatedInInstance" -> superiorLabCode)
+                .withQueryString("operationOriginatedInInstance" -> currentInstanceLabCode)
             val futureResponse: Future[WSResponse] = this.sendRequestQueue(holder.withMethod("PUT"))
             futureResponse.flatMap { result => {
               if (result.status == 200) {
@@ -1453,7 +1453,7 @@ class InterconnectionServiceImpl @Inject()(
                 .withQueryString("userName" -> userName)
                 .withQueryString("motive" -> motive)
                 .withQueryString("isCategoryModification" -> isCategoryModification.toString)
-                .withQueryString("operationOriginatedInInstance" -> superiorLabCode)
+                .withQueryString("operationOriginatedInInstance" -> currentInstanceLabCode)
             val futureResponse: Future[WSResponse] = this.sendRequestQueue(holder.withMethod("PUT"))
             futureResponse.flatMap { result => {
               if (result.status == 200) {

@@ -254,7 +254,7 @@ class Interconnections @Inject()( val protoRepo: ProtoProfileRepository,
               Future.sequence(approvalsWithData.map { case (approval, isCatMod, labCode) =>
                 if (labCode.nonEmpty) {  // Ensure labCode is valid
                   profiledataService.addProfileReceivedApproved(
-                    labCode,  // Use the pre-fetched labCode
+                    labCode,  // Use the pre-fetched labCode que es la instancia inferior inmediata
                     approval.globalCode,
                     22L,
                     userName,
@@ -337,7 +337,7 @@ class Interconnections @Inject()( val protoRepo: ProtoProfileRepository,
       }
     }
   }
-
+// Acá se entra desde routes (es decir que se hace UPDATE de un perfile subido (Update de PROFILE_RECEIVED)
   def updateUploadStatus(
                           globalCode: String,
                           status:Long,
