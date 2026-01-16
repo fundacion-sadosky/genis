@@ -223,7 +223,7 @@ class Interconnections @Inject()( val protoRepo: ProtoProfileRepository,
     }*/
 
 
-  def approveProfiles(userName: String): Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
+  /*def approveProfiles(userName: String): Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
     val input = request.body.validate[List[ProfileApproval]]
     input.fold(
       errors => Future.successful(BadRequest(JsError.toFlatJson(errors))),
@@ -280,7 +280,32 @@ class Interconnections @Inject()( val protoRepo: ProtoProfileRepository,
         }
       }
     )
+  }*/
+
+  def approveProfiles(userName: String): Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
+    val input = request.body.validate[List[ProfileApproval]]
+    input.fold(
+      errors => Future.successful(BadRequest(JsError.toFlatJson(errors))),
+      approvals => {
+        // Llamamos directamente al servicio.
+        // Se asume que interconnectionService.approveProfiles internamente desencadena
+        // la lógica que lleva a notifyApprovalChangeStatus.
+        interconnectionService.approveProfiles(approvals, userName).map {
+          case Left(e) =>
+            // Manejo de error del servicio
+            BadRequest(Json.obj("message" -> e))
+
+          case Right(()) =>
+            // Éxito: Solo devolvemos el OK con los headers correspondientes.
+            // La actualización de PROFILE_RECEIVED ya ocurrió en el flujo interno.
+            Ok.withHeaders(
+              "X-CREATED-ID" -> approvals.map(a => a.globalCode).mkString(start = "[", sep = ",", end = "]")
+            )
+        }
+      }
+    )
   }
+
 
   private def getLabCodeFromGlobalCode(globalCode: String): Option[String] = {
     val parts = globalCode.split("-")
