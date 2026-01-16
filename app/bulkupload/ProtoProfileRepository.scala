@@ -50,7 +50,8 @@ abstract class ProtoProfileRepository  extends DefaultDb with Transaction {
   def getBatch(batchId: Long): Future[Option[ProtoProfilesBatch]]
   def getBatchesStep1(userId: String, isSuperUser: Boolean, offset: Int, limit: Int): Future[Seq[ProtoProfilesBatchView]]
   def countBatchesStep1(userId: String, isSuperUser: Boolean): Future[Int]
-  def getBatchesStep2(userId: String, geneMapperId : String,  isSuperUser: Boolean): Future[Seq[ProtoProfilesBatchView]]
+  def getBatchesStep2(userId: String, geneMapperId : String,  isSuperUser: Boolean, offset: Int, limit: Int): Future[Seq[ProtoProfilesBatchView]]
+  def countBatchesStep2(userId: String, geneMapperId: String, isSuperUser: Boolean): Future[Int]
   def getProtoProfilesStep1(batchId: Long, paginationSearch: Option[PaginationSearch] = None): Future[Seq[ProtoProfile]]
   def getProtoProfilesStep2(batchId: Long, userId: String, isSuperUser: Boolean, paginationSearch: Option[PaginationSearch] = None): Future[Seq[ProtoProfile]]
   def getProtoProfile(id: Long): Future[Option[ProtoProfile]]
@@ -184,6 +185,18 @@ class SlickProtoProfileRepository @Inject() (
        WHERE (bpp."USER" = ? OR ?)"""
     )
 
+  val queryCountBatchesStep2 =
+    Q.query[(String, Boolean), Int](
+      """SELECT COUNT(DISTINCT bpp."ID")
+       FROM "APP"."BATCH_PROTO_PROFILE" bpp
+       WHERE EXISTS (
+         SELECT 1 FROM "APP"."PROTO_PROFILE" pp
+         WHERE pp."ID_BATCH" = bpp."ID"
+         AND (pp."ASSIGNEE" = ? OR ?)
+         AND pp."STATUS" IN ('Approved','Rejected','Imported','Uploaded')
+       )"""
+    )
+
   val queryGetBatchesStep1 = Q.query[(String, Boolean, Int, Int), (Long, String, java.sql.Date, Long, Long, Long, Long, Option[String], Long, Long, String)](
                           """SELECT bpp."ID", bpp."USER", bpp."DATE", sum(1) as "TOTAL",
                           sum(CASE WHEN pp."STATUS" = 'Imported' THEN 1 ELSE 0 END) as "APPROVED",
@@ -211,7 +224,7 @@ class SlickProtoProfileRepository @Inject() (
                           ORDER BY bpp."ID" DESC
                           LIMIT ? OFFSET ?""")
 
-  val queryGetBatchesStep2 = Q.query[(String, Boolean, String, Boolean), (Long, String, java.sql.Date, Long, Option[String], Long, String)](
+  val queryGetBatchesStep2 = Q.query[(String, Boolean, String, Boolean, String, Boolean, Int, Int), (Long, String, java.sql.Date, Long, Option[String], Long, String)](
                           """SELECT bpp."ID", bpp."USER", bpp."DATE", (
                             	SELECT COUNT(*) as "TOTAL" FROM "APP"."PROTO_PROFILE" pp
                             	WHERE pp."ID_BATCH" = bpp."ID"
@@ -226,8 +239,15 @@ class SlickProtoProfileRepository @Inject() (
                             ) as "TOTAL_APPROVED",
                             bpp."ANALYSISTYPE"
                             FROM "APP"."BATCH_PROTO_PROFILE" bpp
+                            WHERE EXISTS (
+                              SELECT 1 FROM "APP"."PROTO_PROFILE" pp
+                              WHERE pp."ID_BATCH" = bpp."ID"
+                              AND (pp."ASSIGNEE" = ? OR ?)
+                              AND pp."STATUS" IN ('Approved','Rejected','Imported','Uploaded')
+                            )
                             GROUP BY bpp."ID"
-                            ORDER BY bpp."ID" DESC""")
+                            ORDER BY bpp."ID" DESC
+                            LIMIT ? OFFSET ?""")
 
   val queryGetBatchesForModal = Q.query[(String,String), (Long, String, java.sql.Date)](
     """SELECT bpp."ID",  bpp."LABEL",bpp."DATE"
@@ -423,10 +443,21 @@ class SlickProtoProfileRepository @Inject() (
     }
   }
 
-
-  override def getBatchesStep2(userId: String, geneMapperId : String, isSuperUser: Boolean): Future[Seq[ProtoProfilesBatchView]] = Future {
+  override def countBatchesStep2(userId: String, geneMapperId: String, isSuperUser: Boolean): Future[Int] = Future {
     DB.withSession { implicit session =>
-      queryGetBatchesStep2((geneMapperId, isSuperUser, geneMapperId, isSuperUser)).list.filter(_._4 > 0). map {
+      queryCountBatchesStep2((geneMapperId, isSuperUser)).first
+    }
+  }
+
+
+  override def getBatchesStep2(userId: String,
+                               geneMapperId : String,
+                               isSuperUser: Boolean,
+                               offset: Int,
+                               limit: Int
+                              ): Future[Seq[ProtoProfilesBatchView]] = Future {
+    DB.withSession { implicit session =>
+      queryGetBatchesStep2((geneMapperId, isSuperUser, geneMapperId, isSuperUser, geneMapperId, isSuperUser, limit, offset)).list.map {
         case (id, user, date, total, label, totalApproved, analysisType) =>
           ProtoProfilesBatchView(id, user, date, total.toInt, 0, 0, 0, label, totalApproved.toInt,0,analysisType)
       }

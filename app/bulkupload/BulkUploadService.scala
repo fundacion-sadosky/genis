@@ -34,7 +34,8 @@ abstract class BulkUploadService @Inject() (
                                            ) {
   def getBatchesStep1(userId: String, isSuperUser: Boolean, offset: Int, limit: Int): Future[Seq[ProtoProfilesBatchView]]
   def countBatchesStep1(userId: String, isSuperUser: Boolean): Future[Int]
-  def getBatchesStep2(userId: String, geneMapperId: String, isSuperUser: Boolean): Future[Seq[ProtoProfilesBatchView]]
+  def getBatchesStep2(userId: String, geneMapperId: String, isSuperUser: Boolean, offset: Int, limit: Int): Future[Seq[ProtoProfilesBatchView]]
+  def countBatchesStep2(userId: String, geneMapperId: String, isSuperUser: Boolean): Future[Int]
   def getProtoProfile(id: Long): Future[Option[ProtoProfile]]
   def getProtoProfileWithBatchId(id: Long): Future[Option[(ProtoProfile, Long)]]
   def getProtoProfilesStep1(batchId: Long, paginationSearch: Option[PaginationSearch]): Future[Seq[ProtoProfile]]
@@ -116,10 +117,17 @@ class BulkUploadServiceImpl @Inject() (
   override def countBatchesStep1(userId: String, isSuperUser: Boolean): Future[Int] =
     protoRepo.countBatchesStep1(userId, isSuperUser)
 
-  override def getBatchesStep2(userId: String, geneMapperId: String, isSuperUser: Boolean): Future[Seq[ProtoProfilesBatchView]] = {
-    protoRepo.getBatchesStep2(userId, geneMapperId, isSuperUser)
+  override def getBatchesStep2(userId: String,
+                               geneMapperId: String,
+                               isSuperUser: Boolean,
+                               offset: Int,
+                               limit: Int
+                              ): Future[Seq[ProtoProfilesBatchView]] = {
+    protoRepo.getBatchesStep2(userId, geneMapperId, isSuperUser, offset, limit)
   }
-
+  override def countBatchesStep2(userId: String, geneMapperId: String, isSuperUser: Boolean): Future[Int] =
+    protoRepo.countBatchesStep2(userId, geneMapperId, isSuperUser)
+  
   override def uploadProtoProfiles(
                                     user: String,
                                     tempFile: TemporaryFile,

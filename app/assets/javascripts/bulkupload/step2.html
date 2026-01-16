@@ -151,4 +151,23 @@
 			</accordion>
 		</div>
 	</div>
+	<footer style="z-index:2">
+		<div style="width: 100%;">
+			<pagination
+					ng-disabled="isProcessing"
+					boundary-links="true"
+					items-per-page="batchesPageSize"
+					total-items="totalBatches"
+					ng-model="batchesPage"
+					ng-change="changeBatchesPage()"
+					max-size="10"
+					class="pagination-sm"
+					previous-text="&lsaquo;"
+					next-text="&rsaquo;"
+					first-text="&laquo;"
+					last-text="&raquo;"
+					rotate="false">
+			</pagination>
+		</div>
+	</footer>
 </div>
