@@ -293,7 +293,7 @@ class ProfileDataServiceImpl @Inject() (
                   infUrlFuture.flatMap {
                     case Some(infUrl) =>
                       labCodeOption match {
-                        case Some(labCode) =>
+                        case Some(labCodeInf) =>
                           Future.successful(interconnectionService.sendDeletionToInferior(globalCode.text, motive, labCode, infUrl.getOrElse(""), userId,labCode))
                         case None =>
                           Future.successful(Left(Messages("error.E0130")))
