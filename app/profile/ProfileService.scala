@@ -165,38 +165,39 @@ class ProfileServiceImpl @Inject() (
   }
 
   override def isReadOnly2(profileOpt: Option[Profile]): Future[(Boolean, String, Boolean)] = {
-    profileOpt
-      .fold(Future
-        .successful((false, "", false))
-      ) {
-        profile => {
-          if (!this
-            .interconnectionService
-            .isFromCurrentInstance(profile
-              .globalCode
-            )) {
-            Future
-              .successful((true, Messages("error.E0727"), false))
-          } else {
-            (for {isDeleted <- profileDataRepository
-              .isDeleted(profile
-                .globalCode
-              )
-                  uploadStatus <- this
-                    .profileDataRepository
-                    .getProfileUploadStatusByGlobalCode(profile
-                      .globalCode
-                    )}
-            yield (uploadStatus, isDeleted))
-              .map {
-                case (us, Some(true)) => (true, Messages("error.E0729"), us.exists(x => x >= 4))
-                case (None, _) => (false, "", false)
-                case (Some(status), _) => (true, Messages("error.E0728"), status >= 4)
+    profileOpt.fold(Future.successful((false, "", false))) { profile =>
+      // 1. Fetch upload status first, as we need it for both cases (local and external)
+      this.profileDataRepository.getProfileUploadStatusByGlobalCode(profile.globalCode).flatMap { uploadStatus =>
+
+        // Determine if it exists in ProfileUploaded table (your specific requirement for the 3rd boolean)
+        val isUploaded = uploadStatus.isDefined
+
+        if (!this.interconnectionService.isFromCurrentInstance(profile.globalCode)) {
+          // Case: External Profile
+          // It is ReadOnly (true), gets the external error message, and uses the upload status we just fetched
+          Future.successful((true, Messages("error.E0727"), isUploaded))
+        } else {
+          // Case: Local Profile
+          // We still need to check if it's deleted to determine ReadOnly status
+          profileDataRepository.isDeleted(profile.globalCode).map {
+            case Some(true) =>
+              // Deleted: ReadOnly = true, Specific Error, 3rd param = isUploaded
+              (true, Messages("error.E0729"), isUploaded)
+            case _ =>
+              // Not deleted.
+              // If uploaded -> ReadOnly = true (because it's locked after upload), Error E0728, 3rd param = true
+              // If NOT uploaded -> ReadOnly = false, No Error, 3rd param = false
+              if (isUploaded) {
+                (true, Messages("error.E0728"), true)
+              } else {
+                (false, "", false)
               }
           }
         }
       }
+    }
   }
+
 
   override def isReadOnlySampleCode(
                                      globalCode:SampleCode,

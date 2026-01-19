@@ -362,14 +362,14 @@ class Interconnections @Inject()( val protoRepo: ProtoProfileRepository,
       }
     }
   }
-// Acá se entra desde routes (es decir que se hace UPDATE de un perfile subido (Update de PROFILE_RECEIVED)
+// Acá se entra desde routes (es decir que se hace UPDATE de un perfile subido (Update de PROFILE_UPLOADED)
   def updateUploadStatus(
                           globalCode: String,
                           status:Long,
                           motive:Option[String],
                           userName:String,
                           isCategoryModification:Boolean = false,
-                          operationOriginatedInInstance: Option[String] = None
+                          operationOriginatedInInstance: Option[String]
                         ): Action[AnyContent] = Action.async {
     _ => {
       interconnectionService
