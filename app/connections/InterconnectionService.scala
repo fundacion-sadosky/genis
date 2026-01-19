@@ -539,7 +539,7 @@ class InterconnectionServiceImpl @Inject()(
                   } else {
                     logger.debug("La instancia superior rechazo el perfil")
                     this.profileDataService.updateUploadStatus(profile.globalCode.text, PENDIENTE_ENVIO, Option.empty[String], Option.empty[String], Some(userName), currentInstanceLabCode)
-                    Future.successful(Left(Messages("error.E0724")))
+                    Future.successful(Left(Messages("error.E0731")))
                   }
                 }
                 }
