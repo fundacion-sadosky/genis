@@ -102,6 +102,7 @@ trait ProfileDataService {
   def getLabFromGlobalCode(globalCode: SampleCode):  Option[String]
   def getIsProfileReplicatedInternalCode(internalCode: String): Boolean
   def getProfileReceivedLabCode(globalCode: SampleCode): Option[String]
+  def countProfiles(): Future[Int]
 }
 
 @Singleton
@@ -696,5 +697,9 @@ class ProfileDataServiceImpl @Inject() (
   def getIsProfileReplicatedInternalCode(internalCode: String): Boolean = {
     Logger.info(s"getIsProfileReplicatedInternalCode called with internalCode: $internalCode")
     this.profileDataRepository.getIsProfileReplicatedInternalCode(internalCode)
+  }
+
+  override def countProfiles(): Future[Int] = {
+    profileDataRepository.countProfiles()
   }
 }

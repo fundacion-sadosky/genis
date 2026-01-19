@@ -225,6 +225,7 @@ abstract class ProfileDataRepository extends DefaultDb with Transaction  {
 
   def getProfileReceiveOperationOriginatedInInstance(globalCode: SampleCode): Future[Option[String]]
 
+  def countProfiles(): Future[Int]
 
 }
 
@@ -1488,6 +1489,12 @@ class SlickProfileDataRepository @Inject() (
           "" // Return an empty string in case of an exception to match the String type
       }
     }
+
+  override def countProfiles(): Future[Int] = Future {
+    DB.withSession { implicit session =>
+      profilesData.filter(_.deleted === false).list.length
+    }
+  }
 
 }
 

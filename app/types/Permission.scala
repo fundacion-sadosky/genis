@@ -184,7 +184,8 @@ object Permission {
       StaticAuthorisationOperation("""/category-configurations.*""".r, """GET""".r, "CategoryConfigurationRead"),
       StaticAuthorisationOperation("""/category-associations.*""".r, """GET""".r, "CategoryAssociationsRead"),
       StaticAuthorisationOperation("""/category-alias.*""".r, """GET""".r, "CategoryAliasesRead"),
-      StaticAuthorisationOperation("""/category-matching-rules.*""".r, """GET""".r, "CategoryMatchingRulesRead")
+      StaticAuthorisationOperation("""/category-matching-rules.*""".r, """GET""".r, "CategoryMatchingRulesRead"),
+      StaticAuthorisationOperation("""/profiledata/count""".r, """GET""".r, "ProfiledataCountRead")
     )
   }
   case object ROLE_CRUD extends Permission {

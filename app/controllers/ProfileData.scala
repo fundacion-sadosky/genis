@@ -338,4 +338,10 @@ class ProfileData @Inject() (
     }
   }
 
+  def countProfiles(): Action[AnyContent] = Action.async { request =>
+    profiledataService.countProfiles() map { count =>
+      Ok(Json.toJson(count))
+    }
+  }
+
 }

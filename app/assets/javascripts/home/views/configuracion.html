@@ -121,7 +121,7 @@
                     <input type="file" id="configFile" style="display: none;" accept=".zip"
                            onchange="angular.element(this).scope().$apply(function(scope) { scope.importConfiguration(this); }.bind(this))">
 
-                    <button class="btn btn-primary-action" ng-click="triggerFileInput()">
+                    <button class="btn btn-primary-action" ng-click="triggerFileInput()" ng-disabled="hasProfiles" title="{{hasProfiles ? 'No se puede importar configuración cuando hay perfiles cargados en el sistema' : ''}}">
                         Importar Configuración
                     </button>
                 </div>

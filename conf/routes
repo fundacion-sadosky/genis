@@ -62,6 +62,7 @@ HEAD     /operationLog                                        @controllers.Opera
 POST     /operationLogLot                                     @controllers.OperationLogs.getTotalLogs
 
 # ProfileData
+GET      /profiledata/count                                   @controllers.ProfileData.countProfiles()
 GET      /profiledata/:id                                     @controllers.ProfileData.get(id: Long)
 GET      /profiledata                                         @controllers.ProfileData.findByCode(globalCode: types.SampleCode)
 POST     /profiledata                                         @controllers.ProfileData.create
