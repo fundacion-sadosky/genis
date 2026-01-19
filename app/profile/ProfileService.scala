@@ -166,37 +166,50 @@ class ProfileServiceImpl @Inject() (
 
   override def isReadOnly2(profileOpt: Option[Profile]): Future[(Boolean, String, Boolean)] = {
     profileOpt.fold(Future.successful((false, "", false))) { profile =>
-      // 1. Fetch upload status first, as we need it for both cases (local and external)
+
+      // 1. Fetch upload status first
       this.profileDataRepository.getProfileUploadStatusByGlobalCode(profile.globalCode).flatMap { uploadStatus =>
 
-        // Determine if it exists in ProfileUploaded table (your specific requirement for the 3rd boolean)
-        val isUploaded = uploadStatus.isDefined
+        // 2. Calculate the 3rd parameter based on your specific rule:
+        // True if NOT exists OR (exists AND status == 3)
+        val thirdParam = uploadStatus match {
+          case None => false       // Does not exist -> False
+          case Some(3) => false    // Exists and status is 3 -> False
+          case _ => true         // Exists and status is not 3 -> True
+        }
 
         if (!this.interconnectionService.isFromCurrentInstance(profile.globalCode)) {
-          // Case: External Profile
-          // It is ReadOnly (true), gets the external error message, and uses the upload status we just fetched
-          Future.successful((true, Messages("error.E0727"), isUploaded))
+          // External Profile: ReadOnly = true, Error E0727, use calculated thirdParam
+          Future.successful((true, Messages("error.E0727"), thirdParam))
         } else {
-          // Case: Local Profile
-          // We still need to check if it's deleted to determine ReadOnly status
+          // Local Profile: Check if deleted
           profileDataRepository.isDeleted(profile.globalCode).map {
             case Some(true) =>
-              // Deleted: ReadOnly = true, Specific Error, 3rd param = isUploaded
-              (true, Messages("error.E0729"), isUploaded)
+              // Deleted: ReadOnly = true, Error E0729, use calculated thirdParam
+              (true, Messages("error.E0729"), thirdParam)
             case _ =>
               // Not deleted.
-              // If uploaded -> ReadOnly = true (because it's locked after upload), Error E0728, 3rd param = true
-              // If NOT uploaded -> ReadOnly = false, No Error, 3rd param = false
-              if (isUploaded) {
-                (true, Messages("error.E0728"), true)
+              // If uploadStatus is defined (and not 3, based on previous logic implies "locked"), it's read-only.
+              // However, we must ensure we don't return ReadOnly=true just because thirdParam is true (which happens when it DOESN'T exist).
+
+              // Logic for ReadOnly (1st param):
+              // Usually, a local profile is ReadOnly if it IS uploaded (exists) and isn't a specific "editable" status (like rejected/3).
+              // Assuming strict adherence to previous "locking" logic:
+              // Locked if exists AND status != 3.
+
+              if (!thirdParam) {
+                // If thirdParam is false, it means it Exists AND status != 3. So it is locked.
+                (true, Messages("error.E0728"), thirdParam) // (ReadOnly, Error, False)
               } else {
-                (false, "", false)
+                // If thirdParam is true, it means (Not Exists) OR (Status == 3). So it is editable.
+                (false, "", thirdParam) // (Not ReadOnly, No Error, True)
               }
           }
         }
       }
     }
   }
+
 
 
   override def isReadOnlySampleCode(
