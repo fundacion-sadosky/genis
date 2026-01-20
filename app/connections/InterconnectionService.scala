@@ -528,7 +528,7 @@ class InterconnectionServiceImpl @Inject()(
                 val outputJsonString = outputJson.toString
                 val futureResponse: Future[WSResponse] = this.sendRequestQueue(holder.withMethod("POST"), outputJsonString)
                 futureResponse.flatMap { result => {
-                  if (result.status == 200) { //Acá empiezo por poner una sola vez el upload en el trace cuando el
+                    if (result.status == 200) { //Acá empiezo por poner una sola vez el upload en el trace cuando el
                     traceService.add(Trace(profile.globalCode, userName, new Date(), trace.ProfileInterconectionUploadInfo))
                     logger.debug("se envio correctamente el perfil a la instancia superior")
                     this.profileDataService.updateUploadStatus(profile.globalCode.text, ENVIADA, Option.empty[String], Option.empty[String], Some(userName), currentInstanceLabCode)
@@ -537,7 +537,7 @@ class InterconnectionServiceImpl @Inject()(
                     sendFiles(profile.globalCode.text, superiorLabCode)
                     Future.successful(Right(()))
                   } else {
-                    logger.debug("La instancia superior rechazo el perfil")
+                    logger.debug("Error al conectarse a la instancia superior")
                     this.profileDataService.updateUploadStatus(profile.globalCode.text, PENDIENTE_ENVIO, Option.empty[String], Option.empty[String], Some(userName), currentInstanceLabCode)
                     Future.successful(Left(Messages("error.E0731")))
                   }
@@ -548,7 +548,7 @@ class InterconnectionServiceImpl @Inject()(
           }
           case None => {
             this.profileDataService.updateUploadStatus(profile.globalCode.text, PENDIENTE_ENVIO, Option.empty[String], Some(s"No se puede enviar porque no se pudo conectar con la instancia superior"), Some(userName), currentInstanceLabCode)
-            Future.successful(Left(Messages("error.E0722")))
+            Future.successful(Left(Messages("error.E0731")))
           }
         }
       }
@@ -556,7 +556,7 @@ class InterconnectionServiceImpl @Inject()(
       case e: Exception => {
         logger.error("Error de conexión con la instancia superior", e)
         this.profileDataService.updateUploadStatus(profile.globalCode.text, PENDIENTE_ENVIO, Option.empty[String], Some(s"No se puede enviar porque no se pudo conectar con la instancia superior"), Some(userName), currentInstanceLabCode)
-        Future.successful(Left(Messages("error.E0723")))
+        Future.successful(Left(Messages("error.E0731")))
       }
     }
     futureReturn
