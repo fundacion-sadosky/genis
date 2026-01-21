@@ -395,9 +395,7 @@ class ProfileServiceImpl @Inject() (
               analysis.count({
                 case (marker, alleles) => {
                   val locus = loci.find(l => l.id == marker).get
-                  if (contributors == 1) {
-                    alleles.size > locus.minimumAllelesQty && alleles.size > trisomyTreshold
-                  } else false
+                  alleles.size > locus.minimumAllelesQty && alleles.size > trisomyTreshold
                 }
               }) > maxOverageDeviatedLociPerProfile
             }, Messages("error.E0685", maxOverageDeviatedLociPerProfile)) ::
