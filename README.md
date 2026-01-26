@@ -18,16 +18,16 @@ El sistema está diseñado para operar en contextos judiciales e institucionales
 - Gestión de coincidencias y de los resultados estadísticos asociados.
 - Soporte para investigaciones judiciales y procesos de identificación genética.
 - Capacidades de auditoría y trazabilidad de las acciones realizadas dentro del sistema.
-- Arquitectura orientada a despliegues institucionales distribuidos.
+- Arquitectura orientada a despliegues institucionales.
 - Publicación como software de código abierto, auditable y adaptable.
 
----
 
 ## Tecnologías utilizadas
 
 GENis está desarrollado sobre una arquitectura de software multicapa, utilizando tecnologías consolidadas en entornos institucionales:
 
-- **Lenguaje y plataforma**: Java / JVM.
+- **Lenguaje**: Scala.
+- **Plataforma**: JVM.
 - **Framework backend**: Play Framework.
 - **Interfaz de usuario**: aplicación web basada en AngularJS.
 - **Bases de datos**:
@@ -41,7 +41,7 @@ GENis está desarrollado sobre una arquitectura de software multicapa, utilizand
 
 Estas tecnologías y componentes se describen en detalle en la documentación técnica y en los manuales del sistema.
 
----
+
 
 ## Requerimientos generales de despliegue
 
@@ -55,7 +55,6 @@ GENis está diseñado para ser desplegado en **entornos institucionales controla
 
 Los requerimientos técnicos detallados, así como las configuraciones recomendadas y los procedimientos de instalación, se encuentran especificados en la documentación oficial del sistema.
 
----
 
 ## Documentación
 
@@ -68,7 +67,6 @@ La descripción completa del sistema, su arquitectura, funcionamiento, validacio
 - Estándares, validaciones y lineamientos de seguridad.
 - Modelos de soporte y gobernanza.
 
----
 
 ## Licencia
 
@@ -77,25 +75,25 @@ GENis se distribuye bajo la licencia **GNU Affero General Public License v3.0 (A
 El texto completo de la licencia se encuentra disponible en el repositorio oficial del proyecto:  
 https://github.com/fundacion-sadosky/genis/blob/main/LICENSE
 
----
 
 ## Instituciones participantes
 
 GENis es el resultado de un trabajo conjunto entre instituciones del sistema judicial, la comunidad científica y académica, y organizaciones del sector tecnológico, en el marco de iniciativas de cooperación institucional orientadas a fortalecer las capacidades en genética forense.
 
----
 
 ## Estado del proyecto
 
-GENis es un sistema con versiones estables utilizadas en entornos institucionales.  
+GENis es un sistema con versiones estables utilizadas en entornos institucionales.
+La versión documentada y desplegada institucionalmente de GENis es la **5.1.12**.  
 El desarrollo y mantenimiento del software continúan de acuerdo con los lineamientos técnicos e institucionales definidos en su documentación oficial.
 
+---
 
 ## Configurar un entorno de ejecución de GENis
 
-GENis está desarrollado en Scala, para correr la aplicación se requiere JRE 8 y para continuar su desarrollo JDK 8 y Sbt.
+GENis 5.1.12 está desarrollado en Scala, para correr la aplicación se requiere JRE 8 y para continuar su desarrollo JDK 8 y Sbt.
 
-### Otros requerimientos
+### Otros requerimientos para la version actual de GENis (5.1.12)
 - PostgreSQL 9.4.4
 - MongoDB 2.6
 - OpenLDAP
