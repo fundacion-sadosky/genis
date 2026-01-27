@@ -1,99 +1,16 @@
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://drive.usercontent.google.com/download?id=1C3S3zc3yGSdV4qJWuiqqzx75XCpeBWqI"  width="50%" >
-  <img src="https://drive.usercontent.google.com/download?id=17uaYJPIi9NVJ9kgR9mGV5bm1JLb9otCt" alt=""  width="50%" >
-</picture>
+# GENis 5.1.12
 
+El software GENis es una herramienta informática desarrollada por la [Fundación Dr. Manuel Sadosky](https://www.fundacionsadosky.org.ar) que permite contrastar perfiles genéticos provenientes de muestras biológicas obtenidas en distintas escenas de crimen o de desastres, vinculando así eventos ocurridos en diferente tiempo y lugar, aumentando las probabilidades de individualización de delincuentes, personas desaparecidas o víctimas de siniestros.
 
+Para una explicación detallada sobre como instalar GENis y configurar el software necesario consulte el [manual de instalación de GENis](https://github.com/fundacion-sadosky/genis/files/9739746/instalacion.pdf). A continuación se resumen los pasos para una configuración básica y se indica como correr el sistema en entornos de desarrollo y producción. Los archivos a los que se haga referencia pueden encontrarse bajo el directorio */utils*.
 
-**GENis** es un sistema informático de código abierto para el **almacenamiento, gestión y comparación de perfiles genéticos con fines forenses**, desarrollado para apoyar la investigación judicial y la cooperación interinstitucional.
-
-El sistema está diseñado para operar en contextos judiciales e institucionales, gestionando información genética sensible bajo criterios de **seguridad, trazabilidad y auditabilidad**, en concordancia con estándares y buenas prácticas del ámbito de la genética forense.
-
----
-
-## Características principales
-
-- Gestión y administración de perfiles genéticos humanos.
-- Búsqueda y contraste automático entre perfiles almacenados.
-- Gestión de coincidencias y de los resultados estadísticos asociados.
-- Soporte para investigaciones judiciales y procesos de identificación genética.
-- Capacidades de auditoría y trazabilidad de las acciones realizadas dentro del sistema.
-- Arquitectura orientada a despliegues institucionales.
-- Publicación como software de código abierto, auditable y adaptable.
-
-
-## Tecnologías utilizadas
-
-GENis está desarrollado sobre una arquitectura de software multicapa, utilizando tecnologías consolidadas en entornos institucionales:
-
-- **Lenguaje**: Scala.
-- **Plataforma**: JVM.
-- **Framework backend**: Play Framework.
-- **Interfaz de usuario**: aplicación web basada en AngularJS.
-- **Bases de datos**:
-  - PostgreSQL para información estructural, configuraciones y auditoría.
-  - MongoDB para el almacenamiento y procesamiento de perfiles genéticos.
-- **Seguridad**:
-  - Autenticación de usuarios con doble factor.
-  - Modelo de usuarios y roles.
-  - Registro y auditoría de operaciones.
-- **Criptografía y mecanismos de protección de datos**, según lo especificado en la documentación técnica.
-
-Estas tecnologías y componentes se describen en detalle en la documentación técnica y en los manuales del sistema.
-
-
-
-## Requerimientos generales de despliegue
-
-GENis está diseñado para ser desplegado en **entornos institucionales controlados**, tales como laboratorios forenses u organismos judiciales. De manera general, el sistema requiere:
-
-- Servidores dedicados o virtualizados bajo sistemas operativos GNU/Linux.
-- Infraestructura de red confiable y controlada.
-- Servicios de base de datos compatibles con PostgreSQL y MongoDB.
-- Mecanismos de autenticación y gestión de usuarios acordes a entornos institucionales.
-- Políticas de respaldo, auditoría y control de accesos.
-
-Los requerimientos técnicos detallados, así como las configuraciones recomendadas y los procedimientos de instalación, se encuentran especificados en la documentación oficial del sistema.
-
-
-## Documentación
-
-La descripción completa del sistema, su arquitectura, funcionamiento, validaciones, procedimientos de instalación y modelos de operación se encuentra desarrollada en la documentación técnica del proyecto, incluyendo:
-
-- Visión general y objetivos.
-- Arquitectura del software.
-- Manual de usuario.
-- Procedimiento de instalación.
-- Estándares, validaciones y lineamientos de seguridad.
-- Modelos de soporte y gobernanza.
-
-
-## Licencia
-
-GENis se distribuye bajo la licencia **GNU Affero General Public License v3.0 (AGPL-3.0)**.
-
-El texto completo de la licencia se encuentra disponible en el repositorio oficial del proyecto:  
-https://github.com/fundacion-sadosky/genis/blob/main/LICENSE
-
-
-## Instituciones participantes
-
-GENis es el resultado de un trabajo conjunto entre instituciones del sistema judicial, la comunidad científica y académica, y organizaciones del sector tecnológico, en el marco de iniciativas de cooperación institucional orientadas a fortalecer las capacidades en genética forense.
-
-
-## Estado del proyecto
-
-GENis es un sistema con versiones estables utilizadas en entornos institucionales.
-La versión documentada y desplegada institucionalmente de GENis es la **5.1.12**.  
-El desarrollo y mantenimiento del software continúan de acuerdo con los lineamientos técnicos e institucionales definidos en su documentación oficial.
-
----
+Para informarse sobre el funcionamiento del sistema consulte el [manual de usuario de GENis](https://github.com/fundacion-sadosky/genis/files/9739748/manual.pdf).
 
 ## Configurar un entorno de ejecución de GENis
 
-GENis 5.1.12 está desarrollado en Scala, para correr la aplicación se requiere JRE 8 y para continuar su desarrollo JDK 8 y Sbt.
+GENis está desarrollado en Scala, para correr la aplicación se requiere JRE 8 y para continuar su desarrollo JDK 8 y Sbt.
 
-### Otros requerimientos para la version actual de GENis (5.1.12)
+### Otros requerimientos
 - PostgreSQL 9.4.4
 - MongoDB 2.6
 - OpenLDAP
