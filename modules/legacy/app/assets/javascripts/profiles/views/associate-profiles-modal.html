@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<div class="modal-header">
+	<h4>Asociación de perfiles
+	<span id="processingSpan" class="icon-refresh" ng-class="{'spinner': isProcessing}" ng-show="isProcessing"></span>
+	</h4>
+</div>
+<div class="modal-body">
+
+	<div class="input-group" style="padding-bottom: 10px;">
+	  	<input type="text" class="form-control" aria-describedby="basic-addon2"
+			ng-model="profileId"
+			placeholder="Buscar perfil aportante"
+			ng-keyup="$event.keyCode == 13 ?searchProfile() : null">
+	  <span class="input-group-addon" id="basic-addon2" ng-click="searchProfile()">
+  		<span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+  	  </span>
+	</div>
+	
+	<table class="table  table-striped" data-ng-show="results" style="font-size:x-small;">
+		<thead>
+			<tr>
+				<th class="text-center">Código GENis</th>
+				<th class="text-center">Código Laboratorio</th>
+				<th class="text-center">Categoria</th>
+				<th class="text-center">Juzgado</th>
+				<th class="text-center">Expediente</th>
+				<th class="text-center">Laboratorio</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr data-ng-repeat="pd in results">
+				<td class="text-center">
+					<a id="{{'link'+$index}}" href ng-click="setProfileSelected(pd.globalCode)">{{pd.globalCode}}</a>
+				</td>
+				<td class="text-center">{{pd.internalSampleCode}}</td>
+				<td class="text-center">{{pd.category}}</td>
+				<td class="text-center">{{pd.court}}</td>
+				<td class="text-center">{{pd.criminalCase}}</td>
+				<td class="text-center">{{pd.laboratory}}</td>
+			</tr>
+		</tbody>
+	</table>
+	
+	<div ng-include="'/assets/javascripts/profiles/views/associate-profiles-comparision.html'" ng-if="mergedLoci" style="margin-top: 2em;"></div>
+	
+</div>
+<div class="modal-footer">
+   <button id="verify" type="button" class="btn btn-success" ng-click="verify()" ng-disabled="profilesList.length === 0" ng-show="!mergedLoci">Aceptar</button>
+   <button id="acceptLowStringency" type="button" class="btn btn-success" ng-click="$close(labels)" ng-show="mergedLoci">Aceptar</button>
+   <button id="cancel" class="btn btn-danger" data-ng-click="$dismiss()">Cancelar</button>
+</div>

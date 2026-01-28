@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+
+<div class="modal-header">
+	<button type="button" class="close" data-dismiss="modal" aria-label="Close" ng-click="$dismiss()"><span aria-hidden="true">&times;</span></button>
+	<h4>Búsqueda de perfiles
+	<span id="processingSpan" class="icon-refresh" ng-class="{'spinner': isProcessing}" ng-show="isProcessing"></span>
+	</h4>
+</div>
+<div class="modal-body">
+	<div class="input-group" style="padding-bottom: 10px;">
+	  	<input type="text" class="form-control form-select" aria-describedby="basic-addon2"
+	  		id="searchText" name="searchText" ng-model="searchText"
+			placeholder="Buscar perfil"
+			ng-keyup="$event.keyCode == 13 ? searchProfile() : null">
+	  <span class="input-group-addon" id="basic-addon2" ng-click="searchProfile()">
+  		<span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+  	  </span>
+	</div>
+	<table class="table  table-striped" data-ng-show="results" style="font-size:x-small;">
+	<thead>
+		<tr>
+			<th class="text-center col-md-2">Nombre del Lote</th>
+			<th class="text-center col-md-2">Código GENis</th>
+			<th class="text-center col-md-2">Código Laboratorio</th>
+			<th class="text-center col-md-3">Categoria</th>
+			<th class="text-center col-md-2">Responsable</th>
+			<th class="text-center col-md-1">Seleccionar</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr data-ng-repeat="pd in results">
+			<td class="text-center">{{pd.label}}</td>
+			<td class="text-center">{{pd.globalCode}}</td>
+			<td class="text-center">{{pd.internalSampleCode}}</td>
+			<td class="text-center">{{pd.categoryName}}</td>
+			<td class="text-center">{{pd.assignee}}</td>
+			<td style="width:10%">
+                <button id="{{'link'+$index}}"
+                        ng-click="selectProfile(pd)"
+                        type="button"
+                        class="btn btn-default btn-link-action btn-link-border">
+                    <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+                </button>
+			</td>
+		</tr>
+	</tbody>
+		<tfoot >
+
+		<tr ng-show="totalItems > pageSize">
+			<td colspan="8" style="padding-top: 10px; ">
+				<pagination style="position: initial; transform: translate(0, 0);" boundary-links="true" ng-change="searchProfile()" items-per-page="{{pageSize}}" max-size="10" total-items="totalItems" data-ng-model="currentPageNumber" class="pagination-sm" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;"  rotate="false"></pagination>
+
+			</td>
+
+		</tr>
+
+		</tfoot>
+</table>
+
+</div>
+<!--<div class="modal-footer" ng-show="totalItems > pageSize">-->
+	<!--<div>-->
+	<!--</div>-->
+<!--</div>-->
+

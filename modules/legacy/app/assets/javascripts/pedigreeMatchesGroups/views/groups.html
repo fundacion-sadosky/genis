@@ -1,0 +1,37 @@
+
+<div class="row padding-0 breadcrumb_column">
+	<div class="col-md-12 padding-0">
+		<div class="row padding-0">
+			<div class="breadcrumb_content">
+				<ol class="breadcrumb">
+						<li>
+							<div class="btn volver" onclick="history.back()">
+								<span  class="icon-atras" title="Volver"></span>
+							</div>
+						</li>
+						<li class="active">Detalle de coincidencias de pedigrí para {{title}}</li>
+						
+					</ol>
+				</div>
+			</div>
+		</div>
+	</div>
+<div class="container">
+	<div class="row m-b-10">
+		<div class="text-right padding-right-0">
+			<h5>Usuario responsable</h5>
+			<p class="m-l-10">{{assignee}}</p>
+		</div>
+	</div>
+	<hr class="m-t-0"/>
+
+	<div ng-include="'/assets/javascripts/pedigreeMatchesGroups/views/direct.html'"></div>
+
+	<div ng-include="'/assets/javascripts/pedigreeMatchesGroups/views/compatibility.html'"></div>
+
+	<div ng-include="'/assets/javascripts/pedigreeMatchesGroups/views/empty.html'"></div>
+
+</div>
+<footer class="matches-groups-footer">
+
+</footer>

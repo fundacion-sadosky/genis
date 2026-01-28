@@ -1,0 +1,65 @@
+
+<div class="row padding-0 breadcrumb_column">
+	<div class="col-md-12 padding-0">
+		<div class="row padding-0">
+			<div class="breadcrumb_content">
+				<ol class="breadcrumb">
+                    <li>
+                        <div class="btn volver" onclick="history.back()">
+                            <span  class="icon-atras" title="Volver"></span>
+                        </div>
+                    </li>
+                    <li class="active">Consistencia de Pedigrí</li>
+                </ol>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+<div class="row text-right scenario-separator content">
+<div class="col-md-pull-12 " style="margin-top: 37px;">
+    <span ng-show="consistencyRun && isConsistent" class="pull-left"><b>Estado:</b> Consistente</span>
+    <span ng-show="consistencyRun && !isConsistent" class="pull-left"><b>Estado:</b> Inconsistente</span>
+    <button data-ng-disabled="isProcessing || consistencyRun" ng-click="chequearConsistencia()" class="btn btn-primary-action pull-right">Chequear Consistencia</button>
+</div>
+<div id="genogram" class="genogram" style="margin-top: 75px;margin-bottom: 70px;"></div>
+
+<div class="scenarios-section" ng-if="comparison" style="padding-bottom: 25px;">
+    <table style="display: block;overflow-x: auto;white-space: nowrap;">
+        <thead>
+        <tr>
+            <td id="td-comp-gen-1" class="column col-md-1"></td>
+            <td ng:repeat="p in selectedOptions"  class="text-center column " style="padding:5px 30px 5px 30px;">
+                <div class="comparison-profileID">
+                    <span style="display:block">{{p.alias}}</span>
+                    <span>{{'(' + p.internalCode + ')'}}</span>
+                </div>
+            </td>
+            <td></td>
+        </tr>
+        </thead>
+        <tbody>
+            <tr ng:repeat="item in comparison" >
+                <td class="text-left">{{item.locus}}</td>
+                <td class="text-center" ng:repeat="p in selectedOptions" >
+                    <span ng:repeat="allele in item.g[p.globalCode] track by $index" class="text-center comparision-allele"
+                          ng-class="{'allele-mismatch': hasInconsistency(p.globalCode, item.locus) }">
+                            {{allele}}
+                    </span>
+                </td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+
+</div>
+</div>
+<footer>
+<div class="desk-align-right inside-right">
+<span data-ng-show="isProcessing" >
+    <p class="italic bold">Este pedigrí se encuentra ejecutando el proceso de consistencia</p>
+    <span id="processingSpan" class="icon-refresh" ng-class="{'spinner': isProcessing}" data-ng-show="isProcessing"></span>
+</span>
+</div>
+</footer>

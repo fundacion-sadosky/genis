@@ -1,0 +1,82 @@
+<div class="options-header scenarios-section">
+
+    <div class="panel-body">
+
+            <div class="col-md-3 vertical-align">
+                <div class="col-sm-3 control-label">Perfiles:</div>
+                <div class="col-sm-9">
+                    <select id="genotypificationOptions" data-ng-change="show(selectedOption)"
+                            data-ng-model="selectedOption" class="form-control form-select" required
+                            ng-options="item as (item | showcode) for item in availableOptions()"
+                            help-tip="scenario.comparison.profiles" help-tip-placement="bottom">
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-9">
+                <div class="chip m-r-10" ng-repeat="item in selectedOptions">
+                    {{item | showcode}}
+                    <span class="closebtn" ng-click="hide(item)"
+                          help-tip="scenario.comparison.chips" help-tip-placement="bottom">&times;</span>
+                </div>
+            </div>
+
+    </div>
+</div>
+
+<div class="row text-right scenario-separator">
+    <a role="button" class="btn btn-default m-r-5 list-group-menu-item" help-tip="scenario.comparison.differences" help-tip-placement="left"
+            ng-class="{'list-group-menu-item-selected': showDifferences}" ng-click="displayDifferences()">Mostrar diferencias</a>
+    <a role="button" class="btn btn-default m-r-5 list-group-menu-item" help-tip="scenario.comparison.matches" help-tip-placement="top"
+            ng-class="{'list-group-menu-item-selected': showMatches}" ng-click="displayMatches()">Mostrar coincidencias</a>
+</div>
+
+<div class="scenarios-section" ng-if="comparison" style="padding-bottom: 25px;">
+    <table>
+        <thead>
+        <tr>
+            <td id="td-comp-gen-1" class="column col-md-1"></td>
+            <td id="td-comp-gen-2" class="text-center column col-md-3" title="Ver información de la causa">
+                <div class="comparison-profileID m-b-10">
+                    {{profileData[profile] | showcode | prittyLimitTo: 20: false}}
+                    <a pdg-profile-data-info-popover profileid="profile" info="{{profileData[profile]}}"></a>
+                </div>
+            </td>
+            <td ng:repeat="p in selectedOptions" id="td-comp-gen-3" class="text-center column col-md-2" title="Ver información de la causa">
+                <div class="comparison-profileID">
+                    {{profileData[p.globalCode] | showcode | prittyLimitTo: 20: false}}
+                    <a pdg-profile-data-info-popover profileid="p.globalCode" info="{{profileData[p.globalCode]}}"
+                    popover-placement="left"></a>
+                </div>
+            </td>
+            <td></td>
+        </tr>
+        </thead>
+        <tbody>
+            <tr ng:repeat="item in comparison">
+                <td>{{item.locus}}</td>
+                <td class="text-center">
+                    <span ng:repeat="allele in item.g[profile] track by $index" class="brick-allele">
+                        <span class="text-center comparision-allele">
+                            {{allele | mt: item.locus: locusById[item.locus].analysisType: analysisTypes}}
+                        </span>
+                    </span>
+                </td>
+                <td class="text-center" ng:repeat="p in selectedOptions">
+                    <span ng:repeat="allele in item.g[p.globalCode] track by $index" class="text-center comparision-allele"
+                          ng-class="{'allele-matched-lrmix': showMatches && item.g[profile] !== undefined && item.g[profile].indexOf(allele) !== -1,
+                                     'allele-mismatch': showDifferences && item.g[profile] !== undefined && item.g[profile].indexOf(allele) === -1 }">
+                            {{allele | mt: item.locus: locusById[item.locus].analysisType: analysisTypes}}
+                    </span>
+                </td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+
+</div>
+
+<footer class="lrmix-footer">
+    <div class="desk-align-right inside-right">
+
+    </div>
+</footer>

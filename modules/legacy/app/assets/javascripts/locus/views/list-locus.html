@@ -1,0 +1,87 @@
+<fieldset ng-controller="listLocusController">
+
+    <div class="row m-b-10 m-t-10" style="margin-left:5px;">
+        <a class="btn btn-default m-r-5 list-group-menu-item"
+           ng-class="{'list-group-menu-item-selected': activeOption === -1}" ng-click="show(-1)">Todo</a>
+        <a ng-repeat="option in options" ng-if="!analysisTypes[option].mitochondrial"
+           class="btn btn-default m-r-5 list-group-menu-item"
+           ng-class="{'list-group-menu-item-selected': activeOption === $index}"
+           ng-click="show($index)">{{'analysisTypes.' + analysisTypes[option].name | i18next}}</a>
+        <span id="processingSpan" class="icon-refresh" ng-class="{'spinner': isProcessing}" data-ng-show="isProcessing"></span>
+    </div>
+
+    <div data-ng-show="noResult && !isProcessing">No se encontraron datos según su busqueda</div>
+
+    <div data-ng-show="!noResult"  name="locus_result">
+        <table class="table table-bordered">
+            <thead>
+            <th>
+                <pdg-sortable name="ID" predicate="predicate" reverse="reverse" sort-field="locus.id"
+                              sort-action="predicate='locus.id';reverse=!reverse"
+                              ng-init="predicate='locus.id'; reverse= false;"></pdg-sortable>
+            </th>
+            <th>Nombre</th>
+            <th>Tipo</th>
+            <th>Cromosoma</th>
+            <th><div help-tip="locus.add.minimumAllelesQty" help-tip-placement="bottom">Alelos mínimos</div></th>
+            <th><div help-tip="locus.add.maximumAllelesQty" help-tip-placement="top">Alelos máximos</div></th>
+            <th>Alias</th>
+            <th><div help-tip="locus.list.links" help-tip-placement="top">Ligas</div></th>
+            <th>Requerido</th>
+            <th>Rango</th>
+            <th show-permissions="LOCUS_UPDATE">Modificar</th>
+            <th>Eliminar</th>
+            </thead>
+            <tbody>
+            <tr data-ng-repeat="l in locusSearch | orderBy:predicate:reverse" ng-if="!analysisTypes[l.locus.analysisType].mitochondrial">
+                <td>{{l.locus.id}}</td>
+                <td>{{l.locus.name}}</td>
+                <td>{{'analysisTypes.' + analysisTypes[l.locus.analysisType].name | i18next}}</td>
+                <td>{{l.locus.chromosome}}</td>
+                <td>{{l.locus.minimumAllelesQty}}</td>
+                <td>{{l.locus.maximumAllelesQty}}</td>
+                <td>
+                    <div class="locus-tooltip">
+                        <a href="" class="info-item" ng-class="{'info-item-selected': l.showAlias}"
+                           ng-if="l.alias.length !== 0" ng-click="l.showAlias = !l.showAlias"
+                           tooltip-placement="left" tooltip-html-unsafe="{{l.alias.join(', ')}}" tooltip-trigger="click">
+                            <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                        </a>
+                    </div>
+                </td>
+                <td>
+                    <div class="locus-tooltip">
+                        <a href="" class="info-item" ng-class="{'info-item-selected': l.showLinks}"
+                           ng-if="l.links.length !== 0" ng-click="l.showLinks = !l.showLinks"
+                           tooltip-placement="right" tooltip-html-unsafe="{{printLinks(l.links)}}" tooltip-trigger="click">
+                            <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                        </a>
+                    </div>
+                </td>
+                <td>
+                    <div>
+                        <div ng-show="l.locus.required">Requerido</div>
+                        <div ng-show="!l.locus.required">Aceptado</div>
+                    </div>
+                </td>
+                <td>
+                    <div ng-hide="!l.locus.maxAlleleValue">
+                        <{{l.locus.minAlleleValue}}, {{l.locus.minAlleleValue}}-{{l.locus.maxAlleleValue}}, >{{l.locus.maxAlleleValue}}
+                    </div>
+                </td>
+                <td show-permissions="LOCUS_UPDATE">
+                    <button class="btn btn-default btn-link-action btn-link-border" data-ng-click="updateLocusRanges(l.locus,l.alias)">
+                        <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+                    </button>
+                </td>
+                <td>
+                    <button class="btn btn-default btn-link-action btn-link-border" ng-click="remove(l.locus.id)">
+                        <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                    </button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</fieldset>

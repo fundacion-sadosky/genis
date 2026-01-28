@@ -1,0 +1,47 @@
+<div ng-controller="geneticistsController">
+    <form name="genForm">
+        <fieldset>
+            <div class="col-md-12 geneticists-section-big">
+                <div class="geneticists-section">
+                    <div class="m-t-10">
+                        <h6>Nombre<span class="field-obligated">*</span></h6>
+                        <input type="text" name="name" id="gen-name" data-ng-model="geneticist.name" class="form-control form-select" required />
+                        <form-validation input="genForm.name"></form-validation>
+                    </div>
+                    <div class="m-t-10">
+                        <label>Apellido<span class="field-obligated">*</span></label>
+                        <input type="text" id="gen-last-name" data-ng-model="geneticist.lastname" class="form-control form-select" name="lastName"required />
+                        <form-validation input="genForm.lastName"></form-validation>
+                    </div>
+                    <div class="m-t-10">
+                        <label>Email<span class="field-obligated">*</span></label>
+                        <input type="text" id="gen-mail" data-ng-model="geneticist.email" ng-pattern="regexEmail" placeholder="xx@yy.zz" class="form-control form-select" name="mail" required />
+                        <form-validation input="genForm.mail" pattern="xx@yy.zz"></form-validation>
+                    </div>
+                    <div class="m-t-10">
+                        <label>Telefono<span class="field-obligated">*</span></label>
+                        <input type="text" id="gen-phone" data-ng-model="geneticist.telephone" class="form-control form-select" name="phone" required />
+                        <form-validation input="genForm.phone"></form-validation>
+                    </div>
+                    <div class="m-t-10">
+                        <label>Laboratorio<span class="field-obligated">*</span></label>
+                        <select data-ng-model="geneticist.laboratory" required class="form-control form-select" style="height: 3.5em;"
+                            data-ng-options="item.code as item.name for item in laboratories">
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+        <footer class="geneticists-footer">
+            <div class="desk-align-right inside-right">
+                <div class="btn btn-link-action" data-ng-click="cancelForm()">
+                
+                    <span title="Limpiar pantalla" class="btn-link-action">Limpiar</span>
+                </div>
+                <button id="save" type="button" data-ng-click="saveGeneticist()"
+                        class="btn btn-primary-action"
+                        ng-disabled="genForm.$invalid">Guardar</button>
+            </div>
+        </footer>
+    </form>
+</div>

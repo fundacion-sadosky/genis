@@ -1,0 +1,3 @@
+Sample Name	Specimen Category	UD1	Range From	Range To	Mut1	Mut2	Mut3	Mut4	Mut5	Mut6	Mut7	Mut8	Mut9	Mut10	Mut11	Mut12	Mut13	Mut14	Mut15	Mut16	Mut17	Mut18	Mut19	Mut20	Mut21	Mut22	Mut23	Mut24	Mut25	Mut26	Mut27	Mut28	Mut29	Mut30	Mut31	Mut32	Mut33	Mut34	Mut35	Mut36	Mut37	Mut38	Mut39	Mut40	Mut41	Mut42	Mut43	Mut44	Mut45	Mut46	Mut47	Mut48	Mut49	Mut50
+Persona	IR	Usuario	16024	16569	T16046C	G16047DEL	16048.1C																																																
+Persona	IR	Usuario	1	400	399.1A																																																		

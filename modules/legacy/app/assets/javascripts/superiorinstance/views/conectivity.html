@@ -1,0 +1,46 @@
+<form name="supinstForm">
+    <div>
+            <div class="section-category-mapping">
+                    <div class="m-t-10">
+                        <div>
+                            <label for="urlSuperiorInstance">Instancia Superior:</label>
+                            <table>
+                                <tr>
+                                    <td>
+                                        <input name="urlSuperiorInstance" id="urlSuperiorInstance"
+                                               class="form-control form-select" placeholder="url"
+                                               data-ng-model="connections.superiorInstance"/>
+                                    </td>
+                                    <td>
+                                        <button id="checkSupIns" type="button"  class="btn btn-secondary-action" data-ng-click="checkConnectionSupIns()" >Chequear conectividad</button>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    <!--<div class="m-t-10">-->
+                        <!--<div>-->
+                            <!--<h6>PKI:</h6>-->
+                            <!--<table>-->
+                                <!--<tr>-->
+                                    <!--<td>-->
+                                        <!--<input name="urlPKI" id="urlPKI" class="form-control form-select" ng-change="changed=true"-->
+                                               <!--data-ng-model="connections.pki"/>-->
+                                    <!--</td>-->
+                                    <!--<td>-->
+                                        <!--<button id="checkPki" type="button"  class="btn btn-secondary-action" data-ng-click="checkConnectionPki()" >Chequear conectividad</button>-->
+                                    <!--</td>-->
+                                <!--</tr>-->
+                            <!--</table>-->
+                        <!--</div>-->
+                    <!--</div>-->
+                    <div class="desk-align-right">
+                        <button id="connect" type="button"  class="btn btn-secondary-action" data-ng-click="connect()" >Conectar</button>
+
+                        <button id="save" type="button" class="btn btn-primary-action" data-ng-click="saveConnections()">
+                                Guardar
+                            </button>
+                    </div>
+            </div>
+    </div>
+</form>

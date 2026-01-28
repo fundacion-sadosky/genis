@@ -1,0 +1,143 @@
+/*.btn {
+    display: inline-block;
+    width: auto;
+    padding: 12px 24px;
+    border-radius: 4px;
+    border: 0;
+    cursor: pointer;
+    display: block;
+    font-weight: 300;
+    margin: 0;
+    padding: 12px;
+    text-align: center;
+    width: 100%;
+    appearance: none;
+
+}
+
+.btn-primary-ml{
+    color:@white;
+    background-color:@blue-bg;
+    border: 1px solid ;
+    &:hover{
+        color:@white;
+        border: 1px solid @white;    
+    }
+}*/
+.btn {
+    border-radius: 1.5em;
+    padding: 5px 25px;
+}
+span.btn {border-radius: unset;}
+table .btn {
+    padding: 3px 16px;
+}
+
+button.close {
+    padding: 0;
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+    -webkit-appearance: none;
+    span{
+        font-size: 1.2em;
+        line-height: 1em;
+    }
+}
+
+.btn-round,
+.btn-group > .btn:not(:first-child):not(:last-child):not(.dropdown-toggle),
+.btn-group > .btn:first-child:not(:last-child):not(.dropdown-toggle),
+.btn-group > .btn:last-child:not(:first-child)
+{
+	border-radius: 1.5em;
+	margin: 0px 0.5em;
+	width: 100%;
+	max-width: 10em;
+	font-weight: bold;
+	border: 2px solid @purple-primary;
+	&:hover{
+		border:2px solid @purple-primary;
+	}
+}
+
+// .btn-success.no-selected{
+    // 	color: @purple-primary;
+    // 	background-color: transparent;
+    // }
+    .btn-success.selected {
+        color: @white;
+        background-color: @purple-primary;
+        margin-right: 0px;
+    }
+    .cancel-link {
+        color: @purple-primary;
+        margin: 1em;
+        vertical-align: middle;
+        font-weight: bold;
+        text-decoration: none;
+        cursor: pointer;
+    }
+    
+    .btn:focus,
+    .btn:active,
+    .btn.active,
+    .btn:active:focus {
+        outline: none;
+    }
+    
+    
+    .btn.btn-small{
+        font-size: 12px;
+        background-color:  transparent;
+        border:1px solid @purple-primary;
+        color: @purple-primary;
+        padding: 2px 5px;
+        margin: 0 auto;
+        &:hover{
+            font-weight: normal;
+        }
+    }
+    
+    a.descartar {
+        font-size:12px;
+        margin: 0 auto;
+        line-height: 22px;
+        &:hover {color: @purple-primary;}
+    }
+    
+    .btn:active, .btn.active  {
+        -webkit-box-shadow: unset;
+        box-shadow: unset;
+    }
+    a.btn:hover, button.btn:hover {
+        span[class^="icon"]{
+            font-weight: bold;
+        }
+        b[class^="icon"]{
+            font-weight: bold;
+        }
+        
+    }
+    .tabla-referencia-content {
+        span[class^="icon"]{
+            font-size:21px;  
+            font-weight: normal;
+        }
+        a.btn{
+            padding:6px;
+            &:hover{
+                span[class^="icon"]{
+                    font-weight: bold;
+                }        
+            }
+        }
+        .btn.disabled, .btn[disabled] {
+            opacity: 1;
+        }
+        .btn.disabled, .btn[disabled], fieldset[disabled] .btn {
+            span[class^="icon"]:before {
+                color: @gray-main;
+            }
+        }
+    }

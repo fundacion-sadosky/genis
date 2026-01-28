@@ -1,0 +1,59 @@
+<div class="row padding-0 breadcrumb_column">
+	<div class="col-md-12 padding-0">
+		<div class="row padding-0">
+			<div class="breadcrumb_content">
+				<ol class="breadcrumb">
+                    <li>
+                        <div class="btn volver" ng-click="back()" >
+                            <a href="{{url}}">
+                            <span  class="icon-atras" title="Volver"></span>
+                            </a>
+                        </div>
+                    </li>
+                    <li class="active">Nombre del pedigrí {{pedigreeName}} {{caseType}}</li>
+                </ol>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="container-top">
+    <section class="extended-section">
+        <div class="content"> <!-- content-wrap-small -->
+            
+            
+            <div class="col-md-8 vertical-align">
+                <div class="col-md-3">
+                    <label for="pedigreeName" >Nombre del Pedigrí<span class="field-obligated">*</span></label>
+                </div>
+                <div class="col-md-5">
+                    <input id="pedigreeName" type="text" data-ng-required="true" required data-ng-model="pedigreeName" class="form-control form-select"/>
+                </div>
+                <div class="col-md-4 col-md-offset-1">
+                    <h5 >Estado: </h5>{{ "pedigree.status." + pedigreeStatus | i18next }}
+                </div>
+            </div>
+
+            <div class="desk-align-right inside-right col-md-12" >
+                <button type="button" class="btn btn-secondary-action" ng-disabled="!isActivo()"
+                        ng-click="verDetalleActivar()">Ver parámetros de activación</button>
+
+                <button type="button" class="btn btn-secondary-action"
+                        ng-disabled="noSelec || isCourtCaseClosed()" ng-click="guardar()">Copiar</button>
+            </div>
+
+            <tabset class="tabset-section">
+                <tab heading="Pedigrí" active="tabs[0].active">
+                    <div ng-include="'/assets/javascripts/pedigree/views/original.html'" ng-controller="originalController" class="animated fadeIn"/>
+                </tab>
+               <!-- <tab heading="Comparación" active="tabs[1].active">
+                    <div ng-include="'/assets/javascripts/pedigree/views/pedigree-genotypifcation.html'" ng-controller="pedigreeGenotypificationController" class="animated fadeIn"/>
+                </tab>-->
+                <tab ng-repeat="scenario in scenarios" heading="{{scenario.name}}" active="tabs[$index+2].active" select="scenario.selected=true">
+                    <div ng-include="'/assets/javascripts/pedigree/views/pedigree-scenario.html'" ng-controller="pedigreeScenarioController" class="animated fadeIn"/>
+                </tab>
+            </tabset>
+        </div>
+    </section>
+</div>
+

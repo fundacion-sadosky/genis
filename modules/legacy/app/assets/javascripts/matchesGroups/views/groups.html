@@ -1,0 +1,189 @@
+
+<div class="row padding-0 breadcrumb_column">
+	<div class="col-md-12 padding-0">
+		<div class="row padding-0">
+			<div class="breadcrumb_content">
+				<ol class="breadcrumb">
+						<li>
+							<div class="btn volver" ng-click="back()">
+								<span  class="icon-atras" title="Volver"></span>                            
+							</div>
+						</li>
+					<li class="active">Detalle de coincidencias <!-- {{profile.profileData | showcode}} --></li> 
+						
+					</ol>
+				</div>
+			</div>
+		</div>
+	</div>
+
+<div class="container">
+
+
+	<div class="row coincidencia-estado"  name="{{'match_' + m.globalCode}}">
+			<div class="coincidencia-estado--card estado-pendiente" >
+
+					<div class="row">
+							
+						<div class="col-md-3">
+							<a id="{{'focus_' + m.globalCode}}" name="{{'focus_' + m.globalCode}}" />
+							<h5>{{profile.internalSampleCode }}</h5>
+							<h6 class="dato">Laboratorio: <span class="dato laboratorio big-size">{{profile.laboratoryCode}}</span></h6>
+							<h6 class="dato ">Usuario responsable: <span class="dato laboratorio big-size">{{profile.assignee}}</span></h6>
+						   
+						</div>
+						<div class="col-md-9 padding-top-5 padding-bottom-5">
+							<div class="row padding-0 coincidencia-estado-detalle ">
+								
+								<div class="col-md-4 padding-top-7 padding-bottom-7">
+									
+									<h6 class="dato categoria">Categoría: <span class="dato ultimacoincidencia text-left">{{categoria}}</span></h6>
+									
+									<h6 class="dato ">Ultima coincidencia: <span class="dato">{{profile.lastMatchDate | date:'yyyy-MM-dd'}}</span></h6> <!-- FALTA VARIABLE -->
+								</div>
+								<div class="col-md-8  padding-0 coincidencia-estado-detalle ">
+										<div class="col-md-2 padding-top-7 padding-bottom-7">
+											<h6>Aportantes</h6>
+											<p class="dato numerico">{{profile.contributors}}</p>
+										</div>
+										<div class="col-md-2 padding-right-0 padding-left-0 padding-top-7 padding-bottom-7">
+												<h6>Pendientes</h6>
+												<p class="dato laboratorio big-size" ng-if="profile.pending !== 0">{{profile.pending}}</p> <!-- FALTA VARIABLE -->
+												<p class="dato laboratorio big-size" ng-if="profile.pending == 0">&mdash;</p>
+											</div>
+										<div class="col-md-2 padding-right-0 padding-left-0 padding-top-7 padding-bottom-7">
+												<h6>Confirmados</h6>
+												<p class="dato laboratorio big-size" ng-if="profile.hit !== 0 ">{{profile.hit}}</p><!-- FALTA VARIABLE -->
+												<p class="dato laboratorio big-size" ng-if="profile.hit == 0">&mdash;</p>
+											</div>
+										<div class="col-md-2 padding-right-0 padding-left-0 padding-top-7 padding-bottom-7">
+											<h6>Descartados</h6>
+											<p class="dato laboratorio big-size" ng-if="profile.discarded !== 0">{{profile.discarded}}</p><!-- FALTA VARIABLE -->
+											<p class="dato laboratorio big-size" ng-if="profile.discarded == 0">&mdash;</p>
+										</div>
+										<div class="col-md-2 padding-top-7 padding-bottom-7">
+											<h6>Conflictos</h6>
+											<p class="dato laboratorio big-size" ng-if="profile.conflict !== 0">{{profile.conflict}}</p><!-- FALTA VARIABLE -->
+											<p class="dato laboratorio big-size" ng-if="profile.conflict == 0">&mdash;</p>
+										</div>
+										<div class="col-md-2 padding-0 expander-btn">
+											<span class="icon-refresh icon-arrow-grupo" ng-class="{'spinner': isProcessing}" data-ng-show="isProcessing"></span>
+										</div>
+								</div>
+							</div>
+						</div>
+					</div>  
+					
+				</div>
+
+	</div>
+	<div class="row groups-cards">
+		
+
+
+
+			<div class="options-header">
+					<form class="navbar-form" role="search" name="searchMatchForm" novalidate data-ng-submit="searchMatches()">
+						
+					<div class="row padding-0">
+							<!-- estado -->
+							<div class="filtro_container">
+								<div class="row">
+									<!-- estado -->
+									
+								
+								</div>
+								<div class="row">
+										<div class="col-md-12">
+												<div class="row padding-0 tabs-estados" >
+													<div class="col-md-5 padding-left-0">
+														<div class="row">
+															<div class="col-md-6  text-center tabs-estados-tab tab-estados-tab__todos "> <a class="" ng-click="filtros(status[0])" data-ng-model="filtro" uib-btn-radio="'Todos'" id="all" value="todos">Todos</a></div>
+															<div class="col-md-6  text-center tabs-estados-tab tab-estados-tab__pendientes"><a class="" ng-click="filtros(status[1])" data-ng-model="filtro" uib-btn-radio="'Pendientes'" id="pending" value="pending">Pendientes</a></div>
+														</div>
+													</div>
+													
+													<div class="col-md-2 padding-0">
+														<div class="row padding-left-0  padding-right-0">
+															<div class="col-md-12  text-center tabs-estados-tab tab-estados-tab__confirmados"><a class="" ng-click="filtros(status[2])"  data-ng-model="filtro" uib-btn-radio="'Confirmados'" id="hit" value="hit">Confirmados</a></div>
+														</div>
+													</div>
+
+													<div class="col-md-5  padding-right-0">
+														<div class="row">
+															<div class="col-md-6  text-center tabs-estados-tab tab-estados-tab__descartados"><a  ng-click="filtros(status[3])" data-ng-model="filtro" uib-btn-radio="'Descartados'" id="discarded" value="discarded"> Descartados</a></div>
+															<div class="col-md-6  text-center tabs-estados-tab tab-estados-tab__conflictos"><a   ng-click="filtros(status[4])" data-ng-model="filtro" uib-btn-radio="'Conflictos'" id="conflict" value="conflict"> Conflictos </a></div>
+														</div>
+													</div>
+												</div>
+											</div>
+								</div>
+							</div>
+						</div>
+						
+						
+					</form>
+				</div>
+
+			<!-- <div class="panel panel-default">
+				<div class="panel-heading">
+					<div class="panel-title" style="font-size: 17px;">
+						<h4 style="margin-top:0px;margin-bottom:0px">{{profile.profileData | showcode}}</h4>
+					</div>
+				</div>
+				<div class="panel-body">
+					<div class="col-md-3">
+						<span><h6>Usuario responsable:</h6> {{profile.profileData.assignee}}</span>
+					</div>
+					<div class="col-md-2">
+						<span><h6>Laboratorio:</h6> {{profile.profileData.laboratory}}</span>
+					</div>
+					<div class="col-md-4">
+						<span><h6>Categoría:</h6> {{categoryName}}</span>
+					</div>
+					<div class="col-md-3">
+						<span><h6>Cantidad de aportantes inferidos:</h6> {{profile.contributors}}</span>
+					</div>
+				</div>
+			</div> -->
+
+			
+			
+			<div ng-if="profile.isReference || (!profile.isReference && profile.contributors == 1)">
+				<div ng-init="getMatches(normal)" ng-include="'/assets/javascripts/matchesGroups/views/normal.html'"></div>
+
+				<div ng-init="getMatches(restricted)" ng-include="'/assets/javascripts/matchesGroups/views/restricted.html'"></div>
+			</div>
+
+			<div ng-if="!profile.isReference && profile.contributors == 2">
+				<div ng-init="getMatches(normal)" ng-include="'/assets/javascripts/matchesGroups/views/normal.html'"></div>
+
+				<div ng-init="getMatches(mixed)" ng-include="'/assets/javascripts/matchesGroups/views/mixed.html'"></div>
+
+				<div ng-init="getMatches(other)" ng-include="'/assets/javascripts/matchesGroups/views/other.html'"></div>
+			</div>
+
+			<div ng-if="!profile.isReference && profile.contributors > 2">
+				<div ng-init="getMatches(normal)" ng-include="'/assets/javascripts/matchesGroups/views/normal.html'"></div>
+
+				<div ng-init="getMatches(other)" ng-include="'/assets/javascripts/matchesGroups/views/other.html'"></div>
+			</div>
+		
+			<div ng-if="profile.tipo">
+				<div ng-init="getMatches(mt)" ng-include="'/assets/javascripts/matchesGroups/views/mitocondrial.html'"></div>
+		
+			</div>
+			
+					
+
+
+		
+
+
+	</div>
+</div>
+
+
+
+
+

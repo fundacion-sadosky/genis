@@ -1,0 +1,20 @@
+<div class="modal-body">
+<button id="closeEpg" style="float:right;" class="btn btn-success" data-ng-click="closeModalEpg()"><b>X</b></button>
+    <div id="electropherogramsdiv">
+        <h5>Electroferograma {{profileId}}</h5>
+        <carousel interval="3000">
+            <slide ng-repeat="slide in epg">
+                <img ng-src="{{slide}}" style="margin:auto; height: 200px;" modal-img>
+            </slide>
+        </carousel>
+        <p>&nbsp;</p>
+
+        <h5>Electroferograma {{matchedProfileId}}</h5>
+        <carousel interval="3000">
+            <slide ng-repeat="slide in matchedepg">
+                <img ng-src="{{slide}}" style="margin:auto; height: 200px;" modal-img>
+            </slide>
+        </carousel>
+        <p>&nbsp;</p>
+    </div>
+</div>

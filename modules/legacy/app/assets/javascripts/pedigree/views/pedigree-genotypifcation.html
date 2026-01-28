@@ -1,0 +1,108 @@
+
+<div class="row padding-0 breadcrumb_column">
+    <div class="col-md-12 padding-0">
+        <div class="row padding-0">
+            <div class="breadcrumb_content">
+                <ol class="breadcrumb">
+                        <li>
+                            <div class="btn volver" onclick="history.back()">
+                                <span  class="icon-atras" title="Volver"></span>
+                            </div>
+                        </li>
+                        <li class="active">Agrupación Manual</li>
+                        
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+<div class="content">
+
+<div class="options-header scenarios-section" style="padding-top: 0px; margin-top: 37px;">
+
+    <div class="panel-body">
+
+            <div class="col-md-3 vertical-align">
+                <h6 class="col-md-3 control-label">Perfiles:</h6>
+                <div class="col-md-12 input-group" style="padding-bottom: 10px;">
+                    <input type="text" class="form-control form-select" aria-describedby="basic-addon2"
+                           id="search" name="search" ng-model="search"
+                           placeholder="Código GENis o Laboratorio"
+                           ng-keyup="$event.keyCode == 13 ? searchProfile() : null"
+                           help-tip="scenario.comparison.profiles" help-tip-placement="bottom">
+
+                    <span class="input-group-addon" id="basic-addon2" ng-click="searchProfile()">
+  		<span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+  	  </span>
+                </div>
+            </div>
+
+            <div class="col-md-8 pull-right">
+                <div class="chip m-r-10" ng-repeat="p in selectedOptions">
+                    {{p.internalCode}}
+                    <span class="closebtn" ng-click="hide(p)"
+                          help-tip="scenario.comparison.chips" help-tip-placement="bottom">&times;</span>
+                </div>
+            </div>
+        <div class="col-md-12">
+            <span class="pull-left"> Se debe escribir el código exacto para poder agregar el perfil</span>
+        </div>
+    </div>
+</div>
+
+<div class="pull-left col-md-6">
+    <h6 class="col-md-5 control-label">Seleccionar perfil agrupador:</h6>
+    <div class="col-md-6 padding-0">
+        <select id="agrupador" ng-model="agrupador" class="form-control form-select"
+                data-ng-options="item.internalCode for item in selectedOptions"
+                data-ng-change="marcar()" data-ng-disabled="agrupadorExistente">
+        </select>
+    </div>
+</div>
+
+<div class="row text-right scenario-separator">
+    <div class="col-md-pull-12 pull-right" style="margin-top: 5px;">
+        <button ng-click="colapsar()" class="btn btn-primary-action" ng-disabled="(selectedOptions.length < 2 || agrupador == null )" >Agrupar</button>
+    <a role="button" class="btn btn-default m-r-5 list-group-menu-item" help-tip="pedigree.comparison.differences" help-tip-placement="left"
+       ng-class="{'list-group-menu-item-selected': showDifferences}" ng-click="displayDifferences()">Mostrar diferencias</a>
+    <a role="button" class="btn btn-default m-r-5 list-group-menu-item" help-tip="pedigree.comparison.matches" help-tip-placement="top"
+       ng-class="{'list-group-menu-item-selected': showMatches}" ng-click="displayMatches()">Mostrar coincidencias</a>
+</div>
+
+<div class="scenarios-section" ng-if="comparison" style="padding-bottom: 25px;">
+    <table>
+        <thead>
+        <tr>
+            <td id="td-comp-gen-1" class="column col-md-1"></td>
+            <td ng:repeat="p in selectedOptions" id="td-comp-gen-2" class="text-center column col-md-2" ng-class="{'agrupadorPadre': (p.globalCode == pintar) }">
+                <div class="comparison-profileID">
+                    <span style="display:block">{{p.internalCode| prittyLimitTo:20:false}}</span>
+                    <span>{{'(' + p.globalCode + ')'| prittyLimitTo:20:false}}</span>
+                </div>
+            </td>
+            <td></td>
+        </tr>
+        </thead>
+        <tbody>
+            <tr ng:repeat="item in comparison" >
+                <td class="text-left">{{item.locus}}</td>
+                <td class="text-center" ng:repeat="p in selectedOptions" ng-class="{'agrupadorPadre': (p.globalCode == pintar) }">
+                    <span ng:repeat="allele in item.g[p.globalCode] track by $index" class="text-center comparision-allele"
+                          ng-class="{'allele-matched-lrmix': showMatches && hasMatches(item.g, allele),
+                                     'allele-mismatch': showDifferences && !hasMatches(item.g, allele) }">
+                            {{allele}}<span ng-if="shouldShowMinAlelle(allele,allelesRanges[item.locus])">/<{{allelesRanges[item.locus].min}}</span><span ng-if="shouldShowMaxAlelle(allele,allelesRanges[item.locus])">/>{{allelesRanges[item.locus].max}}</span>
+                    </span>
+                </td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+
+</div>
+<footer>
+<div class="desk-align-right inside-right">
+
+</div>
+</footer>
+</div>
+</div>

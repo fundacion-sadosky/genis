@@ -1,0 +1,87 @@
+<div class="row padding-0 breadcrumb_column">
+    <div class="col-md-12 padding-0">
+        <div class="row padding-0">
+            <div class="breadcrumb_content">
+                <ol class="breadcrumb">
+                    <li>
+                        <div class="btn volver" onclick="history.back()">
+                            <span class="icon-atras" title="Volver"></span>
+                        </div>
+                    </li>
+                    <li class="active">Exportador de Novedades para Lims</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container-top">
+    <div class="bulkupload-search">
+        <div class="row">
+            <div class="content">
+                <div class="new-load vertical-align profile-header-clerk">
+                    <div class="form-group col-md-6 padding-0">
+                        <form class="navbar-form  vertical-align padding-0" role="export" name="exportPdForm"
+                              novalidate>
+                            <div class="col-md-6 padding-left-0 padding-right-0 vertical-align">
+                                <label class="col-md-8 padding-left-0" >Tipo archivo:</label>
+                                <div class="col-md-7 padding-left-0">
+                                    <select id="tipos" data-ng-model="search.tipo"
+                                            class="form-control form-select">
+                                        <option data-ng-repeat="tipo in tipos" value="{{tipo.label}}">{{tipo.name}}
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="profile-header-clerk col-md-6 new-load form-group vertical-align">
+                        <div class="col-md-1 padding-left-0">
+                            <label class="m-r-10" for="hourFrom">Fecha</label>
+                        </div>
+                        <div class="col-md-10 padding-left-0 padding-right-30">
+                            <div class="row padding-0  m-t-0 m-b-0 ">
+                                <div class="col-md-6">
+                                    <input type="text" name="hourFrom" id="hourFrom"
+                                           placeholder="Desde" data-datepicker-popup="dd/MM/yyyy"
+                                           data-ng-model="search.hourFrom"
+                                           data-is-open="datepickers.hourFrom" class="form-control form-select"
+                                           data-datepicker-options="dateOptions"
+                                           ng-blur="checkMax('hourFrom')"
+                                           max-date="maxDate"
+                                           data-close-text="Close" data-ng-click="toggleDatePicker($event,'hourFrom')"/>
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="text" name="hourUntil" id="hourUntil"
+                                           placeholder="Hasta" data-datepicker-popup="dd/MM/yyyy"
+                                           data-ng-model="search.hourUntil"
+                                           data-is-open="datepickers.hourUntil" class="form-control form-select"
+                                           data-datepicker-options="dateOptions"
+                                           ng-blur="checkMaxMin('hourUntil','hourFrom')"
+                                           max-date="maxDate"
+                                           min-date="minDateCoin"
+                                           data-close-text="Close"
+                                           data-ng-click="toggleDatePicker($event,'hourUntil')"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="content">
+                <div class="m-t-10 padding-0">
+                    <div class="row m-b-10">
+                        <div show-permissions="PROFILE_EXPORTER" class="pull-right padding-right-0">
+                            <button type="button" class="btn btn-primary-action pull-right"
+                                    data-ng-click="exportProfiles()"><span>Exportar</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+

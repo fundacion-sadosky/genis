@@ -1,0 +1,134 @@
+{ "_id" : { "$oid" : "54eb50c42cdc8a94c6ee7949" }, "matchingDate" : { "$date" : "2015-02-23T13:09:40.032-0300" }, "leftProfile" : { "globalCode" : "AR-B-IACA-506", "assignee" : "tst-admintist", "status" : "pending" }, "rightProfile" : { "globalCode" : "AR-B-IACA-503", "assignee" : "tst-clerknetist", "status" : "pending" }, "result" : { "stringency" : "LowStringency", "matchingAlleles" : { "TH01" : "ModerateStringency", "CSF1PO" : "LowStringency", "PentaD" : "LowStringency", "D18S51" : "LowStringency", "D8S1179" : "LowStringency", "D3S1358" : "ModerateStringency", "D7S820" : "ModerateStringency", "FGA" : "LowStringency", "D16S539" : "ModerateStringency", "D13S317" : "LowStringency", "vWA" : "ModerateStringency", "D5S818" : "LowStringency", "TPOX" : "LowStringency", "D21S11" : "LowStringency", "AMEL" : "ModerateStringency", "PentaE" : "LowStringency" }, "totalAlleles" : 16, "categoryId" : "DESAPARECIDO", "leftPonderation" : 0.625, "rightPonderation" : 0.5625 } }
+{ "_id" : { "$oid" : "54eb50c42cdc8a94c6ee794a" }, "matchingDate" : { "$date" : "2015-02-23T13:09:40.762-0300" }, "leftProfile" : { "globalCode" : "AR-B-IMBICE-1002", "assignee" : "tst-admintist", "status" : "pending" }, "rightProfile" : { "globalCode" : "AR-B-IMBICE-1001", "assignee" : "tst-genetist", "status" : "pending" }, "result" : { "stringency" : "HighStringency", "matchingAlleles" : { "CSF1PO" : "HighStringency", "D7S820" : "HighStringency", "FGA" : "HighStringency", "D5S818" : "HighStringency", "D21S11" : "HighStringency" }, "totalAlleles" : 5, "categoryId" : "UNICO", "leftPonderation" : 1, "rightPonderation" : 1 } }
+{ "_id" : { "$oid" : "54eb50cc2cdc8a94c6ee794b" }, "matchingDate" : { "$date" : "2015-02-23T13:09:48.482-0300" }, "leftProfile" : { "globalCode" : "AR-C-HIBA-500", "assignee" : "tst-admintist", "status" : "pending" }, "rightProfile" : { "globalCode" : "AR-B-IMBICE-500", "assignee" : "tst-genetist", "status" : "pending" }, "result" : { "stringency" : "ModerateStringency", "matchingAlleles" : { "TH01" : "ModerateStringency", "CSF1PO" : "ModerateStringency", "D18S51" : "ModerateStringency", "D8S1179" : "ModerateStringency", "D3S1358" : "ModerateStringency", "D7S820" : "ModerateStringency", "FGA" : "ModerateStringency", "D16S539" : "HighStringency", "D13S317" : "ModerateStringency", "vWA" : "ModerateStringency", "D5S818" : "ModerateStringency", "TPOX" : "ModerateStringency", "D21S11" : "ModerateStringency", "AMEL" : "HighStringency" }, "totalAlleles" : 14, "categoryId" : "SOSPECHOSO", "leftPonderation" : 0.7023809523809523, "rightPonderation" : 1 } }
+{ "_id" : { "$oid" : "54eb50cc2cdc8a94c6ee794c" }, "matchingDate" : { "$date" : "2015-02-23T13:09:48.486-0300" }, "leftProfile" : { "globalCode" : "AR-C-HIBA-500", "assignee" : "tst-admintist", "status" : "pending" }, "rightProfile" : { "globalCode" : "AR-B-IMBICE-501", "assignee" : "tst-clerknetist", "status" : "pending" }, "result" : { "stringency" : "ModerateStringency", "matchingAlleles" : { "TH01" : "ModerateStringency", "CSF1PO" : "ModerateStringency", "D18S51" : "ModerateStringency", "D8S1179" : "ModerateStringency", "D3S1358" : "ModerateStringency", "D7S820" : "HighStringency", "FGA" : "ModerateStringency", "D16S539" : "HighStringency", "D13S317" : "ModerateStringency", "vWA" : "ModerateStringency", "D5S818" : "ModerateStringency", "TPOX" : "HighStringency", "D21S11" : "ModerateStringency", "AMEL" : "HighStringency" }, "totalAlleles" : 14, "categoryId" : "VICTIMA", "leftPonderation" : 0.6785714285714286, "rightPonderation" : 1 } }
+{ "_id" : { "$oid" : "54eb50cc2cdc8a94c6ee794d" }, "matchingDate" : { "$date" : "2015-02-23T13:09:48.715-0300" }, "leftProfile" : { "globalCode" : "AR-C-HIBA-502", "assignee" : "tst-admintist", "status" : "pending" }, "rightProfile" : { "globalCode" : "AR-B-IMBICE-502", "assignee" : "tst-genetist", "status" : "pending" }, "result" : { "stringency" : "ModerateStringency", "matchingAlleles" : { "TH01" : "ModerateStringency", "CSF1PO" : "ModerateStringency", "D18S51" : "ModerateStringency", "D8S1179" : "HighStringency", "D3S1358" : "HighStringency", "D7S820" : "ModerateStringency", "FGA" : "ModerateStringency", "D16S539" : "ModerateStringency", "D13S317" : "HighStringency", "vWA" : "HighStringency", "D5S818" : "ModerateStringency", "TPOX" : "ModerateStringency", "D21S11" : "ModerateStringency" }, "totalAlleles" : 13, "categoryId" : "SOSPECHOSO", "leftPonderation" : 0.7692307692307693, "rightPonderation" : 1 } }
+{ "_id" : { "$oid" : "54eb50cd2cdc8a94c6ee794e" }, "matchingDate" : { "$date" : "2015-02-23T13:09:49.028-0300" }, "leftProfile" : { "globalCode" : "AR-C-HIBA-504", "assignee" : "tst-admintist", "status" : "pending" }, "rightProfile" : { "globalCode" : "AR-B-IMBICE-504", "assignee" : "tst-genetist", "status" : "pending" }, "result" : { "stringency" : "ModerateStringency", "matchingAlleles" : { "TH01" : "ModerateStringency", "CSF1PO" : "ModerateStringency", "D18S51" : "ModerateStringency", "D8S1179" : "ModerateStringency", "D3S1358" : "ModerateStringency", "D7S820" : "HighStringency", "FGA" : "ModerateStringency", "D16S539" : "ModerateStringency", "D13S317" : "ModerateStringency", "vWA" : "ModerateStringency", "D5S818" : "ModerateStringency", "TPOX" : "ModerateStringency", "D21S11" : "ModerateStringency" }, "totalAlleles" : 13, "categoryId" : "SOSPECHOSO", "leftPonderation" : 0.7051282051282051, "rightPonderation" : 1 } }
+{ "_id" : { "$oid" : "54eb50cd2cdc8a94c6ee794f" }, "matchingDate" : { "$date" : "2015-02-23T13:09:49.488-0300" }, "leftProfile" : { "globalCode" : "AR-C-HIBA-506", "assignee" : "tst-admintist", "status" : "pending" }, "rightProfile" : { "globalCode" : "AR-B-IMBICE-506", "assignee" : "tst-clerknetist", "status" : "pending" }, "result" : { "stringency" : "ModerateStringency", "matchingAlleles" : { "TH01" : "ModerateStringency", "CSF1PO" : "ModerateStringency", "D18S51" : "ModerateStringency", "D8S1179" : "ModerateStringency", "D3S1358" : "ModerateStringency", "D7S820" : "HighStringency", "FGA" : "ModerateStringency", "D16S539" : "ModerateStringency", "D13S317" : "ModerateStringency", "vWA" : "ModerateStringency", "D5S818" : "HighStringency", "TPOX" : "ModerateStringency", "D21S11" : "ModerateStringency" }, "totalAlleles" : 13, "categoryId" : "SOSPECHOSO", "leftPonderation" : 0.7435897435897435, "rightPonderation" : 1 } }
+{ "_id" : { "$oid" : "54eb50cd2cdc8a94c6ee7950" }, "matchingDate" : { "$date" : "2015-02-23T13:09:49.715-0300" }, "leftProfile" : { "globalCode" : "AR-C-HIBA-508", "assignee" : "tst-admintist", "status" : "pending" }, "rightProfile" : { "globalCode" : "AR-B-IMBICE-508", "assignee" : "tst-genetist", "status" : "pending" }, "result" : { "stringency" : "ModerateStringency", "matchingAlleles" : { "TH01" : "HighStringency", "CSF1PO" : "ModerateStringency", "D18S51" : "ModerateStringency", "D8S1179" : "ModerateStringency", "D3S1358" : "ModerateStringency", "D7S820" : "ModerateStringency", "FGA" : "ModerateStringency", "D16S539" : "ModerateStringency", "D13S317" : "ModerateStringency", "vWA" : "ModerateStringency", "D5S818" : "ModerateStringency", "TPOX" : "HighStringency", "D21S11" : "ModerateStringency" }, "totalAlleles" : 13, "categoryId" : "SOSPECHOSO", "leftPonderation" : 0.782051282051282, "rightPonderation" : 1 } }
+{ "_id" : { "$oid" : "54eb50cd2cdc8a94c6ee7951" }, "matchingDate" : { "$date" : "2015-02-23T13:09:49.991-0300" }, "leftProfile" : { "globalCode" : "AR-C-HIBA-603", "assignee" : "tst-admintist", "status" : "pending" }, "rightProfile" : { "globalCode" : "AR-B-IMBICE-603", "assignee" : "tst-genetist", "status" : "discarded" }, "result" : { "stringency" : "ModerateStringency", "matchingAlleles" : { "TH01" : "ModerateStringency", "CSF1PO" : "HighStringency", "D18S51" : "ModerateStringency", "D8S1179" : "HighStringency", "D3S1358" : "ModerateStringency", "D7S820" : "ModerateStringency", "FGA" : "ModerateStringency", "D16S539" : "ModerateStringency", "D13S317" : "ModerateStringency", "vWA" : "HighStringency", "D5S818" : "ModerateStringency", "TPOX" : "ModerateStringency", "D21S11" : "ModerateStringency" }, "totalAlleles" : 13, "categoryId" : "SOSPECHOSO", "leftPonderation" : 0.7435897435897437, "rightPonderation" : 1 } }
+{ "_id" : { "$oid" : "54eb50ce2cdc8a94c6ee7952" }, "matchingDate" : { "$date" : "2015-02-23T13:09:50.241-0300" }, "leftProfile" : { "globalCode" : "AR-C-HIBA-637", "assignee" : "tst-admintist", "status" : "pending" }, "rightProfile" : { "globalCode" : "AR-B-IMBICE-637", "assignee" : "tst-genetist", "status" : "pending" }, "result" : { "stringency" : "ModerateStringency", "matchingAlleles" : { "TH01" : "ModerateStringency", "CSF1PO" : "HighStringency", "D18S51" : "ModerateStringency", "D8S1179" : "HighStringency", "D3S1358" : "ModerateStringency", "D7S820" : "ModerateStringency", "FGA" : "ModerateStringency", "D16S539" : "ModerateStringency", "D13S317" : "ModerateStringency", "vWA" : "ModerateStringency", "D5S818" : "ModerateStringency", "TPOX" : "ModerateStringency", "D21S11" : "ModerateStringency" }, "totalAlleles" : 13, "categoryId" : "SOSPECHOSO", "leftPonderation" : 0.6666666666666666, "rightPonderation" : 1 } }
+{ "_id" : { "$oid" : "54eb50ce2cdc8a94c6ee7953" }, "matchingDate" : { "$date" : "2015-02-23T13:09:50.243-0300" }, "leftProfile" : { "globalCode" : "AR-C-HIBA-637", "assignee" : "tst-admintist", "status" : "pending" }, "rightProfile" : { "globalCode" : "AR-B-IMBICE-638", "assignee" : "tst-genetist", "status" : "pending" }, "result" : { "stringency" : "ModerateStringency", "matchingAlleles" : { "TH01" : "ModerateStringency", "CSF1PO" : "ModerateStringency", "D18S51" : "ModerateStringency", "D8S1179" : "HighStringency", "D3S1358" : "ModerateStringency", "D7S820" : "ModerateStringency", "FGA" : "ModerateStringency", "D16S539" : "ModerateStringency", "D13S317" : "ModerateStringency", "vWA" : "ModerateStringency", "D5S818" : "ModerateStringency", "TPOX" : "ModerateStringency", "D21S11" : "ModerateStringency" }, "totalAlleles" : 13, "categoryId" : "SOSPECHOSO", "leftPonderation" : 0.6666666666666666, "rightPonderation" : 1 } }
+{ "_id" : { "$oid" : "54eb50ce2cdc8a94c6ee7954" }, "matchingDate" : { "$date" : "2015-02-23T13:09:50.479-0300" }, "leftProfile" : { "globalCode" : "AR-C-HIBA-639", "assignee" : "tst-admintist", "status" : "pending" }, "rightProfile" : { "globalCode" : "AR-B-IMBICE-639", "assignee" : "tst-genetist", "status" : "pending" }, "result" : { "stringency" : "ModerateStringency", "matchingAlleles" : { "TH01" : "ModerateStringency", "CSF1PO" : "HighStringency", "D18S51" : "ModerateStringency", "D8S1179" : "ModerateStringency", "D3S1358" : "ModerateStringency", "D7S820" : "ModerateStringency", "FGA" : "HighStringency", "D16S539" : "ModerateStringency", "D13S317" : "HighStringency", "vWA" : "ModerateStringency", "D5S818" : "ModerateStringency", "TPOX" : "ModerateStringency", "D21S11" : "ModerateStringency" }, "totalAlleles" : 13, "categoryId" : "SOSPECHOSO", "leftPonderation" : 0.7179487179487178, "rightPonderation" : 1 } }
+{ "_id" : { "$oid" : "54eb50ce2cdc8a94c6ee7955" }, "matchingDate" : { "$date" : "2015-02-23T13:09:50.742-0300" }, "leftProfile" : { "globalCode" : "AR-C-HIBA-641", "assignee" : "tst-admintist", "status" : "pending" }, "rightProfile" : { "globalCode" : "AR-B-IMBICE-641", "assignee" : "tst-clerknetist", "status" : "pending" }, "result" : { "stringency" : "ModerateStringency", "matchingAlleles" : { "TH01" : "ModerateStringency", "CSF1PO" : "ModerateStringency", "D18S51" : "ModerateStringency", "D8S1179" : "ModerateStringency", "D3S1358" : "ModerateStringency", "D7S820" : "ModerateStringency", "FGA" : "ModerateStringency", "D16S539" : "ModerateStringency", "D13S317" : "ModerateStringency", "vWA" : "HighStringency", "D5S818" : "ModerateStringency", "TPOX" : "ModerateStringency", "D21S11" : "HighStringency" }, "totalAlleles" : 13, "categoryId" : "SOSPECHOSO", "leftPonderation" : 0.717948717948718, "rightPonderation" : 1 } }
+{ "_id" : { "$oid" : "54eb50e92cdc8a94c6ee7957" }, "matchingDate" : { "$date" : "2015-02-23T13:10:17.110-0300" }, "leftProfile" : { "globalCode" : "AR-C-SHDG-2", "assignee" : "tst-admintist", "status" : "pending" }, "rightProfile" : { "globalCode" : "AR-B-IMBICE-1002", "assignee" : "tst-admintist", "status" : "pending" }, "result" : { "stringency" : "HighStringency", "matchingAlleles" : { "CSF1PO" : "HighStringency", "D7S820" : "HighStringency", "FGA" : "HighStringency", "D5S818" : "HighStringency", "D21S11" : "HighStringency" }, "totalAlleles" : 5, "categoryId" : "UNICO", "leftPonderation" : 1, "rightPonderation" : 1 } }
+{ "_id" : { "$oid" : "54eb50e92cdc8a94c6ee7958" }, "matchingDate" : { "$date" : "2015-02-23T13:10:17.116-0300" }, "leftProfile" : { "globalCode" : "AR-C-SHDG-2", "assignee" : "tst-admintist", "status" : "pending" }, "rightProfile" : { "globalCode" : "AR-B-IMBICE-1001", "assignee" : "tst-genetist", "status" : "pending" }, "result" : { "stringency" : "HighStringency", "matchingAlleles" : { "TH01" : "HighStringency", "CSF1PO" : "HighStringency", "D18S51" : "HighStringency", "D8S1179" : "HighStringency", "D3S1358" : "HighStringency", "D7S820" : "HighStringency", "FGA" : "HighStringency", "D16S539" : "HighStringency", "D13S317" : "HighStringency", "vWA" : "HighStringency", "D5S818" : "HighStringency", "TPOX" : "HighStringency", "D21S11" : "HighStringency" }, "totalAlleles" : 13, "categoryId" : "UNICO", "leftPonderation" : 1, "rightPonderation" : 1 } }
+{ "_id" : { "$oid" : "54f4cca12cdc316b49991a18" }, "matchingDate" : { "$date" : "2015-03-02T17:48:33.197-0300" }, "leftProfile" : { "globalCode" : "AR-S-SECE-700", "assignee" : "tst-clerknetist", "status" : "pending" }, "rightProfile" : { "globalCode" : "AR-C-HIBA-500", "assignee" : "tst-admintist", "status" : "pending" }, "result" : { "stringency" : "ModerateStringency", "matchingAlleles" : { "TH01" : "ModerateStringency", "CSF1PO" : "ModerateStringency", "D18S51" : "ModerateStringency", "D8S1179" : "ModerateStringency", "D3S1358" : "ModerateStringency", "D7S820" : "ModerateStringency", "FGA" : "ModerateStringency", "D16S539" : "HighStringency", "D13S317" : "ModerateStringency", "vWA" : "ModerateStringency", "D5S818" : "ModerateStringency", "TPOX" : "ModerateStringency", "D21S11" : "ModerateStringency", "AMEL" : "HighStringency" }, "totalAlleles" : 14, "categoryId" : "MULTIPLE", "leftPonderation" : 0.8928571428571429, "rightPonderation" : 0.6071428571428571 } }
+{ "_id" : { "$oid" : "54f4cca22cdc316b49991a19" }, "matchingDate" : { "$date" : "2015-03-02T17:48:34.865-0300" }, "leftProfile" : { "globalCode" : "AR-S-SECE-700", "assignee" : "tst-clerknetist", "status" : "discarded" }, "rightProfile" : { "globalCode" : "AR-B-IMBICE-500", "assignee" : "tst-genetist", "status" : "pending" }, "result" : { "stringency" : "HighStringency", "matchingAlleles" : { "TH01" : "HighStringency", "CSF1PO" : "HighStringency", "D18S51" : "HighStringency", "D8S1179" : "HighStringency", "D3S1358" : "HighStringency", "D7S820" : "HighStringency", "FGA" : "HighStringency", "D16S539" : "HighStringency", "D13S317" : "HighStringency", "vWA" : "HighStringency", "D5S818" : "HighStringency", "TPOX" : "HighStringency", "D21S11" : "HighStringency", "AMEL" : "HighStringency" }, "totalAlleles" : 14, "categoryId" : "SOSPECHOSO", "leftPonderation" : 1, "rightPonderation" : 1 } }
+{
+    "_id" :  { "$oid" : "55cbbc372cdc73088eaba39f" },
+    "matchingDate" : { "$date" : "2015-08-12T21:35:51.231-0300"},
+    "leftProfile" : {
+        "globalCode" : "AR-C-SHDG-500",
+        "assignee" : "tst-admintist",
+        "status" : "pending"
+    },
+    "rightProfile" : {
+        "globalCode" : "AR-C-SHDG-504",
+        "assignee" : "tst-admintist",
+        "status" : "pending"
+    },
+    "result" : {
+        "stringency" : "ModerateStringency",
+        "matchingAlleles" : {
+            "TH01" : "ModerateStringency",
+            "CSF1PO" : "ModerateStringency",
+            "PentaD" : "ModerateStringency",
+            "D18S51" : "ModerateStringency",
+            "AMEL" : "ModerateStringency",
+            "D8S1179" : "ModerateStringency",
+            "D3S1358" : "ModerateStringency",
+            "D7S820" : "ModerateStringency",
+            "FGA" : "ModerateStringency",
+            "D16S539" : "ModerateStringency",
+            "D13S317" : "ModerateStringency",
+            "vWA" : "ModerateStringency",
+            "D5S818" : "ModerateStringency",
+            "TPOX" : "ModerateStringency",
+            "D21S11" : "ModerateStringency",
+            "PentaE" : "ModerateStringency"
+        },
+        "totalAlleles" : 16,
+        "categoryId" : "MULTIPLE",
+        "leftPonderation" : 0.546875,
+        "rightPonderation" : 0.609375
+    }
+}
+{
+    "_id" :  {"$oid" : "55cbbc372cdc73088eaba3a0"},
+    "matchingDate" : { "$date" : "2015-08-12T21:35:51.263-0300"},
+    "leftProfile" : {
+        "globalCode" : "AR-C-SHDG-500",
+        "assignee" : "tst-admintist",
+        "status" : "pending"
+    },
+    "rightProfile" : {
+        "globalCode" : "AR-C-SHDG-501",
+        "assignee" : "tst-admintist",
+        "status" : "pending"
+    },
+    "result" : {
+        "stringency" : "ModerateStringency",
+        "matchingAlleles" : {
+            "TH01" : "ModerateStringency",
+            "CSF1PO" : "ModerateStringency",
+            "PentaD" : "ModerateStringency",
+            "D18S51" : "ModerateStringency",
+            "AMEL" : "ModerateStringency",
+            "D8S1179" : "ModerateStringency",
+            "D3S1358" : "ModerateStringency",
+            "D7S820" : "ModerateStringency",
+            "FGA" : "ModerateStringency",
+            "D16S539" : "ModerateStringency",
+            "D13S317" : "ModerateStringency",
+            "vWA" : "ModerateStringency",
+            "D5S818" : "ModerateStringency",
+            "TPOX" : "ModerateStringency",
+            "D21S11" : "ModerateStringency",
+            "PentaE" : "ModerateStringency"
+        },
+        "totalAlleles" : 16,
+        "categoryId" : "MULTIPLE_VICTIMA",
+        "leftPonderation" : 0.546875,
+        "rightPonderation" : 0.5572916666666666
+    }
+}
+{
+    "_id" :  {"$oid" : "55cbbc982cdc8c818852dc5a"},
+    "matchingDate" : { "$date" : "2015-08-12T21:37:28.988-0300"},
+    "leftProfile" : {
+        "globalCode" : "AR-C-SHDG-504",
+        "assignee" : "tst-admintist",
+        "status" : "pending"
+    },
+    "rightProfile" : {
+        "globalCode" : "AR-C-SHDG-501",
+        "assignee" : "tst-admintist",
+        "status" : "pending"
+    },
+    "result" : {
+        "stringency" : "ModerateStringency",
+        "matchingAlleles" : {
+            "TH01" : "ModerateStringency",
+            "CSF1PO" : "ModerateStringency",
+            "PentaD" : "ModerateStringency",
+            "D18S51" : "ModerateStringency",
+            "AMEL" : "ModerateStringency",
+            "D8S1179" : "ModerateStringency",
+            "D3S1358" : "ModerateStringency",
+            "D7S820" : "ModerateStringency",
+            "FGA" : "ModerateStringency",
+            "D16S539" : "ModerateStringency",
+            "D13S317" : "ModerateStringency",
+            "vWA" : "ModerateStringency",
+            "D5S818" : "ModerateStringency",
+            "TPOX" : "ModerateStringency",
+            "D21S11" : "ModerateStringency",
+            "PentaE" : "ModerateStringency"
+        },
+        "totalAlleles" : 16,
+        "categoryId" : "MULTIPLE_VICTIMA",
+        "leftPonderation" : 0.6770833333333333,
+        "rightPonderation" : 0.6197916666666666
+    }
+}

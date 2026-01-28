@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<div class="modal-header">
+	<h4>Reglas de búsqueda para <b>{{data.profile.globalCode}}</b></h4>
+	<h5>{{data.subcategory.name}}</h5>
+</div>
+<div class="modal-body">
+
+	<table class="table  table-striped">
+		<thead>
+			<tr>
+				<th class="text-center">Subcategoría</th>
+				<th class="text-center" width="30%">Nivel de exigencia</th>
+				<th class="text-center" width="20%">Marcadores no coincidentes</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr data-ng-repeat="w in subcatsRel">
+				<td class="text-center">{{subcats[w.categoryRelated].name}}</td>
+				<td class="text-center">
+					<select class="form-control" ng-model="w.minimumStringency"
+					 id="stringency_{{$index}}"	ng-options="key as s.text for (key, s) in stringency">
+					</select>
+				</td>
+				<td class="text-center">
+					<select class="form-control" ng-model="mismatches[$index]"
+						id="mismatches_{{$index}}" ng-options="mo as mo for mo in mismatchesOptions">
+					</select>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+
+</div>
+
+<div class="modal-footer">
+   <button id="aceptStringency" class="btn btn-success" data-ng-click="closeModal(true)">Aceptar</button>
+   <button id="cancelStringency" class="btn btn-danger" data-ng-click="closeModal(false)">Cancelar</button>
+</div>

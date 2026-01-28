@@ -1,0 +1,56 @@
+@(manifest: Html, mode: String)<!DOCTYPE html>
+<html lang="en">
+@manifest
+
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+	    <title data-ng-bind="pageTitle">GENIS</title>
+	    
+	    <link rel="shortcut icon" type="image/png" href="@routes.Assets.versioned("images/favicon.ico")">
+        <link rel="stylesheet" href="@routes.Assets.versioned("stylesheets/"+ mode +".css")">
+	    <script data-main="@routes.Assets.versioned("javascripts/main.js")" type="text/javascript" src="@routes.Assets.versioned("lib/requirejs/require.js")"></script>
+    </head>
+    <body id="page-top" class="index">
+        <!-- Navigation -->
+        <div class="header noprint {{loged}}">
+        <div class="logo"><a href="/#/home"><img alt="genis-logo" src="/assets/images/genisLogo.png" height="48" width="136"></a></div>
+        <div class="bg-white noprint" ng-include="'/assets/javascripts/home/views/nav.html'"></div>
+ 
+        </div>
+        <div class="container">
+        	
+            
+            <div class="row">
+                <div class="col-lg-12 padding-0">
+
+                    <!--Midd section-->
+                    <div class="col-lg-12 col-md-12 padding-0" data-ng-view style="padding-left:0px;"></div>
+                    <!--Midd section End-->
+
+                    <!--Right section-->
+                    <!-- <div class="col-lg-3 col-md-3" ng-include="'/assets/javascripts/home/views/inbox.html'" style="padding-right:0px;"></div>-->
+                    <!--Right section End-->
+
+                    <div class="clearfix">&nbsp;</div>
+                </div>
+            </div>
+            <div class="clearfix">&nbsp;</div>
+        </div>
+
+@*-- Footer -- *@
+		@loadingClient()
+		@login()
+
+
+    <div class="noprint">
+    	
+      <div ng-include="'/assets/javascripts/home/views/errorPrompt.html'"></div>
+      <div ng-include="'/assets/javascripts/home/views/totpPrompt.html'"></div>
+    	
+    </div>
+
+    </body>
+</html>
