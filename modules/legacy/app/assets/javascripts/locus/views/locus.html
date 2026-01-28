@@ -1,0 +1,35 @@
+
+<div class="row padding-0 breadcrumb_column">
+    <div class="col-md-12 padding-0">
+        <div class="row padding-0">
+            <div class="breadcrumb_content">
+                <ol class="breadcrumb">
+                        <li>
+                            <div class="btn volver" onclick="history.back()">
+                                <span  class="icon-atras" title="Volver"></span>
+                            </div>
+                        </li>
+                        <li class="active">Marcadores</li>
+                        
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+<div class="container-top">
+
+    <section class="extended-section">
+        <div class="content"><!-- content-wrap-small -->
+
+            <tabset class="tabset-section">
+                <tab active="true" heading="Agregar Marcador">
+                    <div ng-include="'/assets/javascripts/locus/views/new-locus.html'" class="animated fadeIn "></div>
+                </tab>
+                <tab heading="Marcadores">
+                    <div ng-include="'/assets/javascripts/locus/views/list-locus.html'" class="animated fadeIn tab-container"></div>
+                </tab>
+            </tabset>
+
+        </div>
+    </section>
+</div>

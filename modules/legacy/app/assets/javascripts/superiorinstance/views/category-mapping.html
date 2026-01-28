@@ -1,0 +1,38 @@
+<form name="categMapForm">
+    <div>
+        <fieldset>
+        <div class="section-category-mapping">
+            <div class="error-text text-center" ng-show="categoriesEmpty()">{{msgErrorCategorias}}</div>
+            <table class="table table-bordered table-category-mapping">
+                    <thead>
+                    <tr>
+                        <th>Categoría</th>
+                        <th>Instancia superior</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="x in categoriesMappings">
+                        <td><label for="{{x.id}}">{{ x.groupName }} / {{ x.name }}</label></td>
+                        <td>
+                            <select id="{{x.id}}" data-ng-model="x.idSuperior" class="form-control form-select" >
+                                <optgroup data-ng-repeat="(grpId, group) in categories.data" label="{{group.name}}">
+                                    <option data-ng-repeat="category in group.subcategories" value="{{category.id}}" ng-selected="category.id == x.idSuperior"  >{{category.name}}</option>
+                                </optgroup>
+                            </select>
+                        </td>
+                    </tr>
+
+                    </tbody>
+                </table>
+                <div class="desk-align-right" style="background-color: #f5f5f5">
+                    <button id="autoconfigurar" type="button" class="btn btn-secondary-action" data-ng-click="autoConfigurar()">
+                        Autoconfigurar
+                    </button>
+                    <button id="saveM" type="button" class="btn btn-primary-action" data-ng-click="saveMappings()">
+                        Guardar
+                    </button>
+                </div>
+        </div>
+        </fieldset>
+    </div>
+</form>

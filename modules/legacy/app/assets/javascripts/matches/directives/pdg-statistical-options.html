@@ -1,0 +1,61 @@
+<div ng-class="{'panel': _panel, 'panel-default': _panel}">
+	
+	<div class="panel-heading" ng-show="_header">Opciones estadísticas</div>
+		
+	<div ng-class="{'panel-body': _panel}">
+		<div class="row m-b-10">
+			<div class="col-md-6 column" style="padding-left: 0px;">
+				<div >
+					<label for="statsOptionsStatFreq" class="col-sm-5 control-label" style="padding-right: 0px;">Base de datos de frecuencias alélicas:</label>
+					<div class="col-sm-12 padding-right-0">
+						<select id="statsOptionsStatFreq" ng-model="selectedOptions.frequencyTable" class="form-control" required
+						ng-options="dbName as db.name for (dbName, db) in freqTables" style="width:100%">
+					</select>
+					</div>
+				</div>
+			</div>
+
+			<!--<div class="col-md-5 column">
+				<div >
+					<label for="statsOptionsStatModel" class="col-sm-4 control-label" style="padding-right: 0px;">Modelo estadístico:</label>
+					<div class="col-sm-8" style="margin-top: 5px;">
+						<span id="statsOptionsStatModel">{{selectedOptions.probabilityModel}}</span>
+					</div>
+				</div>
+			</div>-->
+
+			<div class="column col-md-6">
+				<label for="statsOptionsStatTheta" class="col-sm-5 control-label" style="padding-top: 5px; padding-left: 0px;padding-right: 0px; width:100%;">Coeficiente de co-ancestralidad (&Theta;):</label>
+				<div class="col-sm-7 padding-left-0" style="margin-top: 5px;">
+					<span id="statsOptionsStatTheta">{{selectedOptions.theta}}</span>
+				</div>
+			</div>
+
+			<div ng-if="_process" class="col-md-1 column" style="padding-right: 0px;">
+				<div >
+					<button ng-click="getRandomMatchProbabilities()" class="btn btn-success">
+						<span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+					</button>
+				</div>
+			</div>
+
+		</div>
+
+		<div class="row" ng-if="!mix">
+			<div class="col-md-6">
+				<p>
+					<label class="control-label">Probabilidad de Drop-in:</label>
+					<input id="dropIn" class="form-control" type="number" min="0" max="1" step="0.01" data-ng-model="selectedOptions.dropIn" required />
+				</p>
+			</div>
+			<div class="col-md-6">
+				<p>
+					<label class="control-label">Probabilidad de Drop-out:</label>
+					<input id="dropOut" class="form-control" type="number" min="0" max="1" step="0.01" data-ng-model="selectedOptions.dropOut" required />
+				</p>
+			</div>
+		</div>
+  				
+  	</div>
+
+ </div>	

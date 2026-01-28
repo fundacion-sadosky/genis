@@ -1,0 +1,9 @@
+# Routes for Core Module (Scala 3 + Play 3)
+# API v2 endpoints
+
+# Status endpoints (migrated from legacy)
+GET     /api/v2/status                      controllers.core.StatusController.index()
+GET     /api/v2/status/detailed             controllers.core.StatusController.detailed()
+
+# Health check (alias)
+GET     /health                             controllers.core.StatusController.index()

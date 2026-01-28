@@ -1,0 +1,61 @@
+@import play.twirl.api.TemplateMagic.defining
+@(title: String, reportData: play.api.libs.json.JsValue)
+@import play.api.libs.json._
+
+@defining((reportData \ "labs").asOpt[Seq[JsObject]].getOrElse(Seq.empty)) { labs =>
+    <html>
+        <head>
+            <meta charset="UTF-8">
+            <link rel="stylesheet" type="text/css" href="@routes.Assets.versioned("stylesheets/reporting.css")">
+            <link rel="stylesheet" type="text/css" href="@routes.Assets.versioned("stylesheets/main.css")">
+            <title>@title</title>
+            @headerReporting()
+        </head>
+        <body>
+            <div class="report-title">
+            @title
+            </div>
+            <br/><br/>
+
+            @for(lab <- labs) {
+                @defining((lab \ "labCode").asOpt[String].getOrElse("Unknown")) { labCode =>
+                    <div class="report-subtitle">
+                        Instancia Inferior: @labCode
+                    </div>
+                    <br/>
+
+                    <table class="table table-bordered" style="table-layout:fixed;">
+                        <thead>
+                            <tr>
+                                <th class="report-heading">Categoría</th>
+                                <th class="report-heading">Estado</th>
+                                <th class="report-heading">Cantidad</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @defining((lab \ "details").asOpt[Seq[JsObject]].getOrElse(Seq.empty)) { details =>
+                            @for(detail <- details) {
+                                <tr>
+                                    <td class="report-body">@((detail \ "category").asOpt[String].getOrElse(""))</td>
+                                    <td class="report-body">@((detail \ "status").asOpt[String].getOrElse(""))</td>
+                                    <td class="report-body">@((detail \ "count").asOpt[Int].getOrElse(0))</td>
+                                </tr>
+                            }
+                            @if(details.isEmpty) {
+                                <tr>
+                                    <td colspan="3" style="text-align: center;">No hay datos de la instancia inferior</td>
+                                </tr>
+                            }
+                        }
+                        </tbody>
+                    </table>
+                    <br/><br/>
+                }
+            }
+
+            @if(labs.isEmpty) {
+                <p>No hay instancias inferiores que hayan subido perfiles a esta instancia.</p>
+            }
+        </body>
+    </html>
+}

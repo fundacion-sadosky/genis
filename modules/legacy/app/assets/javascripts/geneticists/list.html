@@ -1,0 +1,38 @@
+<div ng-controller="geneticistsController" class="">
+    <div class="row m-t-10 m-b-10">
+        <div class="col-md-12 m-t-10 padding-0">
+            <label for="laboratory_id">Laboratorio</label>
+            <select id="laboratory_id"
+                    data-ng-model="selected.laboratory" class="m-t-10 form-control form-select"
+                    data-ng-change="giveGeneticist(selected.laboratory)"
+                    data-ng-options="item.code as item.name for item in laboratories"
+                    style="height: 3em;">
+            </select>
+        </div>
+    </div>
+
+    <table class="table table-bordered">
+        <thead>
+        <tr>
+            <th>Nombre y Apellido</th>
+            <th>Laboratorio</th>
+            <th>Email</th>
+            <th>Telefono</th>
+            <th>Modificar</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr data-ng-repeat="item in geneticists">
+            <td>{{item.name}} {{item.lastname}}</td>
+            <td>{{item.laboratory}}</td>
+            <td>{{item.email}}</td>
+            <td>{{item.telephone}}</td>
+            <td class="col-md-1 centered">
+                <a class="btn btn-default btn-link-action btn-link-border" data-ng-click="doUpdate(item.id)">
+                    <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+                </a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>

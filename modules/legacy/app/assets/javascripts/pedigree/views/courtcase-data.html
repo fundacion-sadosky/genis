@@ -1,0 +1,166 @@
+<ol class="breadcrumb" ng-show="showHeader">
+        <li>
+            <div class="btn volver" onclick="history.back()">
+                <span  class="icon-atras" title="Volver"></span>
+            </div>
+        </li>
+	<li class="active">Datos caso</li>
+</ol>
+
+
+
+        <div class="row padding-0">
+            <div class="content padding-0">
+<div class="container-topSmall" style="margin-top: 10px;">
+    <form id="ccForm" name="ccForm">
+        <div class="options-header new-load col-md-12" style="height: 6em; margin-bottom: 10px;">
+            <div class="item-input col-md-3 col-md-offset-3">
+                <label for="iSampleCode" class="m-t-0">Código del caso</label>
+                <span class="field-obligated">*</span>
+
+                <input class="form-control form-select" name="sampleCode" data-ng-disabled="mode == 'update' || mode == 'readonly'" type="text"
+                    id="iSampleCode" data-ng-model="courtcase.internalSampleCode" data-ng-required="true" required />
+                <form-validation input="ccForm.sampleCode"></form-validation>
+            </div>
+
+            <!--            <div class="item-input col-md-2">
+            <h6 class="m-t-0">Responsable</h6>
+                <span class="field-obligated">*</span>
+
+                <select class="form-control form-select" data-ng-disabled="mode == 'update' || mode == 'readonly'"
+                    id="assignee" data-ng-model="courtcase.assignee" data-ng-required="true" required
+                    data-ng-options="item.id as (item.firstName + ' ' + item.lastName) for item in geneticistUsers">
+                </select>
+            </div>
+            -->
+
+            <div class="item-input col-md-3">
+                <label for="caseType" class="m-t-0">Tipo del caso</label>
+                <span class="field-obligated">*</span>
+
+                <select class="form-control form-select" data-ng-disabled="mode == 'update' || mode == 'readonly'"
+                        id="caseType" data-ng-model="courtcase.caseType" data-ng-required="true" required
+                        data-ng-options="item.id as item.name for item in caseTypes">
+                </select>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4 padding-0">
+            <div class="input-data-section-common" >
+                <h5 class="display-block">Información causa</h5>
+                <div class="item-input col-md-12">
+                    <label for="court">Juzgado</label> <input class="form-control form-select" id="court" type="text" data-ng-model="courtcase.court"/>
+                </div>
+                <div class="item-input col-md-12">
+                    <label for="attorney">Fiscalía</label> <input class="form-control form-select" id="attorney" type="text" data-ng-model="courtcase.attorney"/>
+                </div>
+                <div class="item-input col-md-12">
+                    <label for="crimeType">Tipo de delito</label>
+                    <select id="crimeType" class="form-control form-select"
+                        data-ng-model="courtcase.crimeType"
+                        data-ng-options="ctId as ct.name for (ctId, ct) in crimeTypes | orderBy:['ct','name']"></select>
+                </div>
+
+                <div class="item-input col-md-12">
+                    <label for="crimeInvolved">Delito involucrado</label>
+                    <select id="crimeInvolved" class="form-control form-select"
+                        data-ng-model="courtcase.crimeInvolved"
+                        data-ng-options="sc.id as sc.name for sc in crimeTypes[courtcase.crimeType].crimes | orderBy:'name'">
+                    </select>
+                </div>
+
+                <div class="item-input col-md-12">
+                    <label for="criminalCase">Número de causa o Expediente</label>
+                    <input class="form-control form-select" id="criminalCase" type="text" data-ng-model="courtcase.criminalCase" />
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8 padding-0">
+            <div class="row">
+            <div class="input-data-section col-md-12">
+                <div class=" pull-right padding-right-0" style="" >
+                    <button ng-disabled="courtcaseId == undefined" id="subirArchivo" type="button" class="btn btn-primary-action pull-right" ng-click="newMetadata('add')"
+                            ng-if="courtcase.status !== 'Closed'">
+                        <!-- <span class="glyphicon glyphicon-plus-sign" aria-hiden="true" ></span> -->
+                        <span>Nuevo</span>
+                    </button>
+                </div>
+
+                    <h5 class="display-block">Información persona buscada / Grupo familiar</h5>
+
+                <div class="search-input vertical-align" style="padding: 10px;">
+                    <label for="busquedaAlias" class="pull-left" style="padding-right: 10px">Buscar </label>
+                    <div class="input-group input-search-a">
+                        <input data-ng-model="busquedaInput.busquedaAlias" ng-keyup="$event.keyCode == 13 ? filtrar() : null" type="text" class="form-control form-select" aria-describedby="basic-addon2"
+                               placeholder="Ingrese alias,nombre o apellido."  id="busquedaAlias" name="busquedaAlias"/>
+                    </div>
+                        <a class="btn btn-default btn-link-action btn-link-border" id="basic-addon2" ng-click="filtrar()">
+                            <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+                          </a>
+
+                </div>
+
+                <div data-ng-show="noResult">
+                    No se encontraron datos según su busqueda
+                </div>
+
+                    <table class="table table-bordered" ng-modal="tableParams" data-ng-show="!noResult" >
+                        <thead>
+                        <tr>
+                            <th class="text-center">Alias</th>
+                            <th class="text-center">Nombre</th>
+                            <th class="text-center">Apellido</th>
+                            <th class="text-center">Ver/Editar datos</th>
+                            <th class="text-center">Borrar</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr data-ng-repeat="pd in personData | orderBy: 'alias'">
+                            <td>{{pd.alias}}</td>
+                            <td>{{pd.firstName}}</td>
+                            <td>{{pd.lastName}}</td>
+                            <td class="col-md-1 centered">
+                                <a  id="ver" class="btn btn-default btn-link-action btn-link-border" data-ng-click="editMetadata(pd)">
+                                    <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
+                                </a>
+                            </td>
+                            <td class="col-md-1 centered">
+                                <a  id="borrar" class="btn btn-default btn-link-action btn-link-border"  ng-disabled="isClosed()" data-ng-click="isClosed() || borrar(pd)">
+                                    <span class="glyphicon glyphicon-floppy-remove" aria-hidden="true"></span>
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="8" style="padding-top: 10px; text-align: center;">
+                                    <pagination style="position: initial; transform: translate(0, 0);" boundary-links="true" ng-change="changePage()" items-per-page="{{pageSize}}" max-size="10" total-items="totalItemsData" data-ng-model="$parent.currentPageNumber" class="pagination-sm" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;"  rotate="false"></pagination>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+                </div>
+
+                </div>
+
+            </div>
+        </div>
+    </form>
+</div>
+</div>
+</div>
+
+<footer class="pedigree-footer">
+	<div class="row clearfix inside-left">
+		<p>{{msg}}</p>
+	</div>
+	<div class="desk-align-right inside-right">
+		<div class="btn btn-link-action" ng-click="cancel()">
+						<span title="Limpiar pantalla">
+							<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+						</span>
+			<span class="btn-link-action">Limpiar</span>
+		</div>
+		<button id="save" type="button" class="btn btn-primary-action" ng-if="!isClosed()" data-ng-click="save()" data-ng-disabled="ccForm.$invalid" disabled="disabled">Guardar</button>
+	</div>
+</footer>

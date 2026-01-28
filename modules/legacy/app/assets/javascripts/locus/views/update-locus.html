@@ -1,0 +1,30 @@
+<form name="updateLocus">
+    <div ng-controller="locusUpdateController">
+        <div class="modal-header">
+            <h2>Editar Marcador</h2>
+            <div class="m-t-10">
+                <h6>Id:</h6>
+                {{selectedLocusCopy.id}}
+            </div>
+
+        </div>
+        <div class="modal-body-popup">
+            <div id="tab-1" class="tab-pane active tab-format">
+                <fieldset>
+                    <div class="form-group">
+                        <div data-ng-include="'/assets/javascripts/locus/views/save-locus.html'" ></div>
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <div class="btn btn-link-action" ng-click="closeModal()">
+           <span title="Cerrar">
+             <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+           </span>
+                <span class="btn-link-action">Cerrar</span>
+            </div>
+            <button id="saveUpd" type="button" class="btn btn-primary-action" data-ng-click="save()" ng-disabled="updateLocus.$invalid">Guardar</button>
+        </div>
+    </div>
+</form>

@@ -1,0 +1,13 @@
+# --- !Ups
+
+CREATE TABLE "APP"."DISCLAIMER"
+(
+  "ID" bigserial,
+  "TEXT" TEXT NOT NULL,
+  CONSTRAINT "DISCLAIMER_ID_PKEY" PRIMARY KEY ("ID")
+);
+
+# --- !Downs
+
+DROP TABLE "APP"."DISCLAIMER";
+

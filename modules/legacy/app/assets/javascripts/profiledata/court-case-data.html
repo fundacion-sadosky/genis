@@ -1,0 +1,31 @@
+<div ng-controller="courtCaseDataController">
+	<h5>Información causa</h5>
+
+	<div class="item-input">
+		<label for="court">Juzgado</label> <input id="court" type="text" class="form-control form-select" data-ng-disabled="mode == 'readonly'"
+			data-ng-model="$parent.profileData.court"/>
+	</div>
+
+	<div class="item-input">
+		<label for="attorney">Fiscalía</label> <input id="attorney" type="text" class="form-control form-select" data-ng-disabled="mode == 'readonly'"
+			data-ng-model="$parent.profileData.attorney" />
+	</div>
+
+	<div class="item-input">
+		<label for="crimeType">Tipo de delito</label> <select id="crimeType" data-ng-disabled="mode == 'readonly'"
+			data-ng-model="$parent.profileData.crimeType" class="form-control form-select"
+			data-ng-options="ctId as ct.name for (ctId, ct) in crimeTypes | orderBy:['ct','name']"></select>
+	</div>
+
+	<div class="item-input">
+		<label for="crimeInvolved">Delito involucrado</label> <select id="crimeInvolved" data-ng-disabled="mode == 'readonly'"
+			data-ng-model="$parent.profileData.crimeInvolved" class="form-control form-select"
+			data-ng-options="sc.id as sc.name for sc in crimeTypes[profileData.crimeType].crimes | orderBy:'name'">
+		</select>
+	</div>
+
+	<div class="item-input">
+		<label for="criminalCase">Número de causa o Expediente</label> <input id="criminalCase" data-ng-disabled="mode == 'readonly'"
+			type="text" data-ng-model="$parent.profileData.criminalCase" class="form-control form-select" />
+	</div>
+</div>

@@ -1,0 +1,40 @@
+<div class="container-top">
+    <div class="text-right" ng-hide="true">
+        <div class="form-group padding-right-0">
+            <div class="col-md-8"></div>
+            <div class="col-md-1 padding-0">Ordenar por:</div>
+            <div class="col-md-3 item-input padding-right-0">
+                <select id="sort" class="form-control form-select" data-ng-model="sortId" data-ng-change="sort()"
+                ng-options="sortOptions.indexOf(option) as option.label for option in sortOptions"></select>
+            </div>
+        </div>
+    </div>
+    
+    <div data-ng-show="noResult && !isProcessing">No se encontraron datos según su busqueda</div>
+    
+    <div data-ng-show="!noResult" ng:repeat="m in matches" name="{{'match_' + m.matchCard.globalCode}}">
+        <div class="match-group">
+            <a id="{{'focus_' + m.matchCard.globalCode}}" name="{{'focus_' + m.matchCard.globalCode}}"></a>
+            <div class="row" style="margin-bottom: 20px">
+                <span class="col-md-8">
+                    <span class="match-title" style="color:black ! important;">{{m.matchCard | showcode}}</span>
+                </span>
+                <span class="text-right padding-right-0 pull-right">
+                    <span class="badge match-tag" ng-if="m.matchCard.pending !== 0"><b>{{m.matchCard.pending}} coincidencias</b></span>
+                </span>
+                <span class="col-md-3 pull-right">
+                    <a data-ng-disabled="true" class="btn btn-secondary-action" href="">Confirmar</a>
+                    <a class="btn btn-secondary-action" ng-click="discardCollapsing(m.matchCard.globalCode)">Descartar</a>
+                </span>
+            </div>
+            <div class="text-right">
+                <a id="goto-button" class="btn btn-secondary-action" ng-click="filtroLocal(m.matchCard)" href="{{getGroupsCollapsing(m.matchCard)}}">Ver más</a>
+            </div>
+        </div>
+    </div>
+</div>
+<footer class="matches-groups-footer-footer">
+    <div>
+        <pagination boundary-links="true" ng-change="changePage()" items-per-page="{{pageSize}}" max-size="10" total-items="totalItems" ng-model="$parent.currentPage" class="pagination-sm" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;"  rotate="false"></pagination>
+    </div>
+</footer>
