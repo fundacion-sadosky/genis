@@ -1,0 +1,76 @@
+
+<div class="row padding-0 breadcrumb_column">
+    <div class="col-md-12 padding-0">
+        <div class="row padding-0">
+            <div class="breadcrumb_content">
+                <ol class="breadcrumb">
+                        <li>
+                            <div class="btn volver" onclick="history.back()">
+                                <span  class="icon-atras" title="Volver"></span>
+                            </div>
+                        </li>
+                        <li class="active">Configuración de instancia superior</li>
+                         </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+<div class="container-top" >
+    <section class="extended-section">
+        <div class="content-wrap-small content">
+
+            <div class="grid">
+                <div class="row">
+                    <div class="col-lg-2 label-motivo"><label for="repeatSelect">Tipo de motivo</label></div>
+                    <div class="col-lg-3"><select class="form-control form-select" name="repeatSelect" id="repeatSelect" ng-model="selectedMotiveType" ng-change="updateMotiveType()">
+                        <option ng-repeat="mtype in motivesTypes" value="{{mtype.id}}">{{mtype.description}}</option>
+                    </select></div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <button type="button" ng-show="showAdd"
+                                class="btn btn-primary-action pull-right"
+                                data-ng-click="doInsert(selectedMotiveType)">
+                            <!-- <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> -->
+                            <span>Nuevo</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+
+
+
+
+            <div class="m-t-10">
+                <table class="table table-bordered" ng-if="motives.length">
+                    <thead>
+                    <tr>
+                        <th>Motivo</th>
+                        <th>Modificar</th>
+                        <th>Eliminar</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr data-ng-repeat="motivo in motives">
+                        <td>{{motivo.description}}</td>
+                        <td class="col-md-1 centered">
+                            <a class="btn btn-default btn-link-action btn-link-border" data-ng-click="doUpdate(motivo)">
+                                <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+                            </a>
+                        </td>
+                        <td class="col-md-1 centered" >
+                            <a class="btn btn-default btn-link-action btn-link-border" pdg-confirm pdg-confirm-title="Confirmar eliminación del motivo" pdg-confirm-content="¿Está seguro de eliminar el motivo?" pdg-on-confirm="doDelete" param="{{motivo}}" ng-hide="motivo.freeText">
+                                <span class="glyphicon glyphicon-floppy-remove" aria-hidden="true"></span>
+                            </a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </section>
+</div>

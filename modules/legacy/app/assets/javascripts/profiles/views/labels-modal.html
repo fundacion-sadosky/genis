@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<div class="modal-header">
+	<h4>Etiquetas</h4>
+</div>
+<div class="modal-body">
+	<div ng-repeat="(setId, labels) in labelsSets track by $index">
+	  	<div>
+	  		<span ng-repeat="(labelId, label) in labels" 
+	  			class="{{'badge mixes-button-' + label.id}}" style="margin: 4px;"
+	  			ng-click="$close(labels)">
+	  			{{label.caption}}
+	  		</span>
+	  	</div>
+	</div>
+</div>
+<div class="modal-footer">
+   <button class="btn btn-danger" data-ng-click="$dismiss()">Cancelar</button>
+</div>

@@ -1,0 +1,28 @@
+<div class="modal-header">
+	<h2>
+		Rechazo de Perfil</b>
+	</h2>
+	<button class="btn btn-close-modal" data-ng-click="closeModal(false)">x</button>
+</div>
+<div class="modal-body">
+	<form name="genDelForm">
+		<fieldset data-ng-disabled="editMode">
+
+			<div class="form-group col-lg-12">
+				<label>Motivo</label>
+				<select class="form-control form-select" name="repeatSelect" id="repeatSelect" ng-model="selectedMotive" ng-change="onChangeMotive(selectedMotive)" required>
+					<option ng-repeat="motive in motives" value="{{motive.id}}">{{motive.description}}</option>
+				</select>
+				<textarea rows="4" class="form-control col-lg-12" id="motive" ng-model="motiveText" ng-show="showMotiveTextArea"
+						  ng-required="showMotiveTextArea"></textarea>
+			</div>
+
+		</fieldset>
+	</form>
+	<div class="clearfix">&nbsp;</div>
+	<div class="desk-align-right">
+		<button class="btn btn-success" data-ng-click="closeModal(motiveText,selectedMotive)" data-ng-disabled="!selectedMotive  || genDelForm.$invalid">Aceptar</button>
+		<button class="btn btn-danger" data-ng-click="closeModal(false,0)">Cancelar</button>
+	</div>
+
+</div>

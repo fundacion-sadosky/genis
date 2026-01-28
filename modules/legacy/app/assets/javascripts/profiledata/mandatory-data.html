@@ -1,0 +1,31 @@
+<div class="input-data" ng-controller="mandatoryDataController">
+<fieldset data-ng-disabled="mode == 'update' || mode == 'readonly'">
+
+	<div class="item-load">
+		<label for="internalSampleCode" class="m-t-0">Código Laboratorio {{ showFiliationDataSection }}<span
+			class="field-obligated">*</span></label>
+		<input id="internalSampleCode" name="sampleCode"
+			type="text" data-ng-model="profileData.internalSampleCode" class="form-control form-select"
+			data-ng-required="true" required />
+        <form-validation input="pdform.sampleCode"></form-validation>
+	</div>
+
+	<div class="item-load">
+		<label for="assignee" class="m-t-0" help-tip="profiles.responsible" help-tip-placement="top">Responsable</label> <span class="field-obligated">*</span>
+		<select
+			id="assignee" data-ng-model="profileData.assignee" class="form-control form-select"
+			data-ng-options="item.id as (item.firstName + ' ' + item.lastName) for item in geneticistUsers"
+			required>
+		</select>
+	</div>
+
+	<div class="item-load">
+		<label class="m-t-0">Categoría<span class="field-obligated">*</span></label>
+		<select data-ng-model="profileData.category" class="form-control form-select">
+		  <optgroup data-ng-repeat="(grpId, group) in categories" label="{{group.name}}">
+		    <option data-ng-repeat="category in group.subcategories" value="{{category.id}}">{{category.name}}</option>
+		  </optgroup>
+		</select>
+	</div>
+</fieldset>
+</div>

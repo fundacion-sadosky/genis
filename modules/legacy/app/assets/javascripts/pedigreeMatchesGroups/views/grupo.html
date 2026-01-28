@@ -1,0 +1,128 @@
+
+<div class="row padding-0 breadcrumb_column">
+	<div class="col-md-12 padding-0">
+		<div class="row padding-0">
+			<div class="breadcrumb_content">
+				<ol class="breadcrumb">
+						<li>
+							<div class="btn volver" ng-click="back()">
+								<span  class="icon-atras" title="Volver"></span>
+							</div>
+						</li>
+						<li class="active">Detalle de coincidencias de pedigrí para {{title}}</li>
+						
+					</ol>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+<div class="container">
+
+
+<div class="row coincidencia-estado"  name="{{'match_' + match.globalCode}}">
+	<div class="coincidencia-estado--card estado-pendiente" >
+
+		<div class="row">
+
+			<div class="col-md-4">
+			<a name="{{'focus_' + match.globalCode}}" />
+				<h5><span  ng-show="groupByPedigree()" class="small">{{courtcaseName}} -</span> {{title }}</h5>
+				<h6 class="dato ">Usuario responsable: <span class="dato laboratorio big-size">{{ assignee}}</span></h6>
+
+			</div>
+			<div class="col-md-8 padding-top-5 padding-bottom-5">
+				<div class="row padding-0 coincidencia-estado-detalle ">
+
+					<div class="col-md-5 padding-top-7 padding-bottom-7">
+
+						<h6 class="dato categoria" ng-show="groupByProfile()">Categoría: <span class="dato ultimacoincidencia text-left" ng-show="groupByProfile()">{{categoria}}</span></h6>
+						<h6 class="dato categoria" ng-show="groupByPedigree()">Tipo de caso: <span class="dato ultimacoincidencia text-left" ng-show="groupByPedigree()">{{caseType}}</span></h6>
+
+
+						<h6 class="dato ">Ultima coincidencia: <span class="dato">{{fecha | date:'yyyy-MM-dd'}}</span></h6>
+					</div>
+					<div class="col-md-7  padding-0 coincidencia-estado-detalle ">
+						<div class="col-md-3 padding-right-0 padding-left-0 padding-top-7 padding-bottom-7">
+							<h6>Pendientes</h6>
+							<p class="dato laboratorio big-size" ng-if="pending !== 0">{{pending}}</p>
+							<p class="dato laboratorio big-size" ng-if="pending == 0">&mdash;</p>
+						</div>
+						<div class="col-md-3 padding-right-0 padding-left-0 padding-top-7 padding-bottom-7">
+							<h6>Confirmados</h6>
+							<p class="dato laboratorio big-size" ng-if="hit !== 0 ">{{hit}}</p>
+							<p class="dato laboratorio big-size" ng-if="hit == 0">&mdash;</p>
+						</div>
+						<div class="col-md-3 padding-right-0 padding-left-0 padding-top-7 padding-bottom-7">
+							<h6>Descartados</h6>
+							<p class="dato laboratorio big-size" ng-if="discarded !== 0">{{discarded}}</p>
+							<p class="dato laboratorio big-size" ng-if="discarded == 0">&mdash;</p>
+						</div>
+
+						<div class="col-md-3 padding-0 expander-btn">
+							<span class="icon-refresh icon-arrow-grupo" ng-class="{'spinner': isProcessing}" data-ng-show="isProcessing"></span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+	</div>
+
+</div>
+
+
+	<div class="row groups-cards">
+
+
+
+		<div class="options-header">
+			<form class="navbar-form" role="search" name="searchMatchForm" novalidate data-ng-submit="searchMatches()">
+				<div class="col-md-offset-11 col-md-3 padding-0 expander-btn" ng-controller="groupController">
+					<button id="export-button" type="button" class="btn btn-primary-action" data-ng-click="exportarMatches()" >Exportar</button>
+<!--
+					<a id="export-button" class="btn btn-round" href="" ng-click="exportarMatches()">Exportar Matches</a> data-ng-disabled="isProcessing"
+-->
+				</div>
+
+				<div class="row padding-0">
+					<!-- estado -->
+					<div class="filtro_container">
+						<div class="row">
+							<!-- estado -->
+
+
+						</div>
+						<div class="row">
+							<div class="col-md-12">
+								<div class="row padding-0 tabs-estados" >
+											<div class="col-md-3  padding-left-0 text-center tabs-estados-tab tab-estados-tab__todos"> <a ng-click="filtros(status[0])" data-ng-model="filtro" id="all" value="todos">Todos</a></div>
+											<div class="col-md-3  text-center tabs-estados-tab tab-estados-tab__pendientes"><a class="" ng-click="filtros(status[1])" data-ng-model="filtro" id="pending" value="pending">Pendientes</a></div>
+
+											<div class="col-md-3 padding-left-0 text-center tabs-estados-tab tab-estados-tab__confirmados"><a class=""  ng-click="filtros(status[2])" data-ng-model="filtro" id="hit" value="hit">Confirmados</a></div>
+											<div class="col-md-3  text-center tabs-estados-tab tab-estados-tab__descartados"><a  ng-click="filtros(status[3])" data-ng-model="filtro" id="discarded" value="discarded"> Descartados</a></div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+
+			</form>
+		</div>
+<!--
+		<div class="col-md-2 padding-0 expander-btn">
+			<a id="export-button" class="btn btn-round" href="" ng-click="exportarMatches()">Exportar Matches</a>
+		</div>
+-->
+
+
+	<!--<div ng-include="'/assets/javascripts/pedigreeMatchesGroups/views/direct.html'"></div>
+		<div ng-include="'/assets/javascripts/pedigreeMatchesGroups/views/empty.html'"></div>
+-->
+		<div ng-include="'/assets/javascripts/pedigreeMatchesGroups/views/compatibility.html'"></div>
+
+
+</div>
+</div>

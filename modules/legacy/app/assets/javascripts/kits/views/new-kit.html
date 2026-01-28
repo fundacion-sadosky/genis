@@ -1,0 +1,132 @@
+<fieldset ng-controller="newKitController">
+
+    <form name="kitForm" novalidate>
+
+        <div class="row m-t-10">
+            <div class="col-md-3">
+                <label for="loci-id">ID<span class="field-obligated">*</span></label>
+                <input type="text" name="id" class="form-control form-select" id="loci-id" data-ng-model="kit.id" required  ng-maxlength="50" />
+                <form-validation input="kitForm.id" max="50"></form-validation>
+            </div>
+            <div class="col-md-3">
+                <label for="loci-name">Nombre<span class="field-obligated">*</span></label>
+                <input name="name" type="text" class="form-control form-select" id="loci-name" data-ng-model="kit.name" required ng-maxlength="100"/>
+                <form-validation input="kitForm.name" max="100"></form-validation>
+            </div>
+            <div class="col-md-6">
+                <label for="newElement" help-tip="aliases" help-tip-placement="top">Alias</label>
+                <tags-input class="tags-input" ng-model="kit.alias" placeholder="Ingrese un alias" ></tags-input>
+            </div>
+        </div>
+
+        <div class="locus-section-big">
+
+            <div class="locus-section col-md-12">
+                <h5>Configuración</h5>
+
+                <div class="row m-t-10">
+                    <div class="col-md-7 padding-0">
+                        <div class="col-md-3 padding-right-0 m-t-5">
+                            <label for="loci-type">Tipo de análisis<span class="field-obligated">*</span></label>
+                        </div>
+                        <div class="col-md-9">
+                            <select id="loci-type" data-ng-model="kit.type" class="form-control form-select" required
+                                    data-ng-options="item.id as item.name for item in analysisTypes">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-1"></div>
+                    <div class="col-md-4 padding-0">
+                        <div class="col-md-7 padding-0 m-t-5">
+                            <label for="loci-minimum" help-tip="kits.representativeParameter" help-tip-placement="top">
+                                Parámetro representativo<span class="field-obligated">*</span>
+                            </label>
+                        </div>
+                        <div class="col-md-5">
+                            <input name="lociMinimum" id="loci-minimum" type="number" min="0" step="1" required
+                                   class="form-control form-select padding-left-0" data-ng-model="kit.representative_parameter" />
+                            <form-validation input="kitForm.lociMinimum" min="0"></form-validation>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="row padding-0">
+
+                <div class="col-md-12">
+                    <div class="locus-section">
+
+                        <div class="col-md-2 padding-0">
+                            <h5>Marcadores</h5>
+                        </div>
+
+                        <div class="col-md-5">
+                            <div id="containment" class="m-b-10 locus-overflow" style="min-height: 100px; height:auto">
+                                <table style="width:100%;" class="table">
+                                    <tbody id="sortable" ui:sortable ng:model="kit.locus" class="locus-sortable">
+                                    <tr ng:repeat="item in kit.locus"
+                                        style="cursor:move;" class="locus-sortable fl-{{item.fluorophore.toLowerCase()}}">
+                                        <td style="width: 90%">{{locusById[item.locus].name}}</td>
+                                        <td style="width: 10%">
+                                            <button class="btn" ng-click="removeLocus($index)"
+                                                    help-tip="kits.locus.remove" help-tip-placement="left">
+                                                <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <p class="display-block">Elegir un marcador</p>
+                            <div class="col-md-5 padding-left-0">
+                                <select id="kit-new-locus" data-ng-model="newLocus.locus"
+                                        data-ng-options="item.id as item.name for item in locus | filter:alreadyAdded | orderBy:'id'"
+                                        class="form-control form-select">
+                                    <option value="" selected="selected">Marcador</option>
+                                </select>
+                            </div>
+                            <div class="col-md-5 padding-left-0">
+                                <select id="kit-new-locus-fl" data-ng-model="newLocus.fluorophore"
+                                        data-ng-options="id as description for (id, description) in fluorophores"
+                                        class="form-control form-select">
+                                    <option value="" selected="selected">Fluorescencia</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2 text-right" style="padding-right: 5px;">
+                                <button class="btn" ng-click="addLocus()"
+                                        ng-disabled="disableAddLocus(kit.locus, newLocus.locus)"
+                                        help-tip="kits.locus.add" help-tip-placement="bottom">
+                                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+                                </button>
+                            </div>
+                        </div>
+
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+    </form>
+
+<footer class="locus-footer">
+    <div class="desk-align-right inside-right">
+
+        <div class="btn btn-link-action" data-ng-click="cancel()">
+           
+            <span title="Limpiar pantalla" class="btn-link-action">Limpiar</span>
+        </div>
+
+        <button id="save" type="button" data-ng-click="save()"
+                class="btn btn-primary-action"
+                ng-disabled="kitForm.$invalid"
+                help-tip="kits.save" help-tip-placement="left">Guardar</button>
+
+    </div>
+</footer>
+
+</fieldset>

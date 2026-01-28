@@ -1,0 +1,128 @@
+<div ng-controller="groupController">
+    <div class="panel panel-default" ng-init="searchMatches('DirectLink')" ng-show="totalItems !== '0'">
+        <a data-toggle="collapse" href="#direct" style="text-decoration: none; height: 50px;">
+            <div class="panel-heading btn-icon-action" style="background-color: #f5f5f5; border-color:#dddddd;">
+                <span class="bold panel-title">Vínculos Directos</span>
+                <span class="pull-right">
+                    <span class="badge match-badge"><b>{{totalItems}} coincidencias</b></span>
+                </span>
+            </div>
+        </a>
+        <div id="direct" class="panel-collapse collapse">
+            <div class="panel-body">
+                <table class="table table-striped table-matches-details">
+                    <thead>
+                    <tr>
+                        <th class="text-center" style="width:10%">
+                            <pdg-sortable name="Fecha" predicate="sortField" reverse="!ascending"
+                                          sort-action="sortBy('DirectLink', 'date')" sort-field="date" numeric="true"></pdg-sortable>
+                        </th>
+                        <th class="text-center" ng-show="groupByProfile()">Pedigrí</th>
+                        <th class="text-center" ng-show="groupByPedigree()">
+                            <pdg-sortable name="Perfil candidato" predicate="sortField" reverse="!ascending"
+                                          sort-action="sortBy('DirectLink', 'profile')" sort-field="profile"></pdg-sortable>
+                        </th>
+                        <th class="text-center">
+                            Tipo de análisis
+                        </th>
+                        <th class="text-center">
+                            Perfil asociado al pedigrí
+                        </th>
+                        <th class="text-center">
+                            <pdg-sortable name="Persona de interés" predicate="sortField" reverse="!ascending"
+                                          sort-action="sortBy('DirectLink', 'unknown')" sort-field="unknown"></pdg-sortable>
+                        </th>
+                        <th class="text-center">
+                            Exigencia
+                        </th>
+                        <th class="text-center">
+                            LR
+                        </th>
+                        <th class="text-center">
+                            <pdg-sortable name="Estado agrupador" predicate="sortField" reverse="!ascending"
+                                          sort-action="sortBy('DirectLink', 'pedigreeStatus')" sort-field="pedigreeStatus"></pdg-sortable>
+                        </th>
+                        <th class="text-center">
+                            <pdg-sortable name="Estado coincidente" predicate="sortField" reverse="!ascending"
+                                          sort-action="sortBy('DirectLink', 'profileStatus')" sort-field="profileStatus"></pdg-sortable>
+                        </th>
+                        <th class="text-center">
+                            Agregar escenario
+                        </th>
+                        <th class="text-center">
+                            Descartar
+                        </th>
+                        <th style="width: 5%">Comparar</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng:repeat="m in matches">
+                        <td class="text-center" style="width:10%">
+                            {{m.matchingDate.$date | date:'yyyy-MM-dd HH:mm:ss'}}
+                        </td>
+                        <td class="text-center" ng-show="groupByProfile()">
+                            {{m.pedigree.internalSampleCode}}
+                        </td>
+                        <td class="text-center" ng-show="groupByPedigree()">
+                            {{m.profile.globalCode}}
+                        </td>
+                        <td class="text-center">
+                            {{getAnalysisName(m.type)}}
+                        </td>
+
+                        <td class="text-center">
+                            {{m.pedigree.globalCode}}</span>
+                        </td>
+
+                        <td class="text-center">
+                            <span> {{m.pedigree.unknown}} </span>
+                        </td>
+
+                        <td class="text-center">
+                            <span class="badge"
+                                      ng-class="{'icon-mismatch': m.result.stringency == stringency.Mismatch.key, 'icon-highstringency': m.result.stringency == stringency.HighStringency.key, 'icon-moderatestringency': m.result.stringency == stringency.ModerateStringency.key, 'icon-lowstringency': m.result.stringency == stringency.LowStringency.key}">
+                                {{"stringency." + m.result.stringency | i18next}} </span>
+                        </td>
+
+                        <td class="text-center">
+                            -
+                        </td>
+
+                        <td class="text-center">{{ matchStatus[m.pedigree.status] }}</td>
+
+                        <td class="text-center">{{ matchStatus[m.profile.status] }}</td>
+
+                        <td class="text-center">
+                            <a class="btn btn-icon-action" title="Nuevo escenario" href="{{goToScenario(m.pedigree, m.profile)}}">
+                                <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+                            </a>
+                        </td>
+
+                        <td class="text-center">
+                            <a id="doDiscardDisabled" ng-if="!canDiscard(m)" class="btn btn-icon-action" disabled="disabled">
+                                <span class="glyphicon glyphicon-thumbs-down" aria-hidden="true"></span>
+                            </a>
+                            <a id="doDiscard" ng-if="canDiscard(m)" pdg-confirm pdg-confirm-title="Descartar Coincidencia"
+                                    pdg-confirm-content="Al confirmar esta acción se descartará la coincidencia. ¿Está seguro?"
+                                    param="{{m}}" class="btn btn-icon-action" pdg-on-confirm="discard">
+                                <span class="glyphicon glyphicon-thumbs-down" aria-hidden="true"></span>
+                            </a>
+                        </td>
+
+                        <td title="Ver alelos">
+                            <a id="go_evidencia_{{$index}}" href="{{goToComparison(m.pedigree.globalCode, m.profile.globalCode, m._id.$oid)}}">
+                                <span class="glyphicon glyphicon-share-alt btn-icon-action"></span>
+                            </a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="12" style="padding-top: 25px; text-align: center;">
+                            <pagination style="position: initial; transform: translate(0, 0);" boundary-links="true" ng-change="searchMatches('DirectLink')" items-per-page="{{pageSize}}" max-size="10" total-items="totalItems" ng-model="currentPage" class="pagination-sm" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;"  rotate="false"></pagination>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

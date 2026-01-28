@@ -1,0 +1,46 @@
+<ul class="nav navbar-nav" data-ng-controller="notificationsController">
+
+	<div class="not-profile" title="Notificaciones">
+
+		<a href="#/home" class="dropdown-toggle icon-stack" data-ng-class="{'noti-counter' : notiCount > 0 }">
+			<i class="icon-notificaciones icon-lg font-color-grey "></i>
+			<span class="fa-stack counter" style="margin-top: -8.8em;"  data-ng-show="notiCount> 0" >
+				<i class="fa-circle fa fa-stack-2x" ></i>
+				<strong class="font-color-white fa-stack-1x">{{notiCount | showzero}}</strong>
+			</span>
+		</a>
+
+	</div>
+
+	<div class="not-matchStatus" title="Estado del proceso de búsqueda de coincidencias">
+		
+		<a id="matchiNoti" class="dropdown-toggle fa-stack noti-counter" data-toggle="dropdown" aria-expanded="false" style="top:-4px;">
+		<b data-ng-if="stall" class="fa-stack font-color-grey">
+								  <b class="icon-circulo icon-stack-2x"></b>
+								  <b class="icon-estado_proceso_busqueda-coincidencias icon-stack-2x"></b>
+								</b>
+		<i data-ng-if="working" class="fa-stack">
+								  <i class="fa fa-spinner fa-pulse fa-stack-2x"></i>
+								  <i class="icon-estado_proceso_busqueda-coincidencias icon-stack-2x"></i>
+								</i>
+		<i data-ng-if="fail" class="fa-stack">
+								  <i class="fa fa-ban fa-stack-2x text-danger"></i>
+								  <i class="icon-estado_proceso_busqueda-coincidencias icon-stack-2x"></i>
+								</i>		
+		</a>
+	</div>
+
+	<div class="not-matchStatus" title="Estado del proceso de búsqueda de personas">
+
+		<a id="pedigreeMatchNoti" class="dropdown-toggle fa-stack noti-counter" data-toggle="dropdown" aria-expanded="false" style="top:-4px;">
+			<i data-ng-if="pedigreeStall" class="fa-stack font-color-grey">
+				<i class="icon-circulo icon-stack-2x"></i>
+				<i class="icon-estado_proceso_busqueda-perfiles icon-stack-2x"></i>
+			</i>
+			<i data-ng-if="pedigreeWorking" class="fa-stack">
+				<i class="fa fa-spinner fa-pulse fa-stack-2x"></i>
+				<i class="icon-estado_proceso_busqueda-perfiles icon-stack-2x"></i>
+			</i>
+		</a>
+	</div>
+</ul>

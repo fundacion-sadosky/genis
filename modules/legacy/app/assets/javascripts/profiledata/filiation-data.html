@@ -1,0 +1,99 @@
+<div ng-controller="filiationDataController" class="filiationdata">
+
+	<h5 class="display-block">Datos Filiatorios</h5>
+
+	<div class="item-input col-md-5">
+		<label>DNI o Pasaporte</label>
+		<input type="text" id="identification" data-ng-disabled="mode == 'readonly'"
+			data-ng-model="$parent.profileData.dataFiliation.identification" class="form-control form-select" default-value="undefined" />
+	</div>
+	
+	<div class="item-input col-md-7">
+		<label>Expedido por</label>
+		<input type="text" id="identificationIssuingAuthority" data-ng-disabled="mode == 'readonly'"
+			data-ng-model="$parent.profileData.dataFiliation.identificationIssuingAuthority" class="form-control form-select" default-value="undefined" />
+	</div>
+
+	<div class="item-input col-md-12">
+		<label>Nombre completo</label>
+		<input type="text" id="name" data-ng-disabled="mode == 'readonly'"
+			data-ng-model="$parent.profileData.dataFiliation.fullName" class="form-control form-select" default-value="undefined" />
+	</div>
+	
+	<div class="item-input col-md-12">
+		<label>Apodos, pseudónimos o sobrenombres</label>
+		<input type="text" id="nickname" class="form-control form-select" data-ng-disabled="mode == 'readonly'"
+			data-ng-model="$parent.profileData.dataFiliation.nickname" default-value="undefined" />
+	</div>
+	
+	<div class="item-input-column col-md-6">
+		<label>Fecha de nacimiento</label>
+		<fieldset data-ng-disabled="mode == 'readonly'">
+			<p class="input-group">
+				<input id="birthday" type="text" name="birthday"
+					ng-blur="checkMax('birthday')"
+					placeholder="dd/MM/yyyy" data-datepicker-popup="dd/MM/yyyy"
+					data-ng-model="$parent.profileData.dataFiliation.birthday"
+					data-is-open="datepickers.birthday" class="form-control form-select"
+					   max-date="maxDate"
+					data-datepicker-options="dateOptions" data-close-text="Close" />
+					<span class="input-group-btn">
+					<button type="button" class="btn btn-link-action btn-link-border btn-calendar"
+						data-ng-click="toggleDatePicker($event, 'birthday')">
+						<i class="glyphicon glyphicon-genis-calendar glyphicon-calendar vertical-align"></i>
+					</button>
+				</span>
+			</p>
+		</fieldset>
+	</div>
+	
+	<div class="item-input col-md-6">
+        <label>Lugar de nacimiento</label>
+		<input type="text" id="birthPlace" data-ng-disabled="mode == 'readonly'"
+			data-ng-model="$parent.profileData.dataFiliation.birthPlace" class="form-control form-select" default-value="undefined" />
+	</div>
+	
+	<div class="item-input col-md-12">
+		<label>Nacionalidad</label>
+		<input type="text" id="nationality" data-ng-disabled="mode == 'readonly'"
+			data-ng-model="$parent.profileData.dataFiliation.nationality" class="form-control form-select" default-value="undefined" />
+	</div>
+
+	<div class="item-input col-md-12">
+		<label>Domicilio</label>
+		<input type="text" id="address" data-ng-disabled="mode == 'readonly'"
+			data-ng-model="$parent.profileData.dataFiliation.address" class="form-control form-select" default-value="undefined" />
+	</div>
+
+	<div class="item-input col-md-4" style="padding-left: 5px; padding-right: 5px;">
+		<carousel interval="3000"> <slide
+			ng-repeat="slide in pictures"> <img ng-src="{{slide}}"
+			style="margin: auto; height: 50px;"></slide> </carousel>
+		<span class="btn btn-link-action btn-link-border btn-block btn-file"  ng-disabled="mode == 'readonly'">
+			<span class="glyphicon glyphicon-upload"></span> Subir imagen 
+			<input data-ng-disabled="mode == 'readonly'" type="file" ngf-select
+                   ngf-change="onFileSelect($files, 'picture')" multiple accept="image/*">
+		</span>
+	</div>
+
+	<div class="item-input col-md-4" style="padding-left: 5px; padding-right: 5px;">
+		<carousel interval="3000"> <slide
+			ng-repeat="slide in inprints"> <img ng-src="{{slide}}"
+			style="margin: auto; height: 50px;"></slide> </carousel>
+		<span class="btn btn-link-action btn-link-border btn-block btn-file"  ng-disabled="mode == 'readonly'">
+			<span class="glyphicon glyphicon-upload"></span> Subir huella 
+			<input data-ng-disabled="mode == 'readonly'" type="file" ngf-select ngf-change="onFileSelect($files, 'inprint')" multiple accept="image/*">
+		</span>
+	</div>
+	
+	<div class="item-input col-md-4" style="padding-left: 5px; padding-right: 5px;">
+		<carousel interval="3000"> 
+			<slide ng-repeat="slide in signatures"> <img ng-src="{{slide}}" style="margin: auto; height: 50px;"></slide> 
+		</carousel>
+		<span class="btn btn-link-action btn-link-border btn-block btn-file"  ng-disabled="mode == 'readonly'">
+			<span class="glyphicon glyphicon-upload"></span> Subir firma 
+			<input data-ng-disabled="mode == 'readonly'" type="file" ngf-select ngf-change="onFileSelect($files, 'signature')" multiple accept="image/*">
+		</span>
+	</div>
+
+</div>

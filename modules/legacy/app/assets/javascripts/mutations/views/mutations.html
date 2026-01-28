@@ -1,0 +1,75 @@
+
+<div class="row padding-0 breadcrumb_column">
+        <div class="col-md-12 padding-0">
+            <div class="row padding-0">
+                <div class="breadcrumb_content">
+                    <ol class="breadcrumb">
+                            <li>
+                                <div class="btn volver" onclick="history.back()">
+                                    <span  class="icon-atras" title="Volver"></span>
+                                </div>
+                            </li>
+                        <li class="active">Modelos de Mutaciones</li>
+                        
+                                
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+<div class="container-top" >
+    <section class="extended-section">
+        <div class="content-wrap-small content">
+
+            <div class="grid">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <button type="button"
+                                class="btn btn-primary-action pull-right"
+                                data-ng-click="doInsert()">
+                            <!-- <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> -->
+                            <span>Nuevo</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="m-t-12">
+                <table class="table table-bordered" ng-if="mutationModels.length">
+                    <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Tipo</th>
+                        <th>Activo</th>
+                        <th>Modificar</th>
+                        <!--<th>Eliminar</th>-->
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr data-ng-repeat="mutationModel in mutationModels">
+                        <td>{{mutationModel.name}}</td>
+                        <td>{{mutationModelsTypesDesc[mutationModel.mutationType+''].description}}</td>
+                        <td class="col-md-1 text-center">
+                            <input type="checkbox" data-ng-change="activate(mutationModel)" data-ng-model="mutationModel.active" style="height: 1.5em" >
+                        </td>
+                        <td class="col-md-1 centered">
+                            <a class="btn btn-default btn-link-action btn-link-border" data-ng-click="doUpdate(mutationModel)">
+                                <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+                            </a>
+                        </td>
+                        <!--<td class="col-md-1 centered" >-->
+                            <!--<a class="btn btn-default btn-link-action btn-link-border" pdg-confirm pdg-confirm-title="Confirmar eliminación del modelo mutacional" pdg-confirm-content="¿Está seguro de eliminar el modelo {{mutationModel.name}}?" pdg-on-confirm="doDelete" param="{{mutationModel}}" ng-hide="mutationModel.freeText">-->
+                                <!--<span class="glyphicon glyphicon-floppy-remove" aria-hidden="true"></span>-->
+                            <!--</a>-->
+                        <!--</td>-->
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </section>
+</div>

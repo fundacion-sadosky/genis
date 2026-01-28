@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<div class="modal-header">
+	<h4>Frecuencias mínimas</h4>
+</div>
+<div class="modal-body">
+	
+	<form name="fminForm" id="fminForm">
+		<div class="form-group">
+			<label style="display: inline;">Opciones de cálculo</label>
+			<select id="calcOptions" data-ng-model="result.calcOption" required class="form-control"
+				data-ng-options="calcId as calc.description for (calcId, calc) in calcOptions">
+			</select>
+		</div>
+		<table class="table  table-striped">
+			<tbody>
+				<tr ng-repeat="locus in loci">
+					<td class="col-md-3">{{locus}}</td>
+					<td class="text-center col-md-9">
+						<span ng-repeat="p in calcOptions[result.calcOption].config" class="freq-fmin-config-label">
+							{{p}}:
+							<input id="{{'c_' + locus + '_' + p}}"
+								name="{{'c_' + locus + '_' + p}}"
+								class="form-control input-sm td-repeat freq-fmin-config-value"
+								ng-model="result.config[locus][$index]"
+								ng-pattern="regEx[p]"
+								required>
+						</span>
+						<a ng-click="setAll(locus)"><span class="glyphicon glyphicon-list" aria-hidden="true" ng-show="result.config[locus]"></span></a>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</form>
+</div>
+<div class="modal-footer">
+   <button id="ok" class="btn btn-success" data-ng-click="closeModal(true)" ng-disabled="fminForm.$invalid">Aceptar</button>
+   <button id="cancel" class="btn btn-danger" data-ng-click="closeModal(false)">Cancelar</button>
+</div>

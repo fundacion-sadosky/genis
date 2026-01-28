@@ -1,0 +1,35 @@
+
+<div class="row padding-0 breadcrumb_column">
+    <div class="col-md-12 padding-0">
+        <div class="row padding-0">
+            <div class="breadcrumb_content">
+                <ol class="breadcrumb">
+                        <li>
+                            <div class="btn volver" onclick="history.back()">
+                                <span  class="icon-atras" title="Volver"></span>
+                            </div>
+                        </li>
+                    <li class="active">Configuración de instancia superior</li>
+                    
+                            
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+<div class="container-top" >
+    <section class="extended-section">
+        <div class="content"> <!-- content-wrap-small -->
+
+            <tabset class="tabset-section">
+                <tab active="true" heading="Conectividad">
+                    <div ng-include="'/assets/javascripts/superiorinstance/views/conectivity.html'" class="animated fadeIn tab-container"></div>
+                </tab>
+                <tab heading="Mapeo de categorías" >
+                    <div ng-include="'/assets/javascripts/superiorinstance/views/category-mapping.html'" class="animated fadeIn tab-container"></div>
+                </tab>
+            </tabset>
+
+        </div>
+    </section>
+</div>

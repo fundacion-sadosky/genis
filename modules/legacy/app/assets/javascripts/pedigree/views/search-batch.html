@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+
+<div class="modal-header">
+	<button type="button" class="close" data-dismiss="modal" aria-label="Close" ng-click="$dismiss()"><span aria-hidden="true">&times;</span></button>
+	<h4>Asociar perfiles de un lote
+		<span id="processingSpan" class="icon-refresh" ng-class="{'spinner': isProcessing}" ng-show="isProcessing"></span>
+	</h4>
+</div>
+<div class="modal-body">
+	<div class="input-group" style="padding-bottom: 10px;">
+	  	<input type="text" class="form-control form-select" aria-describedby="basic-addon2"
+	  		id="searchText" name="searchText" ng-model="searchText"
+			placeholder="Buscar lote por id o nombre"
+			ng-keyup="$event.keyCode == 13 ? searchBatchs() : null">
+	  <span class="input-group-addon" id="basic-addon2" ng-click="searchBatchs()">
+  		<span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+  	  </span>
+	</div>
+	<table class="table  table-striped" data-ng-show="results" style="font-size:x-small;">
+	<thead>
+		<tr>
+			<th class="text-center">Id Lote</th>
+			<th class="text-center">Nombre del Lote</th>
+			<th class="text-center">Fecha</th>
+			<th class="text-center">
+				<button class="btn btn-link-action" ng-click="selectAllBatchs()">
+					<span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+				</button>
+			</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr data-ng-repeat="batch in results">
+			<td class="text-center">{{batch.idBatch}}</td>
+			<td class="text-center">{{batch.label}}</td>
+			<td class="text-center">{{batch.date}}</td>
+			<td style="width:10%">
+				<input type="checkbox" ng-model="batch.selected" ng-disabled="batch.totalProfilesToImport === 0" >
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+</div>
+<div class="modal-footer">
+	<div class="col-md-12 text-left" ng-if="caseType == 'DVI'">
+		<span>Se asociarán los perfiles de referencia
+		y perfiles nn según la categoría definida para cada perfil del lote.
+		Si existe un pedigrí activo solo se asociarán los de referencia.</span>
+	</div>
+	<div class= "col-md-12 text-left" ng-if="caseType == 'MPI'">
+		<span>Se asociaran únicamente los
+		perfiles de referencia del lote.</span>
+	</div>
+<div class="col-md-12 padding-top-10">
+	<button id="canel"
+			ng-click="cancel()"
+			type="button"
+			class="btn btn-secondary-action">
+		Cancelar
+	</button>
+	<button id="accept" ng-disabled="!results.length"
+			ng-click="selectBatch()"
+			type="button"
+			class="btn btn-primary-action">
+		Aceptar
+	</button>
+</div>
+</div>

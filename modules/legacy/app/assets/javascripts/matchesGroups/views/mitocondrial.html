@@ -1,0 +1,120 @@
+<div class="panel panel-default" ng-show="mt.totalItems !== '0'">
+    <div class="row tabla-referencia">
+        <div class="col-md-12 title">
+            <h4 class="title">
+                <span class="bold panel-title">{{mt.title}}</span>
+                <span class="icon-refresh" ng-class="{'spinner': mt.isProcessing}" data-ng-show="mt.isProcessing"></span>
+            </h4>
+
+            <div class="text-right buttons-group-escenarios col-md-10" >
+                <a id="goto-scenarios-button" class="btn btn-round" href="" pdg-confirm pdg-confirm-title="Descartar Coincidencias"
+                   pdg-confirm-content="Al confirmar esta acción se descartarán todas las coincidencias del grupo. ¿Está seguro?"
+                   pdg-on-confirm="descarteMasivo" param="{{mt}}" >Descartar todo</a>
+            </div>
+            
+            
+            <a data-toggle="collapse" href="#mt" class="a-icon-arrow-down" ><span class="icon-arrow-down" ></span></a>
+        </div>
+    </div>
+    <div id="mt" class="panel-collapse collapse">
+        <div class="row tabla-referencia-content">
+            <div class="col-md-12 padding-0"> <!-- id="normal"-->
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                           <th show-permissions="SCENARIO_CRUD" ng-if="!profile.isReference">
+
+                            <th class="text-center head-column">
+                                <pdg-sortable name="Código Laboratorio" predicate="mt.predicate" reverse="mt.reverse"
+                                sort-action="sortBy(normal, 'globalCode')" sort-field="globalCode"
+                                ></pdg-sortable>
+                            </th>
+                            <th class="text-center head-column">
+                                Categoría
+                            </th>
+                            <th class="text-center head-column">
+                                <pdg-sortable name="LR" predicate="mt.predicate" reverse="mt.reverse"
+                                              sort-action="sortBy(normal, 'lr')" sort-field="lr"></pdg-sortable>
+                            </th>
+                            <th class="text-center head-column">
+                                <pdg-sortable name="No coincid." predicate="mt.predicate" reverse="mt.reverse"
+                                sort-action="sortBy(normal, 'type')" sort-field="type"></pdg-sortable> <!-- VARIALBE SIN DEFINIR -->
+                            </th>
+                            <th class="text-center head-column">
+                                <pdg-sortable name="E. agrupador" predicate="mt.predicate" reverse="mt.reverse"
+                                sort-action="sortBy(normal, 'ownerStatus')" sort-field="ownerStatus"
+                                help-tip="matches.groupStatus" help-tip-placement="left"></pdg-sortable>
+                            </th>
+                            <th class="text-center head-column">
+                                <pdg-sortable name="E. coincidente" predicate="mt.predicate" reverse="mt.reverse"
+                                sort-action="sortBy(normal, 'otherStatus')" sort-field="otherStatus"
+                                help-tip="matches.matchStatus" help-tip-placement="top"></pdg-sortable>
+                            </th>
+                            <th class="text-center head-column">
+                                &nbsp;
+                            </th>
+                            
+                            <th class="head-column">Comparar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng:repeat="d in mt.matches" name="{{'det_' + d.globalCode}}">
+                            <td show-permissions="SCENARIO_CRUD" ng-if="!profile.isReference">
+                                    </label>
+                                </td>
+
+                                <td class="text-center" id="globalCode">
+                                    {{d | showcode}}
+                                </td>
+                                <td class="text-center">{{getSubCatName(d.categoryId)}}</td>
+
+                                <td class="text-center">
+                                    <span ng-if="d.lr != 0">{{d.lr | likelihoodratio : true : true}}</span>
+                                    <span ng-if="d.lr == 0">-</span>
+                                </td>
+                                <td class="text-center">
+                                    {{d.mismatches  }}
+                                </td>
+                                
+                                <td class="text-center">{{ matchStatus[d.ownerStatus] }}
+
+                                </td>
+                                
+                                <td class="text-center">{{ matchStatus[d.otherStatus] }}
+
+                                </td>
+                                <td class="text-center">
+                                        <a id="doDescardDisabled" ng-show="(d.ownerStatus==='hit' && d.otherStatus==='hit')" disabled="disabled"
+                                           class="btn">
+                                        <span class="icon-descartar" aria-hidden="true"></span>
+                                    </a>
+                                        <a href="" class="btn" title="Descartar" id="doDescard"  ng-show="!(d.ownerStatus==='hit' && d.otherStatus==='hit')"
+                                           prueba="{{ d.ownerStatus === 'pending'}}"
+                                           pdg-confirm pdg-confirm-title="Descartar Coincidencia"
+                                           pdg-confirm-content="Al confirmar esta acción se descartará la coincidencia. ¿Está seguro?" param="{{d}}"
+                                           data-ng-disabled="closedMatch || {{d.ownerStatus !== 'pending'}} "  class="btn" pdg-on-confirm="discardMatch" >
+                                            <span class="icon-descartar"></span></a>
+
+                                </td>
+                                    
+                                    
+                                    <td title="Ver alelos">
+                                        <a id="go_referencia_{{$index}}" href="{{getHref(profile, d)}}"  class="btn" title="Ver alelo">
+                                            <span class="icon-arrow-right"></span>
+                                            
+                                        </a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="1000000" class="table-in-pagination">
+                                        <pagination style="position: initial; transform: translate(0, 0);" boundary-links="true" ng-change="getMatches(normal)" items-per-page="{{pageSize}}" max-size="10" total-items="mt.totalItems" ng-model="mt.currentPage" class="pagination-sm" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;"  rotate="false"></pagination>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+

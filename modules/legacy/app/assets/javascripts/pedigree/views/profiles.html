@@ -1,0 +1,100 @@
+<div class="row padding-0 match-group-search">
+    <div class="content padding-0">
+        <table class="table">
+            <tr class="table-category-mapping">
+                <td class="col-md-6" >
+                    <div class="input-group col-md-8" >
+                        <input type="text" class="form-control form-select" aria-describedby="basic-addon2"
+                        id="searchText" name="searchText" ng-model="$parent.searchText"
+                        placeholder="Buscar perfil"
+                        ng-keyup="$event.keyCode == 13 ? searchProfile() : null">
+                        <span class="input-group-addon" id="basic-addon2" ng-click="searchProfile()">
+                            <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+                        </span>
+                    </div>
+                </td>
+                <td class="col-md-6">
+                    <button ng-click="addBatchProfiles()"
+                    type="button" ng-if="!isCourtCaseClosed()"
+                    class="btn btn-primary-action" >
+                    Asociar Lote
+                </button>
+                <button ng-click="addProfile()"
+                type="button" ng-if="!isCourtCaseClosed()"
+                class="btn btn-secondary-action" >
+                Asociar Perfiles
+                </button>
+                <button class="btn btn-secondary-action" ng-click="disasociateSelected" ng-if="!isCourtCaseClosed()"
+                pdg-confirm pdg-confirm-title="Confirmar desasociar los perfiles seleccionados"
+                pdg-confirm-content="¿Está seguro de desasociar los perfiles seleccionados?"
+                param=""
+                pdg-on-confirm="disasociateSelected">Desasociar seleccionados</button>
+                </td>        
+            </tr>
+        </table>
+    </div>
+</div>
+<div class="row padding-0">
+    <div class="content padding-0">
+        <span class="ng-binding ng-scope">
+            <b>Cantidad de perfiles:</b> {{totalItems}} <span ng-hide="hideFilterLegend">de {{totalCaseItems}}</span>
+        </span>
+    </div>
+</div>
+<div class="row padding-0">
+    <div class="content padding-0">
+        <table class="table table-bordered" >
+            <thead>
+                <tr>
+                    <th>
+                        <button class="btn btn-link-action" ng-click="selectAll()">
+                            <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+                        </button>
+                    </th>
+                    <th>Id Lote</th>
+                    <th>Nombre Lote</th>
+                    <th>Código GENis</th>
+                    <th>Código Laboratorio</th>
+                    <th>Ver Genotipificacion</th>
+                    <th>Ir al Perfil</th>
+                    <th>Desasociar del Caso</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr data-ng-repeat="p in profiles" >
+                    <td class="col-md-1 centered">
+                        <input type="checkbox" ng-model="p.selected" >
+                    </td>
+                    <td class="col-md-1 centered">{{p.idBatch}}</td>
+                    <td class="col-md-1 centered">{{p.batchLabel}}</td>
+                    <td class="col-md-2 centered">{{p.globalCode}}</td>
+                    <td class="col-md-5 centered">{{p.internalCode}}</td>
+                    <td class="col-md-1 centered" title="Ver genotipificación">
+                        <button class="btn btn-default btn-link-action btn-link-border" ng-if="!isCourtCaseClosed()" pdg-gen-popover gen="p.genotypification">
+                            <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
+                        </button>
+                    </td>
+                    <td show-permissions="DNA_PROFILE_CRUD" class="col-md-1 centered">
+                        <a id="showview_{{$index}}" class="btn btn-default btn-link-action btn-link-border" ng-if="!isCourtCaseClosed()" href="#/profile/{{p.globalCode}}?tab=dna">
+                            <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
+                        </a>
+                    </td>
+                    <td class="col-md-1 centered">
+                        <a id="desasociate_{{$index}}" ng-if="!isCourtCaseClosed()"  class="btn btn-default btn-link-action btn-link-border" pdg-confirm pdg-confirm-title="Confirmar desasociar el perfil {{p.globalCode}}" pdg-confirm-content="¿Está seguro de desasociar el perfil {{p.globalCode}}?" param="{{p.globalCode}}" pdg-on-confirm="removeProfile" >
+                            <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                        </a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        
+        
+    </div>
+</div>
+        
+        
+<footer class="pedigree-footer">
+    <div>
+        <pagination boundary-links="true" ng-change="changePage()" items-per-page="{{pageSize}}" max-size="10" total-items="totalItems" data-ng-model="$parent.currentPageNumber" class="pagination-sm" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;"  rotate="false"></pagination>
+    </div>
+</footer>

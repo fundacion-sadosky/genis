@@ -1,0 +1,182 @@
+
+<div class="row padding-top-10">
+    <div class="col-md-5 padding-right-0" style="padding-bottom: 10px;">
+        <table class="table table-condensed table-genogram m-b-10">
+            <thead>
+            <tr>
+                <th><input type="checkbox" ng-model="selection.allSelected" ng-change="changeAllSelection(selection.allSelected)" /></th>
+                <th>Alias</th>
+                <th>Padre</th>
+                <th>Madre</th>
+                <th widht="10%">Sexo</th>
+                <th>?</th>
+                <th></th>
+                <th ng-if="isEditable()"></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr data-ng-repeat="node in pedigree.genogram" ng-class="{'resaltado': node.selected }">
+                <td><input type="checkbox" ng-model="node.selected" ng-change="changeSelection(node, node.selected)" /></td>
+                <td>
+                    <input
+                            type="text"
+                            class="form-control text-center form-select padding-0" ng-disabled="!isEditable() || node.unknown"
+                            ng-pattern="rAlias"
+                            ng-model="node.alias"
+                            ng-blur="changeNodeAlias(node)">
+                </td>
+                <td>
+                    <select
+                            class="form-control form-select padding-0" ng-disabled="!isEditable()"
+                            ng-options="nodeg.alias as nodeg.alias for nodeg in _pedigree.genogram | isMale: node"
+                            ng-model="node.idFather"
+                            ng-change="changeNode(node)">
+                        <option value="">-</option>
+                    </select>
+                </td>
+                <td>
+                    <select
+                            class="form-control form-select padding-0" ng-disabled="!isEditable()"
+                            ng-options="node.alias as node.alias for node in _pedigree.genogram | isFemale: node"
+                            ng-model="node.idMother"
+                            ng-change="changeNode(node)">
+                        <option value="">-</option>
+                    </select>
+                </td>
+                <td>
+                    <select
+                            class="form-control form-select padding-0" ng-disabled="!isEditable()"
+                            ng-options="s as ('sexPedigree.' + s | i18next) for s in sex"
+                            ng-model="node.sex"
+                            ng-change="changeNode(node)">
+                    </select>
+                </td>
+                <td>
+                    <input type="checkbox" ng-model="node.unknown" ng-disabled="!isEditable()"
+                           ng-click="setUnknownIndividual(node)" ng-true-value="true" ng-false-value="false"/>
+                </td>
+                <td>
+                    <button ng-disabled="!hasProfilesAssociated"
+                            ng-if="isEditable() && !node.globalCode && !node.unknown"
+                            ng-click="addProfile(node)"
+                            type="button"
+                            class="btn btn-default btn-link-action btn-link-border">
+                        <span class="glyphicon glyphicon-link" aria-hidden="true"></span>
+                    </button>
+                    <button
+                            ng-if="isEditable() && node.globalCode"
+                            ng-click="disassociateProfile(node)"
+                            type="button" title="{{node.globalCode}}"
+                            class="btn btn-default btn-link-action btn-link-border">
+                        <span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>
+                    </button>
+                    <div ng-if="!isEditable() && node.globalCode" class="pedigree-tooltip">
+                        <a href="" class="info-item" ng-class="{'info-item-selected': p.showCode}" ng-click="p.showCode = !p.showCode"
+                           tooltip-placement="right" tooltip-html-unsafe="{{node.globalCode}}" tooltip-trigger="click">
+                            <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                        </a>
+                    </div>
+                </td>
+                <td ng-if="isEditable()">
+                    <a ng-if="canDelete(node)" ng-click="removeNode(node)">
+                        <span class="glyphicon glyphicon-trash btn-icon-action" aria-hidden="true"></span>
+                    </a>
+                </td>
+            </tr>
+            <tr ng-if="isEditable()">
+                <td><input type="checkbox" ng-model="node.selected" ng-change="changeSelection(node, node.selected)" /></td>
+                <td>
+                    <input id="aliasId"
+                            type="text"
+                            class="form-control form-select"
+                            ng-pattern="rAlias"
+                            ng-model="newNode.alias"
+                            ng-disabled="newNode.unknown">
+                </td>
+                <td>
+                    <select
+                            class="form-control form-select padding-0"
+                            ng-options="node.alias as node.alias for node in _pedigree.genogram | filter: {sex: 'Male'}: true"
+                            ng-model="newNode.idFather">
+                        <option value="">-</option>
+                    </select>
+                </td>
+                <td>
+                    <select
+                            class="form-control form-select padding-0"
+                            ng-options="node.alias as node.alias for node in _pedigree.genogram | filter: {sex: 'Female'}"
+                            ng-model="newNode.idMother">
+                        <option value="">-</option>
+                    </select>
+                </td>
+                <td>
+                    <select
+                            class="form-control form-select padding-0"
+                            ng-options="s as ('sexPedigree.' + s | i18next) for s in sex"
+                            ng-model="newNode.sex">
+                    </select>
+                </td>
+                <td>
+                    <input type="checkbox" ng-model="newNode.unknown" ng-click="setUnknownIndividual(newNode)" />
+                </td>
+                <td>
+                    <button
+                            ng-if="!newNode.globalCode"
+                            ng-click="addProfile(newNode)"
+                            type="button"
+                            class="btn btn-default btn-link-action btn-link-border">
+                        <span class="glyphicon glyphicon-link" aria-hidden="true"></span>
+                    </button>
+                    <button
+                            ng-if="newNode.globalCode"
+                            ng-click="disassociateProfile(newNode)"
+                            type="button" title="{{newNode.globalCode}}"
+                            class="btn btn-default btn-link-action btn-link-border">
+                        <span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>
+                    </button>
+                </td>
+                <td>
+                    <button class="btn" ng-click="addNode()" ng-disabled="!isNodeValid(newNode)">
+                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+                    </button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <button type="button" class="btn btn-secondary-action" style="width: 100%;" ng-if="canCreateScenarios()"
+                ng-disabled="noSelected()" data-ng-click="createScenario()">Nuevo escenario</button>
+    </div>
+    <div class="col-md-7 ">
+        <div id="genogram" class="genogram"></div>
+        <span >
+         <h6>Para seleccionar mas de un nodo presionar las teclas Ctrl + click. Para borrar los nodos seleccionados presionar las teclas Ctrl + Supr</h6>
+        </span>
+    </div>
+</div>
+
+<footer class="pedigree-genogram-footer">
+    <div class="desk-align-right inside-right">
+        <p ng-if="isEditable()" class="italic bold">Este pedigrí se encuentra en modo construcción, por lo tanto no participa de las búsquedas.</p>
+        <span ng-if="!pedigree.processed && isActive()" >
+            <p class="italic bold">Este pedigrí se encuentra ejecutando el proceso de match por compatibilidad.</p>
+            <span id="processingSpan" class="icon-refresh" ng-class="{'spinner': !pedigree.processed}" data-ng-show="!pedigree.processed"></span>
+        </span>
+
+
+
+        <div class="btn btn-link-action" ng-click="cancel()">
+            <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+            <span class="btn-link-action">Cancelar</span>
+        </div>
+
+        <button type="button" class="btn btn-primary-action" ng-if="isEditable()" data-ng-disabled="!hasName()"
+                data-ng-click="save()">Guardar</button>
+
+        <button type="button" class="btn btn-secondary-action"
+                ng-if="exists && isEditable()" data-ng-click="activate()">Activar</button>
+        <button type="button" class="btn btn-primary-action"
+                ng-if="exists && isActive() && !validated" data-ng-disabled="!pedigree.processed" data-ng-click="deactivate()">Editar</button>
+        <button type="button" class="btn btn-secondary-action"
+                ng-if="exists && isActive() && !validated" data-ng-disabled="!pedigree.processed" data-ng-click="closePedigree()">Cerrar</button>
+    </div>
+</footer>

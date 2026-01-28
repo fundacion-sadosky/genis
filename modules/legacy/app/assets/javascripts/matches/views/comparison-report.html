@@ -1,0 +1,296 @@
+<div class="coincidencia-estado row">
+  <div class="scenarios-section scenarios-with-padding">
+    <h1 class="report-title">GENIS - Reporte de comparación {{$parent.profileId}}/{{$parent.matchedProfileId}}</h1>
+    <div class="report-table-title">Resumen de perfiles</div>
+    
+    <table class="summary-table">
+      <tr>
+        <td class="summary-table-index w30"><div>Código Genis:</div></td>
+        <td class="summary-table-elem w70"><div>{{profileId}}</div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index"><div>Codigo Laboratorio:</div></td>
+        <td class="summary-table-elem"><div>{{profileData.internalSampleCode}}</div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index"><div>Categoria:</div></td>
+        <td class="summary-table-elem"><div>{{getSubCatName(categories, profileData.category)}}</div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index"><div>Gen. Asignado:</div></td>
+        <td class="summary-table-elem"><div>{{profileData.assignee}}</div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index"><div>Gen. Responsable:</div></td>
+        <td class="summary-table-elem"><div>{{profileData.responsibleGeneticist}}</div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index"><div>Fecha de caducidad del perfil:</div></td>
+        <td class="summary-table-elem"><div>{{$parent.profileData.profileExpirationDate}}</div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index"><div>Laboratorio:</div></td>
+        <td class="summary-table-elem"><div>{{$parent.profileData.laboratory}}</div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index"><div>Tipo De Muestra Biologica:</div></td>
+        <td class="summary-table-elem"><div>{{$parent.profileData.bioMaterialType}}</div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index"><div>Fecha De Ingreso:</div></td>
+        <td class="summary-table-elem"><div>{{$parent.profileData.sampleEntryDate}}</div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index"><div>Fecha Toma de Muestra:</div></td>
+        <td class="summary-table-elem"><div>{{$parent.profileData.sampleDate}}</div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index"><div>Estado:</div></td>
+        <td class="summary-table-elem"><div>{{$parent.results.status[$parent.profileId].toUpperCase()|translatematchstatus}}</div></td>
+      </tr>
+    </table>
+    <table class="summary-table">
+      <tr>
+        <td class="summary-table-index w30"><div>Código Genis:</div></td>
+        <td class="summary-table-elem w70"><div>{{$parent.matchedProfileId}}</div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index"><div>Codigo Laboratorio:</div></td>
+        <td class="summary-table-elem"><div>{{$parent.matchedProfileData.internalSampleCode}}</div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index"><div>Categoria:</div></td>
+        <td class="summary-table-elem"><div>{{getSubCatName(categories, matchedProfileData.category)}}</div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index"><div>Gen. Asignado:</div></td>
+        <td class="summary-table-elem"><div>{{$parent.matchedProfileData.assignee}}</div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index"><div>Gen. Responsable:</div></td>
+        <td class="summary-table-elem"><div>{{$parent.matchedProfileData.responsibleGeneticist}}</div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index"><div>Fecha de caducidad del perfil:</div></td>
+        <td class="summary-table-elem"><div>{{$parent.matchedProfileData.profileExpirationDate}}</div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index"><div>Laboratorio:</div></td>
+        <td class="summary-table-elem"><div>{{$parent.matchedProfileData.laboratory}}</div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index"><div>Tipo De Muestra Biologica:</div></td>
+        <td class="summary-table-elem"><div>{{$parent.matchedProfileData.bioMaterialType}}</div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index"><div>Fecha De Ingreso:</div></td>
+        <td class="summary-table-elem"><div>{{$parent.matchedProfileData.sampleEntryDate}}</div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index"><div>Fecha Toma de Muestra:</div></td>
+        <td class="summary-table-elem"><div>{{$parent.matchedProfileData.sampleDate}}</div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index"><div>Estado:</div></td>
+        <td class="summary-table-elem"><div>{{$parent.results.status[$parent.matchedProfileId].toUpperCase()|translatematchstatus}}</div></td>
+      </tr>
+    </table>
+    <!-- Estadística -->
+    <div ng-if="showCalculation" class="report-table-title">Estadística</div>
+    <table ng-if="showCalculation" class="summary-table">
+      <tr>
+        <td class="summary-table-index w30"><div>LR:</div></td>
+        <td class="summary-table-elem w70"><div>{{pvalue|likelihoodratioComp:true:statsResolved}}</div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index w30"><div>Base de datos de frecuencias:</div></td>
+        <td class="summary-table-elem w70"><div>{{selectedOptions.frequencyTable||"-"}}</div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index w30"><div>Modelo estadístico:</div></td>
+        <td class="summary-table-elem w70"><div>{{selectedOptions.probabilityModel||"-"}}</div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index w30"><div>Valor &Theta;:</div></td>
+        <td class="summary-table-elem w70"><div>{{selectedOptions.theta||"-"}}</div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index w30"><div>Estrictez:</div></td>
+        <td class="summary-table-elem w70"><div>{{stringency[results.stringency].text}}</div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index w30"><div>Alelos:</div></td>
+        <td class="summary-table-elem w70"><div>{{stringencyAlleles()}}</div></td>
+      </tr>
+    </table>
+    <!-- Analisis mitocondrial -->
+    <div ng-if="results.type===4" class="report-table-title">Análisis mitocondrial</div>
+    <table ng-if="results.type===4" class="summary-table">
+      <tr>
+        <td class="summary-table-index"><div>Rangos definidos:</div></td>
+        <td class="summary-table-elem"><div>{{profileId}}</div></td>
+        <td class="summary-table-elem"><div>
+          <span ng-repeat="range in selectRanges(profileId)">{{rangeAsString(range)}}<br></span>
+        </div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index"><div></div></td>
+        <td class="summary-table-elem"><div>{{matchedProfileId}}</div></td>
+        <td class="summary-table-elem"><div>
+          <span ng-repeat="range in selectRanges(matchedProfileId)">{{rangeAsString(range)}}<br></span>
+        </div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index"><div>Alelos coincidentes::</div></td>
+        <td class="summary-table-elem"><div>{{profileId}}</div></td>
+        <td class="summary-table-elem"><div>
+          <span ng-repeat="alelle in selectMatchingAlleles(profileId, matchingAlleles)">
+            {{alelle|mt:"":results.type:analysisTypes}}<br>
+          </span>
+        </div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index"><div></div></td>
+        <td class="summary-table-elem"><div>{{matchedProfileId}}</div></td>
+        <td class="summary-table-elem"><div>
+          <span ng-repeat="alelle in selectMatchingAlleles(matchedProfileId, matchingAlleles)">
+            {{alelle|mt:"":results.type:analysisTypes}}<br>
+          </span>
+        </div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index"><div>Alelos no coincidentes::</div></td>
+        <td class="summary-table-elem"><div>{{profileId}}</div></td>
+        <td class="summary-table-elem"><div>
+          <span ng-repeat="alelle in selectNonMatchingAlleles(profileId, matchingAlleles)">
+            {{alelle|mt:"":results.type:analysisTypes}}<br>
+          </span>
+        </div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index"><div></div></td>
+        <td class="summary-table-elem"><div>{{matchedProfileId}}</div></td>
+        <td class="summary-table-elem"><div>
+          <span ng-repeat="alelle in selectNonMatchingAlleles(matchedProfileId, matchingAlleles)">
+            {{alelle|mt:"":results.type:analysisTypes}}<br>
+          </span>
+        </div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index"><div>Total de diferencias:</div></td>
+        <td class="summary-table-elem"><div></div></td>
+        <td class="summary-table-elem"><div>{{totalNumberOfDifferences(profileId, matchedProfileId, matchingAlleles)}}</div></td>
+      </tr>
+    </table>
+    
+    <div ng-if="showCalculation" class="report-table-title">Análisis de marcadores cromosómicos</div>
+    <table ng-if="showCalculation" class="summary-table">
+      <tr>
+        <td class="summary-table-index"><div>Marcadores</div></td>
+        <td class="summary-table-index" colspan="2"><div>Perfiles</div></td>
+        <td class="summary-table-index"><div>LR</div></td>
+        <td class="summary-table-index"><div>Estrictez</div></td>
+      </tr>
+      <tr>
+        <td class="summary-table-index"><div></div></td>
+        <td class="summary-table-index"><div>{{profileId}}</div></td>
+        <td class="summary-table-index"><div>{{matchedProfileId}}</div></td>
+        <td class="summary-table-index"><div></div></td>
+        <td class="summary-table-index"><div></div></td>
+      </tr>
+      <tr ng-repeat="marker in markers()">
+        <td class="summary-table-index">{{marker}}</td>
+        <td class="summary-table-elem">{{getMarker(marker, profileId)}}</td>
+        <td class="summary-table-elem">{{getMarker(marker, matchedProfileId)}}</td>
+        <td class="summary-table-elem">
+          {{statsResolved[marker]|likelihoodratioComp:results.matchingAlleles[marker]:statsResolved}}
+        </td>
+        <td class="summary-table-elem">
+          {{stringency[results.matchingAlleles[marker]].text || stringency.NoMatch.text}}
+        </td>
+      </tr>
+    </table>
+<!--    <div class="report-table-title">Coincidencias</div>-->
+<!--    <div ng-repeat="matchPed in sumMatches track by $index">-->
+<!--      <table class="summary-table" ng-repeat="match in matchPed.matchCardPed track by $index">-->
+<!--        <tr>-->
+<!--          <td class="summary-table-index"><div>Pedigrí:</div></td>-->
+<!--          <td class="summary-table-elem"><div>{{matchPed.matchCard.title}}</div></td>-->
+<!--        </tr>-->
+<!--        <tr>-->
+<!--          <td class="summary-table-index"><div>Perfil:</div></td>-->
+<!--          <td class="summary-table-elem"><div>{{match.internalCode}}</div></td>-->
+<!--        </tr>-->
+<!--        <tr>-->
+<!--          <td class="summary-table-index"><div>Codigo Interno:</div></td>-->
+<!--          <td class="summary-table-elem"><div>{{match.sampleCode}}</div></td>-->
+<!--        </tr>-->
+<!--        <tr>-->
+<!--          <td class="summary-table-index"><div>Likelihood ratio:</div></td>-->
+<!--          <td class="summary-table-elem"><div>{{match.lr | likelihoodratioComp: true: true}}</div></td>-->
+<!--        </tr>-->
+<!--        <tr>-->
+<!--          <td class="summary-table-index"><div>Estado:</div></td>-->
+<!--          <td class="summary-table-elem"><div>{{matchPStatus[]}}</div></td>-->
+<!--        </tr>-->
+<!--        <tr>-->
+<!--          <td class="summary-table-index"><div>Fecha de la última coincidencia:</div></td>-->
+<!--          <td class="summary-table-elem"><div>{{match.lastMatchDate | date:'dd / MM / yyyy'}}</div></td>-->
+<!--        </tr>-->
+<!--        <tr>-->
+<!--          <td class="summary-table-index"><div>Categoria:</div></td>-->
+<!--          <td class="summary-table-elem"><div>{{match.categoryId}}</div></td>-->
+<!--        </tr>-->
+<!--      </table>-->
+<!--    </div>-->
+  </div>
+  <!-- Profiles -->
+<!--  <div class="report-table-title">Perfiles</div>-->
+<!--  <div ng-repeat="matchData in profilesForRender track by $index">-->
+<!--    <div class="summary-title">Coincidencia {{matchData[0]}}/{{matchData[1]}} en pedigrí {{matchData[2]}}</div>-->
+<!--    <div class="summary-subtitle">Marcadores cromosómicos</div>-->
+<!--    <table class="summary-table" ng-repeat="chunk in matchData[5]">-->
+<!--      <tr>-->
+<!--        <td class="summary-table-title">Marcador</td>-->
+<!--        <td class="summary-table-title" ng-repeat="profileData in chunk">-->
+<!--          {{profileData[0]}}<br>-->
+<!--          {{profileData[1].alias}}-->
+<!--        </td>-->
+<!--      </tr>-->
+<!--      <tr ng-repeat="marker in markers">-->
+<!--        <td class="summary-table-index">{{marker}}</td>-->
+<!--        <td class="summary-table-elem" ng-repeat="profileData in chunk">-->
+<!--          {{markerMap[profileData[0]][marker].join(" / ")}}-->
+<!--        </td>-->
+<!--      </tr>-->
+<!--    </table>-->
+<!--    <div ng-if="matchData[3]._id">-->
+<!--      <div class="summary-subtitle">Marcadores mitocondriales</div>-->
+<!--      <table class="summary-table" ng-repeat="chunk in matchData[5]">-->
+<!--        <tr>-->
+<!--          <td class="summary-table-title"></td>-->
+<!--          <td class="summary-table-title" ng-repeat="profileData in chunk">-->
+<!--            {{profileData[0]}}<br>-->
+<!--            {{profileData[1].alias}}-->
+<!--          </td>-->
+<!--        </tr>-->
+<!--        <tr>-->
+<!--          <td class="summary-table-index">Rangos definidos:</td>-->
+<!--          <td class="summary-table-elem" ng-repeat="profileData in chunk">-->
+<!--						<span ng-repeat="range in mitoRanges[profileData[0]]">-->
+<!--							{{range.join("-")}}<br>-->
+<!--						</span>-->
+<!--          </td>-->
+<!--        </tr>-->
+<!--        <tr>-->
+<!--          <td class="summary-table-index">Alelos:</td>-->
+<!--          <td class="summary-table-elem" ng-repeat="profileData in chunk">-->
+<!--						<span ng-repeat="allele in mitoAlleles[profileData[0]]">-->
+<!--							{{allele | mitochondrial : ""}}<br>-->
+<!--						</span>-->
+<!--          </td>-->
+<!--        </tr>-->
+<!--      </table>-->
+<!--    </div>-->
+<!--  </div>-->
+</div>

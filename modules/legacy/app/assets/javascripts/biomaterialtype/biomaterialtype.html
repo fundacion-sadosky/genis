@@ -1,0 +1,45 @@
+
+
+<div class="row padding-0 breadcrumb_column">
+	<div class="col-md-12 padding-0">
+		<div class="row padding-0">
+			<div class="breadcrumb_content">
+				<ol class="breadcrumb">
+						<li>
+							<div class="btn volver" onclick="history.back()">
+								<span  class="icon-atras" title="Volver"></span>
+							</div>
+						</li>
+						<li class="active">Tipo de Material Biológico</li>
+                    
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-top">
+	<div class="row content">
+		<div class="col-md-3 padding-left-0">
+			<ul class="list-group" style="margin-bottom: 0px">
+			  <li ng-repeat="b in bmt"
+                  ng-click="selectBmt(b)"
+                  ng-class="{'list-group-menu-item-selected': b == current }"
+                  class="list-group-item list-group-menu-item">
+					<span>{{b.name}}</span>
+					<i class="pull-right glyphicon glyphicon-pencil" ng-click="editBmt(b)"></i>
+			  </li>
+			</ul>
+            <button style="margin-top: 20px;"
+                    type="button"
+                    class="btn btn-block btn-primary-action"
+                    ng-click="addBmt()">Agregar material biológico</button>
+		</div>
+
+		<div class="col-md-9 padding-right-0" ng-if="current">
+            <div><label>{{current.name}}</label></div>
+            <div><strong>Id: </strong>{{current.id}}</div>
+            <div ng-show="current.description"><strong>Descripcion: </strong>{{current.description}}</div>
+		</div>
+	</div>
+</div>

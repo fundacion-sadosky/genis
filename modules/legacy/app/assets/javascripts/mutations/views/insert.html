@@ -1,0 +1,30 @@
+<div class="row padding-0 breadcrumb_column">
+    <div class="col-md-12 padding-0">
+        <div class="row padding-0">
+            <div class="breadcrumb_content">
+                <ol class="breadcrumb">
+                        <li>
+                            <div class="btn volver" onclick="history.back()">
+                                <span  class="icon-atras" title="Volver"></span>
+                            </div>
+						</li>
+						<li class="active">Nuevo Modelo de Mutaciones</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+		</div>
+<div class="container-top " >
+		<form name="labForm" class="content">
+					<div id="tab-1" >
+						<fieldset>
+							<div class="form-group">
+								<div data-ng-include="'/assets/javascripts/mutations/views/save.html'" ></div>
+							</div>
+						</fieldset>
+					</div>
+				<footer class="profile-footer">
+					<button id="saveUpd" type="button" class="btn btn-primary-action pull-right" data-ng-click="saveMutationModel()" ng-disabled="labForm.$invalid">Guardar</button>
+				</footer>
+		</form>
+</div>

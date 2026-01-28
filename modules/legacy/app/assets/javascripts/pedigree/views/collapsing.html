@@ -1,0 +1,26 @@
+<div class="row padding-0 match-group-search">
+    <div class="content padding-0">
+        <table class="table">
+            <tr class="table-category-mapping">
+                <td class="col-md-12" >
+                    <button ng-click="agruparManual()" type="button" class="btn btn-secondary-action pull-right" >
+                        Agrupación Manual
+                    </button>
+                    
+                    <button ng-click="collapse()" type="button" class="btn btn-primary-action pull-right margin-x-10" >
+                        Agrupación automática
+                    </button>
+                </td>
+            </tr>
+        </table>
+        
+    </div>
+</div>
+<div class="row padding-0">
+    <div class="content padding-0">
+        <div ng-controller="matchesController" class="container-top" ng-if="!matchesGroup" ng-include="'/assets/javascripts/pedigree/views/collapsing-matcher-manager.html'" class="animated fadeIn" style="margin-top: 0px;"></div>
+        
+        <div ng-controller="matchesGroupsController" class="container-top" ng-if="matchesGroup"
+        ng-include="'/assets/javascripts/pedigree/views/collapsing-group-detail.html'" class="animated fadeIn" style="margin-top: 0px;"></div>
+    </div>
+</div>

@@ -1,0 +1,25 @@
+<style>
+	.modal-body {
+		padding: 0px;
+		margin-top: 5px;
+	}
+	
+	.modal-footer {
+		margin-top: 0px;
+	}
+	
+	.panel-body {
+		padding: 0px;
+	}
+	
+	li {
+  		margin-top: 1em;
+	}
+</style>
+
+<div id="signup-content">
+	<div data-ng-include="'/assets/javascripts/signup/request.html'" ng-show="step == 'request'"></div>
+	<div data-ng-include="'/assets/javascripts/signup/disclaimer.html'" ng-show="step == 'disclaimer'"></div>
+	<div data-ng-include="'/assets/javascripts/signup/challenge.html'" ng-show="step == 'challenge'"></div>
+	<div data-ng-include="'/assets/javascripts/signup/confirmation.html'" ng-show="step == 'confirmation'"></div>
+</div>

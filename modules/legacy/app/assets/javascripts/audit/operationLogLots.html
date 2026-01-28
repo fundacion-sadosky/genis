@@ -1,0 +1,83 @@
+<div class="row padding-0 breadcrumb_column">
+	<div class="col-md-12 padding-0">
+		<div class="row padding-0">
+			<div class="breadcrumb_content">
+				<ol class="breadcrumb">
+					<li>
+						<div class="btn volver" onclick="history.back()">
+							<span  class="icon-atras" title="Volver"></span> 
+						</div>
+					</li>
+					<li class="active">Historial de operaciones - Grupo de eventos</li>
+				</ol>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="container-top">
+	<div class="row">
+		<div class="content m-t-10 padding-0">
+			<table class="table table-bordered" data-ng-init="listLots()" >
+				<thead>
+					<tr>
+						<th class="col-md-2 text-center">Id</th>
+						<th class="col-md-6 text-center">Fecha Inicio</th>
+						<th class="col-md-2 text-center">Verificar</th>
+						<th class="col-md-2 text-center">Ver</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr data-ng-repeat="lot in lots">
+						<td>{{lot.id}}</td>
+						<td>{{lot.initDate | date:'yyyy-MM-dd HH:mm'}}</td>
+						<td class="col-md-1 centered">
+							<button 
+							id="checkLot_{{$index}}" 
+							data-ng-click="checkLot(lot.id)"
+							popover-title="Verificación de lote" 
+							popover-placement="left" 
+							popover-template="'template-check-lot'"
+							popover-trigger="focus"
+							popoverClass="my-custom-popover-class"
+							type="button" 
+							class="btn btn-default">
+							<span class="glyphicon glyphicon-retweet" aria-hidden="true"></span>
+						</button>
+					</td>
+					<td class="col-md-1 centered">
+						<a id="showLot_{{$index}}" class="btn btn-default" href="#/audit/operationLogLots/{{lot.id}}">
+							<span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
+						</a>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		
+		<script type="text/ng-template" id="template-check-lot">
+			<div>
+				
+				<div ng-show="showSpinner"><i class="icon-refreshspinner"></i></div>
+				
+				<div ng-show="!showSpinner && verificationResult == ''">
+					El lote de logs es consisitente y no presenta alteraciones.
+				</div>
+				<div ng-show="!showSpinner && verificationResult != ''">
+					<h5>Error al verificar el lote</h5>
+					<p>La entrada #{{verificationResult.signedEntry.index}} computó la firma:</p>
+					<p class="well well-sm">{{verificationResult.signedEntry.signature}}</p>
+					<p>Y se esperaba obtener la firma:</p>
+					<p class="well well-sm">{{verificationResult.expectedSignature}}</p>
+				</div>
+				
+			</div>
+		</script>
+	</div>
+</div>
+</div>
+
+<footer>
+	<div class="text-center">
+		<pagination boundary-links="true" ng-change="listLots()" max-size="10" items-per-page="{{pageSize}}" total-items="totalItems" ng-model="currentPage" class="pagination-sm" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;" rotate="false" style=""></pagination>
+	</div>
+</footer>
