@@ -368,7 +368,11 @@ class ProfileServiceImpl @Inject() (
       val maxAllelesPerLocus = qualityParams.maxAllelesPerLocus(category, kit)
       val maxOverageDeviatedLociPerProfile = qualityParams.maxOverageDeviatedLociPerProfile(category, kit)
       val multiallelic = qualityParams.multiallelic(category, kit)
-      val trisomyTreshold = if (multiallelic) 4 else 2
+      val trisomyTreshold = if (category.isReference) {
+        if (multiallelic) 4 else 2
+      } else {
+        maxAllelesPerLocus
+      }
 
       val categoryConfiguration = category.configurations.getOrElse(kit.`type`, CategoryConfiguration("", "", "K", "0", 6))
 
@@ -382,14 +386,6 @@ class ProfileServiceImpl @Inject() (
             {
               getRequiredLocusInAnalysis(analysis,fullLocus) < requiredLociKit
             }, Messages("error.E0698")) ::
-          cond(
-            {
-              !category.isReference && analysis.exists({
-                case (marker, alleles) => {
-                  alleles.size > maxAllelesPerLocus
-                }
-              })
-            }, Messages("error.E0684",maxAllelesPerLocus )) ::
           cond(
             {
               analysis.count({
