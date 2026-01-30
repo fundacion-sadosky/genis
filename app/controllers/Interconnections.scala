@@ -19,12 +19,14 @@ import play.api.Logger
 import play.api.i18n.Messages
 import types.SampleCode
 import profiledata.{ProfileDataRepository, ProfileDataService}
+import matching.{MatchingRepository, MatchResult}
 
 @Singleton
 class Interconnections @Inject()( val protoRepo: ProtoProfileRepository,
                                   interconnectionService : InterconnectionService,
                                   profiledataService: ProfileDataService,
-                                  profileDataRepository: ProfileDataRepository
+                                  profileDataRepository: ProfileDataRepository,
+                                  matchingRepository: MatchingRepository
                                 ) extends Controller {
   val logger: Logger = Logger(this.getClass())
 
@@ -354,6 +356,7 @@ class Interconnections @Inject()( val protoRepo: ProtoProfileRepository,
 
 
 
+  //Cuando se recibe un perfil de una instancia inferior
   def uploadProfile(globalCode:String, userName: String) = Action.async {
     _ => {
       interconnectionService.uploadProfile(globalCode, userName).map{

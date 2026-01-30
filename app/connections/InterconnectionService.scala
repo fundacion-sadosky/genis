@@ -26,7 +26,7 @@ import play.api.Logger
 import play.api.libs.json.{JsValue, Json, __}
 import play.api.libs.ws.{WSBody, _}
 import profile.{Profile, ProfileService}
-import profiledata.{DeletedMotive, ProfileData, ProfileDataAttempt, ProfileDataService}
+import profiledata.{DeletedMotive, ProfileData, ProfileDataAttempt, ProfileDataService, ProfileDataRepository}
 import types.{AlphanumericId, Permission, SampleCode}
 import user.{RoleService, UserService}
 import connections.MatchSuperiorInstance
@@ -177,6 +177,7 @@ class InterconnectionServiceImpl @Inject()(
                                             @Named("uploadProfile") val uploadProfile: String,
                                             @Named("labCode") val currentInstanceLabCode: String,
                                             profileDataService: ProfileDataService = null,
+                                            profileDataRepository: ProfileDataRepository,
                                             categoryService: CategoryService = null,
                                             traceService: TraceService = null,
                                             matchingRepository: MatchingRepository = null,
@@ -1490,77 +1491,109 @@ class InterconnectionServiceImpl @Inject()(
     Future.successful(())
   }
 
+  // Add this new helper method within InterconnectionServiceImpl class
+  def isUplpoadable(globalCode: String): Future[Boolean] = {
+    val sample = SampleCode(globalCode)
 
+    matchingRepository.matchesByGlobalCode(sample).map { matches =>
+      // If there are no matches, it's uploadable
+      if (matches.isEmpty) {
+        true
+      } else {
+        // Not uploadable if *any* "other" profile in the match pair
+        // is already replicated in PROFILE_UPLOADED
+        !matches.exists { m =>
+          val otherSample: SampleCode =
+            if (m.leftProfile.globalCode.text == globalCode)
+              m.rightProfile.globalCode
+            else
+              m.leftProfile.globalCode
+
+          profileDataRepository.getIsProfileReplicated(otherSample)
+        }
+      }
+    }
+  }
+  // Modify the existing uploadProfile method as follows:
   override def uploadProfile(globalCode: String, userName: String): Future[Either[String, Unit]] = {
     val sampleCode = SampleCode(globalCode)
-    profileService
-      .get(sampleCode)
-      .flatMap {
-        prof => {
-          prof match {
-            case Some(profile) => {
-              profileDataService
-                .get(sampleCode)
-                .flatMap {
-                  pd => {
-                    pd match {
-                      case Some(pd) => {
-                        categoryService.getCategory(pd.category) match {
-                          case Some(category) => {
-                            if (category.replicate) {
-                              getProfileAssociatedCode(profile) match {
-                                case None => {
-                                  this.doUploadProfileToSuperiorInstance(
-                                    profile.copy(
-                                      internalSampleCode = profile.internalSampleCode
-                                    ),
-                                    pd.copy(
-                                      internalSampleCode = profile.globalCode.text
-                                    ), null, userName
-                                  )
-                                }
-                                case Some(sampleCode) => {
-                                  profileService
-                                    .findByCode(sampleCode)
-                                    .flatMap(
-                                      profileAssociated => {
-                                        this.doUploadProfileToSuperiorInstance(
-                                          profile.copy(internalSampleCode = profile.internalSampleCode),
-                                          pd.copy(internalSampleCode = profile.globalCode.text),
-                                          profileAssociated
-                                            .map(
-                                              p => p.copy(
-                                                internalSampleCode = p.globalCode.text,
-                                                labeledGenotypification = None,
-                                                matcheable = false
-                                              )
-                                            ), userName
-                                        )
-                                      })
+    // New check: only proceed if the profile is uploadable
+    isUplpoadable(globalCode).flatMap {
+      case false =>
+        // Profile is not uploadable due to existing matches with replicated profiles.
+        // Using the requested error code E0732.
+        Future.successful(Left(Messages("error.E0732")))
+      case true =>
+        // Original logic for uploading the profile if it's deemed uploadable
+        profileService
+          .get(sampleCode)
+          .flatMap {
+            prof => {
+              prof match {
+                case Some(profile) => {
+                  profileDataService
+                    .get(sampleCode)
+                    .flatMap {
+                      pd => {
+                        pd match {
+                          case Some(pd) => {
+                            categoryService.getCategory(pd.category) match {
+                              case Some(category) => {
+                                if (category.replicate) {
+                                  getProfileAssociatedCode(profile) match {
+                                    case None => {
+                                      this.doUploadProfileToSuperiorInstance(
+                                        profile.copy(
+                                          internalSampleCode = profile.internalSampleCode
+                                        ),
+                                        pd.copy(
+                                          internalSampleCode = profile.globalCode.text
+                                        ), null, userName
+                                      )
+                                    }
+                                    case Some(sampleCode) => {
+                                      profileService
+                                        .findByCode(sampleCode)
+                                        .flatMap(
+                                          profileAssociated => {
+                                            this.doUploadProfileToSuperiorInstance(
+                                              profile.copy(internalSampleCode = profile.internalSampleCode),
+                                              pd.copy(internalSampleCode = profile.globalCode.text),
+                                              profileAssociated
+                                                .map(
+                                                  p => p.copy(
+                                                    internalSampleCode = p.globalCode.text,
+                                                    labeledGenotypification = None,
+                                                    matcheable = false
+                                                  )
+                                                ), userName
+                                            )
+                                          })
+                                    }
+                                  }
+                                } else {
+                                  Future.successful(Left(Messages("error.E0725")))
                                 }
                               }
-                            } else {
-                              Future.successful(Left(Messages("error.E0725")))
+                              case None => {
+                                Future.successful(Left(Messages("error.E0666")))
+                              }
                             }
                           }
                           case None => {
-                            Future.successful(Left(Messages("error.E0666")))
+                            Future.successful(Left(Messages("error.E0109")))
                           }
                         }
                       }
-                      case None => {
-                        Future.successful(Left(Messages("error.E0109")))
-                      }
                     }
-                  }
                 }
-            }
-            case None => {
-              Future.successful(Left(Messages("error.E0109")))
+                case None => {
+                  Future.successful(Left(Messages("error.E0109")))
+                }
+              }
             }
           }
-        }
-      }
+    }
   }
 
   def updateUploadStatus(
