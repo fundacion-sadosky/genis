@@ -80,6 +80,9 @@ lazy val core = (project in file("modules/core"))
       "org.scalatest" %% "scalatest" % "3.2.19" % Test
     ),
     
+    // Modern corre en puerto 9001 (legacy usa 9000)
+    PlayKeys.playDefaultPort := 9001,
+    
     // Fix Jackson version conflict
     dependencyOverrides ++= Seq(
       "com.fasterxml.jackson.core" % "jackson-databind" % "2.14.3",
@@ -95,10 +98,13 @@ lazy val core = (project in file("modules/core"))
 lazy val root = (project in file("."))
   .aggregate(shared, core)
   .dependsOn(core)
-  .enablePlugins(PlayScala)
+  // NO .enablePlugins(PlayScala) aquí - eso hace que busque /app y /conf
   .settings(
     name := "genis",
     scalaVersion := "3.3.1",
+    
+    // Delegar 'run' a core/run
+    run := (core / Compile / run).evaluated,
     
     // El proyecto root delega a core por defecto
     publish / skip := true
