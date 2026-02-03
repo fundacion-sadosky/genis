@@ -1453,8 +1453,8 @@ class SlickProfileDataRepository @Inject() (
         case Some(profile) =>
           // Check the status to determine replication
           profile.status match {
-            //case 20L | 3L => false // 20 - deleted in superuser, 3 - rejected in superuser
-            case 3L => false
+            case 20L | 3L => false // 20 - deleted in superuser, 3 - rejected in superuser
+            //case 3L => false
             case _ => true // Any other status indicates replication
           }
         case None => false // If not found in PROFILE_UPLOADED, it's not replicated
