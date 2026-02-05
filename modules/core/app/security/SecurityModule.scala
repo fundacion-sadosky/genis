@@ -3,9 +3,10 @@ package security
 import com.google.inject.AbstractModule
 import com.google.inject.name.Names
 
-import play.api.Configuration
+import play.api.{Configuration, Environment}
+import services.{CacheService, PlayCacheService}
 
-class SecurityModule(conf: Configuration) extends AbstractModule {
+class SecurityModule(environment: Environment, conf: Configuration) extends AbstractModule {
   override protected def configure(): Unit = {
 
     bind(classOf[AuthService]).to(classOf[AuthServiceImpl])
@@ -14,8 +15,10 @@ class SecurityModule(conf: Configuration) extends AbstractModule {
 
     bind(classOf[CryptoService]).to(classOf[CryptoServiceImpl])
 
+    // CacheService real
+    bind(classOf[CacheService]).to(classOf[PlayCacheService])
+
     // Stubs para dependencias del legacy no migradas aún
-    bind(classOf[CacheService]).to(classOf[CacheServiceStub])
     bind(classOf[UserRepository]).to(classOf[UserRepositoryStub])
     bind(classOf[RoleService]).to(classOf[RoleServiceStub])
     bind(classOf[InferiorInstanceRepository]).to(classOf[InferiorInstanceRepositoryStub])

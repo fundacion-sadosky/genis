@@ -3,57 +3,22 @@ package security
 import java.util.{Base64, NoSuchElementException}
 
 import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.duration.Duration
+import scala.reflect.ClassTag
 import scala.util.{Failure, Success, Try}
+import scala.util.matching.Regex
 
 import javax.inject.{Inject, Named, Singleton}
 import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc.RequestHeader
-import types.TotpToken
 
-import scala.concurrent.duration.Duration
-import scala.util.matching.Regex
+import services.{CacheService, FullUserKey, LoggedUserKey}
+import types.{Permission, TotpToken}
 
 // ============================================================================
 // STUBS para dependencias del legacy que aún no están migradas
 // ============================================================================
-
-// TODO: Migrar desde services.CacheService
-trait CacheService {
-  def get[T](key: CacheKey[T]): Option[T]
-  def set[T](key: CacheKey[T], value: T): Unit
-}
-
-trait CacheKey[T] {
-  def key: String
-  def expiration: Int
-}
-
-case class FullUserKey(userName: String, expiration: Int) extends CacheKey[FullUser] {
-  def key = s"fullUser:$userName"
-}
-
-case class LoggedUserKey(userName: String) extends CacheKey[TotpToken] {
-  def key = s"loggedUser:$userName"
-  def expiration = 3600
-}
-
-// Stub implementation
-@Singleton
-class CacheServiceStub @Inject() () extends CacheService {
-  private val logger = Logger(this.getClass)
-  private val cache = scala.collection.mutable.Map[String, Any]()
-
-  override def get[T](key: CacheKey[T]): Option[T] = {
-    logger.warn(s"CacheService.get STUB para key ${key.key}")
-    cache.get(key.key).map(_.asInstanceOf[T])
-  }
-
-  override def set[T](key: CacheKey[T], value: T): Unit = {
-    logger.warn(s"CacheService.set STUB para key ${key.key}")
-    cache.put(key.key, value)
-  }
-}
 
 // TODO: Migrar desde user.*
 case class User(
@@ -105,13 +70,6 @@ class UserRepositoryStub @Inject() ()(using ec: ExecutionContext) extends UserRe
 }
 
 // TODO: Migrar desde user.RoleService
-case class Permission(name: String, operations: Set[StaticAuthorisationOperation])
-
-object Permission {
-  // STUB: lista vacía de permisos
-  def list: List[Permission] = List.empty
-}
-
 trait RoleService {
   def getRolePermissions(): Map[String, Set[Permission]]
 }
@@ -222,7 +180,7 @@ class AuthServiceImpl @Inject() (
   }
 
   private def validateOneTimePass(userName: String, otp: TotpToken): Boolean = {
-    cache.get(LoggedUserKey(userName))
+    cache.get(LoggedUserKey(userName))(using summon[ClassTag[TotpToken]])
       .fold(true)(usedOtp => usedOtp != otp)
   }
 
@@ -315,7 +273,7 @@ class AuthServiceImpl @Inject() (
         )
       } { userName =>
         cache
-          .get(FullUserKey(userName, credentialsExpTime))
+          .get(FullUserKey(userName, credentialsExpTime))(using summon[ClassTag[FullUser]])
           .fold[Try[String]]({
             val msg = s"no authenticated for $userName"
             logger.info(msg)
@@ -363,7 +321,7 @@ class AuthServiceImpl @Inject() (
   }
 
   override def getCredentials(userName: String): Option[AuthenticatedPair] = {
-    cache.get(FullUserKey(userName, credentialsExpTime)).map(_.credentials)
+    cache.get(FullUserKey(userName, credentialsExpTime))(using summon[ClassTag[FullUser]]).map(_.credentials)
   }
 
   private def matchAuthOp(static: StaticAuthorisationOperation, operation: AuthorisationOperation): Boolean = {
@@ -379,14 +337,14 @@ class AuthServiceImpl @Inject() (
   }
 
   private def canPerform(userId: String, operation: AuthorisationOperation): Boolean = {
-    cache.get(FullUserKey(userId, credentialsExpTime)).fold(false) { user =>
+    cache.get(FullUserKey(userId, credentialsExpTime))(using summon[ClassTag[FullUser]]).fold(false) { user =>
       val permissions = user.userDetail.roles.flatMap { role =>
         roleService.getRolePermissions().getOrElse(role, Set.empty)
       }
       (for {
         permission <- permissions
-        operations <- permission.operations
-      } yield operations).exists(x => matchAuthOp(x, operation))
+        op <- permission.operations
+      } yield op).exists(x => matchAuthOp(x, operation))
     }
   }
 
@@ -407,7 +365,7 @@ class AuthServiceImpl @Inject() (
       case true =>
         if (otp.isEmpty) false
         else {
-          val user = cache.get(FullUserKey(userId, credentialsExpTime)).get
+          val user = cache.get(FullUserKey(userId, credentialsExpTime))(using summon[ClassTag[FullUser]]).get
           otpService.validate(otp.get, user.cryptoCredentials.totpSecret)
         }
     }
