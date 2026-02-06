@@ -18,9 +18,8 @@ class SecurityModule(environment: Environment, conf: Configuration) extends Abst
     // CacheService real
     bind(classOf[CacheService]).to(classOf[PlayCacheService])
 
-    // Stubs para dependencias del legacy no migradas aún
-    bind(classOf[UserRepository]).to(classOf[UserRepositoryStub])
-    bind(classOf[RoleService]).to(classOf[RoleServiceStub])
+    // RoleService real (UserRepository se bindea en UsersModule)
+    bind(classOf[RoleService]).to(classOf[RoleServiceImpl])
     bind(classOf[InferiorInstanceRepository]).to(classOf[InferiorInstanceRepositoryStub])
     bind(classOf[ConnectionRepository]).to(classOf[ConnectionRepositoryStub])
 

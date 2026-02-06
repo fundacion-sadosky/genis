@@ -15,68 +15,73 @@ import play.api.mvc.RequestHeader
 
 import services.{CacheService, FullUserKey, LoggedUserKey}
 import types.{Permission, TotpToken}
+import user.UserStatus
 
 // ============================================================================
-// STUBS para dependencias del legacy que aún no están migradas
+// Tipos de usuario (migrados de user.User.scala)
 // ============================================================================
-
-// TODO: Migrar desde user.*
-case class User(
-  userName: String,
-  roles: Set[String],
-  status: String,
-  canLogin: Boolean = true
-)
 
 case class LdapUser(
   userName: String,
-  encryptedPrivateKey: Array[Byte],
+  firstName: String,
+  lastName: String,
+  email: String,
+  roles: Seq[String],
+  geneMapperId: String,
+  phone1: String,
+  phone2: Option[String] = None,
+  status: UserStatus = UserStatus.pending,
   encryptedPublicKey: Array[Byte],
-  encryptrdTotpSecret: Array[Byte]
-)
+  encryptedPrivateKey: Array[Byte],
+  encryptrdTotpSecret: Array[Byte],
+  superuser: Boolean = false
+):
+  val fullName: String = s"$lastName $firstName"
 
-object LdapUser {
-  def toUser(ldapUser: LdapUser, rolePermissions: Map[String, Set[Permission]]): User = {
-    User(ldapUser.userName, Set.empty, "active", true)
-  }
-}
+object LdapUser:
+  def toUser(ldapUser: LdapUser, rolePermissions: Map[String, Set[Permission]]): User =
+    val permissions = ldapUser.roles.flatMap(role => rolePermissions.getOrElse(role, Set.empty)).toSet
+    User(
+      id = ldapUser.userName,
+      firstName = ldapUser.firstName,
+      lastName = ldapUser.lastName,
+      email = ldapUser.email,
+      geneMapperId = ldapUser.geneMapperId,
+      roles = ldapUser.roles,
+      permissions = permissions,
+      status = ldapUser.status,
+      phone1 = ldapUser.phone1,
+      phone2 = ldapUser.phone2,
+      superuser = ldapUser.superuser
+    )
+
+case class User(
+  id: String,
+  firstName: String,
+  lastName: String,
+  email: String,
+  geneMapperId: String,
+  roles: Seq[String],
+  permissions: Set[Permission],
+  status: UserStatus,
+  phone1: String,
+  phone2: Option[String] = None,
+  superuser: Boolean = false
+):
+  val fullName: String = s"$lastName $firstName"
+  val canLogin: Boolean = status == UserStatus.active
 
 case class UserCredentials(publicKey: Array[Byte], privateKey: Array[Byte], totpSecret: String)
 
 case class FullUser(userDetail: User, cryptoCredentials: UserCredentials, credentials: AuthenticatedPair)
-
-object FullUser {
-  // Nota: FullUser no tiene formato JSON completo por los Array[Byte]
-}
 
 trait UserRepository {
   def bind(userName: String, password: String): Future[Boolean]
   def get(userName: String): Future[LdapUser]
 }
 
-@Singleton
-class UserRepositoryStub @Inject() ()(using ec: ExecutionContext) extends UserRepository {
-  private val logger = Logger(this.getClass)
-
-  override def bind(userName: String, password: String): Future[Boolean] = {
-    logger.warn(s"UserRepository.bind STUB para $userName")
-    Future.successful(false)
-  }
-
-  override def get(userName: String): Future[LdapUser] = {
-    logger.warn(s"UserRepository.get STUB para $userName")
-    Future.failed(new NoSuchElementException(s"User $userName not found (STUB)"))
-  }
-}
-
-// TODO: Migrar desde user.RoleService
 trait RoleService {
   def getRolePermissions(): Map[String, Set[Permission]]
-}
-
-@Singleton
-class RoleServiceStub @Inject() () extends RoleService {
-  override def getRolePermissions(): Map[String, Set[Permission]] = Map.empty
 }
 
 // TODO: Migrar desde connections.*

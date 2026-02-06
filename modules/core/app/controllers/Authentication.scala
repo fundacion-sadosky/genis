@@ -65,7 +65,7 @@ class Authentication @Inject() (
           val response = userOpt.fold[Result](NotFound) { user =>
             // TODO: FullUser no tiene un formato JSON completo aún
             // Ok(Json.toJson(user))
-            Ok(Json.obj("userName" -> user.userDetail.userName, "status" -> "authenticated"))
+            Ok(Json.obj("userName" -> user.userDetail.id, "status" -> "authenticated"))
           }
           response
             .withHeaders("Date" -> new Date().toString)

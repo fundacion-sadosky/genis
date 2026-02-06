@@ -91,9 +91,12 @@ case class LoggedUserKey(userId: String) extends CacheKey[TotpToken] {
   override def expiration: Int = 90
 }
 
+// Key para mapa de permisos por rol (RoleService)
+case object RolePermissionMapKey extends CacheKey[Map[String, Set[types.Permission]]]:
+  override def cacheKey: String = "Keys.rolePermissionMap"
+
 // TODO: Agregar más keys cuando se migren otros módulos
 // - SignupRequestKey
 // - ClearPassRequestKey
 // - Keys.roles
-// - Keys.rolePermissionMap
 // etc.
