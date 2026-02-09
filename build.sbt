@@ -75,6 +75,9 @@ lazy val core = (project in file("modules/core"))
       // LDAP actualizado
       "com.unboundid" % "unboundid-ldapsdk" % "7.0.4",
       
+      // MongoDB driver para FerretDB (Java driver, compatible con Scala 3)
+      "org.mongodb" % "mongodb-driver-sync" % "5.2.1",
+      
       // Testing
       "org.scalatestplus.play" %% "scalatestplus-play" % "7.0.1" % Test,
       "org.scalatest" %% "scalatest" % "3.2.19" % Test
