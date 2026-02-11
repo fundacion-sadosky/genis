@@ -167,11 +167,15 @@ class ProfileReportServiceImpl @Inject() (profileReportMongoRepository: ProfileR
     "BIO_MATERIAL_TYPE", "COURT", "CRIME_INVOLVED", "CRIME_TYPE", "CRIMINAL_CASE",
     "INTERNAL_SAMPLE_CODE", "ASSIGNEE", "LABORATORY", "PROFILE_EXPIRATION_DATE",
     "RESPONSIBLE_GENETICIST", "SAMPLE_DATE", "SAMPLE_ENTRY_DATE", "DELETED",
-    "DELETED_SOLICITOR", "DELETED_MOTIVE"
+    "DELETED_SOLICITOR", "DELETED_MOTIVE",
+    "ANALYSIS_DATE", "ANALYSIS_KIT"
   )
 
 
-  def mapProfileToCsvRow(profile: Tables.ProfileData#TableElementType): String = {
+  def mapProfileToCsvRow(
+    profile: Tables.ProfileData#TableElementType,
+    analysisInfo: Option[(String, String)]): String = {
+    val (analysisDate, analysisKit) = analysisInfo.getOrElse(("", ""))
     List(
       profile.id,
       profile.category,
@@ -193,19 +197,31 @@ class ProfileReportServiceImpl @Inject() (profileReportMongoRepository: ProfileR
       profile.sampleEntryDate.map(_.toString).getOrElse(""),
       profile.deleted,
       profile.deletedSolicitor.getOrElse(""),
-      profile.deletedMotive
+      profile.deletedMotive,
+      analysisDate,
+      analysisKit
     ).mkString(",")
   }
 
 
+
   def generateAllProfilesList(): Future[Result] = {
-    profilePostgresReportRepository.getAllProfilesListing().map { profiles =>
-      // Generate CSV content
-      val csvRows = profiles.map(mapProfileToCsvRow)
-      val csvContent = (CsvProfileHeader.mkString(",") +: csvRows).mkString("\n")
-      Results.Ok(csvContent).as("text/csv")
+    profilePostgresReportRepository.getAllProfilesListing().flatMap { profiles =>
+      val globalCodes = profiles.map(_.globalCode)
+
+      profileReportMongoRepository
+        .getFirstAnalysisInfoByGlobalCodes(globalCodes)
+        .map { analysisMap =>
+          val csvRows = profiles.map { p =>
+            val info = analysisMap.get(p.globalCode)
+            mapProfileToCsvRow(p, info)
+          }
+          val csvContent = (CsvProfileHeader.mkString(",") +: csvRows).mkString("\n")
+          Results.Ok(csvContent).as("text/csv")
+        }
     }
   }
+
 
   val CsvMatchHeader = List("DATE","GLOBAL_CODE1", "CATEGORY1", "ASSIGNEE1", "STATUS1","GLOBAL_CODE2", "CATEGORY2", "ASSIGNEE2", "STATUS2", "STRINGENCY")
 
@@ -231,48 +247,71 @@ class ProfileReportServiceImpl @Inject() (profileReportMongoRepository: ProfileR
   }
 
   val csvReplicatedToSuperior : List[String] = List(
-     "GLOBAL_CODE", "CATEGORY","INTERNAL_CODE", "STATUS", "DELETED", "USER","DELETED_SOLICITOR", "DELETED_MOTIVE"
+     "GLOBAL_CODE", "CATEGORY","INTERNAL_CODE", "STATUS", "DELETED", "USER","DELETED_SOLICITOR", "DELETED_MOTIVE","ANALYSIS_DATE", "ANALYSIS_KIT"
   )
 
-    def generateAllReplicatedToSuperiorList(): Future[Result] = {
-    profilePostgresReportRepository.getAllReplicatedToSuperior().map { profiles =>
-      // Generate CSV content
-      val csvRows = profiles.map { case (globalCode, category, internalCode, status, deleted, user, deletedSolicitor, deletedMotive) =>
-          List(
-            globalCode,
-            category,
-            internalCode,
-            status.toString,
-            deleted.toString,
-            user.getOrElse(""),
-            deletedSolicitor.getOrElse(""),
-            deletedMotive.getOrElse("")
-          ).mkString(",")
+  def generateAllReplicatedToSuperiorList(): Future[Result] = {
+    profilePostgresReportRepository.getAllReplicatedToSuperior().flatMap { profiles =>
+      val globalCodes = profiles.map(_._1) // (globalCode, category, ...)
+
+      profileReportMongoRepository
+        .getFirstAnalysisInfoByGlobalCodes(globalCodes)
+        .map { analysisMap =>
+          val csvRows = profiles.map {
+            case (globalCode, category, internalCode, status, deleted, user, deletedSolicitor, deletedMotive) =>
+              val info = analysisMap.get(globalCode).getOrElse(("", ""))
+              val (analysisDate, analysisKit) = info
+
+              List(
+                globalCode,
+                category,
+                internalCode,
+                status.toString,
+                deleted.toString,
+                user.getOrElse(""),
+                deletedSolicitor.getOrElse(""),
+                deletedMotive.getOrElse(""),
+                analysisDate,
+                analysisKit
+              ).mkString(",")
+          }
+          val csvContent = (csvReplicatedToSuperior.mkString(",") +: csvRows).mkString("\n")
+          Results.Ok(csvContent).as("text/csv")
         }
-      val csvContent = (csvReplicatedToSuperior.mkString(",") +: csvRows).mkString("\n")
-      Results.Ok(csvContent).as("text/csv")
     }
   }
 
   val csvReplicatedFromInferior : List[String] = List(
-    "GLOBAL_CODE", "CATEGORY", "STATUS", "DELETED", "USER","DELETED_SOLICITOR", "DELETED_MOTIVE"
+    "GLOBAL_CODE", "CATEGORY", "STATUS", "DELETED", "USER","DELETED_SOLICITOR", "DELETED_MOTIVE", "ANALYSIS_DATE", "ANALYSIS_KIT"
   )
+
   def generateAllReplicatedFromInferiorList(): Future[Result] = {
-    profilePostgresReportRepository.getAllReplicatedFromInferior().map { profiles =>
-      // Generate CSV content
-      val csvRows = profiles.map { case (globalCode, category, status, deleted, user, deletedSolicitor, deletedMotive) =>
-          List(
-            globalCode,
-            category,
-            status.toString,
-            deleted.toString,
-            user.getOrElse(""),
-            deletedSolicitor.getOrElse(""),
-            deletedMotive.getOrElse("")
-          ).mkString(",")
+    profilePostgresReportRepository.getAllReplicatedFromInferior().flatMap { profiles =>
+      val globalCodes = profiles.map(_._1)
+
+      profileReportMongoRepository
+        .getFirstAnalysisInfoByGlobalCodes(globalCodes)
+        .map { analysisMap =>
+          val csvRows = profiles.map {
+            case (globalCode, category, status, deleted, user, deletedSolicitor, deletedMotive) =>
+              val info = analysisMap.get(globalCode).getOrElse(("", ""))
+              val (analysisDate, analysisKit) = info
+
+              List(
+                globalCode,
+                category,
+                status.toString,
+                deleted.toString,
+                user.getOrElse(""),
+                deletedSolicitor.getOrElse(""),
+                deletedMotive.getOrElse(""),
+                analysisDate,
+                analysisKit
+              ).mkString(",")
+          }
+          val csvContent = (csvReplicatedFromInferior.mkString(",") +: csvRows).mkString("\n")
+          Results.Ok(csvContent).as("text/csv")
         }
-      val csvContent = (csvReplicatedFromInferior.mkString(",") +: csvRows).mkString("\n")
-      Results.Ok(csvContent).as("text/csv")
     }
   }
 
