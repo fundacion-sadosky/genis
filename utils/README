@@ -116,5 +116,17 @@ WHERE
     t."TRACE"::jsonb ? 'categoryConfiguration' -- Ensure 'categoryConfiguration' key exists
     AND NOT (t."TRACE"::jsonb -> 'categoryConfiguration' ? 'multiallelic'); -- Ensure 'multiallelic' is NOT already present
 
-docker exec -e PGPASSWORD=genissqladminp genis_postgres pg_restore -U genissqladmin -h postgres --clean --if-exists -d genisdb
+
+UPDATE "APP"."TRACE" t
+SET "TRACE" = json_build_object('motive', pu."MOTIVE")::text
+FROM "APP"."PROFILE_UPLOADED" pu
+WHERE t."PROFILE" = pu."GLOBAL_CODE"
+  AND t."KIND" = 'interconectionRejected'
+  AND pu."MOTIVE" IS NOT NULL
+  AND t."TRACE" IS DISTINCT FROM json_build_object('motive', pu."MOTIVE")::text;
+
+UPDATE "APP"."TRACE"
+SET "TRACE" = json_build_object('motive', '')::text
+WHERE "KIND" = 'interconectionRejected'
+  AND ( "TRACE" IS NULL OR btrim("TRACE") = '{}' );
  
