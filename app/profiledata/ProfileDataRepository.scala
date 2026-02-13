@@ -48,6 +48,9 @@ import types.SampleCode
 import util.{DefaultDb, Transaction}
 import play.api.i18n.Messages
 import models.Tables.ExternalProfileDataRow
+import org.joda.time.DateTime
+
+import java.sql.Timestamp
 //import play.api.db.slick.Config.driver.simple._
 import scala.slick.driver.PostgresDriver.simple._
 import scala.concurrent.{ExecutionContext, Future}
@@ -1248,24 +1251,59 @@ class SlickProfileDataRepository @Inject() (
     }
   }
 
-  def updateUploadStatus(globalCode: String, status: Long, motive: Option[String], interconnection_error: Option[String], userName: Option[String], operationOriginatedInInstance: String): Future[Either[String, Unit]] = {
-    this.runInTransactionAsync { implicit session => {
+  import java.sql.Timestamp
+
+  def updateUploadStatus(
+                          globalCode: String,
+                          status: Long,
+                          motive: Option[String],
+                          interconnection_error: Option[String],
+                          userName: Option[String],
+                          operationOriginatedInInstance: String
+                        ): Future[Either[String, Unit]] = {
+
+    this.runInTransactionAsync { implicit session =>
       try {
         getByGlobalCode(globalCode).firstOption match {
-          case None => Left(Messages("error.E0940"))
-          case Some(row) => {
-            profileUploaded insertOrUpdate models.Tables.ProfileUploadedRow(row.id, row.globalCode, status, motive, interconnection_error, userName, Some(operationOriginatedInInstance))
+          case None =>
+            Left(Messages("error.E0940"))
+
+          case Some(pdRow) =>
+            // 1. Check existing row to preserve date
+            val existingUploadedOpt = profileUploaded.filter(_.globalCode === globalCode).firstOption
+            val existingDateUploaded = existingUploadedOpt.flatMap(_.dateUploaded)
+
+            // 2. Determine new date
+            val newDateUploaded: Option[Timestamp] =
+              if (status == 2L) Some(new Timestamp(System.currentTimeMillis()))
+              else existingDateUploaded
+
+            // 3. Create the row object
+            val rowToUpsert = models.Tables.ProfileUploadedRow(
+              id                          = pdRow.id,
+              globalCode                  = pdRow.globalCode,
+              status                      = status,
+              motive                      = motive,
+              interconnection_error       = interconnection_error,
+              userName                    = userName,
+              operationOriginatedInInstance = Some(operationOriginatedInInstance),
+              dateUploaded                = newDateUploaded
+            )
+
+            // 4. Pass the object directly (no need to unpack/repack)
+            profileUploaded.insertOrUpdate(rowToUpsert)
+
             Right(())
-          }
         }
       } catch {
-        case e: Exception => {
-          Left(e.getMessage)
-        }
+        case e: Exception =>
+          e.printStackTrace() // Crucial for debugging
+          Left(e.toString)    // Returns "java.lang.Exception: Message" instead of just null
       }
     }
-    }
   }
+
+
 
 
   override def getExternalProfileDataByGlobalCode(globalCode: String): Future[Option[ExternalProfileDataRow]] = {

@@ -2,9 +2,9 @@
 package models
 
 import java.util.Date
-
 import inbox.NotificationType
 
+import java.sql.Timestamp
 import scala.slick.model.ForeignKeyAction
 
 // AUTO-GENERATED Slick data model
@@ -1733,29 +1733,46 @@ trait Tables {
 
   lazy val ExternalProfileData = new TableQuery(tag => new ExternalProfileData(tag, Some("APP"), "EXTERNAL_PROFILE_DATA"))
 
-  case class ProfileUploadedRow(id: Long, globalCode:String ,status: Long,motive:Option[String] = None: None.type , interconnection_error: Option[String] = None, userName:Option[String]=None, operationOriginatedInInstance:Option[String]=None)
+  case class ProfileUploadedRow(id: Long, globalCode:String ,status: Long,motive:Option[String] = None: None.type , interconnection_error: Option[String] = None, userName:Option[String]=None, operationOriginatedInInstance:Option[String]=None, dateUploaded: Option[java.sql.Timestamp])
   /** GetResult implicit for fetching ProfileUploaded objects using plain SQL queries */
   implicit def GetResultProfileUploaded(implicit e0: GR[String], e1: GR[Option[String]]): GR[ProfileUploadedRow] = GR{
     prs => import prs._
-      ProfileUploadedRow.tupled((<<[Long],<<[String], <<[Long],<<?[String], <<?[String], <<?[String], <<?[String]))
+      ProfileUploadedRow.tupled((<<[Long],<<[String], <<[Long],<<?[String], <<?[String], <<?[String], <<?[String], <<?[java.sql.Timestamp]))
   }
 
   /** Table description of table PROFILE_UPLOADED. Objects of this class serve as prototypes for rows in queries. */
-  class ProfileUploaded(_tableTag: Tag, schema: Option[String], tableName: String) extends Table[ProfileUploadedRow](_tableTag, schema, tableName) {
-    def * = (id,globalCode, status,motive, interconnection_error, userName, operationOriginatedInInstance) <> (ProfileUploadedRow.tupled, ProfileUploadedRow.unapply)
+  class ProfileUploaded(_tableTag: Tag, schema: Option[String], tableName: String)
+    extends Table[ProfileUploadedRow](_tableTag, schema, tableName) {
+
+    def * =
+      (id, globalCode, status, motive, interconnection_error, userName, operationOriginatedInInstance, dateUploaded) <> (
+        (ProfileUploadedRow.apply _).tupled,
+        ProfileUploadedRow.unapply
+      )
+
     /** Maps whole row to an option. Useful for outer joins. */
-    def ?  = (id.?,globalCode.?, status.?,motive,interconnection_error, userName,operationOriginatedInInstance).shaped.<>({ r=>import r._; _1.map(_=> ProfileUploadedRow.tupled((_1.get, _2.get,_3.get,_4, _5, _6, _7)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? =
+      (id.?, globalCode.?, status.?, motive, interconnection_error, userName, operationOriginatedInInstance, dateUploaded).shaped.<>(
+        { r =>
+          import r._
+          _1.map(_ => ProfileUploadedRow.tupled((_1.get, _2.get, _3.get, _4, _5, _6, _7, _8)))
+        },
+        (_: Any) => throw new Exception("Inserting into ? projection not supported.")
+      )
 
     val id: Column[Long] = column[Long]("ID", O.PrimaryKey)
-    val globalCode: Column[String] = column[String]("GLOBAL_CODE", O.Length(100,varying=true))
+    val globalCode: Column[String] = column[String]("GLOBAL_CODE", O.Length(100, varying = true))
     val status: Column[Long] = column[Long]("STATUS")
     val motive: Column[Option[String]] = column[Option[String]]("MOTIVE")
     val interconnection_error: Column[Option[String]] = column[Option[String]]("INTERCONNECTION_ERROR")
     val userName: Column[Option[String]] = column[Option[String]]("USER")
-    val operationOriginatedInInstance:Column[Option[String]]  = column[Option[String]]("OPERATION_ORIGINATED_IN_INSTANCE")
+    val operationOriginatedInInstance: Column[Option[String]] = column[Option[String]]("OPERATION_ORIGINATED_IN_INSTANCE")
+    val dateUploaded: Column[Option[java.sql.Timestamp]] = column[Option[java.sql.Timestamp]]("DATE_UPLOADED")
   }
 
-  lazy val ProfileUploaded = new TableQuery(tag => new ProfileUploaded(tag, Some("APP"), "PROFILE_UPLOADED"))
+  lazy val ProfileUploaded =
+    new TableQuery(tag => new ProfileUploaded(tag, Some("APP"), "PROFILE_UPLOADED"))
+
 
   case class ProfileSentRow(id: Long, labCode:String,globalCode:String ,status: Long,motive:Option[String] = None, interconnectionError:Option[String] = None, userName:Option[String]=None)
   /** GetResult implicit for fetching ProfileSent objects using plain SQL queries */
