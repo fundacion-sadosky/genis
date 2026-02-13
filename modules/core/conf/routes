@@ -8,5 +8,15 @@ GET     /api/v2/status/detailed             controllers.core.StatusController.de
 # Health check (alias)
 GET     /health                             controllers.core.StatusController.index()
 
+# MongoDB/FerretDB endpoints
+GET     /api/v2/mongo/collections           controllers.core.MongoController.listCollections()
+GET     /api/v2/mongo/count/:collection     controllers.core.MongoController.countDocuments(collection: String)
+GET     /api/v2/mongo/stats                 controllers.core.MongoController.stats()
+
+# PostgreSQL endpoints
+GET     /api/v2/postgres/ping               controllers.core.PostgresController.ping()
+GET     /api/v2/postgres/info               controllers.core.PostgresController.info()
+
 # Authentication endpoints
 POST    /login                              controllers.Authentication.login()
+
