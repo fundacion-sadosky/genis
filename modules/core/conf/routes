@@ -7,3 +7,6 @@ GET     /api/v2/status/detailed             controllers.core.StatusController.de
 
 # Health check (alias)
 GET     /health                             controllers.core.StatusController.index()
+
+# Authentication endpoints
+POST    /login                              controllers.Authentication.login()
