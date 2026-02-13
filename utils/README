@@ -115,4 +115,6 @@ SET
 WHERE
     t."TRACE"::jsonb ? 'categoryConfiguration' -- Ensure 'categoryConfiguration' key exists
     AND NOT (t."TRACE"::jsonb -> 'categoryConfiguration' ? 'multiallelic'); -- Ensure 'multiallelic' is NOT already present
+
+docker exec -e PGPASSWORD=genissqladminp genis_postgres pg_restore -U genissqladmin -h postgres --clean --if-exists -d genisdb
  
