@@ -53,6 +53,9 @@ bin/
 # general
 *.class
 
+# audit / internal docs
+docs/
+
 # GENis
 public/export/
 # dev conf files 
