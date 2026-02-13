@@ -49,7 +49,8 @@ lazy val core = (project in file("modules/core"))
     libraryDependencies ++= Seq(
       guice,
       ws,
-      
+      caffeine,  // Play cache
+
       // Play 3.0
       "org.playframework" %% "play" % "3.0.6",
       "org.playframework" %% "play-json" % "3.0.6",
@@ -63,7 +64,11 @@ lazy val core = (project in file("modules/core"))
       // Utilidades actualizadas
       "com.google.guava" % "guava" % "33.4.0-jre",
       "org.apache.commons" % "commons-lang3" % "3.17.0",
+      "commons-codec" % "commons-codec" % "1.17.1",
       "commons-io" % "commons-io" % "2.18.0",
+
+      // TOTP (One-Time Password)
+      "org.jboss.aerogear" % "aerogear-otp-java" % "1.0.0",
       
       // Logback
       "ch.qos.logback" % "logback-classic" % "1.5.15",
