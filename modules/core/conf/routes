@@ -16,3 +16,7 @@ GET     /api/v2/mongo/stats                 controllers.core.MongoController.sta
 # PostgreSQL endpoints
 GET     /api/v2/postgres/ping               controllers.core.PostgresController.ping()
 GET     /api/v2/postgres/info               controllers.core.PostgresController.info()
+
+# Authentication endpoints
+POST    /login                              controllers.Authentication.login()
+
