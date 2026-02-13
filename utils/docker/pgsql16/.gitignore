@@ -1,0 +1,5 @@
+# Ignorar datos de PostgreSQL
+data/
+
+# Ignorar logs de Docker
+*.log
