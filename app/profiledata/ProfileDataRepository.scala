@@ -1374,7 +1374,7 @@ class SlickProfileDataRepository @Inject() (
             None,
             Some(userName),
             isCategoryModificaction,
-            None, labCode)
+            None, labCode, Some(new Timestamp(System.currentTimeMillis())))
           logger.info(s"Inserted new profile received with ID labCode: $labCode, globalCode: $globalCode")
           Right(())
         } catch {
@@ -1397,7 +1397,7 @@ class SlickProfileDataRepository @Inject() (
             Some("Rechazado por el motivo: " + motive),
             Some(userName),
             isCategoryModificaction,
-            None, labCode
+            None, labCode, Some(new Timestamp(System.currentTimeMillis()))
           )
           logger.info(s"Inserted new profile received with ID labCode: $labCode, globalCode: $globalCode, motive: $motive")
           Right(())
@@ -1417,7 +1417,7 @@ class SlickProfileDataRepository @Inject() (
         getProfileReceivedByGlobalCode(globalCode).firstOption match {
           case None => Left(Messages("error.E0940"))
           case Some(row) => {
-            profileReceived insertOrUpdate models.Tables.ProfileReceivedRow(row.globalCode, row.labCode, status, row.motive, row.userName, row.isCategoryModification, Some(interconnection_error), "")
+            profileReceived insertOrUpdate models.Tables.ProfileReceivedRow(row.globalCode, row.labCode, status, row.motive, row.userName, row.isCategoryModification, Some(interconnection_error), "", row.dateReceived)
             Right(())
           }
         }
@@ -1430,24 +1430,59 @@ class SlickProfileDataRepository @Inject() (
     }
   }
 
-  def updateProfileReceivedStatus(labCode: String, globalCode: String, status: Long, motive: Option[String], isCategoryModification: Boolean, interconnection_error: Option[String], userName: Option[String], operationOriginatedInInstance: String): Future[Either[String, Unit]] = {
-    this.runInTransactionAsync { implicit session => {
+  def updateProfileReceivedStatus(
+                                   labCode: String,
+                                   globalCode: String,
+                                   status: Long,
+                                   motive: Option[String],
+                                   isCategoryModification: Boolean,
+                                   interconnection_error: Option[String],
+                                   userName: Option[String],
+                                   operationOriginatedInInstance: String
+                                 ): Future[Either[String, Unit]] = {
+
+    this.runInTransactionAsync { implicit session =>
       try {
-        //getProfileReceivedByGlobalCode(globalCode).firstOption match {
-        //  case None => Left(Messages("error.E0940"))
-       //   case Some(row) => { //hizo un insert con un nuevo id. row es del tipo profileDataRow y debería ser una profileRecevedRow
-            profileReceived insertOrUpdate models.Tables.ProfileReceivedRow(globalCode, labCode, status, motive, userName, isCategoryModification, interconnection_error, operationOriginatedInInstance)
-            Right(())
-          //}
-       // }
-      } catch {
-        case e: Exception => {
-          Left(e.getMessage)
+        // 1. Check if the row already exists based on Primary Key (globalCode)
+        val existingRowOpt = profileReceived
+          .filter(_.globalCode === globalCode)
+          .firstOption
+
+        // 2. Calculate the date to save
+        val dateToSave: Option[java.sql.Timestamp] = existingRowOpt match {
+          case Some(existing) =>
+            // Row exists: Keep the old date
+            existing.dateReceived
+          case None =>
+            // New row: Set current timestamp
+            Some(new java.sql.Timestamp(System.currentTimeMillis()))
         }
+
+        // 3. Create the row object with the calculated date
+        val rowToUpsert = models.Tables.ProfileReceivedRow(
+          globalCode = globalCode,
+          labCode = labCode,
+          status = status,
+          motive = motive,
+          userName = userName,
+          isCategoryModification = isCategoryModification,
+          interconnectionError = interconnection_error,
+          operationOriginatedInInstance = operationOriginatedInInstance,
+          dateReceived = dateToSave // <--- This is the key logic
+        )
+
+        // 4. Perform the upsert
+        profileReceived.insertOrUpdate(rowToUpsert)
+        Right(())
+
+      } catch {
+        case e: Exception =>
+          e.printStackTrace() // Always print the stack trace for debugging
+          Left(e.toString)
       }
     }
-    }
   }
+
 
 
   private def queryPendingApprovalNotifications(labCode: Column[String]) =

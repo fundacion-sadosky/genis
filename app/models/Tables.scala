@@ -1797,20 +1797,20 @@ trait Tables {
   }
   lazy val ProfileSent = new TableQuery(tag => new ProfileSent(tag, Some("APP"), "PROFILE_SENT"))
 
-  case class ProfileReceivedRow(globalCode:String,labCode:String,status: Long,motive:Option[String] = None,  userName:Option[String]= None, isCategoryModification: Boolean ,interconnectionError:Option[String] = None, operationOriginatedInInstance: String)
+  case class ProfileReceivedRow(globalCode:String,labCode:String,status: Long,motive:Option[String] = None,  userName:Option[String]= None, isCategoryModification: Boolean ,interconnectionError:Option[String] = None, operationOriginatedInInstance: String, dateReceived: Option[java.sql.Timestamp])
 
   implicit def GetResultProfileReceived(implicit e0: GR[Long], e1: GR[String], e2: GR[Option[String]]): GR[ProfileReceivedRow] = GR{
     prs => import prs._
-      ProfileReceivedRow.tupled((<<[String],<<[String], <<[Long],<<?[String], <<?[String], <<[Boolean], <<?[String], <<[String]))
+      ProfileReceivedRow.tupled((<<[String],<<[String], <<[Long],<<?[String], <<?[String], <<[Boolean], <<?[String], <<[String], <<?[java.sql.Timestamp]))
   }
   /** Table description of table PROFILE_RECEIVED. Objects of this class serve as prototypes for rows in queries. */
   class ProfileReceived(_tableTag: Tag, schema: Option[String], tableName: String) extends Table[ProfileReceivedRow](_tableTag, schema, tableName) {
 
-    def * = (globalCode, labCode, status, motive, userName, isCategoryModification, interconnectionError, operationOriginatedInInstance) <>
+    def * = (globalCode, labCode, status, motive, userName, isCategoryModification, interconnectionError, operationOriginatedInInstance, dateReceived) <>
       ((ProfileReceivedRow.apply _).tupled, ProfileReceivedRow.unapply)
 
-    def ? = (globalCode.?, labCode.?, status.?, motive, userName, isCategoryModification.?, interconnectionError, operationOriginatedInInstance.?).shaped.<>(
-      { r => import r._; _1.map(_ => ProfileReceivedRow.tupled((_1.get, _2.get, _3.get, _4, _5, _6.get, _7, _8.get))) },
+    def ? = (globalCode.?, labCode.?, status.?, motive, userName, isCategoryModification.?, interconnectionError, operationOriginatedInInstance.?, dateReceived).shaped.<>(
+      { r => import r._; _1.map(_ => ProfileReceivedRow.tupled((_1.get, _2.get, _3.get, _4, _5, _6.get, _7, _8.get, _9))) },
       (_: Any) => throw new Exception("Inserting into ? projection not supported.")
     )
 
@@ -1822,6 +1822,7 @@ trait Tables {
     val isCategoryModification: Column[Boolean] = column[Boolean]("IS_CATEGORY_MODIFICATION")
     val interconnectionError: Column[Option[String]] = column[Option[String]]("INTERCONNECTION_ERROR")
     val operationOriginatedInInstance: Column[String] = column[String]("OPERATION_ORIGINATED_IN_INSTANCE")
+    val dateReceived: Column[Option[java.sql.Timestamp]] = column[Option[java.sql.Timestamp]]("DATE_RECEIVED")
   }
 
   lazy val ProfileReceived = new TableQuery(tag => new ProfileReceived(tag, Some("APP"), "PROFILE_RECEIVED"))
