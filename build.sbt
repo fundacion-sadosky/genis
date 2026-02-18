@@ -49,8 +49,7 @@ lazy val core = (project in file("modules/core"))
     libraryDependencies ++= Seq(
       guice,
       ws,
-      caffeine,  // Play cache
-
+      
       // Play 3.0
       "org.playframework" %% "play" % "3.0.6",
       "org.playframework" %% "play-json" % "3.0.6",
@@ -61,13 +60,20 @@ lazy val core = (project in file("modules/core"))
       "com.typesafe.slick" %% "slick-hikaricp" % "3.5.2",
       "org.postgresql" % "postgresql" % "42.7.5",
       
+      // Play Cache (API + implementación Caffeine)
+      "org.playframework" %% "play-cache" % "3.0.6",
+      "org.playframework" %% "play-caffeine-cache" % "3.0.6",
+
+      // MongoDB driver (para MongoController / FerretDB)
+      "org.mongodb" % "mongodb-driver-sync" % "5.3.1",
+
       // Utilidades actualizadas
       "com.google.guava" % "guava" % "33.4.0-jre",
       "org.apache.commons" % "commons-lang3" % "3.17.0",
-      "commons-codec" % "commons-codec" % "1.17.1",
       "commons-io" % "commons-io" % "2.18.0",
+      "commons-codec" % "commons-codec" % "1.17.1",
 
-      // TOTP (One-Time Password)
+      // OTP (TOTP) - aerogear
       "org.jboss.aerogear" % "aerogear-otp-java" % "1.0.0",
       
       // Logback
@@ -79,9 +85,6 @@ lazy val core = (project in file("modules/core"))
       
       // LDAP actualizado
       "com.unboundid" % "unboundid-ldapsdk" % "7.0.4",
-      
-      // MongoDB driver para FerretDB (Java driver, compatible con Scala 3)
-      "org.mongodb" % "mongodb-driver-sync" % "5.2.1",
       
       // Testing
       "org.scalatestplus.play" %% "scalatestplus-play" % "7.0.1" % Test,
