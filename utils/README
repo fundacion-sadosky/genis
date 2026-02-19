@@ -142,8 +142,12 @@ WHERE t."ID" = (
 )
 AND t."KIND" = 'interconectionUpdload';
 
-
-
+UPDATE "APP"."PROFILE_UPLOADED"
+SET "DATE_UPLOADED" = to_char(
+    ("DATE_UPLOADED"::timestamp), 
+    'YYYY-MM-DD HH24:MI:SS.US'
+) || ' -03:00:00'
+WHERE "DATE_UPLOADED" LIKE '%T%';
 
 -- Ver los que se repiten
 DELETE FROM "APP"."TRACE" t
@@ -155,4 +159,63 @@ WHERE t."PROFILE" = 'AR-B-SCJBA-14XX' 09-10-12 en la inferior. 09 en la superior
     WHERE t2."PROFILE" = t."PROFILE"
       AND t2."KIND" = t."KIND"
   );
- 
+
+
+-- En la instancia inferior agrego las entradas en TRACE de interconectionAproved cuando el perfil fue aprobado en la instancia superior. 
+INSERT INTO "APP"."TRACE" ("PROFILE", "USER", "DATE", "TRACE", "KIND")
+SELECT 
+    t2."PROFILE", 
+    t2."USER", 
+    t2."DATE", 
+    t2."TRACE", 
+    'interconectionAproved'  -- <--- Force the new KIND here
+FROM "APP"."TRACE2" t2
+WHERE 
+    -- 1. We are looking for upload records in TRACE2 to convert into approvals
+    t2."KIND" = 'interconectionUpdload'
+
+    -- 2. Logic: The Profile must already exist in TRACE with an 'interconectionUpdload'
+    AND EXISTS (
+        SELECT 1 
+        FROM "APP"."TRACE" t_dest
+        WHERE t_dest."PROFILE" = t2."PROFILE" 
+        AND t_dest."KIND" = 'interconectionUpdload'
+    )
+
+    -- 3. Logic: The Profile must NOT already have an 'interconectionAproved' in TRACE
+    AND NOT EXISTS (
+        SELECT 1 
+        FROM "APP"."TRACE" t_dest
+        WHERE t_dest."PROFILE" = t2."PROFILE" 
+        AND t_dest."KIND" = 'interconectionAproved'
+    )
+    
+    -- 4. Deduplication: Don't insert if we already inserted this specific approval event
+    -- (Checks if an approval with the same date/profile/user already exists)
+    AND NOT EXISTS (
+        SELECT 1
+        FROM "APP"."TRACE" t_dup
+        WHERE t_dup."PROFILE" = t2."PROFILE"
+        AND t_dup."KIND" = 'interconectionAproved'
+        AND t_dup."DATE" = t2."DATE"
+    );
+
+-- En la instancia provincial:
+UPDATE "APP"."PROFILE_RECEIVED" pr
+SET "DATE_RECEIVED" = subquery."determined_date"
+FROM (
+    SELECT
+        t."PROFILE",
+        -- Use COALESCE to pick the first non-NULL date:
+        -- 1. MIN(DATE) for 'importedFromInferior' KIND
+        -- 2. If #1 is NULL (no 'importedFromInferior' found), then MIN(DATE) for any KIND
+        COALESCE(
+            MIN(CASE WHEN t."KIND" = 'importedFromInferior' THEN t."DATE" END),
+            MIN(t."DATE")
+        ) AS "determined_date"
+    FROM "APP"."TRACE" t
+    GROUP BY t."PROFILE"
+) AS subquery
+WHERE pr."GLOBAL_CODE" = subquery."PROFILE";
+
+
