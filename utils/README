@@ -130,6 +130,21 @@ SET "TRACE" = json_build_object('motive', '')::text
 WHERE "KIND" = 'interconectionRejected'
   AND ( "TRACE" IS NULL OR btrim("TRACE") = '{}' );
 
+-- Hago que DATE_UPLOADED sea la fecha en la que se replicó el perfil
+UPDATE "APP"."PROFILE_UPLOADED" p
+SET "DATE_UPLOADED" = to_char(t."DATE", 'YYYY-MM-DD"T"HH24:MI:SS')
+FROM "APP"."TRACE" t
+WHERE t."ID" = (
+  SELECT MIN(t2."ID")
+  FROM "APP"."TRACE" t2
+  WHERE t2."PROFILE" = p."GLOBAL_CODE"
+    AND t2."KIND" = 'interconectionUpdload'
+)
+AND t."KIND" = 'interconectionUpdload';
+
+
+
+
 -- Ver los que se repiten
 DELETE FROM "APP"."TRACE" t
 WHERE t."PROFILE" = 'AR-B-SCJBA-14XX' 09-10-12 en la inferior. 09 en la superior. 
