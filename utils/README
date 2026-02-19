@@ -132,7 +132,7 @@ WHERE "KIND" = 'interconectionRejected'
 
 -- Ver los que se repiten
 DELETE FROM "APP"."TRACE" t
-WHERE t."PROFILE" = 'AR-B-SCJBA-14XX'
+WHERE t."PROFILE" = 'AR-B-SCJBA-14XX' 09-10-12 en la inferior. 09 en la superior. 
   AND t."KIND" = 'interconectionUpdload'
   AND t."ID" <> (
     SELECT MIN(t2."ID")
