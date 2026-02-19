@@ -129,4 +129,15 @@ UPDATE "APP"."TRACE"
 SET "TRACE" = json_build_object('motive', '')::text
 WHERE "KIND" = 'interconectionRejected'
   AND ( "TRACE" IS NULL OR btrim("TRACE") = '{}' );
+
+-- Ver los que se repiten
+DELETE FROM "APP"."TRACE" t
+WHERE t."PROFILE" = 'AR-B-SCJBA-14XX'
+  AND t."KIND" = 'interconectionUpdload'
+  AND t."ID" <> (
+    SELECT MIN(t2."ID")
+    FROM "APP"."TRACE" t2
+    WHERE t2."PROFILE" = t."PROFILE"
+      AND t2."KIND" = t."KIND"
+  );
  
