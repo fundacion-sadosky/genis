@@ -218,4 +218,21 @@ FROM (
 ) AS subquery
 WHERE pr."GLOBAL_CODE" = subquery."PROFILE";
 
+UPDATE "APP"."PROFILE_UPLOADED" pu
+SET
+    "DATE_UPLOADED" = to_char(t_min_date."min_upload_date", 'YYYY-MM-DD HH24:MI:SS')
+FROM (
+    SELECT
+        t."PROFILE",
+        MIN(t."DATE") AS min_upload_date -- Get the earliest date for each profile
+    FROM
+        "APP"."TRACE" t
+    WHERE
+        t."KIND" = 'interconectionUpdload'
+    GROUP BY
+        t."PROFILE"
+) AS t_min_date
+WHERE
+    pu."GLOBAL_CODE" = t_min_date."PROFILE";
+
 
