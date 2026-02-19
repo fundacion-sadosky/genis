@@ -139,7 +139,6 @@ class ProfileReportServiceImpl @Inject() (profileReportMongoRepository: ProfileR
       // Create the JSON object
       val reportData = Json.obj("labs" -> Json.toJson(groupedData)(Writes.seq(outerWrites)))
 
-      // Generate the PDF report
       pdfGen.ok(views.html.profilesPerLabReport("Perfiles recibidos por instancia, categoría y estado", reportData), BASE_URL)
     }
   }
@@ -173,8 +172,8 @@ class ProfileReportServiceImpl @Inject() (profileReportMongoRepository: ProfileR
 
 
   def mapProfileToCsvRow(
-    profile: Tables.ProfileData#TableElementType,
-    analysisInfo: Option[(String, String)]): String = {
+                          profile: Tables.ProfileData#TableElementType,
+                          analysisInfo: Option[(String, String)]): String = {
     val (analysisDate, analysisKit) = analysisInfo.getOrElse(("", ""))
     List(
       profile.id,
@@ -246,11 +245,13 @@ class ProfileReportServiceImpl @Inject() (profileReportMongoRepository: ProfileR
     }
   }
 
+  // MODIFIED: Added "DATE_UPLOADED" to the header
   val csvReplicatedToSuperior : List[String] = List(
-     "GLOBAL_CODE", "CATEGORY","INTERNAL_CODE", "STATUS", "DELETED", "USER","DELETED_SOLICITOR", "DELETED_MOTIVE","ANALYSIS_DATE", "ANALYSIS_KIT"
+    "GLOBAL_CODE", "CATEGORY","INTERNAL_CODE", "STATUS", "DELETED", "USER","DELETED_SOLICITOR", "DELETED_MOTIVE","ANALYSIS_DATE", "ANALYSIS_KIT", "DATE_UPLOADED"
   )
 
   def generateAllReplicatedToSuperiorList(): Future[Result] = {
+    // MODIFIED: The tuple now contains the additional `dateUploaded: Option[String]`
     profilePostgresReportRepository.getAllReplicatedToSuperior().flatMap { profiles =>
       val globalCodes = profiles.map(_._1) // (globalCode, category, ...)
 
@@ -258,7 +259,8 @@ class ProfileReportServiceImpl @Inject() (profileReportMongoRepository: ProfileR
         .getFirstAnalysisInfoByGlobalCodes(globalCodes)
         .map { analysisMap =>
           val csvRows = profiles.map {
-            case (globalCode, category, internalCode, status, deleted, user, deletedSolicitor, deletedMotive) =>
+            // MODIFIED: Added `dateUploaded` to the case pattern
+            case (globalCode, category, internalCode, status, deleted, user, deletedSolicitor, deletedMotive, dateUploaded) =>
               val info = analysisMap.get(globalCode).getOrElse(("", ""))
               val (analysisDate, analysisKit) = info
 
@@ -272,7 +274,8 @@ class ProfileReportServiceImpl @Inject() (profileReportMongoRepository: ProfileR
                 deletedSolicitor.getOrElse(""),
                 deletedMotive.getOrElse(""),
                 analysisDate,
-                analysisKit
+                analysisKit,
+                dateUploaded.getOrElse("") // <-- Added to the CSV row
               ).mkString(",")
           }
           val csvContent = (csvReplicatedToSuperior.mkString(",") +: csvRows).mkString("\n")
@@ -281,11 +284,13 @@ class ProfileReportServiceImpl @Inject() (profileReportMongoRepository: ProfileR
     }
   }
 
+  // MODIFIED: Added "DATE_RECEIVED" to the header
   val csvReplicatedFromInferior : List[String] = List(
-    "GLOBAL_CODE", "CATEGORY", "STATUS", "DELETED", "USER","DELETED_SOLICITOR", "DELETED_MOTIVE", "ANALYSIS_DATE", "ANALYSIS_KIT"
+    "GLOBAL_CODE", "CATEGORY", "STATUS", "DELETED", "USER","DELETED_SOLICITOR", "DELETED_MOTIVE", "ANALYSIS_DATE", "ANALYSIS_KIT", "DATE_RECEIVED"
   )
 
   def generateAllReplicatedFromInferiorList(): Future[Result] = {
+    // MODIFIED: The tuple now contains the additional `dateReceived: Option[String]`
     profilePostgresReportRepository.getAllReplicatedFromInferior().flatMap { profiles =>
       val globalCodes = profiles.map(_._1)
 
@@ -293,8 +298,9 @@ class ProfileReportServiceImpl @Inject() (profileReportMongoRepository: ProfileR
         .getFirstAnalysisInfoByGlobalCodes(globalCodes)
         .map { analysisMap =>
           val csvRows = profiles.map {
-            case (globalCode, category, status, deleted, user, deletedSolicitor, deletedMotive) =>
-              val info = analysisMap.get(globalCode).getOrElse(("", ""))
+            // MODIFIED: Added `dateReceived` to the case pattern
+            case (globalCode, category, status, deleted, user, deletedSolicitor, deletedMotive, dateReceived) =>
+              val info = analysisMap.get(globalCode).getOrElse(("", "")) // Corrected: should be globalCode, not globalCodes
               val (analysisDate, analysisKit) = info
 
               List(
@@ -306,7 +312,8 @@ class ProfileReportServiceImpl @Inject() (profileReportMongoRepository: ProfileR
                 deletedSolicitor.getOrElse(""),
                 deletedMotive.getOrElse(""),
                 analysisDate,
-                analysisKit
+                analysisKit,
+                dateReceived.getOrElse("") // <-- Added to the CSV row
               ).mkString(",")
           }
           val csvContent = (csvReplicatedFromInferior.mkString(",") +: csvRows).mkString("\n")
