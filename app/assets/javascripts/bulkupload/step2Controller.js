@@ -53,13 +53,26 @@ define(['jquery', 'lodash'], function($, _) {
             return function(profile) {
                 return getIsProfileReplicatedInternalCode(profile.sampleName)
                     .then(function(isReplicated) {
-                        profile.replicateDisabled = !subcategory[profile.category].replicate || isReplicated || profile.status !== 'Imported';
-                        profile.replicate = profile.replicate && !profile.replicateDisabled;
-                        _.forEach(profile.genotypification, _.partial(bulkuploadService.fillRange, $scope.locusById, locusService.isOutOfLadder));
+                        profile.replicated = isReplicated;
+
+                        profile.replicateDisabled =
+                            !subcategory[profile.category].replicate ||
+                            profile.replicated ||
+                            profile.status !== 'Imported';
+
+                        if (profile.replicateDisabled) {
+                            profile.replicate = false;
+                        }
+
+                        _.forEach(
+                            profile.genotypification,
+                            _.partial(bulkuploadService.fillRange, $scope.locusById, locusService.isOutOfLadder)
+                        );
                         return profile;
                     });
             };
         }
+
 
         var getBatchProtoProfiles = function(batch) {
             batch.isProcessing = true;
@@ -162,35 +175,71 @@ define(['jquery', 'lodash'], function($, _) {
         }
 
         var updateStatus = function(sample, status, batch) {
-            var id = parseInt(sample.id);
+            var id = parseInt(sample.id, 10);
             batch.isProcessing = true;
-            return bulkuploadService.changeStatus(id, status, sample.replicate, batch.desktopSearch).then(function(response) {
-                    if (response.data.length > 0) {
-                        if (batch.id) {
-                            $scope.protoProfiles[batch.id].forEach(function(b){
-                                if (b.id === id) {b.errors = response.data;}
-                            });
-                        } else { $scope.protoProfiles[0].errors = response.data; }
-                    } else {
-                        sample.status = status;
 
-                        // Refresh replicate checkbox state after import
-                        var isReplicatedPromise = $scope.getIsProfileReplicatedInternalCode(sample.sampleName);
-                        isReplicatedPromise.then(function(isReplicated) {
-                            sample.replicateDisabled = !$scope.subcategory[sample.category].replicate || isReplicated || sample.status !== 'Imported';
-                            sample.replicate = sample.replicate && !sample.replicateDisabled;
-                            updateDisableReplicateAllStatus(batch.id); // Update the disableReplicateAll status
-                        });
+            // Desktop search applies only when:
+            //  - batch.desktopSearch is checked
+            //  - the batch has exactly 1 protoProfile
+            //  - the current sample is that protoProfile
+            var isDesktopSearchForThisProfile =
+                batch.desktopSearch &&
+                $scope.protoProfiles[batch.id] &&
+                $scope.protoProfiles[batch.id].length === 1 &&
+                sample.id === $scope.protoProfiles[batch.id][0].id;
+
+            return bulkuploadService
+                .changeStatus(id, status, sample.replicate, isDesktopSearchForThisProfile)
+                .then(function(response) {
+                    if (response.data && response.data.length > 0) {
+                        // Backend returned errors
+                        if (batch.id) {
+                            $scope.protoProfiles[batch.id].forEach(function(b) {
+                                if (b.id === id) {
+                                    b.errors = response.data;
+                                }
+                            });
+                        } else {
+                            $scope.protoProfiles[0].errors = response.data;
+                        }
+                    } else {
+                        // If we approved with desktop search, business status becomes DesktopSearch
+                        sample.status = (status === 'Imported' && isDesktopSearchForThisProfile)
+                            ? 'DesktopSearch'
+                            : status;
+
+                        // Ask backend if already replicated
+                        $scope.getIsProfileReplicatedInternalCode(sample.sampleName)
+                            .then(function(isReplicated) {
+                                sample.replicated = isReplicated;
+
+                                // Enable replicate only if:
+                                //  - subcategory allows replicate
+                                //  - status === 'Imported'
+                                //  - not replicated
+                                // (DesktopSearch and already replicated are both blocked)
+                                sample.replicateDisabled =
+                                    !$scope.subcategory[sample.category].replicate ||
+                                    sample.replicated ||
+                                    sample.status !== 'Imported';
+
+                                if (sample.replicateDisabled) {
+                                    sample.replicate = false;
+                                }
+
+                                updateDisableReplicateAllStatus(batch.id);
+                            });
                     }
+
                     aprobados(batch.id);
                     batch.isProcessing = false;
-                },
-                function(response){
+                }, function(response) {
                     batch.isProcessing = false;
                     alertService.error({message: ' Hubo un error: ' + response.data});
                     $log.log(response);
                 });
         };
+
 
         var rejectPp = function(sample, motive, batch, idMotive) {
             batch.isProcessing = true;

@@ -123,7 +123,7 @@ class SlickProtoProfileRepository @Inject() (
   val queryGetProtoProfiles = Compiled(queryDefineGetProtoProfiles _)
 
   private def queryDefineGetProtoProfilesStep2(batchId: Column[Long], user: Column[String], isSuperUser: Column[Boolean]) = for {
-    pp <- protoProfiles if ((pp.idBatch === batchId) && (isSuperUser || pp.assignee === user) && (pp.status === "Approved" || pp.status === "Rejected" || pp.status === "Imported"|| pp.status === "Uploaded"))
+    pp <- protoProfiles if ((pp.idBatch === batchId) && (isSuperUser || pp.assignee === user) && (pp.status === "Approved" || pp.status === "Rejected" || pp.status === "Imported"|| pp.status === "Uploaded"|| pp.status === "DesktopSearch"))
   } yield (pp)
 
   val queryGetProtoProfilesStep2 = Compiled(queryDefineGetProtoProfilesStep2 _)
@@ -229,7 +229,7 @@ class SlickProtoProfileRepository @Inject() (
                             	SELECT COUNT(*) as "TOTAL" FROM "APP"."PROTO_PROFILE" pp
                             	WHERE pp."ID_BATCH" = bpp."ID"
                             	AND (pp."ASSIGNEE" = ? OR ?)
-                            	AND pp."STATUS" IN ('Approved','Rejected','Imported','Uploaded')
+                            	AND pp."STATUS" IN ('Approved','Rejected','Imported','Uploaded', 'DesktopSearch')
                             ) as "TOTAL",
                             bpp."LABEL", (
                             SELECT COUNT(*) as "TOTAL_APPROVED" FROM "APP"."PROTO_PROFILE" pp
@@ -243,7 +243,7 @@ class SlickProtoProfileRepository @Inject() (
                               SELECT 1 FROM "APP"."PROTO_PROFILE" pp
                               WHERE pp."ID_BATCH" = bpp."ID"
                               AND (pp."ASSIGNEE" = ? OR ?)
-                              AND pp."STATUS" IN ('Approved','Rejected','Imported','Uploaded')
+                              AND pp."STATUS" IN ('Approved','Rejected','Imported','Uploaded', 'DesktopSearch')
                             )
                             GROUP BY bpp."ID"
                             ORDER BY bpp."ID" DESC
@@ -264,6 +264,7 @@ class SlickProtoProfileRepository @Inject() (
                             WHEN pp."STATUS" = 'Incomplete' THEN 1
                             WHEN pp."STATUS" = 'ReadyForApproval' THEN 1
                             WHEN pp."STATUS" = 'Approved' THEN 1
+                            WHEN pp."STATUS" = 'DesktopSearch' THEN 1
                             ELSE 0 END) as "PENDING",
                           sum(CASE
                             WHEN pp."STATUS" = 'Disapproved' THEN 1
