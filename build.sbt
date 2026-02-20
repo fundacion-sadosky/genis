@@ -88,7 +88,8 @@ lazy val core = (project in file("modules/core"))
       
       // Testing
       "org.scalatestplus.play" %% "scalatestplus-play" % "7.0.1" % Test,
-      "org.scalatest" %% "scalatest" % "3.2.19" % Test
+      "org.scalatest" %% "scalatest" % "3.2.19" % Test,
+      "org.scalatestplus" %% "mockito-5-12" % "3.2.19.0" % Test
     ),
     
     // Modern corre en puerto 9001 (legacy usa 9000)

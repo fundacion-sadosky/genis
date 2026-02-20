@@ -19,10 +19,12 @@ object ConstrainedText {
 
   def readsOf[T <: ConstrainedText](factory: String => T): Reads[T] = new Reads[T] {
     def reads(consJson: JsValue) = {
-      try {
-        JsSuccess(factory(consJson.as[String]))
-      } catch {
-        case err: IllegalArgumentException => JsError(err.getMessage)
+      consJson.validate[String].flatMap { str =>
+        try {
+          JsSuccess(factory(str))
+        } catch {
+          case err: IllegalArgumentException => JsError(err.getMessage)
+        }
       }
     }
   }
