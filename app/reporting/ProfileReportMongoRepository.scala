@@ -8,13 +8,17 @@ import play.api.libs.json._
 import play.modules.reactivemongo.json.collection.JSONCollection
 import play.modules.reactivemongo.json.{JSONSerializationPack, _}
 import reactivemongo.api.commands.Command
-import reactivemongo.api.{FailoverStrategy, ReadPreference}
+import reactivemongo.api.{Cursor, FailoverStrategy, ReadPreference}
 import reactivemongo.bson.BSONDocument
 
 import java.util.Date
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 import scala.language.postfixOps
+
+import java.util.Date
+import java.text.SimpleDateFormat
+
 
 abstract class ProfileReportMongoRepository {
   case class MatchData(
@@ -43,6 +47,7 @@ abstract class ProfileReportMongoRepository {
   def countHit(): Future[Int]
   def countDescartes(): Future[Int]
   def getAllMatches: Future[Seq[MatchData]]
+  def getFirstAnalysisInfoByGlobalCodes(globalCodes: Seq[String]): Future[Map[String, (String, String)]]
 
 }
 
@@ -191,5 +196,41 @@ class MongoProfileReportRepository extends ProfileReportMongoRepository
       }
     }
   }
+  override def getFirstAnalysisInfoByGlobalCodes(globalCodes: Seq[String]): Future[Map[String, (String, String)]] = {
+    if (globalCodes.isEmpty) Future.successful(Map.empty)
+    else {
+      val query = Json.obj("globalCode" -> Json.obj("$in" -> globalCodes))
+
+      // choose a date format you like
+      val df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+
+      profiles
+        .find(query)
+        .cursor[JsObject]()
+        .collect[Seq](Int.MaxValue, Cursor.FailOnError[Seq[JsObject]]())
+        .map { docs =>
+          docs.flatMap { doc =>
+            val gcOpt = (doc \ "globalCode").asOpt[String]
+
+            val analyses = (doc \ "analyses").asOpt[Seq[JsObject]].getOrElse(Seq.empty)
+            val firstAnalysisOpt = analyses.headOption
+
+            // date stored as { "date": { "$date": 1770846356441 } }
+            val dateOpt: Option[String] = firstAnalysisOpt
+              .flatMap(a => (a \ "date" \ "$date").asOpt[Long])
+              .map(millis => df.format(new Date(millis)))
+
+            val kitOpt: Option[String] =
+              firstAnalysisOpt.flatMap(a => (a \ "kit").asOpt[String])
+
+            (gcOpt, dateOpt, kitOpt) match {
+              case (Some(gc), Some(date), Some(kit)) => Some(gc -> (date, kit))
+              case _                                 => None
+            }
+          }.toMap
+        }
+    }
+  }
+
 
 }

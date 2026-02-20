@@ -227,7 +227,7 @@ define(
           dataFiliationDefined ||
           isFiliationDataFormRequired()
         ) {
-          var updatedProfile = _.cloneDeep($scope.models.selectedProfiledata);
+          var updatedProfile = _.cloneDeep($scope.models.matchingCodesModel);
           updatedProfile.category = $scope.models.newCategory.id;
           updatedProfile.dataFiliation = $scope.profileData.dataFiliation;
           profileDataService

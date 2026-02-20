@@ -26,7 +26,7 @@ import play.api.Logger
 import play.api.libs.json.{JsValue, Json, __}
 import play.api.libs.ws.{WSBody, _}
 import profile.{Profile, ProfileService}
-import profiledata.{DeletedMotive, ProfileData, ProfileDataAttempt, ProfileDataService, ProfileDataRepository}
+import profiledata.{DeletedMotive, ProfileData, ProfileDataAttempt, ProfileDataRepository, ProfileDataService}
 import types.{AlphanumericId, Permission, SampleCode}
 import user.{RoleService, UserService}
 import connections.MatchSuperiorInstance
@@ -43,8 +43,11 @@ import scala.util.Try
 import inbox.DeleteProfileInfo
 import matching.MatchResult
 import org.apache.hadoop.yarn.util.resource.Resources.none
+import org.apache.spark.sql.catalyst.expressions.CurrentTimestamp
 import services.CacheService
 import trace.{CategoryChangeRejectedInSupInfo, MatchInfo, MatchTypeInfo, ProfileImportedFromInferiorInfo, ProfileRejectedInSuperiorInfo, SuperiorCategoryChangeRejectedInfo, SuperiorInstanceCategoryModificationInfo, Trace, TraceInfo, TraceService}
+
+import java.sql.Timestamp
 
 
 trait InterconnectionService {
@@ -490,78 +493,128 @@ class InterconnectionServiceImpl @Inject()(
     }
   }
 
-  private def doUploadProfileToSuperiorInstance(profile: Profile, pd: ProfileData, profileAssociated: Option[Profile] = None, userName: String): Future[Either[String, Unit]] = {
+  private def doUploadProfileToSuperiorInstance(
+                                                 profile: Profile,
+                                                 pd: ProfileData,
+                                                 profileAssociated: Option[Profile] = None,
+                                                 userName: String
+                                               ): Future[Either[String, Unit]] = {
 
+    val futureReturn =
+      categoryService.getCategoriesMappingById(profile.categoryId).flatMap {
+        case None =>
+          logger.debug("No está mapeada la categoria de la instancia superior")
+          profileDataService.updateUploadStatus(
+            profile.globalCode.text,
+            PENDIENTE_ENVIO,
+            Option.empty[String],
+            Some(s"No se puede enviar porque no esta mapeada la categoria ${profile.categoryId.text} en la instancia superior"),
+            Some(userName),
+            currentInstanceLabCode
+          )
+          Future.successful(Left(Messages("error.E0721")))
 
-    val futureReturn = categoryService.getCategoriesMappingById(profile.categoryId).flatMap {
-      case None => {
-        logger.debug("No está mapeada la categoria de la instancia superior")
-        this.profileDataService.updateUploadStatus(profile.globalCode.text, PENDIENTE_ENVIO, Option.empty[String], Some(s"No se puede enviar porque no esta mapeada la categoria ${profile.categoryId.text} en la instancia superior"), Some(userName), currentInstanceLabCode)
-        Future.successful(Left(Messages("error.E0721")))
-      }
-      case Some(idCategorySuperior) => {
-        connectionRepository.getSupInstanceUrl().flatMap {
-          case Some(supUrl) => {
-            this.getConnectionsStatus(supUrl).flatMap {
-              case Left(_) => {
-                this.profileDataService.updateUploadStatus(profile.globalCode.text, PENDIENTE_ENVIO, Option.empty[String], Some(s"No se puede enviar porque no se pudo conectar con la instancia superior"), Some(userName), currentInstanceLabCode)
-                Future.successful(Left(Messages("error.E0723")))
-              }
-              case Right(_) => {
-                var sampleEntryDateString = ""
-                if (pd.sampleEntryDate.isDefined) {
-                  sampleEntryDateString = String.valueOf(pd.sampleEntryDate.get.getTime)
-                }
-                val holder: WSRequestHolder = addHeadersURL(client.url(protocol + supUrl + uploadProfile))
-                  .withHeaders("Content-Type" -> "application/json")
-                  .withHeaders(HeaderInsterconnections.labCode -> pd.laboratory)
-                  .withHeaders(HeaderInsterconnections.laboratoryOrigin -> currentInstanceLabCode)
-                  .withHeaders(HeaderInsterconnections.sampleEntryDate -> sampleEntryDateString)
+        case Some(idCategorySuperior) =>
+          connectionRepository.getSupInstanceUrl().flatMap {
+            case Some(supUrl) =>
+              getConnectionsStatus(supUrl).flatMap {
+                case Left(_) =>
+                  profileDataService.updateUploadStatus(
+                    profile.globalCode.text,
+                    PENDIENTE_ENVIO,
+                    Option.empty[String],
+                    Some("No se puede enviar porque no se pudo conectar con la instancia superior"),
+                    Some(userName),
+                    currentInstanceLabCode
+                  )
+                  Future.successful(Left(Messages("error.E0723")))
 
-                // Hacer que Profile.internalSampleCode=profile.globalcode.text
-
-                val supProfile: Profile = profile.copy(
-                  categoryId = AlphanumericId(idCategorySuperior),
-                  internalSampleCode = profile.globalCode.text
-                )
-                val request = ProfileTransfer(supProfile, Option(profileAssociated).flatten)
-                val outputJson = Json.toJson(request)
-                val outputJsonString = outputJson.toString
-                val futureResponse: Future[WSResponse] = this.sendRequestQueue(holder.withMethod("POST"), outputJsonString)
-                futureResponse.flatMap { result => {
-                    if (result.status == 200) { //Acá empiezo por poner una sola vez el upload en el trace cuando el
-                    traceService.add(Trace(profile.globalCode, userName, new Date(), trace.ProfileInterconectionUploadInfo))
-                    logger.debug("se envio correctamente el perfil a la instancia superior")
-                    this.profileDataService.updateUploadStatus(profile.globalCode.text, ENVIADA, Option.empty[String], Option.empty[String], Some(userName), currentInstanceLabCode)
-                    //Si el perfil existe en PROTO_PROFILE hay que hacer el update del STATUS a Uploaded
-                    this.protoRepo.updateProtoProfileStatus(profile.internalSampleCode, "Uploaded")
-                    sendFiles(profile.globalCode.text, superiorLabCode)
-                    Future.successful(Right(()))
-                  } else {
-                    logger.debug("Error al conectarse a la instancia superior")
-                    this.profileDataService.updateUploadStatus(profile.globalCode.text, PENDIENTE_ENVIO, Option.empty[String], Option.empty[String], Some(userName), currentInstanceLabCode)
-                    Future.successful(Left(Messages("error.E0731")))
+                case Right(_) =>
+                  var sampleEntryDateString = ""
+                  if (pd.sampleEntryDate.isDefined) {
+                    sampleEntryDateString = String.valueOf(pd.sampleEntryDate.get.getTime)
                   }
-                }
-                }
+
+                  val holder: WSRequestHolder =
+                    addHeadersURL(client.url(protocol + supUrl + uploadProfile))
+                      .withHeaders("Content-Type" -> "application/json")
+                      .withHeaders(HeaderInsterconnections.labCode -> pd.laboratory)
+                      .withHeaders(HeaderInsterconnections.laboratoryOrigin -> currentInstanceLabCode)
+                      .withHeaders(HeaderInsterconnections.sampleEntryDate -> sampleEntryDateString)
+
+                  val supProfile: Profile = profile.copy(
+                    categoryId = AlphanumericId(idCategorySuperior),
+                    internalSampleCode = profile.globalCode.text
+                  )
+
+                  val request        = ProfileTransfer(supProfile, Option(profileAssociated).flatten)
+                  val outputJson     = Json.toJson(request)
+                  val outputJsonString = outputJson.toString
+                  val futureResponse: Future[WSResponse] =
+                    sendRequestQueue(holder.withMethod("POST"), outputJsonString)
+
+                  futureResponse.flatMap { result =>
+                    if (result.status == 200) {
+                      traceService.add(
+                        Trace(profile.globalCode, userName, new Date(), trace.ProfileInterconectionUploadInfo)
+                      )
+                      logger.debug("se envio correctamente el perfil a la instancia superior")
+
+                      profileDataService.updateUploadStatus(
+                        profile.globalCode.text,
+                        ENVIADA,
+                        Option.empty[String],
+                        Option.empty[String],
+                        Some(userName),
+                        currentInstanceLabCode
+                      )
+
+                      protoRepo.updateProtoProfileStatus(profile.internalSampleCode, "Uploaded")
+                      sendFiles(profile.globalCode.text, superiorLabCode)
+                      Future.successful(Right(()))
+                    } else {
+                      logger.debug("Error al conectarse a la instancia superior")
+                      profileDataService.updateUploadStatus(
+                        profile.globalCode.text,
+                        PENDIENTE_ENVIO,
+                        Option.empty[String],
+                        Option.empty[String],
+                        Some(userName),
+                        currentInstanceLabCode
+                      )
+                      Future.successful(Left(Messages("error.E0731")))
+                    }
+                  }
               }
-            }
+
+            case None =>
+              profileDataService.updateUploadStatus(
+                profile.globalCode.text,
+                PENDIENTE_ENVIO,
+                Option.empty[String],
+                Some("No se puede enviar porque no se pudo conectar con la instancia superior"),
+                Some(userName),
+                currentInstanceLabCode
+              )
+              Future.successful(Left(Messages("error.E0731")))
           }
-          case None => {
-            this.profileDataService.updateUploadStatus(profile.globalCode.text, PENDIENTE_ENVIO, Option.empty[String], Some(s"No se puede enviar porque no se pudo conectar con la instancia superior"), Some(userName), currentInstanceLabCode)
-            Future.successful(Left(Messages("error.E0731")))
-          }
-        }
+      }.recoverWith {
+        case e: Exception =>
+          logger.error("Error de conexión con la instancia superior", e)
+          profileDataService.updateUploadStatus(
+            profile.globalCode.text,
+            PENDIENTE_ENVIO,
+            Option.empty[String],
+            Some("No se puede enviar porque no se pudo conectar con la instancia superior"),
+            Some(userName),
+            currentInstanceLabCode
+          )
+          Future.successful(Left(Messages("error.E0731")))
       }
-    }.recoverWith {
-      case e: Exception => {
-        logger.error("Error de conexión con la instancia superior", e)
-        this.profileDataService.updateUploadStatus(profile.globalCode.text, PENDIENTE_ENVIO, Option.empty[String], Some(s"No se puede enviar porque no se pudo conectar con la instancia superior"), Some(userName), currentInstanceLabCode)
-        Future.successful(Left(Messages("error.E0731")))
-      }
-    }
+
     futureReturn
   }
+
 
   def getProfileAssociatedCode(profile: Profile): Option[SampleCode] = {
     profile.labeledGenotypification.map(_.keySet.map(_.toString).map(x => Try(types.SampleCode(x))).filter(_.isSuccess).map(_.get)).flatMap(_.headOption)

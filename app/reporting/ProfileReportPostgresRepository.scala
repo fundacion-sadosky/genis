@@ -7,6 +7,7 @@ import play.api.db.slick.Config.driver.simple.{Compiled, TableQuery, booleanColu
 import play.api.db.slick.DB
 import util.DefaultDb
 
+import java.util.Date
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 import scala.language.postfixOps
@@ -18,8 +19,10 @@ abstract class ProfileReportPostgresRepository  {
   def getPerfilesEnviadosAInstanciaSuperiorPorEstado(): Future[Seq[(String, Int)]]
   def getPerfilesRecibidosDeInstanciasInferioresPorEstado(): Future[Seq[(String, Seq[(String, String, Int)])]]
   def getAllProfilesListing(): Future[Seq[Tables.ProfileData#TableElementType]]
-  def getAllReplicatedToSuperior(): Future[Seq[(String, String, String, String, Boolean, Option[String], Option[String],Option[String])]]
-  def getAllReplicatedFromInferior(): Future[Seq[(String, String, String, Boolean, Option[String], Option[String],Option[String])]]
+  // MODIFIED: Return type for dateUploaded is Option[String]
+  def getAllReplicatedToSuperior(): Future[Seq[(String, String, String, String, Boolean, Option[String], Option[String], Option[String], Option[Date])]]
+  // MODIFIED: Return type for dateReceived is Option[String]
+  def getAllReplicatedFromInferior(): Future[Seq[(String, String, String, Boolean, Option[String], Option[String], Option[String], Option[Date])]]
   def getLabCodeFromGlobalCode(globalCode: String): Option[String]
 }
 @Singleton
@@ -312,25 +315,27 @@ class PostgresProfileReportRepository @Inject() (implicit val app: Application) 
   }
 
 
-  def getAllReplicatedToSuperior(): Future[Seq[(String, String, String, String, Boolean, Option[String], Option[String],Option[String])]] = Future {
+  def getAllReplicatedToSuperior(): Future[Seq[(String, String, String, String, Boolean, Option[String], Option[String],Option[String], Option[Date])]] = Future {
     DB(app).withSession { implicit session =>
       profilesUploaded
         .join(inferiorInstanceProfileStatus).on(_.status === _.id)
         .join(profileData).on { case ((pu, sip), pd) => pu.globalCode === pd.globalCode }
         .map { case (((pu, sip), pd)) =>
-          (pu.globalCode, pd.category, pd.internalCode, sip.status, pd.deleted, pu.userName, pd.deletedSolicitor, pd.deletedMotive)
+          // THE CHANGE IS HERE: pu.dateUploaded.map(_.toString)
+          (pu.globalCode, pd.category, pd.internalCode, sip.status, pd.deleted, pu.userName, pd.deletedSolicitor, pd.deletedMotive, pu.dateUploaded)
         }
         .list
     }
   }
 
-  def getAllReplicatedFromInferior(): Future[Seq[(String, String, String, Boolean, Option[String], Option[String],Option[String])]] = Future {
+  def getAllReplicatedFromInferior(): Future[Seq[(String, String, String, Boolean, Option[String], Option[String],Option[String], Option[Date])]] = Future {
     DB(app).withSession { implicit session =>
       profilesReceived
         .join(inferiorInstanceProfileStatus).on(_.status === _.id)
         .join(profileData).on { case ((pr, sip), pd) => pr.globalCode === pd.globalCode }
         .map { case (((pr, sip), pd)) =>
-          (pr.globalCode, pd.category, sip.status, pd.deleted, pr.userName, pd.deletedSolicitor, pd.deletedMotive)
+          // THE CHANGE IS HERE: pr.dateReceived.map(_.toString)
+          (pr.globalCode, pd.category, sip.status, pd.deleted, pr.userName, pd.deletedSolicitor, pd.deletedMotive, pr.dateReceived)
         }
         .list
     }

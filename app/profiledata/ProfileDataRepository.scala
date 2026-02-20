@@ -48,6 +48,9 @@ import types.SampleCode
 import util.{DefaultDb, Transaction}
 import play.api.i18n.Messages
 import models.Tables.ExternalProfileDataRow
+import org.joda.time.DateTime
+
+import java.sql.Timestamp
 //import play.api.db.slick.Config.driver.simple._
 import scala.slick.driver.PostgresDriver.simple._
 import scala.concurrent.{ExecutionContext, Future}
@@ -1248,24 +1251,59 @@ class SlickProfileDataRepository @Inject() (
     }
   }
 
-  def updateUploadStatus(globalCode: String, status: Long, motive: Option[String], interconnection_error: Option[String], userName: Option[String], operationOriginatedInInstance: String): Future[Either[String, Unit]] = {
-    this.runInTransactionAsync { implicit session => {
+  import java.sql.Timestamp
+
+  def updateUploadStatus(
+                          globalCode: String,
+                          status: Long,
+                          motive: Option[String],
+                          interconnection_error: Option[String],
+                          userName: Option[String],
+                          operationOriginatedInInstance: String
+                        ): Future[Either[String, Unit]] = {
+
+    this.runInTransactionAsync { implicit session =>
       try {
         getByGlobalCode(globalCode).firstOption match {
-          case None => Left(Messages("error.E0940"))
-          case Some(row) => {
-            profileUploaded insertOrUpdate models.Tables.ProfileUploadedRow(row.id, row.globalCode, status, motive, interconnection_error, userName, Some(operationOriginatedInInstance))
+          case None =>
+            Left(Messages("error.E0940"))
+
+          case Some(pdRow) =>
+            // 1. Check existing row to preserve date
+            val existingUploadedOpt = profileUploaded.filter(_.globalCode === globalCode).firstOption
+            val existingDateUploaded = existingUploadedOpt.flatMap(_.dateUploaded)
+
+            // 2. Determine new date
+            val newDateUploaded: Option[Timestamp] =
+              if (status == 2L) Some(new Timestamp(System.currentTimeMillis()))
+              else existingDateUploaded
+
+            // 3. Create the row object
+            val rowToUpsert = models.Tables.ProfileUploadedRow(
+              id                          = pdRow.id,
+              globalCode                  = pdRow.globalCode,
+              status                      = status,
+              motive                      = motive,
+              interconnection_error       = interconnection_error,
+              userName                    = userName,
+              operationOriginatedInInstance = Some(operationOriginatedInInstance),
+              dateUploaded                = newDateUploaded
+            )
+
+            // 4. Pass the object directly (no need to unpack/repack)
+            profileUploaded.insertOrUpdate(rowToUpsert)
+
             Right(())
-          }
         }
       } catch {
-        case e: Exception => {
-          Left(e.getMessage)
-        }
+        case e: Exception =>
+          e.printStackTrace() // Crucial for debugging
+          Left(e.toString)    // Returns "java.lang.Exception: Message" instead of just null
       }
     }
-    }
   }
+
+
 
 
   override def getExternalProfileDataByGlobalCode(globalCode: String): Future[Option[ExternalProfileDataRow]] = {
@@ -1336,7 +1374,7 @@ class SlickProfileDataRepository @Inject() (
             None,
             Some(userName),
             isCategoryModificaction,
-            None, labCode)
+            None, labCode, Some(new Timestamp(System.currentTimeMillis())))
           logger.info(s"Inserted new profile received with ID labCode: $labCode, globalCode: $globalCode")
           Right(())
         } catch {
@@ -1359,7 +1397,7 @@ class SlickProfileDataRepository @Inject() (
             Some("Rechazado por el motivo: " + motive),
             Some(userName),
             isCategoryModificaction,
-            None, labCode
+            None, labCode, Some(new Timestamp(System.currentTimeMillis()))
           )
           logger.info(s"Inserted new profile received with ID labCode: $labCode, globalCode: $globalCode, motive: $motive")
           Right(())
@@ -1379,7 +1417,7 @@ class SlickProfileDataRepository @Inject() (
         getProfileReceivedByGlobalCode(globalCode).firstOption match {
           case None => Left(Messages("error.E0940"))
           case Some(row) => {
-            profileReceived insertOrUpdate models.Tables.ProfileReceivedRow(row.globalCode, row.labCode, status, row.motive, row.userName, row.isCategoryModification, Some(interconnection_error), "")
+            profileReceived insertOrUpdate models.Tables.ProfileReceivedRow(row.globalCode, row.labCode, status, row.motive, row.userName, row.isCategoryModification, Some(interconnection_error), "", row.dateReceived)
             Right(())
           }
         }
@@ -1392,24 +1430,59 @@ class SlickProfileDataRepository @Inject() (
     }
   }
 
-  def updateProfileReceivedStatus(labCode: String, globalCode: String, status: Long, motive: Option[String], isCategoryModification: Boolean, interconnection_error: Option[String], userName: Option[String], operationOriginatedInInstance: String): Future[Either[String, Unit]] = {
-    this.runInTransactionAsync { implicit session => {
+  def updateProfileReceivedStatus(
+                                   labCode: String,
+                                   globalCode: String,
+                                   status: Long,
+                                   motive: Option[String],
+                                   isCategoryModification: Boolean,
+                                   interconnection_error: Option[String],
+                                   userName: Option[String],
+                                   operationOriginatedInInstance: String
+                                 ): Future[Either[String, Unit]] = {
+
+    this.runInTransactionAsync { implicit session =>
       try {
-        //getProfileReceivedByGlobalCode(globalCode).firstOption match {
-        //  case None => Left(Messages("error.E0940"))
-       //   case Some(row) => { //hizo un insert con un nuevo id. row es del tipo profileDataRow y debería ser una profileRecevedRow
-            profileReceived insertOrUpdate models.Tables.ProfileReceivedRow(globalCode, labCode, status, motive, userName, isCategoryModification, interconnection_error, operationOriginatedInInstance)
-            Right(())
-          //}
-       // }
-      } catch {
-        case e: Exception => {
-          Left(e.getMessage)
+        // 1. Check if the row already exists based on Primary Key (globalCode)
+        val existingRowOpt = profileReceived
+          .filter(_.globalCode === globalCode)
+          .firstOption
+
+        // 2. Calculate the date to save
+        val dateToSave: Option[java.sql.Timestamp] = existingRowOpt match {
+          case Some(existing) =>
+            // Row exists: Keep the old date
+            existing.dateReceived
+          case None =>
+            // New row: Set current timestamp
+            Some(new java.sql.Timestamp(System.currentTimeMillis()))
         }
+
+        // 3. Create the row object with the calculated date
+        val rowToUpsert = models.Tables.ProfileReceivedRow(
+          globalCode = globalCode,
+          labCode = labCode,
+          status = status,
+          motive = motive,
+          userName = userName,
+          isCategoryModification = isCategoryModification,
+          interconnectionError = interconnection_error,
+          operationOriginatedInInstance = operationOriginatedInInstance,
+          dateReceived = dateToSave // <--- This is the key logic
+        )
+
+        // 4. Perform the upsert
+        profileReceived.insertOrUpdate(rowToUpsert)
+        Right(())
+
+      } catch {
+        case e: Exception =>
+          e.printStackTrace() // Always print the stack trace for debugging
+          Left(e.toString)
       }
     }
-    }
   }
+
 
 
   private def queryPendingApprovalNotifications(labCode: Column[String]) =
