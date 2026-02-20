@@ -18,5 +18,5 @@ GET     /api/v2/postgres/ping               controllers.core.PostgresController.
 GET     /api/v2/postgres/info               controllers.core.PostgresController.info()
 
 # Authentication endpoints
-POST    /login                              controllers.Authentication.login()
+POST    /api/v2/login                       controllers.core.Authentication.login()
 
