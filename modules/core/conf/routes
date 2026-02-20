@@ -20,3 +20,6 @@ GET     /api/v2/postgres/info               controllers.core.PostgresController.
 # Authentication endpoints
 POST    /login                              controllers.Authentication.login()
 
+# Disclaimer endpoint
+GET     /disclaimer                         controllers.DisclaimerController.getDisclaimer
+
