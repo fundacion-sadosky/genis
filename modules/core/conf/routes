@@ -1,3 +1,5 @@
+# Disclaimer endpoint (migrated from legacy)
+GET     /api/v2/disclaimer                   controllers.DisclaimerController.getDisclaimer
 # Routes for Core Module (Scala 3 + Play 3)
 # API v2 endpoints
 
