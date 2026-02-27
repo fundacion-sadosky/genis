@@ -31,7 +31,8 @@ class ProfileData @Inject() (
   profileService: ProfileService,
   categoryService: CategoryService,
   matchingService: MatchingService,
-  interconnectionService: InterconnectionService
+  interconnectionService: InterconnectionService,
+  profileDataRepository: ProfileDataRepository
 ) extends Controller {
 
   def update(globalCode: SampleCode): Action[JsValue] = Action.async(BodyParsers.parse.json) {
@@ -57,10 +58,10 @@ class ProfileData @Inject() (
     }
 
   def modifyCategory(
-    globalCode: SampleCode,
-    replicate: Boolean,
-    userName: String
-  ): Action[JsValue] = Action
+                      globalCode: SampleCode,
+                      replicate: Boolean,
+                      userName: String
+                    ): Action[JsValue] = Action
     .async(BodyParsers.parse.json) {
       request =>
         val profileDataJson = request.body.validate[ProfileDataAttempt]
@@ -76,24 +77,24 @@ class ProfileData @Inject() (
             )
         val getProfileId = (updateResult: Option[String]) => {
           updateResult
-            match {
-              case None => Right(globalCode)
-              case Some(error) => Left(error)
+          match {
+            case None => Right(globalCode)
+            case Some(error) => Left(error)
           }
         }
         val getProfile = (profileIdOrError: Either[String, SampleCode]) => {
           profileIdOrError
-            match {
-              case Left(error) => Future
-                .successful(Left(error))
-              case Right(profileId) =>
-                profileService
-                  .get(profileId)
-                  .map {
-                    case None => Left(Messages("error.E0101"))
-                    case Some(profile) => Right(profile)
-                  }
-            }
+          match {
+            case Left(error) => Future
+              .successful(Left(error))
+            case Right(profileId) =>
+              profileService
+                .get(profileId)
+                .map {
+                  case None => Left(Messages("error.E0101"))
+                  case Some(profile) => Right(profile)
+                }
+          }
         }
         val copyAndModifyProfile = (profileData: ProfileDataAttempt) =>
           (profileOrError: Either[String, Profile]) => {
@@ -211,6 +212,8 @@ class ProfileData @Inject() (
             updateCategoryInProfile
           )
     }
+
+
 
   def getByCode(sampleCode: SampleCode) = Action.async { request =>
     profiledataService.get(sampleCode) map { result =>

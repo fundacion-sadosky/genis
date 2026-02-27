@@ -682,4 +682,12 @@ class MatchingServiceSparkImpl @Inject() (
     this.matchingRepo.getMatchesPaginated(search)
   }
 
+  def getMatches(globalCode: SampleCode, matchType: Option[String]): Future[Seq[MatchResult]] = {
+    matchingRepo.matchesByGlobalCode(globalCode).map { matches =>
+      matchType match {
+        case Some(t) => matches.filter(_.`type` == t)
+        case None => matches
+      }
+    }
+  }
 }
