@@ -1,4 +1,4 @@
-package controllers
+package controllers.core
 
 import java.util.Date
 
