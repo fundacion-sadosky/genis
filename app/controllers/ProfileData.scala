@@ -18,22 +18,30 @@ import profile.ProfileService
 import profile.Profile
 import profiledata._
 import configdata.CategoryService
-import matching.MatchingService
+import matching.{MatchJobEndend, MatchJobFail, MatchJobStatus, MatchingProcessStatus, MatchingService}
 import connections.InterconnectionService
 import org.apache.spark.sql.catalyst.dsl.expressions.booleanToLiteral
 import play.api.data.validation.ValidationError
 import types._
 import profiledata.ProfileDataService
+import play.api.mvc._
+import play.api.libs.json._
+import play.api.data.validation.ValidationError
+import play.api.libs.iteratee.{Enumeratee, Iteratee}
+
+import scala.concurrent.{Future, Promise}
+import scala.concurrent.ExecutionContext.Implicits.global // O tu propio ExecutionContext implícito
+
 
 @Singleton
 class ProfileData @Inject() (
-  profiledataService: ProfileDataService,
-  profileService: ProfileService,
-  categoryService: CategoryService,
-  matchingService: MatchingService,
-  interconnectionService: InterconnectionService,
-  profileDataRepository: ProfileDataRepository
-) extends Controller {
+                              profiledataService: ProfileDataService,
+                              profileService: ProfileService,
+                              categoryService: CategoryService,
+                              matchingService: MatchingService,
+                              interconnectionService: InterconnectionService,
+                              matchingProcessStatus: MatchingProcessStatus // Inyecta esto si no está en el constructor
+                            ) extends Controller {
 
   def update(globalCode: SampleCode): Action[JsValue] = Action.async(BodyParsers.parse.json) {
     request =>
@@ -57,10 +65,16 @@ class ProfileData @Inject() (
       request => Future.successful(Ok(Json.obj("data" -> true)));
     }
 
+
+  // Necesitas importar las clases de tu dominio (Profile, SampleCode, MatchingResults, etc.)
+  // Y las definiciones de tus servicios (profileService, profiledataService, matchingService, interconnectionService)
+  // Y también los tipos de MatchJobStatus y MatchingProcessStatus
+
   def modifyCategory(
                       globalCode: SampleCode,
                       replicate: Boolean,
                       userName: String
+                    )(
                     ): Action[JsValue] = Action
     .async(BodyParsers.parse.json) {
       request =>
@@ -100,7 +114,7 @@ class ProfileData @Inject() (
           (profileOrError: Either[String, Profile]) => {
             profileOrError
               .right
-              .map( _.copy(categoryId = profileData.category))
+              .map(_.copy(categoryId = profileData.category))
           }
         val updateProfile = (newProfileOrError: Either[String, Profile]) => {
           newProfileOrError match {
@@ -117,93 +131,130 @@ class ProfileData @Inject() (
               }
           }
         }
-        val launchFindMatches = (profileData: ProfileDataAttempt) =>
-          (profileOpt: Option[Profile]) => {
-            profileOpt match {
-              case None => Left(Messages("error.E0101"))
-              case Some(p) =>
-                matchingService
-                  .findMatches(
-                    p.globalCode,
-                    categoryService
-                      .getCategory(profileData.category)
-                      .flatMap(
-                        cat => categoryService
-                          .getCategoryTypeFromFullCategory(cat)
-                      )
-                  )
-                Right(p)
+        val checkForReplicatedMatches = (prof: Profile) => {
+          matchingService.findMatchingResults(prof.globalCode).map { maybeMatchingResults =>
+            maybeMatchingResults match {
+              case Some(matchingResults) =>
+                val replicatedMatches = matchingResults.results.exists { result =>
+                  profiledataService.getIsProfileReplicatedInternalCode(result.internalSampleCode)
+                }
+                if (replicatedMatches) {
+                  Left(Messages("error.E0732"))  // Error if any match is replicated
+                } else {
+                  Right(prof)
+                }
+              case None =>
+                Right(prof)  // No matches found, so no replicated matches
             }
           }
-        val uploadModifiedProfile:
-          PartialFunction[Either[String, Profile], Unit] = {
-          case findMatchesResult =>
-            findMatchesResult.right.map {
-              p =>
-                profiledataService
-                  .get(globalCode)
-                  .map {
-                    case Some(pdata) =>
-                      interconnectionService
-                        .uploadProfileToSuperiorInstance(p, pdata, userName)
-                  }
+        }
+        val uploadModifiedProfile = (prof: Profile) => {
+          profiledataService
+            .get(globalCode) // Asumimos que esto devuelve Future[Option[ProfileData]]
+            .flatMap { // flatMap espera que la función pasada devuelva un Future
+              case Some(pdata) =>
+                // Si uploadProfileToSuperiorInstance devuelve Unit (síncrono), lo envolvemos en un Future
+                Future.successful(
+                  interconnectionService
+                    .uploadProfileToSuperiorInstance(prof, pdata, userName)
+                )
+              case None =>
+                // Si no hay pdata, simplemente devolvemos un Future completado con Unit
+                Future.successful(())
             }
         }
-        val findMatchestoJson =
-          (findMatchesResult: Either[String, Profile]) => {
-            findMatchesResult match {
-              case Left(error) => Json
-                .obj(
-                  "status" -> "error",
-                  "message" -> error
-                )
-              case Right(p) => Json
-                .obj(
-                  "status" -> "OK",
-                  "message" -> Messages("success.S0602", p.globalCode.text)
-                )
-            }
+
+        val findMatchestoJson = (result: Either[String, Profile]) => {
+          result match {
+            case Left(error) => Json
+              .obj(
+                "status" -> "error",
+                "message" -> error
+              )
+            case Right(p) => Json
+              .obj(
+                "status" -> "OK",
+                "message" -> Messages("success.S0602", p.globalCode.text)
+              )
           }
+        }
+
         val updateCategoryInProfile = (profileData: ProfileDataAttempt) => {
-          val matchAndUpload = (profileOrError: Either[String, Profile]) => {
+          val processMatchingAndReplication = (profileOrError: Either[String, Profile]) => {
             profileOrError match {
-              case Left(error) => Future
-                .successful(
-                  Json.arr(
-                    Json.obj( "status" -> "error", "message" -> error )
-                  )
-                )
+              case Left(error) => Future.successful(
+                Json.arr(Json.obj("status" -> "error", "message" -> error))
+              )
               case Right(prof) =>
-                val futFindMatches = profileService
-                  .get(globalCode)
-                  .map(launchFindMatches(profileData))
-                val findMatchesResult = futFindMatches
-                  .map(findMatchestoJson)
-                if (replicate) {
-                  futFindMatches
-                    .onSuccess(uploadModifiedProfile)
-                }
-                findMatchesResult
-                  .map(
-                    result =>
-                      Json
-                        .arr(
-                          Json.obj(
-                            "status" -> "OK",
-                            "message" -> Messages("success.S0100", prof.globalCode.text)
-                          ),
-                          result
+                // 1. Lanzar el proceso de match.
+                // Si fireMatching devuelve Unit, simplemente lo ejecutamos.
+                // Asumimos que al ejecutarlo, el sistema empezará a emitir MatchJobStatus.
+                profileService.fireMatching(globalCode) // <-- Ya no es un Future, solo se ejecuta
+
+                // 2. Esperar MatchingProcessStatus que sea MatchJobEndend.
+                // Se usa un Promise para convertir el evento de MatchJobStatus en un Future.
+                val matchEndPromise = Promise[MatchJobStatus]()
+
+                // Iniciar el consumo del enumerator para escuchar los estados.
+                // IMPORTANTE: Esta lógica asume que el próximo MatchJobEndend (o Fail)
+                // que se emita en el stream de broadcast corresponde a la tarea
+                // que acabamos de iniciar para este globalCode.
+                matchingProcessStatus.getJobStatus()
+                  .apply(
+                    Iteratee.foreach[MatchJobStatus] { status =>
+                      // Solo completa el promise la primera vez que se recibe un estado final
+                      if (!matchEndPromise.isCompleted) {
+                        status match {
+                          case MatchJobEndend => matchEndPromise.success(status)
+                          case MatchJobFail => matchEndPromise.success(status) // Fallo el promise con el estado de fallo
+                          case _ => // Otros estados, ignorar y seguir esperando
+                        }
+                      }
+                    }
+                  ) // Esto lanza el consumo del stream.
+
+                // Ahora, esperamos directamente el Future del promise.
+                matchEndPromise.future.flatMap {
+                  case MatchJobEndend =>
+                    // El proceso de matching terminó exitosamente.
+                    if (replicate) {
+                      // 3. Cuando termina verificar que el perfil no tenga matches con otro ya replicado.
+                      checkForReplicatedMatches(prof).flatMap {
+                        case Left(error) => Future.successful(Json.arr(Json.obj("status" -> "error", "message" -> error)))
+                        case Right(cleanProf) =>
+                          // 4. Si (replicar) y (no posee matches antes replicados) -> replicar
+                          uploadModifiedProfile(cleanProf).map { _ =>
+                            Json.arr(
+                              Json.obj("status" -> "OK", "message" -> Messages("success.S0100", prof.globalCode.text)),
+                              findMatchestoJson(Right(prof))
+                            )
+                          }
+                      }
+                    } else {
+                      // No se solicitó replicación, por lo que no se verifica replicados ni se sube.
+                      Future.successful(
+                        Json.arr(
+                          Json.obj("status" -> "OK", "message" -> Messages("success.S0100", prof.globalCode.text)),
+                          findMatchestoJson(Right(prof))
                         )
-                  )
+                      )
+                    }
+                  case MatchJobFail =>
+                    // El proceso de matching falló
+                    Future.successful(Json.arr(Json.obj("status" -> "error", "message" -> Messages("error.E_MATCHING_FAILED"))))
+                  case otherStatus => // Manejar otros estados inesperados si es necesario
+                    Future.successful(Json.arr(Json.obj("status" -> "error", "message" -> Messages("error.E_UNEXPECTED_MATCH_STATUS", otherStatus.toString))))
+                }
             }
           }
+
           profiledataService
             .updateProfileCategoryData(globalCode, profileData, userName)
             .map(getProfileId)
             .flatMap(getProfile)
             .map(copyAndModifyProfile(profileData))
             .flatMap(updateProfile)
-            .flatMap(matchAndUpload)
+            .flatMap(processMatchingAndReplication) // Hooked in here
             .map(Ok(_))
         }
         profileDataJson
@@ -228,7 +279,7 @@ class ProfileData @Inject() (
     val userId = request.headers.get("X-USER").get
 
     motive.fold(errors =>
-      { Future.successful(BadRequest(Json.obj("status" -> "KO", "message" -> JsError.toFlatJson(errors)))) },
+    { Future.successful(BadRequest(Json.obj("status" -> "KO", "message" -> JsError.toFlatJson(errors)))) },
       motive => profiledataService.deleteProfile(profileId, motive, userId) map { result =>
         result.fold(error => BadRequest(Json.obj("status" -> "KO", "message" -> error)),
           sampleCode => {
@@ -266,10 +317,10 @@ class ProfileData @Inject() (
   }
 
   def removeAll = Action.async { request => ???}
-//    profiledataService.removeAll() map { result =>
-//      Ok(Json.toJson(result))
-//    }
-//  }
+  //    profiledataService.removeAll() map { result =>
+  //      Ok(Json.toJson(result))
+  //    }
+  //  }
 
   def removeProfile(globalCode: SampleCode) = Action.async { request =>
     profiledataService.removeProfile(globalCode) map {
@@ -277,7 +328,7 @@ class ProfileData @Inject() (
       case Right(_) => Ok(Json.obj("status" -> "OK", "message" -> Messages("success.S0100", globalCode.text)))
     }
   }
-  
+
   def get(id: Long) = Action.async(BodyParsers.parse.json) { request =>
     profiledataService.get(id) map {
       profileData =>
@@ -303,7 +354,7 @@ class ProfileData @Inject() (
       Ok(Json.toJson(result))
     }
   }
-  
+
   def findByCode(globalCode: SampleCode) = Action.async { request =>
     profiledataService.findByCode(globalCode) map { result =>
       result.map { profileData => Ok(Json.toJson(profileData)) }.getOrElse {
@@ -313,8 +364,8 @@ class ProfileData @Inject() (
   }
 
   def findByCodes(
-    globalCodes: List[SampleCode]
-  ): Action[AnyContent] = Action.async { request =>
+                   globalCodes: List[SampleCode]
+                 ): Action[AnyContent] = Action.async { request =>
     profiledataService
       .findByCodes(globalCodes)
       .map(
@@ -333,7 +384,7 @@ class ProfileData @Inject() (
     }
   }
 
-  
+
   def getIsProfileReplicatedInternalCode(internalCode: String): Action[AnyContent] = Action.async { request =>
     Future { // Wrap the synchronous call in a Future
       val isReplicated = profiledataService.getIsProfileReplicatedInternalCode(internalCode)
