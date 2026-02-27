@@ -1,3 +1,5 @@
+# Disclaimer endpoint (migrated from legacy)
+GET     /api/v2/disclaimer                   controllers.DisclaimerController.getDisclaimer
 # Routes for Core Module (Scala 3 + Play 3)
 # API v2 endpoints
 
@@ -16,6 +18,12 @@ GET     /api/v2/mongo/stats                 controllers.core.MongoController.sta
 # PostgreSQL endpoints
 GET     /api/v2/postgres/ping               controllers.core.PostgresController.ping()
 GET     /api/v2/postgres/info               controllers.core.PostgresController.info()
+
+# BioMaterialTypes endpoints (migrated from legacy)
+GET     /api/v2/bioMaterialTypes                      controllers.BioMaterialTypes.list()
+POST    /api/v2/bioMaterialTypes                      controllers.BioMaterialTypes.insert()
+PUT     /api/v2/bioMaterialTypes                      controllers.BioMaterialTypes.update()
+DELETE  /api/v2/bioMaterialTypes/:bmtId               controllers.BioMaterialTypes.remove(bmtId: String)
 
 # Authentication endpoints
 POST    /login                              controllers.Authentication.login()
