@@ -28,3 +28,19 @@ DELETE  /api/v2/bioMaterialTypes/:bmtId               controllers.BioMaterialTyp
 # Authentication endpoints
 POST    /login                              controllers.Authentication.login()
 
+# Laboratories
+GET     /api/v2/laboratory                      controllers.LaboratoriesController.list()
+GET     /api/v2/laboratory/descriptive          controllers.LaboratoriesController.listDescriptive()
+GET     /api/v2/country                         controllers.LaboratoriesController.listCountries()
+GET     /api/v2/provinces/:country              controllers.LaboratoriesController.listProvinces(country: String)
+POST    /api/v2/laboratory                      controllers.LaboratoriesController.addLab()
+GET     /api/v2/laboratory/:code                controllers.LaboratoriesController.getLaboratory(code: String)
+PUT     /api/v2/laboratory                      controllers.LaboratoriesController.updateLab()
+
+# Geneticist
+GET     /api/v2/geneticist/:lab                 controllers.GeneticistsController.allGeneticist(lab: String)
+POST    /api/v2/geneticist                      controllers.GeneticistsController.addGeneticist()
+GET     /api/v2/geneticist                      controllers.GeneticistsController.getGeneticist(geneticistId: Long)
+GET     /api/v2/geneticist-users                controllers.GeneticistsController.getGeneticistUsers()
+PUT     /api/v2/geneticist                      controllers.GeneticistsController.updateGeneticist()
+
