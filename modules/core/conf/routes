@@ -26,7 +26,7 @@ PUT     /api/v2/bioMaterialTypes                      controllers.BioMaterialTyp
 DELETE  /api/v2/bioMaterialTypes/:bmtId               controllers.BioMaterialTypes.remove(bmtId: String)
 
 # Authentication endpoints
-POST    /login                              controllers.Authentication.login()
+POST    /api/v2/login                       controllers.core.Authentication.login()
 
 # Laboratories
 GET     /api/v2/laboratory                      controllers.LaboratoriesController.list()
