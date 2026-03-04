@@ -41,7 +41,7 @@ bin/
 *.ipr
 *.iws
 .idea
-
+.agents
 # mac
 .DS_Store
 
