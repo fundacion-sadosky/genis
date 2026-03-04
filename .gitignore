@@ -43,6 +43,7 @@ bin/
 *.iws
 .idea
 .agents
+AGENTS.md
 # mac
 .DS_Store
 
