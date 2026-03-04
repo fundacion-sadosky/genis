@@ -94,7 +94,17 @@ class NotificationServiceImpl @Inject() (akkaSystem: ActorSystem,
   }
 
   override def changePending(id: Long, pending: Boolean): Future[Either[String, Long]] = {
-    notificationRepository.updatePending(id, pending)
+    notificationRepository.getById(id).flatMap {
+      case None => Future.successful(Left("No existe la notificación"))
+      case Some(notification) => {
+        if (notification.pending && !pending) {
+          in.push(notification.copy(pending = false))
+        } else if (!notification.pending && pending) {
+          in.push(notification.copy(pending = true))
+        }
+        notificationRepository.updatePending(id, pending)
+      }
+    }
   }
 
 
