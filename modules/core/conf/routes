@@ -44,3 +44,10 @@ GET     /api/v2/geneticist                      controllers.GeneticistsControlle
 GET     /api/v2/geneticist-users                controllers.GeneticistsController.getGeneticistUsers()
 PUT     /api/v2/geneticist                      controllers.GeneticistsController.updateGeneticist()
 
+# Test
+
+GET     /api/v2/testRoute                       controllers.TestController.hardcoded()
+GET     /api/v2/testEcho                        controllers.TestController.echo(text: String)
+GET     /api/v2/testCollections                 controllers.TestController.findMongoCollections(filter: Option[String])
+GET     /api/v2/testPostgresTables              controllers.TestController.findPostgresTables(filter: Option[String])
+
