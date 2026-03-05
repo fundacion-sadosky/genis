@@ -54,8 +54,7 @@ lazy val core = (project in file("modules/core"))
       "org.playframework" %% "play" % "3.0.6",
       "org.playframework" %% "play-json" % "3.0.6",
       
-      // Slick (sin play-slick por ahora, no hay versión para Scala 3)
-      // Usaremos Slick vanilla directamente
+      // Slick y Play-Slick
       "com.typesafe.slick" %% "slick" % "3.5.2",
       "com.typesafe.slick" %% "slick-hikaricp" % "3.5.2",
       "org.postgresql" % "postgresql" % "42.7.5",

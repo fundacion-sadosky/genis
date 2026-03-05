@@ -4,6 +4,60 @@ import slick.jdbc.PostgresProfile
 import slick.jdbc.PostgresProfile.api._
 
 object Tables {
+    // Laboratory table
+    final case class LaboratoryRow(
+      codeName: String,
+      name: String,
+      country: String,
+      province: String,
+      address: String,
+      telephone: String,
+      contactEmail: String,
+      dropIn: Double,
+      dropOut: Double
+    )
+    object LaboratoryRow {
+      def tupled = (LaboratoryRow.apply _).tupled
+    }
+
+    class LaboratoryTable(tag: Tag) extends Table[LaboratoryRow](tag, Some("APP"), "LABORATORY") {
+      def codeName = column[String]("CODE_NAME", O.PrimaryKey, O.Length(20, varying = true))
+      def name = column[String]("NAME", O.Length(100, varying = true))
+      def country = column[String]("COUNTRY", O.Length(100, varying = true))
+      def province = column[String]("PROVINCE", O.Length(100, varying = true))
+      def address = column[String]("ADDRESS", O.Length(200, varying = true))
+      def telephone = column[String]("TELEPHONE", O.Length(50, varying = true))
+      def contactEmail = column[String]("CONTACT_EMAIL", O.Length(100, varying = true))
+      def dropIn = column[Double]("DROP_IN")
+      def dropOut = column[Double]("DROP_OUT")
+      def * = (codeName, name, country, province, address, telephone, contactEmail, dropIn, dropOut) <> (LaboratoryRow.tupled, LaboratoryRow.unapply)
+    }
+    val laboratories = TableQuery[LaboratoryTable]
+
+    // Geneticist table
+    final case class GeneticistRow(
+      id: Option[Long],
+      name: String,
+      lastname: String,
+      laboratory: String,
+      email: String,
+      telephone: String
+    )
+    object GeneticistRow {
+      def tupled = (GeneticistRow.apply _).tupled
+    }
+
+    class GeneticistTable(tag: Tag) extends Table[GeneticistRow](tag, Some("APP"), "GENETICIST") {
+      def id = column[Option[Long]]("ID", O.PrimaryKey, O.AutoInc)
+      def name = column[String]("NAME", O.Length(100, varying = true))
+      def lastname = column[String]("LASTNAME", O.Length(100, varying = true))
+      def laboratory = column[String]("LABORATORY", O.Length(50, varying = true))
+      def email = column[String]("EMAIL", O.Length(100, varying = true))
+      def telephone = column[String]("TELEPHONE", O.Length(50, varying = true))
+      def * = (id, name, lastname, laboratory, email, telephone) <> (GeneticistRow.tupled, GeneticistRow.unapply)
+      def labFk = foreignKey("GENETICIST_LAB_FKEY", laboratory, laboratories)(_.codeName)
+    }
+    val geneticists = TableQuery[GeneticistTable]
   // Disclaimer table
   class Disclaimer(_tableTag: Tag) extends Table[Option[String]](_tableTag, Some("APP"), "DISCLAIMER") {
     def text = column[Option[String]]("TEXT")
