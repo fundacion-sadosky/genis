@@ -12,7 +12,7 @@ abstract class CrimeTypeRepository {
 
 @Singleton
 class SlickCrimeTypeRepository @Inject() (
-  db: Database
+  db: slick.jdbc.JdbcBackend.Database
 )(implicit ec: ExecutionContext) extends CrimeTypeRepository {
 
   private val crimeTypes = Tables.crimeTypes
