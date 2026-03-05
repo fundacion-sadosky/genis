@@ -1,0 +1,65 @@
+name: Auto-close Issues on Merge
+
+# GitHub only auto-closes issues via keywords (Fixes #N, Closes #N) when
+# merging into the DEFAULT branch. Since new-dev is not the default branch,
+# this workflow handles it manually via the GitHub API.
+
+on:
+  pull_request:
+    types: [ closed ]
+    branches: [ new-dev ]
+
+jobs:
+  close-issues:
+    # Only run when the PR was actually merged (not just closed/rejected)
+    if: github.event.pull_request.merged == true
+    name: Close Referenced Issues
+    runs-on: ubuntu-latest
+
+    permissions:
+      issues: write
+      pull-requests: read
+
+    steps:
+      - name: Parse PR and close referenced issues
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          # Combine title + body to search for keywords in both
+          FULL_TEXT="${PR_TITLE}
+          ${PR_BODY}"
+
+          echo "Scanning PR #${PR_NUMBER} for issue references..."
+
+          # Match keywords: fix, fixes, close, closes, resolve, resolves, wip
+          # Case-insensitive, followed by #NNN
+          ISSUES=$(echo "$FULL_TEXT" \
+            | grep -ioP '(fix(es)?|clos(e|es)|resolv(e|es)|wip)\s*#\K[0-9]+' \
+            | sort -u \
+            || true)
+
+          if [ -z "$ISSUES" ]; then
+            echo "No issue references found in this PR. Nothing to close."
+            exit 0
+          fi
+
+          echo "Issues to close: $ISSUES"
+
+          for ISSUE_NUMBER in $ISSUES; do
+            echo "→ Closing issue #${ISSUE_NUMBER}..."
+
+            gh issue close "$ISSUE_NUMBER" \
+              --repo "$REPO" \
+              --comment "✅ Cerrada automáticamente por PR #${PR_NUMBER} mergeado a \`new-dev\`.
+
+> *Si esta issue fue cerrada por error, podés reabrirla manualmente.*"
+
+            echo "  ✅ Issue #${ISSUE_NUMBER} cerrada."
+          done
+
+          echo ""
+          echo "Done. Closed $(echo "$ISSUES" | wc -w) issue(s)."
