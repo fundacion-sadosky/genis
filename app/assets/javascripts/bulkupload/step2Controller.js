@@ -61,6 +61,10 @@ define(['jquery', 'lodash'], function($, _) {
                     profile.replicated = isReplicated;
                     profile.replicable = isReplicable;
 
+                    if(profile.status === 'Imported' && !isReplicable) {
+                        profile.status = 'ReplicatedMatchingProfile';
+                    }
+
                     profile.replicateDisabled =
                         !subcategory[profile.category].replicate ||
                         profile.replicated ||

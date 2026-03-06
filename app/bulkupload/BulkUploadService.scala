@@ -100,7 +100,18 @@
     }
 
     override def getProtoProfilesStep2(batchId: Long, geneMapperId: String, isSuperUser: Boolean, paginationSearch: Option[PaginationSearch] = None): Future[Seq[ProtoProfile]] = {
-      protoRepo.getProtoProfilesStep2(batchId, geneMapperId, isSuperUser, paginationSearch)
+      protoRepo.getProtoProfilesStep2(batchId, geneMapperId, isSuperUser, paginationSearch).flatMap { profiles =>
+        Future.sequence(profiles.map { profile =>
+          if (profile.status == ProtoProfileStatus.Imported) {
+            interconnectionService.isUplpoadableInternalCode(profile.sampleName).map { isReplicable =>
+              if (!isReplicable) profile.copy(status = ProtoProfileStatus.ReplicatedMatchingProfile)
+              else profile
+            }
+          } else {
+            Future.successful(profile)
+          }
+        })
+      }
     }
 
     override def getProtoProfile(id: Long): Future[Option[ProtoProfile]] = {
