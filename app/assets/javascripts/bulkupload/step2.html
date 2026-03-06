@@ -105,17 +105,34 @@
 								<span ng-if="r.status == 'Rejected'">Rechazado</span>
 								<span ng-if="r.status == 'Imported'">Aceptado</span>
 								<span ng-if="r.status == 'Approved'">Aprobado</span>
+								<span ng-if="r.status == 'ReplicatedMatchingProfile'">Coincidente</span>
+								<span ng-if="r.status == 'DesktopSeach'">Búsqueda de escritorio</span>
 								<span {{statusMap[r.status]}}</span>
 							</td>
 							<td class="text-center">
 								<input type="checkbox"
 									   ng-model="r.replicate"
-									   ng-disabled="r.replicateDisabled || !$parent.subcategory[r.category].replicate || r.replicated || r.status !== 'Imported'"
-									   ng-class="{'disabled-checkbox': r.replicateDisabled}">
+									   ng-disabled="r.replicateDisabled
+                       								|| !$parent.subcategory[r.category].replicate
+                       								|| r.replicated
+                       								|| !r.replicable
+                       								|| r.status === 'ReplicatedMatchingProfile'
+                        							|| r.status !== 'Imported'
+                       								|| r.status === 'DesktopSearch'"
+									   ng-class="{'disabled-checkbox': r.replicateDisabled || r.status === 'DesktopSearch' || r.status === 'ReplicatedMatchingProfile'  || r.replicated || !r.replicable}">
 							</td>
 							<td class="text-center">
-								<input type="checkbox" ng-model="l.desktopSearch" ng-disabled="protoProfiles[l.id].length !== 1 || l.desktopSearchDisabled || !r.status == 'Approved'" ng-change="handleDesktopSearchChange(l)">
+								<input type="checkbox"
+									   ng-model="l.desktopSearch"
+									   ng-disabled="protoProfiles[l.id].length !== 1
+                        							|| protoProfiles[l.id][0].status === 'DesktopSearch'
+                        							|| protoProfiles[l.id][0].replicated
+                        							|| r.status !== 'Approved'"
+									   ng-checked="protoProfiles[l.id].length === 1
+                      							   && protoProfiles[l.id][0].status === 'DesktopSearch'"
+									   ng-change="handleDesktopSearchChange(l)">
 							</td>
+
 							<td class="text-center">
 								<button ng-if="r.status === 'Approved'" ng-disabled="l.isProcessing" class="btn btn-default btn-link-action btn-link-border" title="Rechazar análisis" ng-click="reject(r, l)">
 									<span class="glyphicon glyphicon-thumbs-down" aria-hidden="true"></span>
@@ -129,6 +146,9 @@
 								<div data-ng-show="r.errors && r.errors.length > 0">
 									Errores:<br>
 									<span data-ng-repeat="err in r.errors">{{err}}<br></span>
+								</div>
+								<div ng-if="r.status === 'ReplicatedMatchingProfile'">
+									Perfil coincidente ya replicado
 								</div>
 							</td>
 							<td class="text-center" title="Ver genotipificación">

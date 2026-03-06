@@ -700,6 +700,7 @@ class ProfileDataServiceImpl @Inject() (
     this.profileDataRepository.getIsProfileReplicatedInternalCode(internalCode)
   }
 
+
   override def countProfiles(): Future[Int] = {
     profileDataRepository.countProfiles()
   }

@@ -6,7 +6,9 @@ define(['lodash'], function(_) {
 		this.getStatusMap = function() {
 			return {'Invalid': 'Inválido', 'Incomplete': 'Incompleto', 
 					'ReadyForApproval': 'Listo para aprobación', 'Approved': 'Aprobado', 
-					'Disapproved': 'Desaprobado', 'Imported': 'Aceptado', 'Rejected': 'Rechazado', 'Uploaded': 'Replicado'};
+					'Disapproved': 'Desaprobado', 'Imported': 'Aceptado', 'Rejected': 'Rechazado',
+				    'Uploaded': 'Replicado', 'DesktopSearch': 'Búsqueda de Escritorio',
+				    'ReplicatedMatchingProfile': 'Coincidente'};
 		};
         this.getSubcategories = function() {
             return playRoutes.controllers.Categories.list().get();

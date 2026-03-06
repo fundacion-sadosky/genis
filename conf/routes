@@ -79,6 +79,7 @@ GET      /profilesdata                                        @controllers.Profi
 GET      /profiledata-desktop                                 @controllers.ProfileData.getDesktopProfiles
 GET      /profileData/isProfileReplicated/:internalCode       @controllers.ProfileData.getIsProfileReplicatedInternalCode(internalCode: String)
 
+
 POST     /uploadImage                                         @controllers.Resources.uploadImage
 POST     /uploadFile                                          @controllers.Resources.uploadFile
 GET      /getFilesId                                          @controllers.Resources.getFilesId
@@ -373,6 +374,7 @@ DELETE   /superior/profile/:id/:userName                      @controllers.Inter
 POST     /inferior/match/                                     @controllers.Interconnections.receiveMatchFromSuperior()
 POST     /interconection/match/status                         @controllers.Interconnections.receiveMatchStatus()
 POST     /interconnection/file                                @controllers.Interconnections.receiveFile()
+GET      /interconnection/getIsProfileReplicableInternalCode/:internalCode   @controllers.Interconnections.getIsProfileReplicableInternalCode(internalCode: String)
 
 
 # Motives

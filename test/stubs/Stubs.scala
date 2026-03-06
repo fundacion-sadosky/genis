@@ -1177,6 +1177,8 @@ object Stubs {
     override def masiveGroupDiscardByMatchesList(firingCode: SampleCode, matches: List[String], isSuperUser: Boolean, replicate: Boolean, userName:String): Future[Either[String, Seq[SampleCode]]] = ???
     override def uploadStatus(matchId: String, firingCode: SampleCode, isSuperUser: Boolean, userName: String): Future[String] = ???
     override def canUploadMatchStatus(matchId: String, isCollapsing:Option[Boolean] = None,isScreening:Option[Boolean] = None): Future[Boolean] = ???
+
+    def getMatches(globalCode: SampleCode, matchType: Option[String]): Future[Seq[MatchResult]] = ???
   }
 
   val matchingServiceMock = new MockMatchingService()
