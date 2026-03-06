@@ -1,18 +1,19 @@
-
 package disclaimer
 
-import javax.inject.{Inject, Singleton}
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import slick.jdbc.PostgresProfile.api._
+import models.Tables
 
 abstract class DisclaimerRepository {
   def get(): Future[Disclaimer]
 }
 
-@Singleton
-class SlickDisclaimerRepository @Inject()()(implicit ec: ExecutionContext) extends DisclaimerRepository {
-  // TODO: Implement database access logic for Disclaimer
+class SlickDisclaimerRepository @Inject() (implicit ec: ExecutionContext) extends DisclaimerRepository {
+  private val db = Database.forConfig("slick.dbs.default.db")
+  private val disclaimerTable = Tables.Disclaimer
+
   override def get(): Future[Disclaimer] = {
-    // Placeholder: Replace with actual DB logic
-    Future.successful(Disclaimer(Some("Disclaimer text from DB")))
+    db.run(disclaimerTable.result.headOption).map(textOpt => Disclaimer(textOpt.flatten))
   }
 }

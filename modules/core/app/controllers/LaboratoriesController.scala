@@ -22,11 +22,6 @@ class LaboratoriesController @Inject() (
     }
   }
 
-  def listDescriptive = Action.async {
-    labService.listDescriptive() map { labs =>
-      Ok(Json.toJson(labs))
-    }
-  }
 
   def listCountries = Action.async {
     countryService.listCountries map { countries =>
@@ -43,9 +38,8 @@ class LaboratoriesController @Inject() (
   def addLab = Action.async(parse.json) { request =>
     request.body.validate[Laboratory].fold(
       errors => Future.successful(BadRequest(Json.obj("status" -> "KO", "message" -> JsError.toJson(errors)))),
-      laboratory => labService.add(laboratory).map {
-        case Right(id) => Ok(Json.toJson(id)).withHeaders("X-CREATED-ID" -> id)
-        case Left(error) => BadRequest(Json.toJson(error))
+      laboratory => labService.add(laboratory).map { id =>
+        Ok(Json.toJson(id.toString)).withHeaders("X-CREATED-ID" -> id.toString)
       }
     )
   }
@@ -60,9 +54,8 @@ class LaboratoriesController @Inject() (
   def updateLab = Action.async(parse.json) { request =>
     request.body.validate[Laboratory].fold(
       errors => Future.successful(BadRequest(Json.obj("status" -> "KO", "message" -> JsError.toJson(errors)))),
-      laboratory => labService.update(laboratory).map {
-        case Right(id) => Ok(Json.toJson(id)).withHeaders("X-CREATED-ID" -> id)
-        case Left(error) => BadRequest(Json.toJson(error))
+      laboratory => labService.update(laboratory).map { id =>
+        Ok(Json.toJson(id.toString))
       }
     )
   }
