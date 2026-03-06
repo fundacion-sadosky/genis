@@ -1,3 +1,4 @@
+// Eliminada dependencia play-slick, solo usar slick puro
 import scala.concurrent.duration._
 
 // These old imports are removed (from sbt-web plugins that are deprecated)
