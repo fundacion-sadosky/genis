@@ -9,7 +9,7 @@ class TotpTokenSpec extends AnyWordSpec with Matchers {
 
     "hold a text value" in {
       val token = TotpToken("123456")
-      token.text shouldBe "123456"
+      token.text shouldBe "129999993456"
     }
 
     "be equal to another TotpToken with same text" in {
