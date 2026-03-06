@@ -52,11 +52,10 @@ jobs:
           for ISSUE_NUMBER in $ISSUES; do
             echo "→ Closing issue #${ISSUE_NUMBER}..."
 
+            COMMENT=$(printf '✅ Cerrada automáticamente por PR #%s mergeado a `new-dev`.\n\n> *Si esta issue fue cerrada por error, podés reabrirla manualmente.*' "${PR_NUMBER}")
             gh issue close "$ISSUE_NUMBER" \
               --repo "$REPO" \
-              --comment "✅ Cerrada automáticamente por PR #${PR_NUMBER} mergeado a \`new-dev\`.
-
-> *Si esta issue fue cerrada por error, podés reabrirla manualmente.*"
+              --comment "$COMMENT"
 
             echo "  ✅ Issue #${ISSUE_NUMBER} cerrada."
           done
