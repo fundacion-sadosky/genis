@@ -51,25 +51,42 @@ define(['jquery', 'lodash'], function($, _) {
 
         function createProfileUpdateHandler(subcategory, getIsProfileReplicatedInternalCode) {
             return function(profile) {
-                return getIsProfileReplicatedInternalCode(profile.sampleName)
-                    .then(function(isReplicated) {
-                        profile.replicated = isReplicated;
+                // run both async checks in parallel
+                return Promise.all([
+                    getIsProfileReplicatedInternalCode(profile.sampleName),
+                    profiledataService.getIsProfileReplicableInternalCode(profile.sampleName)  // Use directly
+                ]).then(function(results) {
+                    var isReplicated = !!results[0];
+                    var isReplicable = !!results[1];
+                    profile.replicated = isReplicated;
+                    profile.replicable = isReplicable;
 
-                        profile.replicateDisabled =
-                            !subcategory[profile.category].replicate ||
-                            profile.replicated ||
-                            profile.status !== 'Imported';
+                    profile.replicateDisabled =
+                        !subcategory[profile.category].replicate ||
+                        profile.replicated ||
+                        !profile.replicable ||
+                        profile.status !== 'Imported' ||
+                        profile.status === 'ReplicatedMatchingProfile';
 
-                        if (profile.replicateDisabled) {
-                            profile.replicate = false;
-                        }
+                    if (profile.replicateDisabled) {
+                        profile.replicate = false;
+                    }
 
-                        _.forEach(
-                            profile.genotypification,
-                            _.partial(bulkuploadService.fillRange, $scope.locusById, locusService.isOutOfLadder)
-                        );
-                        return profile;
-                    });
+                    _.forEach(
+                        profile.genotypification,
+                        _.partial(bulkuploadService.fillRange, $scope.locusById, locusService.isOutOfLadder)
+                    );
+                    return profile;
+                }).catch(function() {
+                    // on error assume not replicable and keep existing replicated value handling
+                    profile.replicable = false;
+                    profile.replicateDisabled =
+                        !subcategory[profile.category].replicate ||
+                        profile.replicated ||
+                        !profile.replicable ||
+                        profile.status !== 'Imported';
+                    return profile;
+                });
             };
         }
 
@@ -178,10 +195,6 @@ define(['jquery', 'lodash'], function($, _) {
             var id = parseInt(sample.id, 10);
             batch.isProcessing = true;
 
-            // Desktop search applies only when:
-            //  - batch.desktopSearch is checked
-            //  - the batch has exactly 1 protoProfile
-            //  - the current sample is that protoProfile
             var isDesktopSearchForThisProfile =
                 batch.desktopSearch &&
                 $scope.protoProfiles[batch.id] &&
@@ -192,7 +205,7 @@ define(['jquery', 'lodash'], function($, _) {
                 .changeStatus(id, status, sample.replicate, isDesktopSearchForThisProfile)
                 .then(function(response) {
                     if (response.data && response.data.length > 0) {
-                        // Backend returned errors
+                        // Backend devolvió errores
                         if (batch.id) {
                             $scope.protoProfiles[batch.id].forEach(function(b) {
                                 if (b.id === id) {
@@ -202,43 +215,25 @@ define(['jquery', 'lodash'], function($, _) {
                         } else {
                             $scope.protoProfiles[0].errors = response.data;
                         }
-                    } else {
-                        // If we approved with desktop search, business status becomes DesktopSearch
-                        sample.status = (status === 'Imported' && isDesktopSearchForThisProfile)
-                            ? 'DesktopSearch'
-                            : status;
-
-                        // Ask backend if already replicated
-                        $scope.getIsProfileReplicatedInternalCode(sample.sampleName)
-                            .then(function(isReplicated) {
-                                sample.replicated = isReplicated;
-
-                                // Enable replicate only if:
-                                //  - subcategory allows replicate
-                                //  - status === 'Imported'
-                                //  - not replicated
-                                // (DesktopSearch and already replicated are both blocked)
-                                sample.replicateDisabled =
-                                    !$scope.subcategory[sample.category].replicate ||
-                                    sample.replicated ||
-                                    sample.status !== 'Imported';
-
-                                if (sample.replicateDisabled) {
-                                    sample.replicate = false;
-                                }
-
-                                updateDisableReplicateAllStatus(batch.id);
-                            });
                     }
 
+                    // Siempre recalculamos “todosAprobados” con los datos actuales
                     aprobados(batch.id);
-                    batch.isProcessing = false;
+
+                    // Ahora recargamos TODO el batch, lo que volverá a pasar
+                    // cada proto por createProfileUpdateHandler (replicable, replicated, etc.)
+                    return getBatchProtoProfiles(batch)
+                        .finally(function() {
+                            batch.isProcessing = false;
+                        });
+
                 }, function(response) {
                     batch.isProcessing = false;
                     alertService.error({message: ' Hubo un error: ' + response.data});
                     $log.log(response);
                 });
         };
+
 
 
         var rejectPp = function(sample, motive, batch, idMotive) {
@@ -618,9 +613,12 @@ define(['jquery', 'lodash'], function($, _) {
         };
 
         function updateDisableReplicateAllStatus(batchId) {
-            $scope.protoProfiles[batchId].disableReplicateAll = !_.some($scope.protoProfiles[batchId], function(r) {
-                return !r.replicateDisabled && r.status === 'Imported';
-            });
+            $scope.protoProfiles[batchId].disableReplicateAll = !_.some(
+                $scope.protoProfiles[batchId],
+                function (r) {
+                    return !r.replicateDisabled && r.status === 'Imported';
+                }
+            );
         }
 
 

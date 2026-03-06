@@ -70,6 +70,7 @@ abstract class ProtoProfileRepository  extends DefaultDb with Transaction {
   def getBatchSearchModalViewByIdOrLabel(input:String,idCase:Long):Future[List[BatchModelView]]
   def mtExistente(sampleName:String ) : Future[Boolean]
   def updateProtoProfileStatus(internalCode: String, status: String): Future[Int]
+  def getProtoProfileStatus(internalCode: String): String
 }
 
 @Singleton
@@ -123,7 +124,7 @@ class SlickProtoProfileRepository @Inject() (
   val queryGetProtoProfiles = Compiled(queryDefineGetProtoProfiles _)
 
   private def queryDefineGetProtoProfilesStep2(batchId: Column[Long], user: Column[String], isSuperUser: Column[Boolean]) = for {
-    pp <- protoProfiles if ((pp.idBatch === batchId) && (isSuperUser || pp.assignee === user) && (pp.status === "Approved" || pp.status === "Rejected" || pp.status === "Imported"|| pp.status === "Uploaded"|| pp.status === "DesktopSearch"))
+    pp <- protoProfiles if ((pp.idBatch === batchId) && (isSuperUser || pp.assignee === user) && (pp.status === "Approved" || pp.status === "Rejected" || pp.status === "Imported"|| pp.status === "Uploaded"|| pp.status === "DesktopSearch" || pp.status === "ReplicatedMatchingProfile"))
   } yield (pp)
 
   val queryGetProtoProfilesStep2 = Compiled(queryDefineGetProtoProfilesStep2 _)
@@ -193,7 +194,7 @@ class SlickProtoProfileRepository @Inject() (
          SELECT 1 FROM "APP"."PROTO_PROFILE" pp
          WHERE pp."ID_BATCH" = bpp."ID"
          AND (pp."ASSIGNEE" = ? OR ?)
-         AND pp."STATUS" IN ('Approved','Rejected','Imported','Uploaded')
+         AND pp."STATUS" IN ('Approved','Rejected','Imported','Uploaded', 'ReplicatedMatchingProfile')
        )"""
     )
 
@@ -229,7 +230,7 @@ class SlickProtoProfileRepository @Inject() (
                             	SELECT COUNT(*) as "TOTAL" FROM "APP"."PROTO_PROFILE" pp
                             	WHERE pp."ID_BATCH" = bpp."ID"
                             	AND (pp."ASSIGNEE" = ? OR ?)
-                            	AND pp."STATUS" IN ('Approved','Rejected','Imported','Uploaded', 'DesktopSearch')
+                            	AND pp."STATUS" IN ('Approved','Rejected','Imported','Uploaded', 'DesktopSearch','ReplicatedMatchingProfile')
                             ) as "TOTAL",
                             bpp."LABEL", (
                             SELECT COUNT(*) as "TOTAL_APPROVED" FROM "APP"."PROTO_PROFILE" pp
@@ -243,7 +244,7 @@ class SlickProtoProfileRepository @Inject() (
                               SELECT 1 FROM "APP"."PROTO_PROFILE" pp
                               WHERE pp."ID_BATCH" = bpp."ID"
                               AND (pp."ASSIGNEE" = ? OR ?)
-                              AND pp."STATUS" IN ('Approved','Rejected','Imported','Uploaded', 'DesktopSearch')
+                              AND pp."STATUS" IN ('Approved','Rejected','Imported','Uploaded', 'DesktopSearch','ReplicatedMatchingProfile')
                             )
                             GROUP BY bpp."ID"
                             ORDER BY bpp."ID" DESC
@@ -299,13 +300,13 @@ class SlickProtoProfileRepository @Inject() (
   def countImported(idBatch: Long) = sql"""select COUNT(*) from "APP"."PROTO_PROFILE" where "ID_BATCH" = $idBatch and "STATUS" = 'Imported'""".as[Int]
 
   override def updateProtoProfileStatus(internalCode: String, status: String): Future[Int] = Future {
-    DB.withTransaction { implicit session =>
-      val q = for {
-        pp <- protoProfiles if pp.sampleName === internalCode
-      } yield (pp.status)
-      q.update(status)
+      DB.withTransaction { implicit session =>
+        val q = for {
+          pp <- protoProfiles if pp.sampleName === internalCode
+        } yield (pp.status)
+        q.update(status)
+      }
     }
-  }
 
   override def hasProfileDataFiliation(id: Long): Future[Boolean] = Future {
     DB.withSession { implicit session =>
@@ -671,6 +672,17 @@ class SlickProtoProfileRepository @Inject() (
 
   }
 
+  def getProtoProfileStatus(internalCode: String): String = {
+    DB.withSession { implicit session =>
+      val query = for {
+        pp <- protoProfiles if pp.sampleName === internalCode
+      } yield pp.status  // Selecciona el campo STATUS
 
+      query.firstOption match {  // Obtiene el primer resultado opcional
+        case Some(status) => status  // Devuelve el status si se encuentra
+        case None => "Unknown"  // Valor por defecto si no se encuentra ningún registro
+      }
+    }
+  }
 
 }

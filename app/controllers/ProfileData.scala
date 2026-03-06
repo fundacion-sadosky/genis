@@ -65,11 +65,6 @@ class ProfileData @Inject() (
       request => Future.successful(Ok(Json.obj("data" -> true)));
     }
 
-
-  // Necesitas importar las clases de tu dominio (Profile, SampleCode, MatchingResults, etc.)
-  // Y las definiciones de tus servicios (profileService, profiledataService, matchingService, interconnectionService)
-  // Y también los tipos de MatchJobStatus y MatchingProcessStatus
-
   def modifyCategory(
                       globalCode: SampleCode,
                       replicate: Boolean,

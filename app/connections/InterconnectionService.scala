@@ -42,12 +42,14 @@ import scala.concurrent.duration.{Duration, FiniteDuration, SECONDS}
 import scala.util.Try
 import inbox.DeleteProfileInfo
 import matching.MatchResult
+import matching.MatchingSortHelper.getGlobalCode
 import org.apache.hadoop.yarn.util.resource.Resources.none
 import org.apache.spark.sql.catalyst.expressions.CurrentTimestamp
 import services.CacheService
 import trace.{CategoryChangeRejectedInSupInfo, MatchInfo, MatchTypeInfo, ProfileImportedFromInferiorInfo, ProfileRejectedInSuperiorInfo, SuperiorCategoryChangeRejectedInfo, SuperiorInstanceCategoryModificationInfo, Trace, TraceInfo, TraceService}
-
+import profiledata.ProfileDataRepository
 import java.sql.Timestamp
+
 
 
 trait InterconnectionService {
@@ -157,6 +159,11 @@ trait InterconnectionService {
   def wasMatchUploaded(matchResult: MatchResult, labImmediate: String): Boolean
 
   def isCategoryModification(globalCode: String): Future[Boolean]
+
+  def isUplpoadableInternalCode(internalCode: String): Future[Boolean]
+
+  //def checkAndMarkNotUploadable(internalCode: String): Future[Boolean]
+
 }
 
 @Singleton
@@ -1544,30 +1551,64 @@ class InterconnectionServiceImpl @Inject()(
     Future.successful(())
   }
 
-  // Add this new helper method within InterconnectionServiceImpl class
+  override def isUplpoadableInternalCode(internalCode: String): Future[Boolean] = {
+    protoRepo.getProtoProfileStatus(internalCode) match {
+      case "Imported" =>
+        profileDataRepository.getGlobalCode(internalCode).flatMap {
+          case Some(globalCodeStr) =>
+            val rawCode = globalCodeStr.toString.replaceFirst("^SampleCode\\(", "").replaceFirst("\\)$", "")
+            isUplpoadable(rawCode).flatMap { isUploadable =>
+              if (!isUploadable) {
+                // Si no es uploadable, actualizar el estado a "ReplicatedMatchingProfile"
+                protoRepo.updateProtoProfileStatus(internalCode, "ReplicatedMatchingProfile").map(_ => false)
+              } else {
+                Future.successful(true)
+              }
+            }
+          case None =>
+            Future.successful(false)
+        }
+      case "ReplicatedMatchingProfile" =>
+        profileDataRepository.getGlobalCode(internalCode).flatMap {
+          case Some(globalCodeStr) =>
+            val rawCode = globalCodeStr.toString.replaceFirst("^SampleCode\\(", "").replaceFirst("\\)$", "")
+            isUplpoadable(rawCode).flatMap { isUploadable =>
+              if (isUploadable) {
+                // Cambiar el estado de vuelta a "Imported" si ahora es uploadable
+                protoRepo.updateProtoProfileStatus(internalCode, "Imported").map(_ => true)
+              } else {
+                Future.successful(false)
+              }
+            }
+          case None =>
+            Future.successful(false)
+        }
+      case _ =>
+        Future.successful(false)  // Cualquier otro estado
+    }
+  }
+
+
   def isUplpoadable(globalCode: String): Future[Boolean] = {
     val sample = SampleCode(globalCode)
-
     matchingRepository.matchesByGlobalCode(sample).map { matches =>
-      // If there are no matches, it's uploadable
       if (matches.isEmpty) {
         true
       } else {
-        // Not uploadable if *any* "other" profile in the match pair
-        // is already replicated in PROFILE_UPLOADED
         !matches.exists { m =>
           val otherSample: SampleCode =
             if (m.leftProfile.globalCode.text == globalCode)
               m.rightProfile.globalCode
             else
               m.leftProfile.globalCode
-
           profileDataRepository.getIsProfileReplicated(otherSample)
         }
       }
     }
   }
-  // Modify the existing uploadProfile method as follows:
+
+
+  // Modificado para verificar que no esté replicado un perfil coincidente
   override def uploadProfile(globalCode: String, userName: String): Future[Either[String, Unit]] = {
     val sampleCode = SampleCode(globalCode)
     // New check: only proceed if the profile is uploadable

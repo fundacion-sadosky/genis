@@ -207,82 +207,6 @@ class Interconnections @Inject()( val protoRepo: ProtoProfileRepository,
   def retrieveImmediateInferiorInstanceLabCode(globalCode: String): String = {
     profileDataRepository.getImmediateInferiorInstanceLabCode(globalCode)
   }
-  // Instancia inferior recibe el codigo y el usuario que borró el perfil en la instancia superior
-  /*def deleteProfileFromSuperior(id: String, userName: String, labCode: String, motive: String) = Action.async(BodyParsers.parse.json) {
-    request => {
-      // Parse the motive string into partes
-      val motiveParts = motive.split(",").map(_.trim)
-      val solicitor = if (motiveParts.nonEmpty) motiveParts(0) else ""
-      val motiveText = if (motiveParts.length > 1) motiveParts(1) else ""
-      val deletedMotive = DeletedMotive(solicitor, motiveText)
-      interconnectionService.receiveDeleteProfile(id, deletedMotive, labCode, labCode, up=false, userName).map {
-            case Left(errorMsg) =>
-              BadRequest(Json.obj("message" -> errorMsg))
-            case Right(_) =>
-              Ok.withHeaders("X-CREATED-ID" -> id)
-          }
-      }
-    }*/
-
-
-  /*def approveProfiles(userName: String): Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
-    val input = request.body.validate[List[ProfileApproval]]
-    input.fold(
-      errors => Future.successful(BadRequest(JsError.toFlatJson(errors))),
-      approvals => {
-        // 1. Fetch isCategoryModification and labCode for each approval BEFORE calling approveProfiles
-        val approvalsWithDataFuture: Future[List[(ProfileApproval, Boolean, String)]] = Future.sequence(
-          approvals.map { approval =>
-            for {
-              isMod <- interconnectionService.isCategoryModification(approval.globalCode)  // Fetch isCategoryModification
-              labCode <- Future {  // Fetch labCode
-                try {
-                  retrieveImmediateInferiorInstanceLabCode(approval.globalCode)  // Assuming this method exists and returns String
-                } catch {
-                  case e: Exception =>
-                    logger.error(s"Error retrieving labCode for globalCode ${approval.globalCode}: ${e.getMessage}")
-                    ""  // Return empty string or handle as needed; this could be customized
-                }
-              }
-            } yield (approval, isMod, labCode)
-          }
-        )
-
-        approvalsWithDataFuture.flatMap { approvalsWithData =>  // approvalsWithData is List[(ProfileApproval, Boolean, String)]
-          interconnectionService.approveProfiles(approvals, userName).flatMap {
-            case Left(e) => Future.successful(BadRequest(Json.obj("message" -> e)))
-            case Right(()) => {
-              // After successful approval, insert into PROFILE_RECEIVED using the pre-calculated data
-              Future.sequence(approvalsWithData.map { case (approval, isCatMod, labCode) =>
-                if (labCode.nonEmpty) {  // Ensure labCode is valid
-                  profiledataService.addProfileReceivedApproved(
-                    labCode,  // Use the pre-fetched labCode que es la instancia inferior inmediata
-                    approval.globalCode,
-                    22L,
-                    userName,
-                    isCategoryModification = isCatMod
-                  ).map {
-                    case Right(_) => Right(())  // Success
-                    case Left(error) => Left(error)  // Propagate error
-                  }
-                } else {
-                  Future.successful(Left("Invalid or missing labCode for globalCode " + approval.globalCode))
-                }
-              }).map { results =>
-                if (results.forall(_.isRight)) {
-                  Ok.withHeaders(
-                    "X-CREATED-ID" -> approvals.map(a => a.globalCode).mkString(start = "[", sep = ",", end = "]")
-                  )
-                } else {
-                  InternalServerError(Json.obj("message" -> "Error inserting into PROFILE_RECEIVED"))
-                }
-              }
-            }
-          }
-        }
-      }
-    )
-  }*/
 
   def approveProfiles(userName: String): Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
     val input = request.body.validate[List[ProfileApproval]]
@@ -444,6 +368,12 @@ class Interconnections @Inject()( val protoRepo: ProtoProfileRepository,
           }
         }
       )
+    }
+  }
+
+  def getIsProfileReplicableInternalCode(internalCode: String) = Action.async { _ =>
+    interconnectionService.isUplpoadableInternalCode(internalCode).map { isReplicable =>
+      Ok(Json.toJson(isReplicable))
     }
   }
 }

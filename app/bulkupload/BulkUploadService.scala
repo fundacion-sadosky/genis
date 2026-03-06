@@ -88,6 +88,10 @@
       case (ProtoProfileStatus.Approved, ProtoProfileStatus.Rejected) => true
       case (ProtoProfileStatus.Imported, ProtoProfileStatus.Uploaded) => true
       case (ProtoProfileStatus.Uploaded, ProtoProfileStatus.Imported) => true
+      case (ProtoProfileStatus.Imported,ProtoProfileStatus.ReplicatedMatchingProfile) => true
+      case (ProtoProfileStatus.Uploaded, ProtoProfileStatus.ReplicatedMatchingProfile) => true
+      case (ProtoProfileStatus.ReplicatedMatchingProfile, ProtoProfileStatus.Uploaded) => true
+      case (ProtoProfileStatus.ReplicatedMatchingProfile, ProtoProfileStatus.Uploaded) => true //Por si se cambia de categoría a una en la que no haga match
       case (_, _) => false
     }
 
@@ -378,7 +382,7 @@
           users =>
             val loggedUser = users.find(u => u.userName == userId).get
 
-            val profiles = if (status == ProtoProfileStatus.Imported || status == ProtoProfileStatus.Uploaded ) {
+            val profiles = if (status == ProtoProfileStatus.Imported || status == ProtoProfileStatus.Uploaded || status == ProtoProfileStatus.ReplicatedMatchingProfile ) {
               protoRepo.getProtoProfilesStep2(
                 idBatch,
                 loggedUser.geneMapperId,
@@ -474,88 +478,7 @@
         }
       }
     }
-    /*override def updateBatchStatus(
-                                    idBatch: Long,
-                                    status: ProtoProfileStatus.Value,
-                                    userId: String,
-                                    isSuperUser: Boolean,
-                                    replicateAll:Boolean,
-                                    idsToReplicate: scala.List[Long]
-                                  ): Future[Either[String, Long]] = {
-      val result = userService
-        .listAllUsers()
-        .flatMap {
-          users =>
-            val loggedUser = users.find(u => u.userName == userId).get
-            val profiles = if (status == ProtoProfileStatus.Imported) {
-              protoRepo.getProtoProfilesStep2(
-                idBatch,
-                loggedUser.geneMapperId,
-                loggedUser.superuser
-              )
-            } else {
-              protoRepo.getProtoProfilesStep1(idBatch)
-            }
-            profiles.flatMap {
-              protoProfiles =>
-                Future.sequence(
-                  protoProfiles.map(
-                    protoProfile => {
-                      val geneticistOpt = users
-                        .find(u => u.geneMapperId == protoProfile.assignee)
-                      val errorMessage = () => {
-                        Future.successful(
-                          Seq(Messages("error.E0200", protoProfile.assignee))
-                        )
-                      }
-                      val performTransition = (geneticist:UserView) => {
-                        if (allowTransition(protoProfile.status, status)) {
-                          var replicate = false;
-                          if (replicateAll) {
-                            val category = categoryService
-                              .getCategory(protoProfile.category)
-                            if (category.isDefined && category.get.replicate) {
-                              replicate = true;
-                            }
-                          } else {
-                            if (idsToReplicate.contains(protoProfile.id)) {
-                              replicate = true;
-                            }
-                          }
-                          transitionStatus(
-                            status,
-                            protoProfile,
-                            geneticist.userName,
-                            userId,
-                            replicate
-                          )
-                        } else {
-                          Future.successful(Seq())
-                        }
-                      }
-                      geneticistOpt.fold(errorMessage())(performTransition)
-                    }
-                  )
-                )
-            }
-        }
-      result.map {
-        sequences =>
-          if (sequences.exists(_.nonEmpty)) {
-            val joinedMessage = (
-              sequences
-                .flatten
-                ++ Seq(Messages("error.E0103"))
-              )
-              .distinct
-              .map(msg => s"<br>${msg}")
-              .mkString("")
-            Left(joinedMessage)
-          } else {
-            Right(idBatch)
-          }
-      }
-    }*/
+
 
     private def transitionStatus(
                                   status: ProtoProfileStatus.Value,

@@ -105,6 +105,7 @@
 								<span ng-if="r.status == 'Rejected'">Rechazado</span>
 								<span ng-if="r.status == 'Imported'">Aceptado</span>
 								<span ng-if="r.status == 'Approved'">Aprobado</span>
+								<span ng-if="r.status == 'ReplicatedMatchingProfile'">Coincidente</span>
 								<span ng-if="r.status == 'DesktopSeach'">Búsqueda de escritorio</span>
 								<span {{statusMap[r.status]}}</span>
 							</td>
@@ -114,9 +115,11 @@
 									   ng-disabled="r.replicateDisabled
                        								|| !$parent.subcategory[r.category].replicate
                        								|| r.replicated
+                       								|| !r.replicable
+                       								|| r.status === 'ReplicatedMatchingProfile'
                         							|| r.status !== 'Imported'
                        								|| r.status === 'DesktopSearch'"
-									   ng-class="{'disabled-checkbox': r.replicateDisabled || r.status === 'DesktopSearch' || r.replicated}">
+									   ng-class="{'disabled-checkbox': r.replicateDisabled || r.status === 'DesktopSearch' || r.status === 'ReplicatedMatchingProfile'  || r.replicated || !r.replicable}">
 							</td>
 							<td class="text-center">
 								<input type="checkbox"
@@ -143,6 +146,9 @@
 								<div data-ng-show="r.errors && r.errors.length > 0">
 									Errores:<br>
 									<span data-ng-repeat="err in r.errors">{{err}}<br></span>
+								</div>
+								<div ng-if="r.status === 'ReplicatedMatchingProfile'">
+									Perfil coincidente ya replicado
 								</div>
 							</td>
 							<td class="text-center" title="Ver genotipificación">
