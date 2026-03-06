@@ -19,6 +19,9 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: Setup sbt
+        uses: sbt/setup-sbt@v1
+
       - name: Cache sbt
         uses: actions/cache@v4
         with:
@@ -68,13 +71,13 @@ jobs:
           CURRENT="${{ steps.run_tests.outputs.passed }}"
           CURRENT="${CURRENT:-0}"
 
-          if [ -f "test-baseline.json" ]; then
-            BASELINE=$(python3 -c "import sys,json; print(json.load(open('test-baseline.json'))['passed'])")
+          if [ -f "test-results.json" ]; then
+            BASELINE=$(python3 -c "import sys,json; print(json.load(open('test-results.json'))['passed'])")
             echo "Baseline: $BASELINE  |  Current: $CURRENT"
 
             if [ "$CURRENT" -lt "$BASELINE" ]; then
               BROKEN=$(( BASELINE - CURRENT ))
-              echo "regression=true"   >> "$GITHUB_OUTPUT"
+              echo "regression=true"    >> "$GITHUB_OUTPUT"
               echo "baseline=$BASELINE" >> "$GITHUB_OUTPUT"
               echo "current=$CURRENT"   >> "$GITHUB_OUTPUT"
               echo "broken=$BROKEN"     >> "$GITHUB_OUTPUT"
