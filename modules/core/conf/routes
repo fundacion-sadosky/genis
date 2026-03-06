@@ -44,3 +44,14 @@ GET     /api/v2/geneticist                      controllers.GeneticistsControlle
 GET     /api/v2/geneticist-users                controllers.GeneticistsController.getGeneticistUsers()
 PUT     /api/v2/geneticist                      controllers.GeneticistsController.updateGeneticist()
 
+# STR Kits
+GET     /api/v2/strkits/:id           controllers.StrKitsController.get(id: String)
+GET     /api/v2/strkits-full/:id      controllers.StrKitsController.getFull(id: String)
+GET     /api/v2/strkits               controllers.StrKitsController.list()
+GET     /api/v2/strkits-full          controllers.StrKitsController.listFull()
+POST    /api/v2/strkits               controllers.StrKitsController.add()
+PUT     /api/v2/strkits               controllers.StrKitsController.update()
+DELETE  /api/v2/strkits/:id           controllers.StrKitsController.delete(id: String)
+POST    /api/v2/strkits/import        controllers.StrKitsController.importKits()
+GET     /api/v2/strkits/export        controllers.StrKitsController.exportKits()
+
