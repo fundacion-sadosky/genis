@@ -1,0 +1,34 @@
+name: Test Regression
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Cache sbt
+        uses: actions/cache@v2
+        with:
+          path: ~/.ivy2/cache
+          key: ${{ runner.os }}-sbt-${{ hashFiles('**/*.scala') }}
+          restore-keys: |
+            ${{ runner.os }}-sbt-
+
+      - name: Install sbt
+        run: |
+          echo "Installing sbt..."
+          # Commands to install sbt
+
+      - name: Activate modern config
+        run: |
+          echo "Activating modern config..."
+
+      - name: Run tests
+        run: |
+          echo "Running tests..."
