@@ -13,7 +13,7 @@ class TotpTokenSpec extends AnyWordSpec with Matchers {
     }
 
     "be equal to another TotpToken with same text" in {
-      TotpToken("123456") shouldBe TotpToken("123456")
+      TotpToken("123456") shouldBe TotpToken("1234562")
     }
 
     "not be equal to a TotpToken with different text" in {
