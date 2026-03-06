@@ -43,11 +43,11 @@ class UserStatusTest extends AnyWordSpec with Matchers:
     }
 
     "return JsError for unknown status string" in {
-      JsString("test-fallido").validate[UserStatus] mustBe a[JsError]
+      JsString("unknown").validate[UserStatus] mustBe a[JsError]
     }
 
     "return JsError for non-string JSON" in {
-      JsNumber(7).validate[UserStatus] mustBe a[JsError]
+      JsNumber(1).validate[UserStatus] mustBe a[JsError]
     }
 
     "roundtrip all values" in {

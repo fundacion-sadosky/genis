@@ -3,8 +3,6 @@ name: Test Regression Detection
 on:
   push:
     branches: [ new-dev ]
-  pull_request:
-    branches: [ new-dev ]
 
 jobs:
   test:
@@ -34,21 +32,16 @@ jobs:
 
       - name: Activate modern config
         run: |
-          # Ensure we're using the modern build config
           cp config-modern/build.sbt build.sbt
           cp -r config-modern/project/. project/
 
       - name: Run tests
         id: run_tests
-        # continue-on-error so we can still compare & notify even if tests fail
         continue-on-error: true
         run: |
           sbt -Dsbt.color=false -Dsbt.log.noformat=true "core/test" 2>&1 | tee test-output.txt
-          # ScalaTest outputs lines like:
-          #   [info] Tests: succeeded 5, failed 0, canceled 0, ignored 0, pending 0
           PASSED=$(grep -oP 'succeeded \K[0-9]+' test-output.txt | awk '{sum+=$1} END {print sum+0}')
-          FAILED=$(grep -oP 'failed \K[0-9]+' test-output.txt \
-            | awk '{sum+=$1} END {print sum+0}')
+          FAILED=$(grep -oP 'failed \K[0-9]+' test-output.txt | awk '{sum+=$1} END {print sum+0}')
           echo "passed=$PASSED" >> "$GITHUB_OUTPUT"
           echo "failed=$FAILED"  >> "$GITHUB_OUTPUT"
           echo "Tests found — passed: $PASSED, failed: $FAILED"
@@ -56,10 +49,9 @@ jobs:
       - name: Save current results as JSON
         run: |
           echo '{"passed":${{ steps.run_tests.outputs.passed }},"failed":${{ steps.run_tests.outputs.failed }}}' \
-            > test-results.json
-          cat test-results.json
+            > test-baseline.json
+          cat test-baseline.json
 
-      # Download the baseline from the last successful run on new-dev
       - name: Download previous baseline
         id: download_baseline
         uses: dawidd6/action-download-artifact@v6
@@ -113,16 +105,15 @@ jobs:
           BROKEN="${{ steps.check_regression.outputs.broken }}"
 
           MESSAGE="🚨 *REGRESIÓN DE TESTS — GENis*
-          
+
           Antes: ${BASELINE} tests pasaban ✅
           Ahora: ${CURRENT} tests pasan ⚠️
           Se rompieron: *${BROKEN} tests*
-          
+
           📌 \`${SHORT_SHA}\` por ${ACTOR}
           🌿 Branch: \`${BRANCH}\`
           🔗 [Ver run en GitHub Actions](${RUN_URL})"
-          
-          # Limpiamos la indentación usada por YAML
+
           MESSAGE="$(echo "$MESSAGE" | sed 's/^[[:space:]]*//')"
 
           curl -s -X POST "https://api.telegram.org/bot${TOKEN}/sendMessage" \
@@ -131,12 +122,11 @@ jobs:
             -d parse_mode="Markdown" \
             --data-urlencode text="${MESSAGE}"
 
-      # Only update baseline when there is NO regression
       - name: Update baseline artifact
         if: steps.check_regression.outputs.regression == 'false'
         uses: actions/upload-artifact@v4
         with:
           name: test-baseline
-          path: test-results.json
+          path: test-baseline.json
           overwrite: true
           retention-days: 90
