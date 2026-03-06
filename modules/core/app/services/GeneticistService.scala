@@ -1,7 +1,8 @@
 package services
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import types.Geneticist
+import configdata.GeneticistRepository
 
 
 trait GeneticistService {
@@ -11,12 +12,14 @@ trait GeneticistService {
   def get(id: Long): Future[Option[Geneticist]]
 }
 
-import javax.inject.Singleton
+import javax.inject.{Inject, Singleton}
 
 @Singleton
-class GeneticistServiceImpl extends GeneticistService {
-  override def add(geneticist: Geneticist): Future[Int] = Future.successful(0)
-  override def getAll(laboratory: String): Future[Seq[Geneticist]] = Future.successful(Seq.empty)
-  override def update(geneticist: Geneticist): Future[Int] = Future.successful(0)
-  override def get(id: Long): Future[Option[Geneticist]] = Future.successful(None)
+class GeneticistServiceImpl @Inject() (
+  genRepository: GeneticistRepository
+)(implicit ec: ExecutionContext) extends GeneticistService {
+  override def add(geneticist: Geneticist): Future[Int] = genRepository.add(geneticist)
+  override def getAll(laboratory: String): Future[Seq[Geneticist]] = genRepository.getAll(laboratory)
+  override def update(geneticist: Geneticist): Future[Int] = genRepository.update(geneticist)
+  override def get(id: Long): Future[Option[Geneticist]] = genRepository.get(id)
 }

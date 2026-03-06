@@ -1,25 +1,16 @@
 // scalastyle:off
-package models
+package sharedmodels
 
-import java.util.Date
+import slick.jdbc.PostgresProfile
 
-import inbox.NotificationType
+object Tables extends Tables {
+  val profile = PostgresProfile
+}
 
-import scala.slick.model.ForeignKeyAction
-
-// AUTO-GENERATED Slick data model
-/** Stand-alone Slick data model for immediate use */
-object Tables extends {
-  val profile = scala.slick.driver.PostgresDriver
-} with Tables
-
-/** Slick data model trait for extension, choice of backend or usage in the cake pattern. (Make sure to initialize this late.) */
 trait Tables {
-  val profile: scala.slick.driver.JdbcProfile
-  import profile.simple._
-  import scala.slick.model.ForeignKeyAction
-  // NOTE: GetResult mappers for plain SQL are only generated for tables where Slick knows how to map the types of all columns.
-  import scala.slick.jdbc.{GetResult => GR}
+  val profile: slick.jdbc.JdbcProfile = PostgresProfile
+  import profile.api._
+  import slick.jdbc.{GetResult => GR}
 
   /** DDL for all tables. Call .create to execute. */
   lazy val ddl = BatchProtoProfile.ddl ++ BioMaterialType.ddl ++ Category.ddl ++ CategoryAlias.ddl ++ CategoryAssociation.ddl ++ CategoryMatching.ddl ++ Country.ddl ++ CourtCase.ddl ++ CrimeInvolved.ddl ++ CrimeType.ddl ++ Geneticist.ddl ++ Group.ddl ++ Laboratory.ddl ++ Locus.ddl ++ LocusAlias.ddl ++ MitochondrialRcrs.ddl ++ OperationLogLot.ddl ++ OperationLogRecord.ddl ++ PopulationBaseFrequency.ddl ++ PopulationBaseFrequencyName.ddl ++ ProfileData.ddl ++ ProfileDataFiliation.ddl ++ ProfileDataFiliationResources.ddl ++ ProtoProfile.ddl ++ Province.ddl ++ Strkit.ddl ++ StrkitAlias.ddl ++ StrkitLocus.ddl ++ Notification.ddl ++ AnalysisType.ddl ++ LocusLink.ddl ++ CategoryConfiguration.ddl ++ CategoryConfiguration.ddl ++ Trace.ddl ++ CourtCaseFiliationData.ddl ++ CaseType.ddl ++ Pedigree.ddl
