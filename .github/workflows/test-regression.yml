@@ -52,8 +52,8 @@ jobs:
       - name: Save current results as JSON
         run: |
           echo '{"passed":${{ steps.run_tests.outputs.passed }},"failed":${{ steps.run_tests.outputs.failed }}}' \
-            > test-baseline.json
-          cat test-baseline.json
+            > test-current.json
+          cat test-current.json
 
       - name: Download previous baseline
         id: download_baseline
@@ -71,8 +71,8 @@ jobs:
           CURRENT="${{ steps.run_tests.outputs.passed }}"
           CURRENT="${CURRENT:-0}"
 
-          if [ -f "test-results.json" ]; then
-            BASELINE=$(python3 -c "import sys,json; print(json.load(open('test-results.json'))['passed'])")
+          if [ -f "test-baseline.json" ]; then
+            BASELINE=$(python3 -c "import sys,json; print(json.load(open('test-baseline.json'))['passed'])")
             echo "Baseline: $BASELINE  |  Current: $CURRENT"
 
             if [ "$CURRENT" -lt "$BASELINE" ]; then
@@ -126,6 +126,10 @@ jobs:
             --data-urlencode text="${MESSAGE}"
 
       - name: Update baseline artifact
+        if: steps.check_regression.outputs.regression == 'false'
+        run: cp test-current.json test-baseline.json
+
+      - name: Upload baseline artifact
         if: steps.check_regression.outputs.regression == 'false'
         uses: actions/upload-artifact@v4
         with:
