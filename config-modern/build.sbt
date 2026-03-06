@@ -1,3 +1,4 @@
+// Eliminada dependencia play-slick, solo usar slick puro
 import scala.concurrent.duration._
 
 // These old imports are removed (from sbt-web plugins that are deprecated)
@@ -54,16 +55,26 @@ lazy val core = (project in file("modules/core"))
       "org.playframework" %% "play" % "3.0.6",
       "org.playframework" %% "play-json" % "3.0.6",
       
-      // Slick (sin play-slick por ahora, no hay versión para Scala 3)
-      // Usaremos Slick vanilla directamente
+      // Slick y Play-Slick
       "com.typesafe.slick" %% "slick" % "3.5.2",
       "com.typesafe.slick" %% "slick-hikaricp" % "3.5.2",
       "org.postgresql" % "postgresql" % "42.7.5",
       
+      // Play Cache (API + implementación Caffeine)
+      "org.playframework" %% "play-cache" % "3.0.6",
+      "org.playframework" %% "play-caffeine-cache" % "3.0.6",
+
+      // MongoDB driver (para MongoController / FerretDB)
+      "org.mongodb" % "mongodb-driver-sync" % "5.3.1",
+
       // Utilidades actualizadas
       "com.google.guava" % "guava" % "33.4.0-jre",
       "org.apache.commons" % "commons-lang3" % "3.17.0",
       "commons-io" % "commons-io" % "2.18.0",
+      "commons-codec" % "commons-codec" % "1.17.1",
+
+      // OTP (TOTP) - aerogear
+      "org.jboss.aerogear" % "aerogear-otp-java" % "1.0.0",
       
       // Logback
       "ch.qos.logback" % "logback-classic" % "1.5.15",
@@ -77,7 +88,8 @@ lazy val core = (project in file("modules/core"))
       
       // Testing
       "org.scalatestplus.play" %% "scalatestplus-play" % "7.0.1" % Test,
-      "org.scalatest" %% "scalatest" % "3.2.19" % Test
+      "org.scalatest" %% "scalatest" % "3.2.19" % Test,
+      "org.scalatestplus" %% "mockito-5-12" % "3.2.19.0" % Test
     ),
     
     // Modern corre en puerto 9001 (legacy usa 9000)
