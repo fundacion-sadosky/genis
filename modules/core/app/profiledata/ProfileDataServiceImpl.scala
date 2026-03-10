@@ -4,7 +4,7 @@ import javax.inject._
 import java.io.File
 import scala.concurrent.{ExecutionContext, Future}
 import types.SampleCode
-import models.ProfileDataTables.{
+import models.{
   ExternalProfileDataRow,
   ProfileReceivedRow,
   ProfileSentRow,

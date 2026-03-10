@@ -55,3 +55,14 @@ DELETE  /api/v2/strkits/:id           controllers.StrKitsController.delete(id: S
 POST    /api/v2/strkits/import        controllers.StrKitsController.importKits()
 GET     /api/v2/strkits/export        controllers.StrKitsController.exportKits()
 
+# Profile Data
+GET     /api/v2/profiledata/desktop                              controllers.ProfileDataController.getDesktopProfiles()
+GET     /api/v2/profiledata/deleted/:globalCode                  controllers.ProfileDataController.isDeleted(globalCode: String)
+GET     /api/v2/profiledata/deletemotive/:globalCode             controllers.ProfileDataController.getDeleteMotive(globalCode: String)
+GET     /api/v2/profiledata/code/:globalCode                     controllers.ProfileDataController.findByCode(globalCode: String)
+GET     /api/v2/profiledata/resource/:resourceType/:id           controllers.ProfileDataController.getResource(resourceType: String, id: Long)
+GET     /api/v2/profiledata/:globalCode                          controllers.ProfileDataController.getByGlobalCode(globalCode: String)
+POST    /api/v2/profiledata                                      controllers.ProfileDataController.create()
+PUT     /api/v2/profiledata/:globalCode                          controllers.ProfileDataController.updateProfileData(globalCode: String)
+DELETE  /api/v2/profiledata/:globalCode                          controllers.ProfileDataController.deleteProfile(globalCode: String)
+DELETE  /api/v2/profiledata/remove/:globalCode                   controllers.ProfileDataController.removeProfile(globalCode: String)

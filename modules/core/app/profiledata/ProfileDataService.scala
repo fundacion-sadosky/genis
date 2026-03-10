@@ -3,7 +3,7 @@ package profiledata
 import java.io.File
 import scala.concurrent.Future
 import types.SampleCode
-import models.ProfileDataTables.{
+import models.{
   ExternalProfileDataRow,
   ProfileReceivedRow,
   ProfileSentRow,

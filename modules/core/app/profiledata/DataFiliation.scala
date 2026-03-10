@@ -20,7 +20,7 @@ case class DataFiliation(
 object DataFiliation {
   import play.api.libs.json.Json
 
-  implicit val dataFiliationFormat = Json.format[DataFiliation]
+  implicit val dataFiliationFormat: Format[DataFiliation]  = Json.format[DataFiliation]
 }
 
 case class DataFiliationAttempt(

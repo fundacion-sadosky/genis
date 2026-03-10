@@ -5,6 +5,14 @@ import java.io.File
 import scala.concurrent.{ExecutionContext, Future}
 import slick.jdbc.PostgresProfile.api._
 import types.SampleCode
+import models.{
+  ExternalProfileDataRow,
+  ProfileDataFiliationRow,
+  ProfileDataRow,
+  ProfileReceivedRow,
+  ProfileSentRow,
+  ProfileUploadedRow
+}
 import models.ProfileDataTables._
 
 @Singleton
