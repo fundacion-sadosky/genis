@@ -9,7 +9,8 @@ trait PostgresSpec extends BeforeAndAfterAll { self: Suite =>
     url = "jdbc:postgresql://localhost:5432/genisdb",
     user = "genissqladmin",
     password = "genissqladminp",
-    driver = "org.postgresql.Driver"
+    driver = "org.postgresql.Driver",
+    executor = AsyncExecutor("test", numThreads = 2, queueSize = 100)
   )
 
   override protected def afterAll(): Unit =

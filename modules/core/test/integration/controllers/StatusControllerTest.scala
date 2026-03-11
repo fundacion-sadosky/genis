@@ -11,15 +11,19 @@ import play.api.test.Helpers._
 import security.{UserRepository, StubUserRepository}
 import user.{RoleRepository, UsersModule}
 import security.StubRoleRepository
+import kits.{StrKitModule, StrKitService}
+import fixtures.StubStrKitService
 
 class StatusControllerTest extends PlaySpec with GuiceOneAppPerTest {
 
   override def fakeApplication(): Application =
     GuiceApplicationBuilder()
       .disable[UsersModule]
+      .disable[StrKitModule]
       .overrides(
         bind[UserRepository].to[StubUserRepository],
-        bind[RoleRepository].to[StubRoleRepository]
+        bind[RoleRepository].to[StubRoleRepository],
+        bind[StrKitService].toInstance(new StubStrKitService)
       )
       .configure("play.http.secret.key" -> "test-secret-key-for-testing-purposes-only-not-for-production-1234")
       .build()

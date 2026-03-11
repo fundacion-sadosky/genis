@@ -9,10 +9,11 @@ import play.api.test.*
 import play.api.test.Helpers.*
 import play.api.libs.json.Json
 
-import fixtures.{StubGeneticistService, StubUserService}
+import fixtures.{StubGeneticistService, StubStrKitService, StubUserService}
 import security.{StubRoleRepository, StubUserRepository, UserRepository}
 import services.{GeneticistService, UserService}
 import user.{RoleRepository, UsersModule}
+import kits.{StrKitModule, StrKitService}
 import types.{Geneticist, User}
 
 class GeneticistsControllerTest extends PlaySpec with GuiceOneAppPerTest {
@@ -25,11 +26,13 @@ class GeneticistsControllerTest extends PlaySpec with GuiceOneAppPerTest {
     userStub = new StubUserService
     GuiceApplicationBuilder()
       .disable[UsersModule]
+      .disable[StrKitModule]
       .overrides(
         bind[UserRepository].to[StubUserRepository],
         bind[RoleRepository].to[StubRoleRepository],
         bind[GeneticistService].toInstance(genStub),
-        bind[UserService].toInstance(userStub)
+        bind[UserService].toInstance(userStub),
+        bind[StrKitService].toInstance(new StubStrKitService)
       )
       .configure("play.http.secret.key" -> "test-secret-key-for-testing-purposes-only-not-for-production-1234")
       .build()
