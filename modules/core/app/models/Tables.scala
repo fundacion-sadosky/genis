@@ -104,4 +104,25 @@ object Tables {
     def * = (id, name, description) <> ((BioMaterialTypeRow.apply _).tupled, BioMaterialTypeRow.unapply)
   }
   val BioMaterialType = TableQuery[BioMaterialType]
+
+  // MotiveType table
+  case class MotiveTypeRow(id: Long, description: String)
+  class MotiveTypeTable(tag: Tag) extends Table[MotiveTypeRow](tag, Some("APP"), "MOTIVE_TYPE") {
+    def id          = column[Long]("ID", O.PrimaryKey)
+    def description = column[String]("DESCRIPTION")
+    def *           = (id, description) <> ((MotiveTypeRow.apply _).tupled, MotiveTypeRow.unapply)
+  }
+  val MotiveType = TableQuery[MotiveTypeTable]
+
+  // Motive table
+  case class MotiveRow(id: Long, motiveType: Long, description: String, freeText: Boolean, deleted: Boolean = false)
+  class MotiveTable(tag: Tag) extends Table[MotiveRow](tag, Some("APP"), "MOTIVE") {
+    def id          = column[Long]("ID", O.AutoInc, O.PrimaryKey)
+    def motiveType  = column[Long]("MOTIVE_TYPE")
+    def description = column[String]("DESCRIPTION")
+    def freeText    = column[Boolean]("FREE_TEXT")
+    def deleted     = column[Boolean]("DELETED")
+    def *           = (id, motiveType, description, freeText, deleted) <> ((MotiveRow.apply _).tupled, MotiveRow.unapply)
+  }
+  val Motive = TableQuery[MotiveTable]
 }
