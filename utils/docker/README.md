@@ -505,4 +505,13 @@ Se hace el restore de la base de datos mongo:
 ```
 docker run --rm   --network=docker_genis_network   -v "$(pwd)/mongodump_pdgdb.dump:/restore_data"   mongo:5   mongorestore --uri="mongodb://pdguser:pdgp@genis_ferretdb:27017/pdgdb?authSource=pdgdb"   --nsInclude "pdgdb.*"   /restore_data/pdgdb
 ```
+Restore de las bases de datos postgres:
+```
+docker cp genisdb_backup_.dump genis_postgres:/backups/genisdb_backup.dump
+docker cp genislogdb_backup_.dump genis_postgres:/backups/genislogdb_backup.dump
+docker exec -e PGPASSWORD=genissqladminp genis_postgres pg_restore -U genissqladmin -h postgres --clean --if-exists -d genisdb /backups/genisdb_backup.dump
+docker exec -e PGPASSWORD=genissqladminp genis_postgres pg_restore -U genissqladmin -h postgres --clean --if-exists -d genislogdb /backups/genislogdb_backup.dump
+```
+
+
 
