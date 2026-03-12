@@ -43,6 +43,7 @@ bin/
 .idea
 .agents
 AGENTS.md
+CLAUDE.md
 # mac
 .DS_Store
 
