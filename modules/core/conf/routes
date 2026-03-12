@@ -55,3 +55,10 @@ DELETE  /api/v2/strkits/:id           controllers.StrKitsController.delete(id: S
 POST    /api/v2/strkits/import        controllers.StrKitsController.importKits()
 GET     /api/v2/strkits/export        controllers.StrKitsController.exportKits()
 
+# Motive
+GET     /api/v2/motive                controllers.MotiveController.getMotives(id: Long, abm: Boolean)
+GET     /api/v2/motive-types          controllers.MotiveController.getMotivesTypes
+POST    /api/v2/motive                controllers.MotiveController.insert
+PUT     /api/v2/motive                controllers.MotiveController.update
+DELETE  /api/v2/motive/:id            controllers.MotiveController.deleteMotiveById(id: Long)
+
