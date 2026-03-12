@@ -378,4 +378,131 @@ se solicitará el password del usuario **admin** que se puede consultar en *dock
 
 Salir del contenedor con `CTRL+D`.
 
+### Upgrade de postgres a 16 y migraciòn de mongodb a ferretdb
+Se realiza el backup de las bases postgres y mongo. 
+Se cambia el archivo docker-compose.yml:
+```
+version: '3.8'
+services:
+
+  # --- MAIN APPLICATION DATABASE (Postgres 16.6-alpine) ---
+  postgres:
+    image: postgres:16.6-alpine
+    container_name: genis_postgres
+    restart: always
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_INITDB_ARGS="--auth=md5"
+    ports:
+      - "5432:5432"
+    command: postgres -c 'max_connections=500'
+    volumes:
+      - 'pgsql_data_16:/var/lib/postgresql/data'
+      - './pgsql_init:/docker-entrypoint-initdb.d'
+      - '.:/backups'
+    networks:
+      - genis_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # --- FERRETDB BACKEND (Storage for Mongo Data) ---
+  ferretdb_postgres:
+    image: ghcr.io/ferretdb/postgres-documentdb:17-0.107.0-ferretdb-2.7.0
+    container_name: genis_ferret_backend
+    restart: on-failure
+    environment:
+      - POSTGRES_USER=ferret
+      - POSTGRES_PASSWORD=ferretp
+      - POSTGRES_DB=postgres
+    volumes:
+      - ferretdb_pg_data:/var/lib/postgresql/data
+    networks:
+      - genis_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ferret -d postgres"] # <--- CHANGED FROM ferret_user TO ferret
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  # --- FERRETDB PROXY (The Mongo Interface) ---
+  ferretdb:
+    image: ghcr.io/ferretdb/ferretdb:2.7.0
+    container_name: genis_ferretdb
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      - FERRETDB_POSTGRESQL_URL=postgres://ferret:ferretp@ferretdb_postgres:5432/postgres?sslmode=disable
+      - FERRETDB_AUTH_MODE=disabled
+    networks:
+      - genis_network
+    depends_on: # <--- MODIFIED DEPENDS_ON TO WAIT FOR HEALTHY STATUS
+      ferretdb_postgres:
+        condition: service_healthy
+
+  # --- LDAP SERVICES (Kept as before) ---
+  openldap:
+    image: bitnami/openldap:2.6
+    container_name: genis_ldap
+    restart: always
+    ports:
+      - '1389:1389'
+      - '1636:1636'
+    environment:
+      - LDAP_ROOT=dc=genis,dc=local
+      - LDAP_SKIP_DEFAULT_TREE=yes
+    volumes:
+      - openldap_data:/bitnami/openldap
+    networks:
+      - genis_network
+  openldap2:
+    image: bitnami/openldap:2.6
+    container_name: genis_ldap2
+    restart: always
+    ports:
+      - '2389:2389'
+      - '2636:2636'
+    environment:
+      - LDAP_ROOT=dc=genis,dc=local
+      - LDAP_SKIP_DEFAULT_TREE=yes
+      - LDAP_ADMIN_USERNAME=admin
+      - LDAP_ADMIN_PASSWORD=adminp
+      - LDAP_PORT_NUMBER=2389
+      - LDAP_LDAPS_PORT_NUMBER=2636
+    volumes:
+      - openldap_data2:/bitnami/openldap
+    networks:
+      - genis_network
+
+volumes:
+  pgsql_data_16:
+  ferretdb_pg_data:
+  openldap_data:
+  openldap_data2:
+
+networks:
+  genis_network:
+    driver: bridge
+
+```
+Se crea un usuario pdguser clave pdgp:
+
+```
+docker run --rm -it   --network=docker_genis_network   mongo:latest   mongosh "mongodb://ferret:ferretp@genis_ferretdb:27017/pdgdb?authSource=admin"
+```
+```
+db.createUser({
+  user: "pdguser",
+  pwd: "pdgp",
+  roles: ["readWrite", "dbAdmin"]
+});
+```
+Se hace el restore de la base de datos mongo:
+```
+docker run --rm   --network=docker_genis_network   -v "$(pwd)/mongodump_pdgdb.dump:/restore_data"   mongo:5   mongorestore --uri="mongodb://pdguser:pdgp@genis_ferretdb:27017/pdgdb?authSource=pdgdb"   --nsInclude "pdgdb.*"   /restore_data/pdgdb
+```
 
