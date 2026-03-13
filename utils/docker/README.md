@@ -387,7 +387,7 @@ services:
 
   # --- MAIN APPLICATION DATABASE (Postgres 16.6-alpine) ---
   postgres:
-    image: postgres:16.6-alpine
+    image: postgres:16.13-alpine
     container_name: genis_postgres
     restart: always
     environment:
