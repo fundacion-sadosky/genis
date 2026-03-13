@@ -1,24 +1,25 @@
 package services
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import types.Laboratory
+import configdata.LaboratoryRepository
 
 
 trait LaboratoryService {
   def list(): Future[Seq[Laboratory]]
-  def listDescriptive(): Future[Seq[Laboratory]]
-  def add(lab: Laboratory): Future[Either[String, String]]
+  def add(lab: Laboratory): Future[Int]
   def get(id: String): Future[Option[Laboratory]]
-  def update(lab: Laboratory): Future[Either[String, String]]
+  def update(lab: Laboratory): Future[Int]
 }
 
-import javax.inject.Singleton
+import javax.inject.{Inject, Singleton}
 
 @Singleton
-class LaboratoryServiceImpl extends LaboratoryService {
-  override def list(): Future[Seq[Laboratory]] = Future.successful(Seq.empty)
-  override def listDescriptive(): Future[Seq[Laboratory]] = Future.successful(Seq.empty)
-  override def add(lab: Laboratory): Future[Either[String, String]] = Future.successful(Right(""))
-  override def get(id: String): Future[Option[Laboratory]] = Future.successful(None)
-  override def update(lab: Laboratory): Future[Either[String, String]] = Future.successful(Right(""))
+class LaboratoryServiceImpl @Inject() (
+  labRepository: LaboratoryRepository
+)(implicit ec: ExecutionContext) extends LaboratoryService {
+  override def list(): Future[Seq[Laboratory]] = labRepository.getAll()
+  override def add(lab: Laboratory): Future[Int] = labRepository.add(lab)
+  override def get(id: String): Future[Option[Laboratory]] = labRepository.get(id)
+  override def update(lab: Laboratory): Future[Int] = labRepository.update(lab)
 }

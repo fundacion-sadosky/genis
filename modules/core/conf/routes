@@ -19,6 +19,7 @@ GET     /api/v2/mongo/stats                 controllers.core.MongoController.sta
 GET     /api/v2/postgres/ping               controllers.core.PostgresController.ping()
 GET     /api/v2/postgres/info               controllers.core.PostgresController.info()
 
+GET     /api/v2/crimeTypes                            controllers.CrimeTypes.list()
 # BioMaterialTypes endpoints (migrated from legacy)
 GET     /api/v2/bioMaterialTypes                      controllers.BioMaterialTypes.list()
 POST    /api/v2/bioMaterialTypes                      controllers.BioMaterialTypes.insert()
@@ -30,7 +31,6 @@ POST    /api/v2/login                       controllers.core.Authentication.logi
 
 # Laboratories
 GET     /api/v2/laboratory                      controllers.LaboratoriesController.list()
-GET     /api/v2/laboratory/descriptive          controllers.LaboratoriesController.listDescriptive()
 GET     /api/v2/country                         controllers.LaboratoriesController.listCountries()
 GET     /api/v2/provinces/:country              controllers.LaboratoriesController.listProvinces(country: String)
 POST    /api/v2/laboratory                      controllers.LaboratoriesController.addLab()
@@ -54,4 +54,11 @@ PUT     /api/v2/strkits               controllers.StrKitsController.update()
 DELETE  /api/v2/strkits/:id           controllers.StrKitsController.delete(id: String)
 POST    /api/v2/strkits/import        controllers.StrKitsController.importKits()
 GET     /api/v2/strkits/export        controllers.StrKitsController.exportKits()
+
+# Motive
+GET     /api/v2/motive                controllers.MotiveController.getMotives(id: Long, abm: Boolean)
+GET     /api/v2/motive-types          controllers.MotiveController.getMotivesTypes
+POST    /api/v2/motive                controllers.MotiveController.insert
+PUT     /api/v2/motive                controllers.MotiveController.update
+DELETE  /api/v2/motive/:id            controllers.MotiveController.deleteMotiveById(id: Long)
 
