@@ -14,7 +14,7 @@ object StrKitRow {
   val tupled = (apply _).tupled
 }
 
-class StrKitTable(tag: Tag) extends Table[StrKitRow](tag, "STRKIT") {
+class StrKitTable(tag: Tag) extends Table[StrKitRow](tag, Some("APP"), "STRKIT") {
   def id = column[String]("ID", O.PrimaryKey, O.Length(50, varying = true))
   def name = column[String]("NAME", O.Length(100, varying = true))
   def `type` = column[Int]("TYPE")
@@ -35,7 +35,7 @@ object StrKitAliasRow {
   val tupled = (apply _).tupled
 }
 
-class StrKitAliasTable(tag: Tag) extends Table[StrKitAliasRow](tag, "STRKIT_ALIAS") {
+class StrKitAliasTable(tag: Tag) extends Table[StrKitAliasRow](tag, Some("APP"), "STRKIT_ALIAS") {
   def kit = column[String]("KIT", O.Length(50, varying = true))
   def alias = column[String]("ALIAS", O.PrimaryKey, O.Length(100, varying = true))
   def * = (kit, alias) <> (StrKitAliasRow.tupled, StrKitAliasRow.unapply)
@@ -55,7 +55,7 @@ object StrKitLocusRow {
   val tupled = (apply _).tupled
 }
 
-class StrKitLocusTable(tag: Tag) extends Table[StrKitLocusRow](tag, "STRKIT_LOCUS") {
+class StrKitLocusTable(tag: Tag) extends Table[StrKitLocusRow](tag, Some("APP"), "STRKIT_LOCUS") {
   def strkit = column[String]("STRKIT", O.Length(50, varying = true))
   def locus = column[String]("LOCUS", O.Length(50, varying = true))
   def fluorophore = column[Option[String]]("FLUOROPHORE", O.Length(10, varying = true))
