@@ -13,6 +13,12 @@ services:
     volumes:
       - 'pgsql_data:/var/lib/postgresql/data'
       - ./pgsql_init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
   
   openldap:
     image: docker.io/bitnami/openldap:2.6
@@ -29,7 +35,13 @@ services:
       - LDAP_CUSTOM_LDIF_DIR=/ldifs
     volumes:
       - 'openldap_data:/bitnami/openldap'
-      - ./openldap_init:/ldifs        
+      - ./openldap_init:/ldifs
+    healthcheck:
+      test: ["CMD-SHELL", "ldapsearch -x -H ldap://localhost:1389 -b '' -s base '(objectclass=*)' > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   mongo:
     image: mongo:3.4.20
@@ -40,6 +52,12 @@ services:
     volumes:
       - 'mongo_data:/data/db'
       - ./mongo_init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "mongo --quiet --eval 'quit(db.runCommand({ ping: 1 }).ok ? 0 : 2)'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
   
   mongo-express:
     image: mongo-express
@@ -49,6 +67,9 @@ services:
       - 8081:8081
     environment:
       ME_CONFIG_MONGODB_SERVER: genis_mongo
+    depends_on:
+      mongo:
+        condition: service_healthy
 
 volumes:
   openldap_data:
