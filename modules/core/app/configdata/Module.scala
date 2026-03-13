@@ -15,5 +15,7 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
     bind(classOf[CrimeTypeService]).to(classOf[CachedCrimeTypeService])
     bind(classOf[LaboratoryRepository]).to(classOf[SlickLaboratoryRepository])
     bind(classOf[GeneticistRepository]).to(classOf[SlickGeneticistRepository])
+    bind(classOf[CategoryRepository]).to(classOf[SlickCategoryRepository])
+    bind(classOf[CategoryService]).to(classOf[CategoryServiceImpl])
   }
 }
