@@ -55,6 +55,7 @@ DELETE  /api/v2/strkits/:id           controllers.StrKitsController.delete(id: S
 POST    /api/v2/strkits/import        controllers.StrKitsController.importKits()
 GET     /api/v2/strkits/export        controllers.StrKitsController.exportKits()
 
+<<<<<<< Updated upstream
 # Motive
 GET     /api/v2/motive                controllers.MotiveController.getMotives(id: Long, abm: Boolean)
 GET     /api/v2/motive-types          controllers.MotiveController.getMotivesTypes
@@ -62,3 +63,13 @@ POST    /api/v2/motive                controllers.MotiveController.insert
 PUT     /api/v2/motive                controllers.MotiveController.update
 DELETE  /api/v2/motive/:id            controllers.MotiveController.deleteMotiveById(id: Long)
 
+=======
+# Population Base Frequency (Frecuencia Base Poblacional)
+POST    /api/v2/populationBaseFreq                    controllers.PopulationBaseFreqController.uploadPopulationFile
+GET     /api/v2/populationBaseFreq                    controllers.PopulationBaseFreqController.getAllBaseNames
+PUT     /api/v2/populationBaseFreq-fmin/:id           controllers.PopulationBaseFreqController.insertFmin(id: String)
+GET     /api/v2/populationBaseFreqCharacteristics     controllers.PopulationBaseFreqController.getAllBasesCharacteristics
+GET     /api/v2/populationBaseFreq/:name              controllers.PopulationBaseFreqController.getByName(name: String)
+PUT     /api/v2/populationBaseFreq/:name              controllers.PopulationBaseFreqController.toggleStateBase(name: String)
+PUT     /api/v2/populationBaseFreqDefault/:name       controllers.PopulationBaseFreqController.setBaseAsDefault(name: String)
+>>>>>>> Stashed changes
