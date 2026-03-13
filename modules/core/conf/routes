@@ -62,3 +62,13 @@ POST    /api/v2/motive                controllers.MotiveController.insert
 PUT     /api/v2/motive                controllers.MotiveController.update
 DELETE  /api/v2/motive/:id            controllers.MotiveController.deleteMotiveById(id: Long)
 
+# Locus
+POST    /api/v2/locus/create          controllers.LocusController.add
+PUT     /api/v2/locus                 controllers.LocusController.update
+GET     /api/v2/locus                 controllers.LocusController.list
+GET     /api/v2/locus-full            controllers.LocusController.listFull
+DELETE  /api/v2/locus/delete/:id      controllers.LocusController.delete(id: String)
+GET     /api/v2/locus/ranges          controllers.LocusController.ranges
+GET     /api/v2/locus/export          controllers.LocusController.exportLocus
+POST    /api/v2/locus/import          controllers.LocusController.importLocus
+

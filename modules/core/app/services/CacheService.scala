@@ -95,6 +95,10 @@ case class LoggedUserKey(userId: String) extends CacheKey[TotpToken] {
 case object RolePermissionMapKey extends CacheKey[Map[String, Set[types.Permission]]]:
   override def cacheKey: String = "Keys.rolePermissionMap"
 
+// Key para cache de locus (LocusService)
+case object LocusCacheKey extends CacheKey[Seq[kits.FullLocus]]:
+  override def cacheKey: String = "Keys.locus"
+
 // TODO: Agregar más keys cuando se migren otros módulos
 // - SignupRequestKey
 // - ClearPassRequestKey
