@@ -1,42 +1,23 @@
 package configdata
 
+import fixtures.CategoryFixtures._
 import org.mockito.Mockito.when
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
-import org.scalatestplus.play.PlaySpec
 import types.AlphanumericId
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.{Duration, SECONDS}
 import scala.concurrent.{Await, Future}
 
-class CategoryServiceSpec extends PlaySpec with MockitoSugar {
+class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar {
 
   val duration = Duration(10, SECONDS)
 
-  val grpA = Group(AlphanumericId("GRP_A"), "Grupo A", None)
-  val grpB = Group(AlphanumericId("GRP_B"), "Grupo B", Some("desc"))
-
-  val catA = Category(AlphanumericId("CAT_A"), AlphanumericId("GRP_A"), "Categoria A", isReference = true, None)
-  val catB = Category(AlphanumericId("CAT_B"), AlphanumericId("GRP_A"), "Categoria B", isReference = false, Some("desc B"))
-  val catC = Category(AlphanumericId("CAT_C"), AlphanumericId("GRP_B"), "Categoria C", isReference = true, None)
-
-  def mkFull(cat: Category, tipo: Option[Int] = None, pedigree: Boolean = false): FullCategory =
-    FullCategory(
-      id = cat.id, name = cat.name, description = cat.description,
-      group = cat.group, isReference = cat.isReference,
-      filiationDataRequired = false,
-      configurations = Map.empty, associations = Nil, aliases = Nil, matchingRules = Nil,
-      tipo = tipo, pedigreeAssociation = pedigree
-    )
-
-  val fcA        = mkFull(catA, tipo = Some(2))          // MPI
-  val fcB        = mkFull(catB, tipo = Some(3))          // DVI
-  val fcC        = mkFull(catC, tipo = Some(1))          // sin tipo
-  val fcPedigree = mkFull(catA, pedigree = true)
-
   // ─── categoryTree ──────────────────────────────────────────────────────────
 
-  "CategoryServiceImpl.categoryTree" should {
+  "CategoryServiceImpl.categoryTree" must {
 
     "group categories by group" in {
       val repo    = mock[CategoryRepository]
@@ -56,7 +37,7 @@ class CategoryServiceSpec extends PlaySpec with MockitoSugar {
 
   // ─── listCategories ────────────────────────────────────────────────────────
 
-  "CategoryServiceImpl.listCategories" should {
+  "CategoryServiceImpl.listCategories" must {
 
     "return a map keyed by AlphanumericId" in {
       val repo    = mock[CategoryRepository]
@@ -72,7 +53,7 @@ class CategoryServiceSpec extends PlaySpec with MockitoSugar {
 
   // ─── listGroups ────────────────────────────────────────────────────────────
 
-  "CategoryServiceImpl.listGroups" should {
+  "CategoryServiceImpl.listGroups" must {
 
     "return distinct groups" in {
       val repo    = mock[CategoryRepository]
@@ -92,7 +73,7 @@ class CategoryServiceSpec extends PlaySpec with MockitoSugar {
 
   // ─── listCategoriesWithProfiles ────────────────────────────────────────────
 
-  "CategoryServiceImpl.listCategoriesWithProfiles" should {
+  "CategoryServiceImpl.listCategoriesWithProfiles" must {
 
     "return map id -> name" in {
       val repo    = mock[CategoryRepository]
@@ -107,7 +88,7 @@ class CategoryServiceSpec extends PlaySpec with MockitoSugar {
 
   // ─── getCategory ───────────────────────────────────────────────────────────
 
-  "CategoryServiceImpl.getCategory" should {
+  "CategoryServiceImpl.getCategory" must {
 
     "return Some when category exists" in {
       val repo    = mock[CategoryRepository]
@@ -130,7 +111,7 @@ class CategoryServiceSpec extends PlaySpec with MockitoSugar {
 
   // ─── getCategoryTypeFromFullCategory ───────────────────────────────────────
 
-  "CategoryServiceImpl.getCategoryTypeFromFullCategory" should {
+  "CategoryServiceImpl.getCategoryTypeFromFullCategory" must {
 
     "return MPI when tipo is 2" in {
       val service = new CategoryServiceImpl(mock[CategoryRepository])
@@ -155,7 +136,7 @@ class CategoryServiceSpec extends PlaySpec with MockitoSugar {
 
   // ─── addCategory ───────────────────────────────────────────────────────────
 
-  "CategoryServiceImpl.addCategory" should {
+  "CategoryServiceImpl.addCategory" must {
 
     "return Right with FullCategory on success" in {
       val repo    = mock[CategoryRepository]
@@ -180,7 +161,7 @@ class CategoryServiceSpec extends PlaySpec with MockitoSugar {
 
   // ─── addGroup / removeGroup ────────────────────────────────────────────────
 
-  "CategoryServiceImpl.addGroup" should {
+  "CategoryServiceImpl.addGroup" must {
 
     "return Right with id on success" in {
       val repo    = mock[CategoryRepository]
@@ -201,7 +182,7 @@ class CategoryServiceSpec extends PlaySpec with MockitoSugar {
     }
   }
 
-  "CategoryServiceImpl.removeGroup" should {
+  "CategoryServiceImpl.removeGroup" must {
 
     "return Right with rows affected" in {
       val repo    = mock[CategoryRepository]
@@ -215,7 +196,7 @@ class CategoryServiceSpec extends PlaySpec with MockitoSugar {
 
   // ─── registerCategoryModification ─────────────────────────────────────────
 
-  "CategoryServiceImpl.registerCategoryModification" should {
+  "CategoryServiceImpl.registerCategoryModification" must {
 
     "return None when from equals to" in {
       val service = new CategoryServiceImpl(mock[CategoryRepository])
@@ -251,7 +232,7 @@ class CategoryServiceSpec extends PlaySpec with MockitoSugar {
 
   // ─── getCategoriesMappingById ──────────────────────────────────────────────
 
-  "CategoryServiceImpl.getCategoriesMappingById" should {
+  "CategoryServiceImpl.getCategoriesMappingById" must {
 
     "return the id directly when category has pedigreeAssociation" in {
       val repo    = mock[CategoryRepository]
@@ -276,7 +257,7 @@ class CategoryServiceSpec extends PlaySpec with MockitoSugar {
 
   // ─── getCategoriesMappingReverseById ───────────────────────────────────────
 
-  "CategoryServiceImpl.getCategoriesMappingReverseById" should {
+  "CategoryServiceImpl.getCategoriesMappingReverseById" must {
 
     "return the id directly when category has pedigreeAssociation" in {
       val repo    = mock[CategoryRepository]
