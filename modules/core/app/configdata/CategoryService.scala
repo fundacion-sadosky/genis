@@ -3,6 +3,7 @@ package configdata
 import java.sql.SQLException
 import javax.inject.{Inject, Singleton}
 import models.Tables
+import play.api.i18n.MessagesApi
 import scala.concurrent.{ExecutionContext, Future}
 import services.{CacheService, CategoriesKey, CategoryTreeKey, CategoryTreeManualLoadingKey}
 import types.AlphanumericId
@@ -49,8 +50,12 @@ trait CategoryService {
 @Singleton
 class CategoryServiceImpl @Inject()(
   repo: CategoryRepository,
-  cache: CacheService
+  cache: CacheService,
+  messagesApi: MessagesApi
 )(implicit ec: ExecutionContext) extends CategoryService {
+
+  private implicit val messages: play.api.i18n.Messages =
+    messagesApi.preferred(Seq.empty)
 
   private def cleanCache(): Unit = {
     cache.pop(CategoriesKey)
@@ -106,7 +111,7 @@ class CategoryServiceImpl @Inject()(
     repo.addCategory(category)
       .map { _ => cleanCache(); Right(fc) }
       .recover { case e: SQLException if e.getSQLState.startsWith("23") =>
-        Left(s"Id o nombre de categoría duplicado. ${category.name}")
+        Left(messages("error.E0664") + category.name)
       }
   }
 
@@ -119,7 +124,7 @@ class CategoryServiceImpl @Inject()(
   override def removeCategory(categoryId: AlphanumericId): Future[Either[String, Int]] =
     repo.removeCategory(categoryId).map { r => cleanCache(); r.map(_ => 1) }
       .recover { case e: SQLException if e.getSQLState.startsWith("23") =>
-        Left("No se puede borrar la categoría porque esta relacionada con otras categorías.")
+        Left(messages("error.E0665"))
       }
 
   override def removeAllCategories(): Future[Int] =
@@ -128,7 +133,7 @@ class CategoryServiceImpl @Inject()(
   override def addGroup(group: Group): Future[Either[String, AlphanumericId]] =
     repo.addGroup(group).map { id => cleanCache(); Right(id) }
       .recover { case e: SQLException if e.getSQLState.startsWith("23") =>
-        Left("Id o nombre de grupo duplicado.")
+        Left(messages("error.E0670"))
       }
 
   override def updateGroup(group: Group): Future[Either[String, Int]] =
@@ -137,7 +142,7 @@ class CategoryServiceImpl @Inject()(
   override def removeGroup(groupId: AlphanumericId): Future[Either[String, Int]] =
     repo.removeGroup(groupId).map { n => cleanCache(); Right(n) }
       .recover { case e: SQLException if e.getSQLState.startsWith("23") =>
-        Left("No se puede borrar el grupo porque tiene categorías asociadas.")
+        Left(messages("error.E0671"))
       }
 
   override def removeAllGroups(): Future[Int] =

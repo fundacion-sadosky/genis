@@ -7,6 +7,7 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
+import play.api.i18n.DefaultMessagesApi
 import types.AlphanumericId
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -17,6 +18,14 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
 
   val duration = Duration(10, SECONDS)
   private val stubCache = new StubCacheService
+  private val stubMessagesApi = new DefaultMessagesApi(Map(
+    "default" -> Map(
+      "error.E0664" -> "E0664: Id o nombre de categoría duplicado.",
+      "error.E0665" -> "E0665: No se puede borrar la categoría porque esta relacionada con otras categorías.",
+      "error.E0670" -> "E0670: Id o nombre de grupo duplicado.",
+      "error.E0671" -> "E0671: No se puede borrar el grupo porque tiene categorías asociadas."
+    )
+  ))
 
   override def beforeEach(): Unit = {
     stubCache.clear()
@@ -29,7 +38,7 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
 
     "group categories by group" in {
       val repo    = mock[CategoryRepository]
-      val service = new CategoryServiceImpl(repo, stubCache)
+      val service = new CategoryServiceImpl(repo, stubCache, stubMessagesApi)
       when(repo.listGroupsAndCategories).thenReturn(Future.successful(Seq(
         grpA -> Some(catA),
         grpA -> Some(catB),
@@ -49,7 +58,7 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
 
     "return a map keyed by AlphanumericId" in {
       val repo    = mock[CategoryRepository]
-      val service = new CategoryServiceImpl(repo, stubCache)
+      val service = new CategoryServiceImpl(repo, stubCache, stubMessagesApi)
       when(repo.listCategories).thenReturn(Future.successful(Seq(fcA, fcB)))
 
       val result = Await.result(service.listCategories, duration)
@@ -65,7 +74,7 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
 
     "return distinct groups" in {
       val repo    = mock[CategoryRepository]
-      val service = new CategoryServiceImpl(repo, stubCache)
+      val service = new CategoryServiceImpl(repo, stubCache, stubMessagesApi)
       when(repo.listGroupsAndCategories).thenReturn(Future.successful(Seq(
         grpA -> Some(catA),
         grpA -> Some(catB),
@@ -85,7 +94,7 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
 
     "return map id -> name" in {
       val repo    = mock[CategoryRepository]
-      val service = new CategoryServiceImpl(repo, stubCache)
+      val service = new CategoryServiceImpl(repo, stubCache, stubMessagesApi)
       when(repo.listCategoriesWithProfiles).thenReturn(Future.successful(List(catA, catB)))
 
       val result = Await.result(service.listCategoriesWithProfiles, duration)
@@ -100,7 +109,7 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
 
     "return Some when category exists" in {
       val repo    = mock[CategoryRepository]
-      val service = new CategoryServiceImpl(repo, stubCache)
+      val service = new CategoryServiceImpl(repo, stubCache, stubMessagesApi)
       when(repo.listCategories).thenReturn(Future.successful(Seq(fcA)))
 
       val result = Await.result(service.getCategory(AlphanumericId("CAT_A")), duration)
@@ -109,7 +118,7 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
 
     "return None when category does not exist" in {
       val repo    = mock[CategoryRepository]
-      val service = new CategoryServiceImpl(repo, stubCache)
+      val service = new CategoryServiceImpl(repo, stubCache, stubMessagesApi)
       when(repo.listCategories).thenReturn(Future.successful(Seq(fcA)))
 
       val result = Await.result(service.getCategory(AlphanumericId("UNKNOWN")), duration)
@@ -122,22 +131,22 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
   "CategoryServiceImpl.getCategoryTypeFromFullCategory" must {
 
     "return MPI when tipo is 2" in {
-      val service = new CategoryServiceImpl(mock[CategoryRepository], stubCache)
+      val service = new CategoryServiceImpl(mock[CategoryRepository], stubCache, stubMessagesApi)
       service.getCategoryTypeFromFullCategory(fcA) mustBe Some("MPI")
     }
 
     "return DVI when tipo is 3" in {
-      val service = new CategoryServiceImpl(mock[CategoryRepository], stubCache)
+      val service = new CategoryServiceImpl(mock[CategoryRepository], stubCache, stubMessagesApi)
       service.getCategoryTypeFromFullCategory(fcB) mustBe Some("DVI")
     }
 
     "return None for other tipo values" in {
-      val service = new CategoryServiceImpl(mock[CategoryRepository], stubCache)
+      val service = new CategoryServiceImpl(mock[CategoryRepository], stubCache, stubMessagesApi)
       service.getCategoryTypeFromFullCategory(fcC) mustBe None
     }
 
     "return None when tipo is absent" in {
-      val service = new CategoryServiceImpl(mock[CategoryRepository], stubCache)
+      val service = new CategoryServiceImpl(mock[CategoryRepository], stubCache, stubMessagesApi)
       service.getCategoryTypeFromFullCategory(mkFull(catA)) mustBe None
     }
   }
@@ -148,7 +157,7 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
 
     "return Right with FullCategory on success" in {
       val repo    = mock[CategoryRepository]
-      val service = new CategoryServiceImpl(repo, stubCache)
+      val service = new CategoryServiceImpl(repo, stubCache, stubMessagesApi)
       when(repo.addCategory(catA)).thenReturn(Future.successful(catA.id))
 
       val result = Await.result(service.addCategory(catA), duration)
@@ -159,13 +168,13 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
 
     "return Left with error message on SQL constraint violation" in {
       val repo    = mock[CategoryRepository]
-      val service = new CategoryServiceImpl(repo, stubCache)
+      val service = new CategoryServiceImpl(repo, stubCache, stubMessagesApi)
       val sqlEx   = new java.sql.SQLException("duplicate key", "23505")
       when(repo.addCategory(catA)).thenReturn(Future.failed(sqlEx))
 
       val result = Await.result(service.addCategory(catA), duration)
       result.isLeft mustBe true
-      result.swap.toOption.get must include("duplicado")
+      result.swap.toOption.get must include("E0664")
     }
   }
 
@@ -175,7 +184,7 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
 
     "return Right with id on success" in {
       val repo    = mock[CategoryRepository]
-      val service = new CategoryServiceImpl(repo, stubCache)
+      val service = new CategoryServiceImpl(repo, stubCache, stubMessagesApi)
       when(repo.addGroup(grpA)).thenReturn(Future.successful(grpA.id))
 
       val result = Await.result(service.addGroup(grpA), duration)
@@ -184,13 +193,13 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
 
     "return Left with error message on SQL constraint violation" in {
       val repo    = mock[CategoryRepository]
-      val service = new CategoryServiceImpl(repo, stubCache)
+      val service = new CategoryServiceImpl(repo, stubCache, stubMessagesApi)
       val sqlEx   = new java.sql.SQLException("duplicate key", "23505")
       when(repo.addGroup(grpA)).thenReturn(Future.failed(sqlEx))
 
       val result = Await.result(service.addGroup(grpA), duration)
       result.isLeft mustBe true
-      result.swap.toOption.get must include("grupo duplicado")
+      result.swap.toOption.get must include("E0670")
     }
   }
 
@@ -199,7 +208,7 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
   "CategoryServiceImpl.registerCategoryModification" must {
 
     "return None when from equals to" in {
-      val service = new CategoryServiceImpl(mock[CategoryRepository], stubCache)
+      val service = new CategoryServiceImpl(mock[CategoryRepository], stubCache, stubMessagesApi)
       val id      = AlphanumericId("CAT_A")
 
       val result = Await.result(service.registerCategoryModification(id, id), duration)
@@ -208,7 +217,7 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
 
     "return None when modification already exists" in {
       val repo    = mock[CategoryRepository]
-      val service = new CategoryServiceImpl(repo, stubCache)
+      val service = new CategoryServiceImpl(repo, stubCache, stubMessagesApi)
       val from    = AlphanumericId("CAT_A")
       val to      = AlphanumericId("CAT_B")
       when(repo.categoryModificationExists(from, to)).thenReturn(Future.successful(true))
@@ -219,7 +228,7 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
 
     "return Some with inserted rows when modification is new" in {
       val repo    = mock[CategoryRepository]
-      val service = new CategoryServiceImpl(repo, stubCache)
+      val service = new CategoryServiceImpl(repo, stubCache, stubMessagesApi)
       val from    = AlphanumericId("CAT_A")
       val to      = AlphanumericId("CAT_B")
       when(repo.categoryModificationExists(from, to)).thenReturn(Future.successful(false))
@@ -236,7 +245,7 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
 
     "return the id directly when category has pedigreeAssociation" in {
       val repo    = mock[CategoryRepository]
-      val service = new CategoryServiceImpl(repo, stubCache)
+      val service = new CategoryServiceImpl(repo, stubCache, stubMessagesApi)
       when(repo.listCategories).thenReturn(Future.successful(Seq(fcPedigree)))
 
       val result = Await.result(service.getCategoriesMappingById(AlphanumericId("CAT_A")), duration)
@@ -245,7 +254,7 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
 
     "delegate to repo when category has no pedigreeAssociation" in {
       val repo    = mock[CategoryRepository]
-      val service = new CategoryServiceImpl(repo, stubCache)
+      val service = new CategoryServiceImpl(repo, stubCache, stubMessagesApi)
       when(repo.listCategories).thenReturn(Future.successful(Seq(fcA)))
       when(repo.getCategoriesMappingById(AlphanumericId("CAT_A")))
         .thenReturn(Future.successful(Some("CAT_SUPERIOR")))
@@ -261,7 +270,7 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
 
     "return MPI when category has tipo 2" in {
       val repo    = mock[CategoryRepository]
-      val service = new CategoryServiceImpl(repo, stubCache)
+      val service = new CategoryServiceImpl(repo, stubCache, stubMessagesApi)
       when(repo.listCategories).thenReturn(Future.successful(Seq(fcA)))
 
       val result = Await.result(service.getCategoryType(AlphanumericId("CAT_A")), duration)
@@ -270,7 +279,7 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
 
     "return DVI when category has tipo 3" in {
       val repo    = mock[CategoryRepository]
-      val service = new CategoryServiceImpl(repo, stubCache)
+      val service = new CategoryServiceImpl(repo, stubCache, stubMessagesApi)
       when(repo.listCategories).thenReturn(Future.successful(Seq(fcB)))
 
       val result = Await.result(service.getCategoryType(AlphanumericId("CAT_B")), duration)
@@ -279,7 +288,7 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
 
     "return None when category does not exist" in {
       val repo    = mock[CategoryRepository]
-      val service = new CategoryServiceImpl(repo, stubCache)
+      val service = new CategoryServiceImpl(repo, stubCache, stubMessagesApi)
       when(repo.listCategories).thenReturn(Future.successful(Seq.empty))
 
       val result = Await.result(service.getCategoryType(AlphanumericId("UNKNOWN")), duration)
@@ -293,7 +302,7 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
 
     "group categories by group using manual loading repo method" in {
       val repo    = mock[CategoryRepository]
-      val service = new CategoryServiceImpl(repo, stubCache)
+      val service = new CategoryServiceImpl(repo, stubCache, stubMessagesApi)
       when(repo.listGroupsAndCategoriesManualLoading).thenReturn(Future.successful(Seq(
         grpA -> Some(catA),
         grpB -> Some(catC)
@@ -311,7 +320,7 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
 
     "return Right with rows updated" in {
       val repo    = mock[CategoryRepository]
-      val service = new CategoryServiceImpl(repo, stubCache)
+      val service = new CategoryServiceImpl(repo, stubCache, stubMessagesApi)
       when(repo.updateCategory(catA)).thenReturn(Future.successful(1))
 
       val result = Await.result(service.updateCategory(catA), duration)
@@ -323,7 +332,7 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
 
     "return Right(1) on success" in {
       val repo    = mock[CategoryRepository]
-      val service = new CategoryServiceImpl(repo, stubCache)
+      val service = new CategoryServiceImpl(repo, stubCache, stubMessagesApi)
       when(repo.updateFullCategory(fcA)).thenReturn(Future.successful(Right(fcA.id)))
 
       val result = Await.result(service.updateCategory(fcA), duration)
@@ -332,7 +341,7 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
 
     "return Left on repo failure" in {
       val repo    = mock[CategoryRepository]
-      val service = new CategoryServiceImpl(repo, stubCache)
+      val service = new CategoryServiceImpl(repo, stubCache, stubMessagesApi)
       when(repo.updateFullCategory(fcA)).thenReturn(Future.successful(Left("update failed")))
 
       val result = Await.result(service.updateCategory(fcA), duration)
@@ -346,7 +355,7 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
 
     "return Right(1) on success" in {
       val repo    = mock[CategoryRepository]
-      val service = new CategoryServiceImpl(repo, stubCache)
+      val service = new CategoryServiceImpl(repo, stubCache, stubMessagesApi)
       when(repo.removeCategory(catA.id)).thenReturn(Future.successful(Right(())))
 
       val result = Await.result(service.removeCategory(catA.id), duration)
@@ -355,7 +364,7 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
 
     "return Left on repo failure" in {
       val repo    = mock[CategoryRepository]
-      val service = new CategoryServiceImpl(repo, stubCache)
+      val service = new CategoryServiceImpl(repo, stubCache, stubMessagesApi)
       when(repo.removeCategory(catA.id)).thenReturn(Future.successful(Left("FK constraint")))
 
       val result = Await.result(service.removeCategory(catA.id), duration)
@@ -369,7 +378,7 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
 
     "return Right(1) on success" in {
       val repo    = mock[CategoryRepository]
-      val service = new CategoryServiceImpl(repo, stubCache)
+      val service = new CategoryServiceImpl(repo, stubCache, stubMessagesApi)
       when(repo.updateGroup(grpA)).thenReturn(Future.successful(1))
 
       val result = Await.result(service.updateGroup(grpA), duration)
@@ -378,7 +387,7 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
 
     "propagate non-SQL exceptions" in {
       val repo    = mock[CategoryRepository]
-      val service = new CategoryServiceImpl(repo, stubCache)
+      val service = new CategoryServiceImpl(repo, stubCache, stubMessagesApi)
       when(repo.updateGroup(grpA)).thenReturn(Future.failed(new RuntimeException("connection lost")))
 
       intercept[RuntimeException] {
@@ -393,7 +402,7 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
 
     "return Right with rows affected" in {
       val repo    = mock[CategoryRepository]
-      val service = new CategoryServiceImpl(repo, stubCache)
+      val service = new CategoryServiceImpl(repo, stubCache, stubMessagesApi)
       when(repo.removeGroup(grpA.id)).thenReturn(Future.successful(1))
 
       val result = Await.result(service.removeGroup(grpA.id), duration)
@@ -402,13 +411,13 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
 
     "return Left on SQL constraint violation" in {
       val repo    = mock[CategoryRepository]
-      val service = new CategoryServiceImpl(repo, stubCache)
+      val service = new CategoryServiceImpl(repo, stubCache, stubMessagesApi)
       val sqlEx   = new java.sql.SQLException("has children", "23503")
       when(repo.removeGroup(grpA.id)).thenReturn(Future.failed(sqlEx))
 
       val result = Await.result(service.removeGroup(grpA.id), duration)
       result.isLeft mustBe true
-      result.swap.toOption.get must include("grupo")
+      result.swap.toOption.get must include("E0671")
     }
   }
 
@@ -418,7 +427,7 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
 
     "delegate to repo and return rows affected" in {
       val repo    = mock[CategoryRepository]
-      val service = new CategoryServiceImpl(repo, stubCache)
+      val service = new CategoryServiceImpl(repo, stubCache, stubMessagesApi)
       val from    = AlphanumericId("CAT_A")
       val to      = AlphanumericId("CAT_B")
       when(repo.removeCategoryModification(from, to)).thenReturn(Future.successful(1))
@@ -429,7 +438,7 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
 
     "return 0 when modification does not exist" in {
       val repo    = mock[CategoryRepository]
-      val service = new CategoryServiceImpl(repo, stubCache)
+      val service = new CategoryServiceImpl(repo, stubCache, stubMessagesApi)
       val from    = AlphanumericId("CAT_A")
       val to      = AlphanumericId("CAT_B")
       when(repo.removeCategoryModification(from, to)).thenReturn(Future.successful(0))
@@ -445,7 +454,7 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
 
     "delegate to repo and return Right on success" in {
       val repo    = mock[CategoryRepository]
-      val service = new CategoryServiceImpl(repo, stubCache)
+      val service = new CategoryServiceImpl(repo, stubCache, stubMessagesApi)
       val mappings = CategoryMappingList(List(CategoryMapping(AlphanumericId("CAT_A"), "CAT_SUP")))
       when(repo.insertOrUpdateMapping(mappings)).thenReturn(Future.successful(Right(())))
 
@@ -455,7 +464,7 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
 
     "delegate to repo and return Left on failure" in {
       val repo    = mock[CategoryRepository]
-      val service = new CategoryServiceImpl(repo, stubCache)
+      val service = new CategoryServiceImpl(repo, stubCache, stubMessagesApi)
       val mappings = CategoryMappingList(List(CategoryMapping(AlphanumericId("BAD"), "nope")))
       when(repo.insertOrUpdateMapping(mappings)).thenReturn(Future.successful(Left("FK error")))
 
@@ -470,7 +479,7 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
 
     "write JSON to file and return Right on success" in {
       val repo    = mock[CategoryRepository]
-      val service = new CategoryServiceImpl(repo, stubCache)
+      val service = new CategoryServiceImpl(repo, stubCache, stubMessagesApi)
       when(repo.listCategories).thenReturn(Future.successful(Seq(fcA)))
 
       val tmpFile = java.io.File.createTempFile("test-export-", ".json")
@@ -485,7 +494,7 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
 
     "return Left with error message on failure" in {
       val repo    = mock[CategoryRepository]
-      val service = new CategoryServiceImpl(repo, stubCache)
+      val service = new CategoryServiceImpl(repo, stubCache, stubMessagesApi)
       when(repo.listCategories).thenReturn(Future.failed(new RuntimeException("connection lost")))
 
       val result = Await.result(service.exportCategories("/tmp/test-export.json"), duration)
@@ -500,7 +509,7 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
 
     "return the id directly when category has pedigreeAssociation" in {
       val repo    = mock[CategoryRepository]
-      val service = new CategoryServiceImpl(repo, stubCache)
+      val service = new CategoryServiceImpl(repo, stubCache, stubMessagesApi)
       when(repo.listCategories).thenReturn(Future.successful(Seq(fcPedigree)))
       val id = AlphanumericId("CAT_A")
 
@@ -510,7 +519,7 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
 
     "delegate to repo when category has no pedigreeAssociation" in {
       val repo    = mock[CategoryRepository]
-      val service = new CategoryServiceImpl(repo, stubCache)
+      val service = new CategoryServiceImpl(repo, stubCache, stubMessagesApi)
       val superior = AlphanumericId("CAT_SUPERIOR")
       when(repo.listCategories).thenReturn(Future.successful(Seq(fcA)))
       when(repo.getCategoriesMappingReverseById(AlphanumericId("CAT_A")))

@@ -4,6 +4,7 @@ import javax.inject.{Inject, Singleton}
 import configdata._
 import models.Tables
 import matching.{Algorithm, Stringency}
+import play.api.i18n.{Messages, MessagesApi}
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents, MultipartFormData}
@@ -13,8 +14,11 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class CategoriesController @Inject()(
     categoryService: CategoryService,
+    messagesApi: MessagesApi,
     cc: ControllerComponents
 )(implicit ec: ExecutionContext) extends AbstractController(cc) {
+
+  private implicit val messages: Messages = messagesApi.preferred(Seq.empty)
 
   // ─── Reads for import ────────────────────────────────────────────────────
 
@@ -230,16 +234,16 @@ class CategoriesController @Inject()(
 
   def registerCategoryModification(from: AlphanumericId, to: AlphanumericId): Action[AnyContent] = Action.async {
     categoryService.registerCategoryModification(from, to).map {
-      case None    => Ok(Json.obj("status" -> "error",   "message" -> "Ya existe o from == to"))
-      case Some(0) => Ok(Json.obj("status" -> "error",   "message" -> "No se registró la modificación"))
-      case _       => Ok(Json.obj("status" -> "success", "message" -> "Modificación registrada"))
+      case None    => Ok(Json.obj("status" -> "error",   "message" -> messages("error.E0603")))
+      case Some(0) => Ok(Json.obj("status" -> "error",   "message" -> messages("error.E0601")))
+      case _       => Ok(Json.obj("status" -> "success", "message" -> messages("success.S0600")))
     }
   }
 
   def unregisterCategoryModification(from: AlphanumericId, to: AlphanumericId): Action[AnyContent] = Action.async {
     categoryService.unregisterCategoryModification(from, to).map {
-      case 0 => Ok(Json.obj("status" -> "error",   "message" -> "No se encontró la modificación"))
-      case _ => Ok(Json.obj("status" -> "success", "message" -> "Modificación eliminada"))
+      case 0 => Ok(Json.obj("status" -> "error",   "message" -> messages("error.E0602")))
+      case _ => Ok(Json.obj("status" -> "success", "message" -> messages("success.S0601")))
     }
   }
 
