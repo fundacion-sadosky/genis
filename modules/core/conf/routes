@@ -92,3 +92,14 @@ POST    /api/v2/motive                controllers.MotiveController.insert
 PUT     /api/v2/motive                controllers.MotiveController.update
 DELETE  /api/v2/motive/:id            controllers.MotiveController.deleteMotiveById(id: Long)
 
+# User endpoints
+POST    /api/v2/user/signup           controllers.UserController.signupRequest
+POST    /api/v2/user/clear-password   controllers.UserController.clearPassRequest
+
+# Role endpoints
+GET     /api/v2/roles/permissions     controllers.RoleController.listPermissions
+GET     /api/v2/roles                controllers.RoleController.getRoles
+POST    /api/v2/roles                controllers.RoleController.addRole
+PUT     /api/v2/roles                controllers.RoleController.updateRole
+DELETE  /api/v2/roles/:id            controllers.RoleController.deleteRole(id: String)
+
