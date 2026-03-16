@@ -19,6 +19,7 @@ trait CategoryRepository {
   def listMatchingRules: Future[Seq[Tables.CategoryMatchingRow]]
 
   def addCategory(cat: Category): Future[AlphanumericId]
+  def updateCategory(category: Category): Future[Int]
   def updateFullCategory(category: FullCategory): Future[Either[String, AlphanumericId]]
   def removeCategory(categoryId: AlphanumericId): Future[Either[String, Unit]]
   def removeAllCategories(): Future[Int]
@@ -136,6 +137,11 @@ class SlickCategoryRepository @Inject()(implicit ec: ExecutionContext) extends C
     val row = Tables.CategoryRow(cat.id.text, cat.group.text, cat.name, cat.isReference, cat.description)
     db.run(categoryTable += row).map(_ => cat.id)
   }
+
+  override def updateCategory(category: Category): Future[Int] =
+    db.run(categoryTable.filter(_.id === category.id.text)
+      .map(c => (c.name, c.description))
+      .update((category.name, category.description)))
 
   override def updateFullCategory(cat: FullCategory): Future[Either[String, AlphanumericId]] = {
     val rulesWithoutSelf = cat.matchingRules.filterNot(_.categoryRelated == cat.id)

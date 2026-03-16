@@ -1,8 +1,10 @@
 package configdata
 
+import java.sql.SQLException
 import javax.inject.{Inject, Singleton}
 import models.Tables
 import scala.concurrent.{ExecutionContext, Future}
+import services.{CacheService, CategoriesKey, CategoryTreeKey, CategoryTreeManualLoadingKey}
 import types.AlphanumericId
 
 trait CategoryService {
@@ -45,15 +47,28 @@ trait CategoryService {
 }
 
 @Singleton
-class CategoryServiceImpl @Inject()(repo: CategoryRepository)(implicit ec: ExecutionContext) extends CategoryService {
+class CategoryServiceImpl @Inject()(
+  repo: CategoryRepository,
+  cache: CacheService
+)(implicit ec: ExecutionContext) extends CategoryService {
+
+  private def cleanCache(): Unit = {
+    cache.pop(CategoriesKey)
+    cache.pop(CategoryTreeKey)
+    cache.pop(CategoryTreeManualLoadingKey)
+  }
 
   override def categoryTree: Future[Category.CategoryTree] =
-    repo.listGroupsAndCategories.map(list =>
-      list.groupBy(_._1).map { case (group, pairs) => group -> pairs.flatMap(_._2) }
-    )
+    cache.asyncGetOrElse(CategoryTreeKey) {
+      repo.listGroupsAndCategories.map(list =>
+        list.groupBy(_._1).map { case (group, pairs) => group -> pairs.flatMap(_._2) }
+      )
+    }
 
   override def listCategories: Future[Map[AlphanumericId, FullCategory]] =
-    repo.listCategories.map(_.map(fc => fc.id -> fc).toMap)
+    cache.asyncGetOrElse(CategoriesKey) {
+      repo.listCategories.map(_.map(fc => fc.id -> fc).toMap)
+    }
 
   override def listGroups: Future[Seq[Group]] =
     repo.listGroupsAndCategories.map(_.map(_._1).distinct)
@@ -62,9 +77,11 @@ class CategoryServiceImpl @Inject()(repo: CategoryRepository)(implicit ec: Execu
     repo.listCategoriesWithProfiles.map(_.map(c => c.id -> c.name).toMap)
 
   override def categoryTreeManualLoading: Future[Category.CategoryTree] =
-    repo.listGroupsAndCategoriesManualLoading.map(list =>
-      list.groupBy(_._1).map { case (group, pairs) => group -> pairs.flatMap(_._2) }
-    )
+    cache.asyncGetOrElse(CategoryTreeManualLoadingKey) {
+      repo.listGroupsAndCategoriesManualLoading.map(list =>
+        list.groupBy(_._1).map { case (group, pairs) => group -> pairs.flatMap(_._2) }
+      )
+    }
 
   override def listConfigurations = repo.listConfigurations
   override def listAssociations   = repo.listAssociations
@@ -87,31 +104,44 @@ class CategoryServiceImpl @Inject()(repo: CategoryRepository)(implicit ec: Execu
       category.isReference, filiationDataRequired = false,
       configurations = Map.empty, associations = Nil, aliases = Nil, matchingRules = Nil)
     repo.addCategory(category)
-      .map(_ => Right(fc))
-      .recover { case e => Left(e.getMessage) }
+      .map { _ => cleanCache(); Right(fc) }
+      .recover { case e: SQLException if e.getSQLState.startsWith("23") =>
+        Left(s"Id o nombre de categoría duplicado. ${category.name}")
+      }
   }
 
   override def updateCategory(category: Category): Future[Either[String, Int]] =
-    repo.addCategory(category).map(_ => Right(1)).recover { case e => Left(e.getMessage) }
+    repo.updateCategory(category).map { n => cleanCache(); Right(n) }
 
   override def updateCategory(category: FullCategory): Future[Either[String, Int]] =
-    repo.updateFullCategory(category).map(_.map(_ => 1))
+    repo.updateFullCategory(category).map { r => cleanCache(); r.map(_ => 1) }
 
   override def removeCategory(categoryId: AlphanumericId): Future[Either[String, Int]] =
-    repo.removeCategory(categoryId).map(_.map(_ => 1))
+    repo.removeCategory(categoryId).map { r => cleanCache(); r.map(_ => 1) }
+      .recover { case e: SQLException if e.getSQLState.startsWith("23") =>
+        Left("No se puede borrar la categoría porque esta relacionada con otras categorías.")
+      }
 
-  override def removeAllCategories(): Future[Int] = repo.removeAllCategories()
+  override def removeAllCategories(): Future[Int] =
+    repo.removeAllCategories().map { n => cleanCache(); n }
 
   override def addGroup(group: Group): Future[Either[String, AlphanumericId]] =
-    repo.addGroup(group).map(Right(_)).recover { case e => Left(e.getMessage) }
+    repo.addGroup(group).map { id => cleanCache(); Right(id) }
+      .recover { case e: SQLException if e.getSQLState.startsWith("23") =>
+        Left("Id o nombre de grupo duplicado.")
+      }
 
   override def updateGroup(group: Group): Future[Either[String, Int]] =
-    repo.updateGroup(group).map(Right(_)).recover { case e => Left(e.getMessage) }
+    repo.updateGroup(group).map { n => cleanCache(); Right(n) }
 
   override def removeGroup(groupId: AlphanumericId): Future[Either[String, Int]] =
-    repo.removeGroup(groupId).map(Right(_)).recover { case e => Left(e.getMessage) }
+    repo.removeGroup(groupId).map { n => cleanCache(); Right(n) }
+      .recover { case e: SQLException if e.getSQLState.startsWith("23") =>
+        Left("No se puede borrar el grupo porque tiene categorías asociadas.")
+      }
 
-  override def removeAllGroups(): Future[Int] = repo.removeAllGroups()
+  override def removeAllGroups(): Future[Int] =
+    repo.removeAllGroups().map { n => cleanCache(); n }
 
   override def insertOrUpdateMapping(mappings: CategoryMappingList): Future[Either[String, Unit]] =
     repo.insertOrUpdateMapping(mappings)
