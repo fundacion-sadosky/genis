@@ -159,7 +159,7 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar {
     }
   }
 
-  // ─── addGroup / removeGroup ────────────────────────────────────────────────
+  // ─── addGroup ───────────────────────────────────────────────────────────────
 
   "CategoryServiceImpl.addGroup" must {
 
@@ -179,18 +179,6 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar {
 
       val result = Await.result(service.addGroup(grpA), duration)
       result mustBe Left("duplicate key")
-    }
-  }
-
-  "CategoryServiceImpl.removeGroup" must {
-
-    "return Right with rows affected" in {
-      val repo    = mock[CategoryRepository]
-      val service = new CategoryServiceImpl(repo)
-      when(repo.removeGroup(grpA.id)).thenReturn(Future.successful(1))
-
-      val result = Await.result(service.removeGroup(grpA.id), duration)
-      result mustBe Right(1)
     }
   }
 
@@ -252,6 +240,234 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar {
 
       val result = Await.result(service.getCategoriesMappingById(AlphanumericId("CAT_A")), duration)
       result mustBe Some("CAT_SUPERIOR")
+    }
+  }
+
+  // ─── getCategoryType ─────────────────────────────────────────────────────
+
+  "CategoryServiceImpl.getCategoryType" must {
+
+    "return MPI when category has tipo 2" in {
+      val repo    = mock[CategoryRepository]
+      val service = new CategoryServiceImpl(repo)
+      when(repo.listCategories).thenReturn(Future.successful(Seq(fcA)))
+
+      val result = Await.result(service.getCategoryType(AlphanumericId("CAT_A")), duration)
+      result mustBe Some("MPI")
+    }
+
+    "return DVI when category has tipo 3" in {
+      val repo    = mock[CategoryRepository]
+      val service = new CategoryServiceImpl(repo)
+      when(repo.listCategories).thenReturn(Future.successful(Seq(fcB)))
+
+      val result = Await.result(service.getCategoryType(AlphanumericId("CAT_B")), duration)
+      result mustBe Some("DVI")
+    }
+
+    "return None when category does not exist" in {
+      val repo    = mock[CategoryRepository]
+      val service = new CategoryServiceImpl(repo)
+      when(repo.listCategories).thenReturn(Future.successful(Seq.empty))
+
+      val result = Await.result(service.getCategoryType(AlphanumericId("UNKNOWN")), duration)
+      result mustBe None
+    }
+  }
+
+  // ─── categoryTreeManualLoading ─────────────────────────────────────────────
+
+  "CategoryServiceImpl.categoryTreeManualLoading" must {
+
+    "group categories by group using manual loading repo method" in {
+      val repo    = mock[CategoryRepository]
+      val service = new CategoryServiceImpl(repo)
+      when(repo.listGroupsAndCategoriesManualLoading).thenReturn(Future.successful(Seq(
+        grpA -> Some(catA),
+        grpB -> Some(catC)
+      )))
+
+      val result = Await.result(service.categoryTreeManualLoading, duration)
+      result(grpA) must contain(catA)
+      result(grpB) must contain(catC)
+    }
+  }
+
+  // ─── updateCategory ────────────────────────────────────────────────────────
+
+  // TODO: agregar tests para updateCategory(Category) cuando el repo tenga
+  // un método updateCategory. Actualmente el service llama a repo.addCategory
+  // por error (bug conocido).
+
+  "CategoryServiceImpl.updateCategory(FullCategory)" must {
+
+    "return Right(1) on success" in {
+      val repo    = mock[CategoryRepository]
+      val service = new CategoryServiceImpl(repo)
+      when(repo.updateFullCategory(fcA)).thenReturn(Future.successful(Right(fcA.id)))
+
+      val result = Await.result(service.updateCategory(fcA), duration)
+      result mustBe Right(1)
+    }
+
+    "return Left on repo failure" in {
+      val repo    = mock[CategoryRepository]
+      val service = new CategoryServiceImpl(repo)
+      when(repo.updateFullCategory(fcA)).thenReturn(Future.successful(Left("update failed")))
+
+      val result = Await.result(service.updateCategory(fcA), duration)
+      result mustBe Left("update failed")
+    }
+  }
+
+  // ─── removeCategory ────────────────────────────────────────────────────────
+
+  "CategoryServiceImpl.removeCategory" must {
+
+    "return Right(1) on success" in {
+      val repo    = mock[CategoryRepository]
+      val service = new CategoryServiceImpl(repo)
+      when(repo.removeCategory(catA.id)).thenReturn(Future.successful(Right(())))
+
+      val result = Await.result(service.removeCategory(catA.id), duration)
+      result mustBe Right(1)
+    }
+
+    "return Left on repo failure" in {
+      val repo    = mock[CategoryRepository]
+      val service = new CategoryServiceImpl(repo)
+      when(repo.removeCategory(catA.id)).thenReturn(Future.successful(Left("FK constraint")))
+
+      val result = Await.result(service.removeCategory(catA.id), duration)
+      result mustBe Left("FK constraint")
+    }
+  }
+
+  // ─── updateGroup ───────────────────────────────────────────────────────────
+
+  "CategoryServiceImpl.updateGroup" must {
+
+    "return Right(1) on success" in {
+      val repo    = mock[CategoryRepository]
+      val service = new CategoryServiceImpl(repo)
+      when(repo.updateGroup(grpA)).thenReturn(Future.successful(1))
+
+      val result = Await.result(service.updateGroup(grpA), duration)
+      result mustBe Right(1)
+    }
+
+    "return Left with error message on failure" in {
+      val repo    = mock[CategoryRepository]
+      val service = new CategoryServiceImpl(repo)
+      when(repo.updateGroup(grpA)).thenReturn(Future.failed(new RuntimeException("duplicate name")))
+
+      val result = Await.result(service.updateGroup(grpA), duration)
+      result mustBe Left("duplicate name")
+    }
+  }
+
+  // ─── removeGroup (error path) ──────────────────────────────────────────────
+
+  "CategoryServiceImpl.removeGroup" must {
+
+    "return Right with rows affected" in {
+      val repo    = mock[CategoryRepository]
+      val service = new CategoryServiceImpl(repo)
+      when(repo.removeGroup(grpA.id)).thenReturn(Future.successful(1))
+
+      val result = Await.result(service.removeGroup(grpA.id), duration)
+      result mustBe Right(1)
+    }
+
+    "return Left with error message on failure" in {
+      val repo    = mock[CategoryRepository]
+      val service = new CategoryServiceImpl(repo)
+      when(repo.removeGroup(grpA.id)).thenReturn(Future.failed(new RuntimeException("has children")))
+
+      val result = Await.result(service.removeGroup(grpA.id), duration)
+      result mustBe Left("has children")
+    }
+  }
+
+  // ─── unregisterCategoryModification ────────────────────────────────────────
+
+  "CategoryServiceImpl.unregisterCategoryModification" must {
+
+    "delegate to repo and return rows affected" in {
+      val repo    = mock[CategoryRepository]
+      val service = new CategoryServiceImpl(repo)
+      val from    = AlphanumericId("CAT_A")
+      val to      = AlphanumericId("CAT_B")
+      when(repo.removeCategoryModification(from, to)).thenReturn(Future.successful(1))
+
+      val result = Await.result(service.unregisterCategoryModification(from, to), duration)
+      result mustBe 1
+    }
+
+    "return 0 when modification does not exist" in {
+      val repo    = mock[CategoryRepository]
+      val service = new CategoryServiceImpl(repo)
+      val from    = AlphanumericId("CAT_A")
+      val to      = AlphanumericId("CAT_B")
+      when(repo.removeCategoryModification(from, to)).thenReturn(Future.successful(0))
+
+      val result = Await.result(service.unregisterCategoryModification(from, to), duration)
+      result mustBe 0
+    }
+  }
+
+  // ─── insertOrUpdateMapping ─────────────────────────────────────────────────
+
+  "CategoryServiceImpl.insertOrUpdateMapping" must {
+
+    "delegate to repo and return Right on success" in {
+      val repo    = mock[CategoryRepository]
+      val service = new CategoryServiceImpl(repo)
+      val mappings = CategoryMappingList(List(CategoryMapping(AlphanumericId("CAT_A"), "CAT_SUP")))
+      when(repo.insertOrUpdateMapping(mappings)).thenReturn(Future.successful(Right(())))
+
+      val result = Await.result(service.insertOrUpdateMapping(mappings), duration)
+      result mustBe Right(())
+    }
+
+    "delegate to repo and return Left on failure" in {
+      val repo    = mock[CategoryRepository]
+      val service = new CategoryServiceImpl(repo)
+      val mappings = CategoryMappingList(List(CategoryMapping(AlphanumericId("BAD"), "nope")))
+      when(repo.insertOrUpdateMapping(mappings)).thenReturn(Future.successful(Left("FK error")))
+
+      val result = Await.result(service.insertOrUpdateMapping(mappings), duration)
+      result mustBe Left("FK error")
+    }
+  }
+
+  // ─── exportCategories ──────────────────────────────────────────────────────
+
+  "CategoryServiceImpl.exportCategories" must {
+
+    "write JSON to file and return Right on success" in {
+      val repo    = mock[CategoryRepository]
+      val service = new CategoryServiceImpl(repo)
+      when(repo.listCategories).thenReturn(Future.successful(Seq(fcA)))
+
+      val tmpFile = java.io.File.createTempFile("test-export-", ".json")
+      tmpFile.deleteOnExit()
+
+      val result = Await.result(service.exportCategories(tmpFile.getAbsolutePath), duration)
+      result.isRight mustBe true
+
+      val content = scala.io.Source.fromFile(tmpFile).mkString
+      content must include("CAT_A")
+    }
+
+    "return Left with error message on failure" in {
+      val repo    = mock[CategoryRepository]
+      val service = new CategoryServiceImpl(repo)
+      when(repo.listCategories).thenReturn(Future.failed(new RuntimeException("connection lost")))
+
+      val result = Await.result(service.exportCategories("/tmp/test-export.json"), duration)
+      result.isLeft mustBe true
+      result.swap.toOption.get must include("connection lost")
     }
   }
 

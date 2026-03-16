@@ -7,8 +7,10 @@ import scala.concurrent.Future
 
 object CategoryFixtures:
 
-  val grpA = Group(AlphanumericId("GRP_A"), "Grupo A", None)
-  val grpB = Group(AlphanumericId("GRP_B"), "Grupo B", Some("desc"))
+  val grpA  = Group(AlphanumericId("GRP_A"), "Grupo A", None)
+  val grpB  = Group(AlphanumericId("GRP_B"), "Grupo B", Some("desc"))
+  val grpAM = Group(AlphanumericId("AM"), "Ante Mortem", None)
+  val grpPM = Group(AlphanumericId("PM"), "Post Mortem", None)
 
   val catA = Category(AlphanumericId("CAT_A"), AlphanumericId("GRP_A"), "Categoria A", isReference = true, None)
   val catB = Category(AlphanumericId("CAT_B"), AlphanumericId("GRP_A"), "Categoria B", isReference = false, Some("desc B"))
@@ -23,15 +25,24 @@ object CategoryFixtures:
       tipo = tipo, pedigreeAssociation = pedigree
     )
 
+  val catAM = Category(AlphanumericId("CAT_AM"), AlphanumericId("AM"), "Ante Mortem Cat", isReference = false, None)
+  val catPM = Category(AlphanumericId("CAT_PM"), AlphanumericId("PM"), "Post Mortem Cat", isReference = false, None)
+
   val fcA        = mkFull(catA, tipo = Some(2))          // MPI
   val fcB        = mkFull(catB, tipo = Some(3))          // DVI
   val fcC        = mkFull(catC, tipo = Some(1))          // sin tipo
   val fcPedigree = mkFull(catA, pedigree = true)
 
+  val categoryTreeWithAMPM: Map[Group, Seq[Category]] = Map(
+    grpA  -> Seq(catA),
+    grpAM -> Seq(catAM),
+    grpPM -> Seq(catPM)
+  )
+
 class StubCategoryService extends CategoryService:
   import CategoryFixtures._
 
-  override def categoryTree                    = Future.successful(Map(grpA -> Seq(catA)))
+  override def categoryTree                    = Future.successful(categoryTreeWithAMPM)
   override def listCategories                  = Future.successful(Map(catA.id -> fcA))
   override def listGroups                      = Future.successful(Seq(grpA))
   override def listCategoriesWithProfiles      = Future.successful(Map(catA.id -> catA.name))
