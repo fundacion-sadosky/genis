@@ -55,10 +55,21 @@ DELETE  /api/v2/strkits/:id           controllers.StrKitsController.delete(id: S
 POST    /api/v2/strkits/import        controllers.StrKitsController.importKits()
 GET     /api/v2/strkits/export        controllers.StrKitsController.exportKits()
 
-# Motive
+ # Motive
 GET     /api/v2/motive                controllers.MotiveController.getMotives(id: Long, abm: Boolean)
 GET     /api/v2/motive-types          controllers.MotiveController.getMotivesTypes
 POST    /api/v2/motive                controllers.MotiveController.insert
 PUT     /api/v2/motive                controllers.MotiveController.update
 DELETE  /api/v2/motive/:id            controllers.MotiveController.deleteMotiveById(id: Long)
+
+# User endpoints
+POST    /api/v2/user/signup           controllers.UserController.signupRequest
+POST    /api/v2/user/clear-password   controllers.UserController.clearPassRequest
+
+# Role endpoints
+GET     /api/v2/roles/permissions     controllers.RoleController.listPermissions
+GET     /api/v2/roles                controllers.RoleController.getRoles
+POST    /api/v2/roles                controllers.RoleController.addRole
+PUT     /api/v2/roles                controllers.RoleController.updateRole
+DELETE  /api/v2/roles/:id            controllers.RoleController.deleteRole(id: String)
 

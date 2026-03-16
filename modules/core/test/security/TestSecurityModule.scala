@@ -22,4 +22,9 @@ class StubUserRepository @Inject() ()(using ec: ExecutionContext) extends UserRe
 class StubRoleRepository @Inject() ()(using ec: ExecutionContext) extends RoleRepository {
   override def getRoles: Future[Seq[Role]] = Future.successful(Seq.empty)
   override def rolePermissionMap: Map[String, Set[Permission]] = Map.empty
+
+  // Métodos agregados para compatibilidad
+  override def addRole(role: Role): Future[Boolean] = Future.successful(false)
+  override def updateRole(role: Role): Future[Boolean] = Future.successful(false)
+  override def deleteRole(id: String): Future[Either[String, Boolean]] = Future.successful(Left("Not implemented"))
 }
