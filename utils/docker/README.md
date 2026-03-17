@@ -469,7 +469,6 @@ volumes:
   pgsql_data_16:
   ferretdb_pg_data:
   symas_ldap_data:
-  symas_ldap2_data:
 
 networks:
   genis_network:
