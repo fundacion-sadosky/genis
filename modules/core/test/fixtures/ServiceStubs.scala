@@ -12,16 +12,14 @@ import types.{Geneticist, Laboratory, User}
 @Singleton
 class StubLaboratoryService extends LaboratoryService:
   var listResult: Future[Seq[Laboratory]] = Future.successful(Seq.empty)
-  var listDescriptiveResult: Future[Seq[Laboratory]] = Future.successful(Seq.empty)
-  var addResult: Future[Either[String, String]] = Future.successful(Right(""))
+  var addResult: Future[Int] = Future.successful(1)
   var getResult: Future[Option[Laboratory]] = Future.successful(None)
-  var updateResult: Future[Either[String, String]] = Future.successful(Right(""))
+  var updateResult: Future[Int] = Future.successful(1)
 
   override def list(): Future[Seq[Laboratory]] = listResult
-  override def listDescriptive(): Future[Seq[Laboratory]] = listDescriptiveResult
-  override def add(lab: Laboratory): Future[Either[String, String]] = addResult
+  override def add(lab: Laboratory): Future[Int] = addResult
   override def get(id: String): Future[Option[Laboratory]] = getResult
-  override def update(lab: Laboratory): Future[Either[String, String]] = updateResult
+  override def update(lab: Laboratory): Future[Int] = updateResult
 
 @Singleton
 class StubCountryService extends CountryService:

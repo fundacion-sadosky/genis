@@ -15,9 +15,7 @@ trait MotiveRepository {
 }
 
 @Singleton
-class SlickMotiveRepository @Inject()(implicit ec: ExecutionContext) extends MotiveRepository {
-
-  private val db = Database.forConfig("slick.dbs.default.db")
+class SlickMotiveRepository @Inject()(db: slick.jdbc.JdbcBackend.Database)(implicit ec: ExecutionContext) extends MotiveRepository {
   private val motiveTable     = Tables.Motive
   private val motiveTypeTable = Tables.MotiveType
 
