@@ -378,7 +378,7 @@ se solicitará el password del usuario **admin** que se puede consultar en *dock
 
 Salir del contenedor con `CTRL+D`.
 
-### Upgrade de postgres a 16 y migraciòn de mongodb a ferretdb
+### Upgrade de postgres a 16 , ldap y migraciòn de mongodb a ferretdb
 
 Se realiza el backup de las bases postgres y mongo. 
 
@@ -453,8 +453,8 @@ services:
     container_name: genis_ldap
     restart: always
     ports:
-      - "1389:389"   # Map host 1389 to container 389
-      - "1636:636"   # Map host 1636 to container 636
+      - "1389:1389"   
+      - "1636:1636"
     environment:
       - LDAP_ADMIN_PASSWORD=adminp
       - LDAP_ROOT=dc=genis,dc=local  # <--- ADD THIS LINE
