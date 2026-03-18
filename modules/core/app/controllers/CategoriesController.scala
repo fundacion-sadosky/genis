@@ -403,7 +403,9 @@ class CategoriesController @Inject()(
              )
              categoryService.updateCategory(fc)
            })
-      _ <- Future.sequence(modifications.map { case (f, t) => categoryService.registerCategoryModification(f, t) })
+      _ <- modifications.foldLeft(Future.successful(())) { case (prev, (f, t)) =>
+             prev.flatMap(_ => categoryService.registerCategoryModification(f, t).map(_ => ()))
+           }
       _ <- categoryService.insertOrUpdateMapping(CategoryMappingList(mappings.map(m => CategoryMapping(m.id, m.idSuperior))))
     } yield Ok(Json.obj(
       "status"       -> "success",

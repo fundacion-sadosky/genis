@@ -43,9 +43,7 @@ trait CategoryRepository {
 }
 
 @Singleton
-class SlickCategoryRepository @Inject()(implicit ec: ExecutionContext) extends CategoryRepository {
-
-  private val db = Database.forConfig("slick.dbs.default.db")
+class SlickCategoryRepository @Inject()(db: Database)(implicit ec: ExecutionContext) extends CategoryRepository {
 
   private val groupTable      = Tables.Group
   private val categoryTable   = Tables.Category
