@@ -95,6 +95,16 @@ case class LoggedUserKey(userId: String) extends CacheKey[TotpToken] {
 case object RolePermissionMapKey extends CacheKey[Map[String, Set[types.Permission]]]:
   override def cacheKey: String = "Keys.rolePermissionMap"
 
+// Category cache keys
+case object CategoryTreeKey extends CacheKey[configdata.Category.CategoryTree]:
+  override def cacheKey: String = "Keys.categoryTree"
+
+case object CategoryTreeManualLoadingKey extends CacheKey[configdata.Category.CategoryTree]:
+  override def cacheKey: String = "Keys.categoryTreeManualLoading"
+
+case object CategoriesKey extends CacheKey[Map[types.AlphanumericId, configdata.FullCategory]]:
+  override def cacheKey: String = "Keys.categories"
+
 // TODO: Agregar más keys cuando se migren otros módulos
 // - SignupRequestKey
 // - ClearPassRequestKey
