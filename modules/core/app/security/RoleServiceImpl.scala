@@ -17,3 +17,9 @@ class RoleServiceImpl @Inject() (
     cacheService.getOrElse(RolePermissionMapKey)(roleRepository.rolePermissionMap)(
       using summon[ClassTag[Map[String, Set[Permission]]]]
     )
+
+  // Métodos agregados para compatibilidad
+  override def getRoles = roleRepository.getRoles
+  override def addRole(role: user.Role) = roleRepository.addRole(role)
+  override def updateRole(role: user.Role) = roleRepository.updateRole(role)
+  override def deleteRole(id: String) = roleRepository.deleteRole(id)

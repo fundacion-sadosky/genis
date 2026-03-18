@@ -14,6 +14,11 @@ abstract class RoleRepository:
   def getRoles: Future[Seq[Role]]
   def rolePermissionMap: Map[String, Set[Permission]]
 
+  // Métodos agregados para compatibilidad
+  def addRole(role: Role): Future[Boolean]
+  def updateRole(role: Role): Future[Boolean]
+  def deleteRole(id: String): Future[Either[String, Boolean]]
+
 @Singleton
 class LdapRoleRepository @Inject() (
     bindConnectionPool: LDAPConnectionPool,
@@ -41,3 +46,8 @@ class LdapRoleRepository @Inject() (
     val roles = Await.result(getRoles, 10.seconds)
     logger.debug(roles.toString)
     roles.map(r => r.id -> r.permissions).toMap.withDefaultValue(Set.empty)
+
+  // Stubs para métodos agregados
+  override def addRole(role: Role): Future[Boolean] = Future.successful(false)
+  override def updateRole(role: Role): Future[Boolean] = Future.successful(false)
+  override def deleteRole(id: String): Future[Either[String, Boolean]] = Future.successful(Left("Not implemented"))
