@@ -214,6 +214,9 @@ libraryDependencies ++= Seq(
   "nu.validator.htmlparser" % "htmlparser" % "1.4"
 )
 
+// Include empty logs directory in dist package
+mappings in Universal += file("logs/.gitkeep") -> "logs/.gitkeep"
+
 // Scala Compiler Options
 scalacOptions in ThisBuild ++= Seq(
   "-target:jvm-1.8",

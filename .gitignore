@@ -21,6 +21,7 @@ app-2.11/
 
 # suggested by play framework
 logs
+!logs/.gitkeep
 tmp
 dist
 .cache

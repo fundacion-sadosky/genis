@@ -44,12 +44,18 @@ class ProfileReportServiceImpl @Inject() (profileReportMongoRepository: ProfileR
   }
 
   override def generateProfilesReport(fechaDesde: Date, fechaHasta: Date): Result = {
+    // Start all futures before the for-comprehension so they run in parallel
+    val altasF     = profileReportMongoRepository.countProfilesCreated(Some(fechaDesde), Some(fechaHasta))
+    val bajasF     = profileReportMongoRepository.countProfilesDeleted()
+    val matchesF   = profileReportMongoRepository.countMatches(Some(fechaDesde), Some(fechaHasta))
+    val hitF       = profileReportMongoRepository.countHit(Some(fechaDesde), Some(fechaHasta))
+    val descartesF = profileReportMongoRepository.countDescartes(Some(fechaDesde), Some(fechaHasta))
     val result = for {
-      cantAltas <- profileReportMongoRepository.countProfilesCreated(Some(fechaDesde), Some(fechaHasta))
-      cantBajas <- profileReportMongoRepository.countProfilesDeleted()
-      cantMatches <- profileReportMongoRepository.countMatches(Some(fechaDesde), Some(fechaHasta))
-      cantHit <- profileReportMongoRepository.countHit(Some(fechaDesde), Some(fechaHasta))
-      cantDescartes <- profileReportMongoRepository.countDescartes(Some(fechaDesde), Some(fechaHasta))
+      cantAltas     <- altasF
+      cantBajas     <- bajasF
+      cantMatches   <- matchesF
+      cantHit       <- hitF
+      cantDescartes <- descartesF
     } yield {
       val fechaDesdeString = fechaDesde.getDate.toString + "/" + (fechaDesde.getMonth + 1).toString + "/" + (fechaDesde.getYear + 1900).toString
       val fechaHastaString = fechaHasta.getDate.toString + "/" + (fechaHasta.getMonth + 1).toString + "/" + (fechaHasta.getYear + 1900).toString
@@ -61,12 +67,17 @@ class ProfileReportServiceImpl @Inject() (profileReportMongoRepository: ProfileR
   }
 
   def generateAllProfilesReport(): Result = {
+    val altasF     = profileReportMongoRepository.countProfilesCreated()
+    val bajasF     = profileReportMongoRepository.countProfilesDeleted()
+    val matchesF   = profileReportMongoRepository.countMatches()
+    val hitF       = profileReportMongoRepository.countHit()
+    val descartesF = profileReportMongoRepository.countDescartes()
     val result = for {
-      cantAltas <- profileReportMongoRepository.countProfilesCreated()
-      cantBajas <- profileReportMongoRepository.countProfilesDeleted()
-      cantMatches <- profileReportMongoRepository.countMatches()
-      cantHit <- profileReportMongoRepository.countHit()
-      cantDescartes <- profileReportMongoRepository.countDescartes()
+      cantAltas     <- altasF
+      cantBajas     <- bajasF
+      cantMatches   <- matchesF
+      cantHit       <- hitF
+      cantDescartes <- descartesF
     } yield {
       val cantPendientes = cantMatches - cantHit - cantDescartes
       pdfGen.ok(views.html.profilesReport("Resumen de perfiles", cantAltas, cantBajas, cantMatches, cantHit, cantDescartes, cantPendientes,"",""), BASE_URL)

@@ -53,8 +53,8 @@ abstract class ProfileReportMongoRepository {
 
 class MongoProfileReportRepository extends ProfileReportMongoRepository
 {
-  private def profiles = Await.result(play.modules.reactivemongo.ReactiveMongoPlugin.database.map(_.collection[JSONCollection]("profiles")), Duration(10, SECONDS))
-  private def matches = Await.result(play.modules.reactivemongo.ReactiveMongoPlugin.database.map(_.collection[JSONCollection]("matches")), Duration(10, SECONDS))
+  private lazy val profiles = Await.result(play.modules.reactivemongo.ReactiveMongoPlugin.database.map(_.collection[JSONCollection]("profiles")), Duration(10, SECONDS))
+  private lazy val matches = Await.result(play.modules.reactivemongo.ReactiveMongoPlugin.database.map(_.collection[JSONCollection]("matches")), Duration(10, SECONDS))
 
   override def countProfilesCreated(startDate: Option[Date], endDate: Option[Date]): Future[Int] = {
 
@@ -68,17 +68,22 @@ class MongoProfileReportRepository extends ProfileReportMongoRepository
 
     val matching = Json.obj("$match" -> dateFilter)
 
-    val pipelineQuery = List(projection) ++ List(matching)
+    val counting = Json.obj("$count" -> "total")
+    val pipelineQuery = List(projection, matching, counting)
     val query = Json.obj(
       "aggregate" -> profiles.name,
       "pipeline" -> pipelineQuery
     )
 
     val runner = Command.run(JSONSerializationPack, FailoverStrategy.default)
-    val result = runner.apply(profiles.db, runner.rawCommand(query))
+    runner.apply(profiles.db, runner.rawCommand(query))
       .one[BSONDocument](ReadPreference.nearest)
-
-    result.map { bson => (Json.toJson(bson) \ "result").as[Seq[JsObject]].size }
+      .map { bson =>
+        (Json.toJson(bson) \ "result").asOpt[Seq[JsObject]]
+          .flatMap(_.headOption)
+          .flatMap(obj => (obj \ "total").asOpt[Int])
+          .getOrElse(0)
+      }
 
   }
 
@@ -169,7 +174,16 @@ class MongoProfileReportRepository extends ProfileReportMongoRepository
 
 
   def getAllMatches: Future[Seq[MatchData]] = {
-    matches.find(Json.obj()).cursor[JsObject]().collect[Seq]().map { matches =>
+    val projection = Json.obj(
+      "_id" -> 0,
+      "matchingDate" -> 1,
+      "leftProfile.globalCode" -> 1, "leftProfile.categoryId" -> 1,
+      "leftProfile.assignee" -> 1,   "leftProfile.status" -> 1,
+      "rightProfile.globalCode" -> 1, "rightProfile.categoryId" -> 1,
+      "rightProfile.assignee" -> 1,  "rightProfile.status" -> 1,
+      "result.stringency" -> 1
+    )
+    matches.find(Json.obj(), projection).cursor[JsObject]().collect[Seq]().map { matches =>
       matches.flatMap { matchObj =>
         val matchingDateMillisOpt: Option[Long] = (matchObj \ "matchingDate" \ "$date").asOpt[Long] // Extract as Long
 
@@ -204,8 +218,9 @@ class MongoProfileReportRepository extends ProfileReportMongoRepository
       // choose a date format you like
       val df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
 
+      val projection = Json.obj("_id" -> 0, "globalCode" -> 1, "analyses" -> Json.obj("$slice" -> 1))
       profiles
-        .find(query)
+        .find(query, projection)
         .cursor[JsObject]()
         .collect[Seq](Int.MaxValue, Cursor.FailOnError[Seq[JsObject]]())
         .map { docs =>
