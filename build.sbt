@@ -17,7 +17,7 @@ transitiveClassifiers := Seq("sources", "javadoc")
 // TODO Set your organization here; ThisBuild means it will apply to all sub-modules
 organization in ThisBuild := "ar.org.fundacionsadosky"
 
-version := "5.1.13.beta"
+version := "5.1.13"
 
 packageDescription := "Genis app"
 
@@ -236,6 +236,9 @@ javacOptions in ThisBuild ++= Seq(
   "-source", "1.8",
   "-target", "1.8"
 )
+
+// JVM options for production packaging (headless mode required for PDF generation on servers without X11)
+javaOptions in Universal += "-Djava.awt.headless=true"
 //
 // sbt-web configuration
 // https://github.com/sbt/sbt-web
