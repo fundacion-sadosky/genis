@@ -10,5 +10,8 @@ class StrKitModule extends AbstractModule {
     bind(classOf[LocusRepository]).to(classOf[LocusRepositoryImpl])
     bind(classOf[LocusService]).to(classOf[LocusServiceImpl])
     bind(classOf[MutationService]).to(classOf[NoOpMutationService])
+    // TODO: Migrar AnalysisType cuando se necesite (legacy: kits/AnalysisTypeRepository.scala, kits/AnalysisTypeService.scala)
+    //  bind(classOf[AnalysisTypeRepository]).to(classOf[...])
+    //  bind(classOf[AnalysisTypeService]).to(classOf[...])
   }
 }

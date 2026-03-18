@@ -9,6 +9,9 @@ project/metals.sbt
 # vs code
 .vscode
 
+# direnv
+.envrc
+
 # scala 3
 .tasty
 

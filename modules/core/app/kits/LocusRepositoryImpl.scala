@@ -9,9 +9,7 @@ import models._
 import java.sql.SQLException
 
 @Singleton
-class LocusRepositoryImpl @Inject()(implicit ec: ExecutionContext) extends LocusRepository:
-
-  private val db = Database.forConfig("slick.dbs.default.db")
+class LocusRepositoryImpl @Inject()(db: Database)(implicit ec: ExecutionContext) extends LocusRepository:
 
   private val loci = LocusTable.query
   private val lociAlias = LocusAliasTable.query
@@ -103,26 +101,31 @@ class LocusRepositoryImpl @Inject()(implicit ec: ExecutionContext) extends Locus
 
   override def update(fullLocus: FullLocus): Future[Either[String, Unit]] =
     val action = for
-      // Get current aliases for this locus
-      currentAliases <- lociAlias.filter(_.marker === fullLocus.locus.id).map(_.alias).result
-      // Update locus fields
-      _ <- updateLocusFields(fullLocus.locus)
-      // Determine aliases to add/remove
-      aliasesToAdd = fullLocus.alias.filter(a => !currentAliases.contains(a))
-      aliasesToDelete = currentAliases.filter(a => !fullLocus.alias.contains(a))
-      // Add new aliases
-      addResult <- insertAliases(fullLocus.locus.id, aliasesToAdd)
-      // Delete removed aliases
-      deleteResult <- addResult match
-        case Left(err) => succeed(Left(err): Either[String, String])
-        case Right(_) =>
-          aliasesToDelete.foldLeft(succeed(Right(fullLocus.locus.id): Either[String, String])) { (prevAction, alias) =>
-            prevAction.flatMap {
-              case Left(err) => succeed(Left(err): Either[String, String])
-              case Right(_) => removeAliasById(alias).map(_ => Right(fullLocus.locus.id): Either[String, String]).asInstanceOf[AnyDBIO[Either[String, String]]]
+      // Check locus exists (fidelity with legacy: "No existe el marcador")
+      existing <- loci.filter(_.id === fullLocus.locus.id).exists.result
+      result <- if !existing then succeed(Left("No existe el marcador"): Either[String, String])
+      else for
+        // Get current aliases for this locus
+        currentAliases <- lociAlias.filter(_.marker === fullLocus.locus.id).map(_.alias).result
+        // Update locus fields
+        _ <- updateLocusFields(fullLocus.locus)
+        // Determine aliases to add/remove
+        aliasesToAdd = fullLocus.alias.filter(a => !currentAliases.contains(a))
+        aliasesToDelete = currentAliases.filter(a => !fullLocus.alias.contains(a))
+        // Add new aliases
+        addResult <- insertAliases(fullLocus.locus.id, aliasesToAdd)
+        // Delete removed aliases
+        deleteResult <- addResult match
+          case Left(err) => succeed(Left(err): Either[String, String])
+          case Right(_) =>
+            aliasesToDelete.foldLeft(succeed(Right(fullLocus.locus.id): Either[String, String])) { (prevAction, alias) =>
+              prevAction.flatMap {
+                case Left(err) => succeed(Left(err): Either[String, String])
+                case Right(_) => removeAliasById(alias).map(_ => Right(fullLocus.locus.id): Either[String, String]).asInstanceOf[AnyDBIO[Either[String, String]]]
+              }
             }
-          }
-    yield deleteResult.map(_ => ())
+      yield deleteResult
+    yield result.map(_ => ())
     db.run(action.transactionally)
 
   override def delete(id: String): Future[Either[String, String]] =
