@@ -6,7 +6,7 @@ GET     /api/v2/disclaimer                   controllers.DisclaimerController.ge
 # Status endpoints (migrated from legacy)
 GET     /api/v2/status                      controllers.core.StatusController.index()
 GET     /api/v2/status/detailed             controllers.core.StatusController.detailed()
-
+GET     /api/v2/status/ldap                controllers.core.StatusController.ldapStatus()
 # Health check (alias)
 GET     /health                             controllers.core.StatusController.index()
 
