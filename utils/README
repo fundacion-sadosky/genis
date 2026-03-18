@@ -82,6 +82,7 @@ WHERE
 
 --EN TODAS LAS INSTANCIAS: 
 
+--Agrego la key "isDesktop":"false" en la columna INFO de la tabla NOTIFICATION cuando KIND es matching (inbox)
 UPDATE "APP"."NOTIFICATION"
 SET "INFO" = jsonb_set(
     "INFO"::jsonb,          -- Cast varchar to jsonb
@@ -93,7 +94,7 @@ WHERE
     "KIND" = 'matching'
     AND "INFO"::jsonb ? 'isDesktop' = false;
 
-
+--Agrego la key userName:USER en la columna "TRACE" cuando el tipo es categoryModification
 UPDATE "APP"."TRACE"
 SET "TRACE" = jsonb_set(
     "TRACE"::jsonb,           -- Cast the existing TRACE string to a JSONB type
@@ -103,7 +104,7 @@ SET "TRACE" = jsonb_set(
 )::character varying          -- Cast the modified JSONB back to character varying
 WHERE "KIND" = 'categoryModification';
 
-
+--Agrego la key multiallelic en false cuando el trace incluye "categoryConfiguration"
 UPDATE "APP"."TRACE" AS t
 SET
     "TRACE" = jsonb_set(
@@ -116,7 +117,7 @@ WHERE
     t."TRACE"::jsonb ? 'categoryConfiguration' -- Ensure 'categoryConfiguration' key exists
     AND NOT (t."TRACE"::jsonb -> 'categoryConfiguration' ? 'multiallelic'); -- Ensure 'multiallelic' is NOT already present
 
-
+Agrego el motivo del rechazo de un perfil en la instancia superior cuando el KIND es interconectionRejected.
 UPDATE "APP"."TRACE" t
 SET "TRACE" = json_build_object('motive', pu."MOTIVE")::text
 FROM "APP"."PROFILE_UPLOADED" pu
@@ -149,16 +150,7 @@ SET "DATE_UPLOADED" = to_char(
 ) || ' -03:00:00'
 WHERE "DATE_UPLOADED" LIKE '%T%';
 
--- Ver los que se repiten
-DELETE FROM "APP"."TRACE" t
-WHERE t."PROFILE" = 'AR-B-SCJBA-14XX' 09-10-12 en la inferior. 09 en la superior. 
-  AND t."KIND" = 'interconectionUpdload'
-  AND t."ID" <> (
-    SELECT MIN(t2."ID")
-    FROM "APP"."TRACE" t2
-    WHERE t2."PROFILE" = t."PROFILE"
-      AND t2."KIND" = t."KIND"
-  );
+-- Ver si hay TRACE repetidos
 
 
 -- En la instancia inferior agrego las entradas en TRACE de interconectionAproved cuando el perfil fue aprobado en la instancia superior. 
@@ -200,7 +192,7 @@ WHERE
         AND t_dup."DATE" = t2."DATE"
     );
 
--- En la instancia provincial:
+-- En la instancia provincial - Luego de haber levantado la instancia y corrido los evolutions
 UPDATE "APP"."PROFILE_RECEIVED" pr
 SET "DATE_RECEIVED" = subquery."determined_date"
 FROM (
