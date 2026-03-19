@@ -77,6 +77,9 @@ class ProfileDataServiceImpl @Inject()(
 
   // --- queries ---
 
+  override def isDeleted(globalCode: SampleCode): Future[Option[Boolean]] =
+    repository.isDeleted(globalCode)
+
   // TODO: isEditable requires MatchingService and ProfileService.
   override def isEditable(
     sampleCode: SampleCode,

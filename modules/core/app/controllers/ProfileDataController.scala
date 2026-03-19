@@ -30,9 +30,10 @@ class ProfileDataController @Inject()(
   }
 
   def isDeleted(globalCode: String): Action[AnyContent] = Action.async {
-    // TODO: isDeleted is not exposed in ProfileDataService — delegates to repository directly.
-    // Consider adding it to the service trait when the service layer is reviewed.
-    Future.successful(NotImplemented)
+    profileDataService.isDeleted(SampleCode(globalCode)).map {
+      case Some(deleted) => Ok(Json.toJson(deleted))
+      case None          => NotFound(Json.obj("error" -> s"Profile not found: $globalCode"))
+    }
   }
 
   def getResource(resourceType: String, id: Long): Action[AnyContent] = Action.async {
@@ -72,8 +73,10 @@ class ProfileDataController @Inject()(
     Future.successful(NotImplemented)
   }
 
-  // TODO: removeProfile is implemented in service but requires validation review.
   def removeProfile(globalCode: String): Action[AnyContent] = Action.async {
-    Future.successful(NotImplemented)
+    profileDataService.removeProfile(SampleCode(globalCode)).map {
+      case Right(code) => Ok(Json.toJson(code.text))
+      case Left(err)   => NotFound(Json.obj("error" -> err))
+    }
   }
 }

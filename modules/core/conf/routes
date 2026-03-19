@@ -66,3 +66,10 @@ POST    /api/v2/profiledata                                      controllers.Pro
 PUT     /api/v2/profiledata/:globalCode                          controllers.ProfileDataController.updateProfileData(globalCode: String)
 DELETE  /api/v2/profiledata/:globalCode                          controllers.ProfileDataController.deleteProfile(globalCode: String)
 DELETE  /api/v2/profiledata/remove/:globalCode                   controllers.ProfileDataController.removeProfile(globalCode: String)
+
+# ProtoProfileData — bulk-upload / STASH schema flow (migrated from legacy)
+GET     /api/v2/protoprofiledata-complete/:id                    controllers.ProtoProfileDataController.getByCode(id: types.SampleCode)
+POST    /api/v2/protoprofiledata                                  controllers.ProtoProfileDataController.create()
+PUT     /api/v2/protoprofiledata/:id                             controllers.ProtoProfileDataController.update(id: types.SampleCode)
+GET     /api/v2/protoprofiledata-editable/:id                    controllers.ProtoProfileDataController.isEditable(id: types.SampleCode)
+GET     /api/v2/resources/proto/static/:type/:id                 controllers.ProtoProfileDataController.getResources(type: String, id: Long)

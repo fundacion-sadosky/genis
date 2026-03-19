@@ -16,10 +16,9 @@ import models.{
 import models.ProfileDataTables._
 
 @Singleton
-class ProfileDataRepositoryImpl @Inject()(implicit ec: ExecutionContext)
-  extends ProfileDataRepository {
-
-  private val db = Database.forConfig("slick.dbs.default.db")
+class ProfileDataRepositoryImpl @Inject()(
+  db: slick.jdbc.JdbcBackend.Database
+)(implicit ec: ExecutionContext) extends ProfileDataRepository {
 
   // --- mappers ---
 
@@ -260,7 +259,10 @@ class ProfileDataRepositoryImpl @Inject()(implicit ec: ExecutionContext)
   // --- not implemented ---
 
   override def giveGlobalCode(labCode: String): Future[String] =
-    Future.failed(new NotImplementedError("giveGlobalCode: requires Laboratory table query"))
+    db.run(models.Tables.laboratories.filter(_.codeName === labCode).result.headOption).map {
+      case Some(lab) => s"${lab.country}-${lab.province}-${lab.codeName}"
+      case None      => throw new NoSuchElementException(s"giveGlobalCode: laboratory not found: $labCode")
+    }
 
   override def add(
     profileData: ProfileData,
@@ -284,7 +286,10 @@ class ProfileDataRepositoryImpl @Inject()(implicit ec: ExecutionContext)
     Future.failed(new NotImplementedError("delete: requires transactional update + ProfileDataMotive insert"))
 
   override def removeProfile(globalCode: SampleCode): Future[Either[String, SampleCode]] =
-    Future.failed(new NotImplementedError("removeProfile"))
+    db.run(profileData.filter(_.globalCode === globalCode.text).delete).map {
+      case 0 => Left(s"Profile not found: ${globalCode.text}")
+      case _ => Right(globalCode)
+    }
 
   override def getProfilesByUser(search: ProfileDataSearch): Future[Seq[ProfileDataFull]] =
     Future.failed(new NotImplementedError("getProfilesByUser: requires dynamic query composition"))
@@ -295,8 +300,11 @@ class ProfileDataRepositoryImpl @Inject()(implicit ec: ExecutionContext)
   override def getTotalProfilesByUser(userId: String, isSuperUser: Boolean, category: String): Future[Int] =
     Future.failed(new NotImplementedError("getTotalProfilesByUser"))
 
-  override def findByCodes(globalCodes: List[SampleCode]): Future[Seq[ProfileData]] =
-    Future.failed(new NotImplementedError("findByCodes"))
+  override def findByCodes(globalCodes: List[SampleCode]): Future[Seq[ProfileData]] = {
+    val codes = globalCodes.map(_.text)
+    db.run(profileData.filter(_.globalCode inSet codes).result)
+      .map(_.map(toProfileData))
+  }
 
   override def addExternalProfile(
     profileData: ProfileData,

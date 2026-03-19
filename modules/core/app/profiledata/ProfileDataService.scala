@@ -45,6 +45,7 @@ trait ProfileDataService {
 
   // --- queries ---
 
+  def isDeleted(globalCode: SampleCode): Future[Option[Boolean]]
   def isEditable(
     sampleCode: SampleCode,
     allowFromOtherInstances: Boolean = false
