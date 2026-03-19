@@ -8,9 +8,7 @@ import slick.jdbc.JdbcBackend.Database
 import models._
 
 @Singleton
-class StrKitRepositoryImpl @Inject()(implicit ec: ExecutionContext) extends StrKitRepository {
-  // Inicializa la base de datos usando la configuración "strkits-db" en application.conf
-  private val db = Database.forConfig("slick.dbs.default.db")
+class StrKitRepositoryImpl @Inject()(db: slick.jdbc.JdbcBackend.Database)(implicit ec: ExecutionContext) extends StrKitRepository {
 
   private def toStrKit(row: StrKitRow): StrKit =
     StrKit(

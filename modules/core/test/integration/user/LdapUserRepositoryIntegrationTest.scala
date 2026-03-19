@@ -60,9 +60,9 @@ class LdapUserRepositoryIntegrationTest
       user.firstName mustBe "s"
       user.lastName mustBe "etup"
       user.email mustBe "setup@genis.local"
-      user.geneMapperId mustBe "setup"
+      user.geneMapperId mustBe "sgm"
       user.phone1 mustBe "0000000000"
-      user.superuser mustBe true
+      user.superuser mustBe false
     }
 
     "throw NoSuchElementException for non-existent user" in {

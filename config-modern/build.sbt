@@ -94,7 +94,10 @@ lazy val core = (project in file("modules/core"))
     
     // Modern corre en puerto 9001 (legacy usa 9000)
     PlayKeys.playDefaultPort := 9001,
-    
+
+    // Run tests sequentially to avoid exhausting DB connection pool
+    Test / parallelExecution := false,
+
     // Fix Jackson version conflict
     dependencyOverrides ++= Seq(
       "com.fasterxml.jackson.core" % "jackson-databind" % "2.14.3",

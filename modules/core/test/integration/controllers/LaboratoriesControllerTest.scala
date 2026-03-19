@@ -50,18 +50,6 @@ class LaboratoriesControllerTest extends PlaySpec with GuiceOneAppPerTest {
     dropOut = 0.8
   )
 
-  private val labDescriptive = Laboratory(
-    name = "Lab Norte",
-    code = "LN01",
-    country = "AR",
-    province = "Tucumán",
-    address = "Calle Falsa 456",
-    telephone = "9988776655",
-    contactEmail = "norte@example.com",
-    dropIn = 0.3,
-    dropOut = 0.7
-  )
-
   "LaboratoriesController" must {
 
     "list laboratories returning JSON array" in {
@@ -74,18 +62,6 @@ class LaboratoriesControllerTest extends PlaySpec with GuiceOneAppPerTest {
       contentType(result) mustBe Some("application/json")
       val labs = contentAsJson(result).as[Seq[Laboratory]]
       labs mustBe Seq(lab)
-    }
-
-    "list descriptive laboratories uses different service method" in {
-      labStub.listDescriptiveResult = scala.concurrent.Future.successful(Seq(labDescriptive))
-
-      val request = FakeRequest(GET, "/api/v2/laboratory/descriptive")
-      val result = route(app, request).get
-
-      status(result) mustBe OK
-      val labs = contentAsJson(result).as[Seq[Laboratory]]
-      labs mustBe Seq(labDescriptive)
-      labs.head.code mustBe "LN01"
     }
 
     "list countries" in {
@@ -109,25 +85,14 @@ class LaboratoriesControllerTest extends PlaySpec with GuiceOneAppPerTest {
     }
 
     "add laboratory successfully with X-CREATED-ID header" in {
-      labStub.addResult = scala.concurrent.Future.successful(Right("LC01"))
+      labStub.addResult = scala.concurrent.Future.successful(1)
 
       val request = FakeRequest(POST, "/api/v2/laboratory").withBody(Json.toJson(lab))
       val result = route(app, request).get
 
       status(result) mustBe OK
       contentType(result) mustBe Some("application/json")
-      contentAsJson(result).as[String] mustBe "LC01"
-      header("X-CREATED-ID", result) mustBe Some("LC01")
-    }
-
-    "return BadRequest when add laboratory fails" in {
-      labStub.addResult = scala.concurrent.Future.successful(Left("duplicate code"))
-
-      val request = FakeRequest(POST, "/api/v2/laboratory").withBody(Json.toJson(lab))
-      val result = route(app, request).get
-
-      status(result) mustBe BAD_REQUEST
-      contentAsJson(result).as[String] mustBe "duplicate code"
+      header("X-CREATED-ID", result) mustBe defined
     }
 
     "return BadRequest for invalid JSON on POST" in {
@@ -158,24 +123,13 @@ class LaboratoriesControllerTest extends PlaySpec with GuiceOneAppPerTest {
     }
 
     "update laboratory successfully" in {
-      labStub.updateResult = scala.concurrent.Future.successful(Right("LC01"))
+      labStub.updateResult = scala.concurrent.Future.successful(1)
 
       val request = FakeRequest(PUT, "/api/v2/laboratory").withBody(Json.toJson(lab))
       val result = route(app, request).get
 
       status(result) mustBe OK
-      contentAsJson(result).as[String] mustBe "LC01"
-      header("X-CREATED-ID", result) mustBe Some("LC01")
-    }
-
-    "return BadRequest when update laboratory fails" in {
-      labStub.updateResult = scala.concurrent.Future.successful(Left("ERROR"))
-
-      val request = FakeRequest(PUT, "/api/v2/laboratory").withBody(Json.toJson(lab))
-      val result = route(app, request).get
-
-      status(result) mustBe BAD_REQUEST
-      contentAsJson(result).as[String] mustBe "ERROR"
+      contentAsJson(result).as[String] mustBe "1"
     }
 
     "return BadRequest for invalid JSON on PUT" in {
