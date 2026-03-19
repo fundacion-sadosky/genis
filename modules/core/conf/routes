@@ -62,3 +62,8 @@ POST    /api/v2/motive                controllers.MotiveController.insert
 PUT     /api/v2/motive                controllers.MotiveController.update
 DELETE  /api/v2/motive/:id            controllers.MotiveController.deleteMotiveById(id: Long)
 
+# Search ProfileData (REST v2)
+POST    /api/v2/search/profiles        controllers.SearchProfileDatasController.search()
+POST    /api/v2/search/profiles/total  controllers.SearchProfileDatasController.searchTotal()
+GET     /api/v2/search/profiles/:category controllers.SearchProfileDatasController.searchProfilesAssociable(input: String, category: String)
+

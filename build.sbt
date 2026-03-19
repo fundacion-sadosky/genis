@@ -34,6 +34,9 @@ lazy val core = (project in file("modules/core"))
   .enablePlugins(PlayScala)
   .dependsOn(shared)
   .settings(
+    PlayKeys.routesImport += "modules.core._",
+    PlayKeys.routesGenerator := InjectedRoutesGenerator,
+    PlayKeys.routes := baseDirectory.value / "conf" / "routes",
     name := "genis-core",
     scalaVersion := "3.3.1",
     
