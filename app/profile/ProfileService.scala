@@ -391,14 +391,13 @@ class ProfileServiceImpl @Inject() (
               getRequiredLocusInAnalysis(analysis,fullLocus) < requiredLociKit
             }, Messages("error.E0698")) ::
           cond(
-            {
-              analysis.count({
-                case (marker, alleles) => {
-                  val locus = loci.find(l => l.id == marker).get
-                  alleles.size > locus.minimumAllelesQty && alleles.size > trisomyTreshold
-                }
-              }) > maxOverageDeviatedLociPerProfile
-            }, Messages("error.E0685", maxOverageDeviatedLociPerProfile)) ::
+            analysis.exists({
+              case (_, alleles) => alleles.size > trisomyTreshold + 1
+            }), Messages("error.E0684", trisomyTreshold + 1)) ::
+          cond(
+            analysis.count({
+              case (_, alleles) => alleles.size > trisomyTreshold
+            }) > maxOverageDeviatedLociPerProfile, Messages("error.E0685", maxOverageDeviatedLociPerProfile)) ::
           Nil).flatten
 
         if (errors.nonEmpty) Left(errors)
