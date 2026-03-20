@@ -20,12 +20,17 @@ trait LdapRepository:
     finally
       baseBindConnectionPool.releaseConnection(connection)
 
+  private def doSearch(request: SearchRequest): SearchResult =
+    try baseSearchConnection.search(request)
+    catch case _: LDAPException =>
+      logger.warn("LDAP search connection lost, reconnecting...")
+      baseSearchConnection.reconnect()
+      baseSearchConnection.search(request)
+
   protected def searchOne(filter: Filter): Option[SearchResultEntry] =
     val request = new SearchRequest(baseDn.toString, SearchScope.SUB, filter)
-    val result = baseSearchConnection.search(request)
-    result.getSearchEntries.asScala.headOption
+    doSearch(request).getSearchEntries.asScala.headOption
 
   protected def searchAll(filter: Filter): Seq[SearchResultEntry] =
     val request = new SearchRequest(baseDn.toString, SearchScope.SUB, filter)
-    val result = baseSearchConnection.search(request)
-    result.getSearchEntries.asScala.toSeq
+    doSearch(request).getSearchEntries.asScala.toSeq
