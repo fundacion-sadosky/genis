@@ -1,7 +1,8 @@
 package motive
 
+import com.unboundid.ldap.sdk.LDAPConnectionPool
 import controllers.MotiveController
-import org.mockito.Mockito.when
+import org.mockito.Mockito.{mock as mockOf, when}
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play._
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
@@ -39,7 +40,8 @@ class MotiveControllerSpec extends PlaySpec with GuiceOneAppPerTest with Mockito
       .overrides(
         bind[UserRepository].to[StubUserRepository],
         bind[RoleRepository].to[StubRoleRepository],
-        bind[MotiveService].toInstance(stubMotiveService)
+        bind[MotiveService].toInstance(stubMotiveService),
+        bind[LDAPConnectionPool].toInstance(mockOf(classOf[LDAPConnectionPool]))
       )
       .configure("play.http.secret.key" -> "test-secret-key-for-testing-purposes-only-not-for-production-1234")
       .build()
