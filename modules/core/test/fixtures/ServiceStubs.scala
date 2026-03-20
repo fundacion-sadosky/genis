@@ -6,7 +6,7 @@ import javax.inject.Singleton
 import configdata.{BioMaterialType, CrimeType, CrimeTypeService, BioMaterialTypeService}
 import disclaimer.{Disclaimer, DisclaimerService}
 import kits.{FullStrKit, StrKit, StrKitLocus, StrKitService, NewStrKitLocus}
-import services.{CountryService, GeneticistService, LaboratoryService, UserService}
+import services.{CountryService, GeneticistService, LaboratoryService, UserService, UserView}
 import types.{Geneticist, Laboratory, User}
 
 @Singleton
@@ -44,8 +44,12 @@ class StubGeneticistService extends GeneticistService:
 @Singleton
 class StubUserService extends UserService:
   var findUserAssignableResult: Future[Seq[User]] = Future.successful(Seq.empty)
+  var getUserOrEmptyResult: Future[Option[UserView]] = Future.successful(None)
+  var isSuperUserResult: Future[Boolean] = Future.successful(false)
 
   override def findUserAssignable: Future[Seq[User]] = findUserAssignableResult
+  override def getUserOrEmpty(userId: String): Future[Option[UserView]] = getUserOrEmptyResult
+  override def isSuperUser(userId: String): Future[Boolean] = isSuperUserResult
 
 @Singleton
 class StubDisclaimerService extends DisclaimerService:
