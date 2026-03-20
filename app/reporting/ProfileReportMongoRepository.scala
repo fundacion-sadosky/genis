@@ -216,7 +216,7 @@ class MongoProfileReportRepository extends ProfileReportMongoRepository
       val query = Json.obj("globalCode" -> Json.obj("$in" -> globalCodes))
 
       // choose a date format you like
-      val df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+      val df = new SimpleDateFormat("yyyy-MM-dd")
 
       val projection = Json.obj("_id" -> 0, "globalCode" -> 1, "analyses" -> Json.obj("$slice" -> 1))
       profiles

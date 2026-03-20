@@ -239,7 +239,7 @@ class ProfileReportServiceImpl @Inject() (profileReportMongoRepository: ProfileR
     profileReportMongoRepository.getAllMatches.map { matches =>
       val csvRows = matches.map { matchData =>
         List(
-          matchData.date, // Date
+          new java.text.SimpleDateFormat("yyyy-MM-dd").format(matchData.date), // Date
           matchData.globalCode1,          // GLOBAL_CODE1
           matchData.category1,          // CATEGORY1
           matchData.assignee1,          // ASSIGNEE1
@@ -286,7 +286,7 @@ class ProfileReportServiceImpl @Inject() (profileReportMongoRepository: ProfileR
                 deletedMotive.getOrElse(""),
                 analysisDate,
                 analysisKit,
-                dateUploaded.getOrElse("") // <-- Added to the CSV row
+                dateUploaded.map(d => new java.text.SimpleDateFormat("yyyy-MM-dd").format(d)).getOrElse("") // <-- Added to the CSV row
               ).mkString(",")
           }
           val csvContent = (csvReplicatedToSuperior.mkString(",") +: csvRows).mkString("\n")
@@ -324,7 +324,7 @@ class ProfileReportServiceImpl @Inject() (profileReportMongoRepository: ProfileR
                 deletedMotive.getOrElse(""),
                 analysisDate,
                 analysisKit,
-                dateReceived.getOrElse("") // <-- Added to the CSV row
+                dateReceived.map(d => new java.text.SimpleDateFormat("yyyy-MM-dd").format(d)).getOrElse("") // <-- Added to the CSV row
               ).mkString(",")
           }
           val csvContent = (csvReplicatedFromInferior.mkString(",") +: csvRows).mkString("\n")
