@@ -17,12 +17,12 @@ trait BioMaterialTypeRepository {
 class SlickBioMaterialTypeRepository @Inject() (
   db: slick.jdbc.JdbcBackend.Database
   )(implicit ec: ExecutionContext) extends BioMaterialTypeRepository {
-  import models.Tables
-  import slick.jdbc.PostgresProfile.api._
-  override def list(): Future[Seq[BioMaterialType]] = {
+    import models.Tables
+    import slick.jdbc.PostgresProfile.api._
+    override def list(): Future[Seq[BioMaterialType]] = {
       db.run(Tables.BioMaterialType.result).map(_.map(row => BioMaterialType(AlphanumericId(row.id), row.name, row.description)))
-  }
-  override def insert(bmt: BioMaterialType): Future[Int] = Future.successful(1) // TODO: Implementar
-  override def update(bmt: BioMaterialType): Future[Int] = Future.successful(1) // TODO: Implementar
-  override def delete(bmtId: String): Future[Int] = Future.successful(1) // TODO: Implementar
+    }
+    override def insert(bmt: BioMaterialType): Future[Int] = Future.successful(1) // TODO: Implementar
+    override def update(bmt: BioMaterialType): Future[Int] = Future.successful(1) // TODO: Implementar
+    override def delete(bmtId: String): Future[Int] = Future.successful(1) // TODO: Implementar
 }

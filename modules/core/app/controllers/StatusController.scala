@@ -3,17 +3,19 @@ package controllers.core
 import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
 import javax.inject.{Inject, Singleton}
 import play.api.libs.json.Json
+import com.unboundid.ldap.sdk.{LDAPConnection, LDAPConnectionPool}
+import scala.util.{Failure, Success, Try}
 
 /**
  * Status Controller - Migrado a Scala 3 + Play 3
- * 
+ *
  * Primer módulo migrado según modulesUpgrade guide.
  * Endpoints: /api/v2/status
  */
 @Singleton
-class StatusController @Inject()(cc: ControllerComponents) 
+class StatusController @Inject()(cc: ControllerComponents, ldapPool: LDAPConnectionPool)
   extends AbstractController(cc) {
-  
+
   /**
    * Health check endpoint
    * GET /api/v2/status
@@ -27,7 +29,7 @@ class StatusController @Inject()(cc: ControllerComponents)
       "module" -> "core"
     ))
   }
-  
+
   /**
    * Detailed status with system info
    * GET /api/v2/status/detailed
@@ -37,7 +39,7 @@ class StatusController @Inject()(cc: ControllerComponents)
     val maxMemory = runtime.maxMemory() / 1024 / 1024 // MB
     val totalMemory = runtime.totalMemory() / 1024 / 1024 // MB
     val freeMemory = runtime.freeMemory() / 1024 / 1024 // MB
-    
+
     Ok(Json.obj(
       "status" -> "OK",
       "version" -> "5.2.0-SNAPSHOT",
@@ -53,5 +55,12 @@ class StatusController @Inject()(cc: ControllerComponents)
       ),
       "timestamp" -> System.currentTimeMillis()
     ))
+  }
+
+  def ldapStatus(): Action[AnyContent] = Action {
+    Try(ldapPool.getRootDSE) match {
+      case Success(dse) => Ok(Json.obj("ldap" -> "UP", "vendor" -> dse.getVendorName))
+      case Failure(e)   => ServiceUnavailable(Json.obj("ldap" -> "DOWN", "error" -> e.getMessage))
+    }
   }
 }
