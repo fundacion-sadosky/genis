@@ -1,7 +1,9 @@
 package controllers
 
+import com.unboundid.ldap.sdk.LDAPConnectionPool
 import configdata._
-import fixtures.StubCategoryService
+import fixtures.{StubCategoryService, StubStrKitService}
+import org.mockito.Mockito.mock as mockOf
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
@@ -11,6 +13,9 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import security.{StubRoleRepository, StubUserRepository, UserRepository}
+import user.{RoleRepository, UsersModule}
+import kits.{StrKitModule, StrKitService}
 import types.AlphanumericId
 
 import scala.concurrent.Future
@@ -19,7 +24,16 @@ class CategoriesControllerTest extends AnyWordSpec with Matchers with GuiceOneAp
 
   override def fakeApplication(): Application =
     GuiceApplicationBuilder()
-      .overrides(bind[CategoryService].to[StubCategoryService])
+      .disable[UsersModule]
+      .disable[StrKitModule]
+      .overrides(
+        bind[CategoryService].to[StubCategoryService],
+        bind[UserRepository].to[StubUserRepository],
+        bind[RoleRepository].to[StubRoleRepository],
+        bind[StrKitService].toInstance(new StubStrKitService),
+        bind[LDAPConnectionPool].toInstance(mockOf(classOf[LDAPConnectionPool]))
+      )
+      .configure("play.http.secret.key" -> "test-secret-key-for-testing-purposes-only-not-for-production-1234")
       .build()
 
   // ─── Category read endpoints ───────────────────────────────────────────────
