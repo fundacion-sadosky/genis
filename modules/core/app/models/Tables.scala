@@ -95,38 +95,6 @@ object Tables {
     val crimeTypes = TableQuery[CrimeTypeTable]
     val crimeInvolved = TableQuery[CrimeInvolvedTable]
 
-<<<<<<< Updated upstream
-  // BioMaterialType table
-  case class BioMaterialTypeRow(id: String, name: String, description: Option[String])
-  class BioMaterialType(_tableTag: Tag) extends Table[BioMaterialTypeRow](_tableTag, Some("APP"), "BIO_MATERIAL_TYPE") {
-    def id = column[String]("ID", O.PrimaryKey, O.Length(50, varying = true))
-    def name = column[String]("NAME", O.Length(100, varying = true))
-    def description = column[Option[String]]("DESCRIPTION", O.Length(100, varying = true), O.Default(None))
-    def * = (id, name, description) <> ((BioMaterialTypeRow.apply _).tupled, BioMaterialTypeRow.unapply)
-  }
-  val BioMaterialType = TableQuery[BioMaterialType]
-
-  // MotiveType table
-  case class MotiveTypeRow(id: Long, description: String)
-  class MotiveTypeTable(tag: Tag) extends Table[MotiveTypeRow](tag, Some("APP"), "MOTIVE_TYPE") {
-    def id          = column[Long]("ID", O.PrimaryKey)
-    def description = column[String]("DESCRIPTION")
-    def *           = (id, description) <> ((MotiveTypeRow.apply _).tupled, MotiveTypeRow.unapply)
-  }
-  val MotiveType = TableQuery[MotiveTypeTable]
-
-  // Motive table
-  case class MotiveRow(id: Long, motiveType: Long, description: String, freeText: Boolean, deleted: Boolean = false)
-  class MotiveTable(tag: Tag) extends Table[MotiveRow](tag, Some("APP"), "MOTIVE") {
-    def id          = column[Long]("ID", O.AutoInc, O.PrimaryKey)
-    def motiveType  = column[Long]("MOTIVE_TYPE")
-    def description = column[String]("DESCRIPTION")
-    def freeText    = column[Boolean]("FREE_TEXT")
-    def deleted     = column[Boolean]("DELETED")
-    def *           = (id, motiveType, description, freeText, deleted) <> ((MotiveRow.apply _).tupled, MotiveRow.unapply)
-  }
-  val Motive = TableQuery[MotiveTable]
-=======
     // BioMaterialType table
     case class BioMaterialTypeRow(id: String, name: String, description: Option[String])
     class BioMaterialType(_tableTag: Tag) extends Table[BioMaterialTypeRow](_tableTag, Some("APP"), "BIO_MATERIAL_TYPE") {
@@ -136,6 +104,27 @@ object Tables {
       def * = (id, name, description) <> ((BioMaterialTypeRow.apply _).tupled, BioMaterialTypeRow.unapply)
     }
     val BioMaterialType = TableQuery[BioMaterialType]
+
+    // MotiveType table
+    case class MotiveTypeRow(id: Long, description: String)
+    class MotiveTypeTable(tag: Tag) extends Table[MotiveTypeRow](tag, Some("APP"), "MOTIVE_TYPE") {
+      def id          = column[Long]("ID", O.PrimaryKey)
+      def description = column[String]("DESCRIPTION")
+      def *           = (id, description) <> ((MotiveTypeRow.apply _).tupled, MotiveTypeRow.unapply)
+    }
+    val MotiveType = TableQuery[MotiveTypeTable]
+
+    // Motive table
+    case class MotiveRow(id: Long, motiveType: Long, description: String, freeText: Boolean, deleted: Boolean = false)
+    class MotiveTable(tag: Tag) extends Table[MotiveRow](tag, Some("APP"), "MOTIVE") {
+      def id          = column[Long]("ID", O.AutoInc, O.PrimaryKey)
+      def motiveType  = column[Long]("MOTIVE_TYPE")
+      def description = column[String]("DESCRIPTION")
+      def freeText    = column[Boolean]("FREE_TEXT")
+      def deleted     = column[Boolean]("DELETED")
+      def *           = (id, motiveType, description, freeText, deleted) <> ((MotiveRow.apply _).tupled, MotiveRow.unapply)
+    }
+    val Motive = TableQuery[MotiveTable]
 
     // ---------------------------------------------------------------------------
     // Population Base Frequency tables
@@ -179,17 +168,16 @@ object Tables {
 
     class PopulationBaseFrequencyTable(tag: Tag)
       extends Table[PopulationBaseFrequencyRow](tag, Some("APP"), "POPULATION_BASE_FREQUENCY") {
-      def id       = column[Long]("ID", O.PrimaryKey, O.AutoInc)
-      def baseName = column[Long]("BASE_NAME")
-      def marker   = column[String]("MARKER", O.Length(50, varying = true))
-      def allele   = column[Double]("ALLELE")
+      def id        = column[Long]("ID", O.PrimaryKey, O.AutoInc)
+      def baseName  = column[Long]("BASE_NAME")
+      def marker    = column[String]("MARKER", O.Length(50, varying = true))
+      def allele    = column[Double]("ALLELE")
       def frequency = column[BigDecimal]("FREQUENCY")
-      def nameFk   = foreignKey("POPULATION_BASE_FREQUENCY_FK", baseName, PopulationBaseFrequencyName)(_.id,
-                       onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Restrict)
-      def *        = (id, baseName, marker, allele, frequency) <>
-                     (PopulationBaseFrequencyRow.tupled, PopulationBaseFrequencyRow.unapply)
+      def nameFk    = foreignKey("POPULATION_BASE_FREQUENCY_FK", baseName, PopulationBaseFrequencyName)(_.id,
+                        onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Restrict)
+      def *         = (id, baseName, marker, allele, frequency) <>
+                      (PopulationBaseFrequencyRow.tupled, PopulationBaseFrequencyRow.unapply)
     }
     val PopulationBaseFrequency = TableQuery[PopulationBaseFrequencyTable]
->>>>>>> Stashed changes
 }
 
