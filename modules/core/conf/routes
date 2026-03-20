@@ -92,3 +92,32 @@ POST    /api/v2/motive                controllers.MotiveController.insert
 PUT     /api/v2/motive                controllers.MotiveController.update
 DELETE  /api/v2/motive/:id            controllers.MotiveController.deleteMotiveById(id: Long)
 
+# Profiles
+GET     /api/v2/profiles/:id                                        controllers.ProfilesController.findByCode(id: types.SampleCode)
+GET     /api/v2/profiles/full/:globalCode                           controllers.ProfilesController.getFullProfile(globalCode: types.SampleCode)
+GET     /api/v2/profiles                                            controllers.ProfilesController.findByCodes(globalCodes: List[types.SampleCode])
+POST    /api/v2/profiles                                            controllers.ProfilesController.create
+POST    /api/v2/profiles-xxx/:id                                    controllers.ProfilesController.storeUploadedAnalysis(id: String)
+POST    /api/v2/profiles-labels                                     controllers.ProfilesController.saveLabels
+GET     /api/v2/profiles/:profileId/epgs                            controllers.ProfilesController.getElectropherogramsByCode(profileId: types.SampleCode)
+GET     /api/v2/profiles/:profileId/analysis/:analysisId/epgs       controllers.ProfilesController.getElectropherogramsByAnalysisId(profileId: types.SampleCode, analysisId: String)
+GET     /api/v2/profiles/:profileId/epg/:epgId                      controllers.ProfilesController.getElectropherogramImage(profileId: types.SampleCode, epgId: String)
+POST    /api/v2/profiles-mixture-verification                       controllers.ProfilesController.verifyMixtureAssociation
+GET     /api/v2/profiles/subcategory-relationships/:subcategoryId   controllers.ProfilesController.findSubcategoryRelationships(subcategoryId: types.AlphanumericId)
+POST    /api/v2/profiles-epg                                        controllers.ProfilesController.addElectropherograms(token: String, globalCode: types.SampleCode, idAnalysis: String, name: String)
+GET     /api/v2/profiles-labels                                     controllers.ProfilesController.getLabels(globalCode: types.SampleCode)
+GET     /api/v2/profiles-labelsets                                  controllers.ProfilesController.getLabelsSets()
+GET     /api/v2/profiles/:profileId/file                            controllers.ProfilesController.getFilesByCode(profileId: types.SampleCode)
+GET     /api/v2/profiles/:profileId/analysis/:analysisId/file       controllers.ProfilesController.getFilesByAnalysisId(profileId: types.SampleCode, analysisId: String)
+GET     /api/v2/profiles/:profileId/file/:fileId                    controllers.ProfilesController.getFile(profileId: types.SampleCode, fileId: String)
+POST    /api/v2/profiles-file                                       controllers.ProfilesController.addFiles(token: String, globalCode: types.SampleCode, idAnalysis: String, name: String)
+DELETE  /api/v2/profiles-file/file/:fileId                          controllers.ProfilesController.removeFile(fileId: String)
+DELETE  /api/v2/profiles-file/epg/:fileId                           controllers.ProfilesController.removeEpg(fileId: String)
+GET     /api/v2/profiles-readOnly                                   controllers.ProfilesController.isReadOnly(globalCode: types.SampleCode)
+POST    /api/v2/profile-export                                      controllers.ProfilesController.exporterProfiles()
+POST    /api/v2/profile-exportToLims                                controllers.ProfilesController.exporterLimsFiles()
+GET     /api/v2/get-profile-export/:user                            controllers.ProfilesController.getExportFile(user: String)
+GET     /api/v2/get-alta-file-export                                controllers.ProfilesController.getLimsAltaFile()
+GET     /api/v2/get-match-file-export                               controllers.ProfilesController.getLimsMatchFile()
+DELETE  /api/v2/profiles/remove                                     controllers.ProfilesController.removeAll()
+DELETE  /api/v2/profiles/:profileId                                 controllers.ProfilesController.removeProfile(profileId: types.SampleCode)

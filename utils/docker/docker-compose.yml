@@ -9,7 +9,7 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_INITDB_ARGS="--auth=md5"
     ports:
-      - "5432:5432"      
+      - "5433:5432"      
     volumes:
       - 'pgsql_data:/var/lib/postgresql/data'
       - ./pgsql_init:/docker-entrypoint-initdb.d
@@ -32,7 +32,7 @@ services:
       - ./openldap_init:/ldifs        
 
   mongo:
-    image: mongo:3.4.20
+    image: mongo:4.4
     container_name: genis_mongo
     restart: always    
     ports:
