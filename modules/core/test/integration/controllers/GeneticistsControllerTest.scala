@@ -9,10 +9,10 @@ import play.api.test.*
 import play.api.test.Helpers.*
 import play.api.libs.json.Json
 
-import fixtures.{StubGeneticistService, StubStrKitService, StubUserService}
+import fixtures.{StubGeneticistService, StubLdapHealthService, StubStrKitService, StubUserService}
 import security.{StubRoleRepository, StubUserRepository, UserRepository}
 import services.{GeneticistService, UserService}
-import user.{RoleRepository, UsersModule}
+import user.{LdapHealthService, RoleRepository, UsersModule}
 import kits.{StrKitModule, StrKitService}
 import types.{Geneticist, User}
 
@@ -32,7 +32,8 @@ class GeneticistsControllerTest extends PlaySpec with GuiceOneAppPerTest {
         bind[RoleRepository].to[StubRoleRepository],
         bind[GeneticistService].toInstance(genStub),
         bind[UserService].toInstance(userStub),
-        bind[StrKitService].toInstance(new StubStrKitService)
+        bind[StrKitService].toInstance(new StubStrKitService),
+        bind[LdapHealthService].toInstance(new StubLdapHealthService)
       )
       .configure("play.http.secret.key" -> "test-secret-key-for-testing-purposes-only-not-for-production-1234")
       .build()

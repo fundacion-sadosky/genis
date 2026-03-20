@@ -10,9 +10,9 @@ import play.api.test.Helpers.*
 import play.api.libs.json.Json
 
 import configdata.{BioMaterialType, BioMaterialTypeService}
-import fixtures.{StubBioMaterialTypeService, StubStrKitService}
+import fixtures.{StubBioMaterialTypeService, StubLdapHealthService, StubStrKitService}
 import security.{StubRoleRepository, StubUserRepository, UserRepository}
-import user.{RoleRepository, UsersModule}
+import user.{LdapHealthService, RoleRepository, UsersModule}
 import kits.{StrKitModule, StrKitService}
 import types.AlphanumericId
 
@@ -29,7 +29,8 @@ class BioMaterialTypesTest extends PlaySpec with GuiceOneAppPerTest {
         bind[UserRepository].to[StubUserRepository],
         bind[RoleRepository].to[StubRoleRepository],
         bind[BioMaterialTypeService].toInstance(bmtStub),
-        bind[StrKitService].toInstance(new StubStrKitService)
+        bind[StrKitService].toInstance(new StubStrKitService),
+        bind[LdapHealthService].toInstance(new StubLdapHealthService)
       )
       .configure("play.http.secret.key" -> "test-secret-key-for-testing-purposes-only-not-for-production-1234")
       .build()
