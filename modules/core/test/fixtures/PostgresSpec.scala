@@ -2,10 +2,11 @@ package fixtures
 
 import org.scalatest.{BeforeAndAfterAll, Suite}
 import slick.jdbc.PostgresProfile.api._
+import slick.jdbc.JdbcBackend
 
 trait PostgresSpec extends BeforeAndAfterAll { self: Suite =>
 
-  protected val db: Database = Database.forURL(
+  protected val db: JdbcBackend.Database = JdbcBackend.Database.forURL(
     url = "jdbc:postgresql://localhost:5432/genisdb",
     user = "genissqladmin",
     password = "genissqladminp",

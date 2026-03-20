@@ -38,9 +38,9 @@ class SlickCrimeTypeRepositoryIntegrationTest
     super.beforeEach()
     cleanTestData()
     val setup = DBIO.seq(
-      Tables.crimeTypes += models.CrimeTypeRow(testCrimeTypeId, "Test Crime Type", Some("For integration tests")),
-      Tables.crimeInvolved += models.CrimeInvolvedRow(testCrimeId1, testCrimeTypeId, "Test Crime One", Some("First")),
-      Tables.crimeInvolved += models.CrimeInvolvedRow(testCrimeId2, testCrimeTypeId, "Test Crime Two", None)
+      Tables.crimeTypes += Tables.CrimeTypeRow(testCrimeTypeId, "Test Crime Type", Some("For integration tests")),
+      Tables.crimeInvolved += Tables.CrimeInvolvedRow(testCrimeId1, testCrimeTypeId, "Test Crime One", Some("First")),
+      Tables.crimeInvolved += Tables.CrimeInvolvedRow(testCrimeId2, testCrimeTypeId, "Test Crime Two", None)
     )
     Await.result(db.run(setup), timeout)
 
