@@ -3,8 +3,8 @@ package controllers.core
 import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
 import javax.inject.{Inject, Singleton}
 import play.api.libs.json.Json
-import com.unboundid.ldap.sdk.{LDAPConnection, LDAPConnectionPool}
-import scala.util.{Failure, Success, Try}
+import user.LdapHealthService
+import scala.util.{Failure, Success}
 
 /**
  * Status Controller - Migrado a Scala 3 + Play 3
@@ -13,7 +13,7 @@ import scala.util.{Failure, Success, Try}
  * Endpoints: /api/v2/status
  */
 @Singleton
-class StatusController @Inject()(cc: ControllerComponents, ldapPool: LDAPConnectionPool)
+class StatusController @Inject()(cc: ControllerComponents, ldapHealth: LdapHealthService)
   extends AbstractController(cc) {
 
   /**
@@ -58,8 +58,8 @@ class StatusController @Inject()(cc: ControllerComponents, ldapPool: LDAPConnect
   }
 
   def ldapStatus(): Action[AnyContent] = Action {
-    Try(ldapPool.getRootDSE) match {
-      case Success(dse) => Ok(Json.obj("ldap" -> "UP", "vendor" -> dse.getVendorName))
+    ldapHealth.checkStatus() match {
+      case Success((status, vendor)) => Ok(Json.obj("ldap" -> status, "vendor" -> vendor))
       case Failure(e)   => ServiceUnavailable(Json.obj("ldap" -> "DOWN", "error" -> e.getMessage))
     }
   }

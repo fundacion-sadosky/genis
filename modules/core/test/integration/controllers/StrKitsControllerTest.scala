@@ -9,12 +9,10 @@ import play.api.test.*
 import play.api.test.Helpers.*
 import play.api.libs.json.Json
 
-import com.unboundid.ldap.sdk.LDAPConnectionPool
-import org.mockito.Mockito.mock as mockOf
-import fixtures.StubStrKitService
+import fixtures.{StubLdapHealthService, StubStrKitService}
 import kits.{FullStrKit, NewStrKitLocus, StrKit, StrKitModule, StrKitService}
 import security.{StubRoleRepository, StubUserRepository, UserRepository}
-import user.{RoleRepository, UsersModule}
+import user.{LdapHealthService, RoleRepository, UsersModule}
 
 class StrKitsControllerTest extends PlaySpec with GuiceOneAppPerTest {
 
@@ -29,7 +27,7 @@ class StrKitsControllerTest extends PlaySpec with GuiceOneAppPerTest {
         bind[UserRepository].to[StubUserRepository],
         bind[RoleRepository].to[StubRoleRepository],
         bind[StrKitService].toInstance(kitStub),
-        bind[LDAPConnectionPool].toInstance(mockOf(classOf[LDAPConnectionPool]))
+        bind[LdapHealthService].toInstance(new StubLdapHealthService)
       )
       .configure("play.http.secret.key" -> "test-secret-key-for-testing-purposes-only-not-for-production-1234")
       .build()

@@ -1,9 +1,6 @@
 package motive
 
-import com.unboundid.ldap.sdk.LDAPConnectionPool
-import controllers.MotiveController
-import org.mockito.Mockito.{mock as mockOf, when}
-import org.scalatestplus.mockito.MockitoSugar
+import fixtures.StubLdapHealthService
 import org.scalatestplus.play._
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
 import play.api.Application
@@ -12,13 +9,12 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import security.{StubUserRepository, UserRepository}
-import user.{RoleRepository, UsersModule}
-import security.StubRoleRepository
+import security.{StubUserRepository, StubRoleRepository, UserRepository}
+import user.{LdapHealthService, RoleRepository, UsersModule}
 
 import scala.concurrent.Future
 
-class MotiveControllerSpec extends PlaySpec with GuiceOneAppPerTest with MockitoSugar {
+class MotiveControllerSpec extends PlaySpec with GuiceOneAppPerTest {
 
   val stubMotiveService: MotiveService = new MotiveService {
     override def getMotives(motiveType: Long, editable: Boolean): Future[List[Motive]] =
@@ -41,7 +37,7 @@ class MotiveControllerSpec extends PlaySpec with GuiceOneAppPerTest with Mockito
         bind[UserRepository].to[StubUserRepository],
         bind[RoleRepository].to[StubRoleRepository],
         bind[MotiveService].toInstance(stubMotiveService),
-        bind[LDAPConnectionPool].toInstance(mockOf(classOf[LDAPConnectionPool]))
+        bind[LdapHealthService].toInstance(new StubLdapHealthService)
       )
       .configure("play.http.secret.key" -> "test-secret-key-for-testing-purposes-only-not-for-production-1234")
       .build()
