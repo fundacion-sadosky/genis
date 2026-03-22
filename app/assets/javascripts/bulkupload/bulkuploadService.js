@@ -56,6 +56,10 @@ define(['lodash'], function(_) {
 		this.getProtoProfileBySampleId = function(sampleId) {
 			return playRoutes.controllers.BulkUpload.getProtoProfileById(sampleId).get();
 		};
+
+        this.countAllProtoProfilesInBatch = function(batchId) {
+            return playRoutes.controllers.BulkUpload.countAllProtoProfilesInBatch(batchId).get();
+        };
 		
 		this.updateProtoProfileData = function(sampleName, newCat) {
 			return playRoutes.controllers.BulkUpload.updateProtoProfileData(sampleName, newCat).post();

@@ -66,6 +66,7 @@ abstract class ProtoProfileRepository  extends DefaultDb with Transaction {
   def canDeleteKit(id: String): Future[Boolean]
   def deleteBatch(id: Long):Future[Either[String,Long]]
   def countImportedProfilesByBatch(idBatch: Long):Future[Either[String,Long]]
+  def countAllProtoProfilesInBatch(batchId: Long): Future[Int]
   def getSearchBachLabelID(userId: String, isSuperUser: Boolean, filter: String) : Future[Seq[ProtoProfilesBatchView]]
   def getBatchSearchModalViewByIdOrLabel(input:String,idCase:Long):Future[List[BatchModelView]]
   def mtExistente(sampleName:String ) : Future[Boolean]
@@ -225,7 +226,7 @@ class SlickProtoProfileRepository @Inject() (
                           ORDER BY bpp."ID" DESC
                           LIMIT ? OFFSET ?""")
 
-  val queryGetBatchesStep2 = Q.query[(String, Boolean, String, Boolean, String, Boolean, Int, Int), (Long, String, java.sql.Date, Long, Option[String], Long, String)](
+  val queryGetBatchesStep2 = Q.query[(String, Boolean, String, Boolean, String, Boolean, Int, Int), (Long, String, java.sql.Date, Long, Option[String], Long, String, Long)](
                           """SELECT bpp."ID", bpp."USER", bpp."DATE", (
                             	SELECT COUNT(*) as "TOTAL" FROM "APP"."PROTO_PROFILE" pp
                             	WHERE pp."ID_BATCH" = bpp."ID"
@@ -238,7 +239,10 @@ class SlickProtoProfileRepository @Inject() (
                               AND (pp."ASSIGNEE" = ? OR ?)
                               AND pp."STATUS" = 'Approved'
                             ) as "TOTAL_APPROVED",
-                            bpp."ANALYSISTYPE"
+                            bpp."ANALYSISTYPE",
+                            (SELECT COUNT(*) FROM "APP"."PROTO_PROFILE" pp
+                              WHERE pp."ID_BATCH" = bpp."ID"
+                            ) as "BATCH_TOTAL"
                             FROM "APP"."BATCH_PROTO_PROFILE" bpp
                             WHERE EXISTS (
                               SELECT 1 FROM "APP"."PROTO_PROFILE" pp
@@ -460,8 +464,8 @@ class SlickProtoProfileRepository @Inject() (
                               ): Future[Seq[ProtoProfilesBatchView]] = Future {
     DB.withSession { implicit session =>
       queryGetBatchesStep2((geneMapperId, isSuperUser, geneMapperId, isSuperUser, geneMapperId, isSuperUser, limit, offset)).list.map {
-        case (id, user, date, total, label, totalApproved, analysisType) =>
-          ProtoProfilesBatchView(id, user, date, total.toInt, 0, 0, 0, label, totalApproved.toInt,0,analysisType)
+        case (id, user, date, total, label, totalApproved, analysisType, batchTotal) =>
+          ProtoProfilesBatchView(id, user, date, total.toInt, 0, 0, 0, label, totalApproved.toInt, 0, analysisType, batchTotal.toInt)
       }
     }
   }
@@ -636,6 +640,12 @@ class SlickProtoProfileRepository @Inject() (
         }
       }
     }};
+  }
+
+  override def countAllProtoProfilesInBatch(batchId: Long): Future[Int] = Future {
+    DB.withSession { implicit session =>
+      protoProfiles.filter(_.idBatch === batchId).length.run
+    }
   }
 
   def getBatchSearchModalViewByIdOrLabel(input:String,idCase:Long):Future[List[BatchModelView]] = Future{

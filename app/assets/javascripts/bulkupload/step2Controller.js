@@ -25,8 +25,9 @@ define(['jquery', 'lodash'], function($, _) {
             {label: 'Todo', filters: {}, placement: 'top'}];
         $scope.activeOption = 1;
 
-        bulkuploadService.getSubcategories().then(function(response){
+        var subcategoryPromise = bulkuploadService.getSubcategories().then(function(response){
             $scope.subcategory = response.data;
+            return response.data;
         });
         profiledataService.getCategories().then(function(response) {
             $scope.categories = response.data;
@@ -123,6 +124,30 @@ define(['jquery', 'lodash'], function($, _) {
         };
 
 
+        var refreshSingleProfile = function(batch, profileId) {
+            batch.isProcessing = true;
+            return bulkuploadService.getProtoProfileBySampleId(profileId)
+                .then(function(response) {
+                    var profile = response.data;
+                    var profileUpdateHandler = createProfileUpdateHandler(
+                        $scope.subcategory,
+                        $scope.getIsProfileReplicatedInternalCode
+                    );
+                    return profileUpdateHandler(profile).then(function(updatedProfile) {
+                        $scope.protoProfiles[batch.id] = [updatedProfile];
+                        $scope.protoProfiles[batch.id].allReplicated = false;
+                        $scope.protoProfiles[batch.id].anyReplicable = false;
+                        aprobados(batch.id);
+                        batch.isProcessing = false;
+                        updateAllReplicatedStatus(batch.id);
+                        updateDisableReplicateAllStatus(batch.id);
+                    });
+                })
+                .catch(function() {
+                    batch.isProcessing = false;
+                });
+        };
+
         var loadLocus = function() {
             return locusService.listFull().then(function(response) {
                 $scope.locus = response.data;
@@ -189,7 +214,46 @@ define(['jquery', 'lodash'], function($, _) {
 
         $scope.protoprofileId = $routeParams.protoprofileId;
         if ($scope.protoprofileId) {
-            getBatchItem($scope.protoprofileId, undefined);
+            // Cuando se entra desde una notificación: cargar locus y subcategorías primero,
+            // luego el perfil y el total real del lote para habilitar correctamente los checkboxes.
+            $q.all([subcategoryPromise, loadLocus()]).then(function() {
+                return bulkuploadService.getProtoProfileBySampleId($scope.protoprofileId)
+                    .then(function(response) {
+                        var profile = response.data;
+                        var batchId = profile.batchId;
+
+                        // Obtener el total absoluto del lote (sin filtros de estado ni asignación)
+                        // para determinar correctamente si se habilita la búsqueda de escritorio.
+                        return bulkuploadService.countAllProtoProfilesInBatch(batchId)
+                            .then(function(countResponse) {
+                                var totalInBatch = countResponse.data.total;
+
+                                var batch = {
+                                    id: batchId,
+                                    pageSize: 50,
+                                    page: 1,
+                                    replicateSelectedDisabled: true,
+                                    totalAnalysis: totalInBatch,
+                                    batchTotal: totalInBatch,
+                                    singleProfileId: $scope.protoprofileId
+                                };
+                                $scope.batches = [batch];
+
+                                var profileUpdateHandler = createProfileUpdateHandler(
+                                    $scope.subcategory,
+                                    $scope.getIsProfileReplicatedInternalCode
+                                );
+                                return profileUpdateHandler(profile).then(function(updatedProfile) {
+                                    $scope.protoProfiles[batchId] = [updatedProfile];
+                                    $scope.protoProfiles[batchId].allReplicated = false;
+                                    $scope.protoProfiles[batchId].anyReplicable = false;
+                                    aprobados(batchId);
+                                    updateAllReplicatedStatus(batchId);
+                                    updateDisableReplicateAllStatus(batchId);
+                                });
+                            });
+                    });
+            });
         } else {
             getAllBatches();
             loadLocus();
@@ -224,12 +288,14 @@ define(['jquery', 'lodash'], function($, _) {
                     // Siempre recalculamos “todosAprobados” con los datos actuales
                     aprobados(batch.id);
 
-                    // Ahora recargamos TODO el batch, lo que volverá a pasar
-                    // cada proto por createProfileUpdateHandler (replicable, replicated, etc.)
-                    return getBatchProtoProfiles(batch)
-                        .finally(function() {
-                            batch.isProcessing = false;
-                        });
+                    // Recargamos el batch. Si venimos de una notificación, refrescamos
+                    // sólo el perfil individual; si no, recargamos todo el batch.
+                    var refreshFn = batch.singleProfileId
+                        ? function() { return refreshSingleProfile(batch, batch.singleProfileId); }
+                        : function() { return getBatchProtoProfiles(batch); };
+                    return refreshFn().finally(function() {
+                        batch.isProcessing = false;
+                    });
 
                 }, function(response) {
                     batch.isProcessing = false;

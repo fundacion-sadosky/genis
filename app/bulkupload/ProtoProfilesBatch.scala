@@ -20,7 +20,8 @@ case class ProtoProfilesBatchView(
   label: Option[String] ,
   totalForApprovalOrImport: Int,
   totalForIncomplete: Int = 0,
-  analysisType: String                               )
+  analysisType: String,
+  batchTotal: Int = 0                               )
 
 object ProtoProfilesBatchView {
   implicit val viewFormat = Json.format[ProtoProfilesBatchView]

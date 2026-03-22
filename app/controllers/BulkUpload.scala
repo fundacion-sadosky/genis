@@ -71,6 +71,12 @@ class BulkUpload @Inject() (bulkUploadService: BulkUploadService, userService: U
     }
   }
 
+  def countAllProtoProfilesInBatch(batchId: Long) = Action.async {
+    bulkUploadService.countAllProtoProfilesInBatch(batchId).map { total =>
+      Ok(Json.obj("total" -> total))
+    }
+  }
+
   def getProtoProfileById(id: Long) = Action.async { request =>
     bulkUploadService.getProtoProfileWithBatchId(id) map { error =>
       error.fold({

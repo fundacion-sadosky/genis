@@ -36,6 +36,7 @@
     def countBatchesStep1(userId: String, isSuperUser: Boolean): Future[Int]
     def getBatchesStep2(userId: String, geneMapperId: String, isSuperUser: Boolean, offset: Int, limit: Int): Future[Seq[ProtoProfilesBatchView]]
     def countBatchesStep2(userId: String, geneMapperId: String, isSuperUser: Boolean): Future[Int]
+    def countAllProtoProfilesInBatch(batchId: Long): Future[Int]
     def getProtoProfile(id: Long): Future[Option[ProtoProfile]]
     def getProtoProfileWithBatchId(id: Long): Future[Option[(ProtoProfile, Long)]]
     def getProtoProfilesStep1(batchId: Long, paginationSearch: Option[PaginationSearch]): Future[Seq[ProtoProfile]]
@@ -143,6 +144,9 @@
     }
     override def countBatchesStep2(userId: String, geneMapperId: String, isSuperUser: Boolean): Future[Int] =
       protoRepo.countBatchesStep2(userId, geneMapperId, isSuperUser)
+
+    override def countAllProtoProfilesInBatch(batchId: Long): Future[Int] =
+      protoRepo.countAllProtoProfilesInBatch(batchId)
 
     override def uploadProtoProfiles(
                                       user: String,
