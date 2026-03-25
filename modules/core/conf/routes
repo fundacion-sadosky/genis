@@ -121,3 +121,12 @@ GET     /api/v2/get-alta-file-export                                controllers.
 GET     /api/v2/get-match-file-export                               controllers.ProfilesController.getLimsMatchFile()
 DELETE  /api/v2/profiles/remove                                     controllers.ProfilesController.removeAll()
 DELETE  /api/v2/profiles/:profileId                                 controllers.ProfilesController.removeProfile(profileId: types.SampleCode)
+
+# Population Base Frequency (Frecuencia Base Poblacional)
+POST    /api/v2/populationBaseFreq                    controllers.PopulationBaseFreqController.uploadPopulationFile
+GET     /api/v2/populationBaseFreq                    controllers.PopulationBaseFreqController.getAllBaseNames
+PUT     /api/v2/populationBaseFreq-fmin/:id           controllers.PopulationBaseFreqController.insertFmin(id: String)
+GET     /api/v2/populationBaseFreqCharacteristics     controllers.PopulationBaseFreqController.getAllBasesCharacteristics
+GET     /api/v2/populationBaseFreq/:name              controllers.PopulationBaseFreqController.getByName(name: String)
+PUT     /api/v2/populationBaseFreq/:name              controllers.PopulationBaseFreqController.toggleStateBase(name: String)
+PUT     /api/v2/populationBaseFreqDefault/:name       controllers.PopulationBaseFreqController.setBaseAsDefault(name: String)
