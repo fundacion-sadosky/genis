@@ -6,7 +6,9 @@ services:
     container_name: genis_postgres
     restart: always
     environment:
-      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=genissqladmin
+      - POSTGRES_PASSWORD=genissqladminp
+      - POSTGRES_DB=genisdb
       - POSTGRES_INITDB_ARGS="--auth=md5"
     ports:
       - "5432:5432"      

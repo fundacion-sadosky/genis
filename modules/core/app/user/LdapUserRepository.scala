@@ -21,23 +21,28 @@ class LdapUserRepository @Inject() (
   val baseBindConnectionPool: LDAPConnectionPool = bindConnectionPool
 
   private val entryToLdapUser = (entry: SearchResultEntry) => Try {
-    val phone2 = Option(entry.getAttribute("mobile")).map(_.getValue)
-
-    LdapUser(
-      userName = entry.getAttribute("uid").getValue,
-      firstName = entry.getAttribute("givenName").getValue,
-      lastName = entry.getAttribute("sn").getValue,
-      email = entry.getAttribute("mail").getValue,
-      roles = entry.getAttribute("employeeType").getValues.toSeq,
-      geneMapperId = entry.getAttribute("o").getValue,
-      phone1 = entry.getAttribute("telephoneNumber").getValue,
-      phone2 = phone2,
-      status = UserStatus.valueOf(entry.getAttribute("street").getValue),
-      encryptedPublicKey = Array.emptyByteArray,
-      encryptedPrivateKey = Array.emptyByteArray,
-      encryptrdTotpSecret = entry.getAttribute("jpegPhoto").getValueByteArray,
-      superuser = entry.getAttribute("title").getValueAsBoolean
-    )
+    try {
+      val phone2 = Option(entry.getAttribute("mobile")).map(_.getValue)
+      LdapUser(
+        userName = entry.getAttribute("uid").getValue,
+        firstName = entry.getAttribute("givenName").getValue,
+        lastName = entry.getAttribute("sn").getValue,
+        email = entry.getAttribute("mail").getValue,
+        roles = entry.getAttribute("employeeType").getValues.toSeq,
+        geneMapperId = entry.getAttribute("o").getValue,
+        phone1 = entry.getAttribute("telephoneNumber").getValue,
+        phone2 = phone2,
+        status = UserStatus.valueOf(entry.getAttribute("street").getValue),
+        encryptedPublicKey = Array.emptyByteArray,
+        encryptedPrivateKey = Array.emptyByteArray,
+        encryptrdTotpSecret = entry.getAttribute("jpegPhoto").getValueByteArray,
+        superuser = entry.getAttribute("title").getValueAsBoolean
+      )
+    } catch {
+      case ex: Exception =>
+        logger.error(s"Error al convertir entry LDAP a LdapUser: ${ex.getMessage}", ex)
+        throw ex
+    }
   }
 
   override def bind(userId: String, password: String): Future[Boolean] = Future {

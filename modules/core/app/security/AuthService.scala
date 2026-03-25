@@ -82,6 +82,12 @@ trait UserRepository {
 
 trait RoleService {
   def getRolePermissions(): Map[String, Set[Permission]]
+
+  // Métodos agregados para compatibilidad
+  def getRoles: scala.concurrent.Future[Seq[user.Role]]
+  def addRole(role: user.Role): scala.concurrent.Future[Boolean]
+  def updateRole(role: user.Role): scala.concurrent.Future[Boolean]
+  def deleteRole(id: String): scala.concurrent.Future[Either[String, Boolean]]
 }
 
 // TODO: Migrar desde connections.*
