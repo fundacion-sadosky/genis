@@ -95,8 +95,29 @@ case class LoggedUserKey(userId: String) extends CacheKey[TotpToken] {
 case object RolePermissionMapKey extends CacheKey[Map[String, Set[types.Permission]]]:
   override def cacheKey: String = "Keys.rolePermissionMap"
 
+// Category cache keys
+case object CategoryTreeKey extends CacheKey[configdata.Category.CategoryTree]:
+  override def cacheKey: String = "Keys.categoryTree"
+
+case object CategoryTreeManualLoadingKey extends CacheKey[configdata.Category.CategoryTree]:
+  override def cacheKey: String = "Keys.categoryTreeManualLoading"
+
+case object CategoriesKey extends CacheKey[Map[types.AlphanumericId, configdata.FullCategory]]:
+  override def cacheKey: String = "Keys.categories"
+
 // TODO: Agregar más keys cuando se migren otros módulos
 // - SignupRequestKey
 // - ClearPassRequestKey
 // - Keys.roles
 // etc.
+
+// Profile-related cache keys
+case class TemporaryAssetKey(token: String) extends CacheKey[List[java.io.File]] {
+  override def cacheKey: String = "TemporaryAsset." + token
+  override def expiration: Int = 60 * 10
+}
+
+case class UploadedAnalysisKey(token: String) extends CacheKey[profile.NewAnalysis] {
+  override def cacheKey: String = "UploadedAnalysis." + token
+  override def expiration: Int = 60 * 10
+}

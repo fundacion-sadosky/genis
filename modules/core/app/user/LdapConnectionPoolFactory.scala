@@ -1,6 +1,6 @@
 package user
 
-import com.unboundid.ldap.sdk.{LDAPConnection, LDAPConnectionPool}
+import com.unboundid.ldap.sdk.{LDAPConnection, LDAPConnectionPool, SimpleBindRequest}
 import com.unboundid.ldap.listener.{InMemoryDirectoryServer, InMemoryDirectoryServerConfig}
 import com.unboundid.ldap.sdk.schema.Schema
 import play.api.{Configuration, Logger}
@@ -13,10 +13,20 @@ class LdapConnectionPoolFactory(conf: Configuration):
     val url: String = conf.get[String]("url")
     val port: Int = conf.get[Int]("port")
     val poolSize: Int = conf.get[Int]("bindingPool.size")
+    val bindDn: Option[String] = conf.getOptional[String]("bindDn")
+    val bindPassword: Option[String] = conf.getOptional[String]("bindPassword")
 
   private val ldapConf = LdapConf(conf)
 
   private lazy val inMemoryServer: InMemoryDirectoryServer = createInMemoryServer(getLdifPath(ldapConf.url))
+
+  private def bindIfConfigured(connection: LDAPConnection): Unit =
+    for
+      dn  <- ldapConf.bindDn
+      pwd <- ldapConf.bindPassword
+    do
+      logger.info(s"Binding LDAP connection as $dn")
+      connection.bind(new SimpleBindRequest(dn, pwd))
 
   def createSingleConnection(): LDAPConnection =
     if ldapConf.url.startsWith("memserver") then
@@ -24,7 +34,9 @@ class LdapConnectionPoolFactory(conf: Configuration):
       inMemoryServer.getConnection()
     else
       logger.info(s"Creating single LDAP connection to ${ldapConf.url}:${ldapConf.port}")
-      new LDAPConnection(ldapConf.url, ldapConf.port)
+      val connection = new LDAPConnection(ldapConf.url, ldapConf.port)
+      bindIfConfigured(connection)
+      connection
 
   def createConnectionPool(): LDAPConnectionPool =
     if ldapConf.url.startsWith("memserver") then
@@ -33,7 +45,10 @@ class LdapConnectionPoolFactory(conf: Configuration):
     else
       logger.info(s"Creating LDAP connection pool to ${ldapConf.url}:${ldapConf.port} (size: ${ldapConf.poolSize})")
       val connection = new LDAPConnection(ldapConf.url, ldapConf.port)
-      new LDAPConnectionPool(connection, ldapConf.poolSize)
+      bindIfConfigured(connection)
+      val pool = new LDAPConnectionPool(connection, ldapConf.poolSize)
+      pool.setRetryFailedOperationsDueToInvalidConnections(true)
+      pool
 
   private def getLdifPath(ldapUrl: String): Option[String] =
     val tokens = ldapUrl.split(":")

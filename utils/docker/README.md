@@ -378,14 +378,16 @@ se solicitará el password del usuario **admin** que se puede consultar en *dock
 
 Salir del contenedor con `CTRL+D`.
 
-### Upgrade de postgres a 16 y migraciòn de mongodb a ferretdb
+### Upgrade de postgres a 16 , ldap y migraciòn de mongodb a ferretdb
+
 Se realiza el backup de las bases postgres y mongo. 
+
+
 Se cambia el archivo docker-compose.yml:
 ```
 version: '3.8'
-services:
 
-  # --- MAIN APPLICATION DATABASE (Postgres 16.6-alpine) ---
+services:
   postgres:
     image: postgres:16.13-alpine
     container_name: genis_postgres
@@ -397,9 +399,9 @@ services:
       - "5432:5432"
     command: postgres -c 'max_connections=500'
     volumes:
-      - 'pgsql_data_16:/var/lib/postgresql/data'
-      - './pgsql_init:/docker-entrypoint-initdb.d'
-      - '.:/backups'
+      - pgsql_data_16:/var/lib/postgresql/data
+      - ./pgsql_init:/docker-entrypoint-initdb.d
+      - .:/backups
     networks:
       - genis_network
     healthcheck:
@@ -408,7 +410,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # --- FERRETDB BACKEND (Storage for Mongo Data) ---
   ferretdb_postgres:
     image: ghcr.io/ferretdb/postgres-documentdb:17-0.107.0-ferretdb-2.7.0
     container_name: genis_ferret_backend
@@ -422,13 +423,12 @@ services:
     networks:
       - genis_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ferret -d postgres"] # <--- CHANGED FROM ferret_user TO ferret
+      test: ["CMD-SHELL", "pg_isready -U ferret -d postgres"]
       interval: 5s
       timeout: 5s
       retries: 10
       start_period: 10s
 
-  # --- FERRETDB PROXY (The Mongo Interface) ---
   ferretdb:
     image: ghcr.io/ferretdb/ferretdb:2.7.0
     container_name: genis_ferretdb
@@ -440,56 +440,50 @@ services:
       - FERRETDB_AUTH_MODE=disabled
     networks:
       - genis_network
-    depends_on: # <--- MODIFIED DEPENDS_ON TO WAIT FOR HEALTHY STATUS
+    depends_on:
       ferretdb_postgres:
         condition: service_healthy
 
-  # --- LDAP SERVICES (Kept as before) ---
   openldap:
-    image: bitnami/openldap:2.6
+    image: docker.io/symas/openldap:2.6 # This should probably be the Bitnami image you're using.
+                                        # If it's still symas/openldap, the path `/openldap_init` is likely wrong.
+                                        # Your logs indicate you are using a Bitnami image with `/opt/bitnami/...` paths.
+                                        # Make sure the image name here matches the image producing your logs.
+                                        # If it's bitnami, it should be something like `bitnami/openldap:latest`
     container_name: genis_ldap
     restart: always
     ports:
-      - '1389:1389'
-      - '1636:1636'
+      - "1389:1389"   
+      - "1636:1636"
     environment:
-      - LDAP_ROOT=dc=genis,dc=local
-      - LDAP_SKIP_DEFAULT_TREE=yes
-    volumes:
-      - openldap_data:/bitnami/openldap
-    networks:
-      - genis_network
-  openldap2:
-    image: bitnami/openldap:2.6
-    container_name: genis_ldap2
-    restart: always
-    ports:
-      - '2389:2389'
-      - '2636:2636'
-    environment:
-      - LDAP_ROOT=dc=genis,dc=local
-      - LDAP_SKIP_DEFAULT_TREE=yes
-      - LDAP_ADMIN_USERNAME=admin
       - LDAP_ADMIN_PASSWORD=adminp
-      - LDAP_PORT_NUMBER=2389
-      - LDAP_LDAPS_PORT_NUMBER=2636
+      - LDAP_ROOT=dc=genis,dc=local  # <--- ADD THIS LINE
+      - LDAP_CUSTOM_LDIF_DIR=/openldap_init
     volumes:
-      - openldap_data2:/bitnami/openldap
+      - symas_ldap_data:/var/lib/ldap     # Standard path for OpenLDAP data
+      - ./openldap_init:/openldap_init
     networks:
       - genis_network
 
 volumes:
   pgsql_data_16:
   ferretdb_pg_data:
-  openldap_data:
-  openldap_data2:
+  symas_ldap_data:
 
 networks:
   genis_network:
     driver: bridge
 
 ```
-Se crea un usuario pdguser clave pdgp:
+Restore de las bases de datos ldap:
+```
+# Copio el archivo de backup del sistema a openldap_init/X-GENIS-LDAPConfig_Base_FULL.ldif
+docker compose down openldap
+docker compose up -d --force-recreate
+# Controlo con:
+docker exec -i genis_ldap sh -c 'ldapsearch -x -H ldap://127.0.0.1:1389 -D "cn=admin,dc=genis,dc=local" -w adminp -b "dc=genis,dc=local" "(objectClass=*)"'
+```
+Para Mongo Se crea un usuario pdguser clave pdgp:
 
 ```
 docker run --rm -it   --network=docker_genis_network   mongo:latest   mongosh "mongodb://ferret:ferretp@genis_ferretdb:27017/pdgdb?authSource=admin"
@@ -512,6 +506,7 @@ docker cp genislogdb_backup_.dump genis_postgres:/backups/genislogdb_backup.dump
 docker exec -e PGPASSWORD=genissqladminp genis_postgres pg_restore -U genissqladmin -h postgres --clean --if-exists -d genisdb /backups/genisdb_backup.dump
 docker exec -e PGPASSWORD=genissqladminp genis_postgres pg_restore -U genissqladmin -h postgres --clean --if-exists -d genislogdb /backups/genislogdb_backup.dump
 ```
+
 
 
 

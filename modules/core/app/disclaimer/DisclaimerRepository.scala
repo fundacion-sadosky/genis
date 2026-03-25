@@ -9,8 +9,7 @@ abstract class DisclaimerRepository {
   def get(): Future[Disclaimer]
 }
 
-class SlickDisclaimerRepository @Inject() (implicit ec: ExecutionContext) extends DisclaimerRepository {
-  private val db = Database.forConfig("slick.dbs.default.db")
+class SlickDisclaimerRepository @Inject() (db: slick.jdbc.JdbcBackend.Database)(implicit ec: ExecutionContext) extends DisclaimerRepository {
   private val disclaimerTable = Tables.Disclaimer
 
   override def get(): Future[Disclaimer] = {

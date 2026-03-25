@@ -1,0 +1,12 @@
+# Category errors
+error.E0664=E0664: Id o nombre de categoría duplicado.
+error.E0665=E0665: No se puede borrar la categoría porque esta relacionada con otras categorías.
+error.E0670=E0670: Id o nombre de grupo duplicado.
+error.E0671=E0671: No se puede borrar el grupo porque tiene categorías asociadas.
+
+# Category modification errors
+error.E0601=E0601: La modificación de categoría ya fue registrada previamente.
+error.E0602=E0602: La modificación de categoría no fue encontrada.
+error.E0603=E0603: Las categorias de origin y destino deben ser diferentes.
+success.S0600=S0600: La modificación de categoría fue registrada exitosamente.
+success.S0601=S0601: La modificación de categoría fue eliminada correctamente.

@@ -26,6 +26,14 @@ class ConstrainedTextTest extends AnyWordSpec with Matchers:
     "reject a partially matching string" in {
       an[IllegalArgumentException] must be thrownBy TotpToken("12345")
     }
+
+    "be equal to another instance with the same text" in {
+      TotpToken("123456") mustBe TotpToken("123456")
+    }
+
+    "not be equal to an instance with different text" in {
+      TotpToken("123456") must not be TotpToken("654321")
+    }
   }
 
   "ConstrainedText.readsOf" must {

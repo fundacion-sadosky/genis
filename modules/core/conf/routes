@@ -6,7 +6,7 @@ GET     /api/v2/disclaimer                   controllers.DisclaimerController.ge
 # Status endpoints (migrated from legacy)
 GET     /api/v2/status                      controllers.core.StatusController.index()
 GET     /api/v2/status/detailed             controllers.core.StatusController.detailed()
-
+GET     /api/v2/status/ldap                controllers.core.StatusController.ldapStatus()
 # Health check (alias)
 GET     /health                             controllers.core.StatusController.index()
 
@@ -55,12 +55,72 @@ DELETE  /api/v2/strkits/:id           controllers.StrKitsController.delete(id: S
 POST    /api/v2/strkits/import        controllers.StrKitsController.importKits()
 GET     /api/v2/strkits/export        controllers.StrKitsController.exportKits()
 
+# Categories
+GET     /api/v2/categories                                    controllers.CategoriesController.categoryTree
+GET     /api/v2/categories/full                               controllers.CategoriesController.list
+GET     /api/v2/categories/manualLoading                      controllers.CategoriesController.categoryTreeManualLoading
+GET     /api/v2/categories/combo                              controllers.CategoriesController.getCategoryTreeCombo
+GET     /api/v2/categories/withProfiles                       controllers.CategoriesController.listWithProfiles
+POST    /api/v2/categories                                    controllers.CategoriesController.addCategory
+PUT     /api/v2/categories/:catId                             controllers.CategoriesController.updateCategory(catId: types.AlphanumericId)
+PUT     /api/v2/categories/full/:catId                        controllers.CategoriesController.updateFullCategory(catId: types.AlphanumericId)
+DELETE  /api/v2/categories/:categoryId                        controllers.CategoriesController.removeCategory(categoryId: types.AlphanumericId)
+GET     /api/v2/groups                                        controllers.CategoriesController.exportGroups
+POST    /api/v2/groups                                        controllers.CategoriesController.addGroup
+PUT     /api/v2/groups/:groupId                               controllers.CategoriesController.updateGroup(groupId: types.AlphanumericId)
+DELETE  /api/v2/groups/:groupId                               controllers.CategoriesController.removeGroup(groupId: types.AlphanumericId)
+GET     /api/v2/categoryMappings                              controllers.CategoriesController.listCategoriesMapping
+POST    /api/v2/categoryMappings                              controllers.CategoriesController.insertOrUpdateCategoriesMapping
+GET     /api/v2/categoryModifications                         controllers.CategoriesController.allCategoryModifications
+GET     /api/v2/categoryModifications/:catId                  controllers.CategoriesController.getCategoryModifications(catId: types.AlphanumericId)
+POST    /api/v2/categoryModifications/:from/:to               controllers.CategoriesController.registerCategoryModification(from: types.AlphanumericId, to: types.AlphanumericId)
+DELETE  /api/v2/categoryModifications/:from/:to               controllers.CategoriesController.unregisterCategoryModification(from: types.AlphanumericId, to: types.AlphanumericId)
+GET     /api/v2/export/groups                                 controllers.CategoriesController.exportGroups
+GET     /api/v2/export/categoryConfigurations                 controllers.CategoriesController.exportConfigurations
+GET     /api/v2/export/categoryAssociations                   controllers.CategoriesController.exportAssociations
+GET     /api/v2/export/categoryAlias                          controllers.CategoriesController.exportAlias
+GET     /api/v2/export/categoryMatchingRules                  controllers.CategoriesController.exportMatchingRules
+GET     /api/v2/export/categoryModifications                  controllers.CategoriesController.exportModifications
+GET     /api/v2/export/categoryMappings                       controllers.CategoriesController.exportMappings
+GET     /api/v2/export/categories                             controllers.CategoriesController.exportCategories
+POST    /api/v2/import/categories                             controllers.CategoriesController.importGroupsAndCategories
+
 # Motive
 GET     /api/v2/motive                controllers.MotiveController.getMotives(id: Long, abm: Boolean)
 GET     /api/v2/motive-types          controllers.MotiveController.getMotivesTypes
 POST    /api/v2/motive                controllers.MotiveController.insert
 PUT     /api/v2/motive                controllers.MotiveController.update
 DELETE  /api/v2/motive/:id            controllers.MotiveController.deleteMotiveById(id: Long)
+
+# Profiles
+GET     /api/v2/profiles/:id                                        controllers.ProfilesController.findByCode(id: types.SampleCode)
+GET     /api/v2/profiles/full/:globalCode                           controllers.ProfilesController.getFullProfile(globalCode: types.SampleCode)
+GET     /api/v2/profiles                                            controllers.ProfilesController.findByCodes(globalCodes: List[types.SampleCode])
+POST    /api/v2/profiles                                            controllers.ProfilesController.create
+POST    /api/v2/profiles-xxx/:id                                    controllers.ProfilesController.storeUploadedAnalysis(id: String)
+POST    /api/v2/profiles-labels                                     controllers.ProfilesController.saveLabels
+GET     /api/v2/profiles/:profileId/epgs                            controllers.ProfilesController.getElectropherogramsByCode(profileId: types.SampleCode)
+GET     /api/v2/profiles/:profileId/analysis/:analysisId/epgs       controllers.ProfilesController.getElectropherogramsByAnalysisId(profileId: types.SampleCode, analysisId: String)
+GET     /api/v2/profiles/:profileId/epg/:epgId                      controllers.ProfilesController.getElectropherogramImage(profileId: types.SampleCode, epgId: String)
+POST    /api/v2/profiles-mixture-verification                       controllers.ProfilesController.verifyMixtureAssociation
+GET     /api/v2/profiles/subcategory-relationships/:subcategoryId   controllers.ProfilesController.findSubcategoryRelationships(subcategoryId: types.AlphanumericId)
+POST    /api/v2/profiles-epg                                        controllers.ProfilesController.addElectropherograms(token: String, globalCode: types.SampleCode, idAnalysis: String, name: String)
+GET     /api/v2/profiles-labels                                     controllers.ProfilesController.getLabels(globalCode: types.SampleCode)
+GET     /api/v2/profiles-labelsets                                  controllers.ProfilesController.getLabelsSets()
+GET     /api/v2/profiles/:profileId/file                            controllers.ProfilesController.getFilesByCode(profileId: types.SampleCode)
+GET     /api/v2/profiles/:profileId/analysis/:analysisId/file       controllers.ProfilesController.getFilesByAnalysisId(profileId: types.SampleCode, analysisId: String)
+GET     /api/v2/profiles/:profileId/file/:fileId                    controllers.ProfilesController.getFile(profileId: types.SampleCode, fileId: String)
+POST    /api/v2/profiles-file                                       controllers.ProfilesController.addFiles(token: String, globalCode: types.SampleCode, idAnalysis: String, name: String)
+DELETE  /api/v2/profiles-file/file/:fileId                          controllers.ProfilesController.removeFile(fileId: String)
+DELETE  /api/v2/profiles-file/epg/:fileId                           controllers.ProfilesController.removeEpg(fileId: String)
+GET     /api/v2/profiles-readOnly                                   controllers.ProfilesController.isReadOnly(globalCode: types.SampleCode)
+POST    /api/v2/profile-export                                      controllers.ProfilesController.exporterProfiles()
+POST    /api/v2/profile-exportToLims                                controllers.ProfilesController.exporterLimsFiles()
+GET     /api/v2/get-profile-export/:user                            controllers.ProfilesController.getExportFile(user: String)
+GET     /api/v2/get-alta-file-export                                controllers.ProfilesController.getLimsAltaFile()
+GET     /api/v2/get-match-file-export                               controllers.ProfilesController.getLimsMatchFile()
+DELETE  /api/v2/profiles/remove                                     controllers.ProfilesController.removeAll()
+DELETE  /api/v2/profiles/:profileId                                 controllers.ProfilesController.removeProfile(profileId: types.SampleCode)
 
 # Population Base Frequency (Frecuencia Base Poblacional)
 POST    /api/v2/populationBaseFreq                    controllers.PopulationBaseFreqController.uploadPopulationFile
