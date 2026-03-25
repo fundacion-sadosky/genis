@@ -110,3 +110,14 @@ case object CategoriesKey extends CacheKey[Map[types.AlphanumericId, configdata.
 // - ClearPassRequestKey
 // - Keys.roles
 // etc.
+
+// Profile-related cache keys
+case class TemporaryAssetKey(token: String) extends CacheKey[List[java.io.File]] {
+  override def cacheKey: String = "TemporaryAsset." + token
+  override def expiration: Int = 60 * 10
+}
+
+case class UploadedAnalysisKey(token: String) extends CacheKey[profile.NewAnalysis] {
+  override def cacheKey: String = "UploadedAnalysis." + token
+  override def expiration: Int = 60 * 10
+}
