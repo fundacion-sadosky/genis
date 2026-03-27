@@ -105,8 +105,17 @@ case object CategoryTreeManualLoadingKey extends CacheKey[configdata.Category.Ca
 case object CategoriesKey extends CacheKey[Map[types.AlphanumericId, configdata.FullCategory]]:
   override def cacheKey: String = "Keys.categories"
 
-// TODO: Agregar más keys cuando se migren otros módulos
-// - SignupRequestKey
-// - ClearPassRequestKey
-// - Keys.roles
-// etc.
+// Signup/ClearPass cache keys
+case class SignupRequestKey(token: String)
+    extends CacheKey[(user.SignupSolicitude, security.UserCredentials, Seq[String])]:
+  override def cacheKey: String = s"SignupRequestKey.$token"
+  override def expiration: Int = 60 * 15
+
+case class ClearPassRequestKey(token: String)
+    extends CacheKey[(user.ClearPassSolicitud, security.UserCredentials, String)]:
+  override def cacheKey: String = s"ClearPassRequestKey.$token"
+  override def expiration: Int = 60 * 15
+
+// Roles cache key
+case object RolesKey extends CacheKey[Seq[user.Role]]:
+  override def cacheKey: String = "Keys.roles"

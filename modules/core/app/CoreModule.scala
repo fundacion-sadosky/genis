@@ -1,6 +1,7 @@
 package modules.core
 
 import com.google.inject.AbstractModule
+import inbox.{NotificationService, NoOpNotificationService}
 import services.{CountryService, LaboratoryService, GeneticistService, UserService}
 import services.{LaboratoryServiceImpl, GeneticistServiceImpl, CountryServiceImpl, UserServiceImpl}
 
@@ -13,6 +14,7 @@ class CoreModule extends AbstractModule {
       bind(classOf[GeneticistService]).to(classOf[GeneticistServiceImpl])
       bind(classOf[CountryService]).to(classOf[CountryServiceImpl])
       bind(classOf[UserService]).to(classOf[UserServiceImpl])
+      bind(classOf[NotificationService]).to(classOf[NoOpNotificationService])
       logger.info("[CoreModule] Configuration completed successfully.")
     } catch {
       case ex: Throwable =>

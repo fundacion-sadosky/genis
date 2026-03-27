@@ -92,14 +92,26 @@ POST    /api/v2/motive                controllers.MotiveController.insert
 PUT     /api/v2/motive                controllers.MotiveController.update
 DELETE  /api/v2/motive/:id            controllers.MotiveController.deleteMotiveById(id: Long)
 
-# User endpoints
-POST    /api/v2/user/signup           controllers.UserController.signupRequest
-POST    /api/v2/user/clear-password   controllers.UserController.clearPassRequest
+# User signup flow
+POST    /api/v2/user/signup                controllers.UserController.signupRequest
+PUT     /api/v2/user/signup                controllers.UserController.signupConfirmation
+POST    /api/v2/user/clear-password        controllers.UserController.clearPassRequest
+PUT     /api/v2/user/clear-password        controllers.UserController.clearPassConfirmation
 
-# Role endpoints
-GET     /api/v2/roles/permissions     controllers.RoleController.listPermissions
-GET     /api/v2/roles                controllers.RoleController.getRoles
-POST    /api/v2/roles                controllers.RoleController.addRole
-PUT     /api/v2/roles                controllers.RoleController.updateRole
-DELETE  /api/v2/roles/:id            controllers.RoleController.deleteRole(id: String)
+# User management
+GET     /api/v2/users                      controllers.UserController.listUsers
+PUT     /api/v2/users/:userId/status       controllers.UserController.setStatus(userId: String)
+PUT     /api/v2/users                      controllers.UserController.updateUser
+
+# Role endpoints (specific routes before parameterized :id)
+GET     /api/v2/roles/permissions          controllers.RoleController.listPermissions
+GET     /api/v2/roles/permissions/full     controllers.RoleController.listFullPermissions
+GET     /api/v2/roles/operations           controllers.RoleController.listOperations
+GET     /api/v2/rolesForSU                 controllers.RoleController.getRolesForSignUp
+GET     /api/v2/roles/export               controllers.RoleController.exportRoles
+POST    /api/v2/roles/import               controllers.RoleController.importRoles
+GET     /api/v2/roles                      controllers.RoleController.getRoles
+POST    /api/v2/roles                      controllers.RoleController.addRole
+PUT     /api/v2/roles                      controllers.RoleController.updateRole
+DELETE  /api/v2/roles/:id                  controllers.RoleController.deleteRole(id: String)
 

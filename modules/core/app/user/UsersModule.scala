@@ -26,6 +26,11 @@ class UsersModule(environment: Environment, conf: Configuration) extends Abstrac
       val rolesDn = ldapConf.get[String]("rolesDn")
       bind(classOf[String]).annotatedWith(Names.named("rolesDn")).toInstance(rolesDn)
 
+      val adminDn = ldapConf.get[String]("bindDn")
+      bind(classOf[String]).annotatedWith(Names.named("adminDn")).toInstance(adminDn)
+      val adminPassword = ldapConf.get[String]("bindPassword")
+      bind(classOf[String]).annotatedWith(Names.named("adminPassword")).toInstance(adminPassword)
+
       bind(classOf[UserRepository]).to(classOf[LdapUserRepository])
       bind(classOf[RoleRepository]).to(classOf[LdapRoleRepository])
       logger.info("[UsersModule] Configuration completed successfully.")

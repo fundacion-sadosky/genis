@@ -39,7 +39,7 @@ class SecurityModule(environment: Environment, conf: Configuration) extends Abst
     bind(classOf[Int]).annotatedWith(Names.named("otpFut")).toInstance(otpFut)
 
     val otpPast = conf.get[Int]("otp.pasts")
-    bind(classOf[Int]).annotatedWith(Names.named("otpPast")).toInstance(otpPast)
+    bind(classOf[Int]).annotatedWith(Names.named("optPast")).toInstance(otpPast)
   }
 
 }
