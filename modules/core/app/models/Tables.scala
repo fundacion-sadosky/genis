@@ -319,4 +319,3 @@ object Tables {
     }
     val PopulationBaseFrequency = TableQuery[PopulationBaseFrequencyTable]
 }
-

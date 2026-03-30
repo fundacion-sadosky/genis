@@ -4,9 +4,11 @@ import javax.inject.{Inject, Singleton}
 import play.api.mvc.{AbstractController, ControllerComponents, Action}
 import play.api.libs.json.{Json, JsError}
 import scala.concurrent.{ExecutionContext, Future}
+import org.postgresql.util.PSQLException
 import services.GeneticistService
 import services.UserService
 import types.Geneticist
+import security.User
 
 @Singleton
 class GeneticistsController @Inject() (
@@ -32,7 +34,9 @@ class GeneticistsController @Inject() (
       errors => Future.successful(BadRequest(Json.obj("status" -> "KO", "message" -> JsError.toJson(errors)))),
       gen => genService.add(gen).map(result => Ok(Json.toJson(result)).withHeaders("X-CREATED-ID" -> result.toString))
         .recover {
-          case e: Exception => BadRequest(Json.obj("error" -> e.getMessage))
+          case psql: PSQLException => psql.getSQLState match
+            case "23505" => BadRequest(Json.obj("error" -> "Nombre ya utilizado en el Laboratorio"))
+            case _       => BadRequest(Json.obj("error" -> "Error inesperado en la base de datos"))
         }
     )
   }

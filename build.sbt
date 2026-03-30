@@ -69,7 +69,6 @@ lazy val core = (project in file("modules/core"))
 
       // CSV (for profile export)
       "com.github.tototoshi" %% "scala-csv" % "2.0.0",
-
       // Utilidades actualizadas
       "com.google.guava" % "guava" % "33.4.0-jre",
       "org.apache.commons" % "commons-lang3" % "3.17.0",

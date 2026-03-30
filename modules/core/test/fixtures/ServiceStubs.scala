@@ -7,8 +7,12 @@ import javax.inject.Singleton
 import configdata.{BioMaterialType, CrimeType, CrimeTypeService, BioMaterialTypeService}
 import disclaimer.{Disclaimer, DisclaimerService}
 import kits.{FullStrKit, StrKit, StrKitLocus, StrKitService, NewStrKitLocus}
-import services.{CountryService, GeneticistService, LaboratoryService, UserService, UserView}
-import types.{Geneticist, Laboratory, User}
+import inbox.NotificationInfo
+import services.{CountryService, GeneticistService, LaboratoryService, UserService}
+import types.{Geneticist, Laboratory, Permission}
+import security.User
+import user.{ClearPassChallenge, ClearPassResponse, ClearPassSolicitud,
+  SignupChallenge, SignupResponse, SignupSolicitude, UserStatus, UserView}
 
 @Singleton
 class StubLaboratoryService extends LaboratoryService:
@@ -45,12 +49,33 @@ class StubGeneticistService extends GeneticistService:
 @Singleton
 class StubUserService extends UserService:
   var findUserAssignableResult: Future[Seq[User]] = Future.successful(Seq.empty)
-  var getUserOrEmptyResult: Future[Option[UserView]] = Future.successful(None)
-  var isSuperUserResult: Future[Boolean] = Future.successful(false)
+  var signupRequestResult: Future[Either[String, SignupResponse]] = Future.successful(Left("stub"))
+  var clearPassRequestResult: Future[Either[String, ClearPassResponse]] = Future.successful(Left("stub"))
+  var signupConfirmationResult: Future[Either[String, Int]] = Future.successful(Left("stub"))
+  var clearPassConfirmationResult: Future[Either[String, Int]] = Future.successful(Left("stub"))
+  var listAllUsersResult: Future[Seq[UserView]] = Future.successful(Seq.empty)
+  var setStatusResult: Future[Either[String, Int]] = Future.successful(Left("stub"))
+  var updateUserResult: Future[Boolean] = Future.successful(true)
 
   override def findUserAssignable: Future[Seq[User]] = findUserAssignableResult
-  override def getUserOrEmpty(userId: String): Future[Option[UserView]] = getUserOrEmptyResult
-  override def isSuperUser(userId: String): Future[Boolean] = isSuperUserResult
+  override def signupRequest(solicitude: SignupSolicitude): Future[Either[String, SignupResponse]] = signupRequestResult
+  override def clearPassRequest(solicitude: ClearPassSolicitud): Future[Either[String, ClearPassResponse]] = clearPassRequestResult
+  override def signupConfirmation(confirmation: SignupChallenge): Future[Either[String, Int]] = signupConfirmationResult
+  override def clearPassConfirmation(confirmation: ClearPassChallenge): Future[Either[String, Int]] = clearPassConfirmationResult
+  override def listAllUsers(): Future[Seq[UserView]] = listAllUsersResult
+  override def setStatus(userId: String, newStatus: UserStatus): Future[Either[String, Int]] = setStatusResult
+  override def updateUser(user: UserView): Future[Boolean] = updateUserResult
+  override def getUser(userId: String): Future[UserView] = Future.failed(new UnsupportedOperationException("stub"))
+  override def getUserOrEmpty(userId: String): Future[Option[UserView]] = Future.successful(None)
+  override def findByStatus(status: UserStatus): Future[Seq[UserView]] = Future.successful(Seq.empty)
+  override def findByGeneMapper(geneMapper: String): Future[Option[UserView]] = Future.successful(None)
+  override def findUserAssignableByRole(roleId: String): Future[Seq[User]] = Future.successful(Seq.empty)
+  override def findUsersIdWithPermission(permission: Permission): Future[Seq[String]] = Future.successful(Seq.empty)
+  override def findUsersIdWithPermissions(permissions: Seq[Permission]): Future[Seq[String]] = Future.successful(Seq.empty)
+  override def isSuperUser(userId: String): Future[Boolean] = Future.successful(false)
+  override def isSuperUserByGeneMapper(geneMapperId: String): Future[Boolean] = Future.successful(false)
+  override def findSuperUsers(): Future[Seq[String]] = Future.successful(Seq.empty)
+  override def sendNotifToAllSuperUsers(info: NotificationInfo, excepThis: Seq[String]): Unit = ()
 
 @Singleton
 class StubDisclaimerService extends DisclaimerService:
