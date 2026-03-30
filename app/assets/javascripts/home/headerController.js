@@ -6,6 +6,11 @@ function HeaderController($scope, userService, categoriesService, kitService, pr
 	var modalInstance = null;
 
 	$scope.version = appConf.version;
+
+	$scope.hasProfiles = false;
+	profileDataService.countProfiles().then(function(response) {
+		$scope.hasProfiles = response.data > 0;
+	});
 	
 	hotkeys.bindTo($scope).add({
 		combo : 'ctrl+alt+b',

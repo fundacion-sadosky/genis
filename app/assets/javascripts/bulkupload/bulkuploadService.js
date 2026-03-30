@@ -6,17 +6,24 @@ define(['lodash'], function(_) {
 		this.getStatusMap = function() {
 			return {'Invalid': 'Inválido', 'Incomplete': 'Incompleto', 
 					'ReadyForApproval': 'Listo para aprobación', 'Approved': 'Aprobado', 
-					'Disapproved': 'Desaprobado', 'Imported': 'Aceptado', 'Rejected': 'Rechazado', 'Uploaded': 'Replicado'};
+					'Disapproved': 'Desaprobado', 'Imported': 'Aceptado', 'Rejected': 'Rechazado',
+				    'Uploaded': 'Replicado', 'DesktopSearch': 'Búsqueda de Escritorio',
+				    'ReplicatedMatchingProfile': 'Coincidente'};
 		};
         this.getSubcategories = function() {
             return playRoutes.controllers.Categories.list().get();
         };
-        this.getBatchesStep1 = function() {
-			return playRoutes.controllers.BulkUpload.getBatchesStep1().get();
+		this.countBatchesStep1 = function() {
+			return playRoutes.controllers.BulkUpload.countBatchesStep1().get();
 		};
-        
-        this.getBatchesStep2 = function(geneMapperId) {
-            return playRoutes.controllers.BulkUpload.getBatchesStep2(geneMapperId).get();
+		this.getBatchesStep1 = function(page, pageSize) {
+			return playRoutes.controllers.BulkUpload.getBatchesStep1(page, pageSize).get();
+		};
+		this.countBatchesStep2 = function(geneMapperId) {
+			return playRoutes.controllers.BulkUpload.countBatchesStep2(geneMapperId).get();
+		};
+		this.getBatchesStep2 = function(geneMapperId, page, pageSize) {
+            return playRoutes.controllers.BulkUpload.getBatchesStep2(geneMapperId, page, pageSize).get();
         };
 		
 		this.getProtoProfilesStep1 = function(batchId, page, pageSize) {
@@ -49,6 +56,10 @@ define(['lodash'], function(_) {
 		this.getProtoProfileBySampleId = function(sampleId) {
 			return playRoutes.controllers.BulkUpload.getProtoProfileById(sampleId).get();
 		};
+
+        this.countAllProtoProfilesInBatch = function(batchId) {
+            return playRoutes.controllers.BulkUpload.countAllProtoProfilesInBatch(batchId).get();
+        };
 		
 		this.updateProtoProfileData = function(sampleName, newCat) {
 			return playRoutes.controllers.BulkUpload.updateProtoProfileData(sampleName, newCat).post();

@@ -82,6 +82,7 @@ WHERE
 
 --EN TODAS LAS INSTANCIAS: 
 
+--Agrego la key "isDesktop":"false" en la columna INFO de la tabla NOTIFICATION cuando KIND es matching (inbox)
 UPDATE "APP"."NOTIFICATION"
 SET "INFO" = jsonb_set(
     "INFO"::jsonb,          -- Cast varchar to jsonb
@@ -93,7 +94,7 @@ WHERE
     "KIND" = 'matching'
     AND "INFO"::jsonb ? 'isDesktop' = false;
 
-
+--Agrego la key userName:USER en la columna "TRACE" cuando el tipo es categoryModification
 UPDATE "APP"."TRACE"
 SET "TRACE" = jsonb_set(
     "TRACE"::jsonb,           -- Cast the existing TRACE string to a JSONB type
@@ -103,7 +104,7 @@ SET "TRACE" = jsonb_set(
 )::character varying          -- Cast the modified JSONB back to character varying
 WHERE "KIND" = 'categoryModification';
 
-
+--Agrego la key multiallelic en false cuando el trace incluye "categoryConfiguration"
 UPDATE "APP"."TRACE" AS t
 SET
     "TRACE" = jsonb_set(
@@ -115,4 +116,146 @@ SET
 WHERE
     t."TRACE"::jsonb ? 'categoryConfiguration' -- Ensure 'categoryConfiguration' key exists
     AND NOT (t."TRACE"::jsonb -> 'categoryConfiguration' ? 'multiallelic'); -- Ensure 'multiallelic' is NOT already present
- 
+
+Agrego el motivo del rechazo de un perfil en la instancia superior cuando el KIND es interconectionRejected.
+UPDATE "APP"."TRACE" t
+SET "TRACE" = json_build_object('motive', pu."MOTIVE")::text
+FROM "APP"."PROFILE_UPLOADED" pu
+WHERE t."PROFILE" = pu."GLOBAL_CODE"
+  AND t."KIND" = 'interconectionRejected'
+  AND pu."MOTIVE" IS NOT NULL
+  AND t."TRACE" IS DISTINCT FROM json_build_object('motive', pu."MOTIVE")::text;
+
+UPDATE "APP"."TRACE"
+SET "TRACE" = json_build_object('motive', '')::text
+WHERE "KIND" = 'interconectionRejected'
+  AND ( "TRACE" IS NULL OR btrim("TRACE") = '{}' );
+
+-- Hago que DATE_UPLOADED sea la fecha en la que se replicó el perfil
+UPDATE "APP"."PROFILE_UPLOADED" p
+SET "DATE_UPLOADED" = to_char(t."DATE", 'YYYY-MM-DD"T"HH24:MI:SS')
+FROM "APP"."TRACE" t
+WHERE t."ID" = (
+  SELECT MIN(t2."ID")
+  FROM "APP"."TRACE" t2
+  WHERE t2."PROFILE" = p."GLOBAL_CODE"
+    AND t2."KIND" = 'interconectionUpdload'
+)
+AND t."KIND" = 'interconectionUpdload';
+
+UPDATE "APP"."PROFILE_UPLOADED"
+SET "DATE_UPLOADED" = to_char(
+    ("DATE_UPLOADED"::timestamp), 
+    'YYYY-MM-DD HH24:MI:SS.US'
+) || ' -03:00:00'
+WHERE "DATE_UPLOADED" LIKE '%T%';
+
+-- Ver si hay TRACE repetidos
+
+
+-- En la instancia inferior agrego las entradas en TRACE de interconectionAproved cuando el perfil fue aprobado en la instancia superior. 
+INSERT INTO "APP"."TRACE" ("PROFILE", "USER", "DATE", "TRACE", "KIND")
+SELECT 
+    t2."PROFILE", 
+    t2."USER", 
+    t2."DATE", 
+    t2."TRACE", 
+    'interconectionAproved'  -- <--- Force the new KIND here
+FROM "APP"."TRACE2" t2
+WHERE 
+    -- 1. We are looking for upload records in TRACE2 to convert into approvals
+    t2."KIND" = 'interconectionUpdload'
+
+    -- 2. Logic: The Profile must already exist in TRACE with an 'interconectionUpdload'
+    AND EXISTS (
+        SELECT 1 
+        FROM "APP"."TRACE" t_dest
+        WHERE t_dest."PROFILE" = t2."PROFILE" 
+        AND t_dest."KIND" = 'interconectionUpdload'
+    )
+
+    -- 3. Logic: The Profile must NOT already have an 'interconectionAproved' in TRACE
+    AND NOT EXISTS (
+        SELECT 1 
+        FROM "APP"."TRACE" t_dest
+        WHERE t_dest."PROFILE" = t2."PROFILE" 
+        AND t_dest."KIND" = 'interconectionAproved'
+    )
+    
+    -- 4. Deduplication: Don't insert if we already inserted this specific approval event
+    -- (Checks if an approval with the same date/profile/user already exists)
+    AND NOT EXISTS (
+        SELECT 1
+        FROM "APP"."TRACE" t_dup
+        WHERE t_dup."PROFILE" = t2."PROFILE"
+        AND t_dup."KIND" = 'interconectionAproved'
+        AND t_dup."DATE" = t2."DATE"
+    );
+
+-- En la instancia provincial - Luego de haber levantado la instancia y corrido los evolutions
+UPDATE "APP"."PROFILE_RECEIVED" pr
+SET "DATE_RECEIVED" = subquery."determined_date"
+FROM (
+    SELECT
+        t."PROFILE",
+        -- Use COALESCE to pick the first non-NULL date:
+        -- 1. MIN(DATE) for 'importedFromInferior' KIND
+        -- 2. If #1 is NULL (no 'importedFromInferior' found), then MIN(DATE) for any KIND
+        COALESCE(
+            MIN(CASE WHEN t."KIND" = 'importedFromInferior' THEN t."DATE" END),
+            MIN(t."DATE")
+        ) AS "determined_date"
+    FROM "APP"."TRACE" t
+    GROUP BY t."PROFILE"
+) AS subquery
+WHERE pr."GLOBAL_CODE" = subquery."PROFILE";
+
+UPDATE "APP"."PROFILE_UPLOADED" pu
+SET
+    "DATE_UPLOADED" = to_char(t_min_date."min_upload_date", 'YYYY-MM-DD HH24:MI:SS')
+FROM (
+    SELECT
+        t."PROFILE",
+        MIN(t."DATE") AS min_upload_date -- Get the earliest date for each profile
+    FROM
+        "APP"."TRACE" t
+    WHERE
+        t."KIND" = 'interconectionUpdload'
+    GROUP BY
+        t."PROFILE"
+) AS t_min_date
+WHERE
+    pu."GLOBAL_CODE" = t_min_date."PROFILE";
+
+### Para los reportes en la instancia inferior:
+BEGIN;
+
+UPDATE "APP"."PROFILE_UPLOADED" pu
+SET    "STATUS" = 4
+FROM   "APP"."TRACE2" t
+WHERE  pu."GLOBAL_CODE" = t."PROFILE"
+  AND  t."KIND" = 'interconectionAproved'
+  AND  (pu."STATUS" IS DISTINCT FROM 4);
+
+COMMIT;
+
+### Extra para los perfiles que no tienen el interconectionAproved status pero fueron cargados
+
+UPDATE "APP"."PROFILE_UPLOADED"
+SET    "STATUS" = 4
+WHERE  "GLOBAL_CODE" IN (
+  'AR-B-SCJBA-1261',
+  'AR-B-SCJBA-1262',
+  'AR-B-SCJBA-1263',
+  'AR-B-SCJBA-1264',
+  'AR-B-SCJBA-1265',
+  'AR-B-SCJBA-1266',
+  'AR-B-SCJBA-1267',
+  'AR-B-SCJBA-1268',
+  'AR-B-SCJBA-1269',
+  'AR-B-SCJBA-1270',
+  'AR-B-SCJBA-1274',
+  'AR-B-SCJBA-1285'
+);
+
+

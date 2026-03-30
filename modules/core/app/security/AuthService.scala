@@ -40,7 +40,7 @@ case class LdapUser(
 
 object LdapUser:
   def toUser(ldapUser: LdapUser, rolePermissions: Map[String, Set[Permission]]): User =
-    val permissions = ldapUser.roles.flatMap(role => rolePermissions(role)).toSet
+    val permissions = ldapUser.roles.flatMap(role => rolePermissions.getOrElse(role, Set.empty)).toSet
     User(
       id = ldapUser.userName,
       firstName = ldapUser.firstName,
@@ -406,7 +406,7 @@ class AuthServiceImpl @Inject() (
   private def canPerform(userId: String, operation: AuthorisationOperation): Boolean = {
     cache.get(FullUserKey(userId, credentialsExpTime))(using summon[ClassTag[FullUser]]).fold(false) { user =>
       val permissions = user.userDetail.roles.flatMap { role =>
-        roleService.getRolePermissions()(role)
+        roleService.getRolePermissions().getOrElse(role, Set.empty)
       }
       (for {
         permission <- permissions

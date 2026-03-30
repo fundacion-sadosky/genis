@@ -1,6 +1,7 @@
 package fixtures
 
 import scala.concurrent.Future
+import scala.util.{Success, Try}
 import javax.inject.Singleton
 
 import configdata.{BioMaterialType, CrimeType, CrimeTypeService, BioMaterialTypeService}
@@ -133,3 +134,8 @@ class StubStrKitService extends StrKitService:
   override def delete(id: String) = deleteResult
   override def deleteAlias(id: String) = deleteAliasResult
   override def deleteLocus(id: String) = deleteLocusResult
+
+@Singleton
+class StubLdapHealthService extends user.LdapHealthService:
+  var result: Try[(String, String)] = Success(("UP", "StubVendor"))
+  override def checkStatus(): Try[(String, String)] = result

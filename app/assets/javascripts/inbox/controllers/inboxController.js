@@ -1,7 +1,7 @@
 define([], function() {
     'use strict';
 
-    function InboxController($scope, $location, inboxService, alertService, $q, userService) {
+    function InboxController($scope, $location, inboxService, alertService, $q, userService, notificationsService) {
         $scope.showOptions = [{label: 'Todo', filters: {}, helptip: 'inbox.show.all', placement: 'top'},
             {label: 'Pendiente', filters: {pending: true}, helptip: 'inbox.show.pending', placement: 'bottom'},
             {label: 'Marcado', filters: {flagged: true}, helptip: 'inbox.show.flagged', placement: 'right'}];
@@ -15,6 +15,7 @@ define([], function() {
 
         $scope.sortField = 'date';
         $scope.ascending = false;
+        $scope.isProcessing = false;
 
         localStorage.removeItem("searchPedigree");
         localStorage.removeItem("searchMatches");
@@ -55,10 +56,10 @@ define([], function() {
 
         $scope.searchNotifications = function(filters) {
             $scope.search = filters;
+            $scope.isProcessing = true;
             var searchObject = createSearchObject(filters);
             inboxService.count(searchObject).then(function(response){
                 $scope.totalItems = response.headers('X-NOTIF-LENGTH');
-                $scope.isProcessing = true;
                 inboxService.search(searchObject).then(function(response) {
                     $scope.notifications = response.data;
                     $scope.isProcessing = false;
@@ -66,6 +67,8 @@ define([], function() {
                 }, function() {
                     $scope.isProcessing = false;
                 });
+            }, function() {
+                $scope.isProcessing = false;
             });
             
         };
@@ -155,8 +158,22 @@ define([], function() {
                 // }
             });
         };
+        // Refresh automático cuando llega una notificación via SSE
+        var onNewNotification = function() {
+            $scope.$applyAsync(function() {
+                if (!$scope.isProcessing) {
+                    $scope.searchNotifications($scope.search);
+                }
+            });
+        };
+        notificationsService.onNotification(onNewNotification);
+
+        // Cleanup al salir de la página
+        $scope.$on('$destroy', function() {
+            notificationsService.removeListener(onNewNotification);
+        });
     }
-    
+
     return InboxController;
 
 });

@@ -7,6 +7,7 @@ import play.api.db.slick.Config.driver.simple.{Compiled, TableQuery, booleanColu
 import play.api.db.slick.DB
 import util.DefaultDb
 
+import java.util.Date
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 import scala.language.postfixOps
@@ -18,8 +19,10 @@ abstract class ProfileReportPostgresRepository  {
   def getPerfilesEnviadosAInstanciaSuperiorPorEstado(): Future[Seq[(String, Int)]]
   def getPerfilesRecibidosDeInstanciasInferioresPorEstado(): Future[Seq[(String, Seq[(String, String, Int)])]]
   def getAllProfilesListing(): Future[Seq[Tables.ProfileData#TableElementType]]
-  def getAllReplicatedToSuperior(): Future[Seq[(String, String, String, String, Boolean, Option[String], Option[String],Option[String])]]
-  def getAllReplicatedFromInferior(): Future[Seq[(String, String, String, Boolean, Option[String], Option[String],Option[String])]]
+  // MODIFIED: Return type for dateUploaded is Option[String]
+  def getAllReplicatedToSuperior(): Future[Seq[(String, String, String, String, Boolean, Option[String], Option[String], Option[String], Option[Date])]]
+  // MODIFIED: Return type for dateReceived is Option[String]
+  def getAllReplicatedFromInferior(): Future[Seq[(String, String, String, Boolean, Option[String], Option[String], Option[String], Option[Date])]]
   def getLabCodeFromGlobalCode(globalCode: String): Option[String]
 }
 @Singleton
@@ -31,8 +34,34 @@ class PostgresProfileReportRepository @Inject() (implicit val app: Application) 
   val profilesReceived: TableQuery[Tables.ProfileReceived] = Tables.ProfileReceived
   val profileStatus: TableQuery[Tables.InferiorInstanceProfileStatus] = Tables.InferiorInstanceProfileStatus
   val category: TableQuery[Tables.Category] = Tables.Category
-  var superiorInstanceProfileApproval: TableQuery[Tables.SuperiorInstanceProfileApproval] = Tables.SuperiorInstanceProfileApproval
+  val superiorInstanceProfileApproval: TableQuery[Tables.SuperiorInstanceProfileApproval] = Tables.SuperiorInstanceProfileApproval
   val inferiorInstanceProfileStatus: TableQuery[Tables.InferiorInstanceProfileStatus] = Tables.InferiorInstanceProfileStatus
+
+  // Compiled queries for getPerfilesRecibidosDeInstanciasInferioresPorEstado – built once at startup
+  private val baseProfilesRecibidosQuery = for {
+    (((rr, s), pd), c) <- profilesReceived
+      .join(profileStatus).on(_.status === _.id)
+      .join(profileData).on { case ((rr, s), pd) => rr.globalCode === pd.globalCode }
+      .join(category).on { case (((rr, s), pd), c) => pd.category === c.id }
+  } yield (
+    rr.globalCode, rr.labCode, rr.motive, rr.userName,
+    rr.isCategoryModification, rr.interconnectionError,
+    s.status, c.id, c.isReference
+  )
+  private val baseProfilesRecibidosQueryCompiled = Compiled(baseProfilesRecibidosQuery)
+
+  private val rejectedApprovalQuery = superiorInstanceProfileApproval
+    .filter(_.rejectionUser.isDefined)
+    .map(sipa => (sipa.globalCode, sipa.laboratory, sipa.profile, sipa.rejectMotive))
+  private val rejectedApprovalQueryCompiled = Compiled(rejectedApprovalQuery)
+
+  private val pendingApprovalQuery = superiorInstanceProfileApproval
+    .filter(_.rejectionUser.isEmpty)
+    .map(sipa => (sipa.globalCode, sipa.laboratory, sipa.profile))
+  private val pendingApprovalQueryCompiled = Compiled(pendingApprovalQuery)
+
+  private val categoriesIdReferenceQuery = category.map(c => (c.id, c.isReference))
+  private val categoriesIdReferenceQueryCompiled = Compiled(categoriesIdReferenceQuery)
 
 
   private def queryCantidadPerfilesPorUsuarioyCategoriaActivosyEliminados(): Query[(Rep[String], Rep[String], Rep[Boolean], Rep[Boolean], Rep[Int]), (String, String, Boolean, Boolean, Int), Seq] = {
@@ -118,52 +147,23 @@ class PostgresProfileReportRepository @Inject() (implicit val app: Application) 
   def getPerfilesRecibidosDeInstanciasInferioresPorEstado(): Future[Seq[(String, Seq[(String, String, Int)])]] = {
 
     // Step 1: Fetch all profiles received with joined statuses, categories
-    val baseProfilesQuery = for {
-      (((rr, s), pd), c) <- profilesReceived
-        .join(profileStatus).on(_.status === _.id)
-        .join(profileData).on { case ((rr, s), pd) => rr.globalCode === pd.globalCode }
-        .join(category).on { case (((rr, s), pd), c) => pd.category === c.id }
-    } yield (
-      rr.globalCode,
-      rr.labCode,
-      rr.motive,
-      rr.userName,
-      rr.isCategoryModification,
-      rr.interconnectionError,
-      s.status,
-      c.id,
-      c.isReference
-    )
-
-    val queryBaseProfilesQuery = Compiled(baseProfilesQuery)
-
     val baseProfilesListF: Future[Seq[(String, String, Option[String], Option[String], Boolean, Option[String], String, String, Boolean)]] = Future {
       DB(app).withSession { implicit session =>
-        queryBaseProfilesQuery.list
+        baseProfilesRecibidosQueryCompiled.list
       }
     }
 
     // Step 2: Fetch rejected profiles with rejectionUser
-    val rejectedProfilesQuery = superiorInstanceProfileApproval
-      .filter(_.rejectionUser.isDefined)
-      .map(sipa => (sipa.globalCode, sipa.laboratory, sipa.profile, sipa.rejectMotive))
-
-    val queryRejectedProfilesQuery = Compiled(rejectedProfilesQuery)
     val rejectedProfilesF: Future[Seq[(String, String, String, Option[String])]] = Future {
       DB(app).withSession { implicit session =>
-        queryRejectedProfilesQuery.list
+        rejectedApprovalQueryCompiled.list
       }
     }
 
     // Step 3: Fetch pending approval profiles (rejectionUser is empty)
-    val pendingProfilesQuery = superiorInstanceProfileApproval
-      .filter(_.rejectionUser.isEmpty)
-      .map(sipa => (sipa.globalCode, sipa.laboratory, sipa.profile))
-
-    val queryPendingProfilesQuery = Compiled(pendingProfilesQuery)
     val pendingProfilesF: Future[Seq[(String, String, String)]] = Future {
       DB(app).withSession { implicit session =>
-        queryPendingProfilesQuery.list
+        pendingApprovalQueryCompiled.list
       }
     }
 
@@ -201,7 +201,7 @@ class PostgresProfileReportRepository @Inject() (implicit val app: Application) 
     // Step 6: Load categories for isReference info
     val categoriesMapF: Future[Map[String, Boolean]] = Future {
       DB(app).withSession { implicit session =>
-        category.map(c => (c.id, c.isReference)).list.toMap
+        categoriesIdReferenceQueryCompiled.list.toMap
       }
     }
 
@@ -254,9 +254,9 @@ class PostgresProfileReportRepository @Inject() (implicit val app: Application) 
 
         // Combine base profiles, processed rejected profiles, and processed pending profiles
         val combinedResults = baseList.map {
-          // We need to remap baseList to use the resolvedLabCode as well to match the structure
+          // resolvedLabCode already computed in baseMap – reuse it instead of calling again
           case (gc, dbLabCode, motiveOpt, userNameOpt, isCatMod, interError, status, catId, isRef) =>
-            val resolvedLabCode = getLabCodeFromGlobalCode(gc).getOrElse(dbLabCode)
+            val resolvedLabCode = baseMap.get(gc).map(_._1).getOrElse(dbLabCode)
             (gc, resolvedLabCode, motiveOpt, userNameOpt, isCatMod, interError, status, catId, isRef)
         } ++ processedRejected ++ processedPending
 
@@ -312,25 +312,27 @@ class PostgresProfileReportRepository @Inject() (implicit val app: Application) 
   }
 
 
-  def getAllReplicatedToSuperior(): Future[Seq[(String, String, String, String, Boolean, Option[String], Option[String],Option[String])]] = Future {
+  def getAllReplicatedToSuperior(): Future[Seq[(String, String, String, String, Boolean, Option[String], Option[String],Option[String], Option[Date])]] = Future {
     DB(app).withSession { implicit session =>
       profilesUploaded
         .join(inferiorInstanceProfileStatus).on(_.status === _.id)
         .join(profileData).on { case ((pu, sip), pd) => pu.globalCode === pd.globalCode }
         .map { case (((pu, sip), pd)) =>
-          (pu.globalCode, pd.category, pd.internalCode, sip.status, pd.deleted, pu.userName, pd.deletedSolicitor, pd.deletedMotive)
+          // THE CHANGE IS HERE: pu.dateUploaded.map(_.toString)
+          (pu.globalCode, pd.category, pd.internalCode, sip.status, pd.deleted, pu.userName, pd.deletedSolicitor, pd.deletedMotive, pu.dateUploaded)
         }
         .list
     }
   }
 
-  def getAllReplicatedFromInferior(): Future[Seq[(String, String, String, Boolean, Option[String], Option[String],Option[String])]] = Future {
+  def getAllReplicatedFromInferior(): Future[Seq[(String, String, String, Boolean, Option[String], Option[String],Option[String], Option[Date])]] = Future {
     DB(app).withSession { implicit session =>
       profilesReceived
         .join(inferiorInstanceProfileStatus).on(_.status === _.id)
         .join(profileData).on { case ((pr, sip), pd) => pr.globalCode === pd.globalCode }
         .map { case (((pr, sip), pd)) =>
-          (pr.globalCode, pd.category, sip.status, pd.deleted, pr.userName, pd.deletedSolicitor, pd.deletedMotive)
+          // THE CHANGE IS HERE: pr.dateReceived.map(_.toString)
+          (pr.globalCode, pd.category, sip.status, pd.deleted, pr.userName, pd.deletedSolicitor, pd.deletedMotive, pr.dateReceived)
         }
         .list
     }

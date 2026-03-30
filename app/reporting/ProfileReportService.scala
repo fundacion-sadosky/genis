@@ -44,12 +44,18 @@ class ProfileReportServiceImpl @Inject() (profileReportMongoRepository: ProfileR
   }
 
   override def generateProfilesReport(fechaDesde: Date, fechaHasta: Date): Result = {
+    // Start all futures before the for-comprehension so they run in parallel
+    val altasF     = profileReportMongoRepository.countProfilesCreated(Some(fechaDesde), Some(fechaHasta))
+    val bajasF     = profileReportMongoRepository.countProfilesDeleted()
+    val matchesF   = profileReportMongoRepository.countMatches(Some(fechaDesde), Some(fechaHasta))
+    val hitF       = profileReportMongoRepository.countHit(Some(fechaDesde), Some(fechaHasta))
+    val descartesF = profileReportMongoRepository.countDescartes(Some(fechaDesde), Some(fechaHasta))
     val result = for {
-      cantAltas <- profileReportMongoRepository.countProfilesCreated(Some(fechaDesde), Some(fechaHasta))
-      cantBajas <- profileReportMongoRepository.countProfilesDeleted()
-      cantMatches <- profileReportMongoRepository.countMatches(Some(fechaDesde), Some(fechaHasta))
-      cantHit <- profileReportMongoRepository.countHit(Some(fechaDesde), Some(fechaHasta))
-      cantDescartes <- profileReportMongoRepository.countDescartes(Some(fechaDesde), Some(fechaHasta))
+      cantAltas     <- altasF
+      cantBajas     <- bajasF
+      cantMatches   <- matchesF
+      cantHit       <- hitF
+      cantDescartes <- descartesF
     } yield {
       val fechaDesdeString = fechaDesde.getDate.toString + "/" + (fechaDesde.getMonth + 1).toString + "/" + (fechaDesde.getYear + 1900).toString
       val fechaHastaString = fechaHasta.getDate.toString + "/" + (fechaHasta.getMonth + 1).toString + "/" + (fechaHasta.getYear + 1900).toString
@@ -61,12 +67,17 @@ class ProfileReportServiceImpl @Inject() (profileReportMongoRepository: ProfileR
   }
 
   def generateAllProfilesReport(): Result = {
+    val altasF     = profileReportMongoRepository.countProfilesCreated()
+    val bajasF     = profileReportMongoRepository.countProfilesDeleted()
+    val matchesF   = profileReportMongoRepository.countMatches()
+    val hitF       = profileReportMongoRepository.countHit()
+    val descartesF = profileReportMongoRepository.countDescartes()
     val result = for {
-      cantAltas <- profileReportMongoRepository.countProfilesCreated()
-      cantBajas <- profileReportMongoRepository.countProfilesDeleted()
-      cantMatches <- profileReportMongoRepository.countMatches()
-      cantHit <- profileReportMongoRepository.countHit()
-      cantDescartes <- profileReportMongoRepository.countDescartes()
+      cantAltas     <- altasF
+      cantBajas     <- bajasF
+      cantMatches   <- matchesF
+      cantHit       <- hitF
+      cantDescartes <- descartesF
     } yield {
       val cantPendientes = cantMatches - cantHit - cantDescartes
       pdfGen.ok(views.html.profilesReport("Resumen de perfiles", cantAltas, cantBajas, cantMatches, cantHit, cantDescartes, cantPendientes,"",""), BASE_URL)
@@ -139,7 +150,6 @@ class ProfileReportServiceImpl @Inject() (profileReportMongoRepository: ProfileR
       // Create the JSON object
       val reportData = Json.obj("labs" -> Json.toJson(groupedData)(Writes.seq(outerWrites)))
 
-      // Generate the PDF report
       pdfGen.ok(views.html.profilesPerLabReport("Perfiles recibidos por instancia, categoría y estado", reportData), BASE_URL)
     }
   }
@@ -167,11 +177,15 @@ class ProfileReportServiceImpl @Inject() (profileReportMongoRepository: ProfileR
     "BIO_MATERIAL_TYPE", "COURT", "CRIME_INVOLVED", "CRIME_TYPE", "CRIMINAL_CASE",
     "INTERNAL_SAMPLE_CODE", "ASSIGNEE", "LABORATORY", "PROFILE_EXPIRATION_DATE",
     "RESPONSIBLE_GENETICIST", "SAMPLE_DATE", "SAMPLE_ENTRY_DATE", "DELETED",
-    "DELETED_SOLICITOR", "DELETED_MOTIVE"
+    "DELETED_SOLICITOR", "DELETED_MOTIVE",
+    "ANALYSIS_DATE", "ANALYSIS_KIT"
   )
 
 
-  def mapProfileToCsvRow(profile: Tables.ProfileData#TableElementType): String = {
+  def mapProfileToCsvRow(
+                          profile: Tables.ProfileData#TableElementType,
+                          analysisInfo: Option[(String, String)]): String = {
+    val (analysisDate, analysisKit) = analysisInfo.getOrElse(("", ""))
     List(
       profile.id,
       profile.category,
@@ -193,19 +207,31 @@ class ProfileReportServiceImpl @Inject() (profileReportMongoRepository: ProfileR
       profile.sampleEntryDate.map(_.toString).getOrElse(""),
       profile.deleted,
       profile.deletedSolicitor.getOrElse(""),
-      profile.deletedMotive
+      profile.deletedMotive,
+      analysisDate,
+      analysisKit
     ).mkString(",")
   }
 
 
+
   def generateAllProfilesList(): Future[Result] = {
-    profilePostgresReportRepository.getAllProfilesListing().map { profiles =>
-      // Generate CSV content
-      val csvRows = profiles.map(mapProfileToCsvRow)
-      val csvContent = (CsvProfileHeader.mkString(",") +: csvRows).mkString("\n")
-      Results.Ok(csvContent).as("text/csv")
+    profilePostgresReportRepository.getAllProfilesListing().flatMap { profiles =>
+      val globalCodes = profiles.map(_.globalCode)
+
+      profileReportMongoRepository
+        .getFirstAnalysisInfoByGlobalCodes(globalCodes)
+        .map { analysisMap =>
+          val csvRows = profiles.map { p =>
+            val info = analysisMap.get(p.globalCode)
+            mapProfileToCsvRow(p, info)
+          }
+          val csvContent = (CsvProfileHeader.mkString(",") +: csvRows).mkString("\n")
+          Results.Ok(csvContent).as("text/csv")
+        }
     }
   }
+
 
   val CsvMatchHeader = List("DATE","GLOBAL_CODE1", "CATEGORY1", "ASSIGNEE1", "STATUS1","GLOBAL_CODE2", "CATEGORY2", "ASSIGNEE2", "STATUS2", "STRINGENCY")
 
@@ -213,7 +239,7 @@ class ProfileReportServiceImpl @Inject() (profileReportMongoRepository: ProfileR
     profileReportMongoRepository.getAllMatches.map { matches =>
       val csvRows = matches.map { matchData =>
         List(
-          matchData.date, // Date
+          new java.text.SimpleDateFormat("yyyy-MM-dd").format(matchData.date), // Date
           matchData.globalCode1,          // GLOBAL_CODE1
           matchData.category1,          // CATEGORY1
           matchData.assignee1,          // ASSIGNEE1
@@ -230,49 +256,80 @@ class ProfileReportServiceImpl @Inject() (profileReportMongoRepository: ProfileR
     }
   }
 
+  // MODIFIED: Added "DATE_UPLOADED" to the header
   val csvReplicatedToSuperior : List[String] = List(
-     "GLOBAL_CODE", "CATEGORY","INTERNAL_CODE", "STATUS", "DELETED", "USER","DELETED_SOLICITOR", "DELETED_MOTIVE"
+    "GLOBAL_CODE", "CATEGORY","INTERNAL_CODE", "STATUS", "DELETED", "USER","DELETED_SOLICITOR", "DELETED_MOTIVE","ANALYSIS_DATE", "ANALYSIS_KIT", "DATE_UPLOADED"
   )
 
-    def generateAllReplicatedToSuperiorList(): Future[Result] = {
-    profilePostgresReportRepository.getAllReplicatedToSuperior().map { profiles =>
-      // Generate CSV content
-      val csvRows = profiles.map { case (globalCode, category, internalCode, status, deleted, user, deletedSolicitor, deletedMotive) =>
-          List(
-            globalCode,
-            category,
-            internalCode,
-            status.toString,
-            deleted.toString,
-            user.getOrElse(""),
-            deletedSolicitor.getOrElse(""),
-            deletedMotive.getOrElse("")
-          ).mkString(",")
+  def generateAllReplicatedToSuperiorList(): Future[Result] = {
+    // MODIFIED: The tuple now contains the additional `dateUploaded: Option[String]`
+    profilePostgresReportRepository.getAllReplicatedToSuperior().flatMap { profiles =>
+      val globalCodes = profiles.map(_._1) // (globalCode, category, ...)
+
+      profileReportMongoRepository
+        .getFirstAnalysisInfoByGlobalCodes(globalCodes)
+        .map { analysisMap =>
+          val csvRows = profiles.map {
+            // MODIFIED: Added `dateUploaded` to the case pattern
+            case (globalCode, category, internalCode, status, deleted, user, deletedSolicitor, deletedMotive, dateUploaded) =>
+              val info = analysisMap.get(globalCode).getOrElse(("", ""))
+              val (analysisDate, analysisKit) = info
+
+              List(
+                globalCode,
+                category,
+                internalCode,
+                status.toString,
+                deleted.toString,
+                user.getOrElse(""),
+                deletedSolicitor.getOrElse(""),
+                deletedMotive.getOrElse(""),
+                analysisDate,
+                analysisKit,
+                dateUploaded.map(d => new java.text.SimpleDateFormat("yyyy-MM-dd").format(d)).getOrElse("") // <-- Added to the CSV row
+              ).mkString(",")
+          }
+          val csvContent = (csvReplicatedToSuperior.mkString(",") +: csvRows).mkString("\n")
+          Results.Ok(csvContent).as("text/csv")
         }
-      val csvContent = (csvReplicatedToSuperior.mkString(",") +: csvRows).mkString("\n")
-      Results.Ok(csvContent).as("text/csv")
     }
   }
 
+  // MODIFIED: Added "DATE_RECEIVED" to the header
   val csvReplicatedFromInferior : List[String] = List(
-    "GLOBAL_CODE", "CATEGORY", "STATUS", "DELETED", "USER","DELETED_SOLICITOR", "DELETED_MOTIVE"
+    "GLOBAL_CODE", "CATEGORY", "STATUS", "DELETED", "USER","DELETED_SOLICITOR", "DELETED_MOTIVE", "ANALYSIS_DATE", "ANALYSIS_KIT", "DATE_RECEIVED"
   )
+
   def generateAllReplicatedFromInferiorList(): Future[Result] = {
-    profilePostgresReportRepository.getAllReplicatedFromInferior().map { profiles =>
-      // Generate CSV content
-      val csvRows = profiles.map { case (globalCode, category, status, deleted, user, deletedSolicitor, deletedMotive) =>
-          List(
-            globalCode,
-            category,
-            status.toString,
-            deleted.toString,
-            user.getOrElse(""),
-            deletedSolicitor.getOrElse(""),
-            deletedMotive.getOrElse("")
-          ).mkString(",")
+    // MODIFIED: The tuple now contains the additional `dateReceived: Option[String]`
+    profilePostgresReportRepository.getAllReplicatedFromInferior().flatMap { profiles =>
+      val globalCodes = profiles.map(_._1)
+
+      profileReportMongoRepository
+        .getFirstAnalysisInfoByGlobalCodes(globalCodes)
+        .map { analysisMap =>
+          val csvRows = profiles.map {
+            // MODIFIED: Added `dateReceived` to the case pattern
+            case (globalCode, category, status, deleted, user, deletedSolicitor, deletedMotive, dateReceived) =>
+              val info = analysisMap.get(globalCode).getOrElse(("", "")) // Corrected: should be globalCode, not globalCodes
+              val (analysisDate, analysisKit) = info
+
+              List(
+                globalCode,
+                category,
+                status.toString,
+                deleted.toString,
+                user.getOrElse(""),
+                deletedSolicitor.getOrElse(""),
+                deletedMotive.getOrElse(""),
+                analysisDate,
+                analysisKit,
+                dateReceived.map(d => new java.text.SimpleDateFormat("yyyy-MM-dd").format(d)).getOrElse("") // <-- Added to the CSV row
+              ).mkString(",")
+          }
+          val csvContent = (csvReplicatedFromInferior.mkString(",") +: csvRows).mkString("\n")
+          Results.Ok(csvContent).as("text/csv")
         }
-      val csvContent = (csvReplicatedFromInferior.mkString(",") +: csvRows).mkString("\n")
-      Results.Ok(csvContent).as("text/csv")
     }
   }
 

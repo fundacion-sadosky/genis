@@ -1,13 +1,14 @@
 define([], function() {
     'use strict';
 
-    function reportingController ($scope, cryptoService, alertService) {
+    function reportingController ($scope, $http, cryptoService, alertService) {
 
         localStorage.removeItem("searchPedigree");
         localStorage.removeItem("searchMatches");
         localStorage.removeItem("searchPedigreeMatches");
 
         $scope.search = {};
+        $scope.procesando = false;
 
         $scope.datepickers = {
             hourFrom: false,
@@ -18,6 +19,30 @@ define([], function() {
             initDate: new Date()
         };
 
+        function downloadFile(urlPath, filename) {
+            $scope.procesando = true;
+            $http.get(urlPath, {responseType: 'blob'}).then(
+                function(response) {
+                    var blob = new Blob([response.data], {type: response.headers('content-type')});
+                    var blobUrl = URL.createObjectURL(blob);
+                    var a = document.createElement("a");
+                    document.body.appendChild(a);
+                    a.style = "display: none";
+                    a.download = filename;
+                    a.href = blobUrl;
+                    a.click();
+                    setTimeout(function() {
+                        URL.revokeObjectURL(blobUrl);
+                        document.body.removeChild(a);
+                    }, 100);
+                    $scope.procesando = false;
+                },
+                function() {
+                    alertService.error({message: 'Error al generar el reporte.'});
+                    $scope.procesando = false;
+                }
+            );
+        }
 
         $scope.generarReporte = function () {
             var fechaDesde = $scope.search.hourFrom ? formatDate($scope.search.hourFrom) : null;
@@ -39,75 +64,27 @@ define([], function() {
                 }
             }
 
-            var url = cryptoService.encryptBase64(urlPath);
-            var a = document.createElement("a");
-            document.body.appendChild(a);
-            a.style = "display: none";
-            a.download = "Reporte Perfiles.pdf";
-            a.href = url;
-            a.click();
-            document.body.removeChild(a);
+            downloadFile(urlPath, "Reporte Perfiles.pdf");
         };
 
         $scope.generarReportePorUsuario = function () {
-            var urlPath = "/reportes/profilesByUser";  // Base URL
-            var url = cryptoService.encryptBase64(urlPath);
-            var a = document.createElement("a");
-            document.body.appendChild(a);
-            a.style = "display: none";
-            a.download = "Perfiles Por Usuario.pdf";
-            a.href = url;
-            a.click();
-            document.body.removeChild(a);
+            downloadFile("/reportes/profilesByUser", "Perfiles Por Usuario.pdf");
         };
 
-
         $scope.generarReporteActivosBajaPorCategoria = function () {
-            var urlPath = "/reportes/activesInactiveByCategory";  // Base URL
-            var url = cryptoService.encryptBase64(urlPath);
-            var a = document.createElement("a");
-            document.body.appendChild(a);
-            a.style = "display: none";
-            a.download = "Perfiles Activos y Eliminados por Categoria.pdf";
-            a.href = url;
-            a.click();
-            document.body.removeChild(a);
+            downloadFile("/reportes/activesInactiveByCategory", "Perfiles Activos y Eliminados por Categoria.pdf");
         };
 
         $scope.generarReporteEnviados = function () {
-            var urlPath = "/reportes/enviadosInstanciaSuperior";  // Base URL
-            var url = cryptoService.encryptBase64(urlPath);
-            var a = document.createElement("a");
-            document.body.appendChild(a);
-            a.style = "display: none";
-            a.download = "Perfiles Enviados a Instancia Superior.pdf";
-            a.href = url;
-            a.click();
-            document.body.removeChild(a);
+            downloadFile("/reportes/enviadosInstanciaSuperior", "Perfiles Enviados a Instancia Superior.pdf");
         };
 
         $scope.generarReporteRecibidos = function () {
-            var urlPath = "/reportes/recibidosInstanciaInferior";  // Base URL
-            var url = cryptoService.encryptBase64(urlPath);
-            var a = document.createElement("a");
-            document.body.appendChild(a);
-            a.style = "display: none";
-            a.download = "PerfilesRecibidosInstanciaInferior.pdf";
-            a.href = url;
-            a.click();
-            document.body.removeChild(a);
+            downloadFile("/reportes/recibidosInstanciaInferior", "PerfilesRecibidosInstanciaInferior.pdf");
         };
 
         $scope.generarReporteCambioCategoria = function () {
-            var urlPath = "/reportes/perfilesCambiaronCategoria";  // Base URL
-            var url = cryptoService.encryptBase64(urlPath);
-            var a = document.createElement("a");
-            document.body.appendChild(a);
-            a.style = "display: none";
-            a.download = "PerfilesCambiaronCategoria.csv";
-            a.href = url;
-            a.click();
-            document.body.removeChild(a);
+            downloadFile("/reportes/perfilesCambiaronCategoria", "PerfilesCambiaronCategoria.csv");
         };
 
         function formatDate(date) {
@@ -162,52 +139,19 @@ define([], function() {
         };
 
         $scope.generarListadoComleto = function () {
-            var urlPath = "/reportes/listadoCompleto";  // Base URL
-            var url = cryptoService.encryptBase64(urlPath);
-            var a = document.createElement("a");
-            document.body.appendChild(a);
-            a.style = "display: none";
-            a.download = "TodosLosPerfiles.csv";
-            a.href = url;
-            a.click();
-            document.body.removeChild(a);
+            downloadFile("/reportes/listadoCompleto", "TodosLosPerfiles.csv");
         };
 
-
         $scope.generarListedoCoincidencias = function () {
-            var urlPath = "/reportes/listadoCoincidencias";  // Base URL
-            var url = cryptoService.encryptBase64(urlPath);
-            var a = document.createElement("a");
-            document.body.appendChild(a);
-            a.style = "display: none";
-            a.download = "PerfilesCoincidentes.csv";
-            a.href = url;
-            a.click();
-            document.body.removeChild(a);
+            downloadFile("/reportes/listadoCoincidencias", "PerfilesCoincidentes.csv");
         };
 
         $scope.generarListedoReplicadosAInstanciaSuperior = function () {
-            var urlPath = "/reportes/generarListedoReplicadosAInstanciaSuperior";  // Base URL
-            var url = cryptoService.encryptBase64(urlPath);
-            var a = document.createElement("a");
-            document.body.appendChild(a);
-            a.style = "display: none";
-            a.download = "PerfilesReplicadosAInstanciaSuperior.csv";
-            a.href = url;
-            a.click();
-            document.body.removeChild(a);
+            downloadFile("/reportes/generarListedoReplicadosAInstanciaSuperior", "PerfilesReplicadosAInstanciaSuperior.csv");
         };
 
         $scope.generarListedoRecibidosInstanciasInferiores = function () {
-            var urlPath = "/reportes/generarListedoRecibidosInstanciasInferiores";  // Base URL
-            var url = cryptoService.encryptBase64(urlPath);
-            var a = document.createElement("a");
-            document.body.appendChild(a);
-            a.style = "display: none";
-            a.download = "PerfilesRecibidosDeInstanciasInferiores.csv";
-            a.href = url;
-            a.click();
-            document.body.removeChild(a);
+            downloadFile("/reportes/generarListedoRecibidosInstanciasInferiores", "PerfilesRecibidosDeInstanciasInferiores.csv");
         };
 
 

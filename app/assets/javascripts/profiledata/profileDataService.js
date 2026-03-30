@@ -113,6 +113,14 @@ define([], function() {
     this.getIsProfileReplicatedInternalCode = function (internalCode) {
       return playRoutes.controllers.ProfileData.getIsProfileReplicatedInternalCode(internalCode).get();
     };
+
+    this.getIsProfileReplicableInternalCode = function (internalCode) {
+      return playRoutes.controllers.Interconnections.getIsProfileReplicableInternalCode(internalCode).get();
+    }
+
+    this.countProfiles = function () {
+      return playRoutes.controllers.ProfileData.countProfiles().get();
+    };
   }
 
   return ProfileDataService;

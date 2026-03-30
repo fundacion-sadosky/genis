@@ -139,7 +139,8 @@ error.E0727= E0727: El perfil no puede ser modificado porque es de otro laborato
 error.E0728= E0728: El perfil no puede ser modificado porque fue replicado a instancia superior.
 error.E0729= E0729: El perfil no es editable.
 error.E0730= E0730: Tiempo agotado.
-error.E0731= E0731  No se pudo conectar con la instancia superior. El perfil queda listo para replicarse cuando se reestablezca la conexión.
+error.E0731= E0731: No se pudo conectar con la instancia superior. El perfil queda listo para replicarse cuando se reestablezca la conexión.
+error.E0732= E0732: El perfil posee una coincidencia con un perfil ya replicado.
 #
 error.E0802= E0802: La sesión es inválida o ha expirado.
 error.E0803= E0803: Token inválido.

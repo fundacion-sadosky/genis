@@ -4,7 +4,7 @@ define(['angular', './controllers/reportingController', 'common'],
 
         angular
             .module('pdg.reporting', ['pdg.common'])
-            .controller('reportingController', ['$scope', 'cryptoService', 'alertService', reportingController])
+            .controller('reportingController', ['$scope', '$http', 'cryptoService', 'alertService', reportingController])
             .config(['$routeProvider', function($routeProvider) {
                 $routeProvider.when('/reportes-main', {
                     templateUrl: '/assets/javascripts/reporting/views/mainReporting.html',

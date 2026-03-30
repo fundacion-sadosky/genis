@@ -145,7 +145,6 @@ object Permission {
       StaticAuthorisationOperation("""/bulkupload.*""".r, """DELETE""".r, "BulkuploaderBatchesDelete"),
       StaticAuthorisationOperation("""/locus.*""".r, """GET""".r, "LocusRead"),
       StaticAuthorisationOperation("""/bulkupload/batches""".r, """GET""".r, "BulkuploaderBatchesSearch"))
-
   }
 
   case object PROTOPROFILE_BULK_ACCEPTANCE extends Permission {
@@ -156,7 +155,8 @@ object Permission {
       StaticAuthorisationOperation("""/bulkupload.*""".r, """DELETE""".r, "BulkuploaderBatchesDelete"),
       StaticAuthorisationOperation("""/motive.*""".r, """GET""".r, "GetMotives"),
       StaticAuthorisationOperation("""/locus.*""".r, """GET""".r, "LocusRead"),
-      StaticAuthorisationOperation("""/profileData/isProfileReplicated/.*""".r, """GET""".r, "ProfileDataRead"))
+      StaticAuthorisationOperation("""/profileData/isProfileReplicated/.*""".r, """GET""".r, "ProfileDataRead"),
+      StaticAuthorisationOperation("""/interconnection/getIsProfileReplicableInternalCode/.*""".r,"""GET""".r,"ProfileDataRead"))
   }
   case object USER_CRUD extends Permission {
     override val operations: Set[StaticAuthorisationOperation] = Set(
@@ -184,7 +184,8 @@ object Permission {
       StaticAuthorisationOperation("""/category-configurations.*""".r, """GET""".r, "CategoryConfigurationRead"),
       StaticAuthorisationOperation("""/category-associations.*""".r, """GET""".r, "CategoryAssociationsRead"),
       StaticAuthorisationOperation("""/category-alias.*""".r, """GET""".r, "CategoryAliasesRead"),
-      StaticAuthorisationOperation("""/category-matching-rules.*""".r, """GET""".r, "CategoryMatchingRulesRead")
+      StaticAuthorisationOperation("""/category-matching-rules.*""".r, """GET""".r, "CategoryMatchingRulesRead"),
+      StaticAuthorisationOperation("""/profiledata/count""".r, """GET""".r, "ProfiledataCountRead")
     )
   }
   case object ROLE_CRUD extends Permission {

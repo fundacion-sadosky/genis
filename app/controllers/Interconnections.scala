@@ -8,6 +8,7 @@ import play.api.mvc.{Action, AnyContent, BodyParsers, Controller}
 
 import javax.inject.{Inject, Singleton}
 import com.ning.http.client.Request
+import connections.HeaderInsterconnections.labCode
 import trace.{TraceSearch, TraceService}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
@@ -17,12 +18,15 @@ import connections._
 import play.api.Logger
 import play.api.i18n.Messages
 import types.SampleCode
-import profiledata.{DeletedMotive, ProfileDataService}
+import profiledata.{ProfileDataRepository, ProfileDataService}
+import matching.{MatchingRepository, MatchResult}
 
 @Singleton
 class Interconnections @Inject()( val protoRepo: ProtoProfileRepository,
                                   interconnectionService : InterconnectionService,
-                                  profiledataService: ProfileDataService
+                                  profiledataService: ProfileDataService,
+                                  profileDataRepository: ProfileDataRepository,
+                                  matchingRepository: MatchingRepository
                                 ) extends Controller {
   val logger: Logger = Logger(this.getClass())
 
@@ -200,77 +204,32 @@ class Interconnections @Inject()( val protoRepo: ProtoProfileRepository,
     }
   }
 
-  // Instancia inferior recibe el codigo y el usuario que borró el perfil en la instancia superior
-  /*def deleteProfileFromSuperior(id: String, userName: String, labCode: String, motive: String) = Action.async(BodyParsers.parse.json) {
-    request => {
-      // Parse the motive string into partes
-      val motiveParts = motive.split(",").map(_.trim)
-      val solicitor = if (motiveParts.nonEmpty) motiveParts(0) else ""
-      val motiveText = if (motiveParts.length > 1) motiveParts(1) else ""
-      val deletedMotive = DeletedMotive(solicitor, motiveText)
-      interconnectionService.receiveDeleteProfile(id, deletedMotive, labCode, labCode, up=false, userName).map {
-            case Left(errorMsg) =>
-              BadRequest(Json.obj("message" -> errorMsg))
-            case Right(_) =>
-              Ok.withHeaders("X-CREATED-ID" -> id)
-          }
-      }
-    }*/
+  def retrieveImmediateInferiorInstanceLabCode(globalCode: String): String = {
+    profileDataRepository.getImmediateInferiorInstanceLabCode(globalCode)
+  }
 
+  def approveProfiles(userName: String): Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
+    val input = request.body.validate[List[ProfileApproval]]
+    input.fold(
+      errors => Future.successful(BadRequest(JsError.toFlatJson(errors))),
+      approvals => {
+        // Llamamos directamente al servicio.
+        // Se asume que interconnectionService.approveProfiles internamente desencadena
+        // la lógica que lleva a notifyApprovalChangeStatus.
+        interconnectionService.approveProfiles(approvals, userName).map {
+          case Left(e) =>
+            // Manejo de error del servicio
+            BadRequest(Json.obj("message" -> e))
 
-  def approveProfiles(userName:String): Action[JsValue] = Action.async(BodyParsers.parse.json){
-    request =>{
-      val input = request.body.validate[List[ProfileApproval]]
-      input.fold(errors => {
-        Future.successful(BadRequest(JsError.toFlatJson(errors)))
-      },
-        approvals => {
-          // 1. We need to calculate isCategoryModification for each approval BEFORE calling the service,
-          // because the service might delete the approval record upon success.
-          val approvalsWithModStatusFuture: Future[List[(ProfileApproval, Boolean)]] = Future.sequence(approvals.map { approval =>
-            // We need to check if the category in the approval matches the existing profile data
-            interconnectionService.isCategoryModification(approval.globalCode).map { isMod =>
-              (approval, isMod)
-            }
-          })
-
-          approvalsWithModStatusFuture.flatMap { approvalsWithStatus =>
-            interconnectionService
-              .approveProfiles(approvals, userName)
-              .flatMap {
-                case Left(e) => Future.successful(BadRequest(Json.obj("message" -> e)))
-                case Right(()) => {
-                  // After successful approval, insert into PROFILE_RECEIVED using the pre-calculated status
-                  Future.sequence(approvalsWithStatus.map { case (approval, isCatMod) =>
-                    val labCode: Option[String] = getLabCodeFromGlobalCode(approval.globalCode)
-                    labCode match {
-                      case Some(code) =>
-                        profiledataService.addProfileReceivedApproved(
-                          code,
-                          approval.globalCode,
-                          22L,
-                          userName,
-                          isCategoryModification = isCatMod // <--- Use the value here
-                        )
-                      case None => Future.successful(Left("Invalid global code format"))
-                    }
-                  }).map { results =>
-                    if (results.forall(_.isRight)) {
-                      Ok.withHeaders(
-                        "X-CREATED-ID" -> approvals
-                          .map(a => a.globalCode)
-                          .mkString(start = "[", sep = ",", end = "]")
-                      )
-                    } else {
-                      InternalServerError(Json.obj("message" -> "Error inserting into PROFILE_RECEIVED"))
-                    }
-                  }
-                }
-              }
-          }
+          case Right(()) =>
+            // Éxito: Solo devolvemos el OK con los headers correspondientes.
+            // La actualización de PROFILE_RECEIVED ya ocurrió en el flujo interno.
+            Ok.withHeaders(
+              "X-CREATED-ID" -> approvals.map(a => a.globalCode).mkString(start = "[", sep = ",", end = "]")
+            )
         }
-      )
-    }
+      }
+    )
   }
 
 
@@ -321,6 +280,7 @@ class Interconnections @Inject()( val protoRepo: ProtoProfileRepository,
 
 
 
+  //Cuando se recibe un perfil de una instancia inferior
   def uploadProfile(globalCode:String, userName: String) = Action.async {
     _ => {
       interconnectionService.uploadProfile(globalCode, userName).map{
@@ -329,17 +289,18 @@ class Interconnections @Inject()( val protoRepo: ProtoProfileRepository,
       }
     }
   }
-
+// Acá se entra desde routes (es decir que se hace UPDATE de un perfile subido (Update de PROFILE_UPLOADED)
   def updateUploadStatus(
                           globalCode: String,
                           status:Long,
                           motive:Option[String],
                           userName:String,
-                          isCategoryModification:Boolean = false
+                          isCategoryModification:Boolean = false,
+                          operationOriginatedInInstance: Option[String]
                         ): Action[AnyContent] = Action.async {
     _ => {
       interconnectionService
-        .updateUploadStatus(globalCode, status, motive, userName,isCategoryModification)
+        .updateUploadStatus(globalCode, status, motive, userName, isCategoryModification, operationOriginatedInInstance.getOrElse(""))
         .map{
           case Left(e) => BadRequest(Json.obj("message" -> e))
           case Right(()) => Ok.withHeaders("X-CREATED-ID" -> globalCode)
@@ -407,6 +368,12 @@ class Interconnections @Inject()( val protoRepo: ProtoProfileRepository,
           }
         }
       )
+    }
+  }
+
+  def getIsProfileReplicableInternalCode(internalCode: String) = Action.async { _ =>
+    interconnectionService.isUplpoadableInternalCode(internalCode).map { isReplicable =>
+      Ok(Json.toJson(isReplicable))
     }
   }
 }

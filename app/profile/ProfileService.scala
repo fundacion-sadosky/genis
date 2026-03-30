@@ -14,23 +14,25 @@ import pedigree.{PedigreeSearch, PedigreeService, PedigreeStatus}
 import play.api.Logger
 import probability.{NoFrequencyException, ProbabilityService}
 import profile.GenotypificationByType.GenotypificationByType
-import profiledata.{ProfileData, ProfileDataRepository}
+import profiledata.{ProfileData, ProfileDataRepository, ProfileDataService}
 import services.{CacheService, TemporaryAssetKey}
 import trace.{AnalysisInfo, AssociationInfo, Trace, TraceService}
 import types.{AlphanumericId, MongoDate, SampleCode}
 import util.Misc
 import play.api.i18n.Messages
+import play.api.libs.iteratee.Iteratee
 import play.api.libs.json.Json
 import profile.Profile.Marker
 import user.UserService
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{Await, Future, Promise}
 import scala.language.postfixOps
 import scala.util.{Right, Try}
 import scala.xml.NodeSeq
 import scala.async.Async.{async, await}
 import scala.concurrent.duration.{Duration, SECONDS}
+import matching.{MatchJobEndend, MatchJobFail, MatchJobStatus, MatchingProcessStatus, MatchingService}
 
 trait ProfileService {
   def create(newAnalysis: NewAnalysis, savePictures: Boolean = true,replicate : Boolean = false): Future[Either[List[String], Profile]]
@@ -113,7 +115,9 @@ class ProfileServiceImpl @Inject() (
                                      @Named("labelsSet") labelsSet: Profile.LabelSets,
                                      interconnectionService : InterconnectionService = null,
                                      matchingRepo: MatchingRepository = null,
-                                     userService: UserService = null) extends ProfileService {
+                                     userService: UserService = null,
+                                     matchingProcessStatus: MatchingProcessStatus,
+                                     profileDataService: ProfileDataService) extends ProfileService {
 
   val RECHAZADA = 3L
   val DELETE_IN_SUP_INSTANCE_SENT_TO_INFERIOR = 20L
@@ -165,38 +169,52 @@ class ProfileServiceImpl @Inject() (
   }
 
   override def isReadOnly2(profileOpt: Option[Profile]): Future[(Boolean, String, Boolean)] = {
-    profileOpt
-      .fold(Future
-        .successful((false, "", false))
-      ) {
-        profile => {
-          if (!this
-            .interconnectionService
-            .isFromCurrentInstance(profile
-              .globalCode
-            )) {
-            Future
-              .successful((true, Messages("error.E0727"), false))
-          } else {
-            (for {isDeleted <- profileDataRepository
-              .isDeleted(profile
-                .globalCode
-              )
-                  uploadStatus <- this
-                    .profileDataRepository
-                    .getProfileUploadStatusByGlobalCode(profile
-                      .globalCode
-                    )}
-            yield (uploadStatus, isDeleted))
-              .map {
-                case (us, Some(true)) => (true, Messages("error.E0729"), us.exists(x => x >= 4))
-                case (None, _) => (false, "", false)
-                case (Some(status), _) => (true, Messages("error.E0728"), status >= 4)
+    profileOpt.fold(Future.successful((false, "", false))) { profile =>
+
+      // 1. Fetch upload status first
+      this.profileDataRepository.getProfileUploadStatusByGlobalCode(profile.globalCode).flatMap { uploadStatus =>
+
+        // 2. Calculate the 3rd parameter based on your specific rule:
+        // True if NOT exists OR (exists AND status == 3)
+        val thirdParam = uploadStatus match {
+          case None => false       // Does not exist -> False
+          case Some(3) => false    // Exists and status is 3 -> False
+          case _ => true         // Exists and status is not 3 -> True
+        }
+
+        if (!this.interconnectionService.isFromCurrentInstance(profile.globalCode)) {
+          // External Profile: ReadOnly = true, Error E0727, use calculated thirdParam
+          Future.successful((true, Messages("error.E0727"), thirdParam))
+        } else {
+          // Local Profile: Check if deleted
+          profileDataRepository.isDeleted(profile.globalCode).map {
+            case Some(true) =>
+              // Deleted: ReadOnly = true, Error E0729, use calculated thirdParam
+              (true, Messages("error.E0729"), thirdParam)
+            case _ =>
+              // Not deleted.
+              // If uploadStatus is defined (and not 3, based on previous logic implies "locked"), it's read-only.
+              // However, we must ensure we don't return ReadOnly=true just because thirdParam is true (which happens when it DOESN'T exist).
+
+              // Logic for ReadOnly (1st param):
+              // Usually, a local profile is ReadOnly if it IS uploaded (exists) and isn't a specific "editable" status (like rejected/3).
+              // Assuming strict adherence to previous "locking" logic:
+              // Locked if exists AND status != 3.
+
+              if (!thirdParam) {
+                // If thirdParam is false, it means it Exists AND status != 3. So it is locked.
+                (true, Messages("error.E0728"), thirdParam) // (ReadOnly, Error, False)
+              } else {
+                // If thirdParam is true, it means (Not Exists) OR (Status == 3). So it is editable.
+                (false, "", thirdParam) // (Not ReadOnly, No Error, True)
               }
           }
         }
       }
+    }
   }
+
+
 
   override def isReadOnlySampleCode(
                                      globalCode:SampleCode,
@@ -354,7 +372,11 @@ class ProfileServiceImpl @Inject() (
       val maxAllelesPerLocus = qualityParams.maxAllelesPerLocus(category, kit)
       val maxOverageDeviatedLociPerProfile = qualityParams.maxOverageDeviatedLociPerProfile(category, kit)
       val multiallelic = qualityParams.multiallelic(category, kit)
-      val trisomyTreshold = if (multiallelic) 4 else 2
+      val trisomyTreshold = if (category.isReference) {
+        if (multiallelic) 4 else 2
+      } else {
+        maxAllelesPerLocus
+      }
 
       val categoryConfiguration = category.configurations.getOrElse(kit.`type`, CategoryConfiguration("", "", "K", "0", 6))
 
@@ -369,24 +391,13 @@ class ProfileServiceImpl @Inject() (
               getRequiredLocusInAnalysis(analysis,fullLocus) < requiredLociKit
             }, Messages("error.E0698")) ::
           cond(
-            {
-              !category.isReference && analysis.exists({
-                case (marker, alleles) => {
-                  alleles.size > maxAllelesPerLocus
-                }
-              })
-            }, Messages("error.E0684",maxAllelesPerLocus )) ::
+            analysis.exists({
+              case (_, alleles) => alleles.size > trisomyTreshold + 1
+            }), Messages("error.E0684", trisomyTreshold + 1)) ::
           cond(
-            {
-              analysis.count({
-                case (marker, alleles) => {
-                  val locus = loci.find(l => l.id == marker).get
-                  if (contributors == 1) {
-                    alleles.size > locus.minimumAllelesQty && alleles.size > trisomyTreshold
-                  } else false
-                }
-              }) > maxOverageDeviatedLociPerProfile
-            }, Messages("error.E0685", maxOverageDeviatedLociPerProfile)) ::
+            analysis.count({
+              case (_, alleles) => alleles.size > trisomyTreshold
+            }) > maxOverageDeviatedLociPerProfile, Messages("error.E0685", maxOverageDeviatedLociPerProfile)) ::
           Nil).flatten
 
         if (errors.nonEmpty) Left(errors)
@@ -515,36 +526,37 @@ class ProfileServiceImpl @Inject() (
   */
 
 
-
   private def upsert(
                       profileData: ProfileData,
                       profileOpt: Option[Profile],
                       newAnalysis: NewAnalysis,
                       savePictures: Boolean,
-                      replicate : Boolean = false,
+                      replicate: Boolean = false,
                       userName: String
                     ): Future[Either[List[String], Profile]] = {
     this
       .isReadOnly(profileOpt)
-      .flatMap{
-        case (true,message) => { Future.successful(Left(List(message)))}
-        case (false,_) => {
+      .flatMap {
+        case (true, message) =>
+          Future.successful(Left(List(message)))
+
+        case (false, _) =>
           val category = categoryService.getCategory(profileData.category).get
           val isReference = category.isReference
           val sizeOfMitocondrialKit: Int = 4
+
           val newAnalysisIsMitochondrial = newAnalysis
             .genotypification
             .keys
-            .exists(
-              marker => marker.endsWith("_RANGE")
-            )
+            .exists(marker => marker.endsWith("_RANGE"))
+
           val analysis = Analysis(
             UUID.randomUUID.toString,
             MongoDate(new Date()),
             newAnalysis
               .kit
               .getOrElse(
-                if(newAnalysis.`type`.contains(sizeOfMitocondrialKit)) {
+                if (newAnalysis.`type`.contains(sizeOfMitocondrialKit)) {
                   manualMitocondrialKit
                 } else {
                   manualKit
@@ -563,155 +575,231 @@ class ProfileServiceImpl @Inject() (
             newAnalysis.`type`
           )
 
-          val analysisTypeFut = newAnalysis.kit
-            .fold(Future.successful(newAnalysis.`type`.get)){ kit => kitService.get(kit) map { opt => opt.get.`type` }}
-            .flatMap { at => analysisTypeService.getById(at) map { opt => opt.get } }
+          val analysisTypeFut =
+            newAnalysis.kit
+              .fold(Future.successful(newAnalysis.`type`.get)) { kit =>
+                kitService.get(kit).map { opt => opt.get.`type` }
+              }
+              .flatMap { at => analysisTypeService.getById(at).map(_.get) }
 
-          val labelsFut = newAnalysis.labeledGenotypification.fold[Future[Option[Profile.LabeledGenotypification]]] (
-            Future.successful(None))(filterLabeledGenotypification(_).map { Some(_) })
+          val labelsFut =
+            newAnalysis.labeledGenotypification
+              .fold[Future[Option[Profile.LabeledGenotypification]]](
+                Future.successful(None)
+              )(filterLabeledGenotypification(_).map(Some(_)))
 
           val genotypificationToValidate = mergeGenotypification(profileOpt, newAnalysis)
 
           val fut = for {
-            at <- analysisTypeFut
-            labels <- labelsFut
+            at                <- analysisTypeFut
+            labels            <- labelsFut
             matchesValidation <- validateMatchesAndPedigrees(profileOpt, at)
-            contributors <- getContributors(profileData, analysis, profileOpt, isReference, newAnalysis.contributors,at)
-            analysisValidation <- validateAnalysis(genotypificationToValidate, profileData.category, newAnalysis.kit, contributors, newAnalysis.`type`, at)
+            contributors      <- getContributors(profileData, analysis, profileOpt, isReference, newAnalysis.contributors, at)
+            analysisValidation <- validateAnalysis(
+              genotypificationToValidate,
+              profileData.category,
+              newAnalysis.kit,
+              contributors,
+              newAnalysis.`type`,
+              at
+            )
           } yield {
             if (matchesValidation.isLeft) {
               throw new RuntimeException(matchesValidation.left.get)
             }
             (labels, analysisValidation, contributors)
-
           }
 
-          val newfut = fut.flatMap {
-            case (labels, validation, contributors) => {
+          val newfut: Future[Either[List[String], Profile]] =
+            fut.flatMap {
+              case (labels, validation, contributors) =>
+                val mergeFut =
+                  merge(
+                    profileOpt.fold[GenotypificationByType](Map.empty)(_.genotypification),
+                    analysis.genotypification
+                  )
 
-              val mergeFut = merge(profileOpt.fold[GenotypificationByType](Map.empty)(_.genotypification), analysis.genotypification)
+                mergeFut.flatMap { mergeResult =>
+                  val invalid = mergeResult.flatMap(_._2).filter(_._2.isLeft)
 
-              mergeFut flatMap { mergeResult =>
-                val invalid = mergeResult.flatMap(_._2).filter(_._2.isLeft)
-
-                val result: Future[Either[List[String], Profile]] = if (validation.isLeft) {
-                  Future.successful(Left(validation.left.get))
-                } else if (invalid.nonEmpty) {
-                  val errors = invalid.map {
-                    case (marker, error) => Messages("error.E0686", marker, error.left.get)
-                  }.toList
-                  Future.successful(Left(errors))
-                } else {
-                  val n = if (newAnalysis.kit.contains("Mitocondrial")) {
-                    profileOpt match {
-                      case Some(profile) => profile.genotypification.get(4).isDefined
-                      case _ => false
-                    }
-                  } else {
-                    false
-                  }
-
-                  if (n) {
-                    Future.successful(Left(List(Messages("error.E0315"))))
-                  } else {
-
-                    val newGenotypification = mergeResult.map {
-                      case (analysisType, locusMap) =>
-                        analysisType -> locusMap.map {
-                          case (marker, result) => marker -> result.right.get
-                        }
-                    }
-
-                    val profile = profileOpt.getOrElse(Profile(
-                      newAnalysis.globalCode,
-                      newAnalysis.globalCode,
-                      profileData.internalSampleCode,
-                      profileData.assignee,
-                      profileData.category,
-                      newGenotypification,
-                      Some(List(analysis)),
-                      labels,
-                      Some(contributors),
-                      newAnalysis.mismatches,
-                      newAnalysis.matchingRules,
-                      deleted = false,
-                      matcheable = false,
-                      isReference = isReference))
-
-                    val result = if (profileOpt.isEmpty) {
-                      profileRepository.add(profile)
+                  val baseResult: Future[Either[List[String], Profile]] =
+                    if (validation.isLeft) {
+                      Future.successful(Left(validation.left.get))
+                    } else if (invalid.nonEmpty) {
+                      val errors = invalid.map {
+                        case (marker, error) =>
+                          Messages("error.E0686", marker, error.left.get)
+                      }.toList
+                      Future.successful(Left(errors))
                     } else {
-                      profileRepository.addAnalysis(
-                        profile._id,
-                        analysis,
-                        newGenotypification,
-                        labels,
-                        newAnalysis.matchingRules,
-                        newAnalysis.mismatches)
-                    }
-                    result.onComplete(
-                      _ => {
-                        // Guarda los alelos que no se encuentren en tablas de frecuencia con el objetivo de considerarlos al
-                        // armarlas matrices de mutacion
-                        locusService.saveLocusAllelesFromProfile(profile).flatMap {
-                          case Right(count) if count > 0 => locusService.refreshAllKis()
-                          case _ => Future.successful(())
+                      val n =
+                        if (newAnalysis.kit.contains("Mitocondrial")) {
+                          profileOpt match {
+                            case Some(profile) => profile.genotypification.get(4).isDefined
+                            case _             => false
+                          }
+                        } else {
+                          false
                         }
-                      }
-                    )
 
-                    result.map { id =>
-                      if (savePictures) {
-                        saveElectropherograms(newAnalysis.token, newAnalysis.globalCode, analysis.id,null)
-                        (newAnalysis.tokenRawFile, newAnalysis.nameRawFile) match {
-                          case (Some(tokenRawFile), Some(nameRawFile)) =>
-                            saveFile(tokenRawFile, newAnalysis.globalCode, analysis.id, nameRawFile)
-                          case _ => Future.successful(Nil)
-                        }
-                      }
-                      traceService.add(
-                        Trace(
-                          newAnalysis.globalCode, newAnalysis.userId, new Date(),
-                          AnalysisInfo(
-                            newAnalysis.genotypification.keySet.toList,
-                            newAnalysis.kit,
-                            newAnalysis.`type`,
-                            validation.right.get
+                      if (n) {
+                        Future.successful(Left(List(Messages("error.E0315"))))
+                      } else {
+                        val newGenotypification: GenotypificationByType =
+                          mergeResult.map {
+                            case (analysisType, locusMap) =>
+                              analysisType -> locusMap.map {
+                                case (marker, result) => marker -> result.right.get
+                              }
+                          }
+
+                        val profile = profileOpt.getOrElse(
+                          Profile(
+                            newAnalysis.globalCode,
+                            newAnalysis.globalCode,
+                            profileData.internalSampleCode,
+                            profileData.assignee,
+                            profileData.category,
+                            newGenotypification,
+                            Some(List(analysis)),
+                            labels,
+                            Some(contributors),
+                            newAnalysis.mismatches,
+                            newAnalysis.matchingRules,
+                            deleted = false,
+                            matcheable = false,
+                            isReference = isReference
                           )
                         )
-                      )
-                      Right(profile)
+
+                        val writeFut: Future[SampleCode] =
+                          if (profileOpt.isEmpty) {
+                            profileRepository.add(profile)
+                          } else {
+                            profileRepository.addAnalysis(
+                              profile._id,
+                              analysis,
+                              newGenotypification,
+                              labels,
+                              newAnalysis.matchingRules,
+                              newAnalysis.mismatches
+                            )
+                          }
+
+                        writeFut.onComplete { _ =>
+                          locusService
+                            .saveLocusAllelesFromProfile(profile)
+                            .flatMap {
+                              case Right(count) if count > 0 =>
+                                locusService.refreshAllKis()
+                              case _ =>
+                                Future.successful(())
+                            }
+                        }
+
+                        writeFut.map { _ =>
+                          if (savePictures) {
+                            saveElectropherograms(newAnalysis.token, newAnalysis.globalCode, analysis.id, null)
+                            (newAnalysis.tokenRawFile, newAnalysis.nameRawFile) match {
+                              case (Some(tokenRawFile), Some(nameRawFile)) =>
+                                saveFile(tokenRawFile, newAnalysis.globalCode, analysis.id, nameRawFile)
+                              case _ =>
+                                Future.successful(Nil)
+                            }
+                          }
+
+                          traceService.add(
+                            Trace(
+                              newAnalysis.globalCode,
+                              newAnalysis.userId,
+                              new Date(),
+                              AnalysisInfo(
+                                newAnalysis.genotypification.keySet.toList,
+                                newAnalysis.kit,
+                                newAnalysis.`type`,
+                                validation.right.get
+                              )
+                            )
+                          )
+
+                          Right(profile)
+                        }
+                      }
                     }
-                  }
+
+                  baseResult
                 }
-                result map {
-                  createEither =>
-                    createEither.right.foreach {
-                      p =>
-                        matchingService.findMatches(
-                          p.globalCode,
-                          categoryService.getCategoryTypeFromFullCategory(category)
-                        )
+            }
+
+          // A PARTIR DE AQUÍ: SIEMPRE BLOQUEAMOS HASTA QUE TERMINE EL MATCHING
+          val finalFut: Future[Either[List[String], Profile]] =
+            newfut.flatMap {
+              case Left(errs) =>
+                // Falló antes de guardar / validar bien → no lanzamos matching
+                Future.successful(Left(errs))
+
+              case Right(profile) =>
+                // 1. Lanzar proceso de matching
+                fireMatching(profile.globalCode)
+
+                // 2. Esperar a que termine el job de matching
+                val matchEndPromise = Promise[MatchJobStatus]()
+
+                matchingProcessStatus.getJobStatus()
+                  .apply(
+                    Iteratee.foreach[MatchJobStatus] { status =>
+                      // Solo completa el promise la primera vez que se recibe un estado final
+                      if (!matchEndPromise.isCompleted) {
+                        status match {
+                          case MatchJobEndend => matchEndPromise.success(status)
+                          case MatchJobFail => matchEndPromise.success(status) // Fallo el promise con el estado de fallo
+                          case _ => // Otros estados, ignorar y seguir esperando
+                        }
+                      }
                     }
-                    createEither
+                  )
+
+                // 3. Cuando termina el matching, decidir qué hacer
+                matchEndPromise.future.flatMap {
+                  case MatchJobEndend =>
+                    // Matching terminó OK
+                    if (replicate) {
+                      // Si hay que replicar, subir ahora al superior
+                      profileDataService
+                        .get(profile.globalCode)
+                        .flatMap {
+                          case Some(pd) =>
+                            Future.successful(
+                              interconnectionService.uploadProfileToSuperiorInstance(
+                                profile,
+                                pd,
+                                userName
+                              )
+                            )
+                          case None =>
+                            Future.successful(())
+                        }
+                        .map(_ => Right(profile))
+                    } else {
+                      Future.successful(Right(profile))
+                    }
+
+                  case MatchJobFail =>
+                    Future.successful(Left(List(Messages("error.E_MATCHING_FAILED"))))
+
+                  case other =>
+                    Future.successful(
+                      Left(List(Messages("error.E_UNEXPECTED_MATCH_STATUS", other.toString)))
+                    )
                 }
-              }
             }
-          }
-          if(replicate){
-            newfut.onSuccess{
-              case Right(profile) => {
-                interconnectionService
-                  .uploadProfileToSuperiorInstance(profile, profileData, userName)
-              }
-            }
-          }
-          newfut.recover {
+
+          finalFut.recover {
             case t: Throwable => Left(List(t.getMessage))
           }
-        }
       }
   }
+
 
   private def getContributors(
                                profileData: ProfileData,

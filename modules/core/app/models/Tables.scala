@@ -264,4 +264,58 @@ object Tables {
       def *           = (id, motiveType, description, freeText, deleted) <> ((MotiveRow.apply _).tupled, MotiveRow.unapply)
     }
     val Motive = TableQuery[MotiveTable]
+
+    // ---------------------------------------------------------------------------
+    // Population Base Frequency tables
+    // ---------------------------------------------------------------------------
+
+    final case class PopulationBaseFrequencyNameRow(
+      id: Long,
+      name: String,
+      theta: Double,
+      model: String,
+      active: Boolean,
+      default: Boolean
+    )
+    object PopulationBaseFrequencyNameRow {
+      def tupled = (apply _).tupled
+    }
+
+    class PopulationBaseFrequencyNameTable(tag: Tag)
+      extends Table[PopulationBaseFrequencyNameRow](tag, Some("APP"), "POPULATION_BASE_FREQUENCY_NAME") {
+      def id      = column[Long]("ID", O.PrimaryKey, O.AutoInc)
+      def name    = column[String]("NAME", O.Length(50, varying = true))
+      def theta   = column[Double]("THETA")
+      def model   = column[String]("MODEL", O.Length(50, varying = true))
+      def active  = column[Boolean]("ACTIVE")
+      def default = column[Boolean]("DEFAULT")
+      def *       = (id, name, theta, model, active, default) <>
+                    (PopulationBaseFrequencyNameRow.tupled, PopulationBaseFrequencyNameRow.unapply)
+    }
+    val PopulationBaseFrequencyName = TableQuery[PopulationBaseFrequencyNameTable]
+
+    final case class PopulationBaseFrequencyRow(
+      id: Long,
+      baseName: Long,
+      marker: String,
+      allele: Double,
+      frequency: BigDecimal
+    )
+    object PopulationBaseFrequencyRow {
+      def tupled = (apply _).tupled
+    }
+
+    class PopulationBaseFrequencyTable(tag: Tag)
+      extends Table[PopulationBaseFrequencyRow](tag, Some("APP"), "POPULATION_BASE_FREQUENCY") {
+      def id        = column[Long]("ID", O.PrimaryKey, O.AutoInc)
+      def baseName  = column[Long]("BASE_NAME")
+      def marker    = column[String]("MARKER", O.Length(50, varying = true))
+      def allele    = column[Double]("ALLELE")
+      def frequency = column[BigDecimal]("FREQUENCY")
+      def nameFk    = foreignKey("POPULATION_BASE_FREQUENCY_FK", baseName, PopulationBaseFrequencyName)(_.id,
+                        onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Restrict)
+      def *         = (id, baseName, marker, allele, frequency) <>
+                      (PopulationBaseFrequencyRow.tupled, PopulationBaseFrequencyRow.unapply)
+    }
+    val PopulationBaseFrequency = TableQuery[PopulationBaseFrequencyTable]
 }

@@ -75,6 +75,13 @@ function NotificationsService($log, $rootScope, cryptoService, userService) {
 		listeners.push(callback);
 	};
 
+	this.removeListener = function(callback) {
+		var index = listeners.indexOf(callback);
+		if (index !== -1) {
+			listeners.splice(index, 1);
+		}
+	};
+
 }
 
 return NotificationsService;

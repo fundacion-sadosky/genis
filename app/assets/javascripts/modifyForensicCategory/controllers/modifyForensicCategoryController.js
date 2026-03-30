@@ -1,19 +1,19 @@
 define(
-  ['angular', 'jquery','lodash'],
-  function(angular, $, _) {
-    'use strict';
-    function modifyForensicCategoryController(
-      $scope ,
-      $rootScope,
-      $routeParams,
-      $log,
-      alertService,
-      searchService,
-      categoriesService,
-      profileDataService,
-      profileService,
-      userService
-    ) {
+    ['angular', 'jquery','lodash'],
+    function(angular, $, _) {
+      'use strict';
+      function modifyForensicCategoryController(
+          $scope ,
+          $rootScope,
+          $routeParams,
+          $log,
+          alertService,
+          searchService,
+          categoriesService,
+          profileDataService,
+          profileService,
+          userService
+      )  {
       var buildSearchObject = function(profileId) {
         return {
           input: profileId,
@@ -42,6 +42,7 @@ define(
       $scope.categories = [];
       $scope.stage = 1;
       $scope.confirmedCode = undefined;
+      $scope.isReplicated = false;
       $scope.profileData = {};
       $scope.picturePlaceHolderImage = 'assets/images/default-user.png';
       $scope.inprintPrintPlaceHolderImage = 'assets/images/fingerprint.jpg';
@@ -85,62 +86,76 @@ define(
         $scope.stage = 1;
         $scope.saveEnabled = true;
       };
-      $scope.confirmSelectedCode = function() {
-        // TODO: Check that entered value is not empty
-        $scope.confirmedCode = $scope.models.matchingCodesModel;
-        if ($scope.confirmedCode !== undefined) {
-          profileService
-            .isReadOnly($scope.confirmedCode.globalCode)
-            .then(
-              function(response) {
-                $scope.isReadOnly = response;
-                if (response.isReadOnly) {
-                  alertService.error(response.message);
-                  return Promise.reject(response.message);
-                }
-              }
-            )
-            .then(
-              function() {
-                $scope.models.currentCategoryName = $scope
-                  .getCategoryName($scope.confirmedCode.category);
-                return categoriesService
-                  .getCategoryModificationsAllowed(
-                    $scope.confirmedCode.category
-                  );
-              }
-            )
-            .then(
-              function(response) {
-                if (response.data.length === 0) {
-                  return Promise
-                    .reject("La categoría de este perfil no está habilidata para modificarse.");
-                }
-                $scope.models.allowedNewCategories = response.data.map(
-                  function(x) { return $scope.getCategoryById(x); }
+        $scope.confirmSelectedCode = function() {
+          // TODO: Check that entered value is not empty
+          $scope.confirmedCode = $scope.models.matchingCodesModel;
+          if ($scope.confirmedCode !== undefined) {
+            profileService
+                .isReadOnly($scope.confirmedCode.globalCode)
+                .then(
+                    function(response) {
+                      $scope.isReadOnly = response;
+                      if (response.isReadOnly) {
+                        alertService.error(response.message);
+                        return Promise.reject(response.message);
+                      }
+                    }
+                )
+                .then(
+                    function() {
+                      $scope.models.currentCategoryName = $scope
+                          .getCategoryName($scope.confirmedCode.category);
+                      return categoriesService
+                          .getCategoryModificationsAllowed(
+                              $scope.confirmedCode.category
+                          );
+                    }
+                )
+                .then(
+                    function(response) {
+                      if (response.data.length === 0) {
+                        return Promise
+                            .reject("La categoría de este perfil no está habilidata para modificarse.");
+                      }
+                      $scope.models.allowedNewCategories = response.data.map(
+                          function(x) { return $scope.getCategoryById(x); }
+                      );
+                      $scope.models.newCategory = $scope.models.allowedNewCategories[0];
+                    }
+                )
+                .then(
+                    function() {
+                      return profileDataService
+                          .getProfileData($scope.confirmedCode.globalCode);
+                    }
+                )
+                .then(
+                    function(response) {
+                      $scope.models.selectedProfiledata = response.data;
+                      // Added Step: Check if profile is replicated
+                      return profileDataService.getIsProfileReplicatedInternalCode($scope.confirmedCode.internalSampleCode);
+                    }
+                )
+                .then(
+                    function(response) {
+                      // Store replication status
+                      $scope.isReplicated = response.data;
+
+                      // If not replicated, ensure the checkbox is unchecked
+                      if(!$scope.isReplicated) {
+                        $scope.models.uploadToSuperior = false;
+                      }
+
+                      $scope.stage = 3;
+                    }
+                )
+                .catch(
+                    function(error) {
+                      alertService.error({message: error});
+                    }
                 );
-                $scope.models.newCategory = $scope.models.allowedNewCategories[0];
-              }
-            )
-            .then(
-              function() {
-                return profileDataService
-                  .getProfileData($scope.confirmedCode.globalCode);
-              }
-            )
-            .then(
-               function(response) {
-                 $scope.models.selectedProfiledata = response.data;
-                 $scope.stage = 3;
-               }
-            )
-            .catch(
-              function(error) {
-                alertService.error({message: error});
-              }
-            );
-        }
-      };
+          }
+        };
       $scope.categoryOptionChanged = function() {
         $scope.requiresFiliationData = isFiliationDataFormRequired();
         if ($scope.requiresFiliationData) {
@@ -219,7 +234,7 @@ define(
           !dataFiliationDefined && !isDataFiliationImages()
         );
 
-        // TODO: Check that the logic here is OK, It is replicated from 
+        // TODO: Check that the logic here is OK, It is replicated from
         //       profileDataController.saveProfile method.
         //       I don't think it works as intended.
         if (
@@ -227,7 +242,7 @@ define(
           dataFiliationDefined ||
           isFiliationDataFormRequired()
         ) {
-          var updatedProfile = _.cloneDeep($scope.models.selectedProfiledata);
+          var updatedProfile = _.cloneDeep($scope.models.matchingCodesModel);
           updatedProfile.category = $scope.models.newCategory.id;
           updatedProfile.dataFiliation = $scope.profileData.dataFiliation;
           profileDataService

@@ -119,3 +119,14 @@ case class ClearPassRequestKey(token: String)
 // Roles cache key
 case object RolesKey extends CacheKey[Seq[user.Role]]:
   override def cacheKey: String = "Keys.roles"
+
+// Profile-related cache keys
+case class TemporaryAssetKey(token: String) extends CacheKey[List[java.io.File]] {
+  override def cacheKey: String = "TemporaryAsset." + token
+  override def expiration: Int = 60 * 10
+}
+
+case class UploadedAnalysisKey(token: String) extends CacheKey[profile.NewAnalysis] {
+  override def cacheKey: String = "UploadedAnalysis." + token
+  override def expiration: Int = 60 * 10
+}

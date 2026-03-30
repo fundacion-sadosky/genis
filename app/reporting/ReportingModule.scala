@@ -21,7 +21,7 @@ class ReportingModule () extends AbstractModule {
   @Provides
   def providePdfGenerator(): PdfGenerator = {
     val pdfGen = new PdfGenerator()
-    pdfGen.loadLocalFonts(Seq("app/assets/stylesheets/report/DejaVuSans.ttf", "app/assets/stylesheets/report/DejaVuSans-Bold.ttf"))
+    pdfGen.loadTemporaryFonts(Seq("assets/stylesheets/report/DejaVuSans.ttf", "assets/stylesheets/report/DejaVuSans-Bold.ttf"))
     pdfGen
   }
 

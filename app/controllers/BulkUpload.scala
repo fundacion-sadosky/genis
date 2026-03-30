@@ -30,23 +30,51 @@ import scala.util.{Left, Right}
 @Singleton
 class BulkUpload @Inject() (bulkUploadService: BulkUploadService, userService: UserService) extends Controller with JsonActions {
 
-  def getBatchesStep1 = Action.async { request =>
+  def getBatchesStep1(page: Int, pageSize: Int) = Action.async { request =>
     val userId = request.headers.get("X-USER").get
+    val offset = (page - 1) * pageSize
+
+    userService.isSuperUser(userId).flatMap { isSuperUser =>
+      bulkUploadService
+        .getBatchesStep1(userId, isSuperUser, offset, pageSize)
+        .map(batches => Ok(Json.toJson(batches)))
+    }
+  }
+
+
+  def countBatchesStep1 = Action.async { request =>
+    val userId = request.headers.get("X-USER").get
+    userService.isSuperUser(userId).flatMap { isSuperUser =>
+      bulkUploadService.countBatchesStep1(userId, isSuperUser).map { total =>
+        Ok(Json.obj("total" -> total))
+      }
+    }
+  }
+
+  def getBatchesStep2 (geneMapperId : String, page: Int, pageSize: Int) = Action.async { request =>
+    val userId = request.headers.get("X-USER").get
+    val offset = (page - 1) * pageSize
+
     userService.isSuperUser(userId).flatMap(isSuperUser => {
-      bulkUploadService.getBatchesStep1(userId, isSuperUser) map { batch =>
+      bulkUploadService.getBatchesStep2(userId, geneMapperId, isSuperUser, offset, pageSize) map { batch =>
         Ok(Json.toJson(batch))
       }
     })
   }
 
-  def getBatchesStep2 (geneMapperId : String) = Action.async { request =>
+  def countBatchesStep2(geneMapperId: String) = Action.async { request =>
     val userId = request.headers.get("X-USER").get
-
-    userService.isSuperUser(userId).flatMap(isSuperUser => {
-      bulkUploadService.getBatchesStep2(userId, geneMapperId, isSuperUser) map { batch =>
-        Ok(Json.toJson(batch))
+    userService.isSuperUser(userId).flatMap { isSuperUser =>
+      bulkUploadService.countBatchesStep2(userId, geneMapperId, isSuperUser).map { total =>
+        Ok(Json.obj("total" -> total))
       }
-    })
+    }
+  }
+
+  def countAllProtoProfilesInBatch(batchId: Long) = Action.async {
+    bulkUploadService.countAllProtoProfilesInBatch(batchId).map { total =>
+      Ok(Json.obj("total" -> total))
+    }
   }
 
   def getProtoProfileById(id: Long) = Action.async { request =>

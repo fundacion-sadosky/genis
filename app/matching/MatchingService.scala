@@ -22,6 +22,8 @@ trait MatchingService {
 
   def findMatchingResults(globalCode: SampleCode): Future[Option[MatchingResults]]
 
+  def getMatches(globalCode: SampleCode, matchType: Option[String]): Future[Seq[MatchResult]]
+
   def convertHit(matchId: String, firingCode: SampleCode,replicate:Boolean = true, userName: String): Future[Either[String, Seq[SampleCode]]]
 
   def convertDiscard(matchId: String, firingCode: SampleCode, isSuperUser: Boolean,replicate:Boolean = true, userName: String): Future[Either[String, Seq[SampleCode]]]

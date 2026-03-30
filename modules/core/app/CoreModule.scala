@@ -4,6 +4,8 @@ import com.google.inject.AbstractModule
 import inbox.{NotificationService, NoOpNotificationService}
 import services.{CountryService, LaboratoryService, GeneticistService, UserService}
 import services.{LaboratoryServiceImpl, GeneticistServiceImpl, CountryServiceImpl, UserServiceImpl}
+import stats.{PopulationBaseFrequencyRepository, PopulationBaseFrequencyRepositoryImpl}
+import stats.{PopulationBaseFrequencyService, PopulationBaseFrequencyServiceImpl}
 
 class CoreModule extends AbstractModule {
   override def configure(): Unit = {
@@ -15,6 +17,10 @@ class CoreModule extends AbstractModule {
       bind(classOf[CountryService]).to(classOf[CountryServiceImpl])
       bind(classOf[UserService]).to(classOf[UserServiceImpl])
       bind(classOf[NotificationService]).to(classOf[NoOpNotificationService])
+
+      // Population Base Frequency (stats module)
+      bind(classOf[PopulationBaseFrequencyRepository]).to(classOf[PopulationBaseFrequencyRepositoryImpl])
+      bind(classOf[PopulationBaseFrequencyService]).to(classOf[PopulationBaseFrequencyServiceImpl])
       logger.info("[CoreModule] Configuration completed successfully.")
     } catch {
       case ex: Throwable =>

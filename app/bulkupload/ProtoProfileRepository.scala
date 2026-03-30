@@ -48,8 +48,10 @@ abstract class ProtoProfileRepository  extends DefaultDb with Transaction {
 
   def createBatch(user: String, protoProfileStream: Stream[ProtoProfile], laboratory: String, kits: Map[String, List[StrKitLocus]], label: Option[String], analysisType: String): Future[Long]
   def getBatch(batchId: Long): Future[Option[ProtoProfilesBatch]]
-  def getBatchesStep1(userId: String, isSuperUser: Boolean): Future[Seq[ProtoProfilesBatchView]]
-  def getBatchesStep2(userId: String, geneMapperId : String,  isSuperUser: Boolean): Future[Seq[ProtoProfilesBatchView]]
+  def getBatchesStep1(userId: String, isSuperUser: Boolean, offset: Int, limit: Int): Future[Seq[ProtoProfilesBatchView]]
+  def countBatchesStep1(userId: String, isSuperUser: Boolean): Future[Int]
+  def getBatchesStep2(userId: String, geneMapperId : String,  isSuperUser: Boolean, offset: Int, limit: Int): Future[Seq[ProtoProfilesBatchView]]
+  def countBatchesStep2(userId: String, geneMapperId: String, isSuperUser: Boolean): Future[Int]
   def getProtoProfilesStep1(batchId: Long, paginationSearch: Option[PaginationSearch] = None): Future[Seq[ProtoProfile]]
   def getProtoProfilesStep2(batchId: Long, userId: String, isSuperUser: Boolean, paginationSearch: Option[PaginationSearch] = None): Future[Seq[ProtoProfile]]
   def getProtoProfile(id: Long): Future[Option[ProtoProfile]]
@@ -64,10 +66,12 @@ abstract class ProtoProfileRepository  extends DefaultDb with Transaction {
   def canDeleteKit(id: String): Future[Boolean]
   def deleteBatch(id: Long):Future[Either[String,Long]]
   def countImportedProfilesByBatch(idBatch: Long):Future[Either[String,Long]]
+  def countAllProtoProfilesInBatch(batchId: Long): Future[Int]
   def getSearchBachLabelID(userId: String, isSuperUser: Boolean, filter: String) : Future[Seq[ProtoProfilesBatchView]]
   def getBatchSearchModalViewByIdOrLabel(input:String,idCase:Long):Future[List[BatchModelView]]
   def mtExistente(sampleName:String ) : Future[Boolean]
   def updateProtoProfileStatus(internalCode: String, status: String): Future[Int]
+  def getProtoProfileStatus(internalCode: String): String
 }
 
 @Singleton
@@ -121,7 +125,7 @@ class SlickProtoProfileRepository @Inject() (
   val queryGetProtoProfiles = Compiled(queryDefineGetProtoProfiles _)
 
   private def queryDefineGetProtoProfilesStep2(batchId: Column[Long], user: Column[String], isSuperUser: Column[Boolean]) = for {
-    pp <- protoProfiles if ((pp.idBatch === batchId) && (isSuperUser || pp.assignee === user) && (pp.status === "Approved" || pp.status === "Rejected" || pp.status === "Imported"|| pp.status === "Uploaded"))
+    pp <- protoProfiles if ((pp.idBatch === batchId) && (isSuperUser || pp.assignee === user) && (pp.status === "Approved" || pp.status === "Rejected" || pp.status === "Imported"|| pp.status === "Uploaded"|| pp.status === "DesktopSearch" || pp.status === "ReplicatedMatchingProfile"))
   } yield (pp)
 
   val queryGetProtoProfilesStep2 = Compiled(queryDefineGetProtoProfilesStep2 _)
@@ -176,7 +180,26 @@ class SlickProtoProfileRepository @Inject() (
 
   val queryUpdateDataProtoProfileData = Compiled(queryDefineUpdateDataProtoProfileData _)
 
-  val queryGetBatchesStep1 = Q.query[(String, Boolean), (Long, String, java.sql.Date, Long, Long, Long, Long, Option[String], Long, Long, String)](
+  val queryCountBatchesStep1 =
+    Q.query[(String, Boolean), Int](
+      """SELECT COUNT(*)
+       FROM "APP"."BATCH_PROTO_PROFILE" bpp
+       WHERE (bpp."USER" = ? OR ?)"""
+    )
+
+  val queryCountBatchesStep2 =
+    Q.query[(String, Boolean), Int](
+      """SELECT COUNT(DISTINCT bpp."ID")
+       FROM "APP"."BATCH_PROTO_PROFILE" bpp
+       WHERE EXISTS (
+         SELECT 1 FROM "APP"."PROTO_PROFILE" pp
+         WHERE pp."ID_BATCH" = bpp."ID"
+         AND (pp."ASSIGNEE" = ? OR ?)
+         AND pp."STATUS" IN ('Approved','Rejected','Imported','Uploaded', 'ReplicatedMatchingProfile')
+       )"""
+    )
+
+  val queryGetBatchesStep1 = Q.query[(String, Boolean, Int, Int), (Long, String, java.sql.Date, Long, Long, Long, Long, Option[String], Long, Long, String)](
                           """SELECT bpp."ID", bpp."USER", bpp."DATE", sum(1) as "TOTAL",
                           sum(CASE WHEN pp."STATUS" = 'Imported' THEN 1 ELSE 0 END) as "APPROVED",
                           sum(CASE
@@ -200,14 +223,15 @@ class SlickProtoProfileRepository @Inject() (
                           FROM "APP"."BATCH_PROTO_PROFILE" bpp inner join "APP"."PROTO_PROFILE" pp
                           on (pp."ID_BATCH" = bpp."ID") WHERE (bpp."USER" = ? OR ?)
                           GROUP BY bpp."ID"
-                          ORDER BY bpp."ID" DESC""")
+                          ORDER BY bpp."ID" DESC
+                          LIMIT ? OFFSET ?""")
 
-  val queryGetBatchesStep2 = Q.query[(String, Boolean, String, Boolean), (Long, String, java.sql.Date, Long, Option[String], Long, String)](
+  val queryGetBatchesStep2 = Q.query[(String, Boolean, String, Boolean, String, Boolean, Int, Int), (Long, String, java.sql.Date, Long, Option[String], Long, String, Long)](
                           """SELECT bpp."ID", bpp."USER", bpp."DATE", (
                             	SELECT COUNT(*) as "TOTAL" FROM "APP"."PROTO_PROFILE" pp
                             	WHERE pp."ID_BATCH" = bpp."ID"
                             	AND (pp."ASSIGNEE" = ? OR ?)
-                            	AND pp."STATUS" IN ('Approved','Rejected','Imported','Uploaded')
+                            	AND pp."STATUS" IN ('Approved','Rejected','Imported','Uploaded', 'DesktopSearch','ReplicatedMatchingProfile')
                             ) as "TOTAL",
                             bpp."LABEL", (
                             SELECT COUNT(*) as "TOTAL_APPROVED" FROM "APP"."PROTO_PROFILE" pp
@@ -215,10 +239,20 @@ class SlickProtoProfileRepository @Inject() (
                               AND (pp."ASSIGNEE" = ? OR ?)
                               AND pp."STATUS" = 'Approved'
                             ) as "TOTAL_APPROVED",
-                            bpp."ANALYSISTYPE"
+                            bpp."ANALYSISTYPE",
+                            (SELECT COUNT(*) FROM "APP"."PROTO_PROFILE" pp
+                              WHERE pp."ID_BATCH" = bpp."ID"
+                            ) as "BATCH_TOTAL"
                             FROM "APP"."BATCH_PROTO_PROFILE" bpp
+                            WHERE EXISTS (
+                              SELECT 1 FROM "APP"."PROTO_PROFILE" pp
+                              WHERE pp."ID_BATCH" = bpp."ID"
+                              AND (pp."ASSIGNEE" = ? OR ?)
+                              AND pp."STATUS" IN ('Approved','Rejected','Imported','Uploaded', 'DesktopSearch','ReplicatedMatchingProfile')
+                            )
                             GROUP BY bpp."ID"
-                            ORDER BY bpp."ID" DESC""")
+                            ORDER BY bpp."ID" DESC
+                            LIMIT ? OFFSET ?""")
 
   val queryGetBatchesForModal = Q.query[(String,String), (Long, String, java.sql.Date)](
     """SELECT bpp."ID",  bpp."LABEL",bpp."DATE"
@@ -235,6 +269,7 @@ class SlickProtoProfileRepository @Inject() (
                             WHEN pp."STATUS" = 'Incomplete' THEN 1
                             WHEN pp."STATUS" = 'ReadyForApproval' THEN 1
                             WHEN pp."STATUS" = 'Approved' THEN 1
+                            WHEN pp."STATUS" = 'DesktopSearch' THEN 1
                             ELSE 0 END) as "PENDING",
                           sum(CASE
                             WHEN pp."STATUS" = 'Disapproved' THEN 1
@@ -269,13 +304,13 @@ class SlickProtoProfileRepository @Inject() (
   def countImported(idBatch: Long) = sql"""select COUNT(*) from "APP"."PROTO_PROFILE" where "ID_BATCH" = $idBatch and "STATUS" = 'Imported'""".as[Int]
 
   override def updateProtoProfileStatus(internalCode: String, status: String): Future[Int] = Future {
-    DB.withTransaction { implicit session =>
-      val q = for {
-        pp <- protoProfiles if pp.sampleName === internalCode
-      } yield (pp.status)
-      q.update(status)
+      DB.withTransaction { implicit session =>
+        val q = for {
+          pp <- protoProfiles if pp.sampleName === internalCode
+        } yield (pp.status)
+        q.update(status)
+      }
     }
-  }
 
   override def hasProfileDataFiliation(id: Long): Future[Boolean] = Future {
     DB.withSession { implicit session =>
@@ -388,20 +423,49 @@ class SlickProtoProfileRepository @Inject() (
     }
   }
 
-  override def getBatchesStep1(userId: String, isSuperUser: Boolean): Future[Seq[ProtoProfilesBatchView]] = Future {
+  override def getBatchesStep1(
+                       userId: String,
+                       isSuperUser: Boolean,
+                       offset: Int,
+                       limit: Int
+                     ): Future[Seq[ProtoProfilesBatchView]] = Future {
     DB.withSession { implicit session =>
-      queryGetBatchesStep1((userId, isSuperUser)).list map {
-        case (id, user, date, total, appr, pend, rejected, label, approvedstep1, incompletestep1,analysisType) =>
-          ProtoProfilesBatchView(id, user, date, total.toInt, appr.toInt, pend.toInt, rejected.toInt, label, approvedstep1.toInt, incompletestep1.toInt,analysisType)
-      }
+      queryGetBatchesStep1((userId, isSuperUser, limit, offset))
+        .list.map {
+          case (id, user, date, total, appr, pend, rejected, label, approvedstep1, incompletestep1, analysisType) =>
+            ProtoProfilesBatchView(
+              id, user, date,
+              total.toInt, appr.toInt, pend.toInt, rejected.toInt,
+              label, approvedstep1.toInt, incompletestep1.toInt, analysisType
+            )
+        }
     }
   }
 
-  override def getBatchesStep2(userId: String, geneMapperId : String, isSuperUser: Boolean): Future[Seq[ProtoProfilesBatchView]] = Future {
+
+  override def countBatchesStep1(userId: String, isSuperUser: Boolean): Future[Int] = Future {
     DB.withSession { implicit session =>
-      queryGetBatchesStep2((geneMapperId, isSuperUser, geneMapperId, isSuperUser)).list.filter(_._4 > 0). map {
-        case (id, user, date, total, label, totalApproved, analysisType) =>
-          ProtoProfilesBatchView(id, user, date, total.toInt, 0, 0, 0, label, totalApproved.toInt,0,analysisType)
+      queryCountBatchesStep1((userId, isSuperUser)).first
+    }
+  }
+
+  override def countBatchesStep2(userId: String, geneMapperId: String, isSuperUser: Boolean): Future[Int] = Future {
+    DB.withSession { implicit session =>
+      queryCountBatchesStep2((geneMapperId, isSuperUser)).first
+    }
+  }
+
+
+  override def getBatchesStep2(userId: String,
+                               geneMapperId : String,
+                               isSuperUser: Boolean,
+                               offset: Int,
+                               limit: Int
+                              ): Future[Seq[ProtoProfilesBatchView]] = Future {
+    DB.withSession { implicit session =>
+      queryGetBatchesStep2((geneMapperId, isSuperUser, geneMapperId, isSuperUser, geneMapperId, isSuperUser, limit, offset)).list.map {
+        case (id, user, date, total, label, totalApproved, analysisType, batchTotal) =>
+          ProtoProfilesBatchView(id, user, date, total.toInt, 0, 0, 0, label, totalApproved.toInt, 0, analysisType, batchTotal.toInt)
       }
     }
   }
@@ -578,6 +642,12 @@ class SlickProtoProfileRepository @Inject() (
     }};
   }
 
+  override def countAllProtoProfilesInBatch(batchId: Long): Future[Int] = Future {
+    DB.withSession { implicit session =>
+      protoProfiles.filter(_.idBatch === batchId).length.run
+    }
+  }
+
   def getBatchSearchModalViewByIdOrLabel(input:String,idCase:Long):Future[List[BatchModelView]] = Future{
     DB.withSession { implicit session =>
         queryGetBatchesForModal((input,input)).list map {
@@ -612,6 +682,17 @@ class SlickProtoProfileRepository @Inject() (
 
   }
 
+  def getProtoProfileStatus(internalCode: String): String = {
+    DB.withSession { implicit session =>
+      val query = for {
+        pp <- protoProfiles if pp.sampleName === internalCode
+      } yield pp.status  // Selecciona el campo STATUS
 
+      query.firstOption match {  // Obtiene el primer resultado opcional
+        case Some(status) => status  // Devuelve el status si se encuentra
+        case None => "Unknown"  // Valor por defecto si no se encuentra ningún registro
+      }
+    }
+  }
 
 }
