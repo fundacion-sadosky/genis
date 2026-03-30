@@ -273,7 +273,7 @@ define(['jquery', 'lodash'], function($, _) {
                 .changeStatus(id, status, sample.replicate, isDesktopSearchForThisProfile)
                 .then(function(response) {
                     if (response.data && response.data.length > 0) {
-                        // Backend devolvió errores
+                        // Backend devolvió errores: mostrarlos y no refrescar para que permanezcan visibles
                         if (batch.id) {
                             $scope.protoProfiles[batch.id].forEach(function(b) {
                                 if (b.id === id) {
@@ -283,9 +283,12 @@ define(['jquery', 'lodash'], function($, _) {
                         } else {
                             $scope.protoProfiles[0].errors = response.data;
                         }
+                        aprobados(batch.id);
+                        batch.isProcessing = false;
+                        return;
                     }
 
-                    // Siempre recalculamos “todosAprobados” con los datos actuales
+                    // Sin errores: refrescar (el perfil recargado no tendrá errors, borrándolos)
                     aprobados(batch.id);
 
                     // Recargamos el batch. Si venimos de una notificación, refrescamos

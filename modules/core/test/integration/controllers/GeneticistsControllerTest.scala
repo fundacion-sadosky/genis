@@ -14,7 +14,8 @@ import security.{StubRoleRepository, StubUserRepository, UserRepository}
 import services.{GeneticistService, UserService}
 import user.{LdapHealthService, RoleRepository, UsersModule}
 import kits.{StrKitModule, StrKitService}
-import types.{Geneticist, User}
+import types.Geneticist
+import security.User
 
 class GeneticistsControllerTest extends PlaySpec with GuiceOneAppPerTest {
 
@@ -62,9 +63,11 @@ class GeneticistsControllerTest extends PlaySpec with GuiceOneAppPerTest {
     }
 
     "list geneticist users sorted by name" in {
+      import user.UserStatus
+      import types.Permission
       val users = Seq(
-        User("Zoe", "Arias", 2L),
-        User("Ana", "López", 1L)
+        User("zoe", "Zoe", "Arias", "zoe@test.com", "GM01", Seq("geneticist"), Set.empty[Permission], UserStatus.active, "1234"),
+        User("ana", "Ana", "López", "ana@test.com", "GM02", Seq("geneticist"), Set.empty[Permission], UserStatus.active, "5678")
       )
       userStub.findUserAssignableResult = scala.concurrent.Future.successful(users)
 
@@ -72,9 +75,9 @@ class GeneticistsControllerTest extends PlaySpec with GuiceOneAppPerTest {
       val result = route(app, request).get
 
       status(result) mustBe OK
-      val parsed = contentAsJson(result).as[Seq[User]]
-      parsed.head.firstName mustBe "Ana"
-      parsed.last.firstName mustBe "Zoe"
+      val json = contentAsJson(result)
+      (json(0) \ "firstName").as[String] mustBe "Ana"
+      (json(1) \ "firstName").as[String] mustBe "Zoe"
     }
 
     "add geneticist successfully" in {

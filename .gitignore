@@ -45,6 +45,7 @@ bin/
 .agents
 AGENTS.md
 CLAUDE.md
+.claude/settings.local.json
 # mac
 .DS_Store
 

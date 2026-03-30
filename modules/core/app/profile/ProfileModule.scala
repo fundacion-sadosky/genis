@@ -46,7 +46,7 @@ class ProfileModule(environment: Environment, conf: Configuration) extends Abstr
 
     // Stub bindings for dependencies not yet migrated
     bind(classOf[connections.InterconnectionService]).to(classOf[connections.InterconnectionServiceStub])
-    bind(classOf[inbox.NotificationService]).to(classOf[inbox.NotificationServiceStub])
+    bind(classOf[inbox.NotificationService]).to(classOf[inbox.NoOpNotificationService])
     bind(classOf[kits.AnalysisTypeService]).to(classOf[kits.AnalysisTypeServiceStub])
     bind(classOf[kits.LocusService]).to(classOf[kits.LocusServiceStub])
     bind(classOf[kits.QualityParamsProvider]).to(classOf[kits.QualityParamsProviderStub])
