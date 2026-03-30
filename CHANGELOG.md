@@ -1,21 +1,92 @@
 # Changelog
 
-## Unreleased
+## [v5.1.13] - 2026-03-30
+
+_Si está actualizando el sistema por favor lea: [`UPGRADING.md`](https://github.com/fundacion-sadosky/genis/blob/main/UPGRADING.md)._
+
+### Added
+
+- **Desktop Search**: es posible ingresar un perfil para buscar coincidencias
+  sin que quede almacenado en la base de datos. El perfil se carga por archivo
+  marcando un checkbox que indica búsqueda de escritorio. Se respetan las normas
+  de admisibilidad, se listan los matches encontrados y se puede exportar el
+  reporte con el LR por defecto. Nada queda almacenado en la base.
+- **Réplica a instancia superior desde Aceptación Masiva**: es posible replicar
+  perfiles hacia la instancia superior directamente desde la pantalla de
+  Aceptación Masiva (paso 2), seleccionando perfiles individuales o el lote
+  completo.
+- **Exportar e importar la configuración del sistema**: es posible exportar e
+  importar la configuración completa del sistema (marcadores, kits, categorías
+  y sus tablas auxiliares). El botón de importación se deshabilita cuando ya
+  existen perfiles en el sistema.
+- **Cambio de categoría para perfiles de evidencia**: ahora también es posible
+  cambiar la categoría de perfiles de tipo evidencia, además de los indubitados.
+- **Notificación de baja de perfil en instancia superior**: cuando se da de baja
+  un perfil en la instancia superior, se envía una notificación a la instancia
+  inferior indicando la instancia que originó la baja. El perfil queda marcado
+  como No Replicado y puede volver a replicarse.
+- **Confirmación de coincidencia habilitada solo una vez**: el botón de confirmar
+  o descartar una coincidencia se deshabilita cuando la misma ya no está en
+  estado pendiente, evitando confirmaciones duplicadas.
+- **Herramienta de reporte en Aceptación Masiva**: se incorpora la herramienta
+  de generación de reportes en la pantalla de Aceptación Masiva, con más datos
+  en los reportes y filtros de fechas en los PDFs.
+- **Paginación en Aceptación Masiva**: se agrega paginación en los pasos 1 y 2
+  de la Aceptación Masiva para mejorar el manejo de lotes grandes.
+- Se registra el usuario correcto en la trazabilidad al aceptar o rechazar una
+  coincidencia.
+- Se modificaron los permisos para recibir notificaciones después de importar un
+  perfil desde una instancia inferior. Los usuarios que reciban la notificación
+  deben tener permiso para importar perfiles de una instancia inferior y recibir
+  notificaciones por interconexión de instancias.
 
 ### Fixed
 
-- Se modificaron los permisos para recibir notificaciones después de 
-  importar un perfil desde en una instancia inferior. Los usuarios que reciban
-  la notificación deben tener permiso para:
-  - Importar perfiles de una instancia inferior.
-  - Recibir notificaciones por interconexión de instancias.
-- Los superusuarios ya no reciben por defecto notificaciones de importación de
-  perfiles. Anteriormente, recibian la notificación pero no podían hacer 
-  nada a menos que tengan los permisos para:
-  - Importar perfiles de una instancia inferior.
-  - Recibir notificaciones por interconexión de instancias.
-  En ese caso, además se genera un mensaje de error por la falta de los 
-    permisos.
+- Se corrigió un error en la visualización de la tabla de perfiles en el paso 2
+  de Aceptación Masiva.
+- Se corrigió un error al cargar perfiles con campos vacíos en Aceptación Masiva.
+  ([#128](https://github.com/fundacion-sadosky/genis/issues/128)).
+- Se mejoró la visualización de mensajes de error en el paso 1 de Aceptación
+  Masiva.
+  ([#129](https://github.com/fundacion-sadosky/genis/issues/129)).
+- Se corrigieron los archivos de muestra en Aceptación Masiva.
+  ([#130](https://github.com/fundacion-sadosky/genis/issues/130)).
+- Se corrigió un error que producía notificaciones duplicadas al actualizar desde
+  una versión anterior.
+  ([#141](https://github.com/fundacion-sadosky/genis/issues/141)).
+- Se corrigió un error en la generación de reportes.
+  ([#162](https://github.com/fundacion-sadosky/genis/issues/162)).
+- Se deshabilita la opción de replicar a instancia superior cuando el perfil fue
+  utilizado en una búsqueda de Desktop Search.
+  ([#183](https://github.com/fundacion-sadosky/genis/issues/183)).
+- Se corrigió el auto-refresh del inbox al recibir notificaciones SSE.
+  ([#184](https://github.com/fundacion-sadosky/genis/issues/184)).
+- Se corrigió un error que impedía replicar el cambio de categoría de un perfil
+  que tenía una coincidencia local con un perfil ya replicado.
+  ([#182](https://github.com/fundacion-sadosky/genis/issues/182)).
+- Se corrigió un error que impedía replicar perfiles que tenían coincidencias ya
+  replicadas.
+  ([#195](https://github.com/fundacion-sadosky/genis/issues/195)).
+- Se optimizaron las consultas de reportes y se muestra un indicador
+  "Procesando..." mientras se genera el reporte.
+  ([#237](https://github.com/fundacion-sadosky/genis/issues/237)).
+- Se corrigió el límite máximo de alelos por marcador (trisomyThreshold + 1).
+  ([#242](https://github.com/fundacion-sadosky/genis/issues/242)).
+- Se corrigió el formato de fechas de datetime a date en varias pantallas.
+  ([#245](https://github.com/fundacion-sadosky/genis/issues/245)).
+- Se corrigió un error en la pantalla de Aceptación Masiva al acceder desde una
+  notificación.
+  ([#247](https://github.com/fundacion-sadosky/genis/issues/247)).
+- Se corrigió un error que no mantenía el mensaje de error al aceptar un perfil
+  en el paso 2 de Aceptación Masiva.
+  ([#251](https://github.com/fundacion-sadosky/genis/issues/251)).
+- Se corrigió un error por el cual, cuando dos instancias tenían un asignee con
+  el mismo nombre, se confirmaban o descartaban las coincidencias de ambas.
+  ([#252](https://github.com/fundacion-sadosky/genis/issues/252)).
+- Los perfiles descartados como coincidencia ya no se muestran coloreados como
+  perfiles con match en el listado de perfiles.
+
+[v5.2.0]: https://github.com/fundacion-sadosky/genis/releases/tag/v5.2.0
 
 ## v[5.1.12] - 2024-11-14
 
