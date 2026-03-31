@@ -166,7 +166,15 @@ class MatchingServiceSparkImpl @Inject() (
             canDiscardMatch(leftCode, rightCode, userName, isSuperUser) flatMap {
               allowed =>
                 if (allowed) {
-                  val res = matchingRepo.convertStatus(matchId, firingCode, discarded)
+                  val res = if (this.interconnectionService.isFromCurrentInstance(firingCode) &&
+                                this.interconnectionService.isFromCurrentInstance(matchingProfile.globalCode)) {
+                    for {
+                      codes1 <- matchingRepo.convertStatus(matchId, firingCode, discarded)
+                      codes2 <- matchingRepo.convertStatus(matchId, matchingProfile.globalCode, discarded)
+                    } yield codes1 ++ codes2
+                  } else {
+                    matchingRepo.convertStatus(matchId, firingCode, discarded)
+                  }
 
                   res.onSuccess({ case _ => {
                     traceService.add(Trace(firingCode, userName, new Date(),
@@ -231,7 +239,15 @@ class MatchingServiceSparkImpl @Inject() (
         //val userId = if (isRight) matchResult.get.rightProfile.assignee else matchResult.get.leftProfile.assignee
         val matchingProfile = if (isRight) matchResult.get.leftProfile else matchResult.get.rightProfile
 
-        val res = matchingRepo.convertStatus(matchId, firingCode, hit)
+        val res = if (this.interconnectionService.isFromCurrentInstance(firingCode) &&
+                      this.interconnectionService.isFromCurrentInstance(matchingProfile.globalCode)) {
+          for {
+            codes1 <- matchingRepo.convertStatus(matchId, firingCode, hit)
+            codes2 <- matchingRepo.convertStatus(matchId, matchingProfile.globalCode, hit)
+          } yield codes1 ++ codes2
+        } else {
+          matchingRepo.convertStatus(matchId, firingCode, hit)
+        }
         res.onSuccess({
           case _ => {
             traceService.add(Trace(firingCode, userName, new Date(),
