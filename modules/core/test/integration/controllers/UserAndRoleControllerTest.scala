@@ -18,7 +18,8 @@ import disclaimer.DisclaimerService
 import motive.{Motive, MotiveService, MotiveType}
 import security.{RoleService, StubRoleRepository, StubUserRepository, UserRepository}
 import services.UserService
-import user.{RoleRepository, UsersModule, Role, UserStatus, UserView}
+import user.{LdapHealthService, RoleRepository, UsersModule, Role, UserStatus, UserView}
+import fixtures.StubLdapHealthService
 import kits.{StrKitModule, StrKitService}
 import types.Permission
 
@@ -79,7 +80,8 @@ class UserAndRoleControllerTest extends PlaySpec with GuiceOneAppPerTest {
         bind[StrKitService].toInstance(new StubStrKitService),
         bind[DisclaimerService].toInstance(new StubDisclaimerService),
         bind[MotiveService].toInstance(new StubMotiveService),
-        bind[LDAPConnectionPool].toInstance(createInMemoryLdapPool())
+        bind[LDAPConnectionPool].toInstance(createInMemoryLdapPool()),
+        bind[LdapHealthService].toInstance(new StubLdapHealthService)
       )
       .configure("play.http.secret.key" -> "test-secret-key-for-testing-purposes-only-not-for-production-1234")
       .build()
