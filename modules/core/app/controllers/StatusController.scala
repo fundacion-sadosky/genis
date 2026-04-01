@@ -2,6 +2,7 @@ package controllers.core
 
 import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
 import javax.inject.{Inject, Singleton}
+import play.api.Logger
 import play.api.libs.json.Json
 import user.LdapHealthService
 import scala.util.{Failure, Success}
@@ -15,6 +16,8 @@ import scala.util.{Failure, Success}
 @Singleton
 class StatusController @Inject()(cc: ControllerComponents, ldapHealth: LdapHealthService)
   extends AbstractController(cc) {
+
+  private val logger = Logger(this.getClass)
 
   /**
    * Health check endpoint
@@ -60,7 +63,9 @@ class StatusController @Inject()(cc: ControllerComponents, ldapHealth: LdapHealt
   def ldapStatus(): Action[AnyContent] = Action {
     ldapHealth.checkStatus() match {
       case Success((status, vendor)) => Ok(Json.obj("ldap" -> status, "vendor" -> vendor))
-      case Failure(e)   => ServiceUnavailable(Json.obj("ldap" -> "DOWN", "error" -> e.getMessage))
+      case Failure(e)   =>
+        logger.error("Error al verificar estado de LDAP", e)
+        ServiceUnavailable(Json.obj("ldap" -> "DOWN", "error" -> "Error al verificar estado de LDAP"))
     }
   }
 }

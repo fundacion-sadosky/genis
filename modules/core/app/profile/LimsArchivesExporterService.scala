@@ -64,8 +64,12 @@ class LimsArchivesExporterServiceImpl @Inject()(
       profiles
         .filter(_.analyses.isDefined)
         .filter { p =>
-          val analisis = p.analyses.get.sortBy(_.date.date.getTime)
-          analisis.head.date.date.after(from.get) && analisis.head.date.date.before(to.get)
+          (from, to) match {
+            case (Some(fromDate), Some(toDate)) =>
+              val analisis = p.analyses.get.sortBy(_.date.date.getTime)
+              analisis.head.date.date.after(fromDate) && analisis.head.date.date.before(toDate)
+            case _ => true
+          }
         }
     }
   }

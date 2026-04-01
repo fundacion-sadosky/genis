@@ -1,13 +1,14 @@
 package unit.profile
 
-import org.scalatestplus.play.PlaySpec
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.{JsSuccess, Json}
 import profile.*
 import types.SampleCode
 
-class AnalysisTest extends PlaySpec {
+class AnalysisTest extends AnyWordSpec with Matchers {
 
-  "NewAnalysis" should {
+  "NewAnalysis" must {
 
     "serialize to JSON" in {
       val na = NewAnalysis(
@@ -66,7 +67,7 @@ class AnalysisTest extends PlaySpec {
     }
   }
 
-  "Analysis" should {
+  "Analysis" must {
 
     "serialize to JSON" in {
       val a = Analysis(
@@ -82,7 +83,7 @@ class AnalysisTest extends PlaySpec {
     }
   }
 
-  "FileUploadedType" should {
+  "FileUploadedType" must {
 
     "serialize to JSON" in {
       val f = FileUploadedType("file-123", "image.png")

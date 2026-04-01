@@ -1,12 +1,13 @@
 package unit.profile
 
-import org.scalatestplus.play.PlaySpec
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import profile.*
 import play.api.libs.json.{JsSuccess, Json}
 
-class AlleleValueTest extends PlaySpec {
+class AlleleValueTest extends AnyWordSpec with Matchers {
 
-  "AlleleValue" should {
+  "AlleleValue" must {
 
     "parse a decimal number" in {
       val av = AlleleValue("10")

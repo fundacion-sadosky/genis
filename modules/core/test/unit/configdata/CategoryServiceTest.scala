@@ -500,7 +500,7 @@ class CategoryServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
 
       val result = Await.result(service.exportCategories("/tmp/test-export.json"), duration)
       result.isLeft mustBe true
-      result.swap.toOption.get must include("connection lost")
+      result.swap.toOption.get must include("exportación")
     }
   }
 

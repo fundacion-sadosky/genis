@@ -276,7 +276,7 @@ class AuthServiceImpl @Inject() (
               cache.set(LoggedUserKey(userName), otp)
               Some(fullUser)
             } else {
-              logger.warn(s"Token $otp is expired or invalid for $userName")
+              logger.warn(s"Token is expired or invalid for $userName")
               None
             }
           } else {
