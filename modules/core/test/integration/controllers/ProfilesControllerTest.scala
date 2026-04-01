@@ -1,7 +1,7 @@
-package profile
+package integration.controllers
 
 import configdata.CategoryService
-import fixtures.{StubCacheService, StubCategoryService}
+import fixtures.{StubCacheService, StubCategoryService, StubLdapHealthService, StubProfileService, StubProfileExporterService, StubLimsArchivesExporterService}
 import org.scalatestplus.play._
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
 import play.api.Application
@@ -10,16 +10,15 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import security.{StubUserRepository, UserRepository}
+import profile.*
+import security.{StubUserRepository, StubRoleRepository, UserRepository}
 import services.CacheService
 import types.SampleCode
 import user.{LdapHealthService, RoleRepository, UsersModule}
-import security.StubRoleRepository
-import fixtures.StubLdapHealthService
 
 import scala.concurrent.Future
 
-class ProfilesControllerSpec extends PlaySpec with GuiceOneAppPerTest {
+class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest {
 
   private var profileStub: StubProfileService = _
   private var exportStub: StubProfileExporterService = _

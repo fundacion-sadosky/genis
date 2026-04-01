@@ -1,6 +1,7 @@
-package motive
+package integration.controllers
 
 import fixtures.StubLdapHealthService
+import motive.*
 import org.scalatestplus.play._
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
 import play.api.Application
@@ -14,7 +15,7 @@ import user.{LdapHealthService, RoleRepository, UsersModule}
 
 import scala.concurrent.Future
 
-class MotiveControllerSpec extends PlaySpec with GuiceOneAppPerTest {
+class MotiveControllerTest extends PlaySpec with GuiceOneAppPerTest {
 
   val stubMotiveService: MotiveService = new MotiveService {
     override def getMotives(motiveType: Long, editable: Boolean): Future[List[Motive]] =

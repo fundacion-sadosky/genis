@@ -1,7 +1,8 @@
-package profile
+package unit.profile
 
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.Json
+import profile.*
 
 class LabelTest extends PlaySpec {
 

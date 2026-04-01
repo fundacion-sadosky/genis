@@ -1,3 +1,5 @@
+package integration.controllers
+
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.test.Helpers._
@@ -6,7 +8,7 @@ import play.api.libs.json.Json
 import play.api.mvc._
 import play.api.Application
 
-class UserAndRoleEndpointsSpec extends PlaySpec with GuiceOneAppPerSuite {
+class UserAndRoleEndpointsTest extends PlaySpec with GuiceOneAppPerSuite {
   "User and Role endpoints" should {
     "respond to user signup POST with valid data" in {
       val json = Json.obj(
