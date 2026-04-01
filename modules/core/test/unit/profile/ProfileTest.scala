@@ -1,7 +1,8 @@
-package profile
+package unit.profile
 
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.{JsSuccess, Json}
+import profile.*
 import types.{AlphanumericId, SampleCode}
 
 class ProfileTest extends PlaySpec {

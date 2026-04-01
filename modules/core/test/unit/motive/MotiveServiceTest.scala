@@ -1,5 +1,6 @@
-package motive
+package unit.motive
 
+import motive.*
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
@@ -7,7 +8,7 @@ import org.scalatestplus.play.PlaySpec
 import scala.concurrent.duration.{Duration, SECONDS}
 import scala.concurrent.{Await, Future}
 
-class MotiveServiceSpec extends PlaySpec with MockitoSugar {
+class MotiveServiceTest extends PlaySpec with MockitoSugar {
 
   val duration = Duration(10, SECONDS)
 

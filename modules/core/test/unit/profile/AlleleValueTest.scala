@@ -1,6 +1,7 @@
-package profile
+package unit.profile
 
 import org.scalatestplus.play.PlaySpec
+import profile.*
 import play.api.libs.json.{JsSuccess, Json}
 
 class AlleleValueTest extends PlaySpec {

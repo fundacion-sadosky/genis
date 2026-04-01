@@ -1,5 +1,6 @@
-package configdata
+package unit.configdata
 
+import configdata.*
 import fixtures.CategoryFixtures._
 import fixtures.StubCacheService
 import org.mockito.Mockito.when

@@ -1,25 +1,13 @@
-package profile
+package fixtures
 
 import configdata.CategoryService
 import connections.FileInterconnection
-import fixtures.{StubCacheService, StubCategoryService}
 import kits.AnalysisType
 import matching.Stringency
-import org.scalatestplus.play._
-import org.scalatestplus.play.guice.GuiceOneAppPerTest
-import play.api.Application
-import play.api.inject.bind
-import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.Json
-import play.api.test.FakeRequest
-import play.api.test.Helpers._
+import profile.*
 import profile.GenotypificationByType.GenotypificationByType
 import profiledata.{ProfileData, ProfileDataRepository, ProfileDataService}
-import security.{StubUserRepository, UserRepository}
-import services.CacheService
 import types.{AlphanumericId, SampleCode}
-import user.{RoleRepository, UsersModule}
-import security.StubRoleRepository
 
 import java.io.File
 import scala.concurrent.Future

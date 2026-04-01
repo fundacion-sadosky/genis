@@ -1,8 +1,9 @@
-package profile
+package unit.profile
 
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.Json
 import matching.Stringency
+import profile.*
 import types.SampleCode
 
 class ProfileAsociationTest extends PlaySpec {

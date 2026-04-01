@@ -1,9 +1,11 @@
-package profile
+package unit.profile
 
+import fixtures.StubProfileService
 import org.mockito.Mockito.when
 import org.mockito.ArgumentMatchers.any
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
+import profile.*
 import types.{AlphanumericId, SampleCode}
 
 import scala.concurrent.{Await, Future}

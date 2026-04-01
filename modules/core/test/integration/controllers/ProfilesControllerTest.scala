@@ -1,7 +1,7 @@
-package profile
+package integration.controllers
 
 import configdata.CategoryService
-import fixtures.{StubCacheService, StubCategoryService}
+import fixtures.{StubCacheService, StubCategoryService, StubLdapHealthService, StubProfileService, StubProfileExporterService, StubLimsArchivesExporterService}
 import org.scalatestplus.play._
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
 import play.api.Application
@@ -10,15 +10,15 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import security.{StubUserRepository, UserRepository}
+import profile.*
+import security.{StubUserRepository, StubRoleRepository, UserRepository}
 import services.CacheService
 import types.SampleCode
-import user.{RoleRepository, UsersModule}
-import security.StubRoleRepository
+import user.{LdapHealthService, RoleRepository, UsersModule}
 
 import scala.concurrent.Future
 
-class ProfilesControllerSpec extends PlaySpec with GuiceOneAppPerTest {
+class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest {
 
   private var profileStub: StubProfileService = _
   private var exportStub: StubProfileExporterService = _
@@ -41,7 +41,8 @@ class ProfilesControllerSpec extends PlaySpec with GuiceOneAppPerTest {
         bind[ProfileExporterService].toInstance(exportStub),
         bind[LimsArchivesExporterService].toInstance(limsStub),
         bind[CategoryService].toInstance(new StubCategoryService),
-        bind[CacheService].toInstance(cacheStub)
+        bind[CacheService].toInstance(cacheStub),
+        bind[LdapHealthService].toInstance(new StubLdapHealthService)
       )
       .configure("play.http.secret.key" -> "test-secret-key-for-testing-purposes-only-not-for-production-1234")
       .build()
