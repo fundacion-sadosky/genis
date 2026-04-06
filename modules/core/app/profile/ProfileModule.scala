@@ -27,6 +27,11 @@ class ProfileModule(environment: Environment, conf: Configuration) extends Abstr
 
     bind(new TypeLiteral[Profile.LabelSets]() {}).annotatedWith(Names.named("labelsSet")).toInstance(getLabelsSets)
 
+    // MongoDB — singleton MongoDatabase with lifecycle management
+    import com.mongodb.client.MongoDatabase
+    bind(classOf[MongoDatabase]).toProvider(classOf[MongoDatabaseProvider]).asEagerSingleton()
+    bind(classOf[MongoHealthService]).to(classOf[MongoHealthServiceImpl])
+
     bind(classOf[ProfileRepository]).to(classOf[MongoProfileRepository])
 
     val exportProfilesPageSize = conf.get[Int]("exportProfilesPageSize")
