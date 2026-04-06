@@ -1,7 +1,6 @@
 package user
 
-import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.concurrent.duration.*
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 import scala.jdk.CollectionConverters.*
 
@@ -37,13 +36,14 @@ class LdapRoleRepository @Inject() (
     Role(entry.getAttribute("cn").getValue, entry.getAttribute("description").getValue, p)
   }
 
-  override def getRoles: Future[Seq[Role]] = Future {
+  private def fetchRolesSync(): Seq[Role] =
     val filter = Filter.createEqualityFilter("objectClass", "organizationalRole")
     searchAll(filter).flatMap(entry => entryToLdapRole(entry).toOption)
-  }
+
+  override def getRoles: Future[Seq[Role]] = Future { fetchRolesSync() }
 
   override def rolePermissionMap: Map[String, Set[Permission]] =
-    val roles = Await.result(getRoles, 10.seconds)
+    val roles = fetchRolesSync()
     logger.debug(roles.toString)
     roles.map(r => r.id -> r.permissions).toMap.withDefaultValue(Set.empty)
 
@@ -59,9 +59,9 @@ class LdapRoleRepository @Inject() (
 
   override def addRole(role: Role): Future[Boolean] = Future {
     withAdminConnection { connection =>
-      val existingRoles = Await.result(getRoles, 10.seconds)
+      val existingRoles = fetchRolesSync()
       if existingRoles.exists(_.id == role.id) then
-        Await.result(updateRole(role), 10.seconds)
+        updateRoleSync(role)
       else
         val baseAttributes = Seq(
           new Attribute("cn", role.id),
@@ -80,7 +80,7 @@ class LdapRoleRepository @Inject() (
     }
   }
 
-  override def updateRole(role: Role): Future[Boolean] = Future {
+  private def updateRoleSync(role: Role): Boolean =
     withAdminConnection { connection =>
       val modRs = new Modification(ModificationType.REPLACE, "street", role.permissions.map(_.toString).toSeq*)
       val modDesc = new Modification(ModificationType.REPLACE, "description", role.roleName)
@@ -93,7 +93,8 @@ class LdapRoleRepository @Inject() (
       connection.modify(modReq)
       true
     }
-  }
+
+  override def updateRole(role: Role): Future[Boolean] = Future { updateRoleSync(role) }
 
   override def deleteRole(id: String): Future[Boolean] = Future {
     withAdminConnection { connection =>

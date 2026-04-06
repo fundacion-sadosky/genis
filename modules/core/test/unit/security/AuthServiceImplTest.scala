@@ -431,7 +431,7 @@ class AuthServiceImplTest extends AnyWordSpec with Matchers with MockitoSugar {
       val service = buildService()
 
       val request = FakeRequest("GET", "/some/other/path")
-      service.verifyInferiorInstance(request) mustBe Success("/some/other/path")
+      Await.result(service.verifyInferiorInstance(request), timeout) mustBe Success("/some/other/path")
     }
 
     "return Success for blockeable URI when inferior instance is enabled" in {
@@ -443,7 +443,7 @@ class AuthServiceImplTest extends AnyWordSpec with Matchers with MockitoSugar {
       val request = FakeRequest("GET", "/superior/profile")
         .withHeaders("X-URL-INSTANCIA-INFERIOR" -> "pdg-devclient")
 
-      service.verifyInferiorInstance(request) mustBe Success("/superior/profile")
+      Await.result(service.verifyInferiorInstance(request), timeout) mustBe Success("/superior/profile")
     }
 
     "return Failure for blockeable URI when inferior instance is disabled" in {
@@ -458,7 +458,7 @@ class AuthServiceImplTest extends AnyWordSpec with Matchers with MockitoSugar {
       val request = FakeRequest("GET", "/superior/profile")
         .withHeaders("X-URL-INSTANCIA-INFERIOR" -> "pdg-devclient")
 
-      val result = service.verifyInferiorInstance(request)
+      val result = Await.result(service.verifyInferiorInstance(request), timeout)
       result.isFailure mustBe true
       result.failed.get mustBe a[IllegalAccessException]
     }
@@ -469,7 +469,7 @@ class AuthServiceImplTest extends AnyWordSpec with Matchers with MockitoSugar {
       val request = FakeRequest("GET", "/superior/profile")
       // No header
 
-      val result = service.verifyInferiorInstance(request)
+      val result = Await.result(service.verifyInferiorInstance(request), timeout)
       result.isFailure mustBe true
       result.failed.get mustBe a[IllegalAccessException]
     }
@@ -486,7 +486,7 @@ class AuthServiceImplTest extends AnyWordSpec with Matchers with MockitoSugar {
       val request = FakeRequest("GET", "/superior/profile")
         .withHeaders("X-URL-INSTANCIA-INFERIOR" -> "sup-url")
 
-      service.verifyInferiorInstance(request) mustBe Success("/superior/profile")
+      Await.result(service.verifyInferiorInstance(request), timeout) mustBe Success("/superior/profile")
     }
   }
 }
