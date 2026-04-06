@@ -144,3 +144,8 @@ class StubLdapHealthService extends user.LdapHealthService:
 class StubMongoHealthService extends profile.MongoHealthService:
   var result: Try[(String, String)] = Success(("UP", "StubDB"))
   override def checkStatus(): Try[(String, String)] = result
+
+@Singleton
+class StubPostgresHealthService extends configdata.PostgresHealthService:
+  var result: Try[(String, String)] = Success(("UP", "PostgreSQL 15.0"))
+  override def checkStatus(): Try[(String, String)] = result

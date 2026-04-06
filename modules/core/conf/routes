@@ -13,9 +13,8 @@ GET     /health                             controllers.core.StatusController.in
 # MongoDB status
 GET     /api/v2/mongo/status                controllers.core.MongoController.status()
 
-# PostgreSQL endpoints
-GET     /api/v2/postgres/ping               controllers.core.PostgresController.ping()
-GET     /api/v2/postgres/info               controllers.core.PostgresController.info()
+# PostgreSQL status
+GET     /api/v2/postgres/status             controllers.core.PostgresController.status()
 
 GET     /api/v2/crimeTypes                            controllers.CrimeTypes.list()
 # BioMaterialTypes endpoints (migrated from legacy)
