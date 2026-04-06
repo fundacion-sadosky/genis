@@ -10,10 +10,8 @@ GET     /api/v2/status/ldap                controllers.core.StatusController.lda
 # Health check (alias)
 GET     /health                             controllers.core.StatusController.index()
 
-# MongoDB/FerretDB endpoints
-GET     /api/v2/mongo/collections           controllers.core.MongoController.listCollections()
-GET     /api/v2/mongo/count/:collection     controllers.core.MongoController.countDocuments(collection: String)
-GET     /api/v2/mongo/stats                 controllers.core.MongoController.stats()
+# MongoDB status
+GET     /api/v2/mongo/status                controllers.core.MongoController.status()
 
 # PostgreSQL endpoints
 GET     /api/v2/postgres/ping               controllers.core.PostgresController.ping()

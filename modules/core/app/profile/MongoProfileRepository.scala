@@ -2,13 +2,12 @@ package profile
 
 import java.util.{Base64, Date}
 import javax.inject.{Inject, Singleton}
-import com.mongodb.client.{MongoClient, MongoClients, MongoCollection, MongoDatabase}
+import com.mongodb.client.{MongoCollection, MongoDatabase}
 import com.mongodb.client.model.{Filters, Projections, Sorts, Updates}
 import configdata.MatchingRule
 import connections.FileInterconnection
 import org.bson.Document
 import org.bson.types.{Binary, ObjectId}
-import play.api.Configuration
 import play.api.libs.json.*
 import profile.GenotypificationByType.GenotypificationByType
 import types.*
@@ -18,14 +17,8 @@ import scala.jdk.CollectionConverters.*
 
 @Singleton
 class MongoProfileRepository @Inject()(
-  config: Configuration
+  database: MongoDatabase
 )(implicit ec: ExecutionContext) extends ProfileRepository {
-
-  private val mongoUri = config.get[String]("mongodb.uri")
-  private val dbName = config.get[String]("mongodb.database")
-
-  private lazy val mongoClient: MongoClient = MongoClients.create(mongoUri)
-  private lazy val database: MongoDatabase = mongoClient.getDatabase(dbName)
 
   private def profiles: MongoCollection[Document] = database.getCollection("profiles")
   private def electropherograms: MongoCollection[Document] = database.getCollection("electropherograms")
