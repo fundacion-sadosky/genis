@@ -171,13 +171,6 @@ class ProfilesController @Inject()(
     }
   }
 
-  def removeAll(): Action[AnyContent] = Action.async {
-    profileService.removeAll().map {
-      case Left(e) => BadRequest(Json.obj("error" -> e))
-      case Right(pp) => Ok(Json.obj("fileId" -> pp))
-    }
-  }
-
   def removeProfile(globalCode: SampleCode): Action[AnyContent] = Action.async {
     profileService.removeProfile(globalCode).map {
       case Left(e) => BadRequest(Json.obj("error" -> e))

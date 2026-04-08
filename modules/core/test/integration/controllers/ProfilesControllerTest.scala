@@ -339,19 +339,6 @@ class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest {
     }
   }
 
-  "DELETE /api/v2/profiles/remove" must {
-    "return 200 on successful remove all" in {
-      val result = route(app, FakeRequest(DELETE, "/api/v2/profiles/remove")).get
-      status(result) mustBe OK
-    }
-
-    "return 400 when remove all fails" in {
-      profileStub.removeAllResult = Future.successful(Left("error"))
-      val result = route(app, FakeRequest(DELETE, "/api/v2/profiles/remove")).get
-      status(result) mustBe BAD_REQUEST
-    }
-  }
-
   "DELETE /api/v2/profiles/:profileId" must {
     "return 200 on successful delete" in {
       val result = route(app, FakeRequest(DELETE, "/api/v2/profiles/AR-B-IMBICE-1")).get

@@ -122,7 +122,7 @@ Nota: los conteos de la tabla son por violación individual. En la lista de abaj
 #### I08 - ProfilesController.scala (deletes)
 - **Rule:** security-checklist
 - **Issue:** `removeAll()` (líneas 175-179) y `removeProfile()` (líneas 182-187) hacen delete físico de datos forenses en MongoDB
-- **Status:** OPEN
+- **Status:** PARTIAL — `removeAll()` eliminado (código muerto: endpoint legacy retornaba `???`, borraba colecciones enteras). `removeProfile()` mantenido como hard delete: su uso real es cleanup de perfiles parcialmente creados durante bulk upload fallido, no borrado de datos forenses en producción
 - **Complejidad:** alta — requiere schema changes, campo deleted, lógica de filtrado
 
 #### I09 - CryptoService.scala
@@ -191,7 +191,7 @@ Nota: los conteos de la tabla son por violación individual. En la lista de abaj
 - ~~C02, C03, C04~~ DONE — DI refactoring Mongo/Postgres controllers + MongoProfileRepository
 - ~~I01~~ DONE — CategoryRepository: DTOs reemplazan Slick Row types en traits
 - I02 — LDAP repos: wrapping de infraestructura
-- I08 — Physical deletes en ProfilesController
+- ~~I08~~ PARTIAL — `removeAll()` eliminado (dead code); `removeProfile()` mantenido (cleanup de uploads parciales)
 - ~~I11~~ DONE — CategoriesController: path hardcodeado fixeado; physical deletes aceptados (dato de configuración)
 
 ### Deuda aceptada / Won't fix

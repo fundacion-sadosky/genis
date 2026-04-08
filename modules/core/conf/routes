@@ -139,7 +139,6 @@ POST    /api/v2/profile-exportToLims                                controllers.
 GET     /api/v2/get-profile-export/:user                            controllers.ProfilesController.getExportFile(user: String)
 GET     /api/v2/get-alta-file-export                                controllers.ProfilesController.getLimsAltaFile()
 GET     /api/v2/get-match-file-export                               controllers.ProfilesController.getLimsMatchFile()
-DELETE  /api/v2/profiles/remove                                     controllers.ProfilesController.removeAll()
 DELETE  /api/v2/profiles/:profileId                                 controllers.ProfilesController.removeProfile(profileId: types.SampleCode)
 
 # Population Base Frequency (Frecuencia Base Poblacional)

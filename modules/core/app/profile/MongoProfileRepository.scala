@@ -436,13 +436,6 @@ class MongoProfileRepository @Inject()(
     Right(id)
   }
 
-  override def removeAll(): Future[Either[String, String]] = Future {
-    profiles.deleteMany(new Document())
-    files.deleteMany(new Document())
-    electropherograms.deleteMany(new Document())
-    Right("all")
-  }
-
   override def removeProfile(globalCode: SampleCode): Future[Either[String, String]] = Future {
     profiles.findOneAndDelete(Filters.eq("_id", globalCode.text))
     Right(globalCode.text)

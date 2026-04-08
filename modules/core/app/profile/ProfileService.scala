@@ -79,8 +79,6 @@ trait ProfileService {
   def removeFile(id: String, user: String): Future[Either[String, String]]
   def removeEpg(id: String, user: String): Future[Either[String, String]]
 
-  def removeAll(): Future[Either[String, String]]
-
   def removeProfile(globalCode: SampleCode): Future[Either[String, String]]
   def profilesAll(): Future[List[(SampleCode, String)]]
 }
@@ -714,10 +712,6 @@ class ProfileServiceImpl @Inject()(
         }
       }
     }
-  }
-
-  override def removeAll(): Future[Either[String, String]] = {
-    this.profileRepository.removeAll()
   }
 
   override def removeProfile(globalCode: SampleCode): Future[Either[String, String]] = {

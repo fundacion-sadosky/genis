@@ -154,12 +154,6 @@ class ProfileServiceTest extends AnyWordSpec with Matchers with MockitoSugar {
       result mustBe Right("ok")
     }
 
-    "removeAll returns Right on success" in {
-      val service = new StubProfileService
-      val result = Await.result(service.removeAll(), timeout)
-      result mustBe Right("ok")
-    }
-
     "removeProfile returns Right on success" in {
       val service = new StubProfileService
       val result = Await.result(service.removeProfile(sc), timeout)
