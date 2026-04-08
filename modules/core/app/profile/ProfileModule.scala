@@ -54,7 +54,6 @@ class ProfileModule(environment: Environment, conf: Configuration) extends Abstr
     bind(classOf[matching.MatchingRepository]).to(classOf[matching.MatchingRepositoryStub])
     bind(classOf[matching.MatchingService]).to(classOf[matching.MatchingServiceStub])
     bind(classOf[pedigree.PedigreeService]).to(classOf[pedigree.PedigreeServiceStub])
-    bind(classOf[probability.ProbabilityService]).to(classOf[probability.ProbabilityServiceStub])
     bind(classOf[profiledata.ProfileDataRepository]).to(classOf[profiledata.ProfileDataRepositoryStub])
     bind(classOf[profiledata.ProfileDataService]).to(classOf[profiledata.ProfileDataServiceStub])
     bind(classOf[trace.TraceService]).to(classOf[trace.TraceServiceStub])
