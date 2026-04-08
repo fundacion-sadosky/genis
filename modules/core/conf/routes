@@ -153,3 +153,10 @@ GET     /api/v2/populationBaseFreqCharacteristics     controllers.PopulationBase
 GET     /api/v2/populationBaseFreq/:name              controllers.PopulationBaseFreqController.getByName(name: String)
 PUT     /api/v2/populationBaseFreq/:name              controllers.PopulationBaseFreqController.toggleStateBase(name: String)
 PUT     /api/v2/populationBaseFreqDefault/:name       controllers.PopulationBaseFreqController.setBaseAsDefault(name: String)
+
+# Operation Log (audit)
+GET     /api/v2/operationLog                          controllers.OperationLogsController.getLogLots(page: Int, pageSize: Int)
+HEAD    /api/v2/operationLog                          controllers.OperationLogsController.getTotalLots
+POST    /api/v2/operationLogLot                       controllers.OperationLogsController.getTotalLogs
+POST    /api/v2/operationLogSearch                    controllers.OperationLogsController.searchLogs
+GET     /api/v2/operationLog/:id/verification         controllers.OperationLogsController.checkLogLot(id: Long)

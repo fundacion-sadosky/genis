@@ -318,4 +318,58 @@ object Tables {
                       (PopulationBaseFrequencyRow.tupled, PopulationBaseFrequencyRow.unapply)
     }
     val PopulationBaseFrequency = TableQuery[PopulationBaseFrequencyTable]
+
+  // ---------------------------------------------------------------------------
+  // Operation Log tables (audit / LOG_DB schema)
+  // ---------------------------------------------------------------------------
+
+  case class OperationLogLotRow(id: Long, keyZero: String, initTime: java.sql.Timestamp)
+
+  class OperationLogLotTable(tag: Tag)
+      extends Table[OperationLogLotRow](tag, Some("LOG_DB"), "OPERATION_LOG_LOT") {
+    def id       = column[Long]("ID", O.PrimaryKey, O.AutoInc)
+    def keyZero  = column[String]("KEY_ZERO", O.Length(200, varying = true))
+    def initTime = column[java.sql.Timestamp]("INIT_TIME")
+    def *        = (id, keyZero, initTime) <> ((OperationLogLotRow.apply _).tupled, OperationLogLotRow.unapply)
+  }
+  val OperationLogLot = TableQuery[OperationLogLotTable]
+
+  case class OperationLogRecordRow(
+    id:          Long,
+    userId:      String,
+    otp:         Option[String],
+    timestamp:   java.sql.Timestamp,
+    method:      String,
+    path:        String,
+    action:      String,
+    buildNo:     String,
+    result:      Option[String],
+    status:      Int,
+    signature:   String,
+    lot:         Long,
+    description: String
+  )
+
+  class OperationLogRecordTable(tag: Tag)
+      extends Table[OperationLogRecordRow](tag, Some("LOG_DB"), "OPERATION_LOG_RECORD") {
+    def id          = column[Long]("ID", O.PrimaryKey, O.AutoInc)
+    def userId      = column[String]("USER_ID", O.Length(50, varying = true))
+    def otp         = column[Option[String]]("OTP", O.Length(50, varying = true))
+    def timestamp   = column[java.sql.Timestamp]("TIMESTAMP")
+    def method      = column[String]("METHOD", O.Length(50, varying = true))
+    def path        = column[String]("PATH", O.Length(1024, varying = true))
+    def action      = column[String]("ACTION", O.Length(512, varying = true))
+    def buildNo     = column[String]("BUILD_NO", O.Length(150, varying = true))
+    def result      = column[Option[String]]("RESULT", O.Length(150, varying = true))
+    def status      = column[Int]("STATUS")
+    def signature   = column[String]("SIGNATURE", O.Length(8192, varying = true))
+    def lot         = column[Long]("LOT")
+    def description = column[String]("DESCRIPTION", O.Length(1024, varying = true))
+    def lotFk       = foreignKey("OPERATION_LOG_RECORD_FK", lot, OperationLogLot)(_.id,
+                        onUpdate = ForeignKeyAction.NoAction, onDelete = ForeignKeyAction.NoAction)
+    def *           = (id, userId, otp, timestamp, method, path, action, buildNo, result,
+                        status, signature, lot, description) <>
+                      ((OperationLogRecordRow.apply _).tupled, OperationLogRecordRow.unapply)
+  }
+  val OperationLogRecord = TableQuery[OperationLogRecordTable]
 }
