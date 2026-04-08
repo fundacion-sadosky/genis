@@ -86,7 +86,7 @@ Nota: los conteos de la tabla son por violación individual. En la lista de abaj
 #### I02 - LdapRepository.scala + LdapRoleRepository.scala + LdapUserRepository.scala
 - **Rule:** dependency-injection
 - **Issue:** Inyectan `LDAPConnectionPool`/`LDAPConnection` directamente sin wrapper project-owned
-- **Status:** OPEN
+- **Status:** FIXED — creado `LdapConnectionProvider` (trait + impl) que encapsula pool y search connection; repos, health service y UsersModule usan el provider en vez de tipos raw de UnboundID
 - **Complejidad:** media — pero LdapConnectionPoolFactory ya existe como wrapper parcial
 
 #### I03 - LdapRoleRepository.scala (Await)
@@ -190,7 +190,7 @@ Nota: los conteos de la tabla son por violación individual. En la lista de abaj
 ### Requiere decisión de diseño
 - ~~C02, C03, C04~~ DONE — DI refactoring Mongo/Postgres controllers + MongoProfileRepository
 - ~~I01~~ DONE — CategoryRepository: DTOs reemplazan Slick Row types en traits
-- I02 — LDAP repos: wrapping de infraestructura
+- ~~I02~~ DONE — LDAP repos: wrapping de infraestructura con LdapConnectionProvider
 - ~~I08~~ PARTIAL — `removeAll()` eliminado (dead code); `removeProfile()` mantenido (cleanup de uploads parciales)
 - ~~I11~~ DONE — CategoriesController: path hardcodeado fixeado; physical deletes aceptados (dato de configuración)
 

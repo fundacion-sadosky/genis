@@ -18,16 +18,13 @@ abstract class RoleRepository:
 
 @Singleton
 class LdapRoleRepository @Inject() (
-    bindConnectionPool: LDAPConnectionPool,
-    searchConnection: LDAPConnection,
+    val ldap: LdapConnectionProvider,
     @Named("rolesDn") rolesDn: String,
     @Named("adminDn") adminDn: String,
     @Named("adminPassword") adminPassword: String
 )(using ec: ExecutionContext) extends RoleRepository with LdapRepository:
 
   val baseDn: DN = new DN(rolesDn)
-  val baseSearchConnection: LDAPConnection = searchConnection
-  val baseBindConnectionPool: LDAPConnectionPool = bindConnectionPool
 
   private val entryToLdapRole = (entry: SearchResultEntry) => Try {
     val p: Set[Permission] = entry.getAttributeValues("street") match

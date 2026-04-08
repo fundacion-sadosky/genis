@@ -12,16 +12,13 @@ import security.{LdapUser, UserRepository}
 
 @Singleton
 class LdapUserRepository @Inject() (
-    bindConnectionPool: LDAPConnectionPool,
-    searchConnection: LDAPConnection,
+    val ldap: LdapConnectionProvider,
     @Named("usersDn") usersDn: String,
     @Named("adminDn") adminDn: String,
     @Named("adminPassword") adminPassword: String
 )(using ec: ExecutionContext) extends UserRepository with LdapRepository:
 
   val baseDn: DN = new DN(usersDn)
-  val baseSearchConnection: LDAPConnection = searchConnection
-  val baseBindConnectionPool: LDAPConnectionPool = bindConnectionPool
 
   private val entryToLdapUser = (entry: SearchResultEntry) => Try {
     try {
