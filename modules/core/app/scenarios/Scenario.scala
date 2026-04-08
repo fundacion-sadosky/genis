@@ -3,7 +3,8 @@ package scenarios
 import play.api.libs.json.*
 import play.api.libs.functional.syntax.*
 import probability.LRResult
-import java.util.{Date, UUID}
+import org.bson.types.ObjectId
+import java.util.Date
 import scenarios.ScenarioStatus.ScenarioStatus
 import matching.MongoId
 import types.MongoDate
@@ -23,7 +24,7 @@ case class Scenario(
 object Scenario:
 
   implicit val scenarioReads: Reads[Scenario] = (
-    (__ \ "_id").read[MongoId].orElse(Reads.pure(MongoId(UUID.randomUUID().toString))) and
+    (__ \ "_id").read[MongoId].orElse(Reads.pure(MongoId(ObjectId().toString))) and
     (__ \ "name").read[String] and
     (__ \ "state").read[ScenarioStatus].orElse(Reads.pure(ScenarioStatus.Pending)) and
     (__ \ "geneticist").read[String] and

@@ -8,6 +8,7 @@ import scenarios.ScenarioStatus.*
 import matching.MongoId
 import types.{MongoDate, SampleCode, AlphanumericId, StatOption}
 import probability.LRResult
+import org.bson.types.ObjectId
 
 import java.util.Date
 
@@ -28,6 +29,20 @@ class ScenarioModelsTest extends AnyWordSpec with Matchers:
 
     "fail on unknown value" in {
       JsString("Unknown").validate[ScenarioStatus].isError mustBe true
+    }
+
+    "reject non-string JSON" in {
+      JsNumber(0).validate[ScenarioStatus].isError mustBe true
+      JsNumber(999).validate[ScenarioStatus].isError mustBe true
+      Json.obj("value" -> "Pending").validate[ScenarioStatus].isError mustBe true
+    }
+  }
+
+  "MongoId" must {
+    "reject non-object JSON" in {
+      JsString("507f1f77bcf86cd799439011").validate[MongoId].isError mustBe true
+      JsNumber(123).validate[MongoId].isError mustBe true
+      JsNull.validate[MongoId].isError mustBe true
     }
   }
 
@@ -162,6 +177,90 @@ class ScenarioModelsTest extends AnyWordSpec with Matchers:
       scenario.isRestricted mustBe false
       scenario.result mustBe None
       scenario.description mustBe None
+    }
+
+    "deserialize from MongoDB Extended JSON format" in {
+      val oid = new ObjectId()
+      val dateMillis = 1712592000000L
+      val json = Json.obj(
+        "_id" -> Json.obj("$oid" -> oid.toString),
+        "name" -> "Scenario Forense",
+        "state" -> "Validated",
+        "geneticist" -> "genetista1",
+        "calculationScenario" -> Json.obj(
+          "sample" -> "AR-B-LAB-1",
+          "prosecutor" -> Json.obj(
+            "selected" -> Json.arr("AR-B-LAB-2"),
+            "unselected" -> Json.arr(),
+            "unknowns" -> 3,
+            "dropOut" -> 0.4
+          ),
+          "defense" -> Json.obj(
+            "selected" -> Json.arr(),
+            "unselected" -> Json.arr("AR-B-LAB-3"),
+            "unknowns" -> 1,
+            "dropOut" -> 0.5
+          ),
+          "stats" -> Json.obj(
+            "frequencyTable" -> "A",
+            "probabilityModel" -> "1",
+            "theta" -> 1,
+            "dropIn" -> 0.4,
+            "dropOut" -> 0.5
+          )
+        ),
+        "date" -> Json.obj("$date" -> dateMillis),
+        "isRestricted" -> true,
+        "result" -> Json.obj(
+          "total" -> 1.5,
+          "detailed" -> Json.obj("TPOX" -> 2.0)
+        ),
+        "description" -> "Descripción del escenario"
+      )
+      val scenario = json.as[Scenario]
+      scenario._id mustBe MongoId(oid.toString)
+      scenario.name mustBe "Scenario Forense"
+      scenario.state mustBe ScenarioStatus.Validated
+      scenario.geneticist mustBe "genetista1"
+      scenario.date.date.getTime mustBe dateMillis
+      scenario.isRestricted mustBe true
+      scenario.result.get.total mustBe 1.5
+      scenario.result.get.detailed("TPOX") mustBe Some(2.0)
+      scenario.description mustBe Some("Descripción del escenario")
+      scenario.calculationScenario.prosecutor.unknowns mustBe 3
+      scenario.calculationScenario.defense.dropOut mustBe 0.5
+    }
+
+    "generate valid 24-hex-char ObjectId as default _id" in {
+      val json = Json.obj(
+        "name" -> "Test",
+        "geneticist" -> "user1",
+        "calculationScenario" -> Json.obj(
+          "sample" -> "AR-B-LAB-1",
+          "prosecutor" -> Json.obj(
+            "selected" -> Json.arr(),
+            "unselected" -> Json.arr(),
+            "unknowns" -> 0,
+            "dropOut" -> 0.0
+          ),
+          "defense" -> Json.obj(
+            "selected" -> Json.arr(),
+            "unselected" -> Json.arr(),
+            "unknowns" -> 0,
+            "dropOut" -> 0.0
+          ),
+          "stats" -> Json.obj(
+            "frequencyTable" -> "A",
+            "probabilityModel" -> "1",
+            "theta" -> 0,
+            "dropIn" -> 0
+          )
+        ),
+        "isRestricted" -> false
+      )
+      val scenario = json.as[Scenario]
+      scenario._id.id must have length 24
+      scenario._id.id must fullyMatch regex "[0-9a-f]{24}"
     }
 
     "round-trip serialize with full data" in {
