@@ -318,4 +318,38 @@ object Tables {
                       (PopulationBaseFrequencyRow.tupled, PopulationBaseFrequencyRow.unapply)
     }
     val PopulationBaseFrequency = TableQuery[PopulationBaseFrequencyTable]
+
+    // Trace table
+    case class TraceRow(id: Long, profile: String, user: String, date: java.sql.Timestamp, trace: String, kind: String)
+    object TraceRow {
+      def tupled = (apply _).tupled
+    }
+
+    class TraceTable(tag: Tag) extends Table[TraceRow](tag, Some("APP"), "TRACE") {
+      def id      = column[Long]("ID", O.AutoInc, O.PrimaryKey)
+      def profile = column[String]("PROFILE", O.Length(100, varying = true))
+      def user    = column[String]("USER", O.Length(50, varying = true))
+      def date    = column[java.sql.Timestamp]("DATE")
+      def trace   = column[String]("TRACE")
+      def kind    = column[String]("KIND", O.Length(100, varying = true))
+      def *       = (id, profile, user, date, trace, kind) <> (TraceRow.tupled, TraceRow.unapply)
+    }
+    val Trace = TableQuery[TraceTable]
+
+    // TracePedigree table
+    case class TracePedigreeRow(id: Long, pedigree: Long, user: String, date: java.sql.Timestamp, trace: String, kind: String)
+    object TracePedigreeRow {
+      def tupled = (apply _).tupled
+    }
+
+    class TracePedigreeTable(tag: Tag) extends Table[TracePedigreeRow](tag, Some("APP"), "TRACE_PEDIGREE") {
+      def id       = column[Long]("ID", O.AutoInc, O.PrimaryKey)
+      def pedigree = column[Long]("PEDIGREE")
+      def user     = column[String]("USER", O.Length(50, varying = true))
+      def date     = column[java.sql.Timestamp]("DATE")
+      def trace    = column[String]("TRACE")
+      def kind     = column[String]("KIND", O.Length(100, varying = true))
+      def *        = (id, pedigree, user, date, trace, kind) <> (TracePedigreeRow.tupled, TracePedigreeRow.unapply)
+    }
+    val TracePedigree = TableQuery[TracePedigreeTable]
 }

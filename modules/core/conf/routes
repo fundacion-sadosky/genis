@@ -145,6 +145,13 @@ GET     /api/v2/get-match-file-export                               controllers.
 DELETE  /api/v2/profiles/remove                                     controllers.ProfilesController.removeAll()
 DELETE  /api/v2/profiles/:profileId                                 controllers.ProfilesController.removeProfile(profileId: types.SampleCode)
 
+# Trace (trazabilidad)
+POST    /api/v2/trace/search                    controllers.Traces.search
+POST    /api/v2/trace/total                     controllers.Traces.count
+POST    /api/v2/trace/search-pedigree           controllers.Traces.searchPedigree
+POST    /api/v2/trace/total-pedigree            controllers.Traces.countPedigree
+GET     /api/v2/trace/full-description/:id      controllers.Traces.getFullDescription(id: Long)
+
 # Population Base Frequency (Frecuencia Base Poblacional)
 POST    /api/v2/populationBaseFreq                    controllers.PopulationBaseFreqController.uploadPopulationFile
 GET     /api/v2/populationBaseFreq                    controllers.PopulationBaseFreqController.getAllBaseNames
