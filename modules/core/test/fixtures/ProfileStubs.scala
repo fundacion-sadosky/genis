@@ -47,7 +47,6 @@ class StubProfileService extends ProfileService {
   var isReadOnlyResult: Future[(Boolean, String)] = Future.successful((false, ""))
   var removeFileResult: Future[Either[String, String]] = Future.successful(Right("ok"))
   var removeEpgResult: Future[Either[String, String]] = Future.successful(Right("ok"))
-  var removeAllResult: Future[Either[String, String]] = Future.successful(Right("ok"))
   var removeProfileResult: Future[Either[String, String]] = Future.successful(Right("ok"))
 
   override def create(na: NewAnalysis, savePictures: Boolean, replicate: Boolean) = createResult
@@ -93,7 +92,6 @@ class StubProfileService extends ProfileService {
   override def getFullFilesById(id: String) = Future.successful(List.empty)
   override def removeFile(id: String, user: String) = removeFileResult
   override def removeEpg(id: String, user: String) = removeEpgResult
-  override def removeAll() = removeAllResult
   override def removeProfile(gc: SampleCode) = removeProfileResult
   override def profilesAll() = Future.successful(List.empty)
 }

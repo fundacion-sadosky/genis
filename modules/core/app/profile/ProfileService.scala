@@ -22,10 +22,8 @@ import util.Misc
 import play.api.libs.json.Json
 import profile.Profile.Marker
 
-import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.language.postfixOps
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Right, Try}
-import scala.concurrent.duration.{Duration, SECONDS}
 
 trait ProfileService {
   def create(newAnalysis: NewAnalysis, savePictures: Boolean = true, replicate: Boolean = false): Future[Either[List[String], Profile]]
@@ -80,8 +78,6 @@ trait ProfileService {
 
   def removeFile(id: String, user: String): Future[Either[String, String]]
   def removeEpg(id: String, user: String): Future[Either[String, String]]
-
-  def removeAll(): Future[Either[String, String]]
 
   def removeProfile(globalCode: SampleCode): Future[Either[String, String]]
   def profilesAll(): Future[List[(SampleCode, String)]]
@@ -266,13 +262,12 @@ class ProfileServiceImpl @Inject()(
       kits <- kitService.list()
       loci <- locusService.list()
       categoryOpt <- categoryService.getCategory(categoryId)
-    } yield {
-      val category = categoryOpt.get
-      val kit = kitId.fold(
+      kit = kitId.fold(
         StrKit(null, null, `type`.get, analysis.size, analysis.size)
       )(id => kits.find(k => k.id == id).get)
-
-      val kitLoci = Await.result(kitService.findLociByKit(kit.id), Duration(10, SECONDS))
+      kitLoci <- kitService.findLociByKit(kit.id)
+    } yield {
+      val category = categoryOpt.get
       val requiredLociKit = kitLoci.count(p => p.required)
 
       val amel = analysis.filter(x => x._1.equals("AMEL")).get("AMEL")
@@ -351,20 +346,18 @@ class ProfileServiceImpl @Inject()(
       .flatMap { at => analysisTypeService.getById(at).map(opt => opt.get) }
   }
 
-  private def getAnalysisTypeOf(profile: Profile): List[AnalysisType] = {
-    if (profile.analyses.isDefined) {
-      profile.analyses.get.map(analisis =>
-        Await.result(getAnalysisType(Some(analisis.kit), analisis.`type`), Duration(20, SECONDS))
-      )
-    } else {
-      List.empty
+  private def getAnalysisTypeOf(profile: Profile): Future[List[AnalysisType]] =
+    profile.analyses match {
+      case Some(analyses) =>
+        Future.sequence(analyses.map(analisis => getAnalysisType(Some(analisis.kit), analisis.`type`)))
+      case None =>
+        Future.successful(List.empty)
     }
-  }
 
   private def validateMatchesAndPedigrees(profileOpt: Option[Profile], at: AnalysisType): Future[Either[String, String]] = {
     if (profileOpt.isDefined) {
       val profile = profileOpt.get
-      val analysisTypes = getAnalysisTypeOf(profile)
+      getAnalysisTypeOf(profile).flatMap { analysisTypes =>
       if (analysisTypes.contains(at)) {
         matchingService.matchesNotDiscarded(profile.globalCode).flatMap { results =>
           if (results.nonEmpty) Future.successful(Left(Messages("error.E0112")))
@@ -389,6 +382,7 @@ class ProfileServiceImpl @Inject()(
             }
           }
         }
+      }
       }
     } else Future.successful(Right(""))
   }
@@ -553,7 +547,9 @@ class ProfileServiceImpl @Inject()(
             }
           }
           newfut.recover {
-            case t: Throwable => Left(List(t.getMessage))
+            case t: Throwable =>
+              logger.error("Error creating profile", t)
+              Left(List("Error interno al crear el perfil"))
           }
         }
     }
@@ -716,10 +712,6 @@ class ProfileServiceImpl @Inject()(
         }
       }
     }
-  }
-
-  override def removeAll(): Future[Either[String, String]] = {
-    this.profileRepository.removeAll()
   }
 
   override def removeProfile(globalCode: SampleCode): Future[Either[String, String]] = {

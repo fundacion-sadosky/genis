@@ -81,7 +81,7 @@ class GeneticistsControllerTest extends PlaySpec with GuiceOneAppPerTest {
     }
 
     "add geneticist successfully" in {
-      genStub.addResult = scala.concurrent.Future.successful(42)
+      genStub.addResult = scala.concurrent.Future.successful(Right(42))
 
       val request = FakeRequest(POST, "/api/v2/geneticist").withBody(Json.toJson(geneticist))
       val result = route(app, request).get

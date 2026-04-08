@@ -2,7 +2,7 @@ package configdata
 
 import java.sql.SQLException
 import javax.inject.{Inject, Singleton}
-import models.Tables
+import play.api.Logger
 import play.api.i18n.MessagesApi
 import scala.concurrent.{ExecutionContext, Future}
 import services.{CacheService, CategoriesKey, CategoryTreeKey, CategoryTreeManualLoadingKey}
@@ -14,10 +14,10 @@ trait CategoryService {
   def listGroups: Future[Seq[Group]]
   def listCategoriesWithProfiles: Future[Map[AlphanumericId, String]]
   def categoryTreeManualLoading: Future[Category.CategoryTree]
-  def listConfigurations: Future[Seq[Tables.CategoryConfigurationRow]]
-  def listAssociations: Future[Seq[Tables.CategoryAssociationRow]]
-  def listAlias: Future[Seq[Tables.CategoryAliasRow]]
-  def listMatchingRules: Future[Seq[Tables.CategoryMatchingRow]]
+  def listConfigurations: Future[Seq[CategoryConfigurationExport]]
+  def listAssociations: Future[Seq[CategoryAssociationExport]]
+  def listAlias: Future[Seq[CategoryAliasExport]]
+  def listMatchingRules: Future[Seq[CategoryMatchingExport]]
 
   def getCategory(categoryId: AlphanumericId): Future[Option[FullCategory]]
   def getCategoryType(categoryId: AlphanumericId): Future[Option[String]]
@@ -53,6 +53,8 @@ class CategoryServiceImpl @Inject()(
   cache: CacheService,
   messagesApi: MessagesApi
 )(implicit ec: ExecutionContext) extends CategoryService {
+
+  private val logger = Logger(this.getClass)
 
   private implicit val messages: play.api.i18n.Messages =
     messagesApi.preferred(Seq.empty)
@@ -189,6 +191,9 @@ class CategoryServiceImpl @Inject()(
       val writer = new java.io.PrintWriter(filePath)
       try { writer.write(Json.prettyPrint(json)); Right(s"Exportación completada en: $filePath") }
       finally { writer.close() }
-    }.recover { case e => Left(s"Error durante la exportación: ${e.getMessage}") }
+    }.recover { case e =>
+        logger.error("Error durante la exportación de categorías", e)
+        Left("Error durante la exportación de categorías")
+      }
   }
 }

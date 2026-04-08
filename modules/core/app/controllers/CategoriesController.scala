@@ -2,8 +2,8 @@ package controllers
 
 import javax.inject.{Inject, Singleton}
 import configdata._
-import models.Tables
 import matching.{Algorithm, Stringency}
+import models.Tables
 import play.api.i18n.{Messages, MessagesApi}
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
@@ -38,7 +38,7 @@ class CategoriesController @Inject()(
     (JsPath \ "tipo").read[Int].orElse(Reads.pure(1))
   )(Tables.CategoryRow.apply _)
 
-  implicit val categoryConfigRowReads: Reads[Tables.CategoryConfigurationRow] = (
+  implicit val categoryConfigExportReads: Reads[CategoryConfigurationExport] = (
     (JsPath \ "id").read[Long] and
     (JsPath \ "category").read[String] and
     (JsPath \ "type").read[Int] and
@@ -48,14 +48,14 @@ class CategoriesController @Inject()(
     (JsPath \ "maxOverageDeviatedLoci").read[String].orElse(Reads.pure("0")) and
     (JsPath \ "maxAllelesPerLocus").read[Int].orElse(Reads.pure(6)) and
     (JsPath \ "multiallelic").read[Boolean].orElse(Reads.pure(false))
-  )(Tables.CategoryConfigurationRow.apply _)
+  )(CategoryConfigurationExport.apply _)
 
-  implicit val categoryAliasRowReads: Reads[Tables.CategoryAliasRow] = (
+  implicit val categoryAliasExportReads: Reads[CategoryAliasExport] = (
     (JsPath \ "alias").read[String] and
     (JsPath \ "category").read[String]
-  )(Tables.CategoryAliasRow.apply _)
+  )(CategoryAliasExport.apply _)
 
-  implicit val categoryMatchingRowReads: Reads[Tables.CategoryMatchingRow] = (
+  implicit val categoryMatchingExportReads: Reads[CategoryMatchingExport] = (
     (JsPath \ "id").read[Long] and
     (JsPath \ "category").read[String] and
     (JsPath \ "categoryRelated").read[String] and
@@ -68,15 +68,15 @@ class CategoriesController @Inject()(
     (JsPath \ "mismatchsAllowed").read[Int].orElse(Reads.pure(0)) and
     (JsPath \ "type").read[Int] and
     (JsPath \ "considerForN").read[Boolean].orElse(Reads.pure(true))
-  )(Tables.CategoryMatchingRow.apply _)
+  )(CategoryMatchingExport.apply _)
 
-  implicit val categoryAssocRowReads: Reads[Tables.CategoryAssociationRow] = (
+  implicit val categoryAssocExportReads: Reads[CategoryAssociationExport] = (
     (JsPath \ "id").read[Long] and
     (JsPath \ "category").read[String] and
     (JsPath \ "categoryRelated").read[String] and
     (JsPath \ "mismatchs").read[Int] and
     (JsPath \ "type").read[Int]
-  )(Tables.CategoryAssociationRow.apply _)
+  )(CategoryAssociationExport.apply _)
 
   implicit val categoryModificationReads: Reads[(AlphanumericId, AlphanumericId)] = (
     (JsPath \ "from").read[AlphanumericId] and
@@ -85,10 +85,7 @@ class CategoriesController @Inject()(
 
   // ─── Writes for export ───────────────────────────────────────────────────
 
-  implicit val categoryConfigRowWrites: Writes[Tables.CategoryConfigurationRow] = Json.writes[Tables.CategoryConfigurationRow]
-  implicit val categoryAssocRowWrites: Writes[Tables.CategoryAssociationRow]    = Json.writes[Tables.CategoryAssociationRow]
-  implicit val categoryAliasRowWrites: Writes[Tables.CategoryAliasRow]          = Json.writes[Tables.CategoryAliasRow]
-  implicit val categoryMatchingRowWrites: Writes[Tables.CategoryMatchingRow]    = Json.writes[Tables.CategoryMatchingRow]
+  // Writes derived from given Format instances in companion objects
 
   // ─── Read/write tree ─────────────────────────────────────────────────────
 
@@ -311,8 +308,9 @@ class CategoriesController @Inject()(
   }
 
   def exportCategories: Action[AnyContent] = Action.async {
-    categoryService.exportCategories("/tmp/categories.json").map {
-      case Right(_)  => Ok.sendFile(new java.io.File("/tmp/categories.json"), inline = false)
+    val tempFile = java.nio.file.Files.createTempFile("categories", ".json")
+    categoryService.exportCategories(tempFile.toString).map {
+      case Right(_)  => Ok.sendFile(tempFile.toFile, inline = false, fileName = _ => Some("categories.json"))
       case Left(err) => InternalServerError(err)
     }
   }
@@ -320,19 +318,17 @@ class CategoriesController @Inject()(
   // ─── Import ───────────────────────────────────────────────────────────────
 
   private def readJsonFile[T: Reads](file: MultipartFormData.FilePart[play.api.libs.Files.TemporaryFile]): Future[T] = Future {
-    val path = new java.io.File("/tmp/" + file.filename)
-    file.ref.moveTo(path, replace = true)
-    val src = scala.io.Source.fromFile(path, "UTF-8")
+    val src = scala.io.Source.fromFile(file.ref.path.toFile, "UTF-8")
     try Json.parse(src.mkString).as[T] finally src.close()
   }
 
-  private def toCategoryConfiguration(r: Tables.CategoryConfigurationRow): CategoryConfiguration =
+  private def toCategoryConfiguration(r: CategoryConfigurationExport): CategoryConfiguration =
     CategoryConfiguration(r.collectionUri, r.draftUri, r.minLocusPerProfile, r.maxOverageDeviatedLoci, r.maxAllelesPerLocus, r.multiallelic)
 
-  private def toCategoryAssociation(r: Tables.CategoryAssociationRow): CategoryAssociation =
+  private def toCategoryAssociation(r: CategoryAssociationExport): CategoryAssociation =
     CategoryAssociation(r.`type`, AlphanumericId(r.categoryRelated), r.mismatchs)
 
-  private def toMatchingRule(r: Tables.CategoryMatchingRow): MatchingRule =
+  private def toMatchingRule(r: CategoryMatchingExport): MatchingRule =
     MatchingRule(r.`type`, AlphanumericId(r.categoryRelated),
       Stringency.withName(r.minimumStringency), r.failOnMatch.getOrElse(false),
       r.forwardToUpper.getOrElse(false), Algorithm.withName(r.matchingAlgorithm),
@@ -354,10 +350,10 @@ class CategoriesController @Inject()(
           for {
             groups         <- readJsonFile[List[Group]](gf)
             categories     <- readJsonFile[List[Tables.CategoryRow]](cf)
-            configurations <- readJsonFile[List[Tables.CategoryConfigurationRow]](cnf)
-            associations   <- readJsonFile[List[Tables.CategoryAssociationRow]](af)
-            aliases        <- readJsonFile[List[Tables.CategoryAliasRow]](alF)
-            matchingRules  <- readJsonFile[List[Tables.CategoryMatchingRow]](mrf)
+            configurations <- readJsonFile[List[CategoryConfigurationExport]](cnf)
+            associations   <- readJsonFile[List[CategoryAssociationExport]](af)
+            aliases        <- readJsonFile[List[CategoryAliasExport]](alF)
+            matchingRules  <- readJsonFile[List[CategoryMatchingExport]](mrf)
             modifications  <- readJsonFile[List[(AlphanumericId, AlphanumericId)]](modf)
             mappings       <- readJsonFile[List[FullCategoryMapping]](mapF)
             result         <- processImport(groups, categories, configurations, associations, aliases, matchingRules, modifications, mappings)
@@ -370,10 +366,10 @@ class CategoriesController @Inject()(
   private def processImport(
     groups: List[Group],
     categories: List[Tables.CategoryRow],
-    configurations: List[Tables.CategoryConfigurationRow],
-    associations: List[Tables.CategoryAssociationRow],
-    aliases: List[Tables.CategoryAliasRow],
-    matchingRules: List[Tables.CategoryMatchingRow],
+    configurations: List[CategoryConfigurationExport],
+    associations: List[CategoryAssociationExport],
+    aliases: List[CategoryAliasExport],
+    matchingRules: List[CategoryMatchingExport],
     modifications: List[(AlphanumericId, AlphanumericId)],
     mappings: List[FullCategoryMapping]
   ): Future[play.api.mvc.Result] = {

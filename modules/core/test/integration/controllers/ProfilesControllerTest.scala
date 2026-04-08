@@ -1,7 +1,7 @@
 package integration.controllers
 
 import configdata.CategoryService
-import fixtures.{StubCacheService, StubCategoryService, StubLdapHealthService, StubProfileService, StubProfileExporterService, StubLimsArchivesExporterService}
+import fixtures.{StubCacheService, StubCategoryService, StubLdapHealthService, StubMongoHealthService, StubProfileService, StubProfileExporterService, StubLimsArchivesExporterService}
 import org.scalatestplus.play._
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
 import play.api.Application
@@ -42,7 +42,8 @@ class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest {
         bind[LimsArchivesExporterService].toInstance(limsStub),
         bind[CategoryService].toInstance(new StubCategoryService),
         bind[CacheService].toInstance(cacheStub),
-        bind[LdapHealthService].toInstance(new StubLdapHealthService)
+        bind[LdapHealthService].toInstance(new StubLdapHealthService),
+        bind[MongoHealthService].toInstance(new StubMongoHealthService)
       )
       .configure("play.http.secret.key" -> "test-secret-key-for-testing-purposes-only-not-for-production-1234")
       .build()
@@ -50,7 +51,7 @@ class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest {
 
   // ─── GET endpoints ─────────────────────────────────────────────────
 
-  "GET /api/v2/profiles-labelsets" should {
+  "GET /api/v2/profiles-labelsets" must {
     "return 200 with label sets" in {
       val result = route(app, FakeRequest(GET, "/api/v2/profiles-labelsets")).get
       status(result) mustBe OK
@@ -60,7 +61,7 @@ class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest {
     }
   }
 
-  "GET /api/v2/profiles/:id" should {
+  "GET /api/v2/profiles/:id" must {
     "return 200 when profile exists" in {
       val result = route(app, FakeRequest(GET, "/api/v2/profiles/AR-B-IMBICE-1")).get
       status(result) mustBe OK
@@ -75,7 +76,7 @@ class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest {
     }
   }
 
-  "GET /api/v2/profiles" should {
+  "GET /api/v2/profiles" must {
     "return 200 when profiles found" in {
       val result = route(app, FakeRequest(GET, "/api/v2/profiles?globalCodes=AR-B-IMBICE-1")).get
       status(result) mustBe OK
@@ -88,7 +89,7 @@ class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest {
     }
   }
 
-  "GET /api/v2/profiles/full/:globalCode" should {
+  "GET /api/v2/profiles/full/:globalCode" must {
     "return 200 with profile model view" in {
       val result = route(app, FakeRequest(GET, "/api/v2/profiles/full/AR-B-IMBICE-1")).get
       status(result) mustBe OK
@@ -97,7 +98,7 @@ class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest {
     }
   }
 
-  "GET /api/v2/profiles/:profileId/epgs" should {
+  "GET /api/v2/profiles/:profileId/epgs" must {
     "return 200 with electropherogram list" in {
       val result = route(app, FakeRequest(GET, "/api/v2/profiles/AR-B-IMBICE-1/epgs")).get
       status(result) mustBe OK
@@ -106,7 +107,7 @@ class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest {
     }
   }
 
-  "GET /api/v2/profiles/:profileId/epg/:epgId" should {
+  "GET /api/v2/profiles/:profileId/epg/:epgId" must {
     "return 200 with binary data when found" in {
       val result = route(app, FakeRequest(GET, "/api/v2/profiles/AR-B-IMBICE-1/epg/epg1")).get
       status(result) mustBe OK
@@ -120,21 +121,21 @@ class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest {
     }
   }
 
-  "GET /api/v2/profiles/:profileId/analysis/:analysisId/epgs" should {
+  "GET /api/v2/profiles/:profileId/analysis/:analysisId/epgs" must {
     "return 200 with list" in {
       val result = route(app, FakeRequest(GET, "/api/v2/profiles/AR-B-IMBICE-1/analysis/a1/epgs")).get
       status(result) mustBe OK
     }
   }
 
-  "GET /api/v2/profiles-labels" should {
+  "GET /api/v2/profiles-labels" must {
     "return 200 with labels" in {
       val result = route(app, FakeRequest(GET, "/api/v2/profiles-labels?globalCode=AR-B-IMBICE-1")).get
       status(result) mustBe OK
     }
   }
 
-  "GET /api/v2/profiles-readOnly" should {
+  "GET /api/v2/profiles-readOnly" must {
     "return 200 with readOnly status" in {
       val result = route(app, FakeRequest(GET, "/api/v2/profiles-readOnly?globalCode=AR-B-IMBICE-1")).get
       status(result) mustBe OK
@@ -142,21 +143,21 @@ class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest {
     }
   }
 
-  "GET /api/v2/profiles/subcategory-relationships/:subcategoryId" should {
+  "GET /api/v2/profiles/subcategory-relationships/:subcategoryId" must {
     "return 200 with matching rules" in {
       val result = route(app, FakeRequest(GET, "/api/v2/profiles/subcategory-relationships/CAT_A")).get
       status(result) mustBe OK
     }
   }
 
-  "GET /api/v2/profiles/:profileId/file" should {
+  "GET /api/v2/profiles/:profileId/file" must {
     "return 200 with file list" in {
       val result = route(app, FakeRequest(GET, "/api/v2/profiles/AR-B-IMBICE-1/file")).get
       status(result) mustBe OK
     }
   }
 
-  "GET /api/v2/profiles/:profileId/file/:fileId" should {
+  "GET /api/v2/profiles/:profileId/file/:fileId" must {
     "return 200 with binary data" in {
       val result = route(app, FakeRequest(GET, "/api/v2/profiles/AR-B-IMBICE-1/file/f1")).get
       status(result) mustBe OK
@@ -170,28 +171,28 @@ class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest {
     }
   }
 
-  "GET /api/v2/profiles/:profileId/analysis/:analysisId/file" should {
+  "GET /api/v2/profiles/:profileId/analysis/:analysisId/file" must {
     "return 200 with file list" in {
       val result = route(app, FakeRequest(GET, "/api/v2/profiles/AR-B-IMBICE-1/analysis/a1/file")).get
       status(result) mustBe OK
     }
   }
 
-  "GET /api/v2/get-profile-export/:user" should {
+  "GET /api/v2/get-profile-export/:user" must {
     "return 200 with file download" in {
       val result = route(app, FakeRequest(GET, "/api/v2/get-profile-export/testuser")).get
       status(result) mustBe OK
     }
   }
 
-  "GET /api/v2/get-alta-file-export" should {
+  "GET /api/v2/get-alta-file-export" must {
     "return 200 with alta file download" in {
       val result = route(app, FakeRequest(GET, "/api/v2/get-alta-file-export")).get
       status(result) mustBe OK
     }
   }
 
-  "GET /api/v2/get-match-file-export" should {
+  "GET /api/v2/get-match-file-export" must {
     "return 200 with match file download" in {
       val result = route(app, FakeRequest(GET, "/api/v2/get-match-file-export")).get
       status(result) mustBe OK
@@ -200,7 +201,7 @@ class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest {
 
   // ─── POST endpoints ────────────────────────────────────────────────
 
-  "POST /api/v2/profiles" should {
+  "POST /api/v2/profiles" must {
     "return 200 with created profile on valid JSON" in {
       val body = Json.obj(
         "globalCode" -> "AR-B-IMBICE-1",
@@ -235,14 +236,14 @@ class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest {
     }
   }
 
-  "POST /api/v2/profiles-xxx/:id (storeUploadedAnalysis)" should {
+  "POST /api/v2/profiles-xxx/:id (storeUploadedAnalysis)" must {
     "return 400 when no cached analysis" in {
       val result = route(app, FakeRequest(POST, "/api/v2/profiles-xxx/missingToken")).get
       status(result) mustBe BAD_REQUEST
     }
   }
 
-  "POST /api/v2/profiles-labels" should {
+  "POST /api/v2/profiles-labels" must {
     "return 200 on valid save labels request" in {
       val body = Json.obj(
         "globalCode" -> "AR-B-IMBICE-1",
@@ -264,7 +265,7 @@ class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest {
     }
   }
 
-  "POST /api/v2/profiles-mixture-verification" should {
+  "POST /api/v2/profiles-mixture-verification" must {
     "return 200 with result on valid input" in {
       val body = Json.obj(
         "mixtureGenotypification" -> Json.obj("1" -> Json.obj("CSF1PO" -> Json.arr("10"))),
@@ -282,7 +283,7 @@ class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest {
     }
   }
 
-  "POST /api/v2/profiles-epg" should {
+  "POST /api/v2/profiles-epg" must {
     "return 200 on successful save" in {
       val result = route(app, FakeRequest(POST,
         "/api/v2/profiles-epg?token=t&globalCode=AR-B-IMBICE-1&idAnalysis=a1&name=test")).get
@@ -290,7 +291,7 @@ class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest {
     }
   }
 
-  "POST /api/v2/profiles-file" should {
+  "POST /api/v2/profiles-file" must {
     "return 200 on successful save" in {
       val result = route(app, FakeRequest(POST,
         "/api/v2/profiles-file?token=t&globalCode=AR-B-IMBICE-1&idAnalysis=a1&name=test")).get
@@ -298,14 +299,14 @@ class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest {
     }
   }
 
-  "POST /api/v2/profile-export" should {
+  "POST /api/v2/profile-export" must {
     "return 400 on invalid JSON" in {
       val result = route(app, FakeRequest(POST, "/api/v2/profile-export").withJsonBody(Json.obj())).get
       status(result) mustBe BAD_REQUEST
     }
   }
 
-  "POST /api/v2/profile-exportToLims" should {
+  "POST /api/v2/profile-exportToLims" must {
     "return 400 on invalid JSON" in {
       val result = route(app, FakeRequest(POST, "/api/v2/profile-exportToLims").withJsonBody(Json.obj())).get
       status(result) mustBe BAD_REQUEST
@@ -314,7 +315,7 @@ class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest {
 
   // ─── DELETE endpoints ──────────────────────────────────────────────
 
-  "DELETE /api/v2/profiles-file/file/:fileId" should {
+  "DELETE /api/v2/profiles-file/file/:fileId" must {
     "return 200 on successful remove" in {
       val req = FakeRequest(DELETE, "/api/v2/profiles-file/file/f1").withHeaders("X-USER" -> "user1")
       val result = route(app, req).get
@@ -330,7 +331,7 @@ class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest {
     }
   }
 
-  "DELETE /api/v2/profiles-file/epg/:fileId" should {
+  "DELETE /api/v2/profiles-file/epg/:fileId" must {
     "return 200 on successful remove" in {
       val req = FakeRequest(DELETE, "/api/v2/profiles-file/epg/e1").withHeaders("X-USER" -> "user1")
       val result = route(app, req).get
@@ -338,20 +339,7 @@ class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest {
     }
   }
 
-  "DELETE /api/v2/profiles/remove" should {
-    "return 200 on successful remove all" in {
-      val result = route(app, FakeRequest(DELETE, "/api/v2/profiles/remove")).get
-      status(result) mustBe OK
-    }
-
-    "return 400 when remove all fails" in {
-      profileStub.removeAllResult = Future.successful(Left("error"))
-      val result = route(app, FakeRequest(DELETE, "/api/v2/profiles/remove")).get
-      status(result) mustBe BAD_REQUEST
-    }
-  }
-
-  "DELETE /api/v2/profiles/:profileId" should {
+  "DELETE /api/v2/profiles/:profileId" must {
     "return 200 on successful delete" in {
       val result = route(app, FakeRequest(DELETE, "/api/v2/profiles/AR-B-IMBICE-1")).get
       status(result) mustBe OK

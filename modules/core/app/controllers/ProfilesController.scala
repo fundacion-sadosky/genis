@@ -11,8 +11,7 @@ import services.{CacheService, UploadedAnalysisKey}
 import types.{AlphanumericId, SampleCode}
 
 import java.nio.file.Files
-import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.concurrent.duration.Duration
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class ProfilesController @Inject()(
@@ -172,13 +171,6 @@ class ProfilesController @Inject()(
     }
   }
 
-  def removeAll(): Action[AnyContent] = Action.async {
-    profileService.removeAll().map {
-      case Left(e) => BadRequest(Json.obj("error" -> e))
-      case Right(pp) => Ok(Json.obj("fileId" -> pp))
-    }
-  }
-
   def removeProfile(globalCode: SampleCode): Action[AnyContent] = Action.async {
     profileService.removeProfile(globalCode).map {
       case Left(e) => BadRequest(Json.obj("error" -> e))
@@ -211,36 +203,30 @@ class ProfilesController @Inject()(
     }
   }
 
-  def exporterProfiles(): Action[JsValue] = Action(parse.json) { request =>
+  def exporterProfiles(): Action[JsValue] = Action.async(parse.json) { request =>
     val user = request.session.get("X-USER").getOrElse("")
     request.body.validate[ExportProfileFilters].fold(
-      errors => BadRequest(JsError.toJson(errors)),
+      errors => Future.successful(BadRequest(JsError.toJson(errors))),
       input =>
-        Await.result(
-          profileExportService.filterProfiles(input).flatMap {
-            case Nil => Future.successful(BadRequest(Messages("error.E2000")))
-            case profileList =>
-              profileExportService.exportProfiles(profileList, user).map {
-                case Right(resourceName) => Ok(resourceName)
-                case Left(error) => BadRequest(error)
-              }
-          },
-          Duration.Inf
-        )
+        profileExportService.filterProfiles(input).flatMap {
+          case Nil => Future.successful(BadRequest(Messages("error.E2000")))
+          case profileList =>
+            profileExportService.exportProfiles(profileList, user).map {
+              case Right(resourceName) => Ok(resourceName)
+              case Left(error) => BadRequest(error)
+            }
+        }
     )
   }
 
-  def exporterLimsFiles(): Action[JsValue] = Action(parse.json) { request =>
+  def exporterLimsFiles(): Action[JsValue] = Action.async(parse.json) { request =>
     request.body.validate[ExportLimsFilesFilter].fold(
-      errors => BadRequest(JsError.toJson(errors)),
+      errors => Future.successful(BadRequest(JsError.toJson(errors))),
       input =>
-        Await.result(
-          limsArchivesExporterService.exportLimsFiles(input).flatMap {
-            case Right(resourceName) => Future.successful(Ok(resourceName))
-            case Left(error) => Future.successful(BadRequest(error))
-          },
-          Duration.Inf
-        )
+        limsArchivesExporterService.exportLimsFiles(input).map {
+          case Right(resourceName) => Ok(resourceName)
+          case Left(error) => BadRequest(error)
+        }
     )
   }
 

@@ -1,11 +1,12 @@
 package unit.profile
 
-import org.scalatestplus.play.PlaySpec
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.{JsSuccess, Json}
 import profile.*
 import types.{AlphanumericId, SampleCode}
 
-class ProfileTest extends PlaySpec {
+class ProfileTest extends AnyWordSpec with Matchers {
 
   val sampleCode = SampleCode("AR-B-IMBICE-1")
   val categoryId = AlphanumericId("SOSPECHOSO")
@@ -38,7 +39,7 @@ class ProfileTest extends PlaySpec {
     processed = false
   )
 
-  "Profile" should {
+  "Profile" must {
 
     "serialize to JSON" in {
       val json = Json.toJson(profile)
@@ -94,7 +95,7 @@ class ProfileTest extends PlaySpec {
     }
   }
 
-  "GenotypificationByType" should {
+  "GenotypificationByType" must {
 
     "serialize map with integer keys as strings" in {
       val json = Json.toJson(genotypificationByType)
@@ -109,7 +110,7 @@ class ProfileTest extends PlaySpec {
     }
   }
 
-  "ProfileModelView" should {
+  "ProfileModelView" must {
 
     "serialize to JSON" in {
       val view = ProfileModelView(

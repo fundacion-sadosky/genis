@@ -43,7 +43,7 @@ class MotiveControllerTest extends PlaySpec with GuiceOneAppPerTest {
       .configure("play.http.secret.key" -> "test-secret-key-for-testing-purposes-only-not-for-production-1234")
       .build()
 
-  "MotiveController" should {
+  "MotiveController" must {
 
     "return 200 OK for GET /api/v2/motive-types" in {
       val result = route(app, FakeRequest(GET, "/api/v2/motive-types")).get

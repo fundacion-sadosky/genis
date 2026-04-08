@@ -2,8 +2,7 @@ package security
 
 import java.util.{Base64, NoSuchElementException}
 
-import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.concurrent.duration.Duration
+import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
 import scala.util.{Failure, Success, Try}
 import scala.util.matching.Regex
@@ -173,7 +172,7 @@ abstract class AuthService {
   def isPublicResource(uri: String): Boolean
   def isBlockeableBySuperiorInstance(uri: String): Boolean
   def isInterconnectionResource(uri: String): Boolean
-  def verifyInferiorInstance(request: RequestHeader): Try[String]
+  def verifyInferiorInstance(request: RequestHeader): Future[Try[String]]
 }
 
 case class AuthorisationOperation(resource: String, action: String)
@@ -276,7 +275,7 @@ class AuthServiceImpl @Inject() (
               cache.set(LoggedUserKey(userName), otp)
               Some(fullUser)
             } else {
-              logger.warn(s"Token $otp is expired or invalid for $userName")
+              logger.warn(s"Token is expired or invalid for $userName")
               None
             }
           } else {
@@ -291,27 +290,31 @@ class AuthServiceImpl @Inject() (
     }
   }
 
-  def verifyInferiorInstance(request: RequestHeader): Try[String] = {
+  def verifyInferiorInstance(request: RequestHeader): Future[Try[String]] = {
     if (isBlockeableBySuperiorInstance(request.uri)) {
       val url = request.headers.get("X-URL-INSTANCIA-INFERIOR")
 
       url match {
         case Some(url) =>
-          val isEnabled = Await.result(inferiorInstanceRepository.isInferiorInstanceEnabled(url), Duration.Inf)
-          val isEnabledSuperior = Await.result(connectionRepository.getSupInstanceUrl(), Duration.Inf).contains(url)
-          if (isEnabled || isEnabledSuperior) {
-            Success(request.uri)
-          } else {
-            if (!isEnabled) {
-              Failure(new IllegalAccessException(s"Inferior instance is disabled"))
+          for {
+            isEnabled <- inferiorInstanceRepository.isInferiorInstanceEnabled(url)
+            supUrl <- connectionRepository.getSupInstanceUrl()
+          } yield {
+            val isEnabledSuperior = supUrl.contains(url)
+            if (isEnabled || isEnabledSuperior) {
+              Success(request.uri)
             } else {
-              Failure(new IllegalAccessException(s"Instance Unknown"))
+              if (!isEnabled) {
+                Failure(new IllegalAccessException(s"Inferior instance is disabled"))
+              } else {
+                Failure(new IllegalAccessException(s"Instance Unknown"))
+              }
             }
           }
-        case _ => Failure(new IllegalAccessException(s"Inferior instance is disabled"))
+        case _ => Future.successful(Failure(new IllegalAccessException(s"Inferior instance is disabled")))
       }
     } else {
-      Success(request.uri)
+      Future.successful(Success(request.uri))
     }
   }
 

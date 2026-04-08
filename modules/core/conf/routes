@@ -10,14 +10,11 @@ GET     /api/v2/status/ldap                controllers.core.StatusController.lda
 # Health check (alias)
 GET     /health                             controllers.core.StatusController.index()
 
-# MongoDB/FerretDB endpoints
-GET     /api/v2/mongo/collections           controllers.core.MongoController.listCollections()
-GET     /api/v2/mongo/count/:collection     controllers.core.MongoController.countDocuments(collection: String)
-GET     /api/v2/mongo/stats                 controllers.core.MongoController.stats()
+# MongoDB status
+GET     /api/v2/mongo/status                controllers.core.MongoController.status()
 
-# PostgreSQL endpoints
-GET     /api/v2/postgres/ping               controllers.core.PostgresController.ping()
-GET     /api/v2/postgres/info               controllers.core.PostgresController.info()
+# PostgreSQL status
+GET     /api/v2/postgres/status             controllers.core.PostgresController.status()
 
 GET     /api/v2/crimeTypes                            controllers.CrimeTypes.list()
 # BioMaterialTypes endpoints (migrated from legacy)
@@ -142,7 +139,6 @@ POST    /api/v2/profile-exportToLims                                controllers.
 GET     /api/v2/get-profile-export/:user                            controllers.ProfilesController.getExportFile(user: String)
 GET     /api/v2/get-alta-file-export                                controllers.ProfilesController.getLimsAltaFile()
 GET     /api/v2/get-match-file-export                               controllers.ProfilesController.getLimsMatchFile()
-DELETE  /api/v2/profiles/remove                                     controllers.ProfilesController.removeAll()
 DELETE  /api/v2/profiles/:profileId                                 controllers.ProfilesController.removeProfile(profileId: types.SampleCode)
 
 # Population Base Frequency (Frecuencia Base Poblacional)
