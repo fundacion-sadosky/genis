@@ -8,9 +8,10 @@ import play.api.Application
 
 class UserAndRoleEndpointsSpec extends PlaySpec with GuiceOneAppPerSuite {
   "User and Role endpoints" should {
-    "respond to user signup GET" in {
-      val result = route(app, FakeRequest(GET, "/api/v2/user/signup")).get
-      status(result) must (be (OK) or be (METHOD_NOT_ALLOWED))
+    "respond to user signup POST" in {
+      val json = Json.obj("firstName" -> "test", "lastName" -> "user")
+      val result = route(app, FakeRequest(POST, "/api/v2/user/signup").withJsonBody(json)).get
+      status(result) must (be (OK) or be (BAD_REQUEST))
     }
 
     "respond to user signup POST with valid data" in {

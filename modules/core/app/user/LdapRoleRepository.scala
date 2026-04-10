@@ -63,12 +63,16 @@ class LdapRoleRepository @Inject() (
       if existingRoles.exists(_.id == role.id) then
         Await.result(updateRole(role), 10.seconds)
       else
-        val attributes = Seq(
+        val baseAttributes = Seq(
           new Attribute("cn", role.id),
           new Attribute("description", role.roleName),
           new Attribute("ou", "Roles"),
           new Attribute("objectclass", Seq("organizationalRole", "top")*)
         )
+        val attributes =
+          if role.permissions.nonEmpty then
+            baseAttributes :+ new Attribute("street", role.permissions.map(_.toString).toSeq*)
+          else baseAttributes
         val rDn = new RDN("cn", role.id)
         val dn = new DN(rDn, baseDn)
         val addRequest = new AddRequest(dn, attributes*)

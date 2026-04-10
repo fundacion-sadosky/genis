@@ -1,7 +1,7 @@
 package profile
 
 import configdata.CategoryService
-import fixtures.{StubCacheService, StubCategoryService}
+import fixtures.{StubCacheService, StubCategoryService, StubLdapHealthService}
 import org.scalatestplus.play._
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
 import play.api.Application
@@ -13,7 +13,7 @@ import play.api.test.Helpers._
 import security.{StubUserRepository, UserRepository}
 import services.CacheService
 import types.SampleCode
-import user.{RoleRepository, UsersModule}
+import user.{LdapHealthService, RoleRepository, UsersModule}
 import security.StubRoleRepository
 
 import scala.concurrent.Future
@@ -41,7 +41,8 @@ class ProfilesControllerSpec extends PlaySpec with GuiceOneAppPerTest {
         bind[ProfileExporterService].toInstance(exportStub),
         bind[LimsArchivesExporterService].toInstance(limsStub),
         bind[CategoryService].toInstance(new StubCategoryService),
-        bind[CacheService].toInstance(cacheStub)
+        bind[CacheService].toInstance(cacheStub),
+        bind[LdapHealthService].toInstance(new StubLdapHealthService)
       )
       .configure("play.http.secret.key" -> "test-secret-key-for-testing-purposes-only-not-for-production-1234")
       .build()
