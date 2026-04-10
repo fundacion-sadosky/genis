@@ -13,13 +13,12 @@ import scala.concurrent.Future
 
 import com.unboundid.ldap.sdk.LDAPConnectionPool
 import com.unboundid.ldap.listener.{InMemoryDirectoryServer, InMemoryDirectoryServerConfig}
-import fixtures.{StubDisclaimerService, StubStrKitService, StubUserService}
+import fixtures.{StubDisclaimerService, StubLdapHealthService, StubStrKitService, StubUserService}
 import disclaimer.DisclaimerService
 import motive.{Motive, MotiveService, MotiveType}
 import security.{RoleService, StubRoleRepository, StubUserRepository, UserRepository}
 import services.UserService
 import user.{LdapHealthService, RoleRepository, UsersModule, Role, UserStatus, UserView}
-import fixtures.StubLdapHealthService
 import kits.{StrKitModule, StrKitService}
 import types.Permission
 
