@@ -31,6 +31,16 @@ object UserFixtures:
     status = UserStatus.pending
   )
 
+  val pendingResetLdapUser = ldapUser.copy(
+    userName = "resetuser",
+    status = UserStatus.pending_reset
+  )
+
+  val superLdapUser = ldapUser.copy(
+    userName = "superuser",
+    superuser = true
+  )
+
   val user = security.User(
     id = "testuser",
     firstName = "Test",

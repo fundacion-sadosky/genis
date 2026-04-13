@@ -58,7 +58,7 @@ define(['jquery', 'lodash'], function($, _) {
                     profiledataService.getIsProfileReplicableInternalCode(profile.sampleName)  // Use directly
                 ]).then(function(results) {
                     var isReplicated = !!results[0];
-                    var isReplicable = !!results[1];
+                    var isReplicable = !!results[1].data;
                     profile.replicated = isReplicated;
                     profile.replicable = isReplicable;
 
@@ -250,6 +250,7 @@ define(['jquery', 'lodash'], function($, _) {
                                     aprobados(batchId);
                                     updateAllReplicatedStatus(batchId);
                                     updateDisableReplicateAllStatus(batchId);
+                                    batch.isOpen = true;
                                 });
                             });
                     });
@@ -273,7 +274,7 @@ define(['jquery', 'lodash'], function($, _) {
                 .changeStatus(id, status, sample.replicate, isDesktopSearchForThisProfile)
                 .then(function(response) {
                     if (response.data && response.data.length > 0) {
-                        // Backend devolvió errores
+                        // Backend devolvió errores: mostrarlos y no refrescar para que permanezcan visibles
                         if (batch.id) {
                             $scope.protoProfiles[batch.id].forEach(function(b) {
                                 if (b.id === id) {
@@ -283,9 +284,12 @@ define(['jquery', 'lodash'], function($, _) {
                         } else {
                             $scope.protoProfiles[0].errors = response.data;
                         }
+                        aprobados(batch.id);
+                        batch.isProcessing = false;
+                        return;
                     }
 
-                    // Siempre recalculamos “todosAprobados” con los datos actuales
+                    // Sin errores: refrescar (el perfil recargado no tendrá errors, borrándolos)
                     aprobados(batch.id);
 
                     // Recargamos el batch. Si venimos de una notificación, refrescamos
@@ -391,8 +395,6 @@ define(['jquery', 'lodash'], function($, _) {
 
         notificationsService.onNotification(function(msg){
             if (msg.kind === 'matching') {
-                $timeout(() => {}, 1500);
-
                 $scope.shared.profileId = msg.info.globalCode;
                 console.debug("Profile defined on notification: ", $scope.shared.profileId);
                 $scope.shared.matches[msg.info.matchedProfile] = msg.info.matchingId;
@@ -402,6 +404,14 @@ define(['jquery', 'lodash'], function($, _) {
                     $scope.shared.profileData = response.data;
                 });
 
+                // Si se está viendo un perfil individual desde una notificación, refrescar
+                // para actualizar la posibilidad de replicar según si hay coincidencia replicada.
+                if ($scope.protoprofileId && $scope.batches.length > 0) {
+                    var batch = $scope.batches[0];
+                    if (batch.singleProfileId) {
+                        refreshSingleProfile(batch, batch.singleProfileId);
+                    }
+                }
             }
         });
 
@@ -559,17 +569,14 @@ define(['jquery', 'lodash'], function($, _) {
                     if (response.data.error) {
                         alertService.error({message: response.data.error});
                     } else {
-                        response.data.replicate = $scope.subcategory[response.data.category].replicate;
-                        response.data.replicateDisabled = !$scope.subcategory[response.data.category].replicate;
-                        if ($scope.subcategory[response.data.category].replicate) {
-                            response.data.replicate = false;
-                            response.data.replicateDisabled = false;
-                        } else {
-                            response.data.replicate = false;
-                            response.data.replicateDisabled = true;
-                        }
-                        $scope.protoProfiles[batchId] = $scope.protoProfiles[batchId].map(function(x){
-                            return (x.id === sample.id)? response.data: x;
+                        var profileUpdateHandler = createProfileUpdateHandler(
+                            $scope.subcategory,
+                            $scope.getIsProfileReplicatedInternalCode
+                        );
+                        profileUpdateHandler(response.data).then(function(updatedProfile) {
+                            $scope.protoProfiles[batchId] = $scope.protoProfiles[batchId].map(function(x){
+                                return (x.id === sample.id) ? updatedProfile : x;
+                            });
                         });
                     }
                     $scope.edit = '';

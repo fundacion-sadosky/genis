@@ -10,3 +10,11 @@ error.E0602=E0602: La modificación de categoría no fue encontrada.
 error.E0603=E0603: Las categorias de origin y destino deben ser diferentes.
 success.S0600=S0600: La modificación de categoría fue registrada exitosamente.
 success.S0601=S0601: La modificación de categoría fue eliminada correctamente.
+
+# User/Role errors
+error.E0641= E0641: No existe el usuario.
+error.E0650= E0650: El responsable ''{0}'' no es un usuario genetista del sistema.
+error.E0646= E0646: No se puede pasar el usuario del estado {0} al estado {1}.
+error.E0654= E0654: Existen usuarios asociados al rol.
+error.E0802= E0802: La sesión es inválida o ha expirado.
+error.E0803= E0803: Token inválido.

@@ -1,4 +1,4 @@
-package controllers
+package integration.controllers
 
 import configdata._
 import fixtures.{StubCategoryService, StubLdapHealthService, StubStrKitService}

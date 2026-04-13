@@ -172,16 +172,10 @@ class MongoMatchingRepository @Inject() (@Named("mongoUri") val mongoUri: String
     matches.find(find)
       .one[MatchResult] flatMap { matchResOpt =>
       matchResOpt.fold[Future[Seq[SampleCode]]](Future.successful(Nil))(matchRes => {
-        val leftAssignee = matchRes.leftProfile.globalCode
-        val rightAssignee = matchRes.rightProfile.globalCode
-
-        val update = if (matchRes.leftProfile.assignee == matchRes.rightProfile.assignee) {
-          (Json.obj("$set" -> Json.obj("leftProfile.status" -> status, "rightProfile.status" -> status)),
-            Seq(matchRes.leftProfile.globalCode, matchRes.rightProfile.globalCode))
-        } else if (rightAssignee == firingCode) {
+        val update = if (matchRes.rightProfile.globalCode == firingCode) {
           (Json.obj("$set" -> Json.obj("rightProfile.status" -> status)),
             Seq(matchRes.rightProfile.globalCode))
-        } else { //(leftAssignee == userId)
+        } else {
           (Json.obj("$set" -> Json.obj("leftProfile.status" -> status)),
             Seq(matchRes.leftProfile.globalCode))
         }

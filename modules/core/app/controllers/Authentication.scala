@@ -9,7 +9,7 @@ import play.api.libs.functional.syntax.*
 import play.api.libs.json.{Format, JsError, JsPath, Json, Reads, Writes, __}
 import play.api.mvc.*
 
-import security.{AuthService, AuthorisationOperation, RequestToken}
+import security.{AuthService, AuthorisationOperation, FullUser, RequestToken}
 import types.TotpToken
 
 case class UserPassword(userName: String, password: String, otp: TotpToken)
@@ -63,9 +63,7 @@ class Authentication @Inject() (
         val result = authService.authenticate(userPassword.userName.toLowerCase, userPassword.password, userPassword.otp)
         result.map { userOpt =>
           val response = userOpt.fold[Result](NotFound) { user =>
-            // TODO: FullUser no tiene un formato JSON completo aún
-            // Ok(Json.toJson(user))
-            Ok(Json.obj("userName" -> user.userDetail.id, "status" -> "authenticated"))
+            Ok(Json.toJson(user))
           }
           response
             .withHeaders("Date" -> new Date().toString)

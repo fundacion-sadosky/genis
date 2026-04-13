@@ -27,6 +27,11 @@ class ProfileModule(environment: Environment, conf: Configuration) extends Abstr
 
     bind(new TypeLiteral[Profile.LabelSets]() {}).annotatedWith(Names.named("labelsSet")).toInstance(getLabelsSets)
 
+    // MongoDB — singleton MongoDatabase with lifecycle management
+    import com.mongodb.client.MongoDatabase
+    bind(classOf[MongoDatabase]).toProvider(classOf[MongoDatabaseProvider]).asEagerSingleton()
+    bind(classOf[MongoHealthService]).to(classOf[MongoHealthServiceImpl])
+
     bind(classOf[ProfileRepository]).to(classOf[MongoProfileRepository])
 
     val exportProfilesPageSize = conf.get[Int]("exportProfilesPageSize")
@@ -46,7 +51,7 @@ class ProfileModule(environment: Environment, conf: Configuration) extends Abstr
 
     // Stub bindings for dependencies not yet migrated
     bind(classOf[connections.InterconnectionService]).to(classOf[connections.InterconnectionServiceStub])
-    bind(classOf[inbox.NotificationService]).to(classOf[inbox.NotificationServiceStub])
+    bind(classOf[inbox.NotificationService]).to(classOf[inbox.NoOpNotificationService])
     bind(classOf[kits.AnalysisTypeService]).to(classOf[kits.AnalysisTypeServiceStub])
     bind(classOf[kits.LocusService]).to(classOf[kits.LocusServiceStub])
     bind(classOf[kits.QualityParamsProvider]).to(classOf[kits.QualityParamsProviderStub])

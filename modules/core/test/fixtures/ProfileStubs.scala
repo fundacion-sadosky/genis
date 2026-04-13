@@ -1,25 +1,13 @@
-package profile
+package fixtures
 
 import configdata.CategoryService
 import connections.FileInterconnection
-import fixtures.{StubCacheService, StubCategoryService}
 import kits.AnalysisType
 import matching.Stringency
-import org.scalatestplus.play._
-import org.scalatestplus.play.guice.GuiceOneAppPerTest
-import play.api.Application
-import play.api.inject.bind
-import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.Json
-import play.api.test.FakeRequest
-import play.api.test.Helpers._
+import profile.*
 import profile.GenotypificationByType.GenotypificationByType
 import profiledata.{ProfileData, ProfileDataRepository, ProfileDataService}
-import security.{StubUserRepository, UserRepository}
-import services.CacheService
 import types.{AlphanumericId, SampleCode}
-import user.{RoleRepository, UsersModule}
-import security.StubRoleRepository
 
 import java.io.File
 import scala.concurrent.Future
@@ -59,7 +47,6 @@ class StubProfileService extends ProfileService {
   var isReadOnlyResult: Future[(Boolean, String)] = Future.successful((false, ""))
   var removeFileResult: Future[Either[String, String]] = Future.successful(Right("ok"))
   var removeEpgResult: Future[Either[String, String]] = Future.successful(Right("ok"))
-  var removeAllResult: Future[Either[String, String]] = Future.successful(Right("ok"))
   var removeProfileResult: Future[Either[String, String]] = Future.successful(Right("ok"))
 
   override def create(na: NewAnalysis, savePictures: Boolean, replicate: Boolean) = createResult
@@ -105,7 +92,6 @@ class StubProfileService extends ProfileService {
   override def getFullFilesById(id: String) = Future.successful(List.empty)
   override def removeFile(id: String, user: String) = removeFileResult
   override def removeEpg(id: String, user: String) = removeEpgResult
-  override def removeAll() = removeAllResult
   override def removeProfile(gc: SampleCode) = removeProfileResult
   override def profilesAll() = Future.successful(List.empty)
 }

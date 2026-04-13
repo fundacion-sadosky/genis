@@ -373,4 +373,3 @@ object Tables {
   }
   val OperationLogRecord = TableQuery[OperationLogRecordTable]
 }
-

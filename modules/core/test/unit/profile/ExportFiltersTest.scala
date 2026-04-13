@@ -1,12 +1,14 @@
-package profile
+package unit.profile
 
-import org.scalatestplus.play.PlaySpec
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.Json
+import profile.*
 import java.util.Date
 
-class ExportFiltersTest extends PlaySpec {
+class ExportFiltersTest extends AnyWordSpec with Matchers {
 
-  "ExportProfileFilters" should {
+  "ExportProfileFilters" must {
 
     "serialize to JSON" in {
       val f = ExportProfileFilters(
@@ -44,7 +46,7 @@ class ExportFiltersTest extends PlaySpec {
     }
   }
 
-  "ExportLimsFilesFilter" should {
+  "ExportLimsFilesFilter" must {
 
     "serialize to JSON" in {
       val f = ExportLimsFilesFilter(user = "user1", isSuperUser = false, tipo = "alta")

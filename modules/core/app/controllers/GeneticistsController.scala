@@ -30,10 +30,10 @@ class GeneticistsController @Inject() (
   def addGeneticist = Action.async(parse.json) { request =>
     request.body.validate[Geneticist].fold(
       errors => Future.successful(BadRequest(Json.obj("status" -> "KO", "message" -> JsError.toJson(errors)))),
-      gen => genService.add(gen).map(result => Ok(Json.toJson(result)).withHeaders("X-CREATED-ID" -> result.toString))
-        .recover {
-          case e: Exception => BadRequest(Json.obj("error" -> e.getMessage))
-        }
+      gen => genService.add(gen).map {
+        case Right(result) => Ok(Json.toJson(result)).withHeaders("X-CREATED-ID" -> result.toString)
+        case Left(error)   => BadRequest(Json.obj("error" -> error))
+      }
     )
   }
 

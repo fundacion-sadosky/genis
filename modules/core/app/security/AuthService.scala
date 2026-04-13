@@ -2,8 +2,7 @@ package security
 
 import java.util.{Base64, NoSuchElementException}
 
-import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.concurrent.duration.Duration
+import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
 import scala.util.{Failure, Success, Try}
 import scala.util.matching.Regex
@@ -55,6 +54,19 @@ object LdapUser:
       superuser = ldapUser.superuser
     )
 
+  val toUserView: LdapUser => user.UserView = (u: LdapUser) =>
+    user.UserView(
+      u.userName, u.firstName, u.lastName, u.email,
+      u.roles, u.status, u.geneMapperId, u.phone1, u.phone2, u.superuser
+    )
+
+  val fromUserView: user.UserView => LdapUser = (u: user.UserView) =>
+    LdapUser(
+      u.userName, u.firstName, u.lastName, u.email,
+      u.roles, u.geneMapperId, u.phone1, u.phone2, u.status,
+      null, null, null, u.superuser
+    )
+
 case class User(
   id: String,
   firstName: String,
@@ -70,18 +82,63 @@ case class User(
 ):
   val fullName: String = s"$lastName $firstName"
   val canLogin: Boolean = status == UserStatus.active
+  val isAsignable: Boolean = status == UserStatus.active || status == UserStatus.blocked
+
+object User:
+  given userWrites: play.api.libs.json.Writes[User] =
+    import play.api.libs.json.*
+    import play.api.libs.functional.syntax.*
+    (
+      (JsPath \ "id").write[String] and
+      (JsPath \ "firstName").write[String] and
+      (JsPath \ "lastName").write[String] and
+      (JsPath \ "email").write[String] and
+      (JsPath \ "permissions").write[Set[Permission]] and
+      (JsPath \ "superuser").write[Boolean] and
+      (JsPath \ "geneMapperId").write[String]
+    )(u => (u.id, u.firstName, u.lastName, u.email, u.permissions, u.superuser, u.geneMapperId))
 
 case class UserCredentials(publicKey: Array[Byte], privateKey: Array[Byte], totpSecret: String)
 
 case class FullUser(userDetail: User, cryptoCredentials: UserCredentials, credentials: AuthenticatedPair)
 
+object FullUser:
+  given fullUserWrites: play.api.libs.json.Writes[FullUser] =
+    import play.api.libs.json.*
+    import play.api.libs.functional.syntax.*
+    (
+      (JsPath \ "userDetail").write[User] and
+      (JsPath \ "credentials").write[AuthenticatedPair]
+    )(fu => (fu.userDetail, fu.credentials))
+
 trait UserRepository {
   def bind(userName: String, password: String): Future[Boolean]
   def get(userName: String): Future[LdapUser]
+  def getOrEmpty(userName: String): Future[Option[LdapUser]]
+  def create(user: LdapUser, password: String): Future[String]
+  def updateUser(user: LdapUser): Future[Boolean]
+  def setStatus(userId: String, newStatus: user.UserStatus): Future[Unit]
+  def clearPass(userId: String, newStatus: user.UserStatus, password: String, encryptrdTotpSecret: Array[Byte]): Future[String]
+  def listAllUsers(): Future[Seq[LdapUser]]
+  def finfByUid(uids: Seq[String]): Future[Seq[LdapUser]]
+  def findByRole(roleId: String): Future[Seq[LdapUser]]
+  def findByStatus(status: user.UserStatus): Future[Seq[LdapUser]]
+  def findByGeneMapper(geneMapper: String): Future[Option[LdapUser]]
+  def findSuperUsers(): Future[Seq[LdapUser]]
+  def blockingGet(userId: String, password: String): Either[String, LdapUser]
+  def setTOTP(userId: String, totpenc: Array[Byte]): Future[Boolean]
 }
 
 trait RoleService {
   def getRolePermissions(): Map[String, Set[Permission]]
+  def getRoles: scala.concurrent.Future[Seq[user.Role]]
+  def getRolesForSignUp(): scala.concurrent.Future[Seq[user.Role]]
+  def addRole(role: user.Role): scala.concurrent.Future[Boolean]
+  def updateRole(role: user.Role): scala.concurrent.Future[Boolean]
+  def deleteRole(id: String): scala.concurrent.Future[Either[String, Boolean]]
+  def listPermissions(): Set[Permission]
+  def listOperations(): Set[String]
+  def translatePermission(action: String, resource: String): String
 }
 
 // TODO: Migrar desde connections.*
@@ -115,7 +172,7 @@ abstract class AuthService {
   def isPublicResource(uri: String): Boolean
   def isBlockeableBySuperiorInstance(uri: String): Boolean
   def isInterconnectionResource(uri: String): Boolean
-  def verifyInferiorInstance(request: RequestHeader): Try[String]
+  def verifyInferiorInstance(request: RequestHeader): Future[Try[String]]
 }
 
 case class AuthorisationOperation(resource: String, action: String)
@@ -172,6 +229,10 @@ class AuthServiceImpl @Inject() (
       uri.startsWith("/clear-password") ||
       uri.startsWith("/disclaimer") ||
       uri.startsWith("/rolesForSU") ||
+      uri.startsWith("/api/v2/user/signup") ||
+      uri.startsWith("/api/v2/user/clear-password") ||
+      uri.startsWith("/api/v2/disclaimer") ||
+      uri.startsWith("/api/v2/rolesForSU") ||
       uri.matches("^/profiles/.+/epgs$") ||
       uri.matches("^/profiles/.+/file$")
   }
@@ -214,7 +275,7 @@ class AuthServiceImpl @Inject() (
               cache.set(LoggedUserKey(userName), otp)
               Some(fullUser)
             } else {
-              logger.warn(s"Token $otp is expired or invalid for $userName")
+              logger.warn(s"Token is expired or invalid for $userName")
               None
             }
           } else {
@@ -229,27 +290,31 @@ class AuthServiceImpl @Inject() (
     }
   }
 
-  def verifyInferiorInstance(request: RequestHeader): Try[String] = {
+  def verifyInferiorInstance(request: RequestHeader): Future[Try[String]] = {
     if (isBlockeableBySuperiorInstance(request.uri)) {
       val url = request.headers.get("X-URL-INSTANCIA-INFERIOR")
 
       url match {
         case Some(url) =>
-          val isEnabled = Await.result(inferiorInstanceRepository.isInferiorInstanceEnabled(url), Duration.Inf)
-          val isEnabledSuperior = Await.result(connectionRepository.getSupInstanceUrl(), Duration.Inf).contains(url)
-          if (isEnabled || isEnabledSuperior) {
-            Success(request.uri)
-          } else {
-            if (!isEnabled) {
-              Failure(new IllegalAccessException(s"Inferior instance is disabled"))
+          for {
+            isEnabled <- inferiorInstanceRepository.isInferiorInstanceEnabled(url)
+            supUrl <- connectionRepository.getSupInstanceUrl()
+          } yield {
+            val isEnabledSuperior = supUrl.contains(url)
+            if (isEnabled || isEnabledSuperior) {
+              Success(request.uri)
             } else {
-              Failure(new IllegalAccessException(s"Instance Unknown"))
+              if (!isEnabled) {
+                Failure(new IllegalAccessException(s"Inferior instance is disabled"))
+              } else {
+                Failure(new IllegalAccessException(s"Instance Unknown"))
+              }
             }
           }
-        case _ => Failure(new IllegalAccessException(s"Inferior instance is disabled"))
+        case _ => Future.successful(Failure(new IllegalAccessException(s"Inferior instance is disabled")))
       }
     } else {
-      Success(request.uri)
+      Future.successful(Success(request.uri))
     }
   }
 

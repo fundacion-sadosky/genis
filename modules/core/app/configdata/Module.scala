@@ -26,5 +26,6 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
     bind(classOf[GeneticistRepository]).to(classOf[SlickGeneticistRepository])
     bind(classOf[CategoryRepository]).to(classOf[SlickCategoryRepository])
     bind(classOf[CategoryService]).to(classOf[CategoryServiceImpl])
+    bind(classOf[PostgresHealthService]).to(classOf[PostgresHealthServiceImpl])
   }
 }
