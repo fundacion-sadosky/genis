@@ -16,6 +16,8 @@ import security.StubRoleRepository
 import kits.{StrKitModule, StrKitService}
 import probability.{ProbabilityModule, ProbabilityService}
 
+import scala.concurrent.ExecutionContext
+
 class AuthenticationTest extends PlaySpec with GuiceOneAppPerTest {
 
   // Estrategia correcta: dejar que Play arranque normalmente con todos sus módulos
@@ -31,6 +33,7 @@ class AuthenticationTest extends PlaySpec with GuiceOneAppPerTest {
         bind[RoleRepository].to[StubRoleRepository],
         bind[StrKitService].toInstance(new StubStrKitService),
         bind[ProbabilityService].toInstance(new StubProbabilityService),
+        bind[ExecutionContext].qualifiedWith("lrmix-context").toInstance(ExecutionContext.global),
         bind[LdapHealthService].toInstance(new StubLdapHealthService)
       )
       .configure("play.http.secret.key" -> "test-secret-key-for-testing-purposes-only-not-for-production-1234")

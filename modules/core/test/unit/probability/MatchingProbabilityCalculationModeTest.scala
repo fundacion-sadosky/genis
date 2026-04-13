@@ -3,7 +3,7 @@ package unit.probability
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
-import probability.{NRCII41CalculationProbability, NRCII410CalculationProbability}
+import probability.{HardyWeinbergCalculationProbability, NRCII41CalculationProbability, NRCII410CalculationProbability}
 
 class MatchingProbabilityCalculationModeTest extends AnyWordSpec with Matchers {
 
@@ -13,6 +13,52 @@ class MatchingProbabilityCalculationModeTest extends AnyWordSpec with Matchers {
   private val p2     = 0.2
   private val n      = 10L
   private val tol    = 1e-10
+
+  // ---------------------------------------------------------------------------
+  // HardyWeinbergCalculationProbability
+  // ---------------------------------------------------------------------------
+
+  "HardyWeinbergCalculationProbability" must {
+
+    val hw = new HardyWeinbergCalculationProbability
+
+    "compute homo correctly: p²" in {
+      hw.homo(p) mustBe (p * p +- tol)
+    }
+
+    "compute homo of 0 as 0" in {
+      hw.homo(0.0) mustBe (0.0 +- tol)
+    }
+
+    "compute homo of 1 as 1" in {
+      hw.homo(1.0) mustBe (1.0 +- tol)
+    }
+
+    "compute hetero correctly: 2*p1*p2" in {
+      hw.hetero(p1, p2) mustBe (2 * p1 * p2 +- tol)
+    }
+
+    "compute hetero as 0 when one probability is 0" in {
+      hw.hetero(p1, 0.0) mustBe (0.0 +- tol)
+    }
+
+    "compute wildcard correctly: p*(2-p)" in {
+      val expected = p * (2 - p)
+      hw.wildcard(p, n) mustBe (expected +- tol)
+    }
+
+    "compute wildcard ignoring n parameter" in {
+      hw.wildcard(p, 0) mustBe (hw.wildcard(p, 100) +- tol)
+    }
+
+    "compute wildcard of 0 as 0" in {
+      hw.wildcard(0.0, n) mustBe (0.0 +- tol)
+    }
+
+    "compute wildcard of 1 as 1" in {
+      hw.wildcard(1.0, n) mustBe (1.0 +- tol)
+    }
+  }
 
   // ---------------------------------------------------------------------------
   // NRCII41CalculationProbability

@@ -9,7 +9,7 @@ import play.api.test.*
 import play.api.test.Helpers.*
 import play.api.libs.json.Json
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 import com.unboundid.ldap.sdk.LDAPConnectionPool
 import com.unboundid.ldap.listener.{InMemoryDirectoryServer, InMemoryDirectoryServerConfig}
@@ -83,6 +83,7 @@ class UserAndRoleControllerTest extends PlaySpec with GuiceOneAppPerTest {
         bind[DisclaimerService].toInstance(new StubDisclaimerService),
         bind[MotiveService].toInstance(new StubMotiveService),
         bind[ProbabilityService].toInstance(new StubProbabilityService),
+        bind[ExecutionContext].qualifiedWith("lrmix-context").toInstance(ExecutionContext.global),
         bind[LDAPConnectionPool].toInstance(createInMemoryLdapPool()),
         bind[LdapHealthService].toInstance(new StubLdapHealthService)
       )

@@ -16,6 +16,8 @@ import user.{LdapHealthService, RoleRepository, UsersModule}
 import kits.{StrKitModule, StrKitService}
 import probability.{ProbabilityModule, ProbabilityService}
 
+import scala.concurrent.ExecutionContext
+
 class DisclaimerControllerTest extends PlaySpec with GuiceOneAppPerTest {
 
   private var disclaimerStub: StubDisclaimerService = _
@@ -33,6 +35,7 @@ class DisclaimerControllerTest extends PlaySpec with GuiceOneAppPerTest {
         bind[DisclaimerService].toInstance(disclaimerStub),
         bind[StrKitService].toInstance(new StubStrKitService),
         bind[ProbabilityService].toInstance(new StubProbabilityService),
+        bind[ExecutionContext].qualifiedWith("lrmix-context").toInstance(ExecutionContext.global),
         bind[LdapHealthService].toInstance(new StubLdapHealthService)
       )
       .configure("play.http.secret.key" -> "test-secret-key-for-testing-purposes-only-not-for-production-1234")

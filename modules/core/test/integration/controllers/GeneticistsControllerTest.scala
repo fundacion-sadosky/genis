@@ -18,6 +18,8 @@ import probability.{ProbabilityModule, ProbabilityService}
 import types.Geneticist
 import security.User
 
+import scala.concurrent.ExecutionContext
+
 class GeneticistsControllerTest extends PlaySpec with GuiceOneAppPerTest {
 
   private var genStub: StubGeneticistService = _
@@ -37,6 +39,7 @@ class GeneticistsControllerTest extends PlaySpec with GuiceOneAppPerTest {
         bind[UserService].toInstance(userStub),
         bind[StrKitService].toInstance(new StubStrKitService),
         bind[ProbabilityService].toInstance(new StubProbabilityService),
+        bind[ExecutionContext].qualifiedWith("lrmix-context").toInstance(ExecutionContext.global),
         bind[LdapHealthService].toInstance(new StubLdapHealthService)
       )
       .configure("play.http.secret.key" -> "test-secret-key-for-testing-purposes-only-not-for-production-1234")

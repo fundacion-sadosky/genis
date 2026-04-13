@@ -1,8 +1,12 @@
 package probability
 
-import com.google.inject.{AbstractModule, TypeLiteral}
+import com.google.inject.{AbstractModule, Provides, TypeLiteral}
 import com.google.inject.name.Names
+import jakarta.inject.{Named, Singleton}
+import org.apache.pekko.actor.ActorSystem
 import play.api.{Configuration, Environment}
+
+import scala.concurrent.ExecutionContext
 
 class ProbabilityModule(environment: Environment, conf: Configuration) extends AbstractModule {
 
@@ -23,4 +27,8 @@ class ProbabilityModule(environment: Environment, conf: Configuration) extends A
     bind(classOf[CalculationTypeService]).to(classOf[CalculationTypeServiceImpl])
     ()
   }
+
+  @Provides @Named("lrmix-context") @Singleton
+  def provideLrmixExecutionContext(actorSystem: ActorSystem): ExecutionContext =
+    actorSystem.dispatchers.lookup("pekko.actor.lrmix-context")
 }

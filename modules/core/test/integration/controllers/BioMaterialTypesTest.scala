@@ -17,6 +17,8 @@ import kits.{StrKitModule, StrKitService}
 import probability.{ProbabilityModule, ProbabilityService}
 import types.AlphanumericId
 
+import scala.concurrent.ExecutionContext
+
 class BioMaterialTypesTest extends PlaySpec with GuiceOneAppPerTest {
 
   private var bmtStub: StubBioMaterialTypeService = _
@@ -33,6 +35,7 @@ class BioMaterialTypesTest extends PlaySpec with GuiceOneAppPerTest {
         bind[BioMaterialTypeService].toInstance(bmtStub),
         bind[StrKitService].toInstance(new StubStrKitService),
         bind[ProbabilityService].toInstance(new StubProbabilityService),
+        bind[ExecutionContext].qualifiedWith("lrmix-context").toInstance(ExecutionContext.global),
         bind[LdapHealthService].toInstance(new StubLdapHealthService)
       )
       .configure("play.http.secret.key" -> "test-secret-key-for-testing-purposes-only-not-for-production-1234")

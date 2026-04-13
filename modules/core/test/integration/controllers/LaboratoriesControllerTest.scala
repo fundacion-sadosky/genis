@@ -17,6 +17,8 @@ import kits.{StrKitModule, StrKitService}
 import probability.{ProbabilityModule, ProbabilityService}
 import types.Laboratory
 
+import scala.concurrent.ExecutionContext
+
 class LaboratoriesControllerTest extends PlaySpec with GuiceOneAppPerTest {
 
   private var labStub: StubLaboratoryService = _
@@ -36,6 +38,7 @@ class LaboratoriesControllerTest extends PlaySpec with GuiceOneAppPerTest {
         bind[CountryService].toInstance(countryStub),
         bind[StrKitService].toInstance(new StubStrKitService),
         bind[ProbabilityService].toInstance(new StubProbabilityService),
+        bind[ExecutionContext].qualifiedWith("lrmix-context").toInstance(ExecutionContext.global),
         bind[LdapHealthService].toInstance(new StubLdapHealthService)
       )
       .configure("play.http.secret.key" -> "test-secret-key-for-testing-purposes-only-not-for-production-1234")

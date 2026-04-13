@@ -17,7 +17,7 @@ import types.SampleCode
 import user.{LdapHealthService, RoleRepository, UsersModule}
 import probability.{ProbabilityModule, ProbabilityService}
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest {
 
@@ -45,6 +45,7 @@ class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest {
         bind[CategoryService].toInstance(new StubCategoryService),
         bind[CacheService].toInstance(cacheStub),
         bind[ProbabilityService].toInstance(new StubProbabilityService),
+        bind[ExecutionContext].qualifiedWith("lrmix-context").toInstance(ExecutionContext.global),
         bind[LdapHealthService].toInstance(new StubLdapHealthService)
       )
       .configure("play.http.secret.key" -> "test-secret-key-for-testing-purposes-only-not-for-production-1234")

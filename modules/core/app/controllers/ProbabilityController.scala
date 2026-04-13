@@ -3,7 +3,7 @@ package controllers
 import javax.inject._
 import play.api.mvc._
 import play.api.libs.json.{Json, JsError}
-import probability.{FullCalculationScenario, LRMixCalculator, ProbabilityService, PValueCalculator}
+import probability.{FullCalculationScenario, LRMixCalculator, NoFrequencyException, ProbabilityService, PValueCalculator}
 import stats.PopulationBaseFrequencyService
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -12,7 +12,8 @@ import scala.concurrent.{ExecutionContext, Future}
 class ProbabilityController @Inject()(
   cc: ControllerComponents,
   probabilityService: ProbabilityService,
-  populationBaseFrequencyService: PopulationBaseFrequencyService
+  populationBaseFrequencyService: PopulationBaseFrequencyService,
+  @Named("lrmix-context") lrmixEc: ExecutionContext
 )(implicit ec: ExecutionContext) extends AbstractController(cc) {
 
   /** POST /api/v2/lr-mix
@@ -32,7 +33,11 @@ class ProbabilityController @Inject()(
                 Future.successful(NotFound(Json.obj("error" -> s"Frequency table '${scenario.stats.frequencyTable}' not found")))
               case Some(popFreq) =>
                 val frequencyTable = PValueCalculator.parseFrequencyTable(popFreq)
-                LRMixCalculator.calculateLRMix(scenario, frequencyTable).map(lr => Ok(Json.toJson(lr)))
+                LRMixCalculator.calculateLRMix(scenario, frequencyTable)(using lrmixEc)
+                  .map(lr => Ok(Json.toJson(lr)))
+                  .recover { case e: NoFrequencyException =>
+                    BadRequest(Json.obj("status" -> "KO", "message" -> e.getMessage))
+                  }
             }
         )
     }
