@@ -1,7 +1,9 @@
 package probability
 
+
 import play.api.libs.functional.syntax.*
 import play.api.libs.json.*
+
 import profile.Profile
 
 import scala.util.Try

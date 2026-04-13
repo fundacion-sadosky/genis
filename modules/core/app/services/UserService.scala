@@ -6,6 +6,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
 
 import javax.inject.{Inject, Singleton}
+import play.api.Logger
 import play.api.i18n.{Lang, MessagesApi}
 
 import inbox.{NotificationInfo, NotificationService, UserPendingInfo}
@@ -45,6 +46,8 @@ class UserServiceImpl @Inject() (
     roleService: RoleService,
     messagesApi: MessagesApi
 )(using ec: ExecutionContext) extends UserService:
+
+  private val logger = Logger(this.getClass)
 
   private given Lang = Lang.defaultLang
 
@@ -204,7 +207,10 @@ class UserServiceImpl @Inject() (
             }
           cacheService.pop(FullUserKey(userId, 0))(using summon[ClassTag[security.FullUser]])
           Right(0)
-        }.recover { case t: Throwable => Left(t.getMessage) }
+        }.recover { case t: Throwable =>
+            logger.error("Error al cambiar estado del usuario", t)
+            Left("Error al cambiar estado del usuario")
+          }
       else
         Future.successful(Left(msg("error.E0646", status, newStatus)))
     }
@@ -257,7 +263,7 @@ class UserServiceImpl @Inject() (
     getUser(userId).map(_.superuser)
 
   override def isSuperUserByGeneMapper(geneMapperId: String): Future[Boolean] =
-    findByGeneMapper(geneMapperId).map(_.get.superuser)
+    findByGeneMapper(geneMapperId).map(_.exists(_.superuser))
 
   override def findSuperUsers(): Future[Seq[String]] =
     userRepository.findSuperUsers().map(

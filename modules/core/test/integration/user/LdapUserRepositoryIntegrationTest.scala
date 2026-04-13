@@ -10,7 +10,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 import com.unboundid.ldap.sdk.*
 
-import user.{LdapUserRepository, UserStatus}
+import user.{LdapConnectionProviderImpl, LdapUserRepository, UserStatus}
 import security.LdapUser
 
 class LdapUserRepositoryIntegrationTest
@@ -51,8 +51,8 @@ class LdapUserRepositoryIntegrationTest
     searchConnection = new LDAPConnection(ldapHost, ldapPort)
     val poolConnection = new LDAPConnection(ldapHost, ldapPort)
     connectionPool = new LDAPConnectionPool(poolConnection, 2)
-    repo = new LdapUserRepository(connectionPool, searchConnection, usersDn,
-      adminDn, adminPassword)
+    val provider = new LdapConnectionProviderImpl(connectionPool, searchConnection)
+    repo = new LdapUserRepository(provider, usersDn, adminDn, adminPassword)
 
   override protected def beforeEach(): Unit =
     super.beforeEach()

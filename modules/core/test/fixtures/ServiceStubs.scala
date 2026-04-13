@@ -40,12 +40,12 @@ class StubCountryService extends CountryService:
 
 @Singleton
 class StubGeneticistService extends GeneticistService:
-  var addResult: Future[Int] = Future.successful(0)
+  var addResult: Future[Either[String, Int]] = Future.successful(Right(0))
   var getAllResult: Future[Seq[Geneticist]] = Future.successful(Seq.empty)
   var updateResult: Future[Int] = Future.successful(0)
   var getResult: Future[Option[Geneticist]] = Future.successful(None)
 
-  override def add(geneticist: Geneticist): Future[Int] = addResult
+  override def add(geneticist: Geneticist): Future[Either[String, Int]] = addResult
   override def getAll(laboratory: String): Future[Seq[Geneticist]] = getAllResult
   override def update(geneticist: Geneticist): Future[Int] = updateResult
   override def get(id: Long): Future[Option[Geneticist]] = getResult
@@ -168,3 +168,11 @@ class StubPopulationBaseFrequencyService extends PopulationBaseFrequencyService:
   override def insertFmin(id: String, fmins: Fmins): Future[PopBaseFreqResult] = Future.failed(new UnsupportedOperationException("stub"))
   override def getDefault(): Future[Option[PopulationBaseFrequencyNameView]] = getDefaultResult
   override def getAllPossibleAllelesByLocus(): Future[PopulationBaseFrequencyGrouppedByLocus] = Future.successful(PopulationBaseFrequencyGrouppedByLocus(Map.empty))
+class StubMongoHealthService extends profile.MongoHealthService:
+  var result: Try[(String, String)] = Success(("UP", "StubDB"))
+  override def checkStatus(): Try[(String, String)] = result
+
+@Singleton
+class StubPostgresHealthService extends configdata.PostgresHealthService:
+  var result: Try[(String, String)] = Success(("UP", "PostgreSQL 15.0"))
+  override def checkStatus(): Try[(String, String)] = result

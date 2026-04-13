@@ -2,7 +2,6 @@ package user
 
 import com.google.inject.AbstractModule
 import com.google.inject.name.Names
-import com.unboundid.ldap.sdk.{LDAPConnection, LDAPConnectionPool}
 import play.api.{Configuration, Environment}
 
 import security.UserRepository
@@ -16,9 +15,9 @@ class UsersModule(environment: Environment, conf: Configuration) extends Abstrac
 
       val factory = new LdapConnectionPoolFactory(ldapConf)
       val connectionPool = factory.createConnectionPool()
-      bind(classOf[LDAPConnectionPool]).toInstance(connectionPool)
       val connection = factory.createSingleConnection()
-      bind(classOf[LDAPConnection]).toInstance(connection)
+      val provider = new LdapConnectionProviderImpl(connectionPool, connection)
+      bind(classOf[LdapConnectionProvider]).toInstance(provider)
 
       val usersDn = ldapConf.get[String]("usersDn")
       bind(classOf[String]).annotatedWith(Names.named("usersDn")).toInstance(usersDn)

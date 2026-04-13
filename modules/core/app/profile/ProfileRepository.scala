@@ -120,8 +120,6 @@ trait ProfileRepository {
 
   def removeEpg(id: String): Future[Either[String, String]]
 
-  def removeAll(): Future[Either[String, String]]
-
   def removeProfile(globalCode: SampleCode): Future[Either[String, String]]
 
   def getProfileOwnerByFileId(id: String): Future[(String, SampleCode)]

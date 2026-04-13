@@ -33,17 +33,16 @@ class RoleServiceImpl @Inject() (
     )
 
   override def addRole(role: user.Role): Future[Boolean] =
-    val p = roleRepository.addRole(role)
-    p.foreach(_ => cleanCache())
-    p.flatMap {
-      case true => updateRole(role)
+    roleRepository.addRole(role).flatMap {
+      case true  => updateRole(role)
       case false => Future.successful(false)
     }
 
   override def updateRole(role: user.Role): Future[Boolean] =
-    val p = roleRepository.updateRole(role)
-    p.foreach(_ => cleanCache())
-    p
+    roleRepository.updateRole(role).map { result =>
+      if result then cleanCache()
+      result
+    }
 
   override def deleteRole(id: String): Future[Either[String, Boolean]] =
     userRepository.listAllUsers().flatMap { users =>

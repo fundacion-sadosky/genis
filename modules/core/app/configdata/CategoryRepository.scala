@@ -13,10 +13,10 @@ trait CategoryRepository {
   def listGroupsAndCategoriesManualLoading: Future[Seq[(Group, Option[Category])]]
   def listCategories: Future[Seq[FullCategory]]
   def listCategoriesWithProfiles: Future[List[Category]]
-  def listConfigurations: Future[Seq[Tables.CategoryConfigurationRow]]
-  def listAssociations: Future[Seq[Tables.CategoryAssociationRow]]
-  def listAlias: Future[Seq[Tables.CategoryAliasRow]]
-  def listMatchingRules: Future[Seq[Tables.CategoryMatchingRow]]
+  def listConfigurations: Future[Seq[CategoryConfigurationExport]]
+  def listAssociations: Future[Seq[CategoryAssociationExport]]
+  def listAlias: Future[Seq[CategoryAliasExport]]
+  def listMatchingRules: Future[Seq[CategoryMatchingExport]]
 
   def addCategory(cat: Category): Future[AlphanumericId]
   def updateCategory(category: Category): Future[Int]
@@ -117,17 +117,24 @@ class SlickCategoryRepository @Inject()(db: Database)(implicit ec: ExecutionCont
     ).toList)
   }
 
-  override def listConfigurations: Future[Seq[Tables.CategoryConfigurationRow]] =
-    db.run(configTable.result)
+  override def listConfigurations: Future[Seq[CategoryConfigurationExport]] =
+    db.run(configTable.result).map(_.map(r =>
+      CategoryConfigurationExport(r.id, r.category, r.`type`, r.collectionUri, r.draftUri,
+        r.minLocusPerProfile, r.maxOverageDeviatedLoci, r.maxAllelesPerLocus, r.multiallelic)))
 
-  override def listAssociations: Future[Seq[Tables.CategoryAssociationRow]] =
-    db.run(assocTable.result)
+  override def listAssociations: Future[Seq[CategoryAssociationExport]] =
+    db.run(assocTable.result).map(_.map(r =>
+      CategoryAssociationExport(r.id, r.category, r.categoryRelated, r.mismatchs, r.`type`)))
 
-  override def listAlias: Future[Seq[Tables.CategoryAliasRow]] =
-    db.run(aliasTable.result)
+  override def listAlias: Future[Seq[CategoryAliasExport]] =
+    db.run(aliasTable.result).map(_.map(r =>
+      CategoryAliasExport(r.alias, r.category)))
 
-  override def listMatchingRules: Future[Seq[Tables.CategoryMatchingRow]] =
-    db.run(matchingTable.result)
+  override def listMatchingRules: Future[Seq[CategoryMatchingExport]] =
+    db.run(matchingTable.result).map(_.map(r =>
+      CategoryMatchingExport(r.id, r.category, r.categoryRelated, r.priority,
+        r.minimumStringency, r.failOnMatch, r.forwardToUpper, r.matchingAlgorithm,
+        r.minLocusMatch, r.mismatchsAllowed, r.`type`, r.considerForN)))
 
   // ─── Category writes ───────────────────────────────────────────────────────
 
