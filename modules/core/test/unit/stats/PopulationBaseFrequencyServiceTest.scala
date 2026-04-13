@@ -60,7 +60,7 @@ class PopulationBaseFrequencyServiceTest extends AnyWordSpec with Matchers with 
 
   "PopulationBaseFrequencyService" when {
 
-    "save" should {
+    "save" must {
       "return the number of insertions" in {
         val mockRepo = mock[PopulationBaseFrequencyRepository]
         when(mockRepo.add(samplePbf)).thenReturn(Future.successful(Some(samplePsf.size)))
@@ -70,7 +70,7 @@ class PopulationBaseFrequencyServiceTest extends AnyWordSpec with Matchers with 
       }
     }
 
-    "parseFile" should {
+    "parseFile" must {
       "return Incomplete status when CSV has no Fmin row" in {
         val csvFile = new java.io.File("test/resources/shdg_ar_09_norm.csv")
         assume(csvFile.exists(), "CSV de test no encontrado — asegurate de correr los tests desde la raíz del proyecto")
@@ -106,7 +106,7 @@ class PopulationBaseFrequencyServiceTest extends AnyWordSpec with Matchers with 
       }
     }
 
-    "getAllNames" should {
+    "getAllNames" must {
       "return mapped views from repository" in {
         val mockRepo = mock[PopulationBaseFrequencyRepository]
         when(mockRepo.getAllNames()).thenReturn(
@@ -122,7 +122,7 @@ class PopulationBaseFrequencyServiceTest extends AnyWordSpec with Matchers with 
       }
     }
 
-    "getDefault" should {
+    "getDefault" must {
       "return Some when there is a default base" in {
         val mockRepo = mock[PopulationBaseFrequencyRepository]
         when(mockRepo.getAllNames()).thenReturn(
@@ -142,7 +142,7 @@ class PopulationBaseFrequencyServiceTest extends AnyWordSpec with Matchers with 
       }
     }
 
-    "getByNamePV" should {
+    "getByNamePV" must {
       "return a correctly structured view" in {
         val mockRepo = mock[PopulationBaseFrequencyRepository]
         when(mockRepo.getByName(samplePbf.name)).thenReturn(Future.successful(Some(samplePbf)))

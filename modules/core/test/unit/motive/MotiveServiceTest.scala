@@ -2,17 +2,18 @@ package unit.motive
 
 import motive.*
 import org.mockito.Mockito.when
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
-import org.scalatestplus.play.PlaySpec
 
 import scala.concurrent.duration.{Duration, SECONDS}
 import scala.concurrent.{Await, Future}
 
-class MotiveServiceTest extends PlaySpec with MockitoSugar {
+class MotiveServiceTest extends AnyWordSpec with Matchers with MockitoSugar {
 
   val duration = Duration(10, SECONDS)
 
-  "MotiveServiceImpl" should {
+  "MotiveServiceImpl" must {
 
     "return motives from repository" in {
       val repo    = mock[SlickMotiveRepository]

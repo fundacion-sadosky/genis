@@ -9,10 +9,8 @@ import models.Tables.{PopulationBaseFrequencyRow, PopulationBaseFrequencyNameRow
 
 @Singleton
 class PopulationBaseFrequencyRepositoryImpl @Inject()(
-  implicit ec: ExecutionContext
-) extends PopulationBaseFrequencyRepository:
-
-  private val db   = Database.forConfig("slick.dbs.default.db")
+  db: Database
+)(implicit ec: ExecutionContext) extends PopulationBaseFrequencyRepository:
   private val pbf  = Tables.PopulationBaseFrequency
   private val pbfn = Tables.PopulationBaseFrequencyName
 
