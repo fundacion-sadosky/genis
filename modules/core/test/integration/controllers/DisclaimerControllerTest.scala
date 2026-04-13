@@ -10,10 +10,11 @@ import play.api.test.Helpers.*
 import play.api.libs.json.Json
 
 import disclaimer.{Disclaimer, DisclaimerModule, DisclaimerService}
-import fixtures.{StubDisclaimerService, StubLdapHealthService, StubStrKitService}
+import fixtures.{StubDisclaimerService, StubLdapHealthService, StubProbabilityService, StubStrKitService}
 import security.{StubRoleRepository, StubUserRepository, UserRepository}
 import user.{LdapHealthService, RoleRepository, UsersModule}
 import kits.{StrKitModule, StrKitService}
+import probability.{ProbabilityModule, ProbabilityService}
 
 class DisclaimerControllerTest extends PlaySpec with GuiceOneAppPerTest {
 
@@ -25,11 +26,13 @@ class DisclaimerControllerTest extends PlaySpec with GuiceOneAppPerTest {
       .disable[UsersModule]
       .disable[StrKitModule]
       .disable[DisclaimerModule]
+      .disable[ProbabilityModule]
       .overrides(
         bind[UserRepository].to[StubUserRepository],
         bind[RoleRepository].to[StubRoleRepository],
         bind[DisclaimerService].toInstance(disclaimerStub),
         bind[StrKitService].toInstance(new StubStrKitService),
+        bind[ProbabilityService].toInstance(new StubProbabilityService),
         bind[LdapHealthService].toInstance(new StubLdapHealthService)
       )
       .configure("play.http.secret.key" -> "test-secret-key-for-testing-purposes-only-not-for-production-1234")

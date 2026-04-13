@@ -1,7 +1,7 @@
 package integration.controllers
 
 import configdata.CategoryService
-import fixtures.{StubCacheService, StubCategoryService, StubLdapHealthService, StubProfileService, StubProfileExporterService, StubLimsArchivesExporterService}
+import fixtures.{StubCacheService, StubCategoryService, StubLdapHealthService, StubProbabilityService, StubProfileService, StubProfileExporterService, StubLimsArchivesExporterService}
 import org.scalatestplus.play._
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
 import play.api.Application
@@ -15,6 +15,7 @@ import security.{StubUserRepository, StubRoleRepository, UserRepository}
 import services.CacheService
 import types.SampleCode
 import user.{LdapHealthService, RoleRepository, UsersModule}
+import probability.{ProbabilityModule, ProbabilityService}
 
 import scala.concurrent.Future
 
@@ -34,6 +35,7 @@ class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest {
     GuiceApplicationBuilder()
       .disable[UsersModule]
       .disable[ProfileModule]
+      .disable[ProbabilityModule]
       .overrides(
         bind[UserRepository].to[StubUserRepository],
         bind[RoleRepository].to[StubRoleRepository],
@@ -42,6 +44,7 @@ class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest {
         bind[LimsArchivesExporterService].toInstance(limsStub),
         bind[CategoryService].toInstance(new StubCategoryService),
         bind[CacheService].toInstance(cacheStub),
+        bind[ProbabilityService].toInstance(new StubProbabilityService),
         bind[LdapHealthService].toInstance(new StubLdapHealthService)
       )
       .configure("play.http.secret.key" -> "test-secret-key-for-testing-purposes-only-not-for-production-1234")

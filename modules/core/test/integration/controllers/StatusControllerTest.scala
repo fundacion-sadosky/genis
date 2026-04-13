@@ -8,11 +8,12 @@ import play.api.Application
 import play.api.test._
 import play.api.test.Helpers._
 
-import fixtures.{StubLdapHealthService, StubStrKitService}
+import fixtures.{StubLdapHealthService, StubProbabilityService, StubStrKitService}
 import security.{UserRepository, StubUserRepository}
 import user.{LdapHealthService, RoleRepository, UsersModule}
 import security.StubRoleRepository
 import kits.{StrKitModule, StrKitService}
+import probability.{ProbabilityModule, ProbabilityService}
 
 class StatusControllerTest extends PlaySpec with GuiceOneAppPerTest {
 
@@ -20,10 +21,12 @@ class StatusControllerTest extends PlaySpec with GuiceOneAppPerTest {
     GuiceApplicationBuilder()
       .disable[UsersModule]
       .disable[StrKitModule]
+      .disable[ProbabilityModule]
       .overrides(
         bind[UserRepository].to[StubUserRepository],
         bind[RoleRepository].to[StubRoleRepository],
         bind[StrKitService].toInstance(new StubStrKitService),
+        bind[ProbabilityService].toInstance(new StubProbabilityService),
         bind[LdapHealthService].toInstance(new StubLdapHealthService)
       )
       .configure("play.http.secret.key" -> "test-secret-key-for-testing-purposes-only-not-for-production-1234")
