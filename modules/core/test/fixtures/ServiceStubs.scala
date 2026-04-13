@@ -2,14 +2,18 @@ package fixtures
 
 import scala.concurrent.Future
 import scala.util.{Success, Try}
+import java.io.File
 import javax.inject.Singleton
 
 import configdata.{BioMaterialType, CrimeType, CrimeTypeService, BioMaterialTypeService}
 import disclaimer.{Disclaimer, DisclaimerService}
 import kits.{FullStrKit, StrKit, StrKitLocus, StrKitService, NewStrKitLocus}
 import inbox.NotificationInfo
+import probability.ProbabilityService
+import profile.Analysis
 import services.{CountryService, GeneticistService, LaboratoryService, UserService}
-import types.{Geneticist, Laboratory, Permission}
+import stats.{Fmins, PopBaseFreqResult, PopulationBaseFrequency, PopulationBaseFrequencyGrouppedByLocus, PopulationBaseFrequencyNameView, PopulationBaseFrequencyService, PopulationBaseFrequencyView, ProbabilityModel}
+import types.{AlphanumericId, Geneticist, Laboratory, Permission, StatOption}
 import security.User
 import user.{ClearPassChallenge, ClearPassResponse, ClearPassSolicitud,
   SignupChallenge, SignupResponse, SignupSolicitude, UserStatus, UserView}
@@ -141,6 +145,29 @@ class StubLdapHealthService extends user.LdapHealthService:
   override def checkStatus(): Try[(String, String)] = result
 
 @Singleton
+class StubProbabilityService extends ProbabilityService:
+  var getStatsResult: Future[Option[StatOption]] = Future.successful(None)
+  var calculateContributorsResult: Future[Int] = Future.successful(1)
+
+  override def getStats(laboratory: String): Future[Option[StatOption]] = getStatsResult
+  override def calculateContributors(analysis: Analysis, category: AlphanumericId, stats: StatOption): Future[Int] = calculateContributorsResult
+
+@Singleton
+class StubPopulationBaseFrequencyService extends PopulationBaseFrequencyService:
+  var getByNameResult: Future[Option[PopulationBaseFrequency]] = Future.successful(None)
+  var getDefaultResult: Future[Option[PopulationBaseFrequencyNameView]] = Future.successful(None)
+  var getAllNamesResult: Future[Seq[PopulationBaseFrequencyNameView]] = Future.successful(Seq.empty)
+
+  override def save(popBaseFreq: PopulationBaseFrequency): Future[Int] = Future.successful(1)
+  override def getByName(name: String): Future[Option[PopulationBaseFrequency]] = getByNameResult
+  override def getByNamePV(name: String): Future[PopulationBaseFrequencyView] = Future.failed(new UnsupportedOperationException("stub"))
+  override def getAllNames(): Future[Seq[PopulationBaseFrequencyNameView]] = getAllNamesResult
+  override def toggleStateBase(name: String): Future[Option[Int]] = Future.successful(Some(1))
+  override def setAsDefault(name: String): Future[Int] = Future.successful(1)
+  override def parseFile(name: String, theta: Double, model: ProbabilityModel, csvFile: File): Future[PopBaseFreqResult] = Future.failed(new UnsupportedOperationException("stub"))
+  override def insertFmin(id: String, fmins: Fmins): Future[PopBaseFreqResult] = Future.failed(new UnsupportedOperationException("stub"))
+  override def getDefault(): Future[Option[PopulationBaseFrequencyNameView]] = getDefaultResult
+  override def getAllPossibleAllelesByLocus(): Future[PopulationBaseFrequencyGrouppedByLocus] = Future.successful(PopulationBaseFrequencyGrouppedByLocus(Map.empty))
 class StubMongoHealthService extends profile.MongoHealthService:
   var result: Try[(String, String)] = Success(("UP", "StubDB"))
   override def checkStatus(): Try[(String, String)] = result
