@@ -1,6 +1,7 @@
 package integration.controllers
 
 import fixtures.StubLdapHealthService
+import fixtures.StubProbabilityService
 import motive.*
 import org.scalatestplus.play._
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
@@ -12,8 +13,9 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import security.{StubUserRepository, StubRoleRepository, UserRepository}
 import user.{LdapHealthService, RoleRepository, UsersModule}
+import probability.{ProbabilityModule, ProbabilityService}
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class MotiveControllerTest extends PlaySpec with GuiceOneAppPerTest {
 
@@ -34,10 +36,13 @@ class MotiveControllerTest extends PlaySpec with GuiceOneAppPerTest {
     GuiceApplicationBuilder()
       .disable[UsersModule]
       .disable[MotiveModule]
+      .disable[ProbabilityModule]
       .overrides(
         bind[UserRepository].to[StubUserRepository],
         bind[RoleRepository].to[StubRoleRepository],
         bind[MotiveService].toInstance(stubMotiveService),
+        bind[ProbabilityService].toInstance(new StubProbabilityService),
+        bind[ExecutionContext].qualifiedWith("lrmix-context").toInstance(ExecutionContext.global),
         bind[LdapHealthService].toInstance(new StubLdapHealthService)
       )
       .configure("play.http.secret.key" -> "test-secret-key-for-testing-purposes-only-not-for-production-1234")

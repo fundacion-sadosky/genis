@@ -10,11 +10,14 @@ import play.api.test.Helpers.*
 import play.api.libs.json.Json
 
 import configdata.{BioMaterialType, BioMaterialTypeService}
-import fixtures.{StubBioMaterialTypeService, StubLdapHealthService, StubStrKitService}
+import fixtures.{StubBioMaterialTypeService, StubLdapHealthService, StubProbabilityService, StubStrKitService}
 import security.{StubRoleRepository, StubUserRepository, UserRepository}
 import user.{LdapHealthService, RoleRepository, UsersModule}
 import kits.{StrKitModule, StrKitService}
+import probability.{ProbabilityModule, ProbabilityService}
 import types.AlphanumericId
+
+import scala.concurrent.ExecutionContext
 
 class BioMaterialTypesTest extends PlaySpec with GuiceOneAppPerTest {
 
@@ -25,11 +28,14 @@ class BioMaterialTypesTest extends PlaySpec with GuiceOneAppPerTest {
     GuiceApplicationBuilder()
       .disable[UsersModule]
       .disable[StrKitModule]
+      .disable[ProbabilityModule]
       .overrides(
         bind[UserRepository].to[StubUserRepository],
         bind[RoleRepository].to[StubRoleRepository],
         bind[BioMaterialTypeService].toInstance(bmtStub),
         bind[StrKitService].toInstance(new StubStrKitService),
+        bind[ProbabilityService].toInstance(new StubProbabilityService),
+        bind[ExecutionContext].qualifiedWith("lrmix-context").toInstance(ExecutionContext.global),
         bind[LdapHealthService].toInstance(new StubLdapHealthService)
       )
       .configure("play.http.secret.key" -> "test-secret-key-for-testing-purposes-only-not-for-production-1234")
