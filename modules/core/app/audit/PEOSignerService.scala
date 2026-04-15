@@ -7,6 +7,7 @@ import scala.concurrent.duration._
 import scala.reflect.ClassTag
 
 import org.apache.pekko.actor.{Actor, ActorLogging, ActorSystem, Props}
+import org.apache.pekko.dispatch.{BoundedMessageQueueSemantics, RequiresMessageQueue}
 import org.apache.pekko.pattern.ask
 import org.apache.pekko.util.Timeout
 import play.api.Logger
@@ -46,7 +47,7 @@ class PEOSignerActor(
   logRepository: OperationLogRepository,
   random:        SecureRandom,
   lotSize:       Int
-) extends Actor with ActorLogging {
+) extends Actor with ActorLogging with RequiresMessageQueue[BoundedMessageQueueSemantics] {
 
   import context.dispatcher
 

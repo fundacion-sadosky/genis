@@ -2,7 +2,7 @@ package audit
 
 import java.sql.Timestamp
 import java.util.Date
-import javax.inject.{Inject, Singleton}
+import javax.inject.{Inject, Named, Singleton}
 
 import scala.collection.immutable.IndexedSeq
 import scala.concurrent.{ExecutionContext, Future}
@@ -25,7 +25,7 @@ trait OperationLogRepository {
 
 @Singleton
 class SlickOperationLogRepository @Inject()(
-  db: slick.jdbc.JdbcBackend.Database
+  @Named("logDb") db: slick.jdbc.JdbcBackend.Database
 )(implicit ec: ExecutionContext) extends OperationLogRepository {
 
   private val logger: Logger = Logger(this.getClass)

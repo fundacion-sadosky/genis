@@ -57,6 +57,12 @@ class PeoOperationLogService @Inject()(
     }
   }
 
+  // Intentional divergence from legacy (#213): legacy called
+  // `OperationLogSearch(lotId, chunkSize, offset)` — positional args bound page=chunkSize
+  // and pageSize=offset, so the first Enumerator iteration took `drop(0).take(0)` and
+  // returned an empty chunk, silently aborting verification. Migration fixes the
+  // pagination AND forces id-asc sort so the PEO signature chain is verified in
+  // insertion order, which is required for correctness.
   override def checkLot(id: Long): Future[Either[(SignedOperationLogEntry, Key), Unit]] =
     for {
       lot    <- logRepository.getLot(id)
