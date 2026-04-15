@@ -118,11 +118,19 @@ class OperationLogsControllerSpec extends AnyWordSpec with Matchers with Mockito
   "OperationLogsController.checkLogLot" must {
     "return 200 (empty) when lot integrity is valid" in {
       val svc = mock[OperationLogService]
-      when(svc.checkLot(1L)).thenReturn(Future.successful(Right(())))
+      when(svc.checkLot(1L)).thenReturn(Future.successful(Some(Right(()))))
 
       val result = controller(svc).checkLogLot(1L)(FakeRequest())
       status(result) mustBe OK
       contentAsString(result) mustBe ""
+    }
+
+    "return 404 when the lot does not exist" in {
+      val svc = mock[OperationLogService]
+      when(svc.checkLot(99L)).thenReturn(Future.successful(None))
+
+      val result = controller(svc).checkLogLot(99L)(FakeRequest())
+      status(result) mustBe NOT_FOUND
     }
 
     "return 200 with error detail when lot is tampered" in {
@@ -143,7 +151,7 @@ class OperationLogsControllerSpec extends AnyWordSpec with Matchers with Mockito
         signature   = badKey,
         description = "Ver perfil"
       )
-      when(svc.checkLot(1L)).thenReturn(Future.successful(Left((signed, badKey))))
+      when(svc.checkLot(1L)).thenReturn(Future.successful(Some(Left((signed, badKey)))))
 
       val result = controller(svc).checkLogLot(1L)(FakeRequest())
       status(result) mustBe OK

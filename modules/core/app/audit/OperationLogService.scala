@@ -7,7 +7,7 @@ import scala.concurrent.{ExecutionContext, Future}
 abstract class OperationLogService {
   def add(logEntry: OperationLogEntryAttemp): Future[Unit]
   def listLotsView(page: Int, pageSize: Int): Future[Seq[OperationLogLotView]]
-  def checkLot(id: Long): Future[Either[(SignedOperationLogEntry, Key), Unit]]
+  def checkLot(id: Long): Future[Option[Either[(SignedOperationLogEntry, Key), Unit]]]
   def getLotsLength(): Future[Int]
   def searchLogs(search: OperationLogSearch): Future[Seq[OperationLogEntry]]
   def getLogsLength(search: OperationLogSearch): Future[Int]
@@ -63,18 +63,21 @@ class PeoOperationLogService @Inject()(
   // returned an empty chunk, silently aborting verification. Migration fixes the
   // pagination AND forces id-asc sort so the PEO signature chain is verified in
   // insertion order, which is required for correctness.
-  override def checkLot(id: Long): Future[Either[(SignedOperationLogEntry, Key), Unit]] =
-    for {
-      lot    <- logRepository.getLot(id)
-      count  <- logRepository.countLogs(OperationLogSearch(lot.id))
-      result <- PEOAlgorithm.verifyEntries(
-        page => logRepository.searchLogs(
-          OperationLogSearch(lot.id, page = page, pageSize = chunkSize,
-            ascending = Some(true), sortField = Some("id"))
-        ),
-        count, chunkSize, lot.kZero
-      )
-    } yield result
+  override def checkLot(id: Long): Future[Option[Either[(SignedOperationLogEntry, Key), Unit]]] =
+    logRepository.getLot(id).flatMap {
+      case None => Future.successful(None)
+      case Some(lot) =>
+        for {
+          count  <- logRepository.countLogs(OperationLogSearch(lot.id))
+          result <- PEOAlgorithm.verifyEntries(
+            page => logRepository.searchLogs(
+              OperationLogSearch(lot.id, page = page, pageSize = chunkSize,
+                ascending = Some(true), sortField = Some("id"))
+            ),
+            count, chunkSize, lot.kZero
+          )
+        } yield Some(result)
+    }
 
   override def searchLogs(search: OperationLogSearch): Future[Seq[OperationLogEntry]] =
     logRepository.searchLogs(search).map {

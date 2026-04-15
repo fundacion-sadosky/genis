@@ -4,6 +4,7 @@ import java.util.Date
 import javax.inject.{Inject, Singleton}
 
 import scala.concurrent.ExecutionContext
+import scala.util.{Failure, Success}
 
 import javax.inject.Named
 
@@ -54,7 +55,18 @@ class OperationLogFilter @Inject()(
             result    = resultCode,
             status    = result.header.status
           )
-        )
+        ).onComplete {
+          case Success(_) => ()
+          case Failure(e) =>
+            // PEOSignerActor has a bounded mailbox (fail-fast): on overflow / DB outage /
+            // ask timeout the audit entry is dropped. Log request metadata (no body) so
+            // an operator can reconstruct what was lost.
+            logger.error(
+              s"audit entry dropped: user=$userName method=${rh.method} path=${rh.path} " +
+              s"action=$action status=${result.header.status}",
+              e
+            )
+        }
       }
       result
     }

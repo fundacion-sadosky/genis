@@ -24,8 +24,8 @@ class StubOperationLogService extends OperationLogService:
   override def add(entry: OperationLogEntryAttemp): Future[Unit] = Future.successful(())
   override def listLotsView(page: Int, pageSize: Int): Future[Seq[OperationLogLotView]] =
     Future.successful(Seq.empty)
-  override def checkLot(id: Long): Future[Either[(SignedOperationLogEntry, Key), Unit]] =
-    Future.successful(Right(()))
+  override def checkLot(id: Long): Future[Option[Either[(SignedOperationLogEntry, Key), Unit]]] =
+    Future.successful(Some(Right(())))
   override def getLotsLength(): Future[Int] = Future.successful(0)
   override def searchLogs(search: OperationLogSearch): Future[Seq[OperationLogEntry]] =
     Future.successful(Seq.empty)

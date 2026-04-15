@@ -17,7 +17,7 @@ trait OperationLogRepository {
   def add(entry: SignedOperationLogEntry): Future[Unit]
   def createLot(kZero: Key): Future[Long]
   def listLots(limit: Int, offset: Int): Future[Seq[OperationLogLot]]
-  def getLot(id: Long): Future[OperationLogLot]
+  def getLot(id: Long): Future[Option[OperationLogLot]]
   def countLots(): Future[Int]
   def countLogs(search: OperationLogSearch): Future[Int]
   def searchLogs(search: OperationLogSearch): Future[IndexedSeq[SignedOperationLogEntry]]
@@ -69,10 +69,10 @@ class SlickOperationLogRepository @Inject()(
       _.map(r => audit.OperationLogLot(r.id, ts2date(r.initTime), Key(r.keyZero)))
     }
 
-  override def getLot(id: Long): Future[OperationLogLot] =
-    db.run(lots.filter(_.id === id).result.head).map(r =>
-      audit.OperationLogLot(r.id, ts2date(r.initTime), Key(r.keyZero))
-    )
+  override def getLot(id: Long): Future[Option[OperationLogLot]] =
+    db.run(lots.filter(_.id === id).result.headOption).map {
+      _.map(r => audit.OperationLogLot(r.id, ts2date(r.initTime), Key(r.keyZero)))
+    }
 
   override def countLots(): Future[Int] =
     db.run(lots.length.result)

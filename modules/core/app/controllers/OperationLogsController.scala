@@ -47,12 +47,13 @@ class OperationLogsController @Inject()(
 
   def checkLogLot(id: Long) = Action.async {
     opLogService.checkLot(id).map {
-      case Left((signedEntry, expectedSignature)) =>
+      case None => NotFound
+      case Some(Left((signedEntry, expectedSignature))) =>
         Ok(Json.obj(
           "signedEntry"       -> signedEntry,
           "expectedSignature" -> expectedSignature.asHexaString()
         ))
-      case Right(_) => Ok
+      case Some(Right(_)) => Ok
     }
   }
 }
