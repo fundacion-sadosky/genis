@@ -81,4 +81,5 @@ class PEOSignerActor(
 object PEOSignerActor {
   def props(logRepository: OperationLogRepository, random: SecureRandom, lotSize: Int): Props =
     Props(new PEOSignerActor(logRepository, random, lotSize))
+      .withDispatcher("audit-dispatcher")
 }

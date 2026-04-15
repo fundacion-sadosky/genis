@@ -15,6 +15,8 @@ trait Signature extends Stringifiable {
 }
 
 object Signature {
+  // HmacSHA256 is fixed: the algorithm is part of the PEO chain written to genislogdb.
+  // Switching it would invalidate every historical signature, so it is not configurable.
   private val mac = Mac.getInstance("HmacSHA256")
 
   def computeSignature(txt: String, key: Key): Key = {

@@ -49,9 +49,8 @@ class OperationLogModule(environment: Environment, conf: Configuration) extends 
       .toProvider(classOf[SignerServiceProvider])
 
     // Legacy flat keys are the source of truth; operationLog.* serves as fallback for new installs.
-    val hmacAlg   = conf.getOptional[String]("hmac.algorithm")
-      .orElse(conf.getOptional[String]("operationLog.hmac.algorithm"))
-      .getOrElse("HmacSHA256")
+    // Note: `hmac.algorithm` is intentionally NOT read — Signature hardcodes HmacSHA256
+    // (matches legacy and would invalidate the entire signature chain if changed mid-flight).
     val randomAlg = conf.getOptional[String]("random.algorithm")
       .orElse(conf.getOptional[String]("operationLog.random.algorithm"))
       .getOrElse("SHA1PRNG")
@@ -69,7 +68,6 @@ class OperationLogModule(environment: Environment, conf: Configuration) extends 
       .orElse(conf.getOptional[String]("operationLog.build.number"))
       .getOrElse("develop")
 
-    bind(classOf[String]).annotatedWith(Names.named("hmacAlg")).toInstance(hmacAlg)
     bind(classOf[String]).annotatedWith(Names.named("randomAlg")).toInstance(randomAlg)
     bind(classOf[String]).annotatedWith(Names.named("buildNo")).toInstance(buildNo)
     bind(classOf[Int]).annotatedWith(Names.named("lotSize")).toInstance(lotSize)
