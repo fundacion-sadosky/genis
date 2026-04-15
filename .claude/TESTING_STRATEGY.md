@@ -350,6 +350,101 @@ class MyTest extends AnyWordSpec with Matchers with PostgresSpec:
 Aplica a `beforeEach`, `afterEach`, helpers privados — cualquier metodo que
 construya un query Slick con `===` dentro de una clase que extienda `Matchers`.
 
+## Play 3 import gotchas
+
+### `HandlerDef` vive en `play.api.routing`, no en `play.api.mvc`
+
+En Play 3.0 el caso-clase `HandlerDef` (el que describe el controller/method
+asociado a una ruta) esta en el paquete `play.api.routing`. El atributo
+`Router.Attrs.HandlerDef` lo devuelve desde ese mismo paquete.
+
+Intentar importarlo de `play.api.mvc` falla con un error que puede confundir:
+
+```
+[error] value HandlerDef is not a member of play.api.mvc - did you mean mvc.Handler?
+```
+
+En Play 2.x legacy el tipo estaba en un lugar distinto, por eso es un error
+facil de cometer al migrar filtros.
+
+**Mal:**
+```scala
+import play.api.mvc.{EssentialAction, HandlerDef, RequestHeader}  // no compila
+```
+
+**Bien:**
+```scala
+import play.api.mvc.{EssentialAction, RequestHeader}
+import play.api.routing.{HandlerDef, Router}
+```
+
+**Uso tipico en un test de filtro:**
+```scala
+val handlerDef = HandlerDef(
+  classLoader   = getClass.getClassLoader,
+  routerPackage = "",
+  controller    = "controllers.ProfilesController",
+  method        = "findByCode",
+  parameterTypes = Nil,
+  verb          = "GET",
+  path          = "/api/v2/profiles",
+  comments      = "",
+  modifiers     = Seq.empty
+)
+val req = FakeRequest(GET, "/api/v2/profiles")
+  .addAttr(Router.Attrs.HandlerDef, handlerDef)
+```
+
+## Cleanup en integration tests: usar marcador del padre, no de la columna que varia
+
+Cuando un test de Postgres escribe filas con valores **variados** en la columna
+que normalmente usarias para limpiar (ej: varios `userId` distintos para testear
+ordenamiento por `userId`), limpiar por esa columna deja filas huerfanas que
+rompen el delete del padre por la FK.
+
+**Sintoma:**
+```
+PSQLException: ERROR: update or delete on table "OPERATION_LOG_LOT"
+  violates foreign key constraint "OPERATION_LOG_RECORD_FK" on table "OPERATION_LOG_RECORD".
+  Detail: Key (ID)=(183) is still referenced from table "OPERATION_LOG_RECORD".
+```
+
+El test escribe records con `testUser + "_A"`, `testUser + "_B"`, etc. La
+primera version del cleanup borraba solo `userId === testUser`, asi que los
+records con sufijo quedaban y bloqueaban el delete del lote.
+
+**Mal** — limpiar por la columna que el test varia:
+```scala
+private def cleanTestData(): Unit =
+  import slick.jdbc.PostgresProfile.api.*
+  val cleanup = DBIO.seq(
+    Tables.OperationLogRecord.filter(_.userId === testUser).delete,
+    Tables.OperationLogLot.filter(_.keyZero === markerKZero.asHexaString()).delete
+  )
+  Await.result(logDb.run(cleanup), timeout)
+  // ^ aborta con FK violation si algun test escribio records con userIds distintos
+```
+
+**Bien** — limpiar hijos via el marcador del padre:
+```scala
+private val markerKZero = Key(Seq.fill(32)(0xAA.toByte))  // distintivo de este suite
+
+private def cleanTestData(): Unit =
+  import slick.jdbc.PostgresProfile.api.*
+  val markerHex = markerKZero.asHexaString()
+  val ourLotIds = Tables.OperationLogLot.filter(_.keyZero === markerHex).map(_.id)
+  val cleanup = DBIO.seq(
+    Tables.OperationLogRecord.filter(_.lot.in(ourLotIds)).delete,
+    Tables.OperationLogLot.filter(_.keyZero === markerHex).delete
+  )
+  Await.result(logDb.run(cleanup), timeout)
+```
+
+**Regla general:** cuando el padre tiene una columna identificable (aca
+`kZero`), elegi un valor marcador de test para esa columna y cascadea la
+limpieza desde ahi. No confies en una columna del hijo que el test pueda
+variar.
+
 ## Checklist para Nuevos Tests
 
 ### Unit Test

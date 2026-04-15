@@ -1,10 +1,13 @@
 package fixtures
 
+import scala.collection.immutable.IndexedSeq
 import scala.concurrent.Future
 import scala.util.{Success, Try}
 import java.io.File
 import javax.inject.Singleton
 
+import audit.{Key, OperationLogEntry, OperationLogEntryAttemp, OperationLogLotView,
+  OperationLogSearch, OperationLogService, SignedOperationLogEntry}
 import configdata.{BioMaterialType, CrimeType, CrimeTypeService, BioMaterialTypeService}
 import disclaimer.{Disclaimer, DisclaimerService}
 import kits.{FullStrKit, StrKit, StrKitLocus, StrKitService, NewStrKitLocus}
@@ -17,6 +20,20 @@ import types.{AlphanumericId, Geneticist, Laboratory, Permission, StatOption}
 import security.User
 import user.{ClearPassChallenge, ClearPassResponse, ClearPassSolicitud,
   SignupChallenge, SignupResponse, SignupSolicitude, UserStatus, UserView}
+
+/** No-op audit service for tests: avoids the PEOSignerActor connecting to genislogdb
+ *  during GuiceApplicationBuilder startup. */
+@Singleton
+class StubOperationLogService extends OperationLogService:
+  override def add(entry: OperationLogEntryAttemp): Future[Unit] = Future.successful(())
+  override def listLotsView(page: Int, pageSize: Int): Future[Seq[OperationLogLotView]] =
+    Future.successful(Seq.empty)
+  override def checkLot(id: Long): Future[Option[Either[(SignedOperationLogEntry, Key), Unit]]] =
+    Future.successful(Some(Right(())))
+  override def getLotsLength(): Future[Int] = Future.successful(0)
+  override def searchLogs(search: OperationLogSearch): Future[Seq[OperationLogEntry]] =
+    Future.successful(Seq.empty)
+  override def getLogsLength(search: OperationLogSearch): Future[Int] = Future.successful(0)
 
 @Singleton
 class StubLaboratoryService extends LaboratoryService:
