@@ -154,6 +154,18 @@ GET     /api/v2/populationBaseFreq/:name              controllers.PopulationBase
 PUT     /api/v2/populationBaseFreq/:name              controllers.PopulationBaseFreqController.toggleStateBase(name: String)
 PUT     /api/v2/populationBaseFreqDefault/:name       controllers.PopulationBaseFreqController.setBaseAsDefault(name: String)
 
+# Mutation models (MPI/DVI)
+GET     /api/v2/mutation-models                              controllers.MutationController.getAllMutationModels()
+GET     /api/v2/mutation-models/default-params               controllers.MutationController.getAllMutationDefaultParameters()
+GET     /api/v2/mutation-models/active                       controllers.MutationController.getActiveMutationModels()
+GET     /api/v2/mutation-model                               controllers.MutationController.getMutationModel(id: Long)
+GET     /api/v2/mutation-model-parameters                    controllers.MutationController.getMutatitionModelParameters(id: Long)
+GET     /api/v2/mutation-models-types                        controllers.MutationController.getMutationModelsTypes()
+DELETE  /api/v2/mutation-models/:id                          controllers.MutationController.deleteMutationModelById(id: Long)
+POST    /api/v2/mutation-models                              controllers.MutationController.insert
+PUT     /api/v2/mutation-models                              controllers.MutationController.update
+PUT     /api/v2/mutation-models-matrix                       controllers.MutationController.generateMatrix
+
 # Operation Log (audit)
 GET     /api/v2/operationLog                          controllers.OperationLogsController.getLogLots(page: Int, pageSize: Int)
 HEAD    /api/v2/operationLog                          controllers.OperationLogsController.getTotalLots

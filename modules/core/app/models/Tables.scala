@@ -372,4 +372,113 @@ object Tables {
                       ((OperationLogRecordRow.apply _).tupled, OperationLogRecordRow.unapply)
   }
   val OperationLogRecord = TableQuery[OperationLogRecordTable]
+
+  // ---------------------------------------------------------------------------
+  // Mutation model tables (pedigree / MPI-DVI)
+  // ---------------------------------------------------------------------------
+
+  case class MutationModelTypeRow(id: Long, description: String)
+  object MutationModelTypeRow { def tupled = (apply _).tupled }
+
+  class MutationModelTypeTable(tag: Tag)
+      extends Table[MutationModelTypeRow](tag, Some("APP"), "MUTATION_MODEL_TYPE") {
+    def id          = column[Long]("ID", O.PrimaryKey, O.AutoInc)
+    def description = column[String]("DESCRIPTION")
+    def *           = (id, description) <> (MutationModelTypeRow.tupled, MutationModelTypeRow.unapply)
+  }
+  val MutationModelType = TableQuery[MutationModelTypeTable]
+
+  case class MutationModelRow(
+    id: Long,
+    name: String,
+    mutationType: Long,
+    active: Boolean,
+    ignoreSex: Boolean,
+    cantSaltos: Long
+  )
+  object MutationModelRow { def tupled = (apply _).tupled }
+
+  class MutationModelTable(tag: Tag)
+      extends Table[MutationModelRow](tag, Some("APP"), "MUTATION_MODEL") {
+    def id           = column[Long]("ID", O.PrimaryKey, O.AutoInc)
+    def name         = column[String]("NAME")
+    def mutationType = column[Long]("MUTATION_MODEL_TYPE")
+    def active       = column[Boolean]("ACTIVE")
+    def ignoreSex    = column[Boolean]("IGNORE_SEX")
+    def cantSaltos   = column[Long]("CANT_SALTOS")
+    def * = (id, name, mutationType, active, ignoreSex, cantSaltos) <> (MutationModelRow.tupled, MutationModelRow.unapply)
+  }
+  val MutationModel = TableQuery[MutationModelTable]
+
+  case class MutationModelParameterRow(
+    id: Long,
+    idMutationModel: Long,
+    locus: String,
+    sex: String,
+    mutationRate: Option[scala.math.BigDecimal],
+    mutationRange: Option[scala.math.BigDecimal],
+    mutationRateMicrovariant: Option[scala.math.BigDecimal]
+  )
+  object MutationModelParameterRow { def tupled = (apply _).tupled }
+
+  class MutationModelParameterTable(tag: Tag)
+      extends Table[MutationModelParameterRow](tag, Some("APP"), "MUTATION_MODEL_PARAMETER") {
+    def id                        = column[Long]("ID", O.PrimaryKey, O.AutoInc)
+    def idMutationModel           = column[Long]("ID_MUTATION_MODEL")
+    def locus                     = column[String]("LOCUS")
+    def sex                       = column[String]("SEX")
+    def mutationRate              = column[Option[scala.math.BigDecimal]]("MUTATION_RATE")
+    def mutationRange             = column[Option[scala.math.BigDecimal]]("MUTATION_RANGE")
+    def mutationRateMicrovariant  = column[Option[scala.math.BigDecimal]]("MUTATION_RATE_MICROVARIANT")
+    def * = (id, idMutationModel, locus, sex, mutationRate, mutationRange, mutationRateMicrovariant) <> (MutationModelParameterRow.tupled, MutationModelParameterRow.unapply)
+  }
+  val MutationModelParameter = TableQuery[MutationModelParameterTable]
+
+  case class MutationModelKiRow(
+    id: Long,
+    idMutationModelParameter: Long,
+    allele: Double,
+    ki: scala.math.BigDecimal
+  )
+  object MutationModelKiRow { def tupled = (apply _).tupled }
+
+  class MutationModelKiTable(tag: Tag)
+      extends Table[MutationModelKiRow](tag, Some("APP"), "MUTATION_MODEL_KI") {
+    def id                       = column[Long]("ID", O.PrimaryKey, O.AutoInc)
+    def idMutationModelParameter = column[Long]("ID_MUTATION_MODEL_PARAMETER")
+    def allele                   = column[Double]("ALLELE")
+    def ki                       = column[scala.math.BigDecimal]("KI")
+    def * = (id, idMutationModelParameter, allele, ki) <> (MutationModelKiRow.tupled, MutationModelKiRow.unapply)
+  }
+  val MutationModelKi = TableQuery[MutationModelKiTable]
+
+  case class MutationDefaultParameterRow(
+    id: Long,
+    locus: String,
+    sex: String,
+    mutationRate: Option[scala.math.BigDecimal]
+  )
+  object MutationDefaultParameterRow { def tupled = (apply _).tupled }
+
+  class MutationDefaultParameterTable(tag: Tag)
+      extends Table[MutationDefaultParameterRow](tag, Some("APP"), "MUTATION_DEFAULT_PARAMETER") {
+    def id           = column[Long]("ID", O.PrimaryKey, O.AutoInc)
+    def locus        = column[String]("LOCUS")
+    def sex          = column[String]("SEX")
+    def mutationRate = column[Option[scala.math.BigDecimal]]("MUTATION_RATE")
+    def * = (id, locus, sex, mutationRate) <> (MutationDefaultParameterRow.tupled, MutationDefaultParameterRow.unapply)
+  }
+  val MutationDefaultParameter = TableQuery[MutationDefaultParameterTable]
+
+  case class LocusAllelesRow(id: Long, locus: String, allele: Double)
+  object LocusAllelesRow { def tupled = (apply _).tupled }
+
+  class LocusAlleleTable(tag: Tag)
+      extends Table[LocusAllelesRow](tag, Some("APP"), "LOCUS_ALLELE") {
+    def id     = column[Long]("ID", O.PrimaryKey, O.AutoInc)
+    def locus  = column[String]("LOCUS")
+    def allele = column[Double]("ALLELE")
+    def *      = (id, locus, allele) <> (LocusAllelesRow.tupled, LocusAllelesRow.unapply)
+  }
+  val LocusAllele = TableQuery[LocusAlleleTable]
 }
