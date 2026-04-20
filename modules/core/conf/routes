@@ -153,3 +153,30 @@ GET     /api/v2/populationBaseFreqCharacteristics     controllers.PopulationBase
 GET     /api/v2/populationBaseFreq/:name              controllers.PopulationBaseFreqController.getByName(name: String)
 PUT     /api/v2/populationBaseFreq/:name              controllers.PopulationBaseFreqController.toggleStateBase(name: String)
 PUT     /api/v2/populationBaseFreqDefault/:name       controllers.PopulationBaseFreqController.setBaseAsDefault(name: String)
+
+
+# BulkUpload
+POST    /api/v2/bulkuploader                                              controllers.BulkUploadController.uploadProtoProfiles(label: Option[String], analysisType: String)
+GET     /api/v2/bulkupload/step1/protoprofiles                           controllers.BulkUploadController.getProtoProfilesStep1(batchId: Long, page: Int, pageSize: Int)
+GET     /api/v2/bulkupload/step2/protoprofiles                           controllers.BulkUploadController.getProtoProfilesStep2(geneMapperId: String, batchId: Long, page: Int, pageSize: Int)
+GET     /api/v2/bulkupload/step1/batches                                 controllers.BulkUploadController.getBatchesStep1(page: Int, pageSize: Int)
+GET     /api/v2/bulkupload/step1/count                                   controllers.BulkUploadController.countBatchesStep1
+GET     /api/v2/bulkupload/step2/batches                                 controllers.BulkUploadController.getBatchesStep2(geneMapperId: String, page: Int, pageSize: Int)
+GET     /api/v2/bulkupload/step2/count                                   controllers.BulkUploadController.countBatchesStep2(geneMapperId: String)
+POST    /api/v2/protoprofiles/:id/status                                 controllers.BulkUploadController.updateProtoProfileStatus(id: Long, status: String, replicate: Boolean, desktopSearch: Boolean)
+POST    /api/v2/protoprofiles/multiple-status                            controllers.BulkUploadController.updateBatchStatus(idBatch: Long, status: String, replicateAll: Boolean)
+GET     /api/v2/bulkupload/protoprofiles/:id                             controllers.BulkUploadController.getProtoProfileById(id: Long)
+GET     /api/v2/bulkupload/step2/batch/:batchId/count                    controllers.BulkUploadController.countAllProtoProfilesInBatch(batchId: Long)
+POST    /api/v2/protoprofiles/:id/subcategory                            controllers.BulkUploadController.updateProtoProfileData(id: Long, category: types.AlphanumericId)
+POST    /api/v2/protoprofiles/matchingrules                              controllers.BulkUploadController.updateProtoProfileRulesMismatch()
+POST    /api/v2/protoprofiles-reject/:id                                 controllers.BulkUploadController.rejectProtoProfile(id: Long, motive: String, idMotive: Long)
+DELETE  /api/v2/bulkupload/:id                                           controllers.BulkUploadController.deleteBatch(id: Long)
+GET     /api/v2/bulkupload/batches                                       controllers.BulkUploadController.searchBatch(filter: String)
+GET     /api/v2/batch-modal                                              controllers.BulkUploadController.getBatchSearchModalViewByIdOrLabel(input: String, idCase: Long)
+
+# ProtoProfileData
+GET     /api/v2/protoprofiledata-complete/:id                            controllers.ProtoProfileDataController.getByCode(id: types.SampleCode)
+POST    /api/v2/protoprofiledata                                         controllers.ProtoProfileDataController.create
+PUT     /api/v2/protoprofiledata/:id                                     controllers.ProtoProfileDataController.update(id: types.SampleCode)
+GET     /api/v2/protoprofiledata-editable/:id                            controllers.ProtoProfileDataController.isEditable(id: types.SampleCode)
+GET     /api/v2/resources/proto/static/:type/:id                         controllers.ProtoProfileDataController.getResources(type: String, id: Long)

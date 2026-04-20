@@ -115,3 +115,22 @@ class StubLimsArchivesExporterService extends LimsArchivesExporterService {
   override def getFileOfAlta = altaFile
   override def getFileOfMatch = matchFile
 }
+
+import javax.inject.Singleton
+import profile.MtRCRS
+import profiledata.{ProfileData, ProfileDataAttempt, ProfileDataService}
+import types.SampleCode
+
+@Singleton
+class StubProfileDataService extends ProfileDataService:
+  var getMtRcrsResult: Future[MtRCRS]                          = Future.successful(MtRCRS(Map.empty))
+  var createResult: Future[Either[String, SampleCode]]         = Future.successful(Left("stub"))
+  var updateProfileDataResult: Future[Boolean]                 = Future.successful(false)
+  var getResult: Future[Option[ProfileData]]                   = Future.successful(None)
+  var getResourceResult: Future[Option[Array[Byte]]]           = Future.successful(None)
+
+  override def getMtRcrs()                                                           = getMtRcrsResult
+  override def create(profileData: ProfileDataAttempt)                               = createResult
+  override def updateProfileData(gc: SampleCode, pd: ProfileDataAttempt)            = updateProfileDataResult
+  override def get(sampleCode: SampleCode)                                           = getResult
+  override def getResource(resourceType: String, id: Long)                          = getResourceResult

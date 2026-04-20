@@ -100,7 +100,6 @@ lazy val core = (project in file("modules/core"))
     // Run tests sequentially to avoid exhausting DB connection pool
     Test / parallelExecution := false,
 
-    
     // Fix Jackson version conflict
     dependencyOverrides ++= Seq(
       "com.fasterxml.jackson.core" % "jackson-databind" % "2.14.3",
