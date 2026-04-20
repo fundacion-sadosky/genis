@@ -117,3 +117,67 @@ class SlickTraceRepositoryIntegrationTest
         timeout
       )
       result mustBe 2
+
+    "count all traces when isSuperUser is true" in:
+      addTrace(testProfile1, "user1")
+      addTrace(testProfile1, "user2")
+      addTrace(testProfile1, "user3")
+
+      val result = Await.result(
+        repo.count(TraceSearch(0, 30, testProfile1, "other_user", isSuperUser = true)),
+        timeout
+      )
+      result mustBe 3
+
+  "SlickTraceRepository.getById" must:
+    "return Some(trace) for an existing id" in:
+      val id = addTrace(testProfile1, "user1")
+      val result = Await.result(repo.getById(id), timeout)
+      result.isDefined mustBe true
+      result.get.profile mustBe testProfile1
+      result.get.user mustBe "user1"
+
+    "return None for a non-existing id" in:
+      val result = Await.result(repo.getById(-999L), timeout)
+      result mustBe None
+
+  "SlickTraceRepository.addTracePedigree" must:
+    "insert a pedigree trace and return Right with non-zero id" in:
+      val t      = TracePedigree(9999L, "user1", new Date(), traceInfo)
+      val result = Await.result(repo.addTracePedigree(t), timeout)
+      result.isRight mustBe true
+      result.toOption.get must be > 0L
+
+  "SlickTraceRepository.searchPedigree" must:
+    "return only pedigree traces matching the given user" in:
+      Await.result(repo.addTracePedigree(TracePedigree(9999L, "user1", new Date(), traceInfo)), timeout)
+      Await.result(repo.addTracePedigree(TracePedigree(9999L, "user2", new Date(), traceInfo)), timeout)
+
+      val result = Await.result(
+        repo.searchPedigree(TraceSearchPedigree(0, 30, 9999, "user1", isSuperUser = false)),
+        timeout
+      )
+      result.size mustBe 1
+      result.head.user mustBe "user1"
+
+    "return all pedigree traces when isSuperUser is true" in:
+      Await.result(repo.addTracePedigree(TracePedigree(9999L, "user1", new Date(), traceInfo)), timeout)
+      Await.result(repo.addTracePedigree(TracePedigree(9999L, "user2", new Date(), traceInfo)), timeout)
+
+      val result = Await.result(
+        repo.searchPedigree(TraceSearchPedigree(0, 30, 9999, "other_user", isSuperUser = true)),
+        timeout
+      )
+      result.size mustBe 2
+
+  "SlickTraceRepository.countPedigree" must:
+    "count only pedigree traces matching the given user" in:
+      Await.result(repo.addTracePedigree(TracePedigree(9999L, "user1", new Date(), traceInfo)), timeout)
+      Await.result(repo.addTracePedigree(TracePedigree(9999L, "user1", new Date(), traceInfo)), timeout)
+      Await.result(repo.addTracePedigree(TracePedigree(9999L, "user2", new Date(), traceInfo)), timeout)
+
+      val result = Await.result(
+        repo.countPedigree(TraceSearchPedigree(0, 30, 9999, "user1", isSuperUser = false)),
+        timeout
+      )
+      result mustBe 2

@@ -2,6 +2,7 @@ package trace
 
 import jakarta.inject.{Inject, Singleton}
 import models.Tables
+import play.api.Logger
 import play.api.libs.json.Json
 import slick.jdbc.PostgresProfile.api._
 import types.SampleCode
@@ -21,6 +22,8 @@ trait TraceRepository {
 @Singleton
 class SlickTraceRepository @Inject() (db: slick.jdbc.JdbcBackend.Database)(implicit ec: ExecutionContext)
     extends TraceRepository {
+
+  private val logger = Logger(this.getClass)
 
   private val traces        = Tables.Trace
   private val tracesPedigree = Tables.TracePedigree
@@ -43,7 +46,10 @@ class SlickTraceRepository @Inject() (db: slick.jdbc.JdbcBackend.Database)(impli
       date2timestamp(trace.date), Json.toJson(trace.trace).toString, trace.kind.toString)
     db.run((traces returning traces.map(_.id)) += row)
       .map(id => Right(id))
-      .recover { case e: Exception => Left(e.getMessage) }
+      .recover { case e: Exception =>
+        logger.error(s"Error guardando trace de perfil ${trace.profile.text}", e)
+        Left("Error al guardar la traza")
+      }
   }
 
   override def addTracePedigree(trace: TracePedigree): Future[Either[String, Long]] = {
@@ -51,7 +57,10 @@ class SlickTraceRepository @Inject() (db: slick.jdbc.JdbcBackend.Database)(impli
       date2timestamp(trace.date), Json.toJson(trace.trace).toString, trace.kind.toString)
     db.run((tracesPedigree returning tracesPedigree.map(_.id)) += row)
       .map(id => Right(id))
-      .recover { case e: Exception => Left(e.getMessage) }
+      .recover { case e: Exception =>
+        logger.error(s"Error guardando trace de pedigrí ${trace.pedigree}", e)
+        Left("Error al guardar la traza")
+      }
   }
 
   override def search(traceSearch: TraceSearch): Future[Seq[Trace]] = {

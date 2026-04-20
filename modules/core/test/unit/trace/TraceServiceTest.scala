@@ -228,3 +228,49 @@ class TraceServiceTest extends PlaySpec with MockitoSugar:
       when(repo.getById(any[Long])).thenReturn(Future.successful(Some(trace)))
       val result = Await.result(makeService(repo).getFullDescription(1L), duration)
       result mustBe "PedigreeNewScenario"
+
+    "return empty string when trace ID does not exist" in:
+      val repo = mock[TraceRepository]
+      when(repo.getById(any[Long])).thenReturn(Future.successful(None))
+      val result = Await.result(makeService(repo).getFullDescription(99L), duration)
+      result mustBe ""
+
+    "return description with analysisType ID as fallback for MatchActionInfo when type not found" in:
+      val atSvc       = mock[AnalysisTypeService]
+      when(atSvc.getById(any[Int])).thenReturn(Future.successful(None))
+      val catSvc      = mock[CategoryService]
+      when(catSvc.getCategory(any[AlphanumericId])).thenReturn(Future.successful(Some(CategoryFixtures.fcA)))
+      val profileRepo = mock[ProfileRepository]
+      when(profileRepo.findByCode(any[SampleCode])).thenReturn(Future.successful(Some(sampleProfile)))
+      val repo        = mock[TraceRepository]
+      when(repo.getById(any[Long])).thenReturn(Future.successful(Some(hitTrace)))
+      val result = Await.result(makeService(repo, catSvc, atSvc, profileRepo).getFullDescription(1L), duration)
+      result must include(hitInfo.analysisType.toString)
+
+    "return description with analysisType ID as fallback for PedigreeMatchActionInfo when type not found" in:
+      val atSvc        = mock[AnalysisTypeService]
+      when(atSvc.getById(any[Int])).thenReturn(Future.successful(None))
+      val pedigreeRepo = mock[PedigreeDataRepository]
+      when(pedigreeRepo.getPedigreeMetaData(any[Long])).thenReturn(Future.successful(Some(pedigreeData)))
+      val repo         = mock[TraceRepository]
+      when(repo.getById(any[Long])).thenReturn(Future.successful(Some(
+        Trace(sampleCode, "userId", new Date(), pedigreeDiscardInfo)
+      )))
+      val result = Await.result(makeService(repo, atSvc = atSvc, pedigreeRepo = pedigreeRepo).getFullDescription(1L), duration)
+      result must include(pedigreeDiscardInfo.analysisType.toString)
+
+  "TraceServiceImpl.add (error message)" should:
+    "not expose raw exception details in error Left" in:
+      val repo = mock[TraceRepository]
+      when(repo.add(any[Trace])).thenReturn(Future.failed(new RuntimeException("raw DB schema: table trace")))
+      val result = Await.result(makeService(repo).add(hitTrace), duration)
+      result.isLeft mustBe true
+      result.left.get must not include "raw DB schema"
+
+  "TraceServiceImpl.addTracePedigree (error message)" should:
+    "not expose raw exception details in error Left" in:
+      val repo = mock[TraceRepository]
+      when(repo.addTracePedigree(any[TracePedigree])).thenReturn(Future.failed(new RuntimeException("raw DB schema: table trace_pedigree")))
+      val result = Await.result(makeService(repo).addTracePedigree(pedigreeTrace), duration)
+      result.isLeft mustBe true
+      result.left.get must not include "raw DB schema"

@@ -63,9 +63,9 @@ class TraceServiceImpl @Inject() (
     traceRepository.searchPedigree(traceSearch)
 
   override def getFullDescription(id: Long): Future[String] =
-    traceRepository.getById(id) flatMap { traceOpt =>
-      val trace = traceOpt.get
-      trace.trace match {
+    traceRepository.getById(id) flatMap {
+      case None        => Future.successful("")
+      case Some(trace) => trace.trace match {
         case ti: AnalysisInfo            => stringify(ti)
         case ti: ProcessInfo             => stringify(ti)
         case ti: MatchActionInfo         => stringify(ti)
@@ -116,8 +116,9 @@ class TraceServiceImpl @Inject() (
       profile          = profileOpt.get
       categoryOpt     <- categoryService.getCategory(profile.categoryId)
     } yield {
-      val category = categoryOpt.fold(profile.categoryId.toString)(_.name)
-      s"Tipo: ${analysisTypeOpt.get.name} / " +
+      val category     = categoryOpt.fold(profile.categoryId.toString)(_.name)
+      val analysisName = analysisTypeOpt.fold(ti.analysisType.toString)(_.name)
+      s"Tipo: $analysisName / " +
         s"Perfil coincidente: ${profile.globalCode.text} (${profile.internalSampleCode}) / Categoría: $category / " +
         s"Usuario responsable: ${profile.assignee}"
     }
@@ -145,7 +146,8 @@ class TraceServiceImpl @Inject() (
         s"${p.pedigreeMetaData.id} (${p.pedigreeMetaData.name})"
       }
       val assigneeDesc = pedigreeOpt.fold("N/A")(_.pedigreeMetaData.assignee)
-      s"Tipo: ${analysisTypeOpt.get.name} / " +
+      val analysisName = analysisTypeOpt.fold(ti.analysisType.toString)(_.name)
+      s"Tipo: $analysisName / " +
         s"Pedigrí coincidente: $pedigreeDesc / " +
         s"Usuario responsable: $assigneeDesc"
     }

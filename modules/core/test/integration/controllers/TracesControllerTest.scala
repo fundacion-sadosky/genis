@@ -1,6 +1,6 @@
 package integration.controllers
 
-import fixtures.StubLdapHealthService
+import fixtures.{StubLdapHealthService, StubUserService}
 import org.scalatestplus.play.*
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
 import play.api.Application
@@ -10,6 +10,7 @@ import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import security.{StubUserRepository, StubRoleRepository, UserRepository}
+import services.UserService
 import trace.{Trace, TraceSearch, TraceSearchPedigree, TraceService, TracePedigree, TraceModule}
 import types.SampleCode
 import user.{LdapHealthService, RoleRepository, UsersModule}
@@ -41,27 +42,26 @@ class TracesControllerTest extends PlaySpec with GuiceOneAppPerTest:
         bind[UserRepository].to[StubUserRepository],
         bind[RoleRepository].to[StubRoleRepository],
         bind[TraceService].toInstance(stubTraceService),
+        bind[UserService].to[StubUserService],
         bind[LdapHealthService].toInstance(new StubLdapHealthService)
       )
       .configure("play.http.secret.key" -> "test-secret-key-for-testing-purposes-only-not-for-production-1234")
       .build()
 
   private val validSearchBody = Json.obj(
-    "page"        -> 0,
-    "pageSize"    -> 30,
-    "profile"     -> "AR-B-SHDG-1234",
-    "user"        -> "userId",
-    "isSuperUser" -> false
+    "page"     -> 0,
+    "pageSize" -> 30,
+    "profile"  -> "AR-B-SHDG-1234",
+    "user"     -> "userId"
   )
 
   private val invalidBody = Json.obj("user" -> "userId")
 
   private val validPedigreeBody = Json.obj(
-    "page"        -> 0,
-    "pageSize"    -> 30,
-    "pedigreeId"  -> 15,
-    "user"        -> "userId",
-    "isSuperUser" -> false
+    "page"      -> 0,
+    "pageSize"  -> 30,
+    "pedigreeId" -> 15,
+    "user"      -> "userId"
   )
 
   "POST /api/v2/trace/search" should:
@@ -106,3 +106,16 @@ class TracesControllerTest extends PlaySpec with GuiceOneAppPerTest:
     "return 400 with invalid JSON body" in:
       val result = route(app, FakeRequest(POST, "/api/v2/trace/total-pedigree").withJsonBody(invalidBody)).get
       status(result) mustBe BAD_REQUEST
+
+  "JSON endpoints" should:
+    "return 415 when body is not JSON" in:
+      val plainBody = "not a json body"
+      Seq(
+        FakeRequest(POST, "/api/v2/trace/search").withBody(plainBody),
+        FakeRequest(POST, "/api/v2/trace/total").withBody(plainBody),
+        FakeRequest(POST, "/api/v2/trace/search-pedigree").withBody(plainBody),
+        FakeRequest(POST, "/api/v2/trace/total-pedigree").withBody(plainBody)
+      ).foreach { req =>
+        val result = route(app, req).get
+        status(result) mustBe UNSUPPORTED_MEDIA_TYPE
+      }
