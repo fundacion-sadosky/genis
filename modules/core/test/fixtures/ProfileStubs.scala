@@ -116,21 +116,76 @@ class StubLimsArchivesExporterService extends LimsArchivesExporterService {
   override def getFileOfMatch = matchFile
 }
 
-import javax.inject.Singleton
+import jakarta.inject.Singleton
+import models.Tables.{ProfileReceivedRow, ProfileSentRow, ProfileUploadedRow, ExternalProfileDataRow}
 import profile.MtRCRS
-import profiledata.{ProfileData, ProfileDataAttempt, ProfileDataService}
+import profiledata.*
 import types.SampleCode
 
 @Singleton
 class StubProfileDataService extends ProfileDataService:
-  var getMtRcrsResult: Future[MtRCRS]                          = Future.successful(MtRCRS(Map.empty))
-  var createResult: Future[Either[String, SampleCode]]         = Future.successful(Left("stub"))
-  var updateProfileDataResult: Future[Boolean]                 = Future.successful(false)
-  var getResult: Future[Option[ProfileData]]                   = Future.successful(None)
-  var getResourceResult: Future[Option[Array[Byte]]]           = Future.successful(None)
+  var getMtRcrsResult: Future[MtRCRS]                                    = Future.successful(MtRCRS(Map.empty))
+  var createResult: Future[Either[String, SampleCode]]                   = Future.successful(Left("stub"))
+  var updateProfileDataResult: Future[Boolean]                           = Future.successful(false)
+  var updateProfileCategoryDataResult: Future[Option[String]]            = Future.successful(None)
+  var getByCodeResult: Future[Option[ProfileData]]                       = Future.successful(None)
+  // alias used by ProtoProfileDataControllerTest
+  def getResult_=(v: Future[Option[ProfileData]]): Unit = getByCodeResult = v
+  def getResult: Future[Option[ProfileData]] = getByCodeResult
+  var getByIdResult: Future[(ProfileData, configdata.Group, configdata.Category)] =
+    Future.failed(new UnsupportedOperationException("stub"))
+  var getResourceResult: Future[Option[Array[Byte]]]                     = Future.successful(None)
+  var findByCodeResult: Future[Option[ProfileData]]                      = Future.successful(None)
+  var findByCodesResult: Future[Seq[ProfileData]]                        = Future.successful(Seq.empty)
+  var findByCodeWithAssociationsResult: Future[Option[(ProfileData, configdata.Group, configdata.FullCategory)]] =
+    Future.successful(None)
+  var isEditableResult: Future[Option[Boolean]]                          = Future.successful(Some(true))
+  var isDesktopProfileResult: Future[Option[Boolean]]                    = Future.successful(None)
+  var getDeleteMotiveResult: Future[Option[DeletedMotive]]               = Future.successful(None)
+  var deleteProfileResult: Future[Either[String, SampleCode]]            = Future.successful(Left("stub"))
+  var deleteResult: Future[Either[String, SampleCode]]                   = Future.successful(Left("stub"))
+  var removeProfileResult: Future[Either[String, SampleCode]]            = Future.successful(Right(SampleCode("AR-C-SHDG-1")))
+  var getDesktopProfilesResult: Future[Seq[SampleCode]]                  = Future.successful(Seq.empty)
+  var countProfilesResult: Future[Int]                                   = Future.successful(0)
 
-  override def getMtRcrs()                                                           = getMtRcrsResult
-  override def create(profileData: ProfileDataAttempt)                               = createResult
-  override def updateProfileData(gc: SampleCode, pd: ProfileDataAttempt)            = updateProfileDataResult
-  override def get(sampleCode: SampleCode)                                           = getResult
-  override def getResource(resourceType: String, id: Long)                          = getResourceResult
+  override def getMtRcrs()                                                                                                = getMtRcrsResult
+  override def create(pd: ProfileDataAttempt)                                                                            = createResult
+  override def updateProfileData(gc: SampleCode, pd: ProfileDataAttempt, allow: Boolean = false)                        = updateProfileDataResult
+  override def updateProfileCategoryData(gc: SampleCode, pd: ProfileDataAttempt, u: String)                             = updateProfileCategoryDataResult
+  override def get(sc: SampleCode)                                                                                       = getByCodeResult
+  override def get(id: Long)                                                                                             = getByIdResult
+  override def getResource(rt: String, id: Long)                                                                        = getResourceResult
+  override def findByCode(gc: SampleCode)                                                                               = findByCodeResult
+  override def findByCodeWithoutDetails(gc: SampleCode)                                                                 = findByCodeResult
+  override def findByCodes(codes: List[SampleCode])                                                                     = findByCodesResult
+  override def findByCodeWithAssociations(gc: SampleCode)                                                               = findByCodeWithAssociationsResult
+  override def findProfileDataLocalOrSuperior(gc: SampleCode)                                                           = findByCodeResult
+  override def isEditable(sc: SampleCode, allow: Boolean = false)                                                       = isEditableResult
+  override def isDesktopProfile(gc: SampleCode)                                                                         = isDesktopProfileResult
+  override def getDeleteMotive(sc: SampleCode)                                                                          = getDeleteMotiveResult
+  override def deleteProfile(gc: SampleCode, m: DeletedMotive, u: String, v: Boolean = true)                           = deleteProfileResult
+  override def delete(gc: SampleCode)                                                                                   = deleteResult
+  override def removeAll()                                                                                               = Future.successful(0)
+  override def removeProfile(gc: SampleCode)                                                                            = removeProfileResult
+  override def getDesktopProfiles()                                                                                     = getDesktopProfilesResult
+  override def importFromAnotherInstance(pd: ProfileData, lo: String, li: String)                                       = Future.successful(())
+  override def updateUploadStatus(gc: String, s: Long, m: Option[String], ie: Option[String], u: Option[String], op: String) = Future.successful(Right(()))
+  override def getProfileUploadStatusByGlobalCode(gc: SampleCode)                                                       = Future.successful(None)
+  override def getExternalProfileDataByGlobalCode(gc: String)                                                           = Future.successful(None)
+  override def gefFailedProfilesUploaded()                                                                               = Future.successful(Seq.empty)
+  override def gefFailedProfilesUploadedDeleted()                                                                       = Future.successful(Seq.empty)
+  override def gefFailedProfilesSentDeleted(lc: String)                                                                 = Future.successful(Seq.empty)
+  override def updateProfileSentStatus(gc: String, s: Long, m: Option[String], lc: String, ie: Option[String], u: Option[String]) = Future.successful(Right(()))
+  override def updateInterconnectionError(gc: String, s: Long, ie: String)                                              = Future.successful(Right(()))
+  override def addProfileReceivedApproved(lc: String, gc: String, s: Long, u: String, cm: Boolean)                     = Future.successful(Right(()))
+  override def addProfileReceivedRejected(lc: String, gc: String, s: Long, m: String, u: String, cm: Boolean)          = Future.successful(Right(()))
+  override def updateProfileReceivedStatus(lc: String, gc: String, s: Long, m: String, cm: Boolean, ie: String, u: Option[String], op: String) = Future.successful(Right(()))
+  override def getPendingApprovalNotification(lc: String)                                                               = Future.successful(Seq.empty)
+  override def getPendingRejectionNotification(lc: String)                                                              = Future.successful(Seq.empty)
+  override def gefFailedProfilesReceivedDeleted(lc: String)                                                             = Future.successful(Seq.empty)
+  override def shouldSendDeleteToSuperiorInstance(gc: SampleCode)                                                       = Future.successful(false)
+  override def shouldSendDeleteToInferiorInstance(gc: SampleCode)                                                       = Future.successful(false)
+  override def getLabFromGlobalCode(gc: SampleCode)                                                                     = None
+  override def getIsProfileReplicatedInternalCode(ic: String)                                                           = Future.successful(false)
+  override def getProfileReceivedLabCode(gc: SampleCode)                                                                = Future.successful(None)
+  override def countProfiles()                                                                                           = countProfilesResult

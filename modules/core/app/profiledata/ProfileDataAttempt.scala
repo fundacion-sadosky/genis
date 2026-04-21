@@ -34,10 +34,12 @@ case class ProfileDataAttempt(
     assignee = this.assignee,
     laboratory = this.laboratory.getOrElse(labCode),
     deleted = false,
+    deletedMotive = None,
     responsibleGeneticist = this.responsibleGeneticist.map(_.toString),
     profileExpirationDate = this.profileExpirationDate,
     sampleDate = this.sampleDate,
     sampleEntryDate = this.sampleEntryDate,
+    dataFiliation = this.dataFiliation.map(_.dfAttempToDf),
     isExternal = false
   )
 

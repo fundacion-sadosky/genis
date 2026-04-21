@@ -1,6 +1,7 @@
 package integration.controllers
 
 import bulkupload.{BulkUploadModule, BulkUploadService}
+import profiledata.ProfileDataModule
 import fixtures.{StubBulkUploadService, StubLdapHealthService, StubProbabilityService, StubProfileDataService, StubStrKitService}
 import kits.{StrKitModule, StrKitService}
 import org.scalatestplus.play.*
@@ -31,10 +32,12 @@ class ProtoProfileDataControllerTest extends PlaySpec with GuiceOneAppPerTest:
       .disable[StrKitModule]
       .disable[ProbabilityModule]
       .disable[BulkUploadModule]
+      .disable[ProfileDataModule]
       .overrides(
         bind[UserRepository].to[StubUserRepository],
         bind[RoleRepository].to[StubRoleRepository],
         bind[BulkUploadService].toInstance(new StubBulkUploadService),
+        bind[profiledata.ProfileDataRepository].to[profiledata.ProfileDataRepositoryStub],
         bind[ProfileDataService].toInstance(profileDataStub),
         bind[StrKitService].toInstance(new StubStrKitService),
         bind[ProbabilityService].toInstance(new StubProbabilityService),
@@ -112,10 +115,12 @@ class ProtoProfileDataControllerTest extends PlaySpec with GuiceOneAppPerTest:
         assignee = "geneticist1",
         laboratory = "SHDG",
         deleted = false,
+        deletedMotive = None,
         responsibleGeneticist = None,
         profileExpirationDate = None,
         sampleDate = None,
         sampleEntryDate = None,
+        dataFiliation = None,
         isExternal = false
       )
       profileDataStub.getResult = Future.successful(Some(pd))

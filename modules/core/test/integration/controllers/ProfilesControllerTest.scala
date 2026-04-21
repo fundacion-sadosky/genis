@@ -44,6 +44,7 @@ class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest {
       .disable[ProbabilityModule]
       .disable[BulkUploadModule]
       .disable[StrKitModule]
+      .disable[profiledata.ProfileDataModule]
       .overrides(
         bind[UserRepository].to[StubUserRepository],
         bind[RoleRepository].to[StubRoleRepository],
@@ -59,6 +60,7 @@ class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest {
         bind[BulkUploadService].toInstance(new StubBulkUploadService),
         bind[ProfileDataService].toInstance(new StubProfileDataService),
         bind[ProfileDataRepository].to[profiledata.ProfileDataRepositoryStub],
+        bind[matching.MatchingService].toInstance(new matching.MatchingServiceStub),
         bind[InterconnectionService].toInstance(new connections.InterconnectionServiceStub),
         bind[StrKitService].toInstance(new StubStrKitService)
       )

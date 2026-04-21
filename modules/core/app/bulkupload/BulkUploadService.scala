@@ -228,10 +228,14 @@ class BulkUploadServiceImpl @Inject()(
         Option(protoProfile.matchingRules))
       val pd: ProfileData = protoProfile.protoProfileData.fold(
         ProfileData(
-          AlphanumericId(protoProfile.category),
-          sampleCode, None, None, None, None, None, None,
-          protoProfile.sampleName, assignee, labo,
-          deleted = false, None, None, None, None,
+          category = AlphanumericId(protoProfile.category),
+          globalCode = sampleCode,
+          attorney = None, bioMaterialType = None, court = None,
+          crimeInvolved = None, crimeType = None, criminalCase = None,
+          internalSampleCode = protoProfile.sampleName, assignee = assignee,
+          laboratory = labo, deleted = false, deletedMotive = None,
+          responsibleGeneticist = None, profileExpirationDate = None,
+          sampleDate = None, sampleEntryDate = None, dataFiliation = None,
           isExternal = false)
       )(_.pdAttempToPd(labo))
       profileService.importProfile(pd, analysis, replicate).flatMap {

@@ -153,11 +153,14 @@ class InferiorInstanceRepositoryStub @Inject() ()(using ec: ExecutionContext) ex
 
 trait ConnectionRepository {
   def getSupInstanceUrl(): Future[Option[String]]
+  // TODO: migrate connections — used by ProfileDataService.deleteProfile
+  def getInfInstanceUrl(labCode: String): Future[Option[String]]
 }
 
 @Singleton
 class ConnectionRepositoryStub @Inject() ()(using ec: ExecutionContext) extends ConnectionRepository {
   override def getSupInstanceUrl(): Future[Option[String]] = Future.successful(None)
+  override def getInfInstanceUrl(labCode: String): Future[Option[String]] = Future.successful(None)
 }
 
 // ============================================================================

@@ -1,6 +1,7 @@
 package integration.controllers
 
 import bulkupload.{BulkUploadModule, BulkUploadService}
+import profiledata.ProfileDataModule
 import kits.{StrKitModule, StrKitService}
 import org.scalatestplus.play.*
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
@@ -31,10 +32,13 @@ class BulkUploadControllerTest extends PlaySpec with GuiceOneAppPerTest:
       .disable[StrKitModule]
       .disable[ProbabilityModule]
       .disable[BulkUploadModule]
+      .disable[ProfileDataModule]
       .overrides(
         bind[UserRepository].to[StubUserRepository],
         bind[RoleRepository].to[StubRoleRepository],
         bind[BulkUploadService].toInstance(bulkStub),
+        bind[profiledata.ProfileDataService].toInstance(new fixtures.StubProfileDataService),
+        bind[profiledata.ProfileDataRepository].to[profiledata.ProfileDataRepositoryStub],
         bind[UserService].toInstance(userStub),
         bind[StrKitService].toInstance(new StubStrKitService),
         bind[ProbabilityService].toInstance(new StubProbabilityService),

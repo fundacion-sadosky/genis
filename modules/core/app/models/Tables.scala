@@ -521,4 +521,201 @@ object Tables {
 
   val profileDataFiliationResources     = new TableQuery(tag => new ProfileDataFiliationResourcesTable(tag, Some("APP"), "PROFILE_DATA_FILIATION_RESOURCES"))
   val stashProfileDataFiliationResources= new TableQuery(tag => new ProfileDataFiliationResourcesTable(tag, Some("STASH"), "PROFILE_DATA_FILIATION_RESOURCES"))
+
+  // ---------------------------------------------------------------------------
+  // ProfileDataMotive — audit log for logical deletes
+  // ---------------------------------------------------------------------------
+  case class ProfileDataMotiveRow(id: Long, idProfileData: Long, deletedDate: java.sql.Timestamp, idDeletedMotive: Long)
+  object ProfileDataMotiveRow {
+    def tupled = (apply _).tupled
+  }
+
+  class ProfileDataMotiveTable(tag: Tag) extends Table[ProfileDataMotiveRow](tag, Some("APP"), "PROFILE_DATA_MOTIVE") {
+    def id              = column[Long]("ID", O.AutoInc, O.PrimaryKey)
+    def idProfileData   = column[Long]("ID_PROFILE_DATA")
+    def deletedDate     = column[java.sql.Timestamp]("DELETED_DATE")
+    def idDeletedMotive = column[Long]("ID_DELETED_MOTIVE")
+    def * = (id, idProfileData, deletedDate, idDeletedMotive) <> (ProfileDataMotiveRow.tupled, ProfileDataMotiveRow.unapply)
+  }
+
+  val profileDataMotive = TableQuery[ProfileDataMotiveTable]
+
+  // ---------------------------------------------------------------------------
+  // ExternalProfileData — tracks origin of profiles received from other instances
+  // ---------------------------------------------------------------------------
+  case class ExternalProfileDataRow(id: Long, laboratoryOrigin: String, laboratoryImmediate: String)
+  object ExternalProfileDataRow {
+    def tupled = (apply _).tupled
+  }
+
+  class ExternalProfileDataTable(tag: Tag) extends Table[ExternalProfileDataRow](tag, Some("APP"), "EXTERNAL_PROFILE_DATA") {
+    def id                  = column[Long]("ID", O.PrimaryKey)
+    def laboratoryOrigin    = column[String]("LABORATORY_ORIGIN", O.Length(50, varying = true))
+    def laboratoryImmediate = column[String]("LABORATORY_IMMEDIATE", O.Length(50, varying = true))
+    def * = (id, laboratoryOrigin, laboratoryImmediate) <> (ExternalProfileDataRow.tupled, ExternalProfileDataRow.unapply)
+  }
+
+  val externalProfileData = TableQuery[ExternalProfileDataTable]
+
+  // ---------------------------------------------------------------------------
+  // ProfileUploaded — tracks replication status to superior instance
+  // ---------------------------------------------------------------------------
+  case class ProfileUploadedRow(
+    id: Long,
+    globalCode: String,
+    status: Long,
+    motive: Option[String] = None,
+    interconnectionError: Option[String] = None,
+    userName: Option[String] = None,
+    operationOriginatedInInstance: Option[String] = None,
+    dateUploaded: Option[java.sql.Timestamp] = None
+  )
+  object ProfileUploadedRow {
+    def tupled = (apply _).tupled
+  }
+
+  class ProfileUploadedTable(tag: Tag) extends Table[ProfileUploadedRow](tag, Some("APP"), "PROFILE_UPLOADED") {
+    def id                            = column[Long]("ID", O.PrimaryKey)
+    def globalCode                    = column[String]("GLOBAL_CODE", O.Length(100, varying = true))
+    def status                        = column[Long]("STATUS")
+    def motive                        = column[Option[String]]("MOTIVE", O.Length(1024, varying = true), O.Default(None))
+    def interconnectionError          = column[Option[String]]("INTERCONNECTION_ERROR", O.Length(1024, varying = true), O.Default(None))
+    def userName                      = column[Option[String]]("USER_NAME", O.Length(50, varying = true), O.Default(None))
+    def operationOriginatedInInstance = column[Option[String]]("OPERATION_ORIGINATED_IN_INSTANCE", O.Length(100, varying = true), O.Default(None))
+    def dateUploaded                  = column[Option[java.sql.Timestamp]]("DATE_UPLOADED", O.Default(None))
+    def * = (id, globalCode, status, motive, interconnectionError, userName, operationOriginatedInInstance, dateUploaded) <>
+            (ProfileUploadedRow.tupled, ProfileUploadedRow.unapply)
+  }
+
+  val profileUploaded = TableQuery[ProfileUploadedTable]
+
+  // ---------------------------------------------------------------------------
+  // ProfileSent — tracks profiles sent to inferior instances
+  // ---------------------------------------------------------------------------
+  case class ProfileSentRow(
+    id: Long,
+    labCode: String,
+    globalCode: String,
+    status: Long,
+    motive: Option[String] = None,
+    interconnectionError: Option[String] = None,
+    userName: Option[String] = None
+  )
+  object ProfileSentRow {
+    def tupled = (apply _).tupled
+  }
+
+  class ProfileSentTable(tag: Tag) extends Table[ProfileSentRow](tag, Some("APP"), "PROFILE_SENT") {
+    def id                   = column[Long]("ID", O.PrimaryKey)
+    def labCode              = column[String]("LAB_CODE", O.Length(50, varying = true))
+    def globalCode           = column[String]("GLOBAL_CODE", O.Length(100, varying = true))
+    def status               = column[Long]("STATUS")
+    def motive               = column[Option[String]]("MOTIVE", O.Length(1024, varying = true), O.Default(None))
+    def interconnectionError = column[Option[String]]("INTERCONNECTION_ERROR", O.Length(1024, varying = true), O.Default(None))
+    def userName             = column[Option[String]]("USER_NAME", O.Length(50, varying = true), O.Default(None))
+    def * = (id, labCode, globalCode, status, motive, interconnectionError, userName) <>
+            (ProfileSentRow.tupled, ProfileSentRow.unapply)
+  }
+
+  val profileSent = TableQuery[ProfileSentTable]
+
+  // ---------------------------------------------------------------------------
+  // ProfileReceived — tracks profiles received from inferior instances
+  // ---------------------------------------------------------------------------
+  case class ProfileReceivedRow(
+    globalCode: String,
+    labCode: String,
+    status: Long,
+    motive: Option[String] = None,
+    userName: Option[String] = None,
+    isCategoryModification: Boolean,
+    interconnectionError: Option[String] = None,
+    operationOriginatedInInstance: String,
+    dateReceived: Option[java.sql.Timestamp] = None
+  )
+  object ProfileReceivedRow {
+    def tupled = (apply _).tupled
+  }
+
+  class ProfileReceivedTable(tag: Tag) extends Table[ProfileReceivedRow](tag, Some("APP"), "PROFILE_RECEIVED") {
+    def globalCode                    = column[String]("GLOBAL_CODE", O.Length(100, varying = true), O.PrimaryKey)
+    def labCode                       = column[String]("LAB_CODE", O.Length(50, varying = true))
+    def status                        = column[Long]("STATUS")
+    def motive                        = column[Option[String]]("MOTIVE", O.Length(1024, varying = true), O.Default(None))
+    def userName                      = column[Option[String]]("USER_NAME", O.Length(50, varying = true), O.Default(None))
+    def isCategoryModification        = column[Boolean]("IS_CATEGORY_MODIFICATION")
+    def interconnectionError          = column[Option[String]]("INTERCONNECTION_ERROR", O.Length(1024, varying = true), O.Default(None))
+    def operationOriginatedInInstance = column[String]("OPERATION_ORIGINATED_IN_INSTANCE", O.Length(100, varying = true))
+    def dateReceived                  = column[Option[java.sql.Timestamp]]("DATE_RECEIVED", O.Default(None))
+    def * = (globalCode, labCode, status, motive, userName, isCategoryModification,
+             interconnectionError, operationOriginatedInInstance, dateReceived) <>
+            (ProfileReceivedRow.tupled, ProfileReceivedRow.unapply)
+  }
+
+  val profileReceived = TableQuery[ProfileReceivedTable]
+
+  // ---------------------------------------------------------------------------
+  // MitochondrialRcrs — reference RCRS sequence for mitochondrial analysis
+  // ---------------------------------------------------------------------------
+  case class MitochondrialRcrsRow(position: Int, base: String)
+  object MitochondrialRcrsRow {
+    def tupled = (apply _).tupled
+  }
+
+  class MitochondrialRcrsTable(tag: Tag) extends Table[MitochondrialRcrsRow](tag, Some("APP"), "MITOCHONDRIAL_RCRS") {
+    def position = column[Int]("POSITION", O.PrimaryKey)
+    def base     = column[String]("BASE", O.Length(1, varying = true))
+    def * = (position, base) <> (MitochondrialRcrsRow.tupled, MitochondrialRcrsRow.unapply)
+  }
+
+  val mitochondrialRcrs = TableQuery[MitochondrialRcrsTable]
+
+  // ---------------------------------------------------------------------------
+  // SuperiorInstanceProfileApproval — interconnection approval tracking
+  // ---------------------------------------------------------------------------
+  case class SuperiorInstanceProfileApprovalRow(
+    id: Long,
+    globalCode: String,
+    profile: String,
+    laboratory: String,
+    laboratoryInstanceOrigin: String,
+    laboratoryImmediateInstance: String,
+    sampleEntryDate: Option[java.sql.Date] = None,
+    receptionDate: Option[java.sql.Timestamp] = None,
+    errors: Option[String] = None,
+    rejectionUser: Option[String] = None,
+    rejectionDate: Option[java.sql.Timestamp] = None,
+    idRejectMotive: Option[Long] = None,
+    rejectMotive: Option[String] = None,
+    deleted: Boolean = false,
+    profileAssociated: Option[String] = None
+  )
+  object SuperiorInstanceProfileApprovalRow {
+    def tupled = (apply _).tupled
+  }
+
+  class SuperiorInstanceProfileApprovalTable(tag: Tag)
+      extends Table[SuperiorInstanceProfileApprovalRow](tag, Some("APP"), "SUPERIOR_INSTANCE_PROFILE_APPROVAL") {
+    def id                          = column[Long]("ID", O.AutoInc, O.PrimaryKey)
+    def globalCode                  = column[String]("GLOBAL_CODE", O.Length(100, varying = true))
+    def profile                     = column[String]("PROFILE", O.Length(100, varying = true))
+    def laboratory                  = column[String]("LABORATORY", O.Length(50, varying = true))
+    def laboratoryInstanceOrigin    = column[String]("LABORATORY_INSTANCE_ORIGIN", O.Length(50, varying = true))
+    def laboratoryImmediateInstance = column[String]("LABORATORY_IMMEDIATE_INSTANCE", O.Length(50, varying = true))
+    def sampleEntryDate             = column[Option[java.sql.Date]]("SAMPLE_ENTRY_DATE", O.Default(None))
+    def receptionDate               = column[Option[java.sql.Timestamp]]("RECEPTION_DATE", O.Default(None))
+    def errors                      = column[Option[String]]("ERRORS", O.Length(1024, varying = true), O.Default(None))
+    def rejectionUser               = column[Option[String]]("REJECTION_USER", O.Length(50, varying = true), O.Default(None))
+    def rejectionDate               = column[Option[java.sql.Timestamp]]("REJECTION_DATE", O.Default(None))
+    def idRejectMotive              = column[Option[Long]]("ID_REJECT_MOTIVE", O.Default(None))
+    def rejectMotive                = column[Option[String]]("REJECT_MOTIVE", O.Length(1024, varying = true), O.Default(None))
+    def deleted                     = column[Boolean]("DELETED", O.Default(false))
+    def profileAssociated           = column[Option[String]]("PROFILE_ASSOCIATED", O.Length(100, varying = true), O.Default(None))
+    def * = (id, globalCode, profile, laboratory, laboratoryInstanceOrigin, laboratoryImmediateInstance,
+             sampleEntryDate, receptionDate, errors, rejectionUser, rejectionDate,
+             idRejectMotive, rejectMotive, deleted, profileAssociated) <>
+            (SuperiorInstanceProfileApprovalRow.tupled, SuperiorInstanceProfileApprovalRow.unapply)
+  }
+
+  val superiorInstanceProfileApproval = TableQuery[SuperiorInstanceProfileApprovalTable]
 }
