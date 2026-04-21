@@ -131,7 +131,8 @@ class BulkUploadServiceImpl @Inject()(
       }
     }
     val validatorF = for
-      geneticists      <- userService.listAllUsers().map(_.toList)
+      geneticists      <- userService.findUserAssignable.map(_.map(u =>
+                           UserView(u.id, u.firstName, u.lastName, u.email, u.roles, u.status, u.geneMapperId, u.phone1, u.phone2, u.superuser)).toList)
       kits             <- kitsF
       alKit            <- aliasKits
       lociAl           <- lociAlias
@@ -266,12 +267,12 @@ class BulkUploadServiceImpl @Inject()(
           else Seq(messages("error.E0102"))
         }
       else
-        Future.successful(Nil)
+        Future.successful(errors)
     }
 
   override def updateBatchStatus(idBatch: Long, status: ProtoProfileStatus.Value, userId: String, isSuperUser: Boolean, replicateAll: Boolean, idsToReplicate: List[Long]): Future[Either[String, Long]] =
     userService.listAllUsers().flatMap { users =>
-      val loggedUser = users.find(_.userName == userId).get
+      users.find(_.userName == userId).fold(Future.successful(Left(messages("error.E0200", userId)): Either[String, Long])) { loggedUser =>
       val profilesF =
         if status == ProtoProfileStatus.Imported || status == ProtoProfileStatus.Uploaded || status == ProtoProfileStatus.ReplicatedMatchingProfile then
           protoRepo.getProtoProfilesStep2(idBatch, loggedUser.geneMapperId, loggedUser.superuser)
@@ -303,16 +304,17 @@ class BulkUploadServiceImpl @Inject()(
             }
           geneticistOpt.fold(errorMessage())(performTransition)
         })
+      }.map { sequences =>
+        if sequences.exists(_.contains("Success")) then
+          Right(idBatch)
+        else if sequences.exists(_.nonEmpty) then
+          val joinedMessage = (sequences.flatten ++ Seq(messages("error.E0103")))
+            .distinct.map(msg => s"<br>$msg").mkString("")
+          Left(joinedMessage)
+        else
+          Right(idBatch)
       }
-    }.map { sequences =>
-      if sequences.exists(_.contains("Success")) then
-        Right(idBatch)
-      else if sequences.exists(_.nonEmpty) then
-        val joinedMessage = (sequences.flatten ++ Seq(messages("error.E0103")))
-          .distinct.map(msg => s"<br>$msg").mkString("")
-        Left(joinedMessage)
-      else
-        Right(idBatch)
+      } // close fold Some-branch
     }
 
   private def transitionStatus(status: ProtoProfileStatus.Value, protoProfile: ProtoProfile, assignee: String, userId: String, replicate: Boolean = false, desktopSearch: Boolean = false): Future[Seq[String]] =

@@ -148,9 +148,7 @@ class BulkUploadServiceTest extends AnyWordSpec with Matchers with MockitoSugar 
 
   "BulkUploadService.rejectProtoProfile" must {
 
-    // Documents IMPORTANT-4: when the status transition is invalid (profile not found),
-    // rejectProtoProfile returns Nil instead of propagating the failure to the caller.
-    "return Nil (swallow errors) when updateProtoProfileStatus fails — known bug IMPORTANT-4" in {
+    "propagate transition errors when updateProtoProfileStatus fails (profile not found)" in {
       val repo = mock[ProtoProfileRepository]
       // profile not found → updateProtoProfileStatus returns error E0105
       when(repo.getProtoProfile(99L)).thenReturn(Future.successful(None))
@@ -159,13 +157,13 @@ class BulkUploadServiceTest extends AnyWordSpec with Matchers with MockitoSugar 
         .rejectProtoProfile(99L, "motive", "user1", 1L)
         .futureValue
 
-      // BUG: should return the transition errors, but current implementation returns Nil
-      result mustBe Nil
+      result must not be empty
     }
 
     "invoke setRejectMotive and return Nil when rejection succeeds" in {
       val repo = mock[ProtoProfileRepository]
-      val pp   = aProtoProfile(status = ProtoProfileStatus.ReadyForApproval)
+      // Approved → Rejected is an allowed transition
+      val pp   = aProtoProfile(status = ProtoProfileStatus.Approved)
       when(repo.getProtoProfile(1L)).thenReturn(Future.successful(Some(pp)))
 
       val us = mock[UserService]

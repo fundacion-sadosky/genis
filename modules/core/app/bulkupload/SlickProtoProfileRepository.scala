@@ -297,8 +297,7 @@ class SlickProtoProfileRepository @Inject()(
     for {
       ppOpt    <- getProtoProfile(id)
       catOpt   <- categoryService.getCategory(cat)
-      result   <- db.run {
-        val pp = ppOpt.get
+      result   <- ppOpt.fold(Future.successful(0)) { pp =>
         val gc = s"$ppGcD${pp.id}"
         val filiationRequired = catOpt.exists(_.filiationDataRequired)
         val filiationAction: DBIO[Int] =
@@ -310,11 +309,11 @@ class SlickProtoProfileRepository @Inject()(
               Some(""), Some(""), Some(""), Some(""), Some("")
             ))
           else DBIO.successful(0)
-        (for {
+        db.run((for {
           ret <- queryUpdateDataProtoProfile(id).update(cat.text)
           _   <- queryUpdateDataProtoProfileData(gc).update(cat.text)
           _   <- filiationAction
-        } yield ret).transactionally
+        } yield ret).transactionally)
       }
     } yield result
 
@@ -398,13 +397,19 @@ class SlickProtoProfileRepository @Inject()(
 
     db.run(deleteAction.transactionally)
       .map(_ => Right(id))
-      .recover { case e: Exception => Left(e.getMessage) }
+      .recover { case e: Exception =>
+        logger.error(s"Error deleting batch $id", e)
+        Left(messages("error.E0304"))
+      }
   }
 
   override def countImportedProfilesByBatch(idBatch: Long): Future[Either[String, Long]] =
     db.run(
       sql"""SELECT COUNT(*) FROM "APP"."PROTO_PROFILE" WHERE "ID_BATCH" = $idBatch AND "STATUS" = 'Imported'""".as[Long].head
-    ).map(Right(_)).recover { case e: Exception => Left(e.getMessage) }
+    ).map(Right(_)).recover { case e: Exception =>
+      logger.error(s"Error counting imported profiles for batch $idBatch", e)
+      Left(messages("error.E0304"))
+    }
 
   override def countAllProtoProfilesInBatch(batchId: Long): Future[Int] =
     db.run(Tables.protoProfiles.filter(_.idBatch === batchId).length.result)
