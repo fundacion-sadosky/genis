@@ -172,3 +172,64 @@ HEAD    /api/v2/operationLog                          controllers.OperationLogsC
 POST    /api/v2/operationLogLot                       controllers.OperationLogsController.getTotalLogs
 POST    /api/v2/operationLogSearch                    controllers.OperationLogsController.searchLogs
 GET     /api/v2/operationLog/:id/verification         controllers.OperationLogsController.checkLogLot(id: Long)
+# Pedigree / Court Cases (MPI/DVI)
+POST    /api/v2/pedigree/court-cases                                controllers.PedigreesController.getCourtCases
+POST    /api/v2/pedigree/total-court-cases                          controllers.PedigreesController.getTotalCourtCases
+POST    /api/v2/pedigree/create-court-cases                         controllers.PedigreesController.createCourtCase
+PUT     /api/v2/pedigree/court-cases/:courtCaseId                   controllers.PedigreesController.updateCourtCase(courtCaseId: Long)
+POST    /api/v2/pedigree/create-genogram                            controllers.PedigreesController.createGenogram
+GET     /api/v2/pedigree/genogram/:pedigreeId                       controllers.PedigreesController.getPedigree(pedigreeId: Long)
+GET     /api/v2/pedigree/full/:courtCaseId                          controllers.PedigreesController.getCourtCaseFull(courtCaseId: Long)
+GET     /api/v2/pedigree/by/:courtCaseId                            controllers.PedigreesController.getByCourtCase(courtCaseId: Long)
+GET     /api/v2/filter/profileDataForPedigree                       controllers.PedigreesController.filterProfilesForPedigree(input: String, idCase: Long, isReference: Boolean, tipo: Int, page: Int, pageSize: Int)
+GET     /api/v2/filter/profileDataForPedigree/count                 controllers.PedigreesController.countProfilesForPedigree(input: String, idCase: Long, isReference: Boolean, tipo: Int)
+POST    /api/v2/pedigree/status                                     controllers.PedigreesController.changePedigreeStatus(id: Long, status: String)
+POST    /api/v2/pedigree/courtCaseStatus                            controllers.PedigreesController.changeCourtCaseStatus(id: Long, status: String, closeProfiles: Boolean)
+POST    /api/v2/pedigreeMatches/search                              controllers.PedigreesController.findMatches()
+POST    /api/v2/pedigreeMatches/count                               controllers.PedigreesController.countMatches()
+POST    /api/v2/pedigreeMatches/groups/search                       controllers.PedigreesController.getMatchesByGroup
+POST    /api/v2/pedigreeMatches/groups/count                        controllers.PedigreesController.countMatchesByGroup
+POST    /api/v2/pedigreeMatches/masiveDiscardByGroup                controllers.PedigreesController.masiveDiscardByGroup(id: String, group: String)
+GET     /api/v2/pedigree/editable/:id                               controllers.PedigreesController.canEdit(id: Long)
+GET     /api/v2/pedigree/deleteable/:id                             controllers.PedigreesController.canDelete(id: Long)
+POST    /api/v2/pedigree/scenario                                   controllers.PedigreesController.createScenario
+PUT     /api/v2/pedigree/scenario                                   controllers.PedigreesController.updateScenario
+GET     /api/v2/pedigree/scenarios/:pedigreeId                      controllers.PedigreesController.getScenarios(pedigreeId: Long)
+GET     /api/v2/pedigree/scenario/:scenarioId                       controllers.PedigreesController.getScenario(scenarioId: String)
+POST    /api/v2/pedigree/scenario-status                            controllers.PedigreesController.changeScenarioStatus(status: String)
+POST    /api/v2/pedigree/scenario-validate                          controllers.PedigreesController.confirmEscenarioScenario(status: String, pedigreeActivo: Boolean)
+POST    /api/v2/pedigree/discard                                    controllers.PedigreesController.discard(matchId: String)
+POST    /api/v2/pedigree/lr                                         controllers.PedigreesController.getLR
+GET     /api/v2/pedigree/caseTypes                                  controllers.PedigreesController.getCaseTypes
+GET     /api/v2/court-case-profiles                                 controllers.PedigreesController.getProfiles(id: Long, pageSize: Int, page: Int, input: Option[String], isReference: Boolean, statusProfile: Option[String])
+GET     /api/v2/court-case-profiles/total                           controllers.PedigreesController.getTotalProfiles(id: Long, pageSize: Int, page: Int, input: Option[String], isReference: Boolean, statusProfile: Option[String])
+GET     /api/v2/court-case-profiles-node-association                controllers.PedigreesController.getProfilesNodeAssociation(id: Long, pageSize: Int, page: Int, input: Option[String], isReference: Boolean, profilesCod: List[String], statusProfile: Option[String])
+POST    /api/v2/court-case-profiles                                 controllers.PedigreesController.addProfiles()
+PUT     /api/v2/court-case-profiles                                 controllers.PedigreesController.removeProfiles()
+POST    /api/v2/batch-modal-import                                  controllers.PedigreesController.addBatches()
+POST    /api/v2/court-case-pedigrees                                controllers.PedigreesController.getCourtCasePedigrees
+GET     /api/v2/court-case-pedigrees/total                          controllers.PedigreesController.getTotalCourtCasePedigrees(id: Long, pageSize: Int, page: Int, input: Option[String])
+GET     /api/v2/court-case/deleteable/:id                           controllers.PedigreesController.canDeleteCourtCase(id: Long)
+GET     /api/v2/court-case/closeable/:id                            controllers.PedigreesController.canCloseCourtCase(id: Long)
+POST    /api/v2/pedigree/save2                                      controllers.PedigreesController.createOrUpdatePedigreeMetadata
+POST    /api/v2/pedigree/save                                       controllers.PedigreesController.createPedigree
+GET     /api/v2/pedigree/profiles                                   controllers.PedigreesController.profileNodo(idCourtCase: Long, codigoGlobal: String)
+POST    /api/v2/pedigree/delete                                     controllers.PedigreesController.fisicalDeletePedigree(id: Long)
+POST    /api/v2/pedigree/metadata                                   controllers.PedigreesController.createMetadata(idCourtCase: Long)
+PUT     /api/v2/pedigree/update-metadata                            controllers.PedigreesController.updateMetadata(idCourtCase: Long, assignee: String)
+PUT     /api/v2/pedigree/remove-metadata                            controllers.PedigreesController.removeMetadata(idCourtCase: Long)
+GET     /api/v2/pedigree/filtrar-alias                              controllers.PedigreesController.getMetadata(input: String, pageSize: Int, page: Int, idCourtCase: Long)
+GET     /api/v2/pedigree/total-alias                                controllers.PedigreesController.getTotalMetadata(idCourtCase: Long, pageSize: Int, page: Int, input: String)
+GET     /api/v2/pedigrees-profiles/total-association                controllers.PedigreesController.getTotalProfilesNodeAssociation(id: Long, pageSize: Int, page: Int, input: Option[String], isReference: Boolean, profilesCod: List[String], statusProfile: Option[String])
+POST    /api/v2/collapsing                                          controllers.PedigreesController.collapse
+PUT     /api/v2/grouped-profiles/disassociate                       controllers.PedigreesController.disassociateGroupedProfiles()
+GET     /api/v2/grouped-profiles                                    controllers.PedigreesController.getProfilesInactive(id: Long, pageSize: Int, page: Int, input: Option[String], statusProfile: String, groupedBy: String)
+GET     /api/v2/grouped-profiles/total-grouped                      controllers.PedigreesController.getTotalProfilesInactive(id: Long, pageSize: Int, page: Int, input: Option[String], statusProfile: String, groupedBy: String)
+POST    /api/v2/collapsing/groups                                   controllers.PedigreesController.confirmSelectedCollapsing()
+POST    /api/v2/collapsing-manual                                   controllers.PedigreesController.areAssignedToPedigree()
+GET     /api/v2/grouped-profiles/validation                         controllers.PedigreesController.doesntHaveActivePedigrees(idCourtCase: Long)
+GET     /api/v2/pedcheck                                            controllers.PedigreesController.getPedCheck(pedigreeId: Long, idCourtCase: Long)
+POST    /api/v2/pedcheck                                            controllers.PedigreesController.generatePedCheck(pedigreeId: Long, idCourtCase: Long)
+GET     /api/v2/pedigree/pedigree-coincidencia                      controllers.PedigreesController.getPedigreeCoincidencia(id: Long)
+GET     /api/v2/pedigree/perfil-coincidencia                        controllers.PedigreesController.getMatchByProfile(globalCodes: String)
+POST    /api/v2/pedigree-matches-courtcase/search                   controllers.PedigreesController.findMatchesPedigree()

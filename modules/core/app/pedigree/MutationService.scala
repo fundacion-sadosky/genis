@@ -8,6 +8,8 @@ import kits.{FullLocus, LocusService}
 import profile.Profile
 import stats.{PopulationBaseFrequencyGrouppedByLocus, PopulationBaseFrequencyService}
 
+type MutationModelData = (MutationModelParameter, List[MutationModelKi], MutationModel)
+
 trait MutationService:
   def getAllMutationModelType(): Future[List[MutationModelType]]
   def getAllMutationModels(): Future[List[MutationModel]]
@@ -248,3 +250,24 @@ class MutationServiceImpl @Inject() (
 
   override def getAllPossibleAllelesByLocus(): Future[Map[String, List[Double]]] =
     this.populationBaseFrequencyService.getAllPossibleAllelesByLocus().map(_.base)
+
+@jakarta.inject.Singleton
+class MutationServiceStub extends MutationService:
+  override def getAllMutationModelType(): Future[List[MutationModelType]]                          = Future.successful(Nil)
+  override def getAllMutationModels(): Future[List[MutationModel]]                                 = Future.successful(Nil)
+  override def getActiveMutationModels(): Future[List[MutationModel]]                             = Future.successful(Nil)
+  override def deleteMutationModelById(id: Long): Future[Either[String, Unit]]                    = Future.successful(Right(()))
+  override def insertMutationModel(row: MutationModelFull): Future[Either[String, Long]]          = Future.successful(Right(0L))
+  override def updateMutationModel(f: MutationModelFull): Future[Either[String, Unit]]            = Future.successful(Right(()))
+  override def getMutationModel(id: Option[Long]): Future[Option[MutationModelFull]]              = Future.successful(None)
+  override def getMutatitionModelParameters(id: Long): Future[List[MutationModelParameter]]       = Future.successful(Nil)
+  override def getMutationModelData(m: Option[MutationModel], markers: List[String]): Future[Option[List[(MutationModelParameter, List[MutationModelKi], MutationModel)]]] = Future.successful(None)
+  override def addLocus(full: kits.FullLocus): Future[Either[String, Unit]]                       = Future.successful(Right(()))
+  override def generateKis(m: MutationModel): Future[Unit]                                        = Future.successful(())
+  override def refreshAllKis(): Future[Unit]                                                       = Future.successful(())
+  override def refreshAllKisSecuential(): Future[Unit]                                             = Future.successful(())
+  override def getAllMutationDefaultParameters(): Future[List[MutationDefaultParam]]               = Future.successful(Nil)
+  override def getAllLocusAlleles(): Future[List[(String, Double)]]                                = Future.successful(Nil)
+  override def saveLocusAlleles(list: List[(String, Double)]): Future[Either[String, Int]]        = Future.successful(Right(0))
+  override def generateN(profiles: Array[Profile], m: Option[MutationModel]): Future[Either[String, Unit]] = Future.successful(Right(()))
+  override def getAllPossibleAllelesByLocus(): Future[Map[String, List[Double]]]                   = Future.successful(Map.empty)

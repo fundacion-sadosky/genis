@@ -2,9 +2,9 @@ package pedigree
 
 import com.google.inject.AbstractModule
 import com.google.inject.name.Names
-import play.api.Configuration
+import play.api.{Configuration, Environment}
 
-class MutationModule(conf: Configuration) extends AbstractModule:
+class MutationModule(env: Environment, conf: Configuration) extends AbstractModule:
   override def configure(): Unit =
     val defaultMutationRateI            = conf.get[String]("mt.defaultMutationRateI")
     val defaultMutationRateF            = conf.get[String]("mt.defaultMutationRateF")
