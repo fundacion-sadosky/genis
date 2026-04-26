@@ -59,6 +59,7 @@ class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest {
         bind[MongoHealthService].toInstance(new StubMongoHealthService),
         bind[BulkUploadService].toInstance(new StubBulkUploadService),
         bind[ProfileDataService].toInstance(new StubProfileDataService),
+        bind[ProfileDataService].qualifiedWith("stashed").toInstance(new StubProfileDataService),
         bind[ProfileDataRepository].to[profiledata.ProfileDataRepositoryStub],
         bind[matching.MatchingService].toInstance(new matching.MatchingServiceStub),
         bind[InterconnectionService].toInstance(new connections.InterconnectionServiceStub),

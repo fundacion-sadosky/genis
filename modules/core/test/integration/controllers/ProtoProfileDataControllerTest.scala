@@ -39,6 +39,7 @@ class ProtoProfileDataControllerTest extends PlaySpec with GuiceOneAppPerTest:
         bind[BulkUploadService].toInstance(new StubBulkUploadService),
         bind[profiledata.ProfileDataRepository].to[profiledata.ProfileDataRepositoryStub],
         bind[ProfileDataService].toInstance(profileDataStub),
+        bind[ProfileDataService].qualifiedWith("stashed").toInstance(profileDataStub),
         bind[StrKitService].toInstance(new StubStrKitService),
         bind[ProbabilityService].toInstance(new StubProbabilityService),
         bind[LdapHealthService].toInstance(new StubLdapHealthService),

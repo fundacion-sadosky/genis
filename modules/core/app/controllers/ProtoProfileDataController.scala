@@ -1,6 +1,6 @@
 package controllers
 
-import jakarta.inject.{Inject, Singleton}
+import jakarta.inject.{Inject, Named, Singleton}
 import play.api.libs.json.{JsError, Json}
 import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
 import profiledata.{ProfileDataAttempt, ProfileDataService}
@@ -11,8 +11,7 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class ProtoProfileDataController @Inject()(
     cc: ControllerComponents,
-    // TODO: bind @Named("stashed") ProfileDataService when stash profiledata service is migrated
-    protoProfiledataService: ProfileDataService
+    @Named("stashed") protoProfiledataService: ProfileDataService
 )(implicit ec: ExecutionContext) extends AbstractController(cc):
 
   def isEditable(sampleCode: SampleCode): Action[AnyContent] = Action.async { _ =>

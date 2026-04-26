@@ -47,7 +47,7 @@ class BulkUploadServiceImpl @Inject()(
     val kitService: StrKitService,
     val categoryRepo: CategoryRepository,
     profileService: ProfileService,
-    protoProfiledataService: ProfileDataService,
+    @Named("stashed") protoProfiledataService: ProfileDataService,
     profileDataRepo: ProfileDataRepository,
     notificationService: NotificationService,
     importToProfileData: ImportToProfileData,

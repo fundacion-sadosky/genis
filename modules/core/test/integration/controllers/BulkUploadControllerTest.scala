@@ -38,6 +38,7 @@ class BulkUploadControllerTest extends PlaySpec with GuiceOneAppPerTest:
         bind[RoleRepository].to[StubRoleRepository],
         bind[BulkUploadService].toInstance(bulkStub),
         bind[profiledata.ProfileDataService].toInstance(new fixtures.StubProfileDataService),
+        bind[profiledata.ProfileDataService].qualifiedWith("stashed").toInstance(new fixtures.StubProfileDataService),
         bind[profiledata.ProfileDataRepository].to[profiledata.ProfileDataRepositoryStub],
         bind[UserService].toInstance(userStub),
         bind[StrKitService].toInstance(new StubStrKitService),

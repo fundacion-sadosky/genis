@@ -44,6 +44,7 @@ class ProfileDataControllerTest extends PlaySpec with GuiceOneAppPerTest:
         bind[BulkUploadService].toInstance(new StubBulkUploadService),
         bind[profiledata.ProfileDataRepository].to[profiledata.ProfileDataRepositoryStub],
         bind[ProfileDataService].toInstance(pdStub),
+        bind[ProfileDataService].qualifiedWith("stashed").toInstance(pdStub),
         bind[ProfileService].toInstance(new StubProfileService),
         bind[MatchingService].toInstance(new MatchingServiceStub),
         bind[InterconnectionService].toInstance(new InterconnectionServiceStub),
