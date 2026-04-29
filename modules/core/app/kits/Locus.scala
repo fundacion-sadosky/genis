@@ -14,6 +14,28 @@ case class Locus(
   maxAlleleValue: Option[BigDecimal] = None
 )
 
-object Locus {
-  implicit val format: Format[Locus] = Json.format[Locus]
-}
+object Locus:
+  given OFormat[Locus] = Json.format[Locus]
+
+case class LocusLink(
+  locus: String,
+  factor: Double,
+  distance: Double
+)
+
+object LocusLink:
+  given OFormat[LocusLink] = Json.format[LocusLink]
+
+case class FullLocus(
+  locus: Locus,
+  alias: List[String],
+  links: List[LocusLink]
+)
+
+object FullLocus:
+  given OFormat[FullLocus] = Json.format[FullLocus]
+
+case class AleleRange(min: BigDecimal, max: BigDecimal)
+
+object AleleRange:
+  given OFormat[AleleRange] = Json.format[AleleRange]
