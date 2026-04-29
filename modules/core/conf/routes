@@ -154,6 +154,51 @@ GET     /api/v2/populationBaseFreq/:name              controllers.PopulationBase
 PUT     /api/v2/populationBaseFreq/:name              controllers.PopulationBaseFreqController.toggleStateBase(name: String)
 PUT     /api/v2/populationBaseFreqDefault/:name       controllers.PopulationBaseFreqController.setBaseAsDefault(name: String)
 
+
+# BulkUpload
+POST    /api/v2/bulkuploader                                              controllers.BulkUploadController.uploadProtoProfiles(label: Option[String], analysisType: String)
+GET     /api/v2/bulkupload/step1/protoprofiles                           controllers.BulkUploadController.getProtoProfilesStep1(batchId: Long, page: Int, pageSize: Int)
+GET     /api/v2/bulkupload/step2/protoprofiles                           controllers.BulkUploadController.getProtoProfilesStep2(geneMapperId: String, batchId: Long, page: Int, pageSize: Int)
+GET     /api/v2/bulkupload/step1/batches                                 controllers.BulkUploadController.getBatchesStep1(page: Int, pageSize: Int)
+GET     /api/v2/bulkupload/step1/count                                   controllers.BulkUploadController.countBatchesStep1
+GET     /api/v2/bulkupload/step2/batches                                 controllers.BulkUploadController.getBatchesStep2(geneMapperId: String, page: Int, pageSize: Int)
+GET     /api/v2/bulkupload/step2/count                                   controllers.BulkUploadController.countBatchesStep2(geneMapperId: String)
+POST    /api/v2/protoprofiles/:id/status                                 controllers.BulkUploadController.updateProtoProfileStatus(id: Long, status: String, replicate: Boolean, desktopSearch: Boolean)
+POST    /api/v2/protoprofiles/multiple-status                            controllers.BulkUploadController.updateBatchStatus(idBatch: Long, status: String, replicateAll: Boolean)
+GET     /api/v2/bulkupload/protoprofiles/:id                             controllers.BulkUploadController.getProtoProfileById(id: Long)
+GET     /api/v2/bulkupload/step2/batch/:batchId/count                    controllers.BulkUploadController.countAllProtoProfilesInBatch(batchId: Long)
+POST    /api/v2/protoprofiles/:id/subcategory                            controllers.BulkUploadController.updateProtoProfileData(id: Long, category: types.AlphanumericId)
+POST    /api/v2/protoprofiles/matchingrules                              controllers.BulkUploadController.updateProtoProfileRulesMismatch()
+POST    /api/v2/protoprofiles-reject/:id                                 controllers.BulkUploadController.rejectProtoProfile(id: Long, motive: String, idMotive: Long)
+DELETE  /api/v2/bulkupload/:id                                           controllers.BulkUploadController.deleteBatch(id: Long)
+GET     /api/v2/bulkupload/batches                                       controllers.BulkUploadController.searchBatch(filter: String)
+GET     /api/v2/batch-modal                                              controllers.BulkUploadController.getBatchSearchModalViewByIdOrLabel(input: String, idCase: Long)
+
+# ProtoProfileData
+GET     /api/v2/protoprofiledata-complete/:id                            controllers.ProtoProfileDataController.getByCode(id: types.SampleCode)
+POST    /api/v2/protoprofiledata                                         controllers.ProtoProfileDataController.create
+PUT     /api/v2/protoprofiledata/:id                                     controllers.ProtoProfileDataController.update(id: types.SampleCode)
+GET     /api/v2/protoprofiledata-editable/:id                            controllers.ProtoProfileDataController.isEditable(id: types.SampleCode)
+GET     /api/v2/resources/proto/static/:type/:id                         controllers.ProtoProfileDataController.getResources(type: String, id: Long)
+
+# ProfileData
+GET     /api/v2/profiledata/count                                        controllers.ProfileDataController.countProfiles()
+GET     /api/v2/profiledata/:id                                          controllers.ProfileDataController.get(id: Long)
+GET     /api/v2/profiledata                                              controllers.ProfileDataController.findByCode(globalCode: types.SampleCode)
+POST    /api/v2/profiledata                                              controllers.ProfileDataController.create
+DELETE  /api/v2/profiledata/:globalCode                                  controllers.ProfileDataController.removeProfile(globalCode: types.SampleCode)
+GET     /api/v2/profiles-deleted/motive/:id                              controllers.ProfileDataController.getDeleteMotive(id: types.SampleCode)
+PUT     /api/v2/profiledata-deleted/:id                                  controllers.ProfileDataController.deleteProfile(id: types.SampleCode)
+GET     /api/v2/profiledataWithAssociations                              controllers.ProfileDataController.findByCodeWithAssociations(globalCode: types.SampleCode)
+PUT     /api/v2/profiledata/:id/                                         controllers.ProfileDataController.update(id: types.SampleCode)
+PUT     /api/v2/profiledata/modify-category/:id/                         controllers.ProfileDataController.modifyCategory(id: types.SampleCode, replicate: Boolean, userName: String)
+GET     /api/v2/profiledata-readonly                                     controllers.ProfileDataController.isReadOnly(globalCode: types.SampleCode)
+GET     /api/v2/profiledata-complete/:id                                 controllers.ProfileDataController.getByCode(id: types.SampleCode)
+GET     /api/v2/profiledata-editable/:id                                 controllers.ProfileDataController.isEditable(id: types.SampleCode)
+GET     /api/v2/profilesdata                                             controllers.ProfileDataController.findByCodes(globalCode: List[types.SampleCode])
+GET     /api/v2/profiledata-desktop                                      controllers.ProfileDataController.getDesktopProfiles
+GET     /api/v2/profileData/isProfileReplicated/:internalCode            controllers.ProfileDataController.getIsProfileReplicatedInternalCode(internalCode: String)
+GET     /api/v2/resources/static/:type/:id                               controllers.ProfileDataController.getResources(type: String, id: Long)
 # Operation Log (audit)
 GET     /api/v2/operationLog                          controllers.OperationLogsController.getLogLots(page: Int, pageSize: Int)
 HEAD    /api/v2/operationLog                          controllers.OperationLogsController.getTotalLots

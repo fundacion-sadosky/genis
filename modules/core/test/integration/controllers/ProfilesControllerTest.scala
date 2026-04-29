@@ -1,7 +1,12 @@
 package integration.controllers
 
+import bulkupload.{BulkUploadModule, BulkUploadService}
 import configdata.CategoryService
-import fixtures.{StubCacheService, StubCategoryService, StubLdapHealthService, StubProbabilityService, StubMongoHealthService, StubProfileService, StubProfileExporterService, StubLimsArchivesExporterService}
+import connections.InterconnectionService
+import fixtures.{StubBulkUploadService, StubCacheService, StubCategoryService, StubLdapHealthService, StubProbabilityService, StubMongoHealthService, StubProfileDataService, StubProfileService, StubProfileExporterService, StubLimsArchivesExporterService}
+import profiledata.{ProfileDataRepository, ProfileDataService}
+import kits.{StrKitModule, StrKitService}
+import fixtures.StubStrKitService
 
 import org.scalatestplus.play._
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
@@ -37,6 +42,9 @@ class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest {
       .disable[UsersModule]
       .disable[ProfileModule]
       .disable[ProbabilityModule]
+      .disable[BulkUploadModule]
+      .disable[StrKitModule]
+      .disable[profiledata.ProfileDataModule]
       .overrides(
         bind[UserRepository].to[StubUserRepository],
         bind[RoleRepository].to[StubRoleRepository],
@@ -48,7 +56,14 @@ class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest {
         bind[ProbabilityService].toInstance(new StubProbabilityService),
         bind[ExecutionContext].qualifiedWith("lrmix-context").toInstance(ExecutionContext.global),
         bind[LdapHealthService].toInstance(new StubLdapHealthService),
-        bind[MongoHealthService].toInstance(new StubMongoHealthService)
+        bind[MongoHealthService].toInstance(new StubMongoHealthService),
+        bind[BulkUploadService].toInstance(new StubBulkUploadService),
+        bind[ProfileDataService].toInstance(new StubProfileDataService),
+        bind[ProfileDataService].qualifiedWith("stashed").toInstance(new StubProfileDataService),
+        bind[ProfileDataRepository].to[profiledata.ProfileDataRepositoryStub],
+        bind[matching.MatchingService].toInstance(new matching.MatchingServiceStub),
+        bind[InterconnectionService].toInstance(new connections.InterconnectionServiceStub),
+        bind[StrKitService].toInstance(new StubStrKitService)
       )
       .configure("play.http.secret.key" -> "test-secret-key-for-testing-purposes-only-not-for-production-1234")
       .build()

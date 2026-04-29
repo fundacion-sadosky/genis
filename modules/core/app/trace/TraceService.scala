@@ -36,3 +36,13 @@ case class AssociationInfo(
   assignee: String,
   associations: Seq[CategoryAssociation]
 ) extends TraceInfo
+
+case class DeleteInfo(userId: String, description: String) extends TraceInfo
+
+case object ProfileDataInfo extends TraceInfo
+
+case class ProfileCategoryModificationInfo(
+  oldCategory: String,
+  newCategory: String,
+  userName: String
+) extends TraceInfo
