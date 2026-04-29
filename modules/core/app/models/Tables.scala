@@ -244,6 +244,196 @@ object Tables {
   }
   val ProfileDataCategory = TableQuery[ProfileDataCategoryTable]
 
+  // ---------------------------------------------------------------------------
+  // Full ProfileData table (for search and profile data operations)
+  // ---------------------------------------------------------------------------
+
+  case class ProfileDataRow(
+    id: Long,
+    category: String,
+    globalCode: String,
+    internalCode: String,
+    description: Option[String] = None,
+    attorney: Option[String] = None,
+    bioMaterialType: Option[String] = None,
+    court: Option[String] = None,
+    crimeInvolved: Option[String] = None,
+    crimeType: Option[String] = None,
+    criminalCase: Option[String] = None,
+    internalSampleCode: String,
+    assignee: String,
+    laboratory: String,
+    profileExpirationDate: Option[java.sql.Date] = None,
+    responsibleGeneticist: Option[String] = None,
+    sampleDate: Option[java.sql.Date] = None,
+    sampleEntryDate: Option[java.sql.Date] = None,
+    deleted: Boolean = false,
+    deletedSolicitor: Option[String] = None,
+    deletedMotive: Option[String] = None,
+    fromDesktopSearch: Boolean = false
+  )
+  object ProfileDataRow { def tupled = (ProfileDataRow.apply _).tupled }
+
+  class ProfileDataTable(tag: Tag) extends Table[ProfileDataRow](tag, Some("APP"), "PROFILE_DATA") {
+    def id                    = column[Long]("ID", O.AutoInc, O.PrimaryKey)
+    def category              = column[String]("CATEGORY", O.Length(50, varying = true))
+    def globalCode            = column[String]("GLOBAL_CODE", O.Length(100, varying = true))
+    def internalCode          = column[String]("INTERNAL_CODE", O.Length(100, varying = true))
+    def description           = column[Option[String]]("DESCRIPTION", O.Length(1024, varying = true), O.Default(None))
+    def attorney              = column[Option[String]]("ATTORNEY", O.Length(100, varying = true), O.Default(None))
+    def bioMaterialType       = column[Option[String]]("BIO_MATERIAL_TYPE", O.Length(50, varying = true), O.Default(None))
+    def court                 = column[Option[String]]("COURT", O.Length(100, varying = true), O.Default(None))
+    def crimeInvolved         = column[Option[String]]("CRIME_INVOLVED", O.Length(50, varying = true), O.Default(None))
+    def crimeType             = column[Option[String]]("CRIME_TYPE", O.Length(50, varying = true), O.Default(None))
+    def criminalCase          = column[Option[String]]("CRIMINAL_CASE", O.Length(50, varying = true), O.Default(None))
+    def internalSampleCode    = column[String]("INTERNAL_SAMPLE_CODE", O.Length(50, varying = true))
+    def assignee              = column[String]("ASSIGNEE", O.Length(50, varying = true))
+    def laboratory            = column[String]("LABORATORY", O.Length(50, varying = true))
+    def profileExpirationDate = column[Option[java.sql.Date]]("PROFILE_EXPIRATION_DATE", O.Default(None))
+    def responsibleGeneticist = column[Option[String]]("RESPONSIBLE_GENETICIST", O.Length(50, varying = true), O.Default(None))
+    def sampleDate            = column[Option[java.sql.Date]]("SAMPLE_DATE", O.Default(None))
+    def sampleEntryDate       = column[Option[java.sql.Date]]("SAMPLE_ENTRY_DATE", O.Default(None))
+    def deleted               = column[Boolean]("DELETED", O.Default(false))
+    def deletedSolicitor      = column[Option[String]]("DELETED_SOLICITOR", O.Length(100, varying = true), O.Default(None))
+    def deletedMotive         = column[Option[String]]("DELETED_MOTIVE", O.Length(8192, varying = true), O.Default(None))
+    def fromDesktopSearch     = column[Boolean]("FROM_DESKTOP_SEARCH", O.Default(false))
+    def * = (id, category, globalCode, internalCode, description, attorney, bioMaterialType,
+             court, crimeInvolved, crimeType, criminalCase, internalSampleCode, assignee,
+             laboratory, profileExpirationDate, responsibleGeneticist, sampleDate, sampleEntryDate,
+             deleted, deletedSolicitor, deletedMotive, fromDesktopSearch) <> (ProfileDataRow.tupled, ProfileDataRow.unapply)
+  }
+  val ProfileData = TableQuery[ProfileDataTable]
+
+  // ProfileDataFiliation table
+  case class ProfileDataFiliationRow(
+    id: Long,
+    profileData: String,
+    fullName: Option[String] = None,
+    nickname: Option[String] = None,
+    birthday: Option[java.sql.Date] = None,
+    birthPlace: Option[String] = None,
+    nationality: Option[String] = None,
+    identification: Option[String] = None,
+    identificationIssuingAuthority: Option[String] = None,
+    address: Option[String] = None
+  )
+  object ProfileDataFiliationRow { def tupled = (ProfileDataFiliationRow.apply _).tupled }
+
+  class ProfileDataFiliationTable(tag: Tag) extends Table[ProfileDataFiliationRow](tag, Some("APP"), "PROFILE_DATA_FILIATION") {
+    def id                             = column[Long]("ID", O.AutoInc, O.PrimaryKey)
+    def profileData                    = column[String]("PROFILE_DATA", O.Length(100, varying = true))
+    def fullName                       = column[Option[String]]("FULL_NAME", O.Length(150, varying = true), O.Default(None))
+    def nickname                       = column[Option[String]]("NICKNAME", O.Length(150, varying = true), O.Default(None))
+    def birthday                       = column[Option[java.sql.Date]]("BIRTHDAY", O.Default(None))
+    def birthPlace                     = column[Option[String]]("BIRTH_PLACE", O.Length(100, varying = true), O.Default(None))
+    def nationality                    = column[Option[String]]("NATIONALITY", O.Length(50, varying = true), O.Default(None))
+    def identification                 = column[Option[String]]("IDENTIFICATION", O.Length(100, varying = true), O.Default(None))
+    def identificationIssuingAuthority = column[Option[String]]("IDENTIFICATION_ISSUING_AUTHORITY", O.Length(100, varying = true), O.Default(None))
+    def address                        = column[Option[String]]("ADDRESS", O.Length(100, varying = true), O.Default(None))
+    def * = (id, profileData, fullName, nickname, birthday, birthPlace, nationality,
+             identification, identificationIssuingAuthority, address) <> (ProfileDataFiliationRow.tupled, ProfileDataFiliationRow.unapply)
+  }
+  val ProfileDataFiliation = TableQuery[ProfileDataFiliationTable]
+
+  // ExternalProfileData table
+  case class ExternalProfileDataRow(id: Long, laboratoryOrigin: String, laboratoryImmediate: String)
+  object ExternalProfileDataRow { def tupled = (ExternalProfileDataRow.apply _).tupled }
+
+  class ExternalProfileDataTable(tag: Tag) extends Table[ExternalProfileDataRow](tag, Some("APP"), "EXTERNAL_PROFILE_DATA") {
+    def id                  = column[Long]("ID", O.PrimaryKey)
+    def laboratoryOrigin    = column[String]("LABORATORY_INSTANCE_ORIGIN", O.Length(50, varying = true))
+    def laboratoryImmediate = column[String]("LABORATORY_INSTANCE_INMEDIATE", O.Length(50, varying = true))
+    def * = (id, laboratoryOrigin, laboratoryImmediate) <> (ExternalProfileDataRow.tupled, ExternalProfileDataRow.unapply)
+  }
+  val ExternalProfileData = TableQuery[ExternalProfileDataTable]
+
+  // ProfileUploaded table
+  case class ProfileUploadedRow(
+    id: Long,
+    globalCode: String,
+    status: Long,
+    motive: Option[String] = None,
+    interconnectionError: Option[String] = None,
+    userName: Option[String] = None,
+    operationOriginatedInInstance: Option[String] = None,
+    dateUploaded: Option[java.sql.Timestamp] = None
+  )
+  object ProfileUploadedRow { def tupled = (ProfileUploadedRow.apply _).tupled }
+
+  class ProfileUploadedTable(tag: Tag) extends Table[ProfileUploadedRow](tag, Some("APP"), "PROFILE_UPLOADED") {
+    def id                             = column[Long]("ID", O.PrimaryKey)
+    def globalCode                     = column[String]("GLOBAL_CODE", O.Length(100, varying = true))
+    def status                         = column[Long]("STATUS")
+    def motive                         = column[Option[String]]("MOTIVE")
+    def interconnectionError           = column[Option[String]]("INTERCONNECTION_ERROR")
+    def userName                       = column[Option[String]]("USER")
+    def operationOriginatedInInstance  = column[Option[String]]("OPERATION_ORIGINATED_IN_INSTANCE")
+    def dateUploaded                   = column[Option[java.sql.Timestamp]]("DATE_UPLOADED")
+    def * = (id, globalCode, status, motive, interconnectionError, userName,
+             operationOriginatedInInstance, dateUploaded) <> (ProfileUploadedRow.tupled, ProfileUploadedRow.unapply)
+  }
+  val ProfileUploaded = TableQuery[ProfileUploadedTable]
+
+  // ProtoProfile table
+  case class ProtoProfileRow(
+    id: Long,
+    sampleName: String,
+    idBatch: Long,
+    assignee: String,
+    category: String,
+    status: String,
+    panel: String,
+    errors: Option[String] = None,
+    genotypifications: String,
+    matchingRules: String,
+    mismatchs: String,
+    rejectMotive: Option[String] = None,
+    preexistence: Option[String] = None,
+    genemapperLine: String,
+    rejectionUser: Option[String] = None,
+    rejectionDate: Option[java.sql.Timestamp] = None,
+    idRejectMotive: Option[Long] = None
+  )
+  object ProtoProfileRow { def tupled = (ProtoProfileRow.apply _).tupled }
+
+  class ProtoProfileTable(tag: Tag) extends Table[ProtoProfileRow](tag, Some("APP"), "PROTO_PROFILE") {
+    def id                = column[Long]("ID", O.AutoInc, O.PrimaryKey)
+    def sampleName        = column[String]("SAMPLE_NAME", O.Length(100, varying = true))
+    def idBatch           = column[Long]("ID_BATCH")
+    def assignee          = column[String]("ASSIGNEE", O.Length(100, varying = true))
+    def category          = column[String]("CATEGORY", O.Length(100, varying = true))
+    def status            = column[String]("STATUS", O.Length(150, varying = true))
+    def panel             = column[String]("PANEL", O.Length(150, varying = true))
+    def errors            = column[Option[String]]("ERRORS", O.Length(500, varying = true), O.Default(None))
+    def genotypifications = column[String]("GENOTYPIFICATIONS", O.Length(2000, varying = true))
+    def matchingRules     = column[String]("MATCHING_RULES", O.Length(2000, varying = true))
+    def mismatchs         = column[String]("MISMATCHS", O.Length(2000, varying = true))
+    def rejectMotive      = column[Option[String]]("REJECT_MOTIVE", O.Length(2000, varying = true), O.Default(None))
+    def preexistence      = column[Option[String]]("PREEXISTENCE", O.Length(100, varying = true), O.Default(None))
+    def genemapperLine    = column[String]("GENEMAPPER_LINE", O.Length(5000, varying = true))
+    def rejectionUser     = column[Option[String]]("REJECTION_USER", O.Length(5000, varying = true), O.Default(None))
+    def rejectionDate     = column[Option[java.sql.Timestamp]]("REJECTION_DATE", O.Default(None))
+    def idRejectMotive    = column[Option[Long]]("ID_REJECT_MOTIVE", O.Default(None))
+    def * = (id, sampleName, idBatch, assignee, category, status, panel, errors, genotypifications,
+             matchingRules, mismatchs, rejectMotive, preexistence, genemapperLine,
+             rejectionUser, rejectionDate, idRejectMotive) <> (ProtoProfileRow.tupled, ProtoProfileRow.unapply)
+  }
+  val ProtoProfile = TableQuery[ProtoProfileTable]
+
+  // BatchProtoProfile table
+  case class BatchProtoProfileRow(id: Long, user: String, date: java.sql.Date, label: Option[String], analysisType: String)
+  object BatchProtoProfileRow { def tupled = (BatchProtoProfileRow.apply _).tupled }
+
+  class BatchProtoProfileTable(tag: Tag) extends Table[BatchProtoProfileRow](tag, Some("APP"), "BATCH_PROTO_PROFILE") {
+    def id           = column[Long]("ID", O.AutoInc, O.PrimaryKey)
+    def user         = column[String]("USER", O.Length(50, varying = true))
+    def date         = column[java.sql.Date]("DATE")
+    def label        = column[Option[String]]("LABEL", O.Length(50, varying = true))
+    def analysisType = column[String]("ANALYSISTYPE", O.Length(50, varying = true))
+    def * = (id, user, date, label, analysisType) <> (BatchProtoProfileRow.tupled, BatchProtoProfileRow.unapply)
+  }
+  val BatchProtoProfile = TableQuery[BatchProtoProfileTable]
+
   // MotiveType table
   case class MotiveTypeRow(id: Long, description: String)
   class MotiveTypeTable(tag: Tag) extends Table[MotiveTypeRow](tag, Some("APP"), "MOTIVE_TYPE") {
