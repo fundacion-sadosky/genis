@@ -32,6 +32,12 @@ import org.scalatestplus.play.*                     // for controller tests
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
 ```
 
+### Play 3 import gotchas
+
+- `HandlerDef` lives in `play.api.routing`, not `play.api.mvc`. Import from
+  `play.api.routing.{HandlerDef, Router}` when testing filters that read
+  `Router.Attrs.HandlerDef`.
+
 ## Slick + ScalaTest `===` conflict
 
 ScalaTest `Matchers` defines `===` on `Any`, shadowing Slick's `===` on `Rep[T]`.
@@ -68,6 +74,10 @@ Applies to `beforeEach`, `afterEach`, private helpers — any method building a 
 - [ ] Self-contained with defensive cleanup
 - [ ] Test IDs with `TEST_*` prefix
 - [ ] Local `slick.jdbc.PostgresProfile.api.*` import if using `===` with `Matchers`
+- [ ] When writing rows with varying values in the natural test-id column
+      (e.g. multiple `userId`s for sort tests), clean up by a stable parent
+      marker (e.g. lot `kZero`), not by the varying column — otherwise
+      FK-linked child rows survive and break the parent delete.
 
 ## Full reference
 

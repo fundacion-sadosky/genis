@@ -9,18 +9,18 @@ import play.api.test.*
 import play.api.test.Helpers.*
 import play.api.libs.json.Json
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 import com.unboundid.ldap.sdk.LDAPConnectionPool
 import com.unboundid.ldap.listener.{InMemoryDirectoryServer, InMemoryDirectoryServerConfig}
-import fixtures.{StubDisclaimerService, StubStrKitService, StubUserService}
+import fixtures.{StubDisclaimerService, StubProbabilityService, StubLdapHealthService, StubStrKitService, StubUserService}
 import disclaimer.DisclaimerService
 import motive.{Motive, MotiveService, MotiveType}
 import security.{RoleService, StubRoleRepository, StubUserRepository, UserRepository}
 import services.UserService
 import user.{LdapHealthService, RoleRepository, UsersModule, Role, UserStatus, UserView}
-import fixtures.StubLdapHealthService
 import kits.{StrKitModule, StrKitService}
+import probability.{ProbabilityModule, ProbabilityService}
 import types.Permission
 
 class StubMotiveService extends MotiveService:
@@ -72,6 +72,7 @@ class UserAndRoleControllerTest extends PlaySpec with GuiceOneAppPerTest {
     GuiceApplicationBuilder()
       .disable[UsersModule]
       .disable[StrKitModule]
+      .disable[ProbabilityModule]
       .overrides(
         bind[UserRepository].to[StubUserRepository],
         bind[RoleRepository].to[StubRoleRepository],
@@ -80,6 +81,8 @@ class UserAndRoleControllerTest extends PlaySpec with GuiceOneAppPerTest {
         bind[StrKitService].toInstance(new StubStrKitService),
         bind[DisclaimerService].toInstance(new StubDisclaimerService),
         bind[MotiveService].toInstance(new StubMotiveService),
+        bind[ProbabilityService].toInstance(new StubProbabilityService),
+        bind[ExecutionContext].qualifiedWith("lrmix-context").toInstance(ExecutionContext.global),
         bind[LDAPConnectionPool].toInstance(createInMemoryLdapPool()),
         bind[LdapHealthService].toInstance(new StubLdapHealthService)
       )

@@ -1,12 +1,13 @@
 package unit.profile
 
-import org.scalatestplus.play.PlaySpec
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.Json
 import profile.*
 
-class LabelTest extends PlaySpec {
+class LabelTest extends AnyWordSpec with Matchers {
 
-  "Label" should {
+  "Label" must {
 
     "serialize to JSON" in {
       val label = Label("1", "Víctima")

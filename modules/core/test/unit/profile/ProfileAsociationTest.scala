@@ -1,14 +1,15 @@
 package unit.profile
 
-import org.scalatestplus.play.PlaySpec
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.Json
 import matching.Stringency
 import profile.*
 import types.SampleCode
 
-class ProfileAsociationTest extends PlaySpec {
+class ProfileAsociationTest extends AnyWordSpec with Matchers {
 
-  "ProfileAsociation" should {
+  "ProfileAsociation" must {
 
     "serialize to JSON" in {
       val pa = ProfileAsociation(

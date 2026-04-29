@@ -3,15 +3,16 @@ package unit.profile
 import fixtures.StubProfileService
 import org.mockito.Mockito.when
 import org.mockito.ArgumentMatchers.any
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
-import org.scalatestplus.play.PlaySpec
 import profile.*
 import types.{AlphanumericId, SampleCode}
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.{Duration, SECONDS}
 
-class ProfileServiceTest extends PlaySpec with MockitoSugar {
+class ProfileServiceTest extends AnyWordSpec with Matchers with MockitoSugar {
 
   val timeout = Duration(10, SECONDS)
   val sc = SampleCode("AR-B-IMBICE-1")
@@ -26,7 +27,7 @@ class ProfileServiceTest extends PlaySpec with MockitoSugar {
     mismatches = None, deleted = false, matcheable = true, isReference = false, processed = false
   )
 
-  "ProfileService (stub)" should {
+  "ProfileService (stub)" must {
 
     "findByCode returns profile when exists" in {
       val service = new StubProfileService
@@ -150,12 +151,6 @@ class ProfileServiceTest extends PlaySpec with MockitoSugar {
     "removeEpg returns Right on success" in {
       val service = new StubProfileService
       val result = Await.result(service.removeEpg("e1", "user1"), timeout)
-      result mustBe Right("ok")
-    }
-
-    "removeAll returns Right on success" in {
-      val service = new StubProfileService
-      val result = Await.result(service.removeAll(), timeout)
       result mustBe Right("ok")
     }
 

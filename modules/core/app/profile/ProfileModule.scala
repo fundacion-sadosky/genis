@@ -27,6 +27,11 @@ class ProfileModule(environment: Environment, conf: Configuration) extends Abstr
 
     bind(new TypeLiteral[Profile.LabelSets]() {}).annotatedWith(Names.named("labelsSet")).toInstance(getLabelsSets)
 
+    // MongoDB — singleton MongoDatabase with lifecycle management
+    import com.mongodb.client.MongoDatabase
+    bind(classOf[MongoDatabase]).toProvider(classOf[MongoDatabaseProvider]).asEagerSingleton()
+    bind(classOf[MongoHealthService]).to(classOf[MongoHealthServiceImpl])
+
     bind(classOf[ProfileRepository]).to(classOf[MongoProfileRepository])
 
     val exportProfilesPageSize = conf.get[Int]("exportProfilesPageSize")
@@ -54,7 +59,6 @@ class ProfileModule(environment: Environment, conf: Configuration) extends Abstr
     bind(classOf[matching.MatchingRepository]).to(classOf[matching.MatchingRepositoryStub])
     bind(classOf[matching.MatchingService]).to(classOf[matching.MatchingServiceStub])
     bind(classOf[pedigree.PedigreeService]).to(classOf[pedigree.PedigreeServiceStub])
-    bind(classOf[probability.ProbabilityService]).to(classOf[probability.ProbabilityServiceStub])
     bind(classOf[profiledata.ProfileDataRepository]).to(classOf[profiledata.ProfileDataRepositoryStub])
     bind(classOf[profiledata.ProfileDataService]).to(classOf[profiledata.ProfileDataServiceStub])
     bind(classOf[ProfileService]).to(classOf[ProfileServiceImpl])

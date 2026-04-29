@@ -1,5 +1,9 @@
 # Disclaimer endpoint (migrated from legacy)
 GET     /api/v2/disclaimer                   controllers.DisclaimerController.getDisclaimer
+
+# Probability endpoints (migrated from legacy)
+POST    /api/v2/lr-mix                        controllers.ProbabilityController.calculateLRMix
+GET     /api/v2/probability/stats/:laboratory controllers.ProbabilityController.getStats(laboratory: String)
 # Routes for Core Module (Scala 3 + Play 3)
 # API v2 endpoints
 
@@ -10,14 +14,11 @@ GET     /api/v2/status/ldap                controllers.core.StatusController.lda
 # Health check (alias)
 GET     /health                             controllers.core.StatusController.index()
 
-# MongoDB/FerretDB endpoints
-GET     /api/v2/mongo/collections           controllers.core.MongoController.listCollections()
-GET     /api/v2/mongo/count/:collection     controllers.core.MongoController.countDocuments(collection: String)
-GET     /api/v2/mongo/stats                 controllers.core.MongoController.stats()
+# MongoDB status
+GET     /api/v2/mongo/status                controllers.core.MongoController.status()
 
-# PostgreSQL endpoints
-GET     /api/v2/postgres/ping               controllers.core.PostgresController.ping()
-GET     /api/v2/postgres/info               controllers.core.PostgresController.info()
+# PostgreSQL status
+GET     /api/v2/postgres/status             controllers.core.PostgresController.status()
 
 GET     /api/v2/crimeTypes                            controllers.CrimeTypes.list()
 # BioMaterialTypes endpoints (migrated from legacy)
@@ -142,7 +143,6 @@ POST    /api/v2/profile-exportToLims                                controllers.
 GET     /api/v2/get-profile-export/:user                            controllers.ProfilesController.getExportFile(user: String)
 GET     /api/v2/get-alta-file-export                                controllers.ProfilesController.getLimsAltaFile()
 GET     /api/v2/get-match-file-export                               controllers.ProfilesController.getLimsMatchFile()
-DELETE  /api/v2/profiles/remove                                     controllers.ProfilesController.removeAll()
 DELETE  /api/v2/profiles/:profileId                                 controllers.ProfilesController.removeProfile(profileId: types.SampleCode)
 
 # Trace (trazabilidad)
@@ -160,3 +160,10 @@ GET     /api/v2/populationBaseFreqCharacteristics     controllers.PopulationBase
 GET     /api/v2/populationBaseFreq/:name              controllers.PopulationBaseFreqController.getByName(name: String)
 PUT     /api/v2/populationBaseFreq/:name              controllers.PopulationBaseFreqController.toggleStateBase(name: String)
 PUT     /api/v2/populationBaseFreqDefault/:name       controllers.PopulationBaseFreqController.setBaseAsDefault(name: String)
+
+# Operation Log (audit)
+GET     /api/v2/operationLog                          controllers.OperationLogsController.getLogLots(page: Int, pageSize: Int)
+HEAD    /api/v2/operationLog                          controllers.OperationLogsController.getTotalLots
+POST    /api/v2/operationLogLot                       controllers.OperationLogsController.getTotalLogs
+POST    /api/v2/operationLogSearch                    controllers.OperationLogsController.searchLogs
+GET     /api/v2/operationLog/:id/verification         controllers.OperationLogsController.checkLogLot(id: Long)

@@ -1,18 +1,39 @@
 package fixtures
 
+import scala.collection.immutable.IndexedSeq
 import scala.concurrent.Future
 import scala.util.{Success, Try}
+import java.io.File
 import javax.inject.Singleton
 
+import audit.{Key, OperationLogEntry, OperationLogEntryAttemp, OperationLogLotView,
+  OperationLogSearch, OperationLogService, SignedOperationLogEntry}
 import configdata.{BioMaterialType, CrimeType, CrimeTypeService, BioMaterialTypeService}
 import disclaimer.{Disclaimer, DisclaimerService}
 import kits.{FullStrKit, StrKit, StrKitLocus, StrKitService, NewStrKitLocus}
 import inbox.NotificationInfo
+import probability.ProbabilityService
+import profile.Analysis
 import services.{CountryService, GeneticistService, LaboratoryService, UserService}
-import types.{Geneticist, Laboratory, Permission}
+import stats.{Fmins, PopBaseFreqResult, PopulationBaseFrequency, PopulationBaseFrequencyGrouppedByLocus, PopulationBaseFrequencyNameView, PopulationBaseFrequencyService, PopulationBaseFrequencyView, ProbabilityModel}
+import types.{AlphanumericId, Geneticist, Laboratory, Permission, StatOption}
 import security.User
 import user.{ClearPassChallenge, ClearPassResponse, ClearPassSolicitud,
   SignupChallenge, SignupResponse, SignupSolicitude, UserStatus, UserView}
+
+/** No-op audit service for tests: avoids the PEOSignerActor connecting to genislogdb
+ *  during GuiceApplicationBuilder startup. */
+@Singleton
+class StubOperationLogService extends OperationLogService:
+  override def add(entry: OperationLogEntryAttemp): Future[Unit] = Future.successful(())
+  override def listLotsView(page: Int, pageSize: Int): Future[Seq[OperationLogLotView]] =
+    Future.successful(Seq.empty)
+  override def checkLot(id: Long): Future[Option[Either[(SignedOperationLogEntry, Key), Unit]]] =
+    Future.successful(Some(Right(())))
+  override def getLotsLength(): Future[Int] = Future.successful(0)
+  override def searchLogs(search: OperationLogSearch): Future[Seq[OperationLogEntry]] =
+    Future.successful(Seq.empty)
+  override def getLogsLength(search: OperationLogSearch): Future[Int] = Future.successful(0)
 
 @Singleton
 class StubLaboratoryService extends LaboratoryService:
@@ -36,12 +57,12 @@ class StubCountryService extends CountryService:
 
 @Singleton
 class StubGeneticistService extends GeneticistService:
-  var addResult: Future[Int] = Future.successful(0)
+  var addResult: Future[Either[String, Int]] = Future.successful(Right(0))
   var getAllResult: Future[Seq[Geneticist]] = Future.successful(Seq.empty)
   var updateResult: Future[Int] = Future.successful(0)
   var getResult: Future[Option[Geneticist]] = Future.successful(None)
 
-  override def add(geneticist: Geneticist): Future[Int] = addResult
+  override def add(geneticist: Geneticist): Future[Either[String, Int]] = addResult
   override def getAll(laboratory: String): Future[Seq[Geneticist]] = getAllResult
   override def update(geneticist: Geneticist): Future[Int] = updateResult
   override def get(id: Long): Future[Option[Geneticist]] = getResult
@@ -138,4 +159,37 @@ class StubStrKitService extends StrKitService:
 @Singleton
 class StubLdapHealthService extends user.LdapHealthService:
   var result: Try[(String, String)] = Success(("UP", "StubVendor"))
+  override def checkStatus(): Try[(String, String)] = result
+
+@Singleton
+class StubProbabilityService extends ProbabilityService:
+  var getStatsResult: Future[Option[StatOption]] = Future.successful(None)
+  var calculateContributorsResult: Future[Int] = Future.successful(1)
+
+  override def getStats(laboratory: String): Future[Option[StatOption]] = getStatsResult
+  override def calculateContributors(analysis: Analysis, category: AlphanumericId, stats: StatOption): Future[Int] = calculateContributorsResult
+
+@Singleton
+class StubPopulationBaseFrequencyService extends PopulationBaseFrequencyService:
+  var getByNameResult: Future[Option[PopulationBaseFrequency]] = Future.successful(None)
+  var getDefaultResult: Future[Option[PopulationBaseFrequencyNameView]] = Future.successful(None)
+  var getAllNamesResult: Future[Seq[PopulationBaseFrequencyNameView]] = Future.successful(Seq.empty)
+
+  override def save(popBaseFreq: PopulationBaseFrequency): Future[Int] = Future.successful(1)
+  override def getByName(name: String): Future[Option[PopulationBaseFrequency]] = getByNameResult
+  override def getByNamePV(name: String): Future[PopulationBaseFrequencyView] = Future.failed(new UnsupportedOperationException("stub"))
+  override def getAllNames(): Future[Seq[PopulationBaseFrequencyNameView]] = getAllNamesResult
+  override def toggleStateBase(name: String): Future[Option[Int]] = Future.successful(Some(1))
+  override def setAsDefault(name: String): Future[Int] = Future.successful(1)
+  override def parseFile(name: String, theta: Double, model: ProbabilityModel, csvFile: File): Future[PopBaseFreqResult] = Future.failed(new UnsupportedOperationException("stub"))
+  override def insertFmin(id: String, fmins: Fmins): Future[PopBaseFreqResult] = Future.failed(new UnsupportedOperationException("stub"))
+  override def getDefault(): Future[Option[PopulationBaseFrequencyNameView]] = getDefaultResult
+  override def getAllPossibleAllelesByLocus(): Future[PopulationBaseFrequencyGrouppedByLocus] = Future.successful(PopulationBaseFrequencyGrouppedByLocus(Map.empty))
+class StubMongoHealthService extends profile.MongoHealthService:
+  var result: Try[(String, String)] = Success(("UP", "StubDB"))
+  override def checkStatus(): Try[(String, String)] = result
+
+@Singleton
+class StubPostgresHealthService extends configdata.PostgresHealthService:
+  var result: Try[(String, String)] = Success(("UP", "PostgreSQL 15.0"))
   override def checkStatus(): Try[(String, String)] = result

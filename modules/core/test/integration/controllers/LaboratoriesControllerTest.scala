@@ -9,12 +9,15 @@ import play.api.test.*
 import play.api.test.Helpers.*
 import play.api.libs.json.Json
 
-import fixtures.{StubCountryService, StubLaboratoryService, StubLdapHealthService, StubStrKitService}
+import fixtures.{StubCountryService, StubLaboratoryService, StubLdapHealthService, StubProbabilityService, StubStrKitService}
 import security.{StubRoleRepository, StubUserRepository, UserRepository}
 import services.{CountryService, LaboratoryService}
 import user.{LdapHealthService, RoleRepository, UsersModule}
 import kits.{StrKitModule, StrKitService}
+import probability.{ProbabilityModule, ProbabilityService}
 import types.Laboratory
+
+import scala.concurrent.ExecutionContext
 
 class LaboratoriesControllerTest extends PlaySpec with GuiceOneAppPerTest {
 
@@ -27,12 +30,15 @@ class LaboratoriesControllerTest extends PlaySpec with GuiceOneAppPerTest {
     GuiceApplicationBuilder()
       .disable[UsersModule]
       .disable[StrKitModule]
+      .disable[ProbabilityModule]
       .overrides(
         bind[UserRepository].to[StubUserRepository],
         bind[RoleRepository].to[StubRoleRepository],
         bind[LaboratoryService].toInstance(labStub),
         bind[CountryService].toInstance(countryStub),
         bind[StrKitService].toInstance(new StubStrKitService),
+        bind[ProbabilityService].toInstance(new StubProbabilityService),
+        bind[ExecutionContext].qualifiedWith("lrmix-context").toInstance(ExecutionContext.global),
         bind[LdapHealthService].toInstance(new StubLdapHealthService)
       )
       .configure("play.http.secret.key" -> "test-secret-key-for-testing-purposes-only-not-for-production-1234")

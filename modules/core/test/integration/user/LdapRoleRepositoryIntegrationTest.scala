@@ -10,7 +10,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 import com.unboundid.ldap.sdk._
 
-import user.{LdapRoleRepository, Role}
+import user.{LdapConnectionProviderImpl, LdapRoleRepository, Role}
 import types.Permission
 
 class LdapRoleRepositoryIntegrationTest
@@ -35,8 +35,8 @@ class LdapRoleRepositoryIntegrationTest
     searchConnection = new LDAPConnection(ldapHost, ldapPort)
     val poolConnection = new LDAPConnection(ldapHost, ldapPort)
     connectionPool = new LDAPConnectionPool(poolConnection, 2)
-    repo = new LdapRoleRepository(connectionPool, searchConnection, rolesDn,
-      adminDn, adminPassword)
+    val provider = new LdapConnectionProviderImpl(connectionPool, searchConnection)
+    repo = new LdapRoleRepository(provider, rolesDn, adminDn, adminPassword)
 
   override protected def afterAll(): Unit =
     connectionPool.close()

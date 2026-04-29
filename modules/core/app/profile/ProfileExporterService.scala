@@ -7,9 +7,7 @@ import play.api.Logger
 import profiledata.ProfileDataService
 import services.UserService
 
-import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.language.postfixOps
-import scala.concurrent.duration.Duration
+import scala.concurrent.{ExecutionContext, Future}
 
 trait ProfileExporterService {
   def filterProfiles(exportProfileFilters: ExportProfileFilters): Future[List[Profile]]
@@ -46,23 +44,24 @@ class ProfileExporterServiceImpl @Inject()(
 
   def exportProfiles(profiles: List[Profile], user: String): Future[Either[String, String]] = {
     val assignees: Set[String] = profiles.map(_.assignee).toSet
-    val mitoPositions = Await.result(profileDataService.getMtRcrs(), Duration.Inf)
-    Future.sequence(assignees.map(assignee =>
+    val mitoPositionsFut = profileDataService.getMtRcrs()
+    val assigneeMapFut = Future.sequence(assignees.map(assignee =>
       userService.getUserOrEmpty(assignee).map {
         case Some(userView) => (assignee, userView.geneMapperId)
         case None => (assignee, "assignee")
       }
-    ).toSeq)
-      .map(_.toMap)
-      .map { genneMapperByAssignees =>
-        ProfileExporter.exportProfiles(
-          profiles.map(profile => (profile, genneMapperByAssignees.getOrElse(profile.assignee, "assignee"))),
-          user,
-          exportProfilesPageSize,
-          exportProfilesPath,
-          mitoPositions
-        )
-      }
+    ).toSeq).map(_.toMap)
+
+    for {
+      mitoPositions <- mitoPositionsFut
+      genneMapperByAssignees <- assigneeMapFut
+    } yield ProfileExporter.exportProfiles(
+      profiles.map(profile => (profile, genneMapperByAssignees.getOrElse(profile.assignee, "assignee"))),
+      user,
+      exportProfilesPageSize,
+      exportProfilesPath,
+      mitoPositions
+    )
   }
 
   override def getFileOf(user: String): File = {
