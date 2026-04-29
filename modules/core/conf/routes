@@ -199,3 +199,9 @@ GET     /api/v2/profilesdata                                             control
 GET     /api/v2/profiledata-desktop                                      controllers.ProfileDataController.getDesktopProfiles
 GET     /api/v2/profileData/isProfileReplicated/:internalCode            controllers.ProfileDataController.getIsProfileReplicatedInternalCode(internalCode: String)
 GET     /api/v2/resources/static/:type/:id                               controllers.ProfileDataController.getResources(type: String, id: Long)
+# Operation Log (audit)
+GET     /api/v2/operationLog                          controllers.OperationLogsController.getLogLots(page: Int, pageSize: Int)
+HEAD    /api/v2/operationLog                          controllers.OperationLogsController.getTotalLots
+POST    /api/v2/operationLogLot                       controllers.OperationLogsController.getTotalLogs
+POST    /api/v2/operationLogSearch                    controllers.OperationLogsController.searchLogs
+GET     /api/v2/operationLog/:id/verification         controllers.OperationLogsController.checkLogLot(id: Long)
