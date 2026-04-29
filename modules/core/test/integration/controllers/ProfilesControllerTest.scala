@@ -1,7 +1,7 @@
 package integration.controllers
 
 import configdata.CategoryService
-import fixtures.{StubCacheService, StubCategoryService, StubLdapHealthService, StubProbabilityService, StubMongoHealthService, StubProfileService, StubProfileExporterService, StubLimsArchivesExporterService}
+import fixtures.{StubCacheService, StubCategoryService, StubFullTextSearchService, StubLdapHealthService, StubProbabilityService, StubMongoHealthService, StubProfileService, StubProfileExporterService, StubLimsArchivesExporterService}
 
 import org.scalatestplus.play._
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
@@ -48,7 +48,8 @@ class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest {
         bind[ProbabilityService].toInstance(new StubProbabilityService),
         bind[ExecutionContext].qualifiedWith("lrmix-context").toInstance(ExecutionContext.global),
         bind[LdapHealthService].toInstance(new StubLdapHealthService),
-        bind[MongoHealthService].toInstance(new StubMongoHealthService)
+        bind[MongoHealthService].toInstance(new StubMongoHealthService),
+        bind[search.FullTextSearchService].to[StubFullTextSearchService]
       )
       .configure("play.http.secret.key" -> "test-secret-key-for-testing-purposes-only-not-for-production-1234")
       .build()

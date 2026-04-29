@@ -193,3 +193,18 @@ class StubMongoHealthService extends profile.MongoHealthService:
 class StubPostgresHealthService extends configdata.PostgresHealthService:
   var result: Try[(String, String)] = Success(("UP", "PostgreSQL 15.0"))
   override def checkStatus(): Try[(String, String)] = result
+
+@Singleton
+class StubFullTextSearchService extends search.FullTextSearchService:
+  override def searchTotalProfileDatas(search: profiledata.ProfileDataSearch): Future[Int] =
+    Future.successful(0)
+  override def searchFilterTotalAndTotalProfileDatas(search: profiledata.ProfileDataSearch): Future[(Int, Int)] =
+    Future.successful((0, 0))
+  override def searchProfileDatas(search: profiledata.ProfileDataSearch): Future[Seq[profiledata.ProfileDataFull]] =
+    Future.successful(Seq.empty)
+  override def searchProfileDatasWithFilter(input: String)(filter: profiledata.ProfileData => Boolean): Future[Seq[profiledata.ProfileData]] =
+    Future.successful(Seq.empty)
+  override def searchProfileDatasWithFilterPaging(input: String, page: Int, pageSize: Int)(filter: profiledata.ProfileData => Boolean): Future[Seq[profiledata.ProfileData]] =
+    Future.successful(Seq.empty)
+  override def searchProfileDatasWithFilterNodeAssociation(input: String)(filter: profiledata.ProfileDataWithBatch => Boolean): Future[Seq[profiledata.ProfileDataWithBatch]] =
+    Future.successful(Seq.empty)
