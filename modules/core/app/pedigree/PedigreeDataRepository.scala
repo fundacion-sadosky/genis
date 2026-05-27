@@ -35,41 +35,6 @@ class SlickPedigreeDataRepository @Inject() (
   private val batchProtoProfile      = Tables.PedigreeBatchProtoProfile
 
   // ---------------------------------------------------------------------------
-  // Raw SQL strings
-  // ---------------------------------------------------------------------------
-
-  private val queryStringGetProfilesFromBatches =
-    """SELECT pd."GLOBAL_CODE", cat."IS_REFERENCE"
-       FROM "APP"."BATCH_PROTO_PROFILE" bpp
-         inner join "APP"."PROTO_PROFILE" pp
-         inner join "APP"."PROFILE_DATA" pd on pp."SAMPLE_NAME" = pd."INTERNAL_SAMPLE_CODE"
-           on (pp."ID_BATCH" = bpp."ID")
-         INNER JOIN "APP"."CATEGORY" cat on (pd."CATEGORY" = cat."ID")
-       WHERE pp."STATUS" = 'Imported'
-         AND cat."PEDIGREE_ASSOCIATION" = TRUE
-         AND cat."TYPE" = ?
-         AND bpp."ID" IN RANGO
-         AND pd."DELETED" = FALSE
-         AND pd."GLOBAL_CODE" NOT IN (
-           SELECT ccp."GLOBAL_CODE" FROM "APP"."COURT_CASE_PROFILE" ccp
-           WHERE ccp."ID_COURT_CASE" = ?)"""
-
-  private val queryProfilesToDelete =
-    """SELECT "GLOBAL_CODE" FROM "APP"."COURT_CASE_PROFILE"
-       WHERE "GLOBAL_CODE" IN (
-         SELECT "GLOBAL_CODE" FROM (
-           SELECT "GLOBAL_CODE", COUNT("CC"."ID") AS "CANT"
-           FROM "APP"."COURT_CASE_PROFILE"
-             LEFT JOIN (
-               SELECT "ID" FROM "APP"."COURT_CASE"
-               WHERE "APP"."COURT_CASE"."STATUS" = 'Open'
-             ) "CC" ON "APP"."COURT_CASE_PROFILE"."ID_COURT_CASE" = "CC"."ID"
-           GROUP BY "GLOBAL_CODE"
-         ) "COURT_CASE_PROFILE_GROUPED"
-         WHERE "CANT" = 0
-       ) AND "ID_COURT_CASE" = ?"""
-
-  // ---------------------------------------------------------------------------
   // Helpers
   // ---------------------------------------------------------------------------
 
@@ -194,7 +159,7 @@ class SlickPedigreeDataRepository @Inject() (
     )
     db.run((courtCases returning courtCases.map(_.id)) += row)
       .map(id => Right(id))
-      .recover { case e => Left(e.getMessage) }
+      .recover { case e => logger.error(s"createCourtCase failed for code=${courtCase.internalSampleCode}", e); Left("error.E0630") }
 
   override def createMetadata(idCourtCase: Long, personData: PersonData): Future[Either[String, Long]] =
     val row = CourtCaseFiliationDataRow(
@@ -219,7 +184,7 @@ class SlickPedigreeDataRepository @Inject() (
     )
     db.run((courtCasesFiliationData returning courtCasesFiliationData.map(_.id)) += row)
       .map(id => Right(id))
-      .recover { case e => Left(e.getMessage) }
+      .recover { case e => logger.error(s"createMetadata failed for courtCase=$idCourtCase alias=${personData.alias}", e); Left("error.E0630") }
 
   // ---------------------------------------------------------------------------
   // getCourtCase / getMetadata
@@ -257,7 +222,7 @@ class SlickPedigreeDataRepository @Inject() (
     val q = courtCases.filter(_.id === id)
       .map(cc => (cc.attorney, cc.court, cc.crimeInvolved, cc.crimeType, cc.criminalCase))
       .update((courtCase.attorney, courtCase.court, courtCase.crimeInvolved, courtCase.crimeType, courtCase.criminalCase))
-    db.run(q).map(_ => Right(id)).recover { case e => Left(e.getMessage) }
+    db.run(q).map(_ => Right(id)).recover { case e => logger.error(s"updateCourtCase failed for id=$id", e); Left("error.E0630") }
 
   override def updateMetadata(idCourtCase: Long, personData: PersonData): Future[Either[String, Long]] =
     val q = courtCasesFiliationData
@@ -282,7 +247,7 @@ class SlickPedigreeDataRepository @Inject() (
         personData.weight,
         personData.particularities
       ))
-    db.run(q).map((n: Int) => Right(n.toLong)).recover { case e => Left(e.getMessage) }
+    db.run(q).map((n: Int) => Right(n.toLong)).recover { case e => logger.error(s"updateMetadata failed for courtCase=$idCourtCase alias=${personData.alias}", e); Left("error.E0630") }
 
   // ---------------------------------------------------------------------------
   // changeCourCaseStatus
@@ -293,7 +258,7 @@ class SlickPedigreeDataRepository @Inject() (
       courtCases.filter(_.id === courtCaseId)
         .map(cc => (cc.id, cc.status))
         .update((courtCaseId, status.toString))
-    ).map(_ => Right(courtCaseId)).recover { case e => Left(e.getMessage) }
+    ).map(_ => Right(courtCaseId)).recover { case e => logger.error(s"changeCourCaseStatus failed for courtCase=$courtCaseId status=$status", e); Left("error.E0630") }
 
   // ---------------------------------------------------------------------------
   // getCaseTypes
@@ -315,7 +280,7 @@ class SlickPedigreeDataRepository @Inject() (
     db.run(q.sortBy(_._1).drop(search.page * search.pageSize).take(search.pageSize).result)
       .map(_.toList.map { case (gc, ic, idBatch, cat, asn, lbl, grp, _) =>
         CourtCasePedigree(gc, ic, Map.empty, idBatch, lbl, getProfileCollapsingStatus(gc, grp), grp)
-      }).recover { case e => logger.error("", e); Nil }
+      }).recover { case e => logger.error(s"getProfiles failed for courtCase=${search.idCourtCase} typeProfile=$typeProfile", e); Nil }
 
   override def getTotalProfiles(
     search: CourtCasePedigreeSearch,
@@ -323,7 +288,7 @@ class SlickPedigreeDataRepository @Inject() (
     typeProfile: Option[String]
   ): Future[Int] =
     val q = buildProfileQuery(search, globalCodes, typeProfile, search.statusProfile)
-    db.run(q.length.result).recover { case e => logger.error("", e); 0 }
+    db.run(q.length.result).recover { case e => logger.error(s"getTotalProfiles failed for courtCase=${search.idCourtCase} typeProfile=$typeProfile", e); 0 }
 
   private def buildProfileQuery(
     search: CourtCasePedigreeSearch,
@@ -352,7 +317,7 @@ class SlickPedigreeDataRepository @Inject() (
       .join(courtCases.filter(_.status === "Open")).on(_.idCourtCase === _.id)
       .filter(_._1.globalCode === globalCodes)
       .length
-    db.run(q.result).recover { case e => 0 }
+    db.run(q.result).recover { case e => logger.error(s"getTotalProfilesOccurenceInCase failed for globalCode=$globalCodes", e); 0 }
 
   // ---------------------------------------------------------------------------
   // getTotalProfilesNodeAssociation
@@ -381,7 +346,7 @@ class SlickPedigreeDataRepository @Inject() (
               if globalCodes.nonEmpty then base.filter(_.globalCode.inSet(globalCodes))
               else base.filterNot(_.globalCode.inSet(profilesCod))
           filtered.length
-      db.run(q.result).recover { case e => 0 }
+      db.run(q.result).recover { case e => logger.error(s"getTotalProfilesNodeAssociation failed for courtCase=${search.idCourtCase} typeProfile=$typeProfile", e); 0 }
 
   // ---------------------------------------------------------------------------
   // getTotalMetadata
@@ -395,7 +360,7 @@ class SlickPedigreeDataRepository @Inject() (
           r.firstname.toLowerCase.like(pattern) ||
           r.lastname.toLowerCase.like(pattern))
     ).length
-    db.run(q.result).recover { case e => 0 }
+    db.run(q.result).recover { case e => logger.error(s"getTotalMetadata failed for courtCase=${personDataSearch.idCourtCase}", e); 0 }
 
   // ---------------------------------------------------------------------------
   // addProfiles / removeProfiles / removeMetadata
@@ -406,7 +371,7 @@ class SlickPedigreeDataRepository @Inject() (
       CourtCaseProfilesRow(p.courtcaseId, p.globalCode, p.profileType.getOrElse(""), None)
     )
     db.run(DBIO.seq(rows.map(courtCasesProfile += _)*).transactionally)
-      .map(_ => Right(())).recover { case e => Left(e.getMessage) }
+      .map(_ => Right(())).recover { case e => logger.error(s"addProfiles failed for ${courtCaseProfiles.size} profiles", e); Left("error.E0630") }
 
   override def removeProfiles(courtCaseProfiles: List[CaseProfileAdd]): Future[Either[String, Unit]] =
     val actions = courtCaseProfiles.map { p =>
@@ -419,14 +384,14 @@ class SlickPedigreeDataRepository @Inject() (
       resetGroupedBy >> deleteRow
     }
     db.run(DBIO.seq(actions*).transactionally)
-      .map(_ => Right(())).recover { case e => Left(e.getMessage) }
+      .map(_ => Right(())).recover { case e => logger.error(s"removeProfiles failed for ${courtCaseProfiles.size} profiles", e); Left("error.E0630") }
 
   override def removeMetadata(idCourtCase: Long, personData: PersonData): Future[Either[String, Unit]] =
     db.run(
       courtCasesFiliationData
         .filter(r => r.courtCaseId === idCourtCase && r.alias === personData.alias)
         .delete
-    ).map(_ => Right(())).recover { case e => Left(e.getMessage) }
+    ).map(_ => Right(())).recover { case e => logger.error(s"removeMetadata failed for courtCase=$idCourtCase alias=${personData.alias}", e); Left("error.E0630") }
 
   // ---------------------------------------------------------------------------
   // getProfilesFromBatches (raw SQL)
@@ -436,12 +401,27 @@ class SlickPedigreeDataRepository @Inject() (
     if batches.isEmpty then
       Future.successful(Nil)
     else
-      val range = batches.mkString("(", ",", ")")
-      val sql   = queryStringGetProfilesFromBatches.replace("RANGO", range)
+      // IN list de Long: splice como literal (typesafe — Long sólo contiene dígitos/signo).
+      val batchIds = batches.mkString(",")
+      val tipoStr  = tipo.toString
       implicit val getResult: GetResult[(String, Boolean)] =
         GetResult(r => (r.nextString(), r.nextBoolean()))
-      val query = sql"#$sql".as[(String, Boolean)]
-      db.run(query).map(_.toList).recover { case e => logger.error("", e); Nil }
+      val query =
+        sql"""SELECT pd."GLOBAL_CODE", cat."IS_REFERENCE"
+              FROM "APP"."BATCH_PROTO_PROFILE" bpp
+                INNER JOIN "APP"."PROTO_PROFILE" pp
+                INNER JOIN "APP"."PROFILE_DATA" pd ON pp."SAMPLE_NAME" = pd."INTERNAL_SAMPLE_CODE"
+                  ON (pp."ID_BATCH" = bpp."ID")
+                INNER JOIN "APP"."CATEGORY" cat ON (pd."CATEGORY" = cat."ID")
+              WHERE pp."STATUS" = 'Imported'
+                AND cat."PEDIGREE_ASSOCIATION" = TRUE
+                AND cat."TYPE" = $tipoStr
+                AND bpp."ID" IN (#$batchIds)
+                AND pd."DELETED" = FALSE
+                AND pd."GLOBAL_CODE" NOT IN (
+                  SELECT ccp."GLOBAL_CODE" FROM "APP"."COURT_CASE_PROFILE" ccp
+                  WHERE ccp."ID_COURT_CASE" = $courtCase)""".as[(String, Boolean)]
+      db.run(query).map(_.toList).recover { case e => logger.error(s"getProfilesFromBatches failed for courtCase=$courtCase batches=$batchIds", e); Nil }
 
   // ---------------------------------------------------------------------------
   // getProfilesNodeAssociation
@@ -481,7 +461,7 @@ class SlickPedigreeDataRepository @Inject() (
           ProfileNodeAssociation(gc, ic, cat, asn, lbl)
         }
         profileNodeAssociations.filterNot(p => profilesCod.contains(p.globalCode))
-      }.recover { case e => logger.error("", e); Nil }
+      }.recover { case e => logger.error(s"getProfilesNodeAssociation failed for courtCase=${search.idCourtCase} typeProfile=$typeProfile", e); Nil }
 
   // ---------------------------------------------------------------------------
   // getPedigrees / getTotalPedigrees
@@ -546,11 +526,11 @@ class SlickPedigreeDataRepository @Inject() (
       )
       db.run((pedigrees returning pedigrees.map(_.id)) += row)
         .map(id => Right(id))
-        .recover { case e => Left(e.getMessage) }
+        .recover { case e => logger.error(s"createPedigreeMetadata failed for courtCase=${pedigreeMetaData.courtCaseId}", e); Left("error.E0630") }
     else
       db.run(pedigrees.filter(_.id === pedigreeMetaData.id).map(_.name).update(pedigreeMetaData.name))
         .map(_ => Right(pedigreeMetaData.id))
-        .recover { case e => Left(e.getMessage) }
+        .recover { case e => logger.error(s"updatePedigreeMetadata failed for pedigree=${pedigreeMetaData.id}", e); Left("error.E0630") }
 
   // ---------------------------------------------------------------------------
   // changePedigreeStatus / deleteFisicalPedigree
@@ -561,22 +541,35 @@ class SlickPedigreeDataRepository @Inject() (
       pedigrees.filter(_.id === pedigreeId)
         .map(p => (p.id, p.status))
         .update((pedigreeId, status.toString))
-    ).map(_ => Right(pedigreeId)).recover { case e => Left(e.getMessage) }
+    ).map(_ => Right(pedigreeId)).recover { case e => logger.error(s"changePedigreeStatus failed for pedigree=$pedigreeId status=$status", e); Left("error.E0630") }
 
   override def deleteFisicalPedigree(pedigreeId: Long): Future[Either[String, Long]] =
     db.run(pedigrees.filter(_.id === pedigreeId).delete)
       .map(_ => Right(pedigreeId))
-      .recover { case e => Left(e.getMessage) }
+      .recover { case e => logger.error(s"deleteFisicalPedigree failed for pedigree=$pedigreeId", e); Left("error.E0630") }
 
   // ---------------------------------------------------------------------------
   // getProfilesToDelete (raw SQL)
   // ---------------------------------------------------------------------------
 
   override def getProfilesToDelete(courtCaseId: Long): Future[Seq[SampleCode]] =
-    val safeQuery = queryProfilesToDelete.replace("?", courtCaseId.toString)
     implicit val gr: GetResult[String] = GetResult(_.nextString())
-    db.run(sql"#$safeQuery".as[String]).map(_.map(SampleCode.apply))
-      .recover { case e => logger.error("", e); Seq.empty }
+    val query =
+      sql"""SELECT "GLOBAL_CODE" FROM "APP"."COURT_CASE_PROFILE"
+            WHERE "GLOBAL_CODE" IN (
+              SELECT "GLOBAL_CODE" FROM (
+                SELECT "GLOBAL_CODE", COUNT("CC"."ID") AS "CANT"
+                FROM "APP"."COURT_CASE_PROFILE"
+                  LEFT JOIN (
+                    SELECT "ID" FROM "APP"."COURT_CASE"
+                    WHERE "APP"."COURT_CASE"."STATUS" = 'Open'
+                  ) "CC" ON "APP"."COURT_CASE_PROFILE"."ID_COURT_CASE" = "CC"."ID"
+                GROUP BY "GLOBAL_CODE"
+              ) "COURT_CASE_PROFILE_GROUPED"
+              WHERE "CANT" = 0
+            ) AND "ID_COURT_CASE" = $courtCaseId""".as[String]
+    db.run(query).map(_.map(SampleCode.apply))
+      .recover { case e => logger.error(s"getProfilesToDelete failed for courtCase=$courtCaseId", e); Seq.empty }
 
   // ---------------------------------------------------------------------------
   // getProfilesForCollapsing
@@ -641,7 +634,7 @@ class SlickPedigreeDataRepository @Inject() (
         .update(None)
     }
     db.run(DBIO.seq(actions*).transactionally)
-      .map(_ => Right(())).recover { case e => Left(e.getMessage) }
+      .map(_ => Right(())).recover { case e => logger.error(e.getMessage, e); Left("error.E0205") }
 
   override def associateGroupedProfiles(courtCaseProfiles: List[CaseProfileAdd]): Future[Either[String, Unit]] =
     val actions = courtCaseProfiles.map { p =>
@@ -651,7 +644,7 @@ class SlickPedigreeDataRepository @Inject() (
         .update(p.groupedBy)
     }
     db.run(DBIO.seq(actions*).transactionally)
-      .map(_ => Right(())).recover { case e => Left(e.getMessage) }
+      .map(_ => Right(())).recover { case e => logger.error(e.getMessage, e); Left("error.E0206") }
 
   // ---------------------------------------------------------------------------
   // getTotalProfilesInactive / getProfilesInactive
@@ -671,7 +664,7 @@ class SlickPedigreeDataRepository @Inject() (
             r.groupedBy =!= r.globalCode
         )
         val q = if globalCode.nonEmpty then base.filter(_.globalCode.inSet(globalCode)) else base
-        db.run(q.length.result).recover { case e => 0 }
+        db.run(q.length.result).recover { case e => logger.error(s"getTotalProfilesInactive failed for courtCase=${search.idCourtCase} groupedBy=${search.groupedBy.getOrElse("")}", e); 0 }
 
   override def getProfilesInactive(
     search: CourtCasePedigreeSearch,
@@ -693,7 +686,7 @@ class SlickPedigreeDataRepository @Inject() (
           .result)
           .map(_.toList.map { case (gc, ic, idBatch, _, _, lbl, grp, _) =>
             CourtCasePedigree(gc, ic, Map.empty, idBatch, lbl, getProfileCollapsingStatus(gc, grp), grp)
-          }).recover { case e => logger.error("", e); Nil }
+          }).recover { case e => logger.error(s"getProfilesInactive failed for courtCase=${search.idCourtCase} groupedBy=${search.groupedBy.getOrElse("")}", e); Nil }
 
   // ---------------------------------------------------------------------------
   // changePedigreeConsistencyFlag / doCleanConsistency
@@ -704,9 +697,9 @@ class SlickPedigreeDataRepository @Inject() (
       pedigrees.filter(_.id === pedigreeId)
         .map(p => (p.id, p.consistencyRun))
         .update((pedigreeId, consistencyRun))
-    ).map(_ => Right(pedigreeId)).recover { case e => Left(e.getMessage) }
+    ).map(_ => Right(pedigreeId)).recover { case e => logger.error(s"changePedigreeConsistencyFlag failed for pedigree=$pedigreeId", e); Left("error.E0630") }
 
   override def doCleanConsistency(pedigreeId: Long): Future[Either[String, Long]] =
     db.run(pedigrees.filter(_.id === pedigreeId).map(_.consistencyRun).update(false))
       .map(_ => Right(pedigreeId))
-      .recover { case e => Left(e.getMessage) }
+      .recover { case e => logger.error(s"doCleanConsistency failed for pedigree=$pedigreeId", e); Left("error.E0630") }

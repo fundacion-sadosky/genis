@@ -98,7 +98,7 @@ class PedigreeServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
       when(dataRepo.getPedigreeMetaData(pedigreeId)).thenReturn(Future.successful(Some(ped)))
 
       val result = await(svc.changePedigreeStatus(pedigreeId, PedigreeStatus.UnderConstruction, assignee, isSuperUser = false))
-      result mustBe Left("error.E0930")
+      result mustBe Left(s"error.E0930|${PedigreeStatus.UnderConstruction}|${PedigreeStatus.UnderConstruction}")
     }
 
     "return Right(id) when called by superuser regardless of assignee" in {
@@ -121,7 +121,7 @@ class PedigreeServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
       when(dataRepo.getPedigreeMetaData(pedigreeId)).thenReturn(Future.successful(Some(ped)))
 
       val result = await(svc.changePedigreeStatus(pedigreeId, PedigreeStatus.Active, assignee, isSuperUser = false))
-      result mustBe Left("error.E0644")
+      result mustBe Left(s"error.E0644|$assignee")
     }
 
     "revert mongo status if postgres update fails" in {

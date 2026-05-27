@@ -3,6 +3,7 @@ package pedigree
 import com.mongodb.client.model.{Filters, ReplaceOptions}
 import com.mongodb.client.{MongoCollection, MongoDatabase}
 import org.bson.Document
+import play.api.Logger
 import play.api.libs.json.Json
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -21,6 +22,8 @@ class MongoPedigreeGenotypificationRepository @jakarta.inject.Inject() (
   database: MongoDatabase
 )(implicit ec: ExecutionContext) extends PedigreeGenotypificationRepository:
 
+  private val logger: Logger = Logger(this.getClass)
+
   private def col: MongoCollection[Document] = database.getCollection("pedigreeGenotypification")
 
   override def upsertGenotypification(pg: PedigreeGenotypification): Future[Either[String, Long]] = Future {
@@ -30,7 +33,7 @@ class MongoPedigreeGenotypificationRepository @jakarta.inject.Inject() (
       val options = new ReplaceOptions().upsert(true)
       col.replaceOne(filter, doc, options)
       Right(pg._id)
-    catch case e: Exception => Left(e.getMessage)
+    catch case e: Exception => logger.error(s"upsertGenotypification failed for pedigree=${pg._id}", e); Left("error.E0630")
   }
 
   override def doesntHaveGenotification(pedigreeId: Long): Future[Boolean] = Future {

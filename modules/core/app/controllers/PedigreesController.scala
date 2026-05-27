@@ -5,6 +5,7 @@ import matching.CollapseRequest
 import pedigree.*
 import scenarios.ScenarioStatus
 import profiledata.{DeletedMotive, ProfileDataService}
+import play.api.i18n.{Messages, MessagesApi}
 import play.api.libs.json.{JsError, JsValue, Json}
 import play.api.mvc.*
 import services.UserService
@@ -25,8 +26,18 @@ class PedigreesController @Inject() (
   pedCheckService: PedCheckService,
   traceService: TraceService,
   userService: UserService,
+  messagesApi: MessagesApi,
   cc: ControllerComponents
 )(using ec: ExecutionContext) extends AbstractController(cc):
+
+  private given messages: Messages = messagesApi.preferred(Seq.empty)
+
+  // Localiza errores devueltos por el service.
+  // Convención: "error.EXXXX" o "error.EXXXX|arg1|arg2".
+  private def localize(err: String): String =
+    err.split('|').toList match
+      case key :: args if key.startsWith("error.") => messages(key, args*)
+      case _ => err
 
   def getCourtCases: Action[JsValue] = Action.async(parse.json) { request =>
     request.body.validate[PedigreeSearch].fold(
@@ -57,7 +68,7 @@ class PedigreesController @Inject() (
       courtCase =>
         pedigreeService.createCourtCase(courtCase).map {
           case Right(id) => Ok(Json.toJson(id)).withHeaders("X-CREATED-ID" -> id.toString)
-          case Left(error) => BadRequest(Json.toJson(error))
+          case Left(error) => BadRequest(Json.toJson(localize(error)))
         }
     )
   }
@@ -68,7 +79,7 @@ class PedigreesController @Inject() (
       metadata =>
         pedigreeService.createMetadata(idCourtCase, metadata).map {
           case Right(id) => Ok(Json.toJson(idCourtCase)).withHeaders("X-CREATED-ID" -> id.toString)
-          case Left(error) => BadRequest(Json.toJson(error))
+          case Left(error) => BadRequest(Json.toJson(localize(error)))
         }
     )
   }
@@ -108,7 +119,7 @@ class PedigreesController @Inject() (
         userService.isSuperUser(userId).flatMap { isSuperUser =>
           pedigreeService.updateCourtCase(courtCaseId, courtCase, isSuperUser).map {
             case Right(id) => Ok(Json.toJson(id)).withHeaders("X-CREATED-ID" -> id.toString)
-            case Left(error) => BadRequest(Json.toJson(error))
+            case Left(error) => BadRequest(Json.toJson(localize(error)))
           }
         }
     )
@@ -122,7 +133,7 @@ class PedigreesController @Inject() (
         userService.isSuperUser(userId).flatMap { isSuperUser =>
           pedigreeService.updateMetadata(courtCaseId, assignee, metadata, isSuperUser).map {
             case Right(id) => Ok(Json.toJson(courtCaseId)).withHeaders("X-CREATED-ID" -> id.toString)
-            case Left(error) => BadRequest(Json.toJson(error))
+            case Left(error) => BadRequest(Json.toJson(localize(error)))
           }
         }
     )
@@ -134,7 +145,7 @@ class PedigreesController @Inject() (
       genogram =>
         pedigreeService.addGenogram(genogram).map {
           case Right(id) => Ok(Json.toJson(id)).withHeaders("X-CREATED-ID" -> id.toString)
-          case Left(error) => BadRequest(Json.toJson(error))
+          case Left(error) => BadRequest(Json.toJson(localize(error)))
         }
     )
   }
@@ -158,7 +169,7 @@ class PedigreesController @Inject() (
   private def closePedigree(id: Long, userId: String, isSuperUser: Boolean) =
     pedigreeService.changePedigreeStatus(id, PedigreeStatus.Closed, userId, isSuperUser).flatMap {
       case Right(id) => Future.successful(Ok(Json.toJson(id)).withHeaders("X-CREATED-ID" -> id.toString))
-      case Left(error) => Future.successful(BadRequest(Json.toJson(error)))
+      case Left(error) => Future.successful(BadRequest(Json.toJson(localize(error))))
     }
 
   private def activatePedigree(userId: String, isSuperUser: Boolean, request: Request[JsValue]) =
@@ -171,11 +182,11 @@ class PedigreesController @Inject() (
               case Right(id) =>
                 pedigreeGenotypificationService.generateGenotypificationAndFindMatches(id).map {
                   case Right(id) => Ok(Json.toJson(id)).withHeaders("X-CREATED-ID" -> id.toString)
-                  case Left(error) => BadRequest(Json.toJson(error))
+                  case Left(error) => BadRequest(Json.toJson(localize(error)))
                 }
-              case Left(error) => Future.successful(BadRequest(Json.toJson(error)))
+              case Left(error) => Future.successful(BadRequest(Json.toJson(localize(error))))
             }
-          case Left(error) => Future.successful(BadRequest(Json.toJson(error)))
+          case Left(error) => Future.successful(BadRequest(Json.toJson(localize(error))))
         }
     )
 
@@ -184,9 +195,9 @@ class PedigreesController @Inject() (
       case Right(id) =>
         pedigreeMatchesService.deleteMatches(id).map {
           case Right(id) => Ok(Json.toJson(id)).withHeaders("X-CREATED-ID" -> id.toString)
-          case Left(error) => BadRequest(Json.toJson(error))
+          case Left(error) => BadRequest(Json.toJson(localize(error)))
         }
-      case Left(error) => Future.successful(BadRequest(Json.toJson(error)))
+      case Left(error) => Future.successful(BadRequest(Json.toJson(localize(error))))
     }
 
   private def deactivatePedigree(id: Long, userId: String, isSuperUser: Boolean) =
@@ -194,9 +205,9 @@ class PedigreesController @Inject() (
       case Right(id) =>
         pedigreeScenarioService.deleteAllScenarios(id).map {
           case Right(id) => Ok(Json.toJson(id)).withHeaders("X-CREATED-ID" -> id.toString)
-          case Left(error) => BadRequest(Json.toJson(error))
+          case Left(error) => BadRequest(Json.toJson(localize(error)))
         }
-      case Left(error) => Future.successful(BadRequest(Json.toJson(error)))
+      case Left(error) => Future.successful(BadRequest(Json.toJson(localize(error))))
     }
 
   def fisicalDeletePedigree(id: Long): Action[JsValue] = Action.async(parse.json) { request =>
@@ -204,7 +215,7 @@ class PedigreesController @Inject() (
     userService.isSuperUser(userId).flatMap { isSuperUser =>
       pedigreeService.fisicalDeletePredigree(id, userId, isSuperUser).map {
         case Right(id) => Ok(Json.toJson(id)).withHeaders("X-CREATED-ID" -> id.toString)
-        case Left(error) => BadRequest(Json.toJson(error))
+        case Left(error) => BadRequest(Json.toJson(localize(error)))
       }
     }
   }
@@ -277,7 +288,7 @@ class PedigreesController @Inject() (
     userService.isSuperUser(userId).flatMap { isSuperUser =>
       pedigreeMatchesService.masiveGroupDiscardByGroup(id, group, isSuperUser, userId).map {
         case Right(result) => Ok(Json.toJson(result)).withHeaders("X-CREATED-ID" -> result.toString)
-        case Left(error) => BadRequest(Json.obj("status" -> "KO", "message" -> Json.toJson(error)))
+        case Left(error) => BadRequest(Json.obj("status" -> "KO", "message" -> Json.toJson(localize(error))))
       }
     }
   }
@@ -300,7 +311,7 @@ class PedigreesController @Inject() (
             traceService.addTracePedigree(TracePedigree(scenario.pedigreeId, userId, new Date(),
               PedigreeNewScenarioInfo(scenario._id.id, scenario.name)))
             Ok(Json.toJson(id)).withHeaders("X-CREATED-ID" -> id.id)
-          case Left(error) => BadRequest(Json.toJson(error))
+          case Left(error) => BadRequest(Json.toJson(localize(error)))
         }
     )
   }
@@ -315,7 +326,7 @@ class PedigreesController @Inject() (
             val scenarioStatus = ScenarioStatus.withName(status)
             pedigreeScenarioService.changeScenarioStatus(scenario, scenarioStatus, userId, isSuperUser).map {
               case Right(idScenario) => Ok(Json.toJson(idScenario)).withHeaders("X-CREATED-ID" -> idScenario.id)
-              case Left(error) => BadRequest(Json.toJson(error))
+              case Left(error) => BadRequest(Json.toJson(localize(error)))
             }
           catch
             case _: NoSuchElementException =>
@@ -352,9 +363,9 @@ class PedigreesController @Inject() (
                 case _ =>
               }
             Ok(Json.toJson(idScenario)).withHeaders("X-CREATED-ID" -> idScenario.id)
-          case Left(error) => BadRequest(Json.toJson(error))
+          case Left(error) => BadRequest(Json.toJson(localize(error)))
         }
-      case Left(error) => Future.successful(BadRequest(Json.toJson(error)))
+      case Left(error) => Future.successful(BadRequest(Json.toJson(localize(error))))
     }
 
   private def activateClonePedigree(id: Long, userId: String): Unit =
@@ -377,7 +388,7 @@ class PedigreesController @Inject() (
       scenario =>
         pedigreeScenarioService.updateScenario(scenario).map {
           case Right(id) => Ok(Json.toJson(id)).withHeaders("X-CREATED-ID" -> id.id)
-          case Left(error) => BadRequest(Json.toJson(error))
+          case Left(error) => BadRequest(Json.toJson(localize(error)))
         }
     )
   }
@@ -387,7 +398,7 @@ class PedigreesController @Inject() (
     userService.isSuperUser(userId).flatMap { isSuperUser =>
       pedigreeMatchesService.discard(matchId, userId, isSuperUser).map {
         case Right(result) => Ok(Json.toJson(result)).withHeaders("X-CREATED-ID" -> result.toString)
-        case Left(error) => BadRequest(Json.obj("status" -> "KO", "message" -> Json.toJson(error)))
+        case Left(error) => BadRequest(Json.obj("status" -> "KO", "message" -> Json.toJson(localize(error))))
       }
     }
   }
@@ -440,7 +451,7 @@ class PedigreesController @Inject() (
       errors => Future.successful(BadRequest(JsError.toJson(errors))),
       courtCaseProfiles =>
         pedigreeService.addProfiles(courtCaseProfiles.profiles, courtCaseProfiles.isReference).map {
-          case Left(e) => BadRequest(Json.obj("message" -> e))
+          case Left(e) => BadRequest(Json.obj("message" -> localize(e)))
           case Right(()) => Ok.withHeaders("X-CREATED-ID" -> courtCaseProfiles.profiles.headOption.map(_.courtcaseId).getOrElse(0L).toString)
         }
     )
@@ -451,7 +462,7 @@ class PedigreesController @Inject() (
       errors => Future.successful(BadRequest(JsError.toJson(errors))),
       courtCaseProfiles =>
         pedigreeService.removeProfiles(courtCaseProfiles).map {
-          case Left(e) => BadRequest(Json.obj("message" -> e))
+          case Left(e) => BadRequest(Json.obj("message" -> localize(e)))
           case Right(()) => Ok.withHeaders("X-CREATED-ID" -> courtCaseProfiles.headOption.map(_.courtcaseId).getOrElse(0L).toString)
         }
     )
@@ -462,7 +473,7 @@ class PedigreesController @Inject() (
       errors => Future.successful(BadRequest(JsError.toJson(errors))),
       personData =>
         pedigreeService.removeMetadata(idCourtCase, personData).map {
-          case Left(e) => BadRequest(Json.obj("message" -> e))
+          case Left(e) => BadRequest(Json.obj("message" -> localize(e)))
           case Right(()) => Ok.withHeaders("X-CREATED-ID" -> personData.alias)
         }
     )
@@ -485,7 +496,7 @@ class PedigreesController @Inject() (
       errors => Future.successful(BadRequest(JsError.toJson(errors))),
       batchesToImport =>
         pedigreeService.addBatches(batchesToImport).map {
-          case Left(e) => BadRequest(Json.obj("message" -> e))
+          case Left(e) => BadRequest(Json.obj("message" -> localize(e)))
           case Right(()) => Ok
         }
     )
@@ -508,7 +519,7 @@ class PedigreesController @Inject() (
       pedigreeMetaData =>
         pedigreeService.createOrUpdatePedigreeMetadata(pedigreeMetaData).map {
           case Right(id) => Ok(Json.toJson(id)).withHeaders("X-CREATED-ID" -> id.toString)
-          case Left(error) => BadRequest(Json.toJson(error))
+          case Left(error) => BadRequest(Json.toJson(localize(error)))
         }
     )
   }
@@ -520,7 +531,7 @@ class PedigreesController @Inject() (
       pedigreeData =>
         pedigreeService.createPedigree(pedigreeData, userId, pedigreeData.copiedFrom).map {
           case Right(id) => Ok(Json.toJson(id)).withHeaders("X-CREATED-ID" -> id.toString)
-          case Left(error) => BadRequest(Json.toJson(error))
+          case Left(error) => BadRequest(Json.toJson(localize(error)))
         }
     )
   }
@@ -557,7 +568,7 @@ class PedigreesController @Inject() (
           if closeProfiles then closeAllProfiles(idCourtCase, userId)
           Ok(Json.toJson(id)).withHeaders("X-CREATED-ID" -> id.toString)
         }
-      case Left(error) => Future.successful(BadRequest(Json.toJson(error)))
+      case Left(error) => Future.successful(BadRequest(Json.toJson(localize(error))))
     }
 
   private def closeCourtCase(idCourtCase: Long, userId: String, isSuperUser: Boolean, closeProfiles: Boolean) =
@@ -566,7 +577,7 @@ class PedigreesController @Inject() (
         pedigreeService.closeAllPedigrees(idCourtCase, userId)
         if closeProfiles then closeAllProfiles(idCourtCase, userId)
         Future.successful(Ok(Json.toJson(id)).withHeaders("X-CREATED-ID" -> id.toString))
-      case Left(error) => Future.successful(BadRequest(Json.toJson(error)))
+      case Left(error) => Future.successful(BadRequest(Json.toJson(localize(error))))
     }
 
   private def closeAllProfiles(idCourtCase: Long, userId: String): Future[Unit] =
@@ -593,7 +604,7 @@ class PedigreesController @Inject() (
       collapsingRequest =>
         pedigreeService.collapseGroup(collapsingRequest).map {
           case Right(_) => Ok(Json.toJson(collapsingRequest.globalCodeParent)).withHeaders("X-CREATED-ID" -> collapsingRequest.globalCodeParent)
-          case Left(error) => BadRequest(Json.toJson(error))
+          case Left(error) => BadRequest(Json.toJson(localize(error)))
         }
     )
   }
@@ -603,7 +614,7 @@ class PedigreesController @Inject() (
       errors => Future.successful(BadRequest(JsError.toJson(errors))),
       courtCaseProfiles =>
         pedigreeService.disassociateGroupedProfiles(courtCaseProfiles).map {
-          case Left(error) => BadRequest(Json.toJson(error))
+          case Left(error) => BadRequest(Json.toJson(localize(error)))
           case Right(_) => Ok
         }
     )
@@ -618,7 +629,7 @@ class PedigreesController @Inject() (
       errors => Future.successful(BadRequest(JsError.toJson(errors))),
       courtCaseProfiles =>
         pedigreeService.areAssignedToPedigree(courtCaseProfiles.globalCodeChildren, courtCaseProfiles.courtCaseId).map {
-          case Left(e) => BadRequest(Json.obj("message" -> e))
+          case Left(e) => BadRequest(Json.obj("message" -> localize(e)))
           case Right(_) => Ok
         }
     )
@@ -641,6 +652,6 @@ class PedigreesController @Inject() (
   def generatePedCheck(pedigreeId: Long, idCourtCase: Long): Action[AnyContent] = Action.async {
     pedCheckService.cleanConsistency(pedigreeId).map {
       case Right(x) => Ok(Json.toJson(x.toString))
-      case Left(error) => BadRequest(Json.toJson(error))
+      case Left(error) => BadRequest(Json.toJson(localize(error)))
     }
   }

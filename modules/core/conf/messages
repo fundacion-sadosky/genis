@@ -18,3 +18,24 @@ error.E0646= E0646: No se puede pasar el usuario del estado {0} al estado {1}.
 error.E0654= E0654: Existen usuarios asociados al rol.
 error.E0802= E0802: La sesión es inválida o ha expirado.
 error.E0803= E0803: Token inválido.
+
+# Pedigree / MPI-DVI errors
+error.E0201= E0201: El pedigrí no tiene asociada una base de frecuencias.
+error.E0203= E0203: No se encontraron perfiles para importar.
+error.E0205= E0205: No se puede desasociar el perfíl.
+error.E0206= E0206: Hubo un error al guardar la agrupación.
+error.E0207= E0207: Los perfiles {0} están asociados a pedigris activos o en construcción.
+error.E0208= E0208: El perfil {0} está asociado a pedigris activos o en construcción.
+error.E0209= E0209: Los perfiles {0} tienen coincidencias pendientes.
+error.E0210= E0210: El perfil {0} tiene coincidencias pendientes.
+error.E0211= E0211: El caso contiene pedigris activos.
+error.E0212= E0212: El pédigri {0} no tiene personas desaparecidas/desconocidas. Configurando el pédigri en modo construcción para poder modificarlo.
+error.E0642= E0642: El usuario no tiene permisos para descartar la coincidencia.
+error.E0643= E0643: El usuario {0} no tiene permisos para modificar el pedigrí.
+error.E0644= E0644: El usuario {0} no tiene permisos para dar la baja.
+error.E0930= E0930: La transición de {0} a {1} no es válida.
+
+# Generic errors
+error.E0500= E0500: Error al actualizar la configuración el motivo.
+error.E0630= E0630: Error inesperado en la base de datos.
+error.E0901= E0901: Nombre ya utilizado.

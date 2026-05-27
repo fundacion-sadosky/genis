@@ -3,6 +3,7 @@ package pedigree
 import com.mongodb.client.model.{Filters, ReplaceOptions, Updates}
 import com.mongodb.client.{MongoCollection, MongoDatabase}
 import org.bson.Document
+import play.api.Logger
 import play.api.libs.json.Json
 import scenarios.ScenarioStatus
 
@@ -18,6 +19,8 @@ class MongoPedigreeRepository @jakarta.inject.Inject() (
   database: MongoDatabase
 )(implicit ec: ExecutionContext) extends PedigreeRepository:
 
+  private val logger: Logger = Logger(this.getClass)
+
   private def col: MongoCollection[Document] = database.getCollection("pedigrees")
 
   private def parseGenogram(doc: Document): PedigreeGenogram =
@@ -28,7 +31,7 @@ class MongoPedigreeRepository @jakarta.inject.Inject() (
     val opts = new ReplaceOptions().upsert(true)
     col.replaceOne(Filters.eq("_id", genogram._id.toString), doc, opts)
     Right(genogram._id)
-  }.recover { case e => Left(e.getMessage) }
+  }.recover { case e => logger.error(s"addGenogram failed for pedigree=${genogram._id}", e); Left("error.E0630") }
 
   override def get(id: Long): Future[Option[PedigreeGenogram]] = Future {
     Option(col.find(Filters.eq("_id", id.toString)).first()).map(parseGenogram)
@@ -50,7 +53,7 @@ class MongoPedigreeRepository @jakarta.inject.Inject() (
         Updates.set("status", status.toString)
     col.updateOne(filter, update)
     Right(courtCaseId)
-  }.recover { case e => Left(e.getMessage) }
+  }.recover { case e => logger.error(s"changeStatus failed for pedigree=$courtCaseId status=$status", e); Left("error.E0630") }
 
   override def findByProfile(profile: String): Future[Seq[Long]] = Future {
     col
@@ -62,7 +65,7 @@ class MongoPedigreeRepository @jakarta.inject.Inject() (
   override def setProcessed(pedigreeId: Long): Future[Either[String, Long]] = Future {
     col.updateOne(Filters.eq("_id", pedigreeId.toString), Updates.set("processed", true))
     Right(pedigreeId)
-  }.recover { case e => Left(e.getMessage) }
+  }.recover { case e => logger.error(s"setProcessed failed for pedigree=$pedigreeId", e); Left("error.E0630") }
 
   override def getUnprocessed(): Future[Seq[Long]] = Future {
     col
@@ -74,7 +77,7 @@ class MongoPedigreeRepository @jakarta.inject.Inject() (
   override def deleteFisicalPedigree(pedigreeId: Long): Future[Either[String, Long]] = Future {
     col.findOneAndDelete(Filters.eq("_id", pedigreeId.toString))
     Right(pedigreeId)
-  }.recover { case e => Left(e.getMessage) }
+  }.recover { case e => logger.error(s"deleteFisicalPedigree failed for pedigree=$pedigreeId", e); Left("error.E0630") }
 
   override def countByProfile(globalCode: String): Future[Int] = Future {
     val filter = Filters.and(

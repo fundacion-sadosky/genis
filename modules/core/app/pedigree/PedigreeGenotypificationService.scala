@@ -2,6 +2,7 @@ package pedigree
 
 import kits.AnalysisType
 import pedigree.BayesianNetwork.Linkage
+import play.api.Logger
 import probability.CalculationTypeService
 import profile.{Profile, ProfileRepository}
 
@@ -49,6 +50,8 @@ class PedigreeGenotypificationServiceImpl @jakarta.inject.Inject() (
   pedigreeDataRepository: PedigreeDataRepository
 )(using ec: ExecutionContext) extends PedigreeGenotypificationService:
 
+  private val logger: Logger = Logger(this.getClass)
+
   override def generateGenotypificationAndFindMatches(pedigreeId: Long): Future[Either[String, Long]] =
     pedigreeRepository.get(pedigreeId).flatMap { pedigreeOpt =>
       val pedigree = pedigreeOpt.get
@@ -65,7 +68,10 @@ class PedigreeGenotypificationServiceImpl @jakarta.inject.Inject() (
           else Future.successful(None)
       yield
         saveGenotypification(pedigree, profiles.toArray, frequencyTable._2, analysisType, linkage, mutationModel)
-      ).flatMap(identity).recover { case err => Left(err.getMessage) }
+      ).flatMap(identity).recover { case err =>
+        logger.error(s"generateGenotypificationAndFindMatches failed for pedigree=$pedigreeId", err)
+        Left("error.E0630")
+      }
 
       result.foreach {
         case Right(_) => pedigreeMatcher.findMatchesInBackGround(pedigreeId)
@@ -107,7 +113,15 @@ class PedigreeGenotypificationServiceImpl @jakarta.inject.Inject() (
           }
         }.recoverWith { case err =>
           pedigreeRepository.changeStatus(pedigree.idCourtCase, PedigreeStatus.UnderConstruction)
-          Future.successful(Left(err.getMessage))
+          pedigreeDataRepository.getCourtCase(pedigree.idCourtCase).map { ccOpt =>
+            val caseId = ccOpt.map(_.internalSampleCode).getOrElse("[unknown]")
+            val msg = err match
+              case _: PedigreeNotHavingUnknownException => s"error.E0212|$caseId"
+              case _ =>
+                s"Se encontró una excepción mientras se procesaba un pédigri del caso $caseId: ${err.getMessage}"
+            logger.error(msg, err)
+            Left(msg)
+          }
         }
     }
 

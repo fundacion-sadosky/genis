@@ -80,7 +80,7 @@ class PedigreeScenarioServiceImpl @jakarta.inject.Inject() (
           case Left(error) => Future.successful(Left(error))
         }
       case _ =>
-        Future.successful(Left(s"error.E0930: ${scenario.status} -> $status"))
+        Future.successful(Left(s"error.E0930|${scenario.status}|$status"))
 
     result.foreach {
       case Right(_) => solveNotifications(scenario)

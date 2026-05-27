@@ -5,6 +5,7 @@ import com.mongodb.client.{MongoCollection, MongoDatabase}
 import matching.MatchStatus
 import org.bson.Document
 import org.bson.types.ObjectId
+import play.api.Logger
 import play.api.libs.json.{JsValue, Json}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -52,6 +53,8 @@ trait PedigreeMatchesRepository:
 class MongoPedigreeMatchesRepository @jakarta.inject.Inject() (
   database: MongoDatabase
 )(implicit ec: ExecutionContext) extends PedigreeMatchesRepository:
+
+  private val logger: Logger = Logger(this.getClass)
 
   private def col: MongoCollection[Document] = database.getCollection("pedigreeMatches")
 
@@ -207,7 +210,7 @@ class MongoPedigreeMatchesRepository @jakarta.inject.Inject() (
         Updates.set("profile.status", MatchStatus.discarded.toString)
       )
       Right(matchId)
-    catch case e: Exception => Left(e.getMessage)
+    catch case e: Exception => logger.error(s"discardProfile failed for match=$matchId", e); Left("error.E0630")
   }
 
   override def discardPedigree(matchId: String): Future[Either[String, String]] = Future {
@@ -217,7 +220,7 @@ class MongoPedigreeMatchesRepository @jakarta.inject.Inject() (
         Updates.set("pedigree.status", MatchStatus.discarded.toString)
       )
       Right(matchId)
-    catch case e: Exception => Left(e.getMessage)
+    catch case e: Exception => logger.error(s"discardPedigree failed for match=$matchId", e); Left("error.E0630")
   }
 
   override def deleteMatches(idPedigree: Long): Future[Either[String, Long]] = Future {
@@ -230,7 +233,7 @@ class MongoPedigreeMatchesRepository @jakarta.inject.Inject() (
         )
       )
       Right(idPedigree)
-    catch case e: Exception => Left(e.getMessage)
+    catch case e: Exception => logger.error(s"deleteMatches failed for pedigree=$idPedigree", e); Left("error.E0630")
   }
 
   override def confirmProfile(matchId: String): Future[Either[String, String]] = Future {
@@ -240,7 +243,7 @@ class MongoPedigreeMatchesRepository @jakarta.inject.Inject() (
         Updates.set("profile.status", MatchStatus.hit.toString)
       )
       Right(matchId)
-    catch case e: Exception => Left(e.getMessage)
+    catch case e: Exception => logger.error(s"confirmProfile failed for match=$matchId", e); Left("error.E0630")
   }
 
   override def confirmPedigree(matchId: String): Future[Either[String, String]] = Future {
@@ -250,7 +253,7 @@ class MongoPedigreeMatchesRepository @jakarta.inject.Inject() (
         Updates.set("pedigree.status", MatchStatus.hit.toString)
       )
       Right(matchId)
-    catch case e: Exception => Left(e.getMessage)
+    catch case e: Exception => logger.error(s"confirmPedigree failed for match=$matchId", e); Left("error.E0630")
   }
 
   override def hasPendingMatches(pedigreeId: Long): Future[Boolean] = Future {

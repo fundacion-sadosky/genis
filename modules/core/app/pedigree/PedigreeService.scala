@@ -2,6 +2,7 @@ package pedigree
 
 import java.util.Date
 import pedigree.PedigreeStatus.PedigreeStatus
+import play.api.Logger
 import play.api.libs.functional.syntax.*
 import play.api.libs.json.*
 import types.{ConstrainedText, SampleCode}
@@ -525,7 +526,33 @@ case class PedigreeSearch(
 )
 
 object PedigreeSearch:
-  implicit val format: play.api.libs.json.OFormat[PedigreeSearch] = Json.format[PedigreeSearch]
+  import play.api.libs.functional.syntax.*
+  import play.api.libs.json.*
+
+  // Reads acepta el formato nuevo {input, isOwnCases, idCourtCase, ...}
+  // y el legacy {code, isSuperUser, ...} para compat de frontend.
+  // - `code` (legacy, Option[String]) → `input` (default "")
+  // - `isSuperUser` (legacy) → `isOwnCases = !isSuperUser`
+  //   (el controller siempre re-deriva con userService, así que esto es defensivo)
+  implicit val reads: Reads[PedigreeSearch] = (
+    (JsPath \ "page").read[Int] and
+    (JsPath \ "pageSize").read[Int] and
+    ((JsPath \ "input").readNullable[String]
+      orElse (JsPath \ "code").readNullable[String])
+      .map(_.getOrElse("")) and
+    ((JsPath \ "isOwnCases").readNullable[Boolean]
+      orElse (JsPath \ "isSuperUser").readNullable[Boolean].map(_.map(!_)))
+      .map(_.getOrElse(false)) and
+    (JsPath \ "idCourtCase").readNullable[Long] and
+    (JsPath \ "profile").readNullable[String] and
+    (JsPath \ "status").readNullable[PedigreeStatus.Value] and
+    (JsPath \ "sortField").readNullable[String] and
+    (JsPath \ "ascending").readNullable[Boolean] and
+    (JsPath \ "caseType").readNullable[String] and
+    (JsPath \ "user").readNullable[String].map(_.getOrElse(""))
+  )(PedigreeSearch.apply _)
+
+  implicit val writes: OWrites[PedigreeSearch] = Json.writes[PedigreeSearch]
 
 case class CourtCaseSummary(
   id: Long,
@@ -555,6 +582,8 @@ class PedigreeServiceImpl @jakarta.inject.Inject() (
   pedCheckService: PedCheckService,
   traceService: trace.TraceService
 )(using ec: ExecutionContext) extends PedigreeService:
+
+  private val logger: Logger = Logger(this.getClass)
 
   private val errorPf: PartialFunction[Throwable, Either[String, Long]] = {
     case ex: org.postgresql.util.PSQLException =>
@@ -622,14 +651,14 @@ class PedigreeServiceImpl @jakarta.inject.Inject() (
 
   override def updateCourtCase(id: Long, courtCase: CourtCaseAttempt, isSuperUser: Boolean): Future[Either[String, Long]] =
     getCourtCase(id, courtCase.assignee, isSuperUser).flatMap {
-      case None => Future.successful(Left("error.E0643"))
+      case None => Future.successful(Left(s"error.E0643|${courtCase.assignee}"))
       case Some(_) =>
         pedigreeDataRepository.updateCourtCase(id, courtCase).map(_ => Right(id)).recover(errorPf)
     }
 
   override def updateMetadata(idCourtCase: Long, assignee: String, personData: PersonData, isSuperUser: Boolean): Future[Either[String, Long]] =
     getCourtCase(idCourtCase, assignee, isSuperUser).flatMap {
-      case None => Future.successful(Left("error.E0643"))
+      case None => Future.successful(Left(s"error.E0643|$assignee"))
       case Some(_) =>
         pedigreeDataRepository.updateMetadata(idCourtCase, personData).map(_ => Right(idCourtCase)).recover(errorPf)
     }
@@ -661,17 +690,22 @@ class PedigreeServiceImpl @jakarta.inject.Inject() (
                   traceService.addTracePedigree(trace.TracePedigree(pedigreeId, userId, new Date(),
                     trace.PedigreeStatusChangeInfo(status.toString))).map(_ => Right(cc))
                 case Left(error) =>
-                  pedigreeRepository.changeStatus(pedigreeId, pedigree.pedigreeMetaData.status).map(_ => Left(error))
+                  pedigreeRepository.changeStatus(pedigreeId, pedigree.pedigreeMetaData.status).map {
+                    case Right(_) => Left(error)
+                    case Left(revertErr) =>
+                      logger.error(s"changePedigreeStatus rollback failed for pedigree=$pedigreeId — postgres error: '$error', mongo revert error: '$revertErr'. Forensic data may be inconsistent.")
+                      Left(error)
+                  }
               }
             case Left(error) => Future.successful(Left(error))
           }
         else
           if pedigree.pedigreeMetaData.status != PedigreeStatus.Validated then
-            Future.successful(Left(s"error.E0930"))
+            Future.successful(Left(s"error.E0930|${pedigree.pedigreeMetaData.status}|$status"))
           else
             Future.successful(Right(pedigreeId))
       else
-        Future.successful(Left("error.E0644"))
+        Future.successful(Left(s"error.E0644|$userId"))
     }
 
   override def getCaseTypes(): Future[Seq[CaseType]] =
@@ -922,24 +956,27 @@ class PedigreeServiceImpl @jakarta.inject.Inject() (
     pedigreeDataRepository.createOrUpdatePedigreeMetadata(pedigreeMetaData)
 
   override def createPedigree(pedigreeDataCreation: PedigreeDataCreation, userId: String, copiedFrom: Option[Long] = None): Future[Either[String, Long]] =
-    pedigreeDataRepository.createOrUpdatePedigreeMetadata(pedigreeDataCreation.pedigreeMetaData).flatMap {
-      case Left(error) => Future.successful(Left(error))
-      case Right(id) =>
-        if pedigreeDataCreation.pedigreeMetaData.id == 0 then
-          traceService.addTracePedigree(trace.TracePedigree(id, userId, new Date(),
-            trace.PedigreeStatusChangeInfo(PedigreeStatus.UnderConstruction.toString)))
-          copiedFrom.foreach { from =>
-            traceService.addTracePedigree(trace.TracePedigree(from, userId, new Date(),
-              trace.PedigreeCopyInfo(from, pedigreeDataCreation.pedigreeMetaData.name)))
-          }
-        else
-          traceService.addTracePedigree(trace.TracePedigree(id, userId, new Date(), trace.PedigreeEditInfo(id)))
-        val genogram = pedigreeDataCreation.pedigreeGenogram.get
-        val pedigreeGenogram = PedigreeGenogram(id, genogram.assignee, genogram.genogram, genogram.status,
-          genogram.frequencyTable, genogram.processed, genogram.boundary, genogram.executeScreeningMitochondrial,
-          genogram.numberOfMismatches, genogram.caseType, genogram.mutationModelId, genogram.idCourtCase)
-        addGenogram(pedigreeGenogram)
-    }
+    pedigreeDataCreation.pedigreeGenogram match
+      case None =>
+        Future.successful(Left("error.E0201"))
+      case Some(genogram) =>
+        pedigreeDataRepository.createOrUpdatePedigreeMetadata(pedigreeDataCreation.pedigreeMetaData).flatMap {
+          case Left(error) => Future.successful(Left(error))
+          case Right(id) =>
+            if pedigreeDataCreation.pedigreeMetaData.id == 0 then
+              traceService.addTracePedigree(trace.TracePedigree(id, userId, new Date(),
+                trace.PedigreeStatusChangeInfo(PedigreeStatus.UnderConstruction.toString)))
+              copiedFrom.foreach { from =>
+                traceService.addTracePedigree(trace.TracePedigree(from, userId, new Date(),
+                  trace.PedigreeCopyInfo(from, pedigreeDataCreation.pedigreeMetaData.name)))
+              }
+            else
+              traceService.addTracePedigree(trace.TracePedigree(id, userId, new Date(), trace.PedigreeEditInfo(id)))
+            val pedigreeGenogram = PedigreeGenogram(id, genogram.assignee, genogram.genogram, genogram.status,
+              genogram.frequencyTable, genogram.processed, genogram.boundary, genogram.executeScreeningMitochondrial,
+              genogram.numberOfMismatches, genogram.caseType, genogram.mutationModelId, genogram.idCourtCase)
+            addGenogram(pedigreeGenogram)
+        }
 
   override def fisicalDeletePredigree(pedigreeId: Long, userId: String, isSuperUser: Boolean): Future[Either[String, Long]] =
     pedigreeDataRepository.getPedigreeMetaData(pedigreeId).flatMap { pedigreeOpt =>
@@ -954,7 +991,7 @@ class PedigreeServiceImpl @jakarta.inject.Inject() (
           case Left(error) => Future.successful(Left(error))
         }
       else
-        Future.successful(Left("error.E0644"))
+        Future.successful(Left(s"error.E0644|$userId"))
     }
 
   override def changeCourtCaseStatus(courtCaseId: Long, status: PedigreeStatus.Value, userId: String, isSuperUser: Boolean): Future[Either[String, Long]] =
@@ -967,9 +1004,9 @@ class PedigreeServiceImpl @jakarta.inject.Inject() (
             case Left(error)  => Left(error)
           }
         else
-          Future.successful(Left("error.E0930"))
+          Future.successful(Left(s"error.E0930|${courtCase.status}|$status"))
       else
-        Future.successful(Left("error.E0644"))
+        Future.successful(Left(s"error.E0644|$userId"))
     }
 
   override def getProfilesNodo(idCourtCase: Long, codigoGlobal: String): Future[Boolean] =
@@ -984,16 +1021,19 @@ class PedigreeServiceImpl @jakarta.inject.Inject() (
 
   override def clonePedigree(pedigreeId: Long, userId: String): Future[Either[String, Long]] =
     val now = new Date()
-    getPedigree(pedigreeId).flatMap { optPed =>
-      val ped = optPed.get
-      val newMeta = PedigreeMetaData(0, ped.pedigreeMetaData.courtCaseId, "Copia" + ped.pedigreeMetaData.name,
-        assignee = ped.pedigreeMetaData.assignee, creationDate = Some(now),
-        status = PedigreeStatus.UnderConstruction)
-      val genogram = ped.pedigreeGenogram.get
-      val newGenogram = PedigreeGenogram(0, genogram.assignee, genogram.genogram, PedigreeStatus.UnderConstruction,
-        genogram.frequencyTable, genogram.processed, genogram.boundary, genogram.executeScreeningMitochondrial,
-        genogram.numberOfMismatches, genogram.caseType, genogram.mutationModelId, genogram.idCourtCase)
-      createPedigree(PedigreeDataCreation(newMeta, Some(newGenogram)), userId, Some(pedigreeId))
+    getPedigree(pedigreeId).flatMap {
+      case None => Future.successful(Left("error.E0201"))
+      case Some(ped) =>
+        ped.pedigreeGenogram match
+          case None => Future.successful(Left("error.E0201"))
+          case Some(genogram) =>
+            val newMeta = PedigreeMetaData(0, ped.pedigreeMetaData.courtCaseId, "Copia" + ped.pedigreeMetaData.name,
+              assignee = ped.pedigreeMetaData.assignee, creationDate = Some(now),
+              status = PedigreeStatus.UnderConstruction)
+            val newGenogram = PedigreeGenogram(0, genogram.assignee, genogram.genogram, PedigreeStatus.UnderConstruction,
+              genogram.frequencyTable, genogram.processed, genogram.boundary, genogram.executeScreeningMitochondrial,
+              genogram.numberOfMismatches, genogram.caseType, genogram.mutationModelId, genogram.idCourtCase)
+            createPedigree(PedigreeDataCreation(newMeta, Some(newGenogram)), userId, Some(pedigreeId))
     }
 
   override def doesntHavePedigrees(courtCaseId: Long): Future[Boolean] =
@@ -1018,13 +1058,20 @@ class PedigreeServiceImpl @jakarta.inject.Inject() (
       .map(_.sum)
 
   override def closeAllPedigrees(courtCaseId: Long, userId: String): Future[Either[String, Long]] =
-    pedigreeDataRepository.getPedigrees(CourtCasePedigreeSearch(idCourtCase = courtCaseId)).map { pedigrees =>
-      pedigrees.filter { ped =>
+    pedigreeDataRepository.getPedigrees(CourtCasePedigreeSearch(idCourtCase = courtCaseId)).flatMap { pedigrees =>
+      val toClose = pedigrees.filter(ped =>
         ped.status == PedigreeStatus.UnderConstruction || ped.status == PedigreeStatus.Active
-      }.foreach { pedigree =>
-        changePedigreeStatus(pedigree.id, PedigreeStatus.Closed, userId, isSuperUser = true)
+      )
+      Future.sequence(
+        toClose.map(p => changePedigreeStatus(p.id, PedigreeStatus.Closed, userId, isSuperUser = true))
+      ).map { results =>
+        val errors = results.collect { case Left(err) => err }
+        if errors.isEmpty then Right(courtCaseId)
+        else
+          logger.error(s"closeAllPedigrees: ${errors.size}/${results.size} pedigree closes failed for courtCase=$courtCaseId: ${errors.mkString(", ")}")
+          Left(errors.head)
       }
-    }.map(_ => Right(courtCaseId))
+    }
 
   override def getProfilesToDelete(courtCaseId: Long): Future[Seq[SampleCode]] =
     pedigreeDataRepository.getProfilesToDelete(courtCaseId)
@@ -1071,14 +1118,14 @@ class PedigreeServiceImpl @jakarta.inject.Inject() (
           }).map { matchResults =>
             val lefts = matchResults.collect { case Left(v) => v }
             if lefts.isEmpty then Right(())
-            else if lefts.size > 1 then Left(s"error.E0209: ${lefts.mkString(",")}")
-            else Left(s"error.E0210: ${lefts.mkString(",")}")
+            else if lefts.size > 1 then Left(s"error.E0209|${lefts.mkString(",")}")
+            else Left(s"error.E0210|${lefts.mkString(",")}")
           }
         else
           val lefts = results.collect { case Left(v) => v }
           Future.successful(
-            if lefts.size > 1 then Left(s"error.E0207: ${lefts.mkString(",")}")
-            else Left(s"error.E0208: ${lefts.mkString(",")}")
+            if lefts.size > 1 then Left(s"error.E0207|${lefts.mkString(",")}")
+            else Left(s"error.E0208|${lefts.mkString(",")}")
           )
       }
     }
@@ -1091,11 +1138,16 @@ class PedigreeServiceImpl @jakarta.inject.Inject() (
     areAssignedToPedigree(courtCaseProfiles.map(_.globalCode), collapseRequest.courtCaseId).flatMap {
       case Left(m) => Future.successful(Left(m))
       case Right(()) =>
-        pedigreeDataRepository.associateGroupedProfiles(all).flatMap { result =>
-          Future.sequence(
-            courtCaseProfiles.map(p => matchingService.discardCollapsingByLeftAndRightProfile(p.globalCode, p.courtcaseId)) :+
-            matchingService.discardCollapsingByRightProfile(collapseRequest.globalCodeParent, collapseRequest.courtCaseId)
-          ).map(_ => result)
+        pedigreeDataRepository.associateGroupedProfiles(all).flatMap {
+          case Left(err) => Future.successful(Left(err))
+          case Right(()) =>
+            Future.sequence(
+              courtCaseProfiles.map(p => matchingService.discardCollapsingByLeftAndRightProfile(p.globalCode, p.courtcaseId)) :+
+              matchingService.discardCollapsingByRightProfile(collapseRequest.globalCodeParent, collapseRequest.courtCaseId)
+            ).map(_ => Right(())).recover { case e =>
+              logger.error(s"collapseGroup: associate succeeded but discardCollapsing failed for courtCase=${collapseRequest.courtCaseId} parent=${collapseRequest.globalCodeParent} (manual cleanup of associations may be needed)", e)
+              Left("error.E0630")
+            }
         }
     }
 

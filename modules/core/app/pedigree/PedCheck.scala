@@ -1,6 +1,7 @@
 package pedigree
 
 import models.Tables
+import play.api.Logger
 import play.api.libs.json.Json
 import slick.jdbc.PostgresProfile.api.*
 
@@ -41,17 +42,19 @@ class SlickPedCheckRepository @jakarta.inject.Inject() (
   db: slick.jdbc.JdbcBackend.Database
 )(implicit ec: ExecutionContext) extends PedCheckRepository:
 
+  private val logger: Logger = Logger(this.getClass)
   private val table = Tables.PedCheck
 
   override def insert(pedChecks: List[PedCheck]): Future[Either[String, Unit]] =
     val rows = pedChecks.map(pc => Tables.PedCheckRow(0L, pc.idPedigree, pc.locus, pc.globalCode))
+    val pedigreeId = pedChecks.headOption.map(_.idPedigree).getOrElse(0L)
     val action = for
-      _ <- table.filter(_.idPedigree === pedChecks.headOption.map(_.idPedigree).getOrElse(0L)).delete
+      _ <- table.filter(_.idPedigree === pedigreeId).delete
       _ <- table ++= rows
     yield ()
     db.run(action.transactionally)
       .map(_ => Right(()))
-      .recover { case e => Left(e.getMessage) }
+      .recover { case e => logger.error(s"insert pedCheck failed for pedigree=$pedigreeId", e); Left("error.E0630") }
 
   override def getPedCheck(idPedigree: Long): Future[List[PedCheck]] =
     db.run(table.filter(_.idPedigree === idPedigree).result)
@@ -60,7 +63,7 @@ class SlickPedCheckRepository @jakarta.inject.Inject() (
   override def cleanConsistency(idPedigree: Long): Future[Either[String, Unit]] =
     db.run(table.filter(_.idPedigree === idPedigree).delete)
       .map(_ => Right(()))
-      .recover { case e => Left(e.getMessage) }
+      .recover { case e => logger.error(s"cleanConsistency failed for pedigree=$idPedigree", e); Left("error.E0630") }
 
 // ---------------------------------------------------------------------------
 // PedCheckService

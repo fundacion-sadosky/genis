@@ -3,6 +3,7 @@ package pedigree
 import inbox.{NotificationService, PedigreeLRInfo}
 import kits.{AnalysisType, LocusService}
 import matching.{AleleRange, NewMatchingResult}
+import play.api.Logger
 import probability.CalculationTypeService
 import profile.{Profile, ProfileRepository}
 import services.UserService
@@ -74,6 +75,8 @@ class BayesianNetworkServiceImpl @jakarta.inject.Inject() (
   pedigreeGenotypificationServiceProvider: jakarta.inject.Provider[PedigreeGenotypificationService],
   userService: UserService
 )(using ec: ExecutionContext) extends BayesianNetworkService:
+
+  private val logger: Logger = Logger(this.getClass)
 
   private def pedigreeScenarioService: PedigreeScenarioService    = pedigreeScenarioServiceProvider.get()
   private def pedigreeService: PedigreeService                    = pedigreeServiceProvider.get()
@@ -159,16 +162,25 @@ class BayesianNetworkServiceImpl @jakarta.inject.Inject() (
 
     lrFuture.foreach { lr =>
       pedigreeScenarioService.updateScenario(scenario.copy(lr = Some(lr.toString), isProcessing = false))
-      pedigreeService.getPedigree(scenario.pedigreeId).foreach { pedigree =>
-        notificationService.push(pedigree.get.pedigreeMetaData.assignee,
-          PedigreeLRInfo(scenario.pedigreeId, pedigree.get.pedigreeMetaData.courtCaseId, scenario.name))
-        userService.sendNotifToAllSuperUsers(
-          PedigreeLRInfo(scenario.pedigreeId, pedigree.get.pedigreeMetaData.courtCaseId, scenario.name),
-          Seq(pedigree.get.pedigreeMetaData.assignee))
-      }
+        .onComplete {
+          case scala.util.Success(_) =>
+            pedigreeService.getPedigree(scenario.pedigreeId).foreach { pedigree =>
+              notificationService.push(pedigree.get.pedigreeMetaData.assignee,
+                PedigreeLRInfo(scenario.pedigreeId, pedigree.get.pedigreeMetaData.courtCaseId, scenario.name))
+              userService.sendNotifToAllSuperUsers(
+                PedigreeLRInfo(scenario.pedigreeId, pedigree.get.pedigreeMetaData.courtCaseId, scenario.name),
+                Seq(pedigree.get.pedigreeMetaData.assignee))
+            }
+          case scala.util.Failure(e) =>
+            logger.error(s"updateScenario (LR=$lr, isProcessing=false) failed for scenario=${scenario._id.id} — scenario may be stuck in isProcessing=true", e)
+        }
     }
 
-    lrFuture.failed.foreach { _ =>
+    lrFuture.failed.foreach { lrErr =>
+      logger.error(s"calculateProbability failed for scenario=${scenario._id.id} pedigree=${scenario.pedigreeId}", lrErr)
       pedigreeScenarioService.updateScenario(scenario.copy(isProcessing = false))
+        .failed.foreach { e =>
+          logger.error(s"updateScenario (isProcessing=false) after lrFuture failure ALSO failed for scenario=${scenario._id.id} — scenario stuck in isProcessing=true", e)
+        }
     }
     lrFuture

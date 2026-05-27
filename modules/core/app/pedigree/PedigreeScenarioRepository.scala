@@ -5,6 +5,7 @@ import com.mongodb.client.{MongoCollection, MongoDatabase}
 import matching.MongoId
 import org.bson.Document
 import org.bson.types.ObjectId
+import play.api.Logger
 import play.api.libs.json.Json
 import scenarios.ScenarioStatus
 
@@ -43,6 +44,8 @@ class MongoPedigreeScenarioRepository @jakarta.inject.Inject() (
   database: MongoDatabase
 )(implicit ec: ExecutionContext) extends PedigreeScenarioRepository:
 
+  private val logger: Logger = Logger(this.getClass)
+
   private def col: MongoCollection[Document] = database.getCollection("pedigreeScenarios")
 
   private def parseScenario(doc: Document): PedigreeScenario =
@@ -54,7 +57,7 @@ class MongoPedigreeScenarioRepository @jakarta.inject.Inject() (
     doc.put("_id", new ObjectId(scenario._id.id))
     col.insertOne(doc)
     Right(scenario._id)
-  }.recover { case e => Left(e.getMessage) }
+  }.recover { case e => logger.error(s"create scenario failed for pedigree=${scenario.pedigreeId}", e); Left("error.E0630") }
 
   override def update(scenario: PedigreeScenario): Future[Either[String, MongoId]] = Future {
     val doc  = Document.parse(Json.toJson(scenario).toString())
@@ -62,7 +65,7 @@ class MongoPedigreeScenarioRepository @jakarta.inject.Inject() (
     val opts = new ReplaceOptions().upsert(true)
     col.replaceOne(Filters.eq("_id", new ObjectId(scenario._id.id)), doc, opts)
     Right(scenario._id)
-  }.recover { case e => Left(e.getMessage) }
+  }.recover { case e => logger.error(s"update scenario failed for scenario=${scenario._id.id}", e); Left("error.E0630") }
 
   override def get(id: MongoId): Future[Option[PedigreeScenario]] = Future {
     Option(col.find(Filters.eq("_id", new ObjectId(id.id))).first()).map(parseScenario)
@@ -79,12 +82,12 @@ class MongoPedigreeScenarioRepository @jakarta.inject.Inject() (
   override def changeStatus(id: MongoId, status: ScenarioStatus.Value): Future[Either[String, MongoId]] = Future {
     col.updateOne(Filters.eq("_id", new ObjectId(id.id)), Updates.set("status", status.toString))
     Right(id)
-  }.recover { case e => Left(e.getMessage) }
+  }.recover { case e => logger.error(s"changeStatus scenario failed for scenario=${id.id} status=$status", e); Left("error.E0630") }
 
   override def deleteAll(pedigreeId: Long): Future[Either[String, Long]] = Future {
     col.deleteMany(Filters.eq("pedigreeId", pedigreeId.toString))
     Right(pedigreeId)
-  }.recover { case e => Left(e.getMessage) }
+  }.recover { case e => logger.error(s"deleteAll scenarios failed for pedigree=$pedigreeId", e); Left("error.E0630") }
 
   override def countByProfile(globalCode: String): Future[Int] = Future {
     val filter = Filters.and(
