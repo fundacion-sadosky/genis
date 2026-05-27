@@ -2,7 +2,7 @@ package controllers
 
 import javax.inject.{Inject, Singleton}
 import pedigree.{MutationModelFull, MutationService}
-import play.api.libs.json.{JsError, Json}
+import play.api.libs.json.{JsError, JsValue, Json}
 import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -60,41 +60,31 @@ class MutationController @Inject() (
     }
   }
 
-  def insert: Action[AnyContent] = Action.async(parse.anyContent) { request =>
-    request.body.asJson.map(_.validate[MutationModelFull]) match
-      case None => Future.successful(BadRequest(Json.obj("message" -> "Expected JSON body")))
-      case Some(jsResult) =>
-        jsResult.fold(
-          errors => Future.successful(BadRequest(JsError.toJson(errors))),
-          row =>
-            mutationService.insertMutationModel(row).map {
-              case Left(msg) => NotFound(Json.obj("message" -> msg))
-              case Right(id) => Ok(Json.obj("id" -> id))
-            }
-        )
+  def insert: Action[JsValue] = Action.async(parse.json) { request =>
+    request.body.validate[MutationModelFull].fold(
+      errors => Future.successful(BadRequest(JsError.toJson(errors))),
+      row =>
+        mutationService.insertMutationModel(row).map {
+          case Left(msg) => NotFound(Json.obj("message" -> msg))
+          case Right(id) => Ok(Json.obj("id" -> id))
+        }
+    )
   }
 
-  def generateMatrix: Action[AnyContent] = Action.async(parse.anyContent) { request =>
-    request.body.asJson.map(_.validate[MutationModelFull]) match
-      case None => Future.successful(BadRequest(Json.obj("message" -> "Expected JSON body")))
-      case Some(jsResult) =>
-        jsResult.fold(
-          errors => Future.successful(BadRequest(JsError.toJson(errors))),
-          row =>
-            mutationService.generateKis(row.header).map(_ => Ok)
-        )
+  def generateMatrix: Action[JsValue] = Action.async(parse.json(1024 * 1024 * 16)) { request =>
+    request.body.validate[MutationModelFull].fold(
+      errors => Future.successful(BadRequest(JsError.toJson(errors))),
+      row => mutationService.generateKis(row.header).map(_ => Ok)
+    )
   }
 
-  def update: Action[AnyContent] = Action.async(parse.anyContent) { request =>
-    request.body.asJson.map(_.validate[MutationModelFull]) match
-      case None => Future.successful(BadRequest(Json.obj("message" -> "Expected JSON body")))
-      case Some(jsResult) =>
-        jsResult.fold(
-          errors => Future.successful(BadRequest(JsError.toJson(errors))),
-          row =>
-            mutationService.updateMutationModel(row).map {
-              case Left(msg) => NotFound(Json.obj("message" -> msg))
-              case Right(_)  => Ok
-            }
-        )
+  def update: Action[JsValue] = Action.async(parse.json(1024 * 1024 * 16)) { request =>
+    request.body.validate[MutationModelFull].fold(
+      errors => Future.successful(BadRequest(JsError.toJson(errors))),
+      row =>
+        mutationService.updateMutationModel(row).map {
+          case Left(msg) => NotFound(Json.obj("message" -> msg))
+          case Right(_)  => Ok
+        }
+    )
   }

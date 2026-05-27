@@ -159,7 +159,7 @@ class SlickMutationRepository @Inject()(
       .map(id => Right(id))
       .recover { case e: Exception =>
         logger.error(e.getMessage, e)
-        Left(e.getMessage)
+        Left("Error al insertar el modelo de mutación.")
       }
 
   override def insertParameters(parameterList: List[MutationModelParameter]): Future[Either[String, Unit]] =
@@ -176,7 +176,7 @@ class SlickMutationRepository @Inject()(
       .map(_ => Right(()))
       .recover { case e: Exception =>
         logger.error(e.getMessage, e)
-        Left(e.getMessage)
+        Left("Error al insertar parámetros del modelo de mutación.")
       }
 
   override def insertLocusAlleles(locusAlleles: List[(String, Double)]): Future[Either[String, Int]] =
@@ -185,7 +185,7 @@ class SlickMutationRepository @Inject()(
       .map(_ => Right(rows.size))
       .recover { case e: Exception =>
         logger.error(e.getMessage, e)
-        Left(e.getMessage)
+        Left("Error al insertar alelos por locus.")
       }
 
   // Legacy preserva un bug: retorna Right(()) incluso ante excepciones.
@@ -256,7 +256,7 @@ class SlickMutationRepository @Inject()(
       .map(_ => Right(()))
       .recover { case e: Exception =>
         logger.error(e.getMessage, e)
-        Left(e.getMessage)
+        Left("Error al eliminar el modelo de mutación.")
       }
 
   override def deleteMutationModelKiByIdMutationModel(id: Long): Future[Either[String, Unit]] =
@@ -271,5 +271,5 @@ class SlickMutationRepository @Inject()(
       .map(_ => Right(()))
       .recover { case e: Exception =>
         logger.error(e.getMessage, e)
-        Left(e.getMessage)
+        Left("Error al eliminar Ki del modelo de mutación.")
       }

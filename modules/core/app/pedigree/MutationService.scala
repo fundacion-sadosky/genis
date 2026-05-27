@@ -2,6 +2,7 @@ package pedigree
 
 import javax.inject.{Inject, Named, Singleton}
 import org.apache.pekko.actor.ActorSystem
+import play.api.Logger
 import scala.concurrent.{ExecutionContext, Future}
 import scala.math.BigDecimal.RoundingMode
 import kits.{FullLocus, LocusService}
@@ -46,6 +47,8 @@ class MutationServiceImpl @Inject() (
   akkaSystem: ActorSystem
 )(implicit ec: ExecutionContext) extends MutationService:
 
+  private val logger = Logger(this.getClass)
+
   val generateMatrixMutationTypes = List(2L)
   private val mutationActor = akkaSystem.actorOf(MutationActor.props(this))
 
@@ -82,6 +85,7 @@ class MutationServiceImpl @Inject() (
 
   // Legacy: el Future retornado NO espera al pipeline interno (fire-and-forget).
   // Se conserva ese comportamiento para fidelidad con la versión original.
+  // Se loggea cualquier falla del pipeline interno para evitar errores silenciosos.
   override def generateKis(mutationModel: MutationModel): Future[Unit] =
     if generateMatrixMutationTypes.contains(mutationModel.mutationType) then
       locusService.getLocusByAnalysisType(1).flatMap { autosomalLocus =>
@@ -96,6 +100,8 @@ class MutationServiceImpl @Inject() (
             }
           case _ => Future.successful(())
         }
+      }.recover { case t =>
+        logger.error(s"generateKis falló para modelo id=${mutationModel.id}", t)
       }
     Future.successful(())
 
@@ -129,7 +135,7 @@ class MutationServiceImpl @Inject() (
         getMutationModelKit(param, populationBaseFrequency.base.get(param.locus), mutationModel.cantSaltos)
     }).map(_.flatten)
 
-  private def getMutationModelKit(
+  private[pedigree] def getMutationModelKit(
     param: MutationModelParameter,
     alleles: Option[List[Double]],
     cantSaltos: Long
@@ -160,6 +166,7 @@ class MutationServiceImpl @Inject() (
 
   // Legacy: dispara insertParameters + generateKis fire-and-forget y retorna Right(())
   // incondicionalmente. Preservado por fidelidad.
+  // Se loggea cualquier falla del pipeline interno para evitar errores silenciosos.
   override def addLocus(full: FullLocus): Future[Either[String, Unit]] =
     val defaultMutationRateTypes             = List(1L, 2L, 3L)
     val defaultMutationRangeTypes            = List(2L, 3L)
@@ -197,6 +204,9 @@ class MutationServiceImpl @Inject() (
         Future.sequence(listModels.map(model => generateKis(model)))
       }
       Future.successful(Right(()))
+    }.recover { case t =>
+      logger.error(s"addLocus falló para locus=${full.locus.id}", t)
+      Right(())
     }
     Future.successful(Right(()))
 
@@ -228,6 +238,7 @@ class MutationServiceImpl @Inject() (
 
   // Legacy: dispara refreshAllKis fire-and-forget y retorna Right(()).
   // Preservado por fidelidad.
+  // Se loggea cualquier falla del pipeline interno para evitar errores silenciosos.
   override def generateN(
     profiles: Array[Profile],
     mutationModel: Option[MutationModel]
@@ -240,9 +251,12 @@ class MutationServiceImpl @Inject() (
             if total > 0 then
               refreshAllKis().flatMap(_ => Future.successful(Right(())))
             else
-              Future.successful(Right(()))
+              Future.successful(Right(())): Future[Either[String, Unit]]
           else
-            Future.successful(Left("Error al generar el matriz de mutacion"))
+            Future.successful(Left("Error al generar el matriz de mutacion")): Future[Either[String, Unit]]
+        }.recover { case t =>
+          logger.error("generateN falló", t)
+          Right(())
         }
       Future.successful(Right(()))
     else
