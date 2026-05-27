@@ -285,54 +285,56 @@ class PedigreeMatchesServiceImpl @jakarta.inject.Inject() (
     pedigreeMatchesRepository.allMatchesDiscarded(pedigreeId)
 
   override def discard(matchId: String, userId: String, isSuperUser: Boolean): Future[Either[String, String]] =
-    pedigreeMatchesRepository.getMatchById(matchId).flatMap { opt =>
-      val matchResult = opt.get
-      val result =
-        if isSuperUser || matchResult.pedigree.assignee == userId then
-          pedigreeMatchesRepository.discardProfile(matchId).flatMap {
-            case Left(error) => Future.successful(Left(error))
-            case Right(_)    => pedigreeMatchesRepository.discardPedigree(matchId)
-          }
-        else
-          Future.successful(Left("error.E0642"))
+    pedigreeMatchesRepository.getMatchById(matchId).flatMap {
+      case None => Future.successful(Left("error.E0631"))
+      case Some(matchResult) =>
+        val result =
+          if isSuperUser || matchResult.pedigree.assignee == userId then
+            pedigreeMatchesRepository.discardProfile(matchId).flatMap {
+              case Left(error) => Future.successful(Left(error))
+              case Right(_)    => pedigreeMatchesRepository.discardPedigree(matchId)
+            }
+          else
+            Future.successful(Left("error.E0642"))
 
-      result.foreach {
-        case Right(_) =>
-          pedigreeDataRepository.getPedigreeDescriptionById(matchResult.pedigree.idPedigree).map {
-            case (pedName, courtCaseName) =>
-              traceService.add(Trace(matchResult.profile.globalCode, userId, new Date(),
-                PedigreeDiscardInfo(matchResult._id.id, matchResult.pedigree.idPedigree, matchResult.pedigree.assignee, matchResult.`type`, courtCaseName, pedName)))
-          }
-          traceService.addTracePedigree(TracePedigree(matchResult.pedigree.idPedigree, userId, new Date(),
-            PedigreeDiscardInfo2(matchResult._id.id, matchResult.pedigree.idPedigree, matchResult.profile.globalCode.text, matchResult.pedigree.assignee, matchResult.`type`)))
-          notificationService.solve(matchResult.pedigree.assignee,
-            PedigreeMatchingInfo(matchResult.profile.globalCode, Some(matchResult.pedigree.caseType), Some(matchResult.pedigree.idCourtCase.toString)))
-        case Left(_) => ()
-      }
-      result
+        result.foreach {
+          case Right(_) =>
+            pedigreeDataRepository.getPedigreeDescriptionById(matchResult.pedigree.idPedigree).map {
+              case (pedName, courtCaseName) =>
+                traceService.add(Trace(matchResult.profile.globalCode, userId, new Date(),
+                  PedigreeDiscardInfo(matchResult._id.id, matchResult.pedigree.idPedigree, matchResult.pedigree.assignee, matchResult.`type`, courtCaseName, pedName)))
+            }
+            traceService.addTracePedigree(TracePedigree(matchResult.pedigree.idPedigree, userId, new Date(),
+              PedigreeDiscardInfo2(matchResult._id.id, matchResult.pedigree.idPedigree, matchResult.profile.globalCode.text, matchResult.pedigree.assignee, matchResult.`type`)))
+            notificationService.solve(matchResult.pedigree.assignee,
+              PedigreeMatchingInfo(matchResult.profile.globalCode, Some(matchResult.pedigree.caseType), Some(matchResult.pedigree.idCourtCase.toString)))
+          case Left(_) => ()
+        }
+        result
     }
 
   override def confirm(matchId: String, userId: String, isSuperUser: Boolean): Future[Either[String, String]] =
-    pedigreeMatchesRepository.getMatchById(matchId).flatMap { opt =>
-      val matchResult = opt.get
-      val result = pedigreeMatchesRepository.confirmProfile(matchId).flatMap {
-        case Left(error) => Future.successful(Left(error))
-        case Right(_)    => pedigreeMatchesRepository.confirmPedigree(matchId)
-      }
-      result.foreach {
-        case Right(_) =>
-          traceService.addTracePedigree(TracePedigree(matchResult.pedigree.idPedigree, userId, new Date(),
-            PedigreeConfirmInfo2(matchResult._id.id, matchResult.pedigree.idPedigree, matchResult.profile.globalCode.text, matchResult.pedigree.assignee, matchResult.`type`)))
-          pedigreeDataRepository.getPedigreeDescriptionById(matchResult.pedigree.idPedigree).map {
-            case (pedName, courtCaseName) =>
-              traceService.add(Trace(matchResult.profile.globalCode, userId, new Date(),
-                PedigreeConfirmInfo(matchResult._id.id, matchResult.pedigree.idPedigree, matchResult.pedigree.assignee, matchResult.`type`, courtCaseName, pedName)))
-          }
-          notificationService.solve(matchResult.pedigree.assignee,
-            PedigreeMatchingInfo(matchResult.profile.globalCode, Some(matchResult.pedigree.caseType), Some(matchResult.pedigree.idCourtCase.toString)))
-        case Left(_) => ()
-      }
-      result
+    pedigreeMatchesRepository.getMatchById(matchId).flatMap {
+      case None => Future.successful(Left("error.E0631"))
+      case Some(matchResult) =>
+        val result = pedigreeMatchesRepository.confirmProfile(matchId).flatMap {
+          case Left(error) => Future.successful(Left(error))
+          case Right(_)    => pedigreeMatchesRepository.confirmPedigree(matchId)
+        }
+        result.foreach {
+          case Right(_) =>
+            traceService.addTracePedigree(TracePedigree(matchResult.pedigree.idPedigree, userId, new Date(),
+              PedigreeConfirmInfo2(matchResult._id.id, matchResult.pedigree.idPedigree, matchResult.profile.globalCode.text, matchResult.pedigree.assignee, matchResult.`type`)))
+            pedigreeDataRepository.getPedigreeDescriptionById(matchResult.pedigree.idPedigree).map {
+              case (pedName, courtCaseName) =>
+                traceService.add(Trace(matchResult.profile.globalCode, userId, new Date(),
+                  PedigreeConfirmInfo(matchResult._id.id, matchResult.pedigree.idPedigree, matchResult.pedigree.assignee, matchResult.`type`, courtCaseName, pedName)))
+            }
+            notificationService.solve(matchResult.pedigree.assignee,
+              PedigreeMatchingInfo(matchResult.profile.globalCode, Some(matchResult.pedigree.caseType), Some(matchResult.pedigree.idCourtCase.toString)))
+          case Left(_) => ()
+        }
+        result
     }
 
   override def deleteMatches(idPedigree: Long): Future[Either[String, Long]] =

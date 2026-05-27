@@ -51,8 +51,9 @@ trait PedigreeMatchesRepository:
 
 @jakarta.inject.Singleton
 class MongoPedigreeMatchesRepository @jakarta.inject.Inject() (
-  database: MongoDatabase
-)(implicit ec: ExecutionContext) extends PedigreeMatchesRepository:
+  database: MongoDatabase,
+  @jakarta.inject.Named("mongoBlockingEC") implicit val ec: ExecutionContext
+) extends PedigreeMatchesRepository:
 
   private val logger: Logger = Logger(this.getClass)
 
@@ -60,6 +61,11 @@ class MongoPedigreeMatchesRepository @jakarta.inject.Inject() (
 
   private def parseResult(doc: Document): PedigreeMatchResult =
     Json.parse(doc.toJson()).as[PedigreeMatchResult]
+
+  /** Defensive parse: returns None when the input is not a valid 24-char hex ObjectId. */
+  private def parseObjectId(s: String): Option[ObjectId] =
+    try Some(new ObjectId(s))
+    catch case _: IllegalArgumentException => None
 
   // --------------- helpers -------------------------------------------------
 
@@ -172,8 +178,10 @@ class MongoPedigreeMatchesRepository @jakarta.inject.Inject() (
   }
 
   override def getMatchById(matchingId: String): Future[Option[PedigreeMatchResult]] = Future {
-    val filter = Filters.eq("_id", new ObjectId(matchingId))
-    Option(col.find(filter).first()).map(parseResult)
+    parseObjectId(matchingId).flatMap { oid =>
+      val filter = Filters.eq("_id", oid)
+      Option(col.find(filter).first()).map(parseResult)
+    }
   }
 
   override def allMatchesDiscarded(pedigreeId: Long): Future[Boolean] = Future {
@@ -203,24 +211,38 @@ class MongoPedigreeMatchesRepository @jakarta.inject.Inject() (
     col.countDocuments(buildGroupByFilter(search)).toInt
   }
 
+  // NB: the try/catch bodies use multi-line indented form on purpose.
+  // The single-line form `catch case e => stmt1; stmt2` parses the trailing
+  // `; stmt2` as a separate statement OUTSIDE the catch clause, causing the
+  // method to always return that value regardless of try success/failure.
   override def discardProfile(matchId: String): Future[Either[String, String]] = Future {
-    try
-      col.updateOne(
-        Filters.eq("_id", new ObjectId(matchId)),
-        Updates.set("profile.status", MatchStatus.discarded.toString)
-      )
-      Right(matchId)
-    catch case e: Exception => logger.error(s"discardProfile failed for match=$matchId", e); Left("error.E0630")
+    parseObjectId(matchId) match
+      case None => Left("error.E0631")
+      case Some(oid) =>
+        try
+          col.updateOne(
+            Filters.eq("_id", oid),
+            Updates.set("profile.status", MatchStatus.discarded.toString)
+          )
+          Right(matchId)
+        catch case e: Exception =>
+          logger.error(s"discardProfile failed for match=$matchId", e)
+          Left("error.E0630")
   }
 
   override def discardPedigree(matchId: String): Future[Either[String, String]] = Future {
-    try
-      col.updateOne(
-        Filters.eq("_id", new ObjectId(matchId)),
-        Updates.set("pedigree.status", MatchStatus.discarded.toString)
-      )
-      Right(matchId)
-    catch case e: Exception => logger.error(s"discardPedigree failed for match=$matchId", e); Left("error.E0630")
+    parseObjectId(matchId) match
+      case None => Left("error.E0631")
+      case Some(oid) =>
+        try
+          col.updateOne(
+            Filters.eq("_id", oid),
+            Updates.set("pedigree.status", MatchStatus.discarded.toString)
+          )
+          Right(matchId)
+        catch case e: Exception =>
+          logger.error(s"discardPedigree failed for match=$matchId", e)
+          Left("error.E0630")
   }
 
   override def deleteMatches(idPedigree: Long): Future[Either[String, Long]] = Future {
@@ -233,27 +255,39 @@ class MongoPedigreeMatchesRepository @jakarta.inject.Inject() (
         )
       )
       Right(idPedigree)
-    catch case e: Exception => logger.error(s"deleteMatches failed for pedigree=$idPedigree", e); Left("error.E0630")
+    catch case e: Exception =>
+      logger.error(s"deleteMatches failed for pedigree=$idPedigree", e)
+      Left("error.E0630")
   }
 
   override def confirmProfile(matchId: String): Future[Either[String, String]] = Future {
-    try
-      col.updateOne(
-        Filters.eq("_id", new ObjectId(matchId)),
-        Updates.set("profile.status", MatchStatus.hit.toString)
-      )
-      Right(matchId)
-    catch case e: Exception => logger.error(s"confirmProfile failed for match=$matchId", e); Left("error.E0630")
+    parseObjectId(matchId) match
+      case None => Left("error.E0631")
+      case Some(oid) =>
+        try
+          col.updateOne(
+            Filters.eq("_id", oid),
+            Updates.set("profile.status", MatchStatus.hit.toString)
+          )
+          Right(matchId)
+        catch case e: Exception =>
+          logger.error(s"confirmProfile failed for match=$matchId", e)
+          Left("error.E0630")
   }
 
   override def confirmPedigree(matchId: String): Future[Either[String, String]] = Future {
-    try
-      col.updateOne(
-        Filters.eq("_id", new ObjectId(matchId)),
-        Updates.set("pedigree.status", MatchStatus.hit.toString)
-      )
-      Right(matchId)
-    catch case e: Exception => logger.error(s"confirmPedigree failed for match=$matchId", e); Left("error.E0630")
+    parseObjectId(matchId) match
+      case None => Left("error.E0631")
+      case Some(oid) =>
+        try
+          col.updateOne(
+            Filters.eq("_id", oid),
+            Updates.set("pedigree.status", MatchStatus.hit.toString)
+          )
+          Right(matchId)
+        catch case e: Exception =>
+          logger.error(s"confirmPedigree failed for match=$matchId", e)
+          Left("error.E0630")
   }
 
   override def hasPendingMatches(pedigreeId: Long): Future[Boolean] = Future {

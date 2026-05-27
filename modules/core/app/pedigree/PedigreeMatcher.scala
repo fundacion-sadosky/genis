@@ -3,7 +3,7 @@ package pedigree
 import java.text.ParseException
 import java.util.Date
 import org.apache.pekko.actor.{Actor, ActorSystem, Props}
-import com.mongodb.client.model.Filters
+import com.mongodb.client.model.{Filters, Projections}
 import com.mongodb.client.{MongoCollection, MongoDatabase}
 import configdata.{CategoryService, MtConfiguration}
 import inbox.{NotificationService, PedigreeMatchingInfo}
@@ -74,8 +74,9 @@ class PedigreeMatcherImpl @jakarta.inject.Inject() (
   mutationService: MutationService,
   matchingService: MatchingService,
   matchingRepository: MatchingRepository,
-  userService: UserService
-)(implicit ec: ExecutionContext) extends PedigreeMatcher:
+  userService: UserService,
+  @jakarta.inject.Named("mongoBlockingEC") implicit val ec: ExecutionContext
+) extends PedigreeMatcher:
 
   private val matchingActor = akkaSystem.actorOf(PedigreeMatchingActor.props(this))
   private val logger        = Logger(this.getClass)
@@ -121,7 +122,14 @@ class PedigreeMatcherImpl @jakarta.inject.Inject() (
       case Right(pedigree) => Filters.eq("pedigree.idPedigree", pedigree._id)
 
     pedigreeMatchesCol.find(filter)
-      .projection(Filters.exists("kind"))  // lightweight — we just need key fields
+      .projection(Projections.include(
+        "_id",
+        "profile.globalCode",
+        "pedigree.globalCode",
+        "pedigree.idPedigree",
+        "type",
+        "kind"
+      ))
       .into(new java.util.ArrayList[Document]()).asScala.toSeq
       .map { doc =>
         val pedigreeDoc = doc.get("pedigree", classOf[Document])
@@ -169,8 +177,16 @@ class PedigreeMatcherImpl @jakarta.inject.Inject() (
       .map(mr => existing((mr.pedigree.idPedigree.toString, getPedigreeGlobalCode(mr), mr.profile.globalCode.text, mr.`type`)) -> mr)
     val replaceIds = toReplace.map(_._1).toSet
 
+    val mappedInput: Either[Unit, String] = input match
+      case Left(_)         => Left(())
+      case Right(pedigree) => Right(pedigree._id.toString)
+
     val toDelete = existing.filterNot { case ((idPed, _, _, _), docId) =>
-      replaceIds.contains(docId) || input.isLeft
+      replaceIds.contains(docId) || (
+        mappedInput match
+          case Left(_)   => false
+          case Right(id) => id != idPed
+      )
     }
 
     logger.info(

@@ -38,4 +38,5 @@ error.E0930= E0930: La transición de {0} a {1} no es válida.
 # Generic errors
 error.E0500= E0500: Error al actualizar la configuración el motivo.
 error.E0630= E0630: Error inesperado en la base de datos.
+error.E0631= E0631: Identificador de coincidencia inválido o inexistente.
 error.E0901= E0901: Nombre ya utilizado.

@@ -1,11 +1,14 @@
 package pedigree
 
-import com.google.inject.AbstractModule
+import com.google.inject.{AbstractModule, Provides}
 import com.google.inject.name.Names
 import configdata.{MtConfiguration, MtRegion}
+import jakarta.inject.{Named, Singleton}
 import matching.{MatchingProcessStatus, MatchingProcessStatusImpl}
+import org.apache.pekko.actor.ActorSystem
 import play.api.{Configuration, Environment}
 
+import scala.concurrent.ExecutionContext
 import scala.jdk.CollectionConverters.*
 
 class PedigreeModule(env: Environment, conf: Configuration) extends AbstractModule:
@@ -38,3 +41,7 @@ class PedigreeModule(env: Environment, conf: Configuration) extends AbstractModu
     bind(classOf[PedigreeService]).to(classOf[PedigreeServiceImpl])
     bind(classOf[search.FullTextSearchService]).to(classOf[search.FullTextSearchServiceStub])
     bind(classOf[String]).annotatedWith(Names.named("exportProfilesPath")).toInstance("")
+
+  @Provides @Named("mongoBlockingEC") @Singleton
+  def provideMongoBlockingExecutionContext(actorSystem: ActorSystem): ExecutionContext =
+    actorSystem.dispatchers.lookup("pekko.actor.mongo-blocking-dispatcher")
