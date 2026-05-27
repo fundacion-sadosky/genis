@@ -7,7 +7,7 @@ import types.SampleCode
 import java.util.Date
 import scala.concurrent.Future
 
-trait MatchingRepository {
+trait MatchingRepository:
   def matchesNotDiscarded(globalCode: SampleCode): Future[Seq[MatchResult]]
   def matchesWithPartialHit(globalCode: SampleCode): Future[Seq[MatchResult]]
   def removeMatchesByProfile(globalCode: SampleCode): Future[Either[String, String]]
@@ -15,10 +15,10 @@ trait MatchingRepository {
   def findSuperiorProfileData(globalCode: SampleCode): Future[Option[ProfileData]]
   def numberOfMatches(globalCode: String): Future[Int]
   def getByDateBetween(from: Option[Date], to: Option[Date]): Future[Seq[MatchResult]]
-}
+  def discardScreeningMatches(matchIds: List[String]): Unit
 
 @javax.inject.Singleton
-class MatchingRepositoryStub extends MatchingRepository {
+class MatchingRepositoryStub extends MatchingRepository:
   override def matchesNotDiscarded(globalCode: SampleCode): Future[Seq[MatchResult]] = Future.successful(Seq.empty)
   override def matchesWithPartialHit(globalCode: SampleCode): Future[Seq[MatchResult]] = Future.successful(Seq.empty)
   override def removeMatchesByProfile(globalCode: SampleCode): Future[Either[String, String]] = Future.successful(Right(""))
@@ -26,4 +26,4 @@ class MatchingRepositoryStub extends MatchingRepository {
   override def findSuperiorProfileData(globalCode: SampleCode): Future[Option[ProfileData]] = Future.successful(None)
   override def numberOfMatches(globalCode: String): Future[Int] = Future.successful(0)
   override def getByDateBetween(from: Option[Date], to: Option[Date]): Future[Seq[MatchResult]] = Future.successful(Seq.empty)
-}
+  override def discardScreeningMatches(matchIds: List[String]): Unit = ()

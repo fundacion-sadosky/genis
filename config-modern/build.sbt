@@ -77,16 +77,19 @@ lazy val core = (project in file("modules/core"))
 
       // OTP (TOTP) - aerogear
       "org.jboss.aerogear" % "aerogear-otp-java" % "1.0.0",
-      
+
       // Logback
       "ch.qos.logback" % "logback-classic" % "1.5.15",
       "ch.qos.logback" % "logback-core" % "1.5.15",
-      
+
       // JWT actualizado
       "com.auth0" % "java-jwt" % "4.5.0",
-      
+
       // LDAP actualizado
       "com.unboundid" % "unboundid-ldapsdk" % "7.0.4",
+
+      // scala-graph (para BayesianNetwork: eliminación de variables en pedigree)
+      "org.scala-graph" %% "graph-core" % "2.0.2",
       
       // Testing
       "org.scalatestplus.play" %% "scalatestplus-play" % "7.0.1" % Test,

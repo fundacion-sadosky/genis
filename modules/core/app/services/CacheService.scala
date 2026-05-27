@@ -130,3 +130,6 @@ case class UploadedAnalysisKey(token: String) extends CacheKey[profile.NewAnalys
   override def cacheKey: String = "UploadedAnalysis." + token
   override def expiration: Int = 60 * 10
 }
+
+case object CaseTypesKey extends CacheKey[Seq[pedigree.CaseType]]:
+  override def cacheKey: String = "Keys.caseTypes"
