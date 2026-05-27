@@ -53,12 +53,12 @@ class PedigreeGenotypificationServiceImpl @jakarta.inject.Inject() (
   private val logger: Logger = Logger(this.getClass)
 
   override def generateGenotypificationAndFindMatches(pedigreeId: Long): Future[Either[String, Long]] =
-    pedigreeRepository.get(pedigreeId).flatMap { pedigreeOpt =>
+    val result = pedigreeRepository.get(pedigreeId).flatMap { pedigreeOpt =>
       val pedigree = pedigreeOpt.get
       val frequencyTableName = pedigree.frequencyTable
         .getOrElse(throw new RuntimeException("error.E0201"))
       val codes = pedigree.genogram.flatMap(_.globalCode).toList
-      val result = (for
+      (for
         profiles      <- profileRepository.findByCodes(codes)
         analysisType  <- calculationTypeService.getAnalysisTypeByCalculation(BayesianNetwork.name)
         frequencyTable <- bayesianNetworkService.getFrequencyTable(frequencyTableName)
@@ -68,17 +68,17 @@ class PedigreeGenotypificationServiceImpl @jakarta.inject.Inject() (
           else Future.successful(None)
       yield
         saveGenotypification(pedigree, profiles.toArray, frequencyTable._2, analysisType, linkage, mutationModel)
-      ).flatMap(identity).recover { case err =>
-        logger.error(s"generateGenotypificationAndFindMatches failed for pedigree=$pedigreeId", err)
-        Left("error.E0630")
-      }
-
-      result.foreach {
-        case Right(_) => pedigreeMatcher.findMatchesInBackGround(pedigreeId)
-        case Left(_)  => ()
-      }
-      result
+      ).flatMap(identity)
+    }.recover { case err =>
+      logger.error(s"generateGenotypificationAndFindMatches failed for pedigree=$pedigreeId", err)
+      Left("error.E0630")
     }
+
+    result.foreach {
+      case Right(_) => pedigreeMatcher.findMatchesInBackGround(pedigreeId)
+      case Left(_)  => ()
+    }
+    result
 
   override def saveGenotypification(
     pedigree: PedigreeGenogram,
