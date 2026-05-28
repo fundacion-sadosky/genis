@@ -1,7 +1,7 @@
 package controllers
 
 import kits._
-import pedigree.{MutationService, NoOpMutationService}
+import pedigree.{MutationService, MutationServiceStub}
 import org.scalatestplus.play._
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
 import play.api.Application
@@ -46,6 +46,9 @@ class LocusControllerTest extends PlaySpec with GuiceOneAppPerTest:
 
     override def locusRangeMap(): Future[Map[String, AleleRange]] =
       Future.successful(Map("LOCUS 1" -> AleleRange(BigDecimal(5), BigDecimal(30))))
+
+    override def saveLocusAlleles(list: List[(String, Double)]): Future[Either[String, Int]] =
+      Future.successful(Right(0))
 
     override def saveLocusAllelesFromProfile(p: profile.Profile): Future[Either[String, Int]] =
       Future.successful(Right(0))

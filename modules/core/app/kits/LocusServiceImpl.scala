@@ -2,7 +2,7 @@ package kits
 
 import javax.inject.{Inject, Singleton}
 import pedigree.MutationService
-import profile.Profile
+import profile.{Allele, Profile}
 import services.{CacheService, LocusCacheKey}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -16,8 +16,7 @@ trait LocusService:
   def getLocusByAnalysisTypeName(analysisType: String): Future[Seq[String]]
   def getLocusByAnalysisType(analysisType: Int): Future[Seq[String]]
   def locusRangeMap(): Future[Map[String, AleleRange]]
-  // TODO: Implementar cuando MutationService tenga implementación real (legacy: LocusService.scala)
-  //  def saveLocusAlleles(list: List[(String, Double)]): Future[Either[String, Int]]
+  def saveLocusAlleles(list: List[(String, Double)]): Future[Either[String, Int]]
   def saveLocusAllelesFromProfile(p: Profile): Future[Either[String, Int]]
   def refreshAllKis(): Future[Unit]
 
@@ -65,14 +64,22 @@ class LocusServiceImpl @Inject()(
   override def getLocusByAnalysisType(analysisType: Int): Future[Seq[String]] =
     locusRepository.getLocusByAnalysisType(analysisType).map(_.map(_.id))
 
-  // TODO: Implementar cuando MutationService tenga implementación real (legacy: LocusService.scala)
-  override def saveLocusAllelesFromProfile(profile: Profile): Future[Either[String, Int]] =
-    Future.successful(Right(0))
-
-  override def refreshAllKis(): Future[Unit] =
-    Future.successful(())
-
   override def locusRangeMap(): Future[Map[String, AleleRange]] =
     list().map { loci =>
       loci.map(l => l.id -> AleleRange(l.minAlleleValue.getOrElse(0), l.maxAlleleValue.getOrElse(99))).toMap
     }
+
+  override def saveLocusAlleles(list: List[(String, Double)]): Future[Either[String, Int]] =
+    mutationService.saveLocusAlleles(list)
+
+  override def saveLocusAllelesFromProfile(profile: Profile): Future[Either[String, Int]] =
+    val locusAlleles = profile.genotypification.get(1)
+      .map(_.toList.flatMap { case (marker, alleles) =>
+        alleles.collect { case Allele(z) => (marker.toString, z.toDouble) }
+      })
+      .getOrElse(List.empty)
+      .filter(_._1.nonEmpty)
+    saveLocusAlleles(locusAlleles)
+
+  override def refreshAllKis(): Future[Unit] =
+    mutationService.refreshAllKisSecuential()
