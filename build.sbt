@@ -87,6 +87,9 @@ lazy val core = (project in file("modules/core"))
       
       // LDAP actualizado
       "com.unboundid" % "unboundid-ldapsdk" % "7.0.4",
+
+      // scala-graph (para BayesianNetwork: eliminación de variables en pedigree)
+      "org.scala-graph" %% "graph-core" % "2.0.2",
       
       // Testing
       "org.scalatestplus.play" %% "scalatestplus-play" % "7.0.1" % Test,
@@ -100,7 +103,6 @@ lazy val core = (project in file("modules/core"))
     // Run tests sequentially to avoid exhausting DB connection pool
     Test / parallelExecution := false,
 
-    
     // Fix Jackson version conflict
     dependencyOverrides ++= Seq(
       "com.fasterxml.jackson.core" % "jackson-databind" % "2.14.3",
