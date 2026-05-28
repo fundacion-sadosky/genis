@@ -2,6 +2,7 @@ package kits
 
 import javax.inject.{Inject, Singleton}
 import pedigree.MutationService
+import profile.Profile
 import services.{CacheService, LocusCacheKey}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -15,10 +16,10 @@ trait LocusService:
   def getLocusByAnalysisTypeName(analysisType: String): Future[Seq[String]]
   def getLocusByAnalysisType(analysisType: Int): Future[Seq[String]]
   def locusRangeMap(): Future[Map[String, AleleRange]]
-  // TODO: Migrar cuando se implemente MutationService real (legacy: LocusService.scala)
+  // TODO: Implementar cuando MutationService tenga implementación real (legacy: LocusService.scala)
   //  def saveLocusAlleles(list: List[(String, Double)]): Future[Either[String, Int]]
-  //  def saveLocusAllelesFromProfile(profile: Profile): Future[Either[String, Int]]
-  //  def refreshAllKis(): Future[Unit]
+  def saveLocusAllelesFromProfile(p: Profile): Future[Either[String, Int]]
+  def refreshAllKis(): Future[Unit]
 
 @Singleton
 class LocusServiceImpl @Inject()(
@@ -63,6 +64,13 @@ class LocusServiceImpl @Inject()(
 
   override def getLocusByAnalysisType(analysisType: Int): Future[Seq[String]] =
     locusRepository.getLocusByAnalysisType(analysisType).map(_.map(_.id))
+
+  // TODO: Implementar cuando MutationService tenga implementación real (legacy: LocusService.scala)
+  override def saveLocusAllelesFromProfile(profile: Profile): Future[Either[String, Int]] =
+    Future.successful(Right(0))
+
+  override def refreshAllKis(): Future[Unit] =
+    Future.successful(())
 
   override def locusRangeMap(): Future[Map[String, AleleRange]] =
     list().map { loci =>

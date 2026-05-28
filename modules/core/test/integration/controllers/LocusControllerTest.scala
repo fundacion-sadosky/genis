@@ -47,6 +47,12 @@ class LocusControllerTest extends PlaySpec with GuiceOneAppPerTest:
     override def locusRangeMap(): Future[Map[String, AleleRange]] =
       Future.successful(Map("LOCUS 1" -> AleleRange(BigDecimal(5), BigDecimal(30))))
 
+    override def saveLocusAllelesFromProfile(p: profile.Profile): Future[Either[String, Int]] =
+      Future.successful(Right(0))
+
+    override def refreshAllKis(): Future[Unit] =
+      Future.successful(())
+
   private val stubStrKitService: StrKitService = new StrKitService:
     override def get(id: String) = Future.successful(None)
     override def getFull(id: String) = Future.successful(None)
