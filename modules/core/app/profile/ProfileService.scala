@@ -218,7 +218,7 @@ class ProfileServiceImpl @Inject()(
 
   def getRequiredLocusInAnalysis(analysis: Profile.Genotypification, fullLocusList: Seq[Locus]): Int = {
     analysis.filter(x => x._2.nonEmpty)
-      .filterKeys(ma => fullLocusList.find(fullLocus => fullLocus.id == ma.toString).map(as => as.required).getOrElse(true))
+      .view.filterKeys(ma => fullLocusList.find(fullLocus => fullLocus.id == ma.toString).map(as => as.required).getOrElse(true))
       .size
   }
 
@@ -436,7 +436,7 @@ class ProfileServiceImpl @Inject()(
             analysisValidation <- validateAnalysis(genotypificationToValidate, profileData.category, newAnalysis.kit, contributors, newAnalysis.`type`, at)
           } yield {
             if (matchesValidation.isLeft) {
-              throw new RuntimeException(matchesValidation.left.get)
+              throw new RuntimeException(matchesValidation.swap.getOrElse(""))
             }
             (labels, analysisValidation, contributors)
           }
@@ -447,10 +447,10 @@ class ProfileServiceImpl @Inject()(
               val invalid = mergeResult.flatMap(_._2).filter(_._2.isLeft)
 
               val result: Future[Either[List[String], Profile]] = if (validation.isLeft) {
-                Future.successful(Left(validation.left.get))
+                Future.successful(Left(validation.swap.getOrElse(List.empty[String])))
               } else if (invalid.nonEmpty) {
                 val errors = invalid.map { case (marker, error) =>
-                  Messages("error.E0686", marker, error.left.get)
+                  Messages("error.E0686", marker, error.swap.getOrElse(""))
                 }.toList
                 Future.successful(Left(errors))
               } else {

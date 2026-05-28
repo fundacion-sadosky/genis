@@ -1,0 +1,1130 @@
+var jsRoutes = {};
+(function(_root) {
+  'use strict';
+
+  var _wA = function(r) {
+    return {
+      ajax: function(c) { c.url = r.url; c.type = r.method; return jQuery.ajax(c); },
+      absoluteURL: function(secure) {
+        return window.location.protocol + '//' + window.location.host + r.url;
+      },
+      webSocketURL: function(secure) {
+        return (secure === true || (secure && secure.secure) ? 'wss' : 'ws') + '://' + window.location.host + r.url;
+      },
+      method: r.method,
+      type: r.method,
+      url: r.url,
+      toString: function() { return r.url; }
+    };
+  };
+
+  var _nS = function(path) {
+    var parts = path.split('.');
+    var obj = _root;
+    for (var i = 0; i < parts.length; i++) {
+      obj = obj[parts[i]] = obj[parts[i]] || {};
+    }
+  };
+
+  var _enc = function(v) { return encodeURIComponent(v); };
+  var _qS = function(params) {
+    var qs = '';
+    for (var i = 0; i < params.length; i++) {
+      if (params[i]) qs += (qs.length ? '&' : '') + params[i];
+    }
+    return qs ? ('?' + qs) : '';
+  };
+
+  // -------------------------------------------------------------------------
+  // Authentication
+  // -------------------------------------------------------------------------
+  _nS('controllers.Authentication');
+  _root.controllers.Authentication.login = function() {
+    return _wA({method: 'POST', url: '/api/v2/login'});
+  };
+
+  // -------------------------------------------------------------------------
+  // Disclaimer
+  // -------------------------------------------------------------------------
+  _nS('controllers.DisclaimerController');
+  _root.controllers.DisclaimerController.getDisclaimer = function() {
+    return _wA({method: 'GET', url: '/api/v2/disclaimer'});
+  };
+
+  // -------------------------------------------------------------------------
+  // Users / signup / clear-password
+  // -------------------------------------------------------------------------
+  _nS('controllers.Users');
+  _root.controllers.Users.signupRequest = function() {
+    return _wA({method: 'POST', url: '/api/v2/user/signup'});
+  };
+  _root.controllers.Users.signupConfirmation = function() {
+    return _wA({method: 'PUT', url: '/api/v2/user/signup'});
+  };
+  _root.controllers.Users.clearPassRequest = function() {
+    return _wA({method: 'POST', url: '/api/v2/user/clear-password'});
+  };
+  _root.controllers.Users.clearPassConfirmation = function() {
+    return _wA({method: 'PUT', url: '/api/v2/user/clear-password'});
+  };
+  _root.controllers.Users.listUsers = function() {
+    return _wA({method: 'GET', url: '/api/v2/users'});
+  };
+  _root.controllers.Users.setStatus = function(userId) {
+    return _wA({method: 'PUT', url: '/api/v2/users/' + _enc(userId) + '/status'});
+  };
+  _root.controllers.Users.updateUser = function() {
+    return _wA({method: 'PUT', url: '/api/v2/users'});
+  };
+
+  // -------------------------------------------------------------------------
+  // Roles
+  // -------------------------------------------------------------------------
+  _nS('controllers.Roles');
+  _root.controllers.Roles.getRoles = function() {
+    return _wA({method: 'GET', url: '/api/v2/roles'});
+  };
+  _root.controllers.Roles.getRolesForSignUp = function() {
+    return _wA({method: 'GET', url: '/api/v2/rolesForSU'});
+  };
+  _root.controllers.Roles.listPermissions = function() {
+    return _wA({method: 'GET', url: '/api/v2/roles/permissions'});
+  };
+  _root.controllers.Roles.listFullPermissions = function() {
+    return _wA({method: 'GET', url: '/api/v2/roles/permissions/full'});
+  };
+  _root.controllers.Roles.listOperations = function() {
+    return _wA({method: 'GET', url: '/api/v2/roles/operations'});
+  };
+  _root.controllers.Roles.addRole = function() {
+    return _wA({method: 'POST', url: '/api/v2/roles'});
+  };
+  _root.controllers.Roles.updateRole = function() {
+    return _wA({method: 'PUT', url: '/api/v2/roles'});
+  };
+  _root.controllers.Roles.deleteRole = function(id) {
+    return _wA({method: 'DELETE', url: '/api/v2/roles/' + _enc(id)});
+  };
+  _root.controllers.Roles.exportRoles = function() {
+    return _wA({method: 'GET', url: '/api/v2/roles/export'});
+  };
+  _root.controllers.Roles.importRoles = function() {
+    return _wA({method: 'POST', url: '/api/v2/roles/import'});
+  };
+
+  // -------------------------------------------------------------------------
+  // Laboratories
+  // -------------------------------------------------------------------------
+  _nS('controllers.Laboratories');
+  _root.controllers.Laboratories.list = function() {
+    return _wA({method: 'GET', url: '/api/v2/laboratory'});
+  };
+  _root.controllers.Laboratories.listDescriptive = function() {
+    return _wA({method: 'GET', url: '/laboratory/descriptive'});
+  };
+  _root.controllers.Laboratories.listCountries = function() {
+    return _wA({method: 'GET', url: '/api/v2/country'});
+  };
+  _root.controllers.Laboratories.listProvinces = function(country) {
+    return _wA({method: 'GET', url: '/api/v2/provinces/' + _enc(country)});
+  };
+  _root.controllers.Laboratories.addLab = function() {
+    return _wA({method: 'POST', url: '/api/v2/laboratory'});
+  };
+  _root.controllers.Laboratories.getLaboratory = function(code) {
+    return _wA({method: 'GET', url: '/api/v2/laboratory/' + _enc(code)});
+  };
+  _root.controllers.Laboratories.updateLab = function() {
+    return _wA({method: 'PUT', url: '/api/v2/laboratory'});
+  };
+
+  // -------------------------------------------------------------------------
+  // Geneticists
+  // -------------------------------------------------------------------------
+  _nS('controllers.Geneticists');
+  _root.controllers.Geneticists.allGeneticist = function(lab) {
+    return _wA({method: 'GET', url: '/api/v2/geneticist/' + _enc(lab)});
+  };
+  _root.controllers.Geneticists.addGeneticist = function() {
+    return _wA({method: 'POST', url: '/api/v2/geneticist'});
+  };
+  _root.controllers.Geneticists.getGeneticist = function(geneticistId) {
+    return _wA({method: 'GET', url: '/api/v2/geneticist' + _qS(['geneticistId=' + _enc(geneticistId)])});
+  };
+  _root.controllers.Geneticists.getGeneticistUsers = function() {
+    return _wA({method: 'GET', url: '/api/v2/geneticist-users'});
+  };
+  _root.controllers.Geneticists.updateGeneticist = function() {
+    return _wA({method: 'PUT', url: '/api/v2/geneticist'});
+  };
+
+  // -------------------------------------------------------------------------
+  // Categories
+  // -------------------------------------------------------------------------
+  _nS('controllers.Categories');
+  _root.controllers.Categories.categoryTree = function() {
+    return _wA({method: 'GET', url: '/api/v2/categories'});
+  };
+  _root.controllers.Categories.list = function() {
+    return _wA({method: 'GET', url: '/api/v2/categories/full'});
+  };
+  _root.controllers.Categories.listWithProfiles = function() {
+    return _wA({method: 'GET', url: '/api/v2/categories/withProfiles'});
+  };
+  _root.controllers.Categories.categoryTreeManualLoading = function() {
+    return _wA({method: 'GET', url: '/api/v2/categories/manualLoading'});
+  };
+  _root.controllers.Categories.getCategoryTreeCombo = function() {
+    return _wA({method: 'GET', url: '/api/v2/categories/combo'});
+  };
+  _root.controllers.Categories.addCategory = function() {
+    return _wA({method: 'POST', url: '/api/v2/categories'});
+  };
+  _root.controllers.Categories.updateCategory = function(catId) {
+    return _wA({method: 'PUT', url: '/api/v2/categories/' + _enc(catId)});
+  };
+  _root.controllers.Categories.updateFullCategory = function(catId) {
+    return _wA({method: 'PUT', url: '/api/v2/categories/full/' + _enc(catId)});
+  };
+  _root.controllers.Categories.removeCategory = function(catId) {
+    return _wA({method: 'DELETE', url: '/api/v2/categories/' + _enc(catId)});
+  };
+  _root.controllers.Categories.registerCategoryModification = function(from, to) {
+    return _wA({method: 'POST', url: '/api/v2/categoryModifications/' + _enc(from) + '/' + _enc(to)});
+  };
+  _root.controllers.Categories.unregisterCategoryModification = function(from, to) {
+    return _wA({method: 'DELETE', url: '/api/v2/categoryModifications/' + _enc(from) + '/' + _enc(to)});
+  };
+  _root.controllers.Categories.getCategoryModifications = function(catId) {
+    return _wA({method: 'GET', url: '/api/v2/categoryModifications/' + _enc(catId)});
+  };
+  _root.controllers.Categories.allCategoryModifications = function() {
+    return _wA({method: 'GET', url: '/api/v2/categoryModifications'});
+  };
+  _root.controllers.Categories.exportModifications = function() {
+    return _wA({method: 'GET', url: '/api/v2/export/categoryModifications'});
+  };
+  _root.controllers.Categories.exportCategories = function() {
+    return _wA({method: 'GET', url: '/api/v2/export/categories'});
+  };
+  _root.controllers.Categories.importGroupsAndCategories = function() {
+    return _wA({method: 'POST', url: '/api/v2/import/categories'});
+  };
+  _root.controllers.Categories.listCategoriesMapping = function() {
+    return _wA({method: 'GET', url: '/api/v2/categoryMappings'});
+  };
+  _root.controllers.Categories.insertOrUpdateCategoriesMapping = function() {
+    return _wA({method: 'POST', url: '/api/v2/categoryMappings'});
+  };
+  _root.controllers.Categories.exportMappings = function() {
+    return _wA({method: 'GET', url: '/api/v2/export/categoryMappings'});
+  };
+  _root.controllers.Categories.exportConfigurations = function() {
+    return _wA({method: 'GET', url: '/api/v2/export/categoryConfigurations'});
+  };
+  _root.controllers.Categories.exportAssociations = function() {
+    return _wA({method: 'GET', url: '/api/v2/export/categoryAssociations'});
+  };
+  _root.controllers.Categories.exportAlias = function() {
+    return _wA({method: 'GET', url: '/api/v2/export/categoryAlias'});
+  };
+  _root.controllers.Categories.exportMatchingRules = function() {
+    return _wA({method: 'GET', url: '/api/v2/export/categoryMatchingRules'});
+  };
+  _root.controllers.Categories.addGroup = function() {
+    return _wA({method: 'POST', url: '/api/v2/groups'});
+  };
+  _root.controllers.Categories.updateGroup = function(groupId) {
+    return _wA({method: 'PUT', url: '/api/v2/groups/' + _enc(groupId)});
+  };
+  _root.controllers.Categories.removeGroup = function(groupId) {
+    return _wA({method: 'DELETE', url: '/api/v2/groups/' + _enc(groupId)});
+  };
+  _root.controllers.Categories.exportGroups = function() {
+    return _wA({method: 'GET', url: '/api/v2/groups'});
+  };
+  _root.controllers.Categories.importGroups = function() {
+    return _wA({method: 'POST', url: '/api/v2/groups'});
+  };
+
+  // -------------------------------------------------------------------------
+  // Crime Types & Bio Material Types
+  // -------------------------------------------------------------------------
+  _nS('controllers.CrimeTypes');
+  _root.controllers.CrimeTypes.list = function() {
+    return _wA({method: 'GET', url: '/api/v2/crimeTypes'});
+  };
+
+  _nS('controllers.BioMaterialTypes');
+  _root.controllers.BioMaterialTypes.list = function() {
+    return _wA({method: 'GET', url: '/api/v2/bioMaterialTypes'});
+  };
+  _root.controllers.BioMaterialTypes.insert = function() {
+    return _wA({method: 'POST', url: '/api/v2/bioMaterialTypes'});
+  };
+  _root.controllers.BioMaterialTypes.update = function() {
+    return _wA({method: 'PUT', url: '/api/v2/bioMaterialTypes'});
+  };
+  _root.controllers.BioMaterialTypes.remove = function(bmtId) {
+    return _wA({method: 'DELETE', url: '/api/v2/bioMaterialTypes/' + _enc(bmtId)});
+  };
+
+  // -------------------------------------------------------------------------
+  // Population Base Frequency
+  // -------------------------------------------------------------------------
+  _nS('controllers.PopulationBaseFreq');
+  _root.controllers.PopulationBaseFreq.uploadPopulationFile = function() {
+    return _wA({method: 'POST', url: '/api/v2/populationBaseFreq'});
+  };
+  _root.controllers.PopulationBaseFreq.getAllBaseNames = function() {
+    return _wA({method: 'GET', url: '/api/v2/populationBaseFreq'});
+  };
+  _root.controllers.PopulationBaseFreq.insertFmin = function(id) {
+    return _wA({method: 'PUT', url: '/api/v2/populationBaseFreq-fmin/' + _enc(id)});
+  };
+  _root.controllers.PopulationBaseFreq.getByName = function(name) {
+    return _wA({method: 'GET', url: '/api/v2/populationBaseFreq/' + _enc(name)});
+  };
+  _root.controllers.PopulationBaseFreq.toggleStateBase = function(name) {
+    return _wA({method: 'PUT', url: '/api/v2/populationBaseFreq/' + _enc(name)});
+  };
+  _root.controllers.PopulationBaseFreq.setBaseAsDefault = function(name) {
+    return _wA({method: 'PUT', url: '/api/v2/populationBaseFreqDefault/' + _enc(name)});
+  };
+  _root.controllers.PopulationBaseFreq.getAllBasesCharacteristics = function() {
+    return _wA({method: 'GET', url: '/api/v2/populationBaseFreqCharacteristics'});
+  };
+
+  // -------------------------------------------------------------------------
+  // Operation Logs
+  // -------------------------------------------------------------------------
+  _nS('controllers.OperationLogs');
+  _root.controllers.OperationLogs.getLogLots = function(page, pageSize) {
+    return _wA({method: 'GET', url: '/api/v2/operationLog' + _qS(['page=' + page, 'pageSize=' + pageSize])});
+  };
+  _root.controllers.OperationLogs.searchLogs = function() {
+    return _wA({method: 'POST', url: '/api/v2/operationLogSearch'});
+  };
+  _root.controllers.OperationLogs.checkLogLot = function(id) {
+    return _wA({method: 'GET', url: '/api/v2/operationLog/' + id + '/verification'});
+  };
+  _root.controllers.OperationLogs.getTotalLots = function() {
+    return _wA({method: 'HEAD', url: '/api/v2/operationLog'});
+  };
+  _root.controllers.OperationLogs.getTotalLogs = function() {
+    return _wA({method: 'POST', url: '/api/v2/operationLogLot'});
+  };
+
+  // -------------------------------------------------------------------------
+  // ProfileData (legacy — no migrado aún, las rutas fallarán)
+  // -------------------------------------------------------------------------
+  _nS('controllers.ProfileData');
+  _root.controllers.ProfileData.countProfiles = function() {
+    return _wA({method: 'GET', url: '/profiledata/count'});
+  };
+  _root.controllers.ProfileData.get = function(id) {
+    return _wA({method: 'GET', url: '/profiledata/' + id});
+  };
+  _root.controllers.ProfileData.findByCode = function(globalCode) {
+    return _wA({method: 'GET', url: '/profiledata' + _qS(['globalCode=' + _enc(globalCode)])});
+  };
+  _root.controllers.ProfileData.create = function() {
+    return _wA({method: 'POST', url: '/profiledata'});
+  };
+  _root.controllers.ProfileData.removeProfile = function(globalCode) {
+    return _wA({method: 'DELETE', url: '/profiledata/' + _enc(globalCode)});
+  };
+  _root.controllers.ProfileData.getDeleteMotive = function(id) {
+    return _wA({method: 'GET', url: '/profiles-deleted/motive/' + _enc(id)});
+  };
+  _root.controllers.ProfileData.deleteProfile = function(id) {
+    return _wA({method: 'PUT', url: '/profiledata-deleted/' + _enc(id)});
+  };
+  _root.controllers.ProfileData.findByCodeWithAssociations = function(globalCode) {
+    return _wA({method: 'GET', url: '/profiledataWithAssociations' + _qS(['globalCode=' + _enc(globalCode)])});
+  };
+  _root.controllers.ProfileData.update = function(id) {
+    return _wA({method: 'PUT', url: '/profiledata/' + _enc(id) + '/'});
+  };
+  _root.controllers.ProfileData.modifyCategory = function(id, replicate, userName) {
+    return _wA({method: 'PUT', url: '/profiledata/modify-category/' + _enc(id) + '/' + _qS(['replicate=' + replicate, 'userName=' + _enc(userName)])});
+  };
+  _root.controllers.ProfileData.isReadOnly = function(globalCode) {
+    return _wA({method: 'GET', url: '/profiledata-readonly' + _qS(['globalCode=' + _enc(globalCode)])});
+  };
+  _root.controllers.ProfileData.getByCode = function(id) {
+    return _wA({method: 'GET', url: '/profiledata-complete/' + _enc(id)});
+  };
+  _root.controllers.ProfileData.isEditable = function(id) {
+    return _wA({method: 'GET', url: '/profiledata-editable/' + _enc(id)});
+  };
+  _root.controllers.ProfileData.findByCodes = function(globalCode) {
+    return _wA({method: 'GET', url: '/profilesdata' + _qS(['globalCode=' + _enc(globalCode)])});
+  };
+  _root.controllers.ProfileData.getDesktopProfiles = function() {
+    return _wA({method: 'GET', url: '/profiledata-desktop'});
+  };
+  _root.controllers.ProfileData.getIsProfileReplicatedInternalCode = function(internalCode) {
+    return _wA({method: 'GET', url: '/profileData/isProfileReplicated/' + _enc(internalCode)});
+  };
+  _root.controllers.ProfileData.getResources = function(type, id) {
+    return _wA({method: 'GET', url: '/resources/static/' + _enc(type) + '/' + id});
+  };
+
+  // -------------------------------------------------------------------------
+  // Profiles
+  // -------------------------------------------------------------------------
+  _nS('controllers.Profiles');
+  _root.controllers.Profiles.findByCode = function(id) {
+    return _wA({method: 'GET', url: '/api/v2/profiles/' + _enc(id)});
+  };
+  _root.controllers.Profiles.getFullProfile = function(globalCode) {
+    return _wA({method: 'GET', url: '/api/v2/profiles/full/' + _enc(globalCode)});
+  };
+  _root.controllers.Profiles.findByCodes = function(globalCodes) {
+    return _wA({method: 'GET', url: '/api/v2/profiles' + _qS(['globalCodes=' + _enc(globalCodes)])});
+  };
+  _root.controllers.Profiles.create = function() {
+    return _wA({method: 'POST', url: '/api/v2/profiles'});
+  };
+  _root.controllers.Profiles.storeUploadedAnalysis = function(id) {
+    return _wA({method: 'POST', url: '/api/v2/profiles-xxx/' + _enc(id)});
+  };
+  _root.controllers.Profiles.saveLabels = function() {
+    return _wA({method: 'POST', url: '/api/v2/profiles-labels'});
+  };
+  _root.controllers.Profiles.getElectropherogramsByCode = function(profileId) {
+    return _wA({method: 'GET', url: '/api/v2/profiles/' + _enc(profileId) + '/epgs'});
+  };
+  _root.controllers.Profiles.getElectropherogramsByAnalysisId = function(profileId, analysisId) {
+    return _wA({method: 'GET', url: '/api/v2/profiles/' + _enc(profileId) + '/analysis/' + _enc(analysisId) + '/epgs'});
+  };
+  _root.controllers.Profiles.getElectropherogramImage = function(profileId, epgId) {
+    return _wA({method: 'GET', url: '/api/v2/profiles/' + _enc(profileId) + '/epg/' + _enc(epgId)});
+  };
+  _root.controllers.Profiles.verifyMixtureAssociation = function() {
+    return _wA({method: 'POST', url: '/api/v2/profiles-mixture-verification'});
+  };
+  _root.controllers.Profiles.findSubcategoryRelationships = function(subcategoryId) {
+    return _wA({method: 'GET', url: '/api/v2/profiles/subcategory-relationships/' + _enc(subcategoryId)});
+  };
+  _root.controllers.Profiles.addElectropherograms = function(token, globalCode, idAnalysis, name) {
+    return _wA({method: 'POST', url: '/api/v2/profiles-epg' + _qS(['token=' + _enc(token), 'globalCode=' + _enc(globalCode), 'idAnalysis=' + _enc(idAnalysis), 'name=' + _enc(name)])});
+  };
+  _root.controllers.Profiles.getLabels = function(globalCode) {
+    return _wA({method: 'GET', url: '/api/v2/profiles-labels' + _qS(['globalCode=' + _enc(globalCode)])});
+  };
+  _root.controllers.Profiles.getLabelsSets = function() {
+    return _wA({method: 'GET', url: '/api/v2/profiles-labelsets'});
+  };
+  _root.controllers.Profiles.getFilesByCode = function(profileId) {
+    return _wA({method: 'GET', url: '/api/v2/profiles/' + _enc(profileId) + '/file'});
+  };
+  _root.controllers.Profiles.getFilesByAnalysisId = function(profileId, analysisId) {
+    return _wA({method: 'GET', url: '/api/v2/profiles/' + _enc(profileId) + '/analysis/' + _enc(analysisId) + '/file'});
+  };
+  _root.controllers.Profiles.getFile = function(profileId, fileId) {
+    return _wA({method: 'GET', url: '/api/v2/profiles/' + _enc(profileId) + '/file/' + _enc(fileId)});
+  };
+  _root.controllers.Profiles.addFiles = function(token, globalCode, idAnalysis, name) {
+    return _wA({method: 'POST', url: '/api/v2/profiles-file' + _qS(['token=' + _enc(token), 'globalCode=' + _enc(globalCode), 'idAnalysis=' + _enc(idAnalysis), 'name=' + _enc(name)])});
+  };
+  _root.controllers.Profiles.removeFile = function(fileId) {
+    return _wA({method: 'DELETE', url: '/api/v2/profiles-file/file/' + _enc(fileId)});
+  };
+  _root.controllers.Profiles.removeEpg = function(fileId) {
+    return _wA({method: 'DELETE', url: '/api/v2/profiles-file/epg/' + _enc(fileId)});
+  };
+  _root.controllers.Profiles.isReadOnly = function(globalCode) {
+    return _wA({method: 'GET', url: '/api/v2/profiles-readOnly' + _qS(['globalCode=' + _enc(globalCode)])});
+  };
+  _root.controllers.Profiles.exporterProfiles = function() {
+    return _wA({method: 'POST', url: '/api/v2/profile-export'});
+  };
+  _root.controllers.Profiles.exporterLimsFiles = function() {
+    return _wA({method: 'POST', url: '/api/v2/profile-exportToLims'});
+  };
+  _root.controllers.Profiles.getExportFile = function(user) {
+    return _wA({method: 'GET', url: '/api/v2/get-profile-export/' + _enc(user)});
+  };
+  _root.controllers.Profiles.getLimsAltaFile = function() {
+    return _wA({method: 'GET', url: '/api/v2/get-alta-file-export'});
+  };
+  _root.controllers.Profiles.getLimsMatchFile = function() {
+    return _wA({method: 'GET', url: '/api/v2/get-match-file-export'});
+  };
+  _root.controllers.Profiles.removeProfile = function(profileId) {
+    return _wA({method: 'DELETE', url: '/api/v2/profiles/' + _enc(profileId)});
+  };
+
+  // -------------------------------------------------------------------------
+  // BulkUpload (legacy — no migrado aún)
+  // -------------------------------------------------------------------------
+  _nS('controllers.BulkUpload');
+  _root.controllers.BulkUpload.uploadProtoProfiles = function(label, analysisType) {
+    return _wA({method: 'POST', url: '/bulkuploader' + _qS([label ? 'label=' + _enc(label) : '', 'analysisType=' + _enc(analysisType)])});
+  };
+  _root.controllers.BulkUpload.getProtoProfilesStep1 = function(batchId, page, pageSize) {
+    return _wA({method: 'GET', url: '/bulkupload/step1/protoprofiles' + _qS(['batchId=' + batchId, 'page=' + page, 'pageSize=' + pageSize])});
+  };
+  _root.controllers.BulkUpload.getProtoProfilesStep2 = function(geneMapperId, batchId, page, pageSize) {
+    return _wA({method: 'GET', url: '/bulkupload/step2/protoprofiles' + _qS(['geneMapperId=' + _enc(geneMapperId), 'batchId=' + batchId, 'page=' + page, 'pageSize=' + pageSize])});
+  };
+  _root.controllers.BulkUpload.getBatchesStep1 = function(page, pageSize) {
+    return _wA({method: 'GET', url: '/bulkupload/step1/batches' + _qS(['page=' + page, 'pageSize=' + pageSize])});
+  };
+  _root.controllers.BulkUpload.countBatchesStep1 = function() {
+    return _wA({method: 'GET', url: '/bulkupload/step1/count'});
+  };
+  _root.controllers.BulkUpload.getBatchesStep2 = function(geneMapperId, page, pageSize) {
+    return _wA({method: 'GET', url: '/bulkupload/step2/batches' + _qS(['geneMapperId=' + _enc(geneMapperId), 'page=' + page, 'pageSize=' + pageSize])});
+  };
+  _root.controllers.BulkUpload.countBatchesStep2 = function(geneMapperId) {
+    return _wA({method: 'GET', url: '/bulkupload/step2/count' + _qS(['geneMapperId=' + _enc(geneMapperId)])});
+  };
+  _root.controllers.BulkUpload.updateProtoProfileStatus = function(id, status, replicate, desktopSearch) {
+    return _wA({method: 'POST', url: '/protoprofiles/' + id + '/status' + _qS(['status=' + _enc(status), 'replicate=' + replicate, 'desktopSearch=' + desktopSearch])});
+  };
+  _root.controllers.BulkUpload.updateBatchStatus = function(idBatch, status, replicateAll) {
+    return _wA({method: 'POST', url: '/protoprofiles/multiple-status' + _qS(['idBatch=' + idBatch, 'status=' + _enc(status), 'replicateAll=' + replicateAll])});
+  };
+  _root.controllers.BulkUpload.getProtoProfileById = function(id) {
+    return _wA({method: 'GET', url: '/bulkupload/protoprofiles/' + id});
+  };
+  _root.controllers.BulkUpload.countAllProtoProfilesInBatch = function(batchId) {
+    return _wA({method: 'GET', url: '/bulkupload/step2/batch/' + batchId + '/count'});
+  };
+  _root.controllers.BulkUpload.updateProtoProfileData = function(id, category) {
+    return _wA({method: 'POST', url: '/protoprofiles/' + id + '/subcategory' + _qS(['category=' + _enc(category)])});
+  };
+  _root.controllers.BulkUpload.updateProtoProfileRulesMismatch = function() {
+    return _wA({method: 'POST', url: '/protoprofiles/matchingrules'});
+  };
+  _root.controllers.BulkUpload.rejectProtoProfile = function(id, motive, idMotive) {
+    return _wA({method: 'POST', url: '/protoprofiles-reject/' + id + _qS(['motive=' + _enc(motive), 'idMotive=' + idMotive])});
+  };
+  _root.controllers.BulkUpload.deleteBatch = function(id) {
+    return _wA({method: 'DELETE', url: '/bulkupload/' + id});
+  };
+  _root.controllers.BulkUpload.searchBatch = function(filter) {
+    return _wA({method: 'GET', url: '/bulkupload/batches' + _qS(['filter=' + _enc(filter)])});
+  };
+  _root.controllers.BulkUpload.getBatchSearchModalViewByIdOrLabel = function(input, idCase) {
+    return _wA({method: 'GET', url: '/batch-modal' + _qS(['input=' + _enc(input), 'idCase=' + idCase])});
+  };
+
+  // -------------------------------------------------------------------------
+  // ProtoProfileData (legacy — no migrado aún)
+  // -------------------------------------------------------------------------
+  _nS('controllers.ProtoProfileData');
+  _root.controllers.ProtoProfileData.getByCode = function(id) {
+    return _wA({method: 'GET', url: '/protoprofiledata-complete/' + _enc(id)});
+  };
+  _root.controllers.ProtoProfileData.create = function() {
+    return _wA({method: 'POST', url: '/protoprofiledata'});
+  };
+  _root.controllers.ProtoProfileData.update = function(id) {
+    return _wA({method: 'PUT', url: '/protoprofiledata/' + _enc(id)});
+  };
+  _root.controllers.ProtoProfileData.isEditable = function(id) {
+    return _wA({method: 'GET', url: '/protoprofiledata-editable/' + _enc(id)});
+  };
+  _root.controllers.ProtoProfileData.getResources = function(type, id) {
+    return _wA({method: 'GET', url: '/resources/proto/static/' + _enc(type) + '/' + id});
+  };
+
+  // -------------------------------------------------------------------------
+  // Search (legacy — no migrado aún)
+  // -------------------------------------------------------------------------
+  _nS('controllers.SearchProfileDatas');
+  _root.controllers.SearchProfileDatas.search = function() {
+    return _wA({method: 'POST', url: '/search/profileData/search'});
+  };
+  _root.controllers.SearchProfileDatas.searchTotal = function() {
+    return _wA({method: 'POST', url: '/search/profileData/searchTotal'});
+  };
+  _root.controllers.SearchProfileDatas.searchProfilesAssociable = function(input, category) {
+    return _wA({method: 'GET', url: '/search/profileData/' + _enc(category) + _qS(['input=' + _enc(input)])});
+  };
+  _root.controllers.SearchProfileDatas.searchProfilesForPedigree = function(input) {
+    return _wA({method: 'GET', url: '/search/profileDataForPedigree' + _qS(['input=' + _enc(input)])});
+  };
+
+  // -------------------------------------------------------------------------
+  // Matching (legacy — no migrado aún)
+  // -------------------------------------------------------------------------
+  _nS('controllers.Matching');
+  _root.controllers.Matching.findMatchesByCode = function(globalCode) {
+    return _wA({method: 'GET', url: '/matching' + _qS(['globalCode=' + _enc(globalCode)])});
+  };
+  _root.controllers.Matching.getMatches = function() {
+    return _wA({method: 'POST', url: '/user-matches'});
+  };
+  _root.controllers.Matching.getTotalMatches = function() {
+    return _wA({method: 'POST', url: '/user-total-matches'});
+  };
+  _root.controllers.Matching.getMatchesByGroup = function() {
+    return _wA({method: 'POST', url: '/user-matches-group'});
+  };
+  _root.controllers.Matching.getTotalMatchesByGroup = function() {
+    return _wA({method: 'POST', url: '/user-total-matches-group'});
+  };
+  _root.controllers.Matching.getComparedMixtureGene = function(globalCodes, matchId, isCollapsing, isScreening) {
+    return _wA({method: 'GET', url: '/mixture/compare' + _qS(['globalCodes=' + _enc(globalCodes), 'matchId=' + _enc(matchId), isCollapsing != null ? 'isCollapsing=' + isCollapsing : '', isScreening != null ? 'isScreening=' + isScreening : ''])});
+  };
+  _root.controllers.Matching.convertHit = function(matchingId, firingCode, userName) {
+    return _wA({method: 'POST', url: '/convertHit' + _qS(['matchingId=' + _enc(matchingId), 'firingCode=' + _enc(firingCode), 'userName=' + _enc(userName)])});
+  };
+  _root.controllers.Matching.convertDiscard = function(matchId, firingCode, userName) {
+    return _wA({method: 'POST', url: '/convertDiscard' + _qS(['matchId=' + _enc(matchId), 'firingCode=' + _enc(firingCode), 'userName=' + _enc(userName)])});
+  };
+  _root.controllers.Matching.uploadStatus = function(matchId, firingCode, userName) {
+    return _wA({method: 'POST', url: '/uploadStatus' + _qS(['matchId=' + _enc(matchId), 'firingCode=' + _enc(firingCode), 'userName=' + _enc(userName)])});
+  };
+  _root.controllers.Matching.canUploadMatchStatus = function(matchId) {
+    return _wA({method: 'GET', url: '/canUploadMatchStatus' + _qS(['matchId=' + _enc(matchId)])});
+  };
+  _root.controllers.Matching.getByMatchedProfileId = function(matchingId, isPedigreeMatch, isCollapsing, isScreening) {
+    return _wA({method: 'GET', url: '/getByMatchedProfileId' + _qS(['matchingId=' + _enc(matchingId), 'isPedigreeMatch=' + isPedigreeMatch, isCollapsing != null ? 'isCollapsing=' + isCollapsing : '', isScreening != null ? 'isScreening=' + isScreening : ''])});
+  };
+  _root.controllers.Matching.getLR = function() {
+    return _wA({method: 'POST', url: '/lr'});
+  };
+  _root.controllers.Matching.deleteByLeftProfile = function(globalCode, courtCaseId) {
+    return _wA({method: 'DELETE', url: '/collapsing/partial' + _qS(['globalCode=' + _enc(globalCode), 'courtCaseId=' + courtCaseId])});
+  };
+  _root.controllers.Matching.masiveDiscardByGlobalCode = function(firingCode, userName) {
+    return _wA({method: 'POST', url: '/masiveDiscardByGlobalCode' + _qS(['firingCode=' + _enc(firingCode), 'userName=' + _enc(userName)])});
+  };
+  _root.controllers.Matching.masiveDiscardByMatchesList = function(firingCode, matches, userName) {
+    return _wA({method: 'POST', url: '/masiveDiscardByMatchesList' + _qS(['firingCode=' + _enc(firingCode), 'matches=' + _enc(matches), 'userName=' + _enc(userName)])});
+  };
+  _root.controllers.Matching.searchMatchesProfile = function(globalCode) {
+    return _wA({method: 'GET', url: '/matching-profile' + _qS(['globalCode=' + _enc(globalCode)])});
+  };
+
+  // -------------------------------------------------------------------------
+  // Notifications
+  // -------------------------------------------------------------------------
+  _nS('controllers.Notifications');
+  _root.controllers.Notifications.getMatchNotifications = function() {
+    return _wA({method: 'GET', url: '/api/v2/match-notifications'});
+  };
+  _root.controllers.Notifications.getNotifications = function() {
+    return _wA({method: 'GET', url: '/api/v2/notifications'});
+  };
+  _root.controllers.Notifications.search = function() {
+    return _wA({method: 'POST', url: '/api/v2/notifications/search'});
+  };
+  _root.controllers.Notifications.count = function() {
+    return _wA({method: 'POST', url: '/api/v2/notifications/total'});
+  };
+  _root.controllers.Notifications.delete = function(id) {
+    return _wA({method: 'DELETE', url: '/api/v2/notifications/' + id});
+  };
+  _root.controllers.Notifications.changeFlag = function(id, flag) {
+    return _wA({method: 'POST', url: '/api/v2/notifications/flag/' + id + _qS(['flag=' + flag])});
+  };
+  _root.controllers.Notifications.changePending = function(id, pending) {
+    return _wA({method: 'POST', url: '/api/v2/notifications/' + id + '/pending' + _qS(['pending=' + pending])});
+  };
+
+  // -------------------------------------------------------------------------
+  // Scenarios (legacy — no migrado aún)
+  // -------------------------------------------------------------------------
+  _nS('controllers.Scenarios');
+  _root.controllers.Scenarios.getDefaultScenario = function(firingProfile, matchingProfile) {
+    return _wA({method: 'POST', url: '/default-scenario' + _qS(['firingProfile=' + _enc(firingProfile), 'matchingProfile=' + _enc(matchingProfile)])});
+  };
+  _root.controllers.Scenarios.calculateLRMix = function() {
+    return _wA({method: 'POST', url: '/lr-mix'});
+  };
+  _root.controllers.Scenarios.findMatches = function(scenarioId, firingCode, matchingCode) {
+    return _wA({method: 'GET', url: '/matchesForScenario' + _qS([scenarioId ? 'scenarioId=' + _enc(scenarioId) : '', firingCode ? 'firingCode=' + _enc(firingCode) : '', matchingCode ? 'matchingCode=' + _enc(matchingCode) : ''])});
+  };
+  _root.controllers.Scenarios.create = function() {
+    return _wA({method: 'POST', url: '/scenarios/create'});
+  };
+  _root.controllers.Scenarios.search = function() {
+    return _wA({method: 'POST', url: '/scenarios/search'});
+  };
+  _root.controllers.Scenarios.validate = function() {
+    return _wA({method: 'POST', url: '/scenarios/validate'});
+  };
+  _root.controllers.Scenarios.update = function() {
+    return _wA({method: 'POST', url: '/scenarios/update'});
+  };
+  _root.controllers.Scenarios.delete = function() {
+    return _wA({method: 'PUT', url: '/scenarios/delete'});
+  };
+  _root.controllers.Scenarios.get = function() {
+    return _wA({method: 'PUT', url: '/scenarios/get'});
+  };
+  _root.controllers.Scenarios.getNCorrection = function() {
+    return _wA({method: 'POST', url: '/scenarios/ncorrection'});
+  };
+
+  // -------------------------------------------------------------------------
+  // Pedigrees (legacy — no migrado aún)
+  // -------------------------------------------------------------------------
+  _nS('controllers.Pedigrees');
+  _root.controllers.Pedigrees.getCourtCases = function() {
+    return _wA({method: 'POST', url: '/pedigree/court-cases'});
+  };
+  _root.controllers.Pedigrees.getTotalCourtCases = function() {
+    return _wA({method: 'POST', url: '/pedigree/total-court-cases'});
+  };
+  _root.controllers.Pedigrees.createCourtCase = function() {
+    return _wA({method: 'POST', url: '/pedigree/create-court-cases'});
+  };
+  _root.controllers.Pedigrees.updateCourtCase = function(courtCaseId) {
+    return _wA({method: 'PUT', url: '/pedigree/court-cases/' + courtCaseId});
+  };
+  _root.controllers.Pedigrees.createGenogram = function() {
+    return _wA({method: 'POST', url: '/pedigree/create-genogram'});
+  };
+  _root.controllers.Pedigrees.getPedigree = function(pedigreeId) {
+    return _wA({method: 'GET', url: '/pedigree/genogram/' + pedigreeId});
+  };
+  _root.controllers.Pedigrees.getCourtCaseFull = function(courtCaseId) {
+    return _wA({method: 'GET', url: '/pedigree/full/' + courtCaseId});
+  };
+  _root.controllers.Pedigrees.getByCourtCase = function(courtCaseId) {
+    return _wA({method: 'GET', url: '/pedigree/by/' + courtCaseId});
+  };
+  _root.controllers.Pedigrees.filterProfilesForPedigree = function(input, idCase, tab, tipo, page, pageSize) {
+    return _wA({method: 'GET', url: '/filter/profileDataForPedigree' + _qS(['input=' + _enc(input), 'idCase=' + idCase, 'tab=' + tab, 'tipo=' + tipo, 'page=' + page, 'pageSize=' + pageSize])});
+  };
+  _root.controllers.Pedigrees.countProfilesForPedigree = function(input, idCase, tab, tipo) {
+    return _wA({method: 'GET', url: '/filter/profileDataForPedigree/count' + _qS(['input=' + _enc(input), 'idCase=' + idCase, 'tab=' + tab, 'tipo=' + tipo])});
+  };
+  _root.controllers.Pedigrees.changePedigreeStatus = function(id, status) {
+    return _wA({method: 'POST', url: '/pedigree/status' + _qS(['id=' + id, 'status=' + _enc(status)])});
+  };
+  _root.controllers.Pedigrees.changeCourtCaseStatus = function(id, status, closeProfiles) {
+    return _wA({method: 'POST', url: '/pedigree/courtCaseStatus' + _qS(['id=' + id, 'status=' + _enc(status), 'closeProfiles=' + closeProfiles])});
+  };
+  _root.controllers.Pedigrees.findMatches = function() {
+    return _wA({method: 'POST', url: '/pedigreeMatches/search'});
+  };
+  _root.controllers.Pedigrees.countMatches = function() {
+    return _wA({method: 'POST', url: '/pedigreeMatches/count'});
+  };
+  _root.controllers.Pedigrees.getMatchesByGroup = function() {
+    return _wA({method: 'POST', url: '/pedigreeMatches/groups/search'});
+  };
+  _root.controllers.Pedigrees.countMatchesByGroup = function() {
+    return _wA({method: 'POST', url: '/pedigreeMatches/groups/count'});
+  };
+  _root.controllers.Pedigrees.exportMatchesByGroup = function() {
+    return _wA({method: 'POST', url: '/pedigreeMatches/groups/export'});
+  };
+  _root.controllers.Pedigrees.getMatchesExportFile = function() {
+    return _wA({method: 'GET', url: '/get-pedigreeMatches-export'});
+  };
+  _root.controllers.Pedigrees.masiveDiscardByGroup = function(id, group) {
+    return _wA({method: 'POST', url: '/pedigreeMatches/masiveDiscardByGroup' + _qS(['id=' + _enc(id), 'group=' + _enc(group)])});
+  };
+  _root.controllers.Pedigrees.canEdit = function(id) {
+    return _wA({method: 'GET', url: '/pedigree/editable/' + id});
+  };
+  _root.controllers.Pedigrees.canDelete = function(id) {
+    return _wA({method: 'GET', url: '/pedigree/deleteable/' + id});
+  };
+  _root.controllers.Pedigrees.createScenario = function() {
+    return _wA({method: 'POST', url: '/pedigree/scenario'});
+  };
+  _root.controllers.Pedigrees.updateScenario = function() {
+    return _wA({method: 'PUT', url: '/pedigree/scenario'});
+  };
+  _root.controllers.Pedigrees.getScenarios = function(pedigreeId) {
+    return _wA({method: 'GET', url: '/pedigree/scenarios/' + pedigreeId});
+  };
+  _root.controllers.Pedigrees.getScenario = function(scenarioId) {
+    return _wA({method: 'GET', url: '/pedigree/scenario/' + _enc(scenarioId)});
+  };
+  _root.controllers.Pedigrees.changeScenarioStatus = function(status) {
+    return _wA({method: 'POST', url: '/pedigree/scenario-status' + _qS(['status=' + _enc(status)])});
+  };
+  _root.controllers.Pedigrees.confirmEscenarioScenario = function(status, pedrigreeActivo) {
+    return _wA({method: 'POST', url: '/pedigree/scenario-validate' + _qS(['status=' + _enc(status), 'pedrigreeActivo=' + pedrigreeActivo])});
+  };
+  _root.controllers.Pedigrees.discard = function(matchId) {
+    return _wA({method: 'POST', url: '/pedigree/discard' + _qS(['matchId=' + _enc(matchId)])});
+  };
+  _root.controllers.Pedigrees.getLR = function() {
+    return _wA({method: 'POST', url: '/pedigree/lr'});
+  };
+  _root.controllers.Pedigrees.getCaseTypes = function() {
+    return _wA({method: 'GET', url: '/pedigree/caseTypes'});
+  };
+  _root.controllers.Pedigrees.getProfiles = function(id, pageSize, page, input, isReference, statusProfile) {
+    return _wA({method: 'GET', url: '/court-case-profiles' + _qS(['id=' + id, 'pageSize=' + pageSize, 'page=' + page, input ? 'input=' + _enc(input) : '', 'isReference=' + isReference, statusProfile ? 'statusProfile=' + _enc(statusProfile) : ''])});
+  };
+  _root.controllers.Pedigrees.getTotalProfiles = function(id, pageSize, page, input, isReference, statusProfile) {
+    return _wA({method: 'GET', url: '/court-case-profiles/total' + _qS(['id=' + id, 'pageSize=' + pageSize, 'page=' + page, input ? 'input=' + _enc(input) : '', 'isReference=' + isReference, statusProfile ? 'statusProfile=' + _enc(statusProfile) : ''])});
+  };
+  _root.controllers.Pedigrees.getProfilesNodeAssociation = function(id, pageSize, page, input, isReference, profiles, statusProfile) {
+    return _wA({method: 'GET', url: '/court-case-profiles-node-association' + _qS(['id=' + id, 'pageSize=' + pageSize, 'page=' + page, input ? 'input=' + _enc(input) : '', 'isReference=' + isReference, 'profiles=' + _enc(profiles), statusProfile ? 'statusProfile=' + _enc(statusProfile) : ''])});
+  };
+  _root.controllers.Pedigrees.addProfiles = function() {
+    return _wA({method: 'POST', url: '/court-case-profiles'});
+  };
+  _root.controllers.Pedigrees.removeProfiles = function() {
+    return _wA({method: 'PUT', url: '/court-case-profiles'});
+  };
+  _root.controllers.Pedigrees.addBatches = function() {
+    return _wA({method: 'POST', url: '/batch-modal-import'});
+  };
+  _root.controllers.Pedigrees.getCourtCasePedigrees = function() {
+    return _wA({method: 'POST', url: '/court-case-pedigrees'});
+  };
+  _root.controllers.Pedigrees.getTotalCourtCasePedigrees = function(id, pageSize, page, input) {
+    return _wA({method: 'GET', url: '/court-case-pedigrees/total' + _qS(['id=' + id, 'pageSize=' + pageSize, 'page=' + page, input ? 'input=' + _enc(input) : ''])});
+  };
+  _root.controllers.Pedigrees.canDeleteCourtCase = function(id) {
+    return _wA({method: 'GET', url: '/court-case/deleteable/' + id});
+  };
+  _root.controllers.Pedigrees.canCloseCourtCase = function(id) {
+    return _wA({method: 'GET', url: '/court-case/closeable/' + id});
+  };
+  _root.controllers.Pedigrees.createOrUpdatePedigreeMetadata = function() {
+    return _wA({method: 'POST', url: '/pedigree/save2'});
+  };
+  _root.controllers.Pedigrees.createPedigree = function() {
+    return _wA({method: 'POST', url: '/pedigree/save'});
+  };
+  _root.controllers.Pedigrees.profileNodo = function(idCourtCase, codigoGlobal) {
+    return _wA({method: 'GET', url: '/pedigree/profiles' + _qS(['idCourtCase=' + idCourtCase, 'codigoGlobal=' + _enc(codigoGlobal)])});
+  };
+  _root.controllers.Pedigrees.fisicalDeletePedigree = function(id) {
+    return _wA({method: 'POST', url: '/pedigree/delete' + _qS(['id=' + id])});
+  };
+  _root.controllers.Pedigrees.createMetadata = function(idCourtCase) {
+    return _wA({method: 'POST', url: '/pedigree/metadata' + _qS(['idCourtCase=' + idCourtCase])});
+  };
+  _root.controllers.Pedigrees.updateMetadata = function(idCourtCase, assignee) {
+    return _wA({method: 'PUT', url: '/pedigree/update-metadata' + _qS(['idCourtCase=' + idCourtCase, 'assignee=' + _enc(assignee)])});
+  };
+  _root.controllers.Pedigrees.removeMetadata = function(idCourtCase) {
+    return _wA({method: 'PUT', url: '/pedigree/remove-metadata' + _qS(['idCourtCase=' + idCourtCase])});
+  };
+  _root.controllers.Pedigrees.getMetadata = function(input, pageSize, page, idCourtCase) {
+    return _wA({method: 'GET', url: '/pedigree/filtrar-alias' + _qS(['input=' + _enc(input), 'pageSize=' + pageSize, 'page=' + page, 'idCourtCase=' + idCourtCase])});
+  };
+  _root.controllers.Pedigrees.getTotalMetadata = function(idCourtCase, pageSize, page, input) {
+    return _wA({method: 'GET', url: '/pedigree/total-alias' + _qS(['idCourtCase=' + idCourtCase, 'pageSize=' + pageSize, 'page=' + page, 'input=' + _enc(input)])});
+  };
+  _root.controllers.Pedigrees.getTotalProfilesNodeAssociation = function(id, pageSize, page, input, isReference, profiles, statusProfile) {
+    return _wA({method: 'GET', url: '/pedigrees-profiles/total-association' + _qS(['id=' + id, 'pageSize=' + pageSize, 'page=' + page, input ? 'input=' + _enc(input) : '', 'isReference=' + isReference, 'profiles=' + _enc(profiles), statusProfile ? 'statusProfile=' + _enc(statusProfile) : ''])});
+  };
+  _root.controllers.Pedigrees.collapse = function() {
+    return _wA({method: 'POST', url: '/collapsing'});
+  };
+  _root.controllers.Pedigrees.disassociateGroupedProfiles = function() {
+    return _wA({method: 'PUT', url: '/grouped-profiles/disassociate'});
+  };
+  _root.controllers.Pedigrees.getProfilesInactive = function(id, pageSize, page, input, statusProfile, groupedBy) {
+    return _wA({method: 'GET', url: '/grouped-profiles' + _qS(['id=' + id, 'pageSize=' + pageSize, 'page=' + page, input ? 'input=' + _enc(input) : '', 'statusProfile=' + _enc(statusProfile), 'groupedBy=' + _enc(groupedBy)])});
+  };
+  _root.controllers.Pedigrees.getTotalProfilesInactive = function(id, pageSize, page, input, statusProfile, groupedBy) {
+    return _wA({method: 'GET', url: '/grouped-profiles/total-grouped' + _qS(['id=' + id, 'pageSize=' + pageSize, 'page=' + page, input ? 'input=' + _enc(input) : '', 'statusProfile=' + _enc(statusProfile), 'groupedBy=' + _enc(groupedBy)])});
+  };
+  _root.controllers.Pedigrees.confirmSelectedCollapsing = function() {
+    return _wA({method: 'POST', url: '/collapsing/groups'});
+  };
+  _root.controllers.Pedigrees.areAssignedToPedigree = function() {
+    return _wA({method: 'POST', url: '/collapsing-manual'});
+  };
+  _root.controllers.Pedigrees.doesntHaveActivePedigrees = function(idCourtCase) {
+    return _wA({method: 'GET', url: '/grouped-profiles/validation' + _qS(['idCourtCase=' + idCourtCase])});
+  };
+  _root.controllers.Pedigrees.getPedCheck = function(pedigreeId, idCourtCase) {
+    return _wA({method: 'GET', url: '/pedcheck' + _qS(['pedigreeId=' + pedigreeId, 'idCourtCase=' + idCourtCase])});
+  };
+  _root.controllers.Pedigrees.generatePedCheck = function(pedigreeId, idCourtCase) {
+    return _wA({method: 'POST', url: '/pedcheck' + _qS(['pedigreeId=' + pedigreeId, 'idCourtCase=' + idCourtCase])});
+  };
+  _root.controllers.Pedigrees.getPedigreeCoincidencia = function(id) {
+    return _wA({method: 'GET', url: '/pedigree/pedigree-coincidencia' + _qS(['id=' + id])});
+  };
+  _root.controllers.Pedigrees.getMatchByProfile = function(globalCodes) {
+    return _wA({method: 'GET', url: '/pedigree/perfil-coincidencia' + _qS(['globalCodes=' + _enc(globalCodes)])});
+  };
+  _root.controllers.Pedigrees.findMatchesPedigree = function() {
+    return _wA({method: 'POST', url: '/pedigree-matches-courtcase/search'});
+  };
+
+  // -------------------------------------------------------------------------
+  // STR Kits
+  // -------------------------------------------------------------------------
+  _nS('controllers.StrKits');
+  _root.controllers.StrKits.get = function(id) {
+    return _wA({method: 'GET', url: '/api/v2/strkits/' + _enc(id)});
+  };
+  _root.controllers.StrKits.getFull = function(id) {
+    return _wA({method: 'GET', url: '/api/v2/strkits-full/' + _enc(id)});
+  };
+  _root.controllers.StrKits.list = function() {
+    return _wA({method: 'GET', url: '/api/v2/strkits'});
+  };
+  _root.controllers.StrKits.findLociByKit = function(kitId) {
+    return _wA({method: 'GET', url: '/api/v2/strkits/' + _enc(kitId) + '/loci'});
+  };
+  _root.controllers.StrKits.listFull = function() {
+    return _wA({method: 'GET', url: '/api/v2/strkits-full'});
+  };
+  _root.controllers.StrKits.add = function() {
+    return _wA({method: 'POST', url: '/api/v2/strkits'});
+  };
+  _root.controllers.StrKits.update = function() {
+    return _wA({method: 'PUT', url: '/api/v2/strkits'});
+  };
+  _root.controllers.StrKits.exportKits = function() {
+    return _wA({method: 'GET', url: '/api/v2/strkits/export'});
+  };
+  _root.controllers.StrKits.importKits = function() {
+    return _wA({method: 'POST', url: '/api/v2/strkits/import'});
+  };
+  _root.controllers.StrKits.delete = function(id) {
+    return _wA({method: 'DELETE', url: '/api/v2/strkits/' + _enc(id)});
+  };
+
+  // -------------------------------------------------------------------------
+  // Locus / Analysis Types
+  // -------------------------------------------------------------------------
+  _nS('controllers.AnalysisTypes');
+  _root.controllers.AnalysisTypes.list = function() {
+    return _wA({method: 'GET', url: '/analysistypes'});
+  };
+
+  _nS('controllers.Locis');
+  _root.controllers.Locis.add = function() {
+    return _wA({method: 'POST', url: '/locus/create'});
+  };
+  _root.controllers.Locis.update = function() {
+    return _wA({method: 'PUT', url: '/locus'});
+  };
+  _root.controllers.Locis.list = function() {
+    return _wA({method: 'GET', url: '/locus'});
+  };
+  _root.controllers.Locis.listFull = function() {
+    return _wA({method: 'GET', url: '/locus-full'});
+  };
+  _root.controllers.Locis.delete = function(id) {
+    return _wA({method: 'DELETE', url: '/locus/delete/' + _enc(id)});
+  };
+  _root.controllers.Locis.ranges = function() {
+    return _wA({method: 'GET', url: '/locus/ranges'});
+  };
+  _root.controllers.Locis.export = function() {
+    return _wA({method: 'GET', url: '/locus/export'});
+  };
+  _root.controllers.Locis.importLocus = function() {
+    return _wA({method: 'POST', url: '/locus/import'});
+  };
+
+  // -------------------------------------------------------------------------
+  // Traces (legacy — no migrado aún)
+  // -------------------------------------------------------------------------
+  _nS('controllers.Traces');
+  _root.controllers.Traces.search = function() {
+    return _wA({method: 'POST', url: '/trace/search'});
+  };
+  _root.controllers.Traces.count = function() {
+    return _wA({method: 'POST', url: '/trace/total'});
+  };
+  _root.controllers.Traces.searchPedigree = function() {
+    return _wA({method: 'POST', url: '/trace/search-pedigree'});
+  };
+  _root.controllers.Traces.countPedigree = function() {
+    return _wA({method: 'POST', url: '/trace/total-pedigree'});
+  };
+  _root.controllers.Traces.getFullDescription = function(id) {
+    return _wA({method: 'GET', url: '/trace/full-description/' + id});
+  };
+
+  // -------------------------------------------------------------------------
+  // Motives
+  // -------------------------------------------------------------------------
+  _nS('controllers.MotiveController');
+  _root.controllers.MotiveController.getMotives = function(id, abm) {
+    return _wA({method: 'GET', url: '/api/v2/motive' + _qS(['id=' + id, 'abm=' + abm])});
+  };
+  _root.controllers.MotiveController.getMotivesTypes = function() {
+    return _wA({method: 'GET', url: '/api/v2/motive-types'});
+  };
+  _root.controllers.MotiveController.insert = function() {
+    return _wA({method: 'POST', url: '/api/v2/motive'});
+  };
+  _root.controllers.MotiveController.update = function() {
+    return _wA({method: 'PUT', url: '/api/v2/motive'});
+  };
+  _root.controllers.MotiveController.deleteMotiveById = function(id) {
+    return _wA({method: 'DELETE', url: '/api/v2/motive/' + id});
+  };
+
+  // -------------------------------------------------------------------------
+  // Mutation Models (legacy — no migrado aún)
+  // -------------------------------------------------------------------------
+  _nS('controllers.MutationController');
+  _root.controllers.MutationController.getAllMutationModels = function() {
+    return _wA({method: 'GET', url: '/mutation-models'});
+  };
+  _root.controllers.MutationController.getAllMutationDefaultParameters = function() {
+    return _wA({method: 'GET', url: '/mutation-models/default-params'});
+  };
+  _root.controllers.MutationController.getActiveMutationModels = function() {
+    return _wA({method: 'GET', url: '/mutation-models/active'});
+  };
+  _root.controllers.MutationController.getMutationModel = function(id) {
+    return _wA({method: 'GET', url: '/mutation-model' + _qS(['id=' + id])});
+  };
+  _root.controllers.MutationController.getMutatitionModelParameters = function(id) {
+    return _wA({method: 'GET', url: '/mutation-model-parameters' + _qS(['id=' + id])});
+  };
+  _root.controllers.MutationController.getMutationModelsTypes = function() {
+    return _wA({method: 'GET', url: '/mutation-models-types'});
+  };
+  _root.controllers.MutationController.deleteMutationModelById = function(id) {
+    return _wA({method: 'DELETE', url: '/mutation-models/' + id});
+  };
+  _root.controllers.MutationController.insert = function() {
+    return _wA({method: 'POST', url: '/mutation-models'});
+  };
+  _root.controllers.MutationController.update = function() {
+    return _wA({method: 'PUT', url: '/mutation-models'});
+  };
+  _root.controllers.MutationController.generateMatrix = function() {
+    return _wA({method: 'PUT', url: '/mutation-models-matrix'});
+  };
+
+  // -------------------------------------------------------------------------
+  // Reporting (legacy — no migrado aún)
+  // -------------------------------------------------------------------------
+  _nS('controllers.ReportingController');
+  _root.controllers.ReportingController.getPrimerReporte = function() {
+    return _wA({method: 'GET', url: '/reportes/primerReporte'});
+  };
+  _root.controllers.ReportingController.getAllProfilesReporting = function() {
+    return _wA({method: 'GET', url: '/reportes/profilesReporting'});
+  };
+  _root.controllers.ReportingController.getProfilesReporting = function(fechaDesde, fechaHasta) {
+    return _wA({method: 'GET', url: '/reportes/profilesReporting/' + _enc(fechaDesde) + '/' + _enc(fechaHasta)});
+  };
+  _root.controllers.ReportingController.getAllProfilesByUser = function() {
+    return _wA({method: 'GET', url: '/reportes/profilesByUser'});
+  };
+  _root.controllers.ReportingController.getActivesInactiveByCategory = function() {
+    return _wA({method: 'GET', url: '/reportes/activesInactiveByCategory'});
+  };
+  _root.controllers.ReportingController.getEnviados = function() {
+    return _wA({method: 'GET', url: '/reportes/enviadosInstanciaSuperior'});
+  };
+  _root.controllers.ReportingController.getRecibidos = function() {
+    return _wA({method: 'GET', url: '/reportes/recibidosInstanciaInferior'});
+  };
+  _root.controllers.ReportingController.getCategoriaCambio = function() {
+    return _wA({method: 'GET', url: '/reportes/categoriaCambio'});
+  };
+  _root.controllers.ReportingController.getListadoCompleto = function() {
+    return _wA({method: 'GET', url: '/reportes/listadoCompleto'});
+  };
+  _root.controllers.ReportingController.getListadoCoincidencias = function() {
+    return _wA({method: 'GET', url: '/reportes/listadoCoincidencias'});
+  };
+  _root.controllers.ReportingController.getListadoReplicadosAInstanciaSuperior = function() {
+    return _wA({method: 'GET', url: '/reportes/generarListedoReplicadosAInstanciaSuperior'});
+  };
+  _root.controllers.ReportingController.getListedoRecibidosInstanciasInferiores = function() {
+    return _wA({method: 'GET', url: '/reportes/generarListedoRecibidosInstanciasInferiores'});
+  };
+
+  // -------------------------------------------------------------------------
+  // Interconnections (legacy — no migrado aún)
+  // -------------------------------------------------------------------------
+  _nS('controllers.Interconnections');
+  _root.controllers.Interconnections.getConnections = function() {
+    return _wA({method: 'GET', url: '/connections'});
+  };
+  _root.controllers.Interconnections.getConnectionStatus = function(url) {
+    return _wA({method: 'GET', url: '/connections/status' + _qS(['url=' + _enc(url)])});
+  };
+  _root.controllers.Interconnections.updateConnections = function() {
+    return _wA({method: 'PUT', url: '/connections'});
+  };
+  _root.controllers.Interconnections.getCategoryTreeComboConsumer = function() {
+    return _wA({method: 'GET', url: '/superior/category-tree-consumer'});
+  };
+  _root.controllers.Interconnections.insertInferiorInstanceConnection = function() {
+    return _wA({method: 'POST', url: '/superior/connection'});
+  };
+  _root.controllers.Interconnections.insertConnection = function() {
+    return _wA({method: 'POST', url: '/connection'});
+  };
+  _root.controllers.Interconnections.getInferiorInstances = function() {
+    return _wA({method: 'GET', url: '/instances/inferior'});
+  };
+  _root.controllers.Interconnections.getInferiorInstancesStatus = function() {
+    return _wA({method: 'GET', url: '/instances/inferior/status'});
+  };
+  _root.controllers.Interconnections.updateInferiorInstance = function() {
+    return _wA({method: 'PUT', url: '/instances/inferior'});
+  };
+  _root.controllers.Interconnections.importProfile = function() {
+    return _wA({method: 'POST', url: '/superior/profile'});
+  };
+  _root.controllers.Interconnections.uploadProfile = function(globalCode, userName) {
+    return _wA({method: 'POST', url: '/inferior/profile' + _qS(['globalCode=' + _enc(globalCode), 'userName=' + _enc(userName)])});
+  };
+  _root.controllers.Interconnections.approveProfiles = function(userName) {
+    return _wA({method: 'POST', url: '/superior/profile/approval' + _qS(['userName=' + _enc(userName)])});
+  };
+  _root.controllers.Interconnections.getPendingProfiles = function(page, pageSize) {
+    return _wA({method: 'GET', url: '/superior/profile/approval' + _qS(['page=' + page, 'pageSize=' + pageSize])});
+  };
+  _root.controllers.Interconnections.getTotalPendingProfiles = function() {
+    return _wA({method: 'GET', url: '/superior/profile/approval-total'});
+  };
+  _root.controllers.Interconnections.rejectPendingProfile = function(id, motive, idMotive, userName, isCategoryModification) {
+    return _wA({method: 'DELETE', url: '/superior/profile/approval' + _qS(['id=' + _enc(id), 'motive=' + _enc(motive), 'idMotive=' + idMotive, 'userName=' + _enc(userName), 'isCategoryModification=' + isCategoryModification])});
+  };
+  _root.controllers.Interconnections.updateUploadStatus = function(globalCode, status, motive, userName, isCategoryModification, operationOriginatedInInstance) {
+    return _wA({method: 'PUT', url: '/inferior/profile/status' + _qS(['globalCode=' + _enc(globalCode), 'status=' + status, motive ? 'motive=' + _enc(motive) : '', 'userName=' + _enc(userName), 'isCategoryModification=' + isCategoryModification, operationOriginatedInInstance ? 'operationOriginatedInInstance=' + _enc(operationOriginatedInInstance) : ''])});
+  };
+  _root.controllers.Interconnections.getUploadStatus = function(globalCode) {
+    return _wA({method: 'GET', url: '/inferior/profile/status' + _qS(['globalCode=' + _enc(globalCode)])});
+  };
+  _root.controllers.Interconnections.deleteProfileFromInferior = function(id, userName) {
+    return _wA({method: 'DELETE', url: '/superior/profile/' + _enc(id) + '/' + _enc(userName)});
+  };
+  _root.controllers.Interconnections.getIsProfileReplicableInternalCode = function(internalCode) {
+    return _wA({method: 'GET', url: '/interconnection/getIsProfileReplicableInternalCode/' + _enc(internalCode)});
+  };
+
+  // -------------------------------------------------------------------------
+  // Resources (legacy — no migrado aún)
+  // -------------------------------------------------------------------------
+  _nS('controllers.Resources');
+  _root.controllers.Resources.uploadImage = function() {
+    return _wA({method: 'POST', url: '/uploadImage'});
+  };
+  _root.controllers.Resources.uploadFile = function() {
+    return _wA({method: 'POST', url: '/uploadFile'});
+  };
+  _root.controllers.Resources.getFilesId = function() {
+    return _wA({method: 'GET', url: '/getFilesId'});
+  };
+  _root.controllers.Resources.temporary = function(name) {
+    return _wA({method: 'GET', url: '/resources/temporary/' + _enc(name)});
+  };
+
+  // -------------------------------------------------------------------------
+  // Status
+  // -------------------------------------------------------------------------
+  _nS('controllers.Status');
+  _root.controllers.Status.status = function() {
+    return _wA({method: 'GET', url: '/api/v2/status'});
+  };
+
+})(jsRoutes);

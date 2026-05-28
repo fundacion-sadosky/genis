@@ -1,3 +1,19 @@
+
+# Frontend SPA shell — serves the AngularJS single-page app
+GET     /                                   controllers.ApplicationController.index
+GET     /pedigree                           controllers.ApplicationController.pedigree
+GET     /assets/*file                       controllers.Assets.versioned(path="/public", file: Asset)
+
+# JavaScript router + SPA bootstrap assets (legacy shim for Angular frontend)
+# Rutas /api/v2/* usadas por nginx (proxy desde los paths sin prefijo)
+GET     /api/v2/jsroutes.js                 controllers.ApplicationController.jsRoutes
+GET     /api/v2/appConf.js                  controllers.ApplicationController.appConf
+GET     /api/v2/sensitiveOper.js            controllers.ApplicationController.sensitiveOper
+# Rutas sin prefijo para acceso directo a :9001 (sin nginx)
+GET     /jsroutes.js                        controllers.ApplicationController.jsRoutes
+GET     /appConf.js                         controllers.ApplicationController.appConf
+GET     /sensitiveOper.js                   controllers.ApplicationController.sensitiveOper
+
 # Disclaimer endpoint (migrated from legacy)
 GET     /api/v2/disclaimer                   controllers.DisclaimerController.getDisclaimer
 
@@ -30,6 +46,15 @@ DELETE  /api/v2/bioMaterialTypes/:bmtId               controllers.BioMaterialTyp
 # Authentication endpoints
 POST    /api/v2/login                       controllers.core.Authentication.login()
 
+# Notifications (inbox)
+POST    /api/v2/notifications/search            controllers.NotificationsController.search
+POST    /api/v2/notifications/total             controllers.NotificationsController.count
+GET     /api/v2/notifications                   controllers.NotificationsController.getNotifications
+GET     /api/v2/match-notifications             controllers.NotificationsController.getMatchNotifications
+DELETE  /api/v2/notifications/:id               controllers.NotificationsController.delete(id: Long)
+POST    /api/v2/notifications/flag/:id          controllers.NotificationsController.changeFlag(id: Long, flag: Boolean)
+POST    /api/v2/notifications/:id/pending       controllers.NotificationsController.changePending(id: Long, pending: Boolean)
+
 # Laboratories
 GET     /api/v2/laboratory                      controllers.LaboratoriesController.list()
 GET     /api/v2/country                         controllers.LaboratoriesController.listCountries()
@@ -46,15 +71,16 @@ GET     /api/v2/geneticist-users                controllers.GeneticistsControlle
 PUT     /api/v2/geneticist                      controllers.GeneticistsController.updateGeneticist()
 
 # STR Kits
-GET     /api/v2/strkits/:id           controllers.StrKitsController.get(id: String)
-GET     /api/v2/strkits-full/:id      controllers.StrKitsController.getFull(id: String)
-GET     /api/v2/strkits               controllers.StrKitsController.list()
-GET     /api/v2/strkits-full          controllers.StrKitsController.listFull()
-POST    /api/v2/strkits               controllers.StrKitsController.add()
-PUT     /api/v2/strkits               controllers.StrKitsController.update()
-DELETE  /api/v2/strkits/:id           controllers.StrKitsController.delete(id: String)
-POST    /api/v2/strkits/import        controllers.StrKitsController.importKits()
-GET     /api/v2/strkits/export        controllers.StrKitsController.exportKits()
+GET     /api/v2/strkits                          controllers.StrKitsController.list()
+GET     /api/v2/strkits-full                     controllers.StrKitsController.listFull()
+GET     /api/v2/strkits/export                   controllers.StrKitsController.exportKits()
+POST    /api/v2/strkits/import                   controllers.StrKitsController.importKits()
+GET     /api/v2/strkits/:id                      controllers.StrKitsController.get(id: String)
+GET     /api/v2/strkits-full/:id                 controllers.StrKitsController.getFull(id: String)
+GET     /api/v2/strkits/:kitId/loci              controllers.StrKitsController.findLociByKit(kitId: String)
+POST    /api/v2/strkits                          controllers.StrKitsController.add()
+PUT     /api/v2/strkits                          controllers.StrKitsController.update()
+DELETE  /api/v2/strkits/:id                      controllers.StrKitsController.delete(id: String)
 
 # Categories
 GET     /api/v2/categories                                    controllers.CategoriesController.categoryTree
@@ -85,6 +111,25 @@ GET     /api/v2/export/categoryModifications                  controllers.Catego
 GET     /api/v2/export/categoryMappings                       controllers.CategoriesController.exportMappings
 GET     /api/v2/export/categories                             controllers.CategoriesController.exportCategories
 POST    /api/v2/import/categories                             controllers.CategoriesController.importGroupsAndCategories
+
+# Categories - alias legacy (para compatibilidad con jsroutes del front mientras no se actualice)
+# catmodification: en legacy usa query params (from, to, catId); modern usa path params.
+# Se agregan alias con query params para que nginx pueda hacer rewrite simple.
+GET    /api/v2/catmodification                              controllers.CategoriesController.getCategoryModifications(catId: types.AlphanumericId)
+POST   /api/v2/catmodification                              controllers.CategoriesController.registerCategoryModification(from: types.AlphanumericId, to: types.AlphanumericId)
+DELETE /api/v2/catmodification                              controllers.CategoriesController.unregisterCategoryModification(from: types.AlphanumericId, to: types.AlphanumericId)
+GET    /api/v2/catmodifications                             controllers.CategoriesController.allCategoryModifications
+GET    /api/v2/catmodifications/export                      controllers.CategoriesController.exportModifications
+# categories-mapping: legacy usa PUT, modern usa POST. Se agrega alias PUT.
+GET    /api/v2/categories-mapping                           controllers.CategoriesController.listCategoriesMapping
+PUT    /api/v2/categories-mapping                           controllers.CategoriesController.insertOrUpdateCategoriesMapping
+GET    /api/v2/categories-mapping/export                    controllers.CategoriesController.exportMappings
+# Export aliases (legacy paths distintos a los modern /export/*)
+GET    /api/v2/categories/export                            controllers.CategoriesController.exportCategories
+GET    /api/v2/category-configurations/export               controllers.CategoriesController.exportConfigurations
+GET    /api/v2/category-associations/export                 controllers.CategoriesController.exportAssociations
+GET    /api/v2/category-alias/export                        controllers.CategoriesController.exportAlias
+GET    /api/v2/category-matching-rules/export               controllers.CategoriesController.exportMatchingRules
 
 # Motive
 GET     /api/v2/motive                controllers.MotiveController.getMotives(id: Long, abm: Boolean)

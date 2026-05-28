@@ -58,7 +58,7 @@ class ProfilesController @Inject()(
     profileService.saveElectropherograms(token, globalCode, idAnalysis, name).map { l =>
       val (right, left) = l.partition(_.isRight)
       if (left.isEmpty) Ok
-      else Ok(Json.toJson(left.map(_.left.get)))
+      else Ok(Json.toJson(left.map(_.swap.getOrElse(""))))
     }
   }
 
@@ -153,7 +153,7 @@ class ProfilesController @Inject()(
     profileService.saveFile(token, globalCode, idAnalysis, name).map { l =>
       val (right, left) = l.partition(_.isRight)
       if (left.isEmpty) Ok
-      else Ok(Json.toJson(left.map(_.left.get)))
+      else Ok(Json.toJson(left.map(_.swap.getOrElse(""))))
     }
   }
 

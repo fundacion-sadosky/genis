@@ -1,8 +1,10 @@
 package integration.controllers
 
+import com.mongodb.client.MongoDatabase
 import configdata.CategoryService
 import fixtures.{StubCacheService, StubCategoryService, StubLdapHealthService, StubProbabilityService, StubMongoHealthService, StubProfileService, StubProfileExporterService, StubLimsArchivesExporterService}
 
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play._
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
 import play.api.Application
@@ -20,7 +22,7 @@ import probability.{ProbabilityModule, ProbabilityService}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest {
+class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest with MockitoSugar {
 
   private var profileStub: StubProfileService = _
   private var exportStub: StubProfileExporterService = _
@@ -48,7 +50,13 @@ class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest {
         bind[ProbabilityService].toInstance(new StubProbabilityService),
         bind[ExecutionContext].qualifiedWith("lrmix-context").toInstance(ExecutionContext.global),
         bind[LdapHealthService].toInstance(new StubLdapHealthService),
-        bind[MongoHealthService].toInstance(new StubMongoHealthService)
+        bind[MongoHealthService].toInstance(new StubMongoHealthService),
+        // ProfileModule is disabled — provide its deps needed by MatchingModule (ProfileMatcher)
+        bind[MongoDatabase].toInstance(mock[MongoDatabase]),
+        bind[String].qualifiedWith("labCode").toInstance("SHDG"),
+        bind[kits.LocusService].to[kits.LocusServiceStub],
+        bind[ProfileRepository].toInstance(mock[ProfileRepository]),
+        bind[profiledata.ProfileDataService].to[profiledata.ProfileDataServiceStub]
       )
       .configure("play.http.secret.key" -> "test-secret-key-for-testing-purposes-only-not-for-production-1234")
       .build()

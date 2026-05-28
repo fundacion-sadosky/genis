@@ -27,7 +27,6 @@ object ProfileExporter {
         } else {
           mitoPositions.tabla(position.toInt).concat(String.valueOf(position).concat(base.toString))
         }
-      case _ => ""
     }
   }
 

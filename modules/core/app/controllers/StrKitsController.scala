@@ -53,4 +53,8 @@ class StrKitsController @Inject()(
   def exportKits(): Action[AnyContent] = Action.async { implicit request =>
     Future.successful(NotImplemented)
   }
+
+  def findLociByKit(kitId: String): Action[AnyContent] = Action.async { implicit request =>
+    strKitService.findLociByKit(kitId).map { loci => Ok(Json.toJson(loci)) }
+  }
 }

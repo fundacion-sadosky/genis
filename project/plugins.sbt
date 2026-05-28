@@ -15,6 +15,9 @@ resolvers += "Typesafe repository" at "https://repo.typesafe.com/typesafe/releas
 // ============================================================================
 addSbtPlugin("org.playframework" % "sbt-plugin" % "3.0.6")
 
+// LESS compilation for frontend assets
+addSbtPlugin("com.github.sbt" % "sbt-less" % "2.0.0")
+
 // ============================================================================
 // PACKAGING
 // ============================================================================
