@@ -53,8 +53,8 @@ class ProfileModule(environment: Environment, conf: Configuration) extends Abstr
     bind(classOf[connections.InterconnectionService]).to(classOf[connections.InterconnectionServiceStub])
     // NotificationService ya está en inbox.NotificationModule
     bind(classOf[kits.AnalysisTypeService]).to(classOf[kits.AnalysisTypeServiceStub])
-    bind(classOf[kits.LocusService]).to(classOf[kits.LocusServiceStub])
     bind(classOf[kits.QualityParamsProvider]).to(classOf[kits.QualityParamsProviderStub])
+    // LocusService, LocusRepository → kits.StrKitModule
     // MatchingAlgorithmService, MatchingRepository, MatchingService → matching.MatchingModule
     bind(classOf[pedigree.PedigreeService]).to(classOf[pedigree.PedigreeServiceStub])
     bind(classOf[profiledata.ProfileDataRepository]).to(classOf[profiledata.ProfileDataRepositoryStub])

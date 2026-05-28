@@ -95,6 +95,10 @@ case class LoggedUserKey(userId: String) extends CacheKey[TotpToken] {
 case object RolePermissionMapKey extends CacheKey[Map[String, Set[types.Permission]]]:
   override def cacheKey: String = "Keys.rolePermissionMap"
 
+// Key para cache de locus (LocusService)
+case object LocusCacheKey extends CacheKey[Seq[kits.FullLocus]]:
+  override def cacheKey: String = "Keys.locus"
+
 // Category cache keys
 case object CategoryTreeKey extends CacheKey[configdata.Category.CategoryTree]:
   override def cacheKey: String = "Keys.categoryTree"
@@ -130,3 +134,6 @@ case class UploadedAnalysisKey(token: String) extends CacheKey[profile.NewAnalys
   override def cacheKey: String = "UploadedAnalysis." + token
   override def expiration: Int = 60 * 10
 }
+
+case object CaseTypesKey extends CacheKey[Seq[pedigree.CaseType]]:
+  override def cacheKey: String = "Keys.caseTypes"

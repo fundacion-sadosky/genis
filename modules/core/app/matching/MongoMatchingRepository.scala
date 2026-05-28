@@ -107,6 +107,9 @@ class MongoMatchingRepository @Inject()(
   override def findSuperiorProfileData(globalCode: SampleCode): Future[Option[ProfileData]] =
     Future.successful(None) // Superior instance data not used in standalone core
 
+  // TODO: migrar lógica real desde legacy. new-dev sólo lo tenía stubbeado (no-op).
+  override def discardScreeningMatches(matchIds: List[String]): Unit = ()
+
   override def numberOfMatches(globalCode: String): Future[Int] = Future {
     val filter = Filters.or(
       Filters.eq("leftProfile.globalCode",  globalCode),

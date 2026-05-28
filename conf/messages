@@ -77,6 +77,7 @@ error.E0610= E0610: No están configuradas las opciones estadísticas por defect
 error.E0611= E0611: Rango invalido o inexistente en las Frecuencias Mínimas [{0}].
 error.E0612= E0612: Frecuencias mal formadas {0}.
 error.E0630= E0630: Error inesperado en la base de datos.
+error.E0631= E0631: Identificador de coincidencia inválido o inexistente.
 error.E0640= E0640: Alias {0} duplicado.
 error.E0641= E0641: No existe el usuario. 
 error.E0642= E0642: El usuario no tiene permisos para descartar la coincidencia.

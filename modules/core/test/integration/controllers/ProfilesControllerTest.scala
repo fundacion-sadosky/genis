@@ -14,8 +14,10 @@ import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import profile.*
+import profiledata.{ProfileDataService, ProfileDataServiceStub}
 import security.{StubUserRepository, StubRoleRepository, UserRepository}
 import services.CacheService
+import trace.{TraceService, TraceServiceStub}
 import types.SampleCode
 import user.{LdapHealthService, RoleRepository, UsersModule}
 import probability.{ProbabilityModule, ProbabilityService}
@@ -54,9 +56,9 @@ class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest with Mocki
         // ProfileModule is disabled — provide its deps needed by MatchingModule (ProfileMatcher)
         bind[MongoDatabase].toInstance(mock[MongoDatabase]),
         bind[String].qualifiedWith("labCode").toInstance("SHDG"),
-        bind[kits.LocusService].to[kits.LocusServiceStub],
         bind[ProfileRepository].toInstance(mock[ProfileRepository]),
-        bind[profiledata.ProfileDataService].to[profiledata.ProfileDataServiceStub]
+        bind[TraceService].to[TraceServiceStub],
+        bind[ProfileDataService].to[ProfileDataServiceStub]
       )
       .configure("play.http.secret.key" -> "test-secret-key-for-testing-purposes-only-not-for-production-1234")
       .build()

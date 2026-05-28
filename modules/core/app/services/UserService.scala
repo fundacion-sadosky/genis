@@ -273,3 +273,25 @@ class UserServiceImpl @Inject() (
   override def sendNotifToAllSuperUsers(info: NotificationInfo, excepThis: Seq[String]): Unit =
     val usersToNotify = findSuperUsers().map(_.filter(user => !excepThis.contains(user)))
     usersToNotify.foreach(_.foreach(userId => notiService.push(userId, info)))
+
+@jakarta.inject.Singleton
+class UserServiceStub extends UserService:
+  override def signupRequest(s: user.SignupSolicitude): Future[Either[String, user.SignupResponse]]               = Future.successful(Left("stub"))
+  override def clearPassRequest(s: user.ClearPassSolicitud): Future[Either[String, user.ClearPassResponse]]       = Future.successful(Left("stub"))
+  override def signupConfirmation(c: user.SignupChallenge): Future[Either[String, Int]]                           = Future.successful(Right(0))
+  override def clearPassConfirmation(c: user.ClearPassChallenge): Future[Either[String, Int]]                     = Future.successful(Right(0))
+  override def listAllUsers(): Future[Seq[user.UserView]]                                                         = Future.successful(Nil)
+  override def updateUser(u: user.UserView): Future[Boolean]                                                      = Future.successful(true)
+  override def setStatus(userId: String, s: user.UserStatus): Future[Either[String, Int]]                        = Future.successful(Right(0))
+  override def findUserAssignable: Future[Seq[security.User]]                                                     = Future.successful(Nil)
+  override def getUser(userId: String): Future[user.UserView]                                                     = Future.failed(new NoSuchElementException("stub"))
+  override def getUserOrEmpty(userId: String): Future[Option[user.UserView]]                                      = Future.successful(None)
+  override def findByStatus(s: user.UserStatus): Future[Seq[user.UserView]]                                      = Future.successful(Nil)
+  override def findByGeneMapper(geneMapper: String): Future[Option[user.UserView]]                               = Future.successful(None)
+  override def findUserAssignableByRole(roleId: String): Future[Seq[security.User]]                              = Future.successful(Nil)
+  override def findUsersIdWithPermission(p: types.Permission): Future[Seq[String]]                               = Future.successful(Nil)
+  override def findUsersIdWithPermissions(ps: Seq[types.Permission]): Future[Seq[String]]                        = Future.successful(Nil)
+  override def isSuperUser(userId: String): Future[Boolean]                                                       = Future.successful(false)
+  override def isSuperUserByGeneMapper(geneMapperId: String): Future[Boolean]                                     = Future.successful(false)
+  override def findSuperUsers(): Future[Seq[String]]                                                              = Future.successful(Nil)
+  override def sendNotifToAllSuperUsers(info: inbox.NotificationInfo, excepThis: Seq[String]): Unit              = ()

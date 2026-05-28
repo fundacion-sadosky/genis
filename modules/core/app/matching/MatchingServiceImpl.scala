@@ -30,4 +30,21 @@ class MatchingServiceImpl @Inject()(
     labels.getOrElse(Map.empty).keySet
       .filter(code => code.matches(SampleCode.validationRe.toString()))
       .toSeq
+
+  // TODO: migrar lógica real desde legacy app/matching. new-dev sólo los tenía
+  // stubbeados (MatchingServiceStub); se replica ese comportamiento no-op.
+  override def findScreeningMatches(
+    profile: Profile,
+    queryProfiles: List[String],
+    numberOfMismatches: Option[Int]
+  ): Future[(Set[MatchResultScreening], Set[MatchResultScreening])] =
+    Future.successful((Set.empty, Set.empty))
+
+  override def collapse(idCourtCase: Long, user: String): Unit = ()
+
+  override def discardCollapsingByLeftAndRightProfile(globalCode: String, courtCaseId: Long): Future[Unit] =
+    Future.successful(())
+
+  override def discardCollapsingByRightProfile(globalCode: String, courtCaseId: Long): Future[Unit] =
+    Future.successful(())
 }

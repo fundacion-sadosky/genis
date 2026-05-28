@@ -10,6 +10,8 @@ import org.apache.pekko.stream.scaladsl.{BroadcastHub, Keep, MergeHub, Source}
 import play.api.Logger
 import play.api.libs.json.Json
 
+// PedigreeMatchingInfo y PedigreeLRInfo viven en inbox.Notification.scala (con sus Format y ruteo de serialización)
+
 trait NotificationService:
   def search(notiSearch: NotificationSearch): Future[Seq[Notification]]
   def count(notiSearch: NotificationSearch): Future[Int]
