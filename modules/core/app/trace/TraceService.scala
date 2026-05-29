@@ -88,10 +88,13 @@ class TraceServiceImpl @Inject() (
 
     for {
       profileOpt   <- profileRepository.findByCode(ti.profile)
-      profile       = profileOpt.get
       assocStrings <- Future.sequence(ti.categoryAssociations.map(stringifyCategoryAssociation))
     } yield {
-      s"Perfil: ${profile.globalCode.text} (${profile.internalSampleCode})\nReglas de asociación:\n${assocStrings.mkString("\n")}"
+      // profileOpt es None cuando el perfil referenciado fue borrado o la traza apunta a
+      // un código viejo: degradar a "no disponible" en lugar de lanzar NoSuchElementException.
+      val perfilDesc = profileOpt.fold(s"${ti.profile.text} (no disponible)")(p =>
+        s"${p.globalCode.text} (${p.internalSampleCode})")
+      s"Perfil: $perfilDesc\nReglas de asociación:\n${assocStrings.mkString("\n")}"
     }
   }
 
@@ -113,14 +116,20 @@ class TraceServiceImpl @Inject() (
     for {
       profileOpt      <- profileRepository.findByCode(ti.profile)
       analysisTypeOpt <- analysisTypeService.getById(ti.analysisType)
-      profile          = profileOpt.get
-      categoryOpt     <- categoryService.getCategory(profile.categoryId)
+      // Solo se busca la categoría si el perfil existe; si no, se degrada (Q-I1).
+      categoryOpt     <- profileOpt match
+        case Some(p) => categoryService.getCategory(p.categoryId)
+        case None    => Future.successful(Option.empty[configdata.FullCategory])
     } yield {
-      val category     = categoryOpt.fold(profile.categoryId.toString)(_.name)
       val analysisName = analysisTypeOpt.fold(ti.analysisType.toString)(_.name)
-      s"Tipo: $analysisName / " +
-        s"Perfil coincidente: ${profile.globalCode.text} (${profile.internalSampleCode}) / Categoría: $category / " +
-        s"Usuario responsable: ${profile.assignee}"
+      profileOpt.fold(
+        s"Tipo: $analysisName / Perfil coincidente: ${ti.profile.text} (no disponible)"
+      ) { profile =>
+        val category = categoryOpt.fold(profile.categoryId.toString)(_.name)
+        s"Tipo: $analysisName / " +
+          s"Perfil coincidente: ${profile.globalCode.text} (${profile.internalSampleCode}) / Categoría: $category / " +
+          s"Usuario responsable: ${profile.assignee}"
+      }
     }
 
   private def stringify(ti: PedigreeEditInfo): Future[String] =
