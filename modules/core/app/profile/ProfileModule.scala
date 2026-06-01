@@ -52,11 +52,10 @@ class ProfileModule(environment: Environment, conf: Configuration) extends Abstr
     // Stub bindings for dependencies not yet migrated
     bind(classOf[connections.InterconnectionService]).to(classOf[connections.InterconnectionServiceStub])
     // NotificationService ya está en inbox.NotificationModule
-    bind(classOf[kits.AnalysisTypeService]).to(classOf[kits.AnalysisTypeServiceStub])
+    // AnalysisTypeService → kits.StrKitModule
     bind(classOf[kits.QualityParamsProvider]).to(classOf[kits.QualityParamsProviderStub])
     // LocusService, LocusRepository → kits.StrKitModule
     // MatchingAlgorithmService, MatchingRepository, MatchingService → matching.MatchingModule
-    bind(classOf[pedigree.PedigreeService]).to(classOf[pedigree.PedigreeServiceStub])
     bind(classOf[profiledata.ProfileDataRepository]).to(classOf[profiledata.ProfileDataRepositoryStub])
     bind(classOf[profiledata.ProfileDataService]).to(classOf[profiledata.ProfileDataServiceStub])
     bind(classOf[trace.TraceService]).to(classOf[trace.TraceServiceStub])

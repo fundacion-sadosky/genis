@@ -900,28 +900,28 @@ var jsRoutes = {};
 
   _nS('controllers.Locis');
   _root.controllers.Locis.add = function() {
-    return _wA({method: 'POST', url: '/locus/create'});
+    return _wA({method: 'POST', url: '/api/v2/locus/create'});
   };
   _root.controllers.Locis.update = function() {
-    return _wA({method: 'PUT', url: '/locus'});
+    return _wA({method: 'PUT', url: '/api/v2/locus'});
   };
   _root.controllers.Locis.list = function() {
-    return _wA({method: 'GET', url: '/locus'});
+    return _wA({method: 'GET', url: '/api/v2/locus'});
   };
   _root.controllers.Locis.listFull = function() {
-    return _wA({method: 'GET', url: '/locus-full'});
+    return _wA({method: 'GET', url: '/api/v2/locus-full'});
   };
   _root.controllers.Locis.delete = function(id) {
-    return _wA({method: 'DELETE', url: '/locus/delete/' + _enc(id)});
+    return _wA({method: 'DELETE', url: '/api/v2/locus/delete/' + _enc(id)});
   };
   _root.controllers.Locis.ranges = function() {
-    return _wA({method: 'GET', url: '/locus/ranges'});
+    return _wA({method: 'GET', url: '/api/v2/locus/ranges'});
   };
   _root.controllers.Locis.export = function() {
-    return _wA({method: 'GET', url: '/locus/export'});
+    return _wA({method: 'GET', url: '/api/v2/locus/export'});
   };
   _root.controllers.Locis.importLocus = function() {
-    return _wA({method: 'POST', url: '/locus/import'});
+    return _wA({method: 'POST', url: '/api/v2/locus/import'});
   };
 
   // -------------------------------------------------------------------------

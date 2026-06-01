@@ -14,6 +14,29 @@ GET     /jsroutes.js                        controllers.ApplicationController.js
 GET     /appConf.js                         controllers.ApplicationController.appConf
 GET     /sensitiveOper.js                   controllers.ApplicationController.sensitiveOper
 
+# Analysis types
+GET     /analysistypes                      controllers.AnalysisTypesController.list
+
+# BulkUpload — URLs legacy (sin /api/v2/) porque el frontend las cifra con ese prefijo
+POST    /bulkuploader                                            controllers.core.BulkUploadController.uploadProtoProfiles(label: Option[String], analysisType: String)
+GET     /bulkupload/step1/count                                  controllers.core.BulkUploadController.countBatchesStep1()
+GET     /bulkupload/step1/batches                                controllers.core.BulkUploadController.getBatchesStep1(page: Int, pageSize: Int)
+GET     /bulkupload/step2/count                                  controllers.core.BulkUploadController.countBatchesStep2(geneMapperId: String)
+GET     /bulkupload/step2/batches                                controllers.core.BulkUploadController.getBatchesStep2(geneMapperId: String, page: Int, pageSize: Int)
+GET     /bulkupload/step1/protoprofiles                          controllers.core.BulkUploadController.getProtoProfilesStep1(batchId: Long, page: Int, pageSize: Int)
+GET     /bulkupload/step2/protoprofiles                          controllers.core.BulkUploadController.getProtoProfilesStep2(geneMapperId: String, batchId: Long, page: Int, pageSize: Int)
+GET     /bulkupload/protoprofiles/:id                            controllers.core.BulkUploadController.getProtoProfileById(id: Long)
+GET     /bulkupload/step2/batch/:batchId/count                   controllers.core.BulkUploadController.countAllProtoProfilesInBatch(batchId: Long)
+GET     /bulkupload/batches                                      controllers.core.BulkUploadController.searchBatch(filter: String)
+GET     /batch-modal                                             controllers.core.BulkUploadController.getBatchSearchModalViewByIdOrLabel(input: String, idCase: Long)
+POST    /protoprofiles/:id/status                                controllers.core.BulkUploadController.updateProtoProfileStatus(id: Long, status: String, replicate: Boolean, desktopSearch: Boolean ?= false)
+POST    /protoprofiles/multiple-status                           controllers.core.BulkUploadController.updateBatchStatus(idBatch: Long, status: String, replicateAll: Boolean)
+POST    /protoprofiles/:id/subcategory                           controllers.core.BulkUploadController.updateProtoProfileData(id: Long, category: types.AlphanumericId)
+POST    /protoprofiles/matchingrules                             controllers.core.BulkUploadController.updateProtoProfileRulesMismatch()
+POST    /protoprofiles-reject/:id                                controllers.core.BulkUploadController.rejectProtoProfile(id: Long, motive: String, idMotive: Long)
+DELETE  /bulkupload/:id                                          controllers.core.BulkUploadController.deleteBatch(id: Long)
+GET     /api/v2/analysistypes               controllers.AnalysisTypesController.list
+
 # Disclaimer endpoint (migrated from legacy)
 GET     /api/v2/disclaimer                   controllers.DisclaimerController.getDisclaimer
 
@@ -57,6 +80,7 @@ POST    /api/v2/notifications/:id/pending       controllers.NotificationsControl
 
 # Laboratories
 GET     /api/v2/laboratory                      controllers.LaboratoriesController.list()
+GET     /laboratory/descriptive                 controllers.LaboratoriesController.listDescriptive()
 GET     /api/v2/country                         controllers.LaboratoriesController.listCountries()
 GET     /api/v2/provinces/:country              controllers.LaboratoriesController.listProvinces(country: String)
 POST    /api/v2/laboratory                      controllers.LaboratoriesController.addLab()

@@ -40,7 +40,6 @@ class PedigreeModule(env: Environment, conf: Configuration) extends AbstractModu
     bind(classOf[PedCheckRepository]).to(classOf[SlickPedCheckRepository])
     bind(classOf[PedigreeService]).to(classOf[PedigreeServiceImpl])
     bind(classOf[search.FullTextSearchService]).to(classOf[search.FullTextSearchServiceStub])
-    bind(classOf[String]).annotatedWith(Names.named("exportProfilesPath")).toInstance("")
 
   @Provides @Named("mongoBlockingEC") @Singleton
   def provideMongoBlockingExecutionContext(actorSystem: ActorSystem): ExecutionContext =

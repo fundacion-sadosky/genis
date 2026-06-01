@@ -1,5 +1,6 @@
 package pedigree
 
+import com.google.inject.Provider
 import java.util.Date
 import pedigree.PedigreeStatus.PedigreeStatus
 import play.api.Logger
@@ -572,7 +573,7 @@ class PedigreeServiceImpl @jakarta.inject.Inject() (
   pedigreeDataRepository: PedigreeDataRepository,
   pedigreeRepository: PedigreeRepository,
   cache: services.CacheService,
-  profileService: profile.ProfileService,
+  profileServiceProvider: Provider[profile.ProfileService],
   fullTextSearch: search.FullTextSearchService,
   categoryService: configdata.CategoryService,
   pedigreeGenotificationRepository: PedigreeGenotypificationRepository,
@@ -582,6 +583,8 @@ class PedigreeServiceImpl @jakarta.inject.Inject() (
   pedCheckService: PedCheckService,
   traceService: trace.TraceService
 )(using ec: ExecutionContext) extends PedigreeService:
+
+  private def profileService: profile.ProfileService = profileServiceProvider.get()
 
   private val logger: Logger = Logger(this.getClass)
 

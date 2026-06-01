@@ -1,5 +1,6 @@
 package kits
 
+import com.google.inject.Provider
 import javax.inject.{Inject, Singleton}
 import matching.AleleRange
 import pedigree.MutationService
@@ -25,8 +26,10 @@ trait LocusService:
 class LocusServiceImpl @Inject()(
   cache: CacheService,
   locusRepository: LocusRepository,
-  mutationService: MutationService
+  mutationServiceProvider: Provider[MutationService]
 )(implicit ec: ExecutionContext) extends LocusService:
+
+  private def mutationService: MutationService = mutationServiceProvider.get()
 
   private def cleanCache(): Unit =
     cache.pop(LocusCacheKey)

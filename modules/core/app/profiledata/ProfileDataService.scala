@@ -60,6 +60,7 @@ trait ProfileDataService {
   def getMtRcrs(): Future[MtRCRS]
   def deleteProfile(globalCode: SampleCode, motive: DeletedMotive, userId: String): Future[Either[String, Unit]]
   def findByCodes(globalCodes: List[SampleCode]): Future[List[ProfileData]]
+  def getGlobalCode(internalSampleCode: String): Future[Option[SampleCode]]
 }
 
 @javax.inject.Singleton
@@ -78,4 +79,5 @@ class ProfileDataServiceStub extends ProfileDataService {
   override def getMtRcrs(): Future[MtRCRS] = Future.successful(MtRCRS(Map.empty))
   override def deleteProfile(globalCode: SampleCode, motive: DeletedMotive, userId: String): Future[Either[String, Unit]] = Future.successful(Right(()))
   override def findByCodes(globalCodes: List[SampleCode]): Future[List[ProfileData]] = Future.successful(List.empty)
+  override def getGlobalCode(internalSampleCode: String): Future[Option[SampleCode]] = Future.successful(None)
 }

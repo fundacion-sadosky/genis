@@ -22,6 +22,12 @@ class LaboratoriesController @Inject() (
     }
   }
 
+  def listDescriptive = Action.async {
+    labService.listDescriptive() map { labs =>
+      Ok(Json.toJson(labs))
+    }
+  }
+
 
   def listCountries = Action.async {
     countryService.listCountries map { countries =>
