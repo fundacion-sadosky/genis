@@ -201,7 +201,12 @@ class SlickProtoProfileRepository @Inject() (
     db.run(Tables.protoProfiles.filter(_.sampleName === internalCode).map(_.status).update(status).transactionally)
 
   override def updateProtoProfileData(id: Long, cat: AlphanumericId): Future[Int] =
-    db.run(Tables.protoProfiles.filter(_.id === id).map(_.category).update(cat.text).transactionally)
+    val gc = ppGcD + id
+    val action = for {
+      ret <- Tables.protoProfiles.filter(_.id === id).map(_.category).update(cat.text)
+      _   <- Tables.stashProfileData.filter(_.globalCode === gc).map(_.category).update(cat.text)
+    } yield ret
+    db.run(action.transactionally)
 
   override def updateProtoProfileMatchingRulesMismatch(id: Long, matchingRules: Seq[MatchingRule], mismatches: Profile.Mismatch): Future[Int] =
     val mRules = Json.toJson(matchingRules).toString

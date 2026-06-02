@@ -1,18 +1,19 @@
 package matching
 
-import java.util.Date
+import java.util.{Arrays => JArrays, Date}
 import javax.inject.{Inject, Singleton}
 
 import com.mongodb.client.{MongoCollection, MongoDatabase}
-import com.mongodb.client.model.{Filters, Updates}
+import com.mongodb.client.model.{Aggregates, Filters, Projections, Sorts, Updates}
 import org.bson.Document
+import org.bson.conversions.Bson
 import org.bson.types.ObjectId
 import play.api.Logger
 import play.api.libs.json.{Json, JsValue}
 
 import profile.Profile
 import profiledata.ProfileData
-import types.SampleCode
+import types.{AlphanumericId, SampleCode}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.CollectionConverters.*
@@ -174,5 +175,332 @@ class MongoMatchingRepository @Inject()(
     // Replace the {"$oid":"..."} id representation with an ObjectId
     doc.put("_id", new ObjectId(mr._id.id))
     doc
+  }
+
+  // ── new methods ─────────────────────────────────────────────────────────────
+
+  override def matchesByGlobalCode(globalCode: SampleCode): Future[Seq[MatchResult]] = Future {
+    val filter = Filters.and(
+      Filters.or(
+        Filters.eq("leftProfile.globalCode",  globalCode.text),
+        Filters.eq("rightProfile.globalCode", globalCode.text)
+      ),
+      Filters.ne("leftProfile.status",  MatchStatus.deleted.toString),
+      Filters.ne("rightProfile.status", MatchStatus.deleted.toString)
+    )
+    matches.find(filter).into(new java.util.ArrayList[Document]()).asScala.map(docToMatchResult).toSeq
+  }
+
+  override def getByMatchingProfileId(
+    matchingId: String,
+    isCollapsing: Option[Boolean] = None,
+    isScreening: Option[Boolean] = None
+  ): Future[Option[MatchResult]] = Future {
+    // core only has the main matches collection; collapsing/screening not yet migrated
+    Option(matches.find(Filters.eq("_id", new ObjectId(matchingId))).first())
+      .map(docToMatchResult)
+  }
+
+  override def convertStatus(matchId: String, firingCode: SampleCode, status: String): Future[Seq[SampleCode]] = Future {
+    val filter = Filters.and(
+      Filters.eq("_id", new ObjectId(matchId)),
+      Filters.or(
+        Filters.eq("leftProfile.globalCode",  firingCode.text),
+        Filters.eq("rightProfile.globalCode", firingCode.text)
+      )
+    )
+    Option(matches.find(filter).first()).fold[Seq[SampleCode]](Nil) { doc =>
+      val mr        = docToMatchResult(doc)
+      val isRight   = mr.rightProfile.globalCode == firingCode
+      val field     = if (isRight) "rightProfile.status" else "leftProfile.status"
+      val code      = if (isRight) mr.rightProfile.globalCode else mr.leftProfile.globalCode
+      matches.updateOne(Filters.eq("_id", new ObjectId(matchId)), Updates.set(field, status))
+      Seq(code)
+    }
+  }
+
+  override def getGlobalMatchStatus(left: MatchStatus.Value, right: MatchStatus.Value): MatchGlobalStatus.Value =
+    (left, right) match {
+      case (MatchStatus.pending,   _)                        => MatchGlobalStatus.pending
+      case (_,                     MatchStatus.pending)      => MatchGlobalStatus.pending
+      case (MatchStatus.hit,       MatchStatus.hit)          => MatchGlobalStatus.hit
+      case (MatchStatus.discarded, MatchStatus.discarded)    => MatchGlobalStatus.discarded
+      case _                                                 => MatchGlobalStatus.conflict
+    }
+
+  // ── getMatches / getTotalMatches (MongoDB aggregation replacing Spark) ──────
+
+  private def buildMatchesAggrPipeline(search: MatchCardSearch): Seq[Bson] = {
+    // Base filter: exclude deleted, honour isCollapsing+courtCase
+    val baseFilter: Bson =
+      if (search.isCollapsing.contains(true) && search.courtCaseId.isDefined)
+        Filters.and(
+          Filters.ne("leftProfile.status",  MatchStatus.deleted.toString),
+          Filters.ne("rightProfile.status", MatchStatus.deleted.toString),
+          Filters.eq("idCourtCase", search.courtCaseId.get)
+        )
+      else
+        Filters.and(
+          Filters.ne("leftProfile.status",  MatchStatus.deleted.toString),
+          Filters.ne("rightProfile.status", MatchStatus.deleted.toString)
+        )
+
+    // Assignee restriction for non-super-users
+    val matchFilter: Bson =
+      if (search.isSuperUser) baseFilter
+      else Filters.and(
+        baseFilter,
+        Filters.or(
+          Filters.eq("leftProfile.assignee",  search.user),
+          Filters.eq("rightProfile.assignee", search.user)
+        )
+      )
+
+    // Additional post-group filters
+    val profileFilter: Option[Bson]  = search.profile.map(gc => Filters.eq("_id", gc))
+    val labFilter: Option[Bson]      = search.laboratoryCode.map(lc => Filters.regex("_id", s".*-$lc-.*"))
+    val fromFilter: Option[Bson]     = search.hourFrom.map(d  => Filters.gte("lastDate", d))
+    val untilFilter: Option[Bson]    = search.hourUntil.map(d  => Filters.lte("lastDate", d))
+    val catFilter: Option[Bson]      = search.categoria.map(c  => Filters.eq("category", c))
+    val statusFilter: Option[Bson]   = search.status.map(s     => Filters.gt(s.toString, 0))
+
+    val postFilters: List[Bson] = List(profileFilter, labFilter, fromFilter, untilFilter, catFilter, statusFilter).flatten
+    val postMatchStage: Option[Bson] = if (postFilters.isEmpty) None else Some(Aggregates.`match`(Filters.and(postFilters*)))
+
+    val groupStage = Document.parse(s"""{
+      "$$group": {
+        "_id": "$$leftProfile.globalCode",
+        "lastDate": {"$$max": "$$matchingDate"},
+        "category": {"$$first": "$$leftProfile.categoryId"},
+        "${MatchGlobalStatus.pending}":   {"$$sum": {"$$cond": [{"$$or": [{"$$eq":["$$leftProfile.status","${MatchStatus.pending}"]},{"$$eq":["$$rightProfile.status","${MatchStatus.pending}"]}]}, 1, 0]}},
+        "${MatchGlobalStatus.hit}":       {"$$sum": {"$$cond": [{"$$and":[{"$$eq":["$$leftProfile.status","${MatchStatus.hit}"]},{"$$eq":["$$rightProfile.status","${MatchStatus.hit}"]}]}, 1, 0]}},
+        "${MatchGlobalStatus.discarded}": {"$$sum": {"$$cond": [{"$$and":[{"$$eq":["$$leftProfile.status","${MatchStatus.discarded}"]},{"$$eq":["$$rightProfile.status","${MatchStatus.discarded}"]}]}, 1, 0]}},
+        "${MatchGlobalStatus.conflict}":  {"$$sum": {"$$cond": [{"$$or": [{"$$and":[{"$$eq":["$$leftProfile.status","${MatchStatus.hit}"]},{"$$eq":["$$rightProfile.status","${MatchStatus.discarded}"]}]},{"$$and":[{"$$eq":["$$leftProfile.status","${MatchStatus.discarded}"]},{"$$eq":["$$rightProfile.status","${MatchStatus.hit}"]}]}]}, 1, 0]}}
+      }
+    }""")
+
+    val sortDoc = Document.parse(s"""{"$$sort": {"lastDate": ${if (search.ascending) 1 else -1}, "_id": 1}}""")
+
+    val pipeline = scala.collection.mutable.Buffer[Bson](Aggregates.`match`(matchFilter))
+    pipeline += groupStage
+    postMatchStage.foreach(pipeline += _)
+    pipeline += sortDoc
+    pipeline.toSeq
+  }
+
+  override def getMatches(search: MatchCardSearch): Future[Seq[MatchCardForense]] = Future {
+    val pipeline = (buildMatchesAggrPipeline(search) :+
+      Document.parse(s"""{"$$skip": ${search.page * search.pageSize}}""") :+
+      Document.parse(s"""{"$$limit": ${search.pageSize}}""")).asJava
+
+    matches.aggregate(pipeline).into(new java.util.ArrayList[Document]()).asScala.toSeq.map { doc =>
+      val globalCode       = doc.getString("_id")
+      val pending          = doc.getInteger(MatchGlobalStatus.pending.toString, 0)
+      val hit              = doc.getInteger(MatchGlobalStatus.hit.toString, 0)
+      val discarded        = doc.getInteger(MatchGlobalStatus.discarded.toString, 0)
+      val conflict         = doc.getInteger(MatchGlobalStatus.conflict.toString, 0)
+      val lastDate         = doc.getDate("lastDate")
+      val category         = Option(doc.getString("category")).getOrElse("")
+
+      val mc = MatchCard(SampleCode(globalCode), pending, hit, discarded, conflict,
+        1, globalCode, AlphanumericId(category), lastDate, "", "")
+      val lr = MatchCardMejorLr(globalCode, AlphanumericId(category), 0, MatchStatus.pending,
+        MatchStatus.pending, 0.0, 0.0, 0.0, SampleCode(globalCode), 1)
+      MatchCardForense(mc, lr)
+    }
+  }
+
+  override def getTotalMatches(search: MatchCardSearch): Future[Int] = Future {
+    val countPipeline = (buildMatchesAggrPipeline(search) :+
+      Document.parse("""{"$count": "total"}""")).asJava
+    Option(matches.aggregate(countPipeline).first())
+      .fold(0)(_.getInteger("total", 0))
+  }
+
+  // ── getMatchesByGroup / getTotalMatchesByGroup ───────────────────────────────
+
+  private def buildGroupFilter(search: MatchGroupSearch): Bson = {
+    val gc = search.globalCode.text
+
+    val statusFilter: Bson = search.status match {
+      case Some("conflict") => Filters.or(
+        Filters.and(Filters.eq("leftProfile.status", MatchStatus.discarded.toString), Filters.eq("rightProfile.status", MatchStatus.hit.toString)),
+        Filters.and(Filters.eq("leftProfile.status", MatchStatus.hit.toString),       Filters.eq("rightProfile.status", MatchStatus.discarded.toString))
+      )
+      case Some("pending") => Filters.or(
+        Filters.eq("leftProfile.status", MatchStatus.pending.toString),
+        Filters.eq("rightProfile.status", MatchStatus.pending.toString)
+      )
+      case Some(s) => Filters.and(
+        Filters.eq("leftProfile.status", s),
+        Filters.eq("rightProfile.status", s)
+      )
+      case None => Filters.and(
+        Filters.ne("leftProfile.status", MatchStatus.deleted.toString),
+        Filters.ne("rightProfile.status", MatchStatus.deleted.toString)
+      )
+    }
+
+    val typeFilter: Bson = search.tipo match {
+      case Some(t) => Filters.and(statusFilter, Filters.eq("type", t))
+      case None    => Filters.and(statusFilter, Filters.ne("type", 4))
+    }
+
+    val profileFilter: Bson = Filters.or(
+      Filters.eq("leftProfile.globalCode",  gc),
+      Filters.eq("rightProfile.globalCode", gc)
+    )
+
+    val combined = if (search.isCollapsing.contains(true) && search.courtCaseId.isDefined)
+      Filters.and(
+        Filters.eq("idCourtCase", search.courtCaseId.get),
+        Filters.eq("leftProfile.globalCode", gc),
+        Filters.ne("leftProfile.status",  MatchStatus.deleted.toString),
+        Filters.ne("rightProfile.status", MatchStatus.deleted.toString)
+      )
+    else
+      Filters.and(typeFilter, profileFilter,
+        Filters.ne("leftProfile.status",  MatchStatus.deleted.toString),
+        Filters.ne("rightProfile.status", MatchStatus.deleted.toString))
+
+    if (search.isSuperUser) combined
+    else Filters.and(combined, Filters.or(
+      Filters.eq("leftProfile.assignee",  search.user),
+      Filters.eq("rightProfile.assignee", search.user)
+    ))
+  }
+
+  override def getTotalMatchesByGroup(search: MatchGroupSearch): Int =
+    matches.countDocuments(buildGroupFilter(search)).toInt
+
+  override def getMatchesByGroup(search: MatchGroupSearch): Seq[MatchingResult] = {
+    val gc = search.globalCode
+
+    val sortField = search.sortField match {
+      case "globalCode"             => Sorts.orderBy(if (search.ascending) Sorts.ascending("rightProfile.globalCode") else Sorts.descending("rightProfile.globalCode"))
+      case "totalAlleles"           => Sorts.orderBy(if (search.ascending) Sorts.ascending("result.totalAlleles") else Sorts.descending("result.totalAlleles"))
+      case "sharedAllelePonderation"=> Sorts.orderBy(if (search.ascending) Sorts.ascending("result.leftPonderation") else Sorts.descending("result.leftPonderation"))
+      case "ownerStatus" | "otherStatus" => Sorts.orderBy(if (search.ascending) Sorts.ascending("leftProfile.status") else Sorts.descending("leftProfile.status"))
+      case _                        => Sorts.orderBy(if (search.ascending) Sorts.ascending("matchingDate") else Sorts.descending("matchingDate"))
+    }
+
+    val skip  = (search.page - 1).max(0) * search.pageSize
+    val docs  = matches.find(buildGroupFilter(search))
+      .sort(sortField)
+      .skip(skip)
+      .limit(search.pageSize)
+      .into(new java.util.ArrayList[Document]()).asScala.toSeq
+
+    docs.map { doc =>
+      val mr      = docToMatchResult(doc)
+      val isRight = mr.rightProfile.globalCode == gc
+
+      val (ownerProf, matchingProf) = if (isRight) (mr.rightProfile, mr.leftProfile) else (mr.leftProfile, mr.rightProfile)
+
+      val sharedAllelePonderation =
+        if (isRight) mr.result.rightPonderation else mr.result.leftPonderation
+
+      MatchingResult(
+        mr._id.id,
+        matchingProf.globalCode,
+        matchingProf.globalCode.text,
+        mr.result.stringency,
+        mr.result.matchingAlleles,
+        mr.result.totalAlleles,
+        matchingProf.categoryId,
+        ownerProf.status,
+        matchingProf.status,
+        getGlobalMatchStatus(ownerProf.status, matchingProf.status),
+        sharedAllelePonderation,
+        1,
+        false,
+        mr.result.algorithm,
+        mr.`type`,
+        mr.result.allelesRanges,
+        mr.lr,
+        mr.mismatches
+      )
+    }
+  }
+
+  // ── count helpers ────────────────────────────────────────────────────────────
+
+  private def countByStatus(globalCode: String, status: String): Future[Int] = Future {
+    matches.countDocuments(Filters.and(
+      Filters.or(Filters.eq("leftProfile.globalCode", globalCode), Filters.eq("rightProfile.globalCode", globalCode)),
+      Filters.or(Filters.eq("leftProfile.status", status), Filters.eq("rightProfile.status", status))
+    )).toInt
+  }
+
+  override def numberOfMatchesHit(globalCode: String): Future[Int]      = countByStatus(globalCode, MatchStatus.hit.toString)
+  override def numberOfMatchesPending(globalCode: String): Future[Int]  = countByStatus(globalCode, MatchStatus.pending.toString)
+  override def numberOfMatchesDescarte(globalCode: String): Future[Int] = countByStatus(globalCode, MatchStatus.discarded.toString)
+  override def numberOfMatchesConflic(globalCode: String): Future[Int]  = Future {
+    matches.countDocuments(Filters.and(
+      Filters.or(Filters.eq("leftProfile.globalCode", globalCode), Filters.eq("rightProfile.globalCode", globalCode)),
+      Filters.or(
+        Filters.and(Filters.eq("leftProfile.status", MatchStatus.hit.toString),       Filters.eq("rightProfile.status", MatchStatus.discarded.toString)),
+        Filters.and(Filters.eq("leftProfile.status", MatchStatus.discarded.toString), Filters.eq("rightProfile.status", MatchStatus.hit.toString))
+      )
+    )).toInt
+  }
+
+  override def numberOfMt(globalCode: String): Future[Boolean] = Future {
+    matches.countDocuments(Filters.and(
+      Filters.or(Filters.eq("leftProfile.globalCode", globalCode), Filters.eq("rightProfile.globalCode", globalCode)),
+      Filters.eq("type", 2)
+    )) > 0
+  }
+
+  override def getProfileLr(globalCode: SampleCode, isCollapsing: Boolean): Future[MatchCardMejorLr] = Future {
+    val filter = Filters.and(
+      Filters.ne("leftProfile.status",  MatchStatus.deleted.toString),
+      Filters.ne("rightProfile.status", MatchStatus.deleted.toString),
+      Filters.or(Filters.eq("leftProfile.globalCode", globalCode.text), Filters.eq("rightProfile.globalCode", globalCode.text))
+    )
+    val doc = Option(matches.find(filter).sort(Sorts.descending("lr")).first())
+      .getOrElse(throw new NoSuchElementException(s"No match found for ${globalCode.text}"))
+    val mr      = docToMatchResult(doc)
+    val isRight = mr.rightProfile.globalCode == globalCode
+    val (ownerP, matchP) = if (isRight) (mr.rightProfile, mr.leftProfile) else (mr.leftProfile, mr.rightProfile)
+    val shared  = if (isRight) mr.result.rightPonderation else mr.result.leftPonderation
+    MatchCardMejorLr(ownerP.globalCode.text, matchP.categoryId, mr.result.totalAlleles,
+      ownerP.status, matchP.status, shared, mr.mismatches.toDouble, mr.lr, matchP.globalCode, mr.`type`)
+  }
+
+  // ── collapsing ───────────────────────────────────────────────────────────────
+
+  override def discardCollapsingByLeftProfile(id: String, courtCaseId: Long): Future[Unit] = Future {
+    matches.deleteMany(Filters.and(
+      Filters.eq("leftProfile.globalCode", id),
+      Filters.eq("idCourtCase", courtCaseId)
+    ))
+    ()
+  }
+
+  override def discardCollapsingByRightProfile(id: String, courtCaseId: Long): Future[Unit] = Future {
+    matches.deleteMany(Filters.and(
+      Filters.eq("rightProfile.globalCode", id),
+      Filters.eq("idCourtCase", courtCaseId)
+    ))
+    ()
+  }
+
+  override def discardCollapsingByLeftAndRightProfile(id: String, courtCaseId: Long): Future[Unit] = Future {
+    matches.deleteMany(Filters.and(
+      Filters.or(Filters.eq("leftProfile.globalCode", id), Filters.eq("rightProfile.globalCode", id)),
+      Filters.eq("idCourtCase", courtCaseId)
+    ))
+    ()
+  }
+
+  override def discardCollapsingMatches(ids: List[String], courtCaseId: Long): Future[Unit] = Future {
+    ids.headOption.foreach { id =>
+      matches.deleteMany(Filters.and(
+        Filters.eq("_id", new ObjectId(id)),
+        Filters.eq("idCourtCase", courtCaseId)
+      ))
+    }
+    ()
   }
 }

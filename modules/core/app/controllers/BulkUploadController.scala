@@ -7,6 +7,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import play.api.libs.json.*
 import play.api.mvc.*
 import bulkupload.{BulkUploadService, ProtoProfileMatchingQuality, ProtoProfileStatus}
+import connections.InterconnectionService
 import profile.Profile
 import search.PaginationSearch
 import services.UserService
@@ -16,7 +17,8 @@ import types.AlphanumericId
 class BulkUploadController @Inject() (
   cc: ControllerComponents,
   bulkUploadService: BulkUploadService,
-  userService: UserService
+  userService: UserService,
+  interconnectionService: InterconnectionService
 )(using ec: ExecutionContext) extends AbstractController(cc):
 
   def getBatchesStep1(page: Int, pageSize: Int) = Action.async { request =>
@@ -144,4 +146,8 @@ class BulkUploadController @Inject() (
 
   def getBatchSearchModalViewByIdOrLabel(input: String, idCase: Long) = Action.async { _ =>
     bulkUploadService.getBatchSearchModalViewByIdOrLabel(input, idCase).map(result => Ok(Json.toJson(result)))
+  }
+
+  def getIsProfileReplicableInternalCode(internalCode: String) = Action.async { _ =>
+    interconnectionService.isUplpoadableInternalCode(internalCode).map(r => Ok(Json.toJson(r)))
   }

@@ -38,7 +38,7 @@ define(['lodash'], function(_) {
 			if (typeof desktopSearch === 'undefined') {
 				desktopSearch = false;
 			}
-			return playRoutes.controllers.BulkUpload.updateProtoProfileStatus(sampleName, newStatus, replicate, desktopSearch).post();
+			return playRoutes.controllers.BulkUpload.updateProtoProfileStatus(sampleName, newStatus, !!replicate, desktopSearch).post();
 		};
 
 		this.changeBatchStatus = function(idBatch, newStatus,idsToReplicate,replicateAll) {
