@@ -28,38 +28,30 @@ class MotiveController @Inject()(
 
   def deleteMotiveById(id: Long): Action[AnyContent] = Action.async {
     motiveService.deleteMotiveById(id).map {
-      case Left(msg) => InternalServerError(Json.obj("message" -> msg))
+      case Left(msg) => NotFound(Json.obj("message" -> msg))
       case Right(()) => Ok
     }
   }
 
-  def insert: Action[play.api.mvc.AnyContent] = Action.async(parse.anyContent) { request =>
-    request.body.asJson.map(_.validate[Motive]) match {
-      case None => Future.successful(BadRequest(Json.obj("message" -> "Expected JSON body")))
-      case Some(jsResult) =>
-        jsResult.fold(
-          errors => Future.successful(BadRequest(JsError.toJson(errors))),
-          row =>
-            motiveService.insert(row).map {
-              case Left(msg) => InternalServerError(Json.obj("message" -> msg))
-              case Right(id) => Ok(Json.obj("id" -> id))
-            }
-        )
-    }
+  def insert: Action[play.api.libs.json.JsValue] = Action.async(parse.json) { request =>
+    request.body.validate[Motive].fold(
+      errors => Future.successful(BadRequest(JsError.toJson(errors))),
+      row =>
+        motiveService.insert(row).map {
+          case Left(msg) => NotFound(Json.obj("message" -> msg))
+          case Right(id) => Ok(Json.obj("id" -> id))
+        }
+    )
   }
 
-  def update: Action[play.api.mvc.AnyContent] = Action.async(parse.anyContent) { request =>
-    request.body.asJson.map(_.validate[Motive]) match {
-      case None => Future.successful(BadRequest(Json.obj("message" -> "Expected JSON body")))
-      case Some(jsResult) =>
-        jsResult.fold(
-          errors => Future.successful(BadRequest(JsError.toJson(errors))),
-          row =>
-            motiveService.update(row).map {
-              case Left(msg) => InternalServerError(Json.obj("message" -> msg))
-              case Right(_)  => Ok
-            }
-        )
-    }
+  def update: Action[play.api.libs.json.JsValue] = Action.async(parse.json) { request =>
+    request.body.validate[Motive].fold(
+      errors => Future.successful(BadRequest(JsError.toJson(errors))),
+      row =>
+        motiveService.update(row).map {
+          case Left(msg) => NotFound(Json.obj("message" -> msg))
+          case Right(_)  => Ok
+        }
+    )
   }
 }

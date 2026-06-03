@@ -56,7 +56,8 @@ class LdapUserRepository @Inject() (
 
   override def get(userId: String): Future[LdapUser] = Future {
     val filter = Filter.createEqualityFilter("uid", userId)
-    searchOne(filter) match
-      case Some(entry) => entryToLdapUser(entry).get
-      case None => throw new NoSuchElementException(s"Can't find $userId in LDAP")
+    searchAll(filter) match
+      case Seq() => throw new NoSuchElementException(s"Can't find $userId in LDAP")
+      case Seq(entry) => entryToLdapUser(entry).get
+      case entries => throw new Exception(s"Found ${entries.size} entries with uid $userId")
   }

@@ -198,9 +198,6 @@ class AuthServiceImpl @Inject() (
 
           val authenticatedPair = cryptoService.generateRandomCredentials()
           val userCredentials = cryptoService.generateDerivatedCredentials(password)
-          logger.debug(ldapUser.toString)
-          logger.debug(ldapUser.encryptedPrivateKey.toString)
-          logger.debug(userCredentials.toString)
           val privateKey = cryptoService.decrypt(ldapUser.encryptedPrivateKey, userCredentials)
           val publicKey = cryptoService.decrypt(ldapUser.encryptedPublicKey, userCredentials)
           val userTotp = cryptoService.decrypt(ldapUser.encryptrdTotpSecret, userCredentials)

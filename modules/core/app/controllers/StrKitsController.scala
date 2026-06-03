@@ -15,14 +15,14 @@ class StrKitsController @Inject()(
   def get(id: String): Action[AnyContent] = Action.async { implicit request =>
     strKitService.get(id).map {
       case Some(kit) => Ok(Json.toJson(kit))
-      case None      => NotFound(Json.obj("error" -> "Kit not found"))
+      case None      => NoContent
     }
   }
 
   def getFull(id: String): Action[AnyContent] = Action.async { implicit request =>
     strKitService.getFull(id).map {
       case Some(kit) => Ok(Json.toJson(kit))
-      case None      => NotFound(Json.obj("error" -> "Kit not found"))
+      case None      => NoContent
     }
   }
 

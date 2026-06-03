@@ -9,8 +9,8 @@ import play.api.libs.functional.syntax.*
 import play.api.libs.json.{Format, JsError, JsPath, Json, Reads, Writes, __}
 import play.api.mvc.*
 
-import security.{AuthService, AuthorisationOperation, RequestToken}
-import types.TotpToken
+import security.{AuthService, AuthorisationOperation, FullUser, RequestToken, User}
+import types.{Permission, TotpToken}
 
 case class UserPassword(userName: String, password: String, otp: TotpToken)
 
@@ -52,6 +52,22 @@ class Authentication @Inject() (
     val controllerComponents: ControllerComponents
 )(using ec: ExecutionContext) extends BaseController {
 
+  // Mismo contrato JSON que el legacy: userDetail (sin cryptoCredentials) + credentials.
+  private given userWrites: Writes[User] = (
+    (JsPath \ "id").write[String] and
+    (JsPath \ "firstName").write[String] and
+    (JsPath \ "lastName").write[String] and
+    (JsPath \ "email").write[String] and
+    (JsPath \ "permissions").write[Set[Permission]] and
+    (JsPath \ "superuser").write[Boolean] and
+    (JsPath \ "geneMapperId").write[String]
+  )(u => (u.id, u.firstName, u.lastName, u.email, u.permissions, u.superuser, u.geneMapperId))
+
+  private given fullUserWrites: Writes[FullUser] = (
+    (JsPath \ "userDetail").write[User] and
+    (JsPath \ "credentials").write[security.AuthenticatedPair]
+  )(fu => (fu.userDetail, fu.credentials))
+
   def login = Action.async(parse.json) { request =>
 
     val input = request.body.validate[UserPassword]
@@ -62,14 +78,12 @@ class Authentication @Inject() (
       userPassword => {
         val result = authService.authenticate(userPassword.userName.toLowerCase, userPassword.password, userPassword.otp)
         result.map { userOpt =>
-          val response = userOpt.fold[Result](NotFound) { user =>
-            // TODO: FullUser no tiene un formato JSON completo aún
-            // Ok(Json.toJson(user))
-            Ok(Json.obj("userName" -> user.userDetail.id, "status" -> "authenticated"))
+          userOpt.fold[Result](NotFound.withHeaders("Date" -> new Date().toString)) { user =>
+            // Sólo se setea la sesión X-USER cuando la autenticación fue exitosa.
+            Ok(Json.toJson(user))
+              .withHeaders("Date" -> new Date().toString)
+              .withSession("X-USER" -> userPassword.userName.toLowerCase)
           }
-          response
-            .withHeaders("Date" -> new Date().toString)
-            .withSession("X-USER" -> userPassword.userName.toLowerCase)
         }
       })
   }

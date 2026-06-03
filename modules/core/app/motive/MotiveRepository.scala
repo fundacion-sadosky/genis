@@ -4,6 +4,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import slick.jdbc.PostgresProfile.api._
 import models.Tables
+import play.api.Logger
 
 trait MotiveRepository {
   def getMotives(motiveType: Long, editable: Boolean): Future[List[Motive]]
@@ -15,9 +16,11 @@ trait MotiveRepository {
 }
 
 @Singleton
-class SlickMotiveRepository @Inject()(implicit ec: ExecutionContext) extends MotiveRepository {
+class SlickMotiveRepository @Inject()(
+    db: slick.jdbc.JdbcBackend.Database
+)(implicit ec: ExecutionContext) extends MotiveRepository {
 
-  private val db = Database.forConfig("slick.dbs.default.db")
+  private val logger: Logger = Logger(this.getClass())
   private val motiveTable     = Tables.Motive
   private val motiveTypeTable = Tables.MotiveType
 
@@ -44,25 +47,37 @@ class SlickMotiveRepository @Inject()(implicit ec: ExecutionContext) extends Mot
   override def deleteMotiveById(id: Long): Future[Either[String, Unit]] = {
     db.run(motiveTable.filter(_.id === id).delete)
       .map(_ => Right(()))
-      .recover { case e: Exception => Left(e.getMessage) }
+      .recover { case e: Exception =>
+        logger.error(e.getMessage, e)
+        Left(e.getMessage)
+      }
   }
 
   override def deleteLogicalMotiveById(id: Long): Future[Either[String, Unit]] = {
     db.run(motiveTable.filter(_.id === id).map(_.deleted).update(true))
       .map(_ => Right(()))
-      .recover { case e: Exception => Left(e.getMessage) }
+      .recover { case e: Exception =>
+        logger.error(e.getMessage, e)
+        Left(e.getMessage)
+      }
   }
 
   override def insert(row: Motive): Future[Either[String, Long]] = {
     val newRow = Tables.MotiveRow(id = 0L, motiveType = row.motiveType, description = row.description, freeText = row.freeText)
     db.run((motiveTable returning motiveTable.map(_.id)) += newRow)
       .map(id => Right(id))
-      .recover { case e: Exception => Left(e.getMessage) }
+      .recover { case e: Exception =>
+        logger.error(e.getMessage, e)
+        Left(e.getMessage)
+      }
   }
 
   override def update(row: Motive): Future[Either[String, Unit]] = {
     db.run(motiveTable.filter(_.id === row.id).map(_.description).update(row.description))
       .map(_ => Right(()))
-      .recover { case e: Exception => Left(e.getMessage) }
+      .recover { case e: Exception =>
+        logger.error(e.getMessage, e)
+        Left("E0500: Error al actualizar la configuración el motivo.")
+      }
   }
 }

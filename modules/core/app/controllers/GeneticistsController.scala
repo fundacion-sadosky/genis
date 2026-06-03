@@ -1,6 +1,8 @@
 package controllers
 
 import javax.inject.{Inject, Singleton}
+import org.postgresql.util.PSQLException
+import play.api.Logger
 import play.api.mvc.{AbstractController, ControllerComponents, Action}
 import play.api.libs.json.{Json, JsError}
 import scala.concurrent.{ExecutionContext, Future}
@@ -14,6 +16,8 @@ class GeneticistsController @Inject() (
     genService: GeneticistService,
     userService: UserService
 )(implicit ec: ExecutionContext) extends AbstractController(cc) {
+
+  private val logger: Logger = Logger(this.getClass)
 
   def allGeneticist(lab: String) = Action.async {
     genService.getAll(lab) map { gens =>
@@ -32,7 +36,12 @@ class GeneticistsController @Inject() (
       errors => Future.successful(BadRequest(Json.obj("status" -> "KO", "message" -> JsError.toJson(errors)))),
       gen => genService.add(gen).map(result => Ok(Json.toJson(result)).withHeaders("X-CREATED-ID" -> result.toString))
         .recover {
-          case e: Exception => BadRequest(Json.obj("error" -> e.getMessage))
+          case psql: PSQLException =>
+            logger.error(psql.getMessage, psql)
+            psql.getSQLState match {
+              case "23505" => BadRequest(Json.obj("error" -> "Nombre ya utilizado en el Laboratio"))
+              case _       => BadRequest(Json.obj("error" -> "Error inesperado en la base de datos"))
+            }
         }
     )
   }

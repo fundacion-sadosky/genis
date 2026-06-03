@@ -38,8 +38,10 @@ class LaboratoriesController @Inject() (
   def addLab = Action.async(parse.json) { request =>
     request.body.validate[Laboratory].fold(
       errors => Future.successful(BadRequest(Json.obj("status" -> "KO", "message" -> JsError.toJson(errors)))),
-      laboratory => labService.add(laboratory).map { id =>
-        Ok(Json.toJson(id.toString)).withHeaders("X-CREATED-ID" -> id.toString)
+      laboratory => labService.add(laboratory).map { _ =>
+        // X-CREATED-ID debe ser el código del laboratorio (como en legacy),
+        // no el rowcount del insert.
+        Ok(Json.toJson(laboratory.code)).withHeaders("X-CREATED-ID" -> laboratory.code)
       }
     )
   }

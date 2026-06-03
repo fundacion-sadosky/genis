@@ -3,7 +3,7 @@ package configdata
 import scala.concurrent.{ExecutionContext, Future}
 import javax.inject.{Inject, Singleton}
 import configdata.CrimeType
-import services.CacheService
+import services.{CacheService, CrimeTypeKey}
 
 abstract class CrimeTypeService {
   def list(): Future[Map[String, CrimeType]]
@@ -20,6 +20,6 @@ class CachedCrimeTypeService @Inject() (
   }
 
   override def list(): Future[Map[String, CrimeType]] = {
-    crimeTypeRepository.list().map(mapById)
+    cache.asyncGetOrElse(CrimeTypeKey)(crimeTypeRepository.list()).map(mapById)
   }
 }

@@ -31,7 +31,7 @@ class AuthenticationSpec extends PlaySpec with GuiceOneAppPerTest {
   "Authentication controller" should {
 
     "return 400 BadRequest for malformed JSON body on POST /login" in {
-      val request = FakeRequest(POST, "/login")
+      val request = FakeRequest(POST, "/api/v2/login")
         .withBody(Json.obj("wrong_field" -> "value"))
 
       val result = route(app, request).get
@@ -40,7 +40,7 @@ class AuthenticationSpec extends PlaySpec with GuiceOneAppPerTest {
     }
 
     "return 415 UnsupportedMediaType when sending plain text instead of JSON on POST /login" in {
-      val request = FakeRequest(POST, "/login")
+      val request = FakeRequest(POST, "/api/v2/login")
         .withTextBody("")
 
       val result = route(app, request).get
@@ -51,7 +51,7 @@ class AuthenticationSpec extends PlaySpec with GuiceOneAppPerTest {
 
     "have /login route defined — credentials inválidas devuelven algo distinto a 405" in {
       // otp es un ConstrainedText que se serializa como string plano, no objeto
-      val request = FakeRequest(POST, "/login")
+      val request = FakeRequest(POST, "/api/v2/login")
         .withBody(Json.obj(
           "userName" -> "testuser",
           "password" -> "testpass",

@@ -95,6 +95,13 @@ case class LoggedUserKey(userId: String) extends CacheKey[TotpToken] {
 case object RolePermissionMapKey extends CacheKey[Map[String, Set[types.Permission]]]:
   override def cacheKey: String = "Keys.rolePermissionMap"
 
+// Keys de configuración (mismas claves que el legacy `object Keys`)
+case object CrimeTypeKey extends CacheKey[Seq[configdata.CrimeType]]:
+  override def cacheKey: String = "Keys.crimeType"
+
+case object BioMaterialTypeKey extends CacheKey[Seq[configdata.BioMaterialType]]:
+  override def cacheKey: String = "Keys.biomaterialType"
+
 // TODO: Agregar más keys cuando se migren otros módulos
 // - SignupRequestKey
 // - ClearPassRequestKey

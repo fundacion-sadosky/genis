@@ -2,28 +2,27 @@ package controllers.core
 
 import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
 import javax.inject.{Inject, Singleton}
+import play.api.Logger
 import play.api.libs.json.Json
-import play.api.Configuration
 
 import scala.concurrent.ExecutionContext
-import java.sql.{Connection, DriverManager}
+import java.sql.{Connection, ResultSet}
 
 /**
  * PostgreSQL Controller - Endpoint para verificar conectividad con PostgreSQL
- * 
- * Endpoints básicos para verificar conexión a la base de datos PostgreSQL legacy
+ *
+ * Endpoints básicos de diagnóstico de conexión a PostgreSQL. Usa el `Database`
+ * singleton inyectado (mismo pool/configuración que el resto de la app), en vez
+ * de abrir conexiones propias con credenciales tomadas de la Configuration.
  */
 @Singleton
 class PostgresController @Inject()(
   cc: ControllerComponents,
-  config: Configuration
+  db: slick.jdbc.JdbcBackend.Database
 )(implicit ec: ExecutionContext) extends AbstractController(cc) {
-  
-  // Configuración de PostgreSQL desde application.conf
-  private val jdbcUrl = config.get[String]("slick.dbs.default.db.url")
-  private val username = config.get[String]("slick.dbs.default.db.user")
-  private val password = config.get[String]("slick.dbs.default.db.password")
-  
+
+  private val logger: Logger = Logger(this.getClass)
+
   /**
    * Verifica la conectividad con PostgreSQL
    * GET /api/v2/postgres/ping
@@ -31,22 +30,17 @@ class PostgresController @Inject()(
   def ping(): Action[AnyContent] = Action {
     var connection: Connection = null
     try {
-      // Intentar establecer conexión
-      connection = DriverManager.getConnection(jdbcUrl, username, password)
-      
-      // Verificar que la conexión está activa
+      connection = db.source.createConnection()
       val isValid = connection.isValid(5) // timeout de 5 segundos
-      
+
       if (isValid) {
         val metadata = connection.getMetaData
-        
+
         Ok(Json.obj(
           "status" -> "OK",
           "message" -> "PostgreSQL connection successful",
           "database" -> metadata.getDatabaseProductName,
-          "version" -> metadata.getDatabaseProductVersion,
-          "url" -> jdbcUrl.replaceAll(":[^:]+@", ":***@"), // ocultar password en URL
-          "user" -> username
+          "version" -> metadata.getDatabaseProductVersion
         ))
       } else {
         ServiceUnavailable(Json.obj(
@@ -56,10 +50,10 @@ class PostgresController @Inject()(
       }
     } catch {
       case e: Exception =>
+        logger.error(e.getMessage, e)
         InternalServerError(Json.obj(
           "status" -> "ERROR",
-          "message" -> e.getMessage,
-          "type" -> e.getClass.getSimpleName
+          "message" -> "No se pudo conectar a PostgreSQL"
         ))
     } finally {
       if (connection != null && !connection.isClosed) {
@@ -67,7 +61,7 @@ class PostgresController @Inject()(
       }
     }
   }
-  
+
   /**
    * Obtiene información detallada de la base de datos
    * GET /api/v2/postgres/info
@@ -75,17 +69,20 @@ class PostgresController @Inject()(
   def info(): Action[AnyContent] = Action {
     var connection: Connection = null
     try {
-      connection = DriverManager.getConnection(jdbcUrl, username, password)
+      connection = db.source.createConnection()
       val metadata = connection.getMetaData
-      
+
       // Obtener lista de tablas
-      val resultSet = metadata.getTables(null, null, "%", Array("TABLE"))
+      val resultSet: ResultSet = metadata.getTables(null, null, "%", Array("TABLE"))
       var tables = List.empty[String]
-      while (resultSet.next()) {
-        tables = tables :+ resultSet.getString("TABLE_NAME")
+      try {
+        while (resultSet.next()) {
+          tables = tables :+ resultSet.getString("TABLE_NAME")
+        }
+      } finally {
+        resultSet.close()
       }
-      resultSet.close()
-      
+
       Ok(Json.obj(
         "status" -> "OK",
         "database" -> Json.obj(
@@ -95,8 +92,6 @@ class PostgresController @Inject()(
           "driverVersion" -> metadata.getDriverVersion
         ),
         "connection" -> Json.obj(
-          "url" -> jdbcUrl.replaceAll(":[^:]+@", ":***@"),
-          "user" -> username,
           "catalog" -> connection.getCatalog,
           "schema" -> connection.getSchema
         ),
@@ -107,10 +102,10 @@ class PostgresController @Inject()(
       ))
     } catch {
       case e: Exception =>
+        logger.error(e.getMessage, e)
         InternalServerError(Json.obj(
           "status" -> "ERROR",
-          "message" -> e.getMessage,
-          "type" -> e.getClass.getSimpleName
+          "message" -> "No se pudo obtener información de PostgreSQL"
         ))
     } finally {
       if (connection != null && !connection.isClosed) {
