@@ -1,6 +1,6 @@
 package user
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 import scala.util.Try
 import scala.jdk.CollectionConverters.*
 
@@ -14,7 +14,7 @@ class LdapUserRepository @Inject() (
     bindConnectionPool: LDAPConnectionPool,
     searchConnection: LDAPConnection,
     @Named("usersDn") usersDn: String
-)(using ec: ExecutionContext) extends UserRepository with LdapRepository:
+)(using ec: LdapExecutionContext) extends UserRepository with LdapRepository:
 
   val baseDn: DN = new DN(usersDn)
   val baseSearchConnection: LDAPConnection = searchConnection

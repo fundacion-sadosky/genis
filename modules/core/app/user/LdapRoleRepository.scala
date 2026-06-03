@@ -1,6 +1,6 @@
 package user
 
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.*
 import scala.util.Try
 import scala.jdk.CollectionConverters.*
@@ -19,7 +19,7 @@ class LdapRoleRepository @Inject() (
     bindConnectionPool: LDAPConnectionPool,
     searchConnection: LDAPConnection,
     @Named("rolesDn") rolesDn: String
-)(using ec: ExecutionContext) extends RoleRepository with LdapRepository:
+)(using ec: LdapExecutionContext) extends RoleRepository with LdapRepository:
 
   val baseDn: DN = new DN(rolesDn)
   val baseSearchConnection: LDAPConnection = searchConnection
@@ -38,6 +38,9 @@ class LdapRoleRepository @Inject() (
   }
 
   override def rolePermissionMap: Map[String, Set[Permission]] =
+    // El contrato síncrono de getRolePermissions() fuerza un Await. getRoles corre sobre el
+    // dispatcher dedicado `ldap-context` (LdapExecutionContext), por lo que el bloqueo no agota
+    // el thread pool por defecto de Play. El resultado se cachea en RoleServiceImpl.
     val roles = Await.result(getRoles, 10.seconds)
     logger.debug(roles.toString)
     roles.map(r => r.id -> r.permissions).toMap.withDefaultValue(Set.empty)
