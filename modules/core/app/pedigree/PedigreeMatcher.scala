@@ -406,7 +406,7 @@ class PedigreeMatcherImpl @jakarta.inject.Inject() (
     matchingActor ! idPedigree
 
   override def findMatchesBlocking(globalCode: SampleCode, matchType: String): Unit =
-    val locusRangeMap = locusService.locusRangeMap()
+    val locusRangeMap = Await.result(locusService.locusRangeMap(), duration)
     Await.result(profileRepo.findByCode(globalCode), duration).foreach { p =>
       traceService.add(Trace(globalCode, p.assignee, new Date(), PedigreeMatchProcessInfo(Await.result(categoryService.getCategory(p.categoryId), duration).get.matchingRules)))
       findMatchesByProfile(MatchingAlgorithm.convertProfileWithConvertedOutOfLadderAlleles(p, locusRangeMap), locusRangeMap, matchType)
@@ -414,7 +414,7 @@ class PedigreeMatcherImpl @jakarta.inject.Inject() (
     }
 
   override def findMatchesBlocking(idPedigree: Long): Unit =
-    val locusRangeMap = locusService.locusRangeMap()
+    val locusRangeMap = Await.result(locusService.locusRangeMap(), duration)
     Await.result(pedigreeRepo.get(idPedigree), duration).foreach { p =>
       if p.status == PedigreeStatus.Active then
         findMatchesByPedigree(p, locusRangeMap)

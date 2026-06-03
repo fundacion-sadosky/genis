@@ -108,7 +108,7 @@ class BayesianNetworkServiceImpl @jakarta.inject.Inject() (
     mutationModelData: Option[List[MutationModelData]],
     n: Map[String, List[Double]]
   ): Future[Array[PlainCPT]] =
-    Future {
+    locusService.locusRangeMap().map { locusRangeMap =>
       val normalizedFrequencyTable = BayesianNetwork.getNormalizedFrequencyTable(frequencyTable)
       BayesianNetwork.getGenotypification(
         profiles,
@@ -118,7 +118,7 @@ class BayesianNetworkServiceImpl @jakarta.inject.Inject() (
         linkage,
         None,
         verbose = true,
-        locusService.locusRangeMap(),
+        locusRangeMap,
         mutationModelType,
         mutationModelData,
         n
