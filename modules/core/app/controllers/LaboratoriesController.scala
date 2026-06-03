@@ -38,10 +38,11 @@ class LaboratoriesController @Inject() (
   def addLab = Action.async(parse.json) { request =>
     request.body.validate[Laboratory].fold(
       errors => Future.successful(BadRequest(Json.obj("status" -> "KO", "message" -> JsError.toJson(errors)))),
-      laboratory => labService.add(laboratory).map { _ =>
-        // X-CREATED-ID debe ser el código del laboratorio (como en legacy),
-        // no el rowcount del insert.
-        Ok(Json.toJson(laboratory.code)).withHeaders("X-CREATED-ID" -> laboratory.code)
+      laboratory => labService.add(laboratory).map {
+        // X-CREATED-ID es el código del laboratorio (como en legacy). add devuelve
+        // Right(code) en éxito o Left(error) si la base falló.
+        case Right(code) => Ok(Json.toJson(code)).withHeaders("X-CREATED-ID" -> code)
+        case Left(error) => BadRequest(Json.toJson(error))
       }
     )
   }
@@ -56,8 +57,9 @@ class LaboratoriesController @Inject() (
   def updateLab = Action.async(parse.json) { request =>
     request.body.validate[Laboratory].fold(
       errors => Future.successful(BadRequest(Json.obj("status" -> "KO", "message" -> JsError.toJson(errors)))),
-      laboratory => labService.update(laboratory).map { id =>
-        Ok(Json.toJson(id.toString))
+      laboratory => labService.update(laboratory).map {
+        case Right(code) => Ok(Json.toJson(code)).withHeaders("X-CREATED-ID" -> code)
+        case Left(error) => BadRequest(Json.toJson(error))
       }
     )
   }
