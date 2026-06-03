@@ -1,6 +1,5 @@
 package user
 
-import scala.concurrent.ExecutionContext
 import scala.jdk.CollectionConverters.*
 
 import com.unboundid.ldap.sdk.*
@@ -12,6 +11,13 @@ trait LdapRepository:
   val baseDn: DN
 
   protected val logger: Logger = Logger(this.getClass)
+
+  // Devuelve el atributo obligatorio o falla con un mensaje claro en vez de NPE crudo
+  // cuando `getAttribute` retorna null (atributo ausente en el entry).
+  protected def requiredAttribute(entry: SearchResultEntry, name: String): Attribute =
+    Option(entry.getAttribute(name)).getOrElse(
+      throw new NoSuchElementException(s"Missing required LDAP attribute '$name' for entry ${entry.getDN}")
+    )
 
   protected def withConnection[A](handler: LDAPConnection => A): A =
     val connection = baseBindConnectionPool.getConnection()

@@ -1,6 +1,6 @@
 package user
 
-import com.unboundid.ldap.sdk.{LDAPConnection, LDAPConnectionPool}
+import com.unboundid.ldap.sdk.{DN, LDAPConnection, LDAPConnectionPool}
 import com.unboundid.ldap.listener.{InMemoryDirectoryServer, InMemoryDirectoryServerConfig}
 import com.unboundid.ldap.sdk.schema.Schema
 import play.api.{Configuration, Logger}
@@ -13,6 +13,7 @@ class LdapConnectionPoolFactory(conf: Configuration):
     val url: String = conf.get[String]("url")
     val port: Int = conf.get[Int]("port")
     val poolSize: Int = conf.get[Int]("bindingPool.size")
+    val usersDn: String = conf.get[String]("usersDn")
 
   private val ldapConf = LdapConf(conf)
 
@@ -41,8 +42,11 @@ class LdapConnectionPoolFactory(conf: Configuration):
     else None
 
   private def createInMemoryServer(ldif: Option[String]): InMemoryDirectoryServer =
-    val config = new InMemoryDirectoryServerConfig("dc=pdg,dc=org")
-    config.addAdditionalBindCredentials("uid=esurijon,ou=Users,dc=pdg,dc=org", "sarasa")
+    // El base DN del server en memoria se deriva del `usersDn` configurado (su DN padre),
+    // de modo que coincida con `ldap.default.usersDn`/`rolesDn` y las búsquedas resuelvan.
+    val baseDn = new DN(ldapConf.usersDn).getParent.toString
+    val config = new InMemoryDirectoryServerConfig(baseDn)
+    config.addAdditionalBindCredentials(s"uid=esurijon,${ldapConf.usersDn}", "sarasa")
     config.setSchema(Schema.getDefaultStandardSchema)
 
     val ds = new InMemoryDirectoryServer(config)

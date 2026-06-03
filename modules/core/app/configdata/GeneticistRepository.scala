@@ -3,6 +3,7 @@ package configdata
 import models.Tables.geneticists
 import types.Geneticist
 import slick.jdbc.PostgresProfile.api._
+import slick.jdbc.JdbcBackend.Database
 import scala.concurrent.{ExecutionContext, Future}
 import javax.inject.{Inject, Singleton}
 
@@ -15,7 +16,7 @@ trait GeneticistRepository {
 
 @Singleton
 class SlickGeneticistRepository @Inject() (
-  db: slick.jdbc.JdbcBackend.Database
+  db: Database
 )(implicit ec: ExecutionContext) extends GeneticistRepository {
 
   private def toRow(gen: Geneticist): models.Tables.GeneticistRow =

@@ -5,6 +5,7 @@ import java.util.Date
 import scala.concurrent.{ExecutionContext, Future}
 
 import javax.inject.{Inject, Singleton}
+import play.api.Logger
 import play.api.libs.functional.syntax.*
 import play.api.libs.json.{Format, JsError, JsPath, Json, Reads, Writes, __}
 import play.api.mvc.*
@@ -52,6 +53,8 @@ class Authentication @Inject() (
     val controllerComponents: ControllerComponents
 )(using ec: ExecutionContext) extends BaseController {
 
+  private val logger: Logger = Logger(this.getClass)
+
   // Mismo contrato JSON que el legacy: userDetail (sin cryptoCredentials) + credentials.
   private given userWrites: Writes[User] = (
     (JsPath \ "id").write[String] and
@@ -84,6 +87,11 @@ class Authentication @Inject() (
               .withHeaders("Date" -> new Date().toString)
               .withSession("X-USER" -> userPassword.userName.toLowerCase)
           }
+        }.recover { case ex =>
+          // El legacy no recuperaba: un fallo de authenticate (LDAP/descifrado) propagaba un 500
+          // sin log ni cuerpo controlado. Logueamos server-side y devolvemos 500 genérico.
+          logger.error(s"Login failed for ${userPassword.userName.toLowerCase}", ex)
+          InternalServerError.withHeaders("Date" -> new Date().toString)
         }
       })
   }

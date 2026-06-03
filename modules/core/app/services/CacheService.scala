@@ -9,10 +9,6 @@ import play.api.cache.SyncCacheApi
 
 import types.TotpToken
 
-// Forward declaration para evitar dependencia circular
-// TODO: Mover a types/ cuando se migre User.scala completo
-trait FullUserLike
-
 abstract class CacheService {
   def get[T](key: CacheKey[T])(using ct: ClassTag[T]): Option[T]
   def getOrElse[T](key: CacheKey[T])(orElse: => T)(using ct: ClassTag[T]): T

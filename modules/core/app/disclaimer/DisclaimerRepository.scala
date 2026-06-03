@@ -15,6 +15,6 @@ class SlickDisclaimerRepository @Inject() (
   private val disclaimerTable = Tables.Disclaimer
 
   override def get(): Future[Disclaimer] = {
-    db.run(disclaimerTable.result.headOption).map(textOpt => Disclaimer(textOpt.flatten))
+    db.run(disclaimerTable.map(_.text).result.headOption).map(textOpt => Disclaimer(textOpt))
   }
 }

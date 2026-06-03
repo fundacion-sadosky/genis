@@ -1,5 +1,6 @@
 package security
 
+import org.apache.commons.codec.binary.Hex
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
@@ -17,6 +18,15 @@ class CryptoServiceSpec extends AnyWordSpec with Matchers {
       val decrypted = crypto.decrypt(encrypted, credentials)
 
       new String(decrypted, "UTF-8") shouldBe "datos sensibles de prueba"
+    }
+
+    // El legacy usaba `Hex.decodeHex(char[])`; la migración usa el overload `Hex.decodeHex(String)`.
+    // Este test confirma que ambos overloads producen los mismos bytes (equivalencia funcional).
+    "decode hex equivalently via String and char[] overloads" in {
+      val credentials = crypto.generateRandomCredentials()
+
+      Hex.decodeHex(credentials.key) shouldBe Hex.decodeHex(credentials.key.toCharArray)
+      Hex.decodeHex(credentials.iv) shouldBe Hex.decodeHex(credentials.iv.toCharArray)
     }
 
     "generate different credentials each time" in {

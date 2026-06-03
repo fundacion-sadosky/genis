@@ -24,19 +24,19 @@ class LdapUserRepository @Inject() (
     val phone2 = Option(entry.getAttribute("mobile")).map(_.getValue)
 
     LdapUser(
-      userName = entry.getAttribute("uid").getValue,
-      firstName = entry.getAttribute("givenName").getValue,
-      lastName = entry.getAttribute("sn").getValue,
-      email = entry.getAttribute("mail").getValue,
-      roles = entry.getAttribute("employeeType").getValues.toSeq,
-      geneMapperId = entry.getAttribute("o").getValue,
-      phone1 = entry.getAttribute("telephoneNumber").getValue,
+      userName = requiredAttribute(entry, "uid").getValue,
+      firstName = requiredAttribute(entry, "givenName").getValue,
+      lastName = requiredAttribute(entry, "sn").getValue,
+      email = requiredAttribute(entry, "mail").getValue,
+      roles = requiredAttribute(entry, "employeeType").getValues.toSeq,
+      geneMapperId = requiredAttribute(entry, "o").getValue,
+      phone1 = requiredAttribute(entry, "telephoneNumber").getValue,
       phone2 = phone2,
-      status = UserStatus.valueOf(entry.getAttribute("street").getValue),
+      status = UserStatus.valueOf(requiredAttribute(entry, "street").getValue),
       encryptedPublicKey = Array.emptyByteArray,
       encryptedPrivateKey = Array.emptyByteArray,
-      encryptrdTotpSecret = entry.getAttribute("jpegPhoto").getValueByteArray,
-      superuser = entry.getAttribute("title").getValueAsBoolean
+      encryptrdTotpSecret = requiredAttribute(entry, "jpegPhoto").getValueByteArray,
+      superuser = requiredAttribute(entry, "title").getValueAsBoolean
     )
   }
 

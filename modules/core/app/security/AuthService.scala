@@ -367,8 +367,10 @@ class AuthServiceImpl @Inject() (
       case true =>
         if (otp.isEmpty) false
         else {
-          val user = cache.get(FullUserKey(userId, credentialsExpTime))(using summon[ClassTag[FullUser]]).get
-          otpService.validate(otp.get, user.cryptoCredentials.totpSecret)
+          // Fail-closed: si la entrada de cache expiró/no existe, denegar en vez de lanzar
+          // NoSuchElementException (el legacy hacía `.get` directo — divergencia justificada).
+          cache.get(FullUserKey(userId, credentialsExpTime))(using summon[ClassTag[FullUser]])
+            .fold(false)(user => otpService.validate(otp.get, user.cryptoCredentials.totpSecret))
         }
     }
   }

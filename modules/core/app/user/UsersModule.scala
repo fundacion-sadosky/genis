@@ -25,3 +25,6 @@ class UsersModule(environment: Environment, conf: Configuration) extends Abstrac
 
     bind(classOf[UserRepository]).to(classOf[LdapUserRepository])
     bind(classOf[RoleRepository]).to(classOf[LdapRoleRepository])
+
+    // Cierra el pool y la conexión LDAP al apagar la app (ver LdapConnectionLifecycle).
+    bind(classOf[LdapConnectionLifecycle]).asEagerSingleton()

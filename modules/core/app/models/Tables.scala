@@ -59,9 +59,15 @@ object Tables {
     }
     val geneticists = TableQuery[GeneticistTable]
   // Disclaimer table
-  class Disclaimer(_tableTag: Tag) extends Table[Option[String]](_tableTag, Some("APP"), "DISCLAIMER") {
-    def text = column[Option[String]]("TEXT")
-    def * = text
+  final case class DisclaimerRow(id: Long, text: String)
+  object DisclaimerRow {
+    def tupled = (DisclaimerRow.apply _).tupled
+  }
+
+  class Disclaimer(_tableTag: Tag) extends Table[DisclaimerRow](_tableTag, Some("APP"), "DISCLAIMER") {
+    def id = column[Long]("ID", O.PrimaryKey)
+    def text = column[String]("TEXT")
+    def * = (id, text) <> (DisclaimerRow.tupled, DisclaimerRow.unapply)
   }
   val Disclaimer = TableQuery[Disclaimer]
 
