@@ -49,7 +49,7 @@ POST    /uploadStatus                        controllers.MatchingController.uplo
 GET     /canUploadMatchStatus                controllers.MatchingController.canUploadMatchStatus(matchId: String)
 POST    /convertHit                          controllers.MatchingController.convertHit(matchId: String, firingCode: types.SampleCode, userName: String)
 GET     /getByMatchedProfileId               controllers.MatchingController.getByMatchedProfileId(matchingId: String, isPedigreeMatch: Boolean, isCollapsing: Option[Boolean], isScreening: Option[Boolean])
-GET     /mixture/compare                     controllers.MatchingController.getComparedMixtureGene(globalCodes: List[String], matchId: String, isCollapsing: Option[Boolean], isScreening: Option[Boolean])
+GET     /mixture/compare                     controllers.MatchingController.getComparedMixtureGene(globalCodes: String, matchId: String, isCollapsing: Option[Boolean], isScreening: Option[Boolean])
 POST    /lr                                  controllers.MatchingController.getLR()
 DELETE  /collapsing/partial                  controllers.MatchingController.deleteByLeftProfile(globalCode: String, courtCaseId: Long)
 POST    /masiveDiscardByGlobalCode           controllers.MatchingController.masiveDiscardByGlobalCode(firingCode: types.SampleCode, userName: String)
@@ -91,9 +91,17 @@ POST    /api/v2/login                       controllers.core.Authentication.logi
 
 # Notifications (inbox)
 POST    /api/v2/notifications/search            controllers.NotificationsController.search
+
+# Búsqueda de perfiles (listado principal de perfiles)
+# Búsqueda de perfiles — jsroutes genera /api/v2/search/profileData/*
+POST    /api/v2/search/profileData/search       controllers.SearchProfileDatasController.search
+POST    /api/v2/search/profileData/searchTotal  controllers.SearchProfileDatasController.searchTotal
 POST    /api/v2/notifications/total             controllers.NotificationsController.count
 GET     /api/v2/notifications                   controllers.NotificationsController.getNotifications
 GET     /api/v2/match-notifications             controllers.NotificationsController.getMatchNotifications
+# Aliases sin /api/v2/ — usados por EventSource (SSE) que descifra la URL directamente
+GET     /notifications                          controllers.NotificationsController.getNotifications
+GET     /match-notifications                    controllers.NotificationsController.getMatchNotifications
 DELETE  /api/v2/notifications/:id               controllers.NotificationsController.delete(id: Long)
 POST    /api/v2/notifications/flag/:id          controllers.NotificationsController.changeFlag(id: Long, flag: Boolean)
 POST    /api/v2/notifications/:id/pending       controllers.NotificationsController.changePending(id: Long, pending: Boolean)
@@ -204,6 +212,23 @@ GET     /api/v2/roles                      controllers.RoleController.getRoles
 POST    /api/v2/roles                      controllers.RoleController.addRole
 PUT     /api/v2/roles                      controllers.RoleController.updateRole
 DELETE  /api/v2/roles/:id                  controllers.RoleController.deleteRole(id: String)
+
+# ProfileData (datos de PostgreSQL: internalSampleCode, assignee, etc.)
+GET     /api/v2/profilesdata                                        controllers.ProfileDataController.findByCodes(globalCode: String)
+GET     /api/v2/profiledata                                         controllers.ProfileDataController.findByCodeSingle(globalCode: types.SampleCode)
+# URLs cifradas — el jsroutes genera /api/v2/... → UrlDecryptHandler descifra a /api/v2/... → match directo
+GET     /api/v2/profiledata-complete/:globalCode                    controllers.ProfileDataController.getByCode(globalCode: types.SampleCode)
+GET     /api/v2/profileData/isProfileReplicated/:internalCode       controllers.ProfileDataController.isProfileReplicated(internalCode: String)
+GET     /api/v2/profiledata/count                                   controllers.ProfileDataController.countProfiles()
+# Aliases sin /api/v2/ por si llegan via nginx rewrite o directamente
+GET     /profiledata-complete/:globalCode                           controllers.ProfileDataController.getByCode(globalCode: types.SampleCode)
+GET     /profileData/isProfileReplicated/:internalCode              controllers.ProfileDataController.isProfileReplicated(internalCode: String)
+GET     /profiledata/count                                          controllers.ProfileDataController.countProfiles()
+
+# Aliases legacy para URLs cifradas por UrlDecryptRequestHandler
+# El frontend cifra rutas /profiles/... y el handler descifra a la misma ruta legacy
+GET     /profiles/:profileId/epg/:epgId      controllers.ProfilesController.getElectropherogramImage(profileId: types.SampleCode, epgId: String)
+GET     /profiles/:profileId/file/:fileId    controllers.ProfilesController.getFile(profileId: types.SampleCode, fileId: String)
 
 # Profiles
 GET     /api/v2/profiles/:id                                        controllers.ProfilesController.findByCode(id: types.SampleCode)

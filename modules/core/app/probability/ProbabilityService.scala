@@ -71,7 +71,7 @@ class ProbabilityServiceImpl @Inject()(
     for (x <- 1 to 4) {
       availableOverage = maxOverage
       var contributorProduct = 1.0
-      genotypification.foreach {
+      genotypification.filterNot { case (marker, _) => marker == "AMEL" }.foreach {
         case (marker, alleles) =>
           try {
             val allelesArray = LRMixCalculator.transformAlleleValues(alleles.toArray)
@@ -98,7 +98,7 @@ class ProbabilityServiceImpl @Inject()(
               }
             }
           } catch {
-            case e: NoFrequencyException => println(e.getMessage)
+            case _: NoFrequencyException => ()
           }
       }
       restricted :+= contributorProduct

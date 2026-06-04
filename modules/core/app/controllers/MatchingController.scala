@@ -125,12 +125,12 @@ class MatchingController @Inject()(
   }
 
   def getComparedMixtureGene(
-    globalCodes: List[String],
+    globalCodes: String,
     matchId: String,
     isCollapsing: Option[Boolean],
     isScreening: Option[Boolean]
   ) = Action.async { _ =>
-    val codes = globalCodes.map(SampleCode(_))
+    val codes = globalCodes.split(",").map(_.trim).filter(_.nonEmpty).map(SampleCode(_)).toList
     matchingService.getComparedMixtureGenotypification(codes, matchId, isCollapsing, isScreening)
       .map(j => Ok(Json.toJson(j)))
   }

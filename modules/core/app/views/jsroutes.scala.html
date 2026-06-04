@@ -316,17 +316,18 @@ var jsRoutes = {};
   };
 
   // -------------------------------------------------------------------------
-  // ProfileData (legacy — no migrado aún, las rutas fallarán)
+  // -------------------------------------------------------------------------
+  // ProfileData — migrado parcialmente
   // -------------------------------------------------------------------------
   _nS('controllers.ProfileData');
   _root.controllers.ProfileData.countProfiles = function() {
-    return _wA({method: 'GET', url: '/profiledata/count'});
+    return _wA({method: 'GET', url: '/api/v2/profiledata/count'});
   };
   _root.controllers.ProfileData.get = function(id) {
     return _wA({method: 'GET', url: '/profiledata/' + id});
   };
   _root.controllers.ProfileData.findByCode = function(globalCode) {
-    return _wA({method: 'GET', url: '/profiledata' + _qS(['globalCode=' + _enc(globalCode)])});
+    return _wA({method: 'GET', url: '/api/v2/profiledata' + _qS(['globalCode=' + _enc(globalCode)])});
   };
   _root.controllers.ProfileData.create = function() {
     return _wA({method: 'POST', url: '/profiledata'});
@@ -353,19 +354,19 @@ var jsRoutes = {};
     return _wA({method: 'GET', url: '/profiledata-readonly' + _qS(['globalCode=' + _enc(globalCode)])});
   };
   _root.controllers.ProfileData.getByCode = function(id) {
-    return _wA({method: 'GET', url: '/profiledata-complete/' + _enc(id)});
+    return _wA({method: 'GET', url: '/api/v2/profiledata-complete/' + _enc(id)});
   };
   _root.controllers.ProfileData.isEditable = function(id) {
     return _wA({method: 'GET', url: '/profiledata-editable/' + _enc(id)});
   };
   _root.controllers.ProfileData.findByCodes = function(globalCode) {
-    return _wA({method: 'GET', url: '/profilesdata' + _qS(['globalCode=' + _enc(globalCode)])});
+    return _wA({method: 'GET', url: '/api/v2/profilesdata' + _qS(['globalCode=' + _enc(globalCode)])});
   };
   _root.controllers.ProfileData.getDesktopProfiles = function() {
     return _wA({method: 'GET', url: '/profiledata-desktop'});
   };
   _root.controllers.ProfileData.getIsProfileReplicatedInternalCode = function(internalCode) {
-    return _wA({method: 'GET', url: '/profileData/isProfileReplicated/' + _enc(internalCode)});
+    return _wA({method: 'GET', url: '/api/v2/profileData/isProfileReplicated/' + _enc(internalCode)});
   };
   _root.controllers.ProfileData.getResources = function(type, id) {
     return _wA({method: 'GET', url: '/resources/static/' + _enc(type) + '/' + id});
@@ -534,14 +535,14 @@ var jsRoutes = {};
   };
 
   // -------------------------------------------------------------------------
-  // Search (legacy — no migrado aún)
+  // Search — migrado
   // -------------------------------------------------------------------------
   _nS('controllers.SearchProfileDatas');
   _root.controllers.SearchProfileDatas.search = function() {
-    return _wA({method: 'POST', url: '/search/profileData/search'});
+    return _wA({method: 'POST', url: '/api/v2/search/profileData/search'});
   };
   _root.controllers.SearchProfileDatas.searchTotal = function() {
-    return _wA({method: 'POST', url: '/search/profileData/searchTotal'});
+    return _wA({method: 'POST', url: '/api/v2/search/profileData/searchTotal'});
   };
   _root.controllers.SearchProfileDatas.searchProfilesAssociable = function(input, category) {
     return _wA({method: 'GET', url: '/search/profileData/' + _enc(category) + _qS(['input=' + _enc(input)])});

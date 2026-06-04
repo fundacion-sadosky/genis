@@ -485,10 +485,15 @@ define(['jquery', 'lodash'], function($, _) {
 
             if (!_.isUndefined(protoprofilesFromBatch)) {
                 protoprofilesFromBatch.forEach(function(sample) {
-                    // MODIFIED: Only process profiles that have the status 'Approved'
                     if (sample.status === 'Approved') {
-                        // updateStatus handles the changeStatus API call, the replication flag, and the desktopSearch flag per item
                         promises.push(updateStatus(sample, 'Imported', batch));
+                    } else if (sample.status === 'ReadyForApproval') {
+                        // Aprueba primero y luego importa en un solo paso
+                        var p = updateStatus(sample, 'Approved', batch).then(function() {
+                            sample.status = 'Approved';
+                            return updateStatus(sample, 'Imported', batch);
+                        });
+                        promises.push(p);
                     }
                 });
             }

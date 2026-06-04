@@ -359,6 +359,12 @@ docker exec -i genis_mongo sh < "utils/clean-mongo-db.sh"
 docker exec -i genis_postgres sh < "utils/clean-pgsql-db.sh"
 ```
 
+Para limpiar la base de datos de FerretDB (`pdgdb`) se incluye un script equivalente que borra el contenido de todas las colecciones (profiles, matches, pedigrees, etc.) sin eliminarlas. Se ejecuta contra el contenedor PostgreSQL de FerretDB:
+
+```
+docker exec -i ferretdb_postgres sh < "utils/clean-ferretdb.sh"
+```
+
 Si se precisara correr un archivo ldif en ldap, por ejemplo *file.ldiff*, se debe copiar el script al contenedor y ejecutarlo.
 
 Copiar el script al contenedor:
