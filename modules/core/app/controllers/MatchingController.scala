@@ -5,9 +5,11 @@ import scala.concurrent.{ExecutionContext, Future}
 
 import play.api.libs.json.{JsError, Json}
 import play.api.mvc.*
-import matching.{LRRequest, MatchCardSearch, MatchGroupSearch, MatchingService}
+import matching.{LRRequest, MatchCardSearch, MatchGroupSearch, MatchingCalculatorService, MatchingService}
 import pedigree.PedigreeMatchesService
+import probability.ProbabilityService
 import profile.ProfileService
+import profiledata.ProfileDataService
 import services.UserService
 import types.SampleCode
 
@@ -17,7 +19,10 @@ class MatchingController @Inject()(
   matchingService: MatchingService,
   pedigreeMatchService: PedigreeMatchesService,
   profileService: ProfileService,
-  userService: UserService
+  userService: UserService,
+  probabilityService: ProbabilityService,
+  profileDataService: ProfileDataService,
+  calculatorService: MatchingCalculatorService
 )(using ec: ExecutionContext) extends AbstractController(cc):
 
   def findMatchesByCode(globalCode: SampleCode) = Action.async { _ =>
@@ -135,9 +140,39 @@ class MatchingController @Inject()(
       .map(j => Ok(Json.toJson(j)))
   }
 
-  def getLR() = Action.async(parse.json) { _ =>
-    // LR calculation service not yet migrated — return empty result
-    Future.successful(Ok(Json.obj()))
+  def getLR() = Action.async(parse.json) { request =>
+    request.body.validate[LRRequest].fold(
+      errors => Future.successful(BadRequest(Json.obj("status" -> "KO", "message" -> JsError.toJson(errors)))),
+      lrParams =>
+        val statsFut =
+          if lrParams.stats.isEmpty then
+            profileDataService.findByCode(lrParams.firingCode).flatMap {
+              case Some(pd) => probabilityService.getStats(pd.laboratory)
+              case None     => Future.successful(None)
+            }
+          else
+            Future.successful(lrParams.stats)
+
+        val parametersFut = for
+          stats      <- statsFut
+          profile1   <- profileService.findByCode(lrParams.firingCode)
+          profile2   <- profileService.findByCode(lrParams.matchingCode)
+          matchResult <- matchingService.getMatchResultById(lrParams.matchingId)
+        yield (profile1, profile2, stats, matchResult)
+
+        parametersFut.flatMap { case (profile1Opt, profile2Opt, statsOpt, matchResult) =>
+          statsOpt match
+            case None =>
+              Future.successful(BadRequest(Json.obj("status" -> "KO", "message" -> "No default parameters configured")))
+            case Some(stats) =>
+              val allelesRanges = matchResult.flatMap(_.result.allelesRanges)
+              (profile1Opt, profile2Opt) match
+                case (Some(fp), Some(mp)) =>
+                  calculatorService.getLRByAlgorithm(fp, mp, stats, allelesRanges).map(lr => Ok(Json.toJson(lr)))
+                case _ =>
+                  Future.successful(BadRequest(Json.obj("status" -> "KO", "message" -> "Profiles not found")))
+        }
+    )
   }
 
   def deleteByLeftProfile(globalCode: String, courtCaseId: Long) = Action.async { _ =>

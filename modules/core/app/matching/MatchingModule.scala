@@ -34,6 +34,7 @@ class MatchingModule(environment: Environment, conf: Configuration) extends Abst
     bind(classOf[MatchingRepository]).to(classOf[MongoMatchingRepository])
     bind(classOf[MatchingService]).to(classOf[MatchingServiceImpl])
     bind(classOf[MatchingAlgorithmService]).to(classOf[MatchingAlgorithmServiceImpl])
+    bind(classOf[MatchingCalculatorService]).to(classOf[MatchingCalculatorServiceImpl])
     ()
   }
 }
