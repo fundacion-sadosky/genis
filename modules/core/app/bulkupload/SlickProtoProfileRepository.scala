@@ -281,7 +281,8 @@ class SlickProtoProfileRepository @Inject()(
   }
 
   override def getProtoProfile(id: Long): Future[Option[ProtoProfile]] =
-    db.run(queryGetProtoProfile(id).result.headOption).map(_.map(row2protoProfile))
+    // Fidelidad legacy (#218 review S4Q4): getProtoProfile forzaba rejectMotive=None.
+    db.run(queryGetProtoProfile(id).result.headOption).map(_.map(row => row2protoProfile(row).copy(rejectMotive = None)))
 
   override def getProtoProfileWithBatchId(id: Long): Future[Option[(ProtoProfile, Long)]] =
     db.run(queryGetProtoProfile(id).result.headOption).map(_.map(row => (row2protoProfile(row), row.idBatch)))
@@ -353,12 +354,8 @@ class SlickProtoProfileRepository @Inject()(
     }
 
   override def hasProfileDataFiliation(id: Long): Future[Boolean] = {
-    def isComplete(row: ProfileDataFiliationRow): Boolean =
-      row.fullName.exists(_.nonEmpty) && row.nickname.exists(_.nonEmpty) &&
-      row.birthday.isDefined && row.birthPlace.exists(_.nonEmpty) &&
-      row.nationality.exists(_.nonEmpty) && row.identification.exists(_.nonEmpty) &&
-      row.identificationIssuingAuthority.exists(_.nonEmpty) && row.address.exists(_.nonEmpty)
-
+    // Fidelidad legacy (#218 review S4Q3): el legacy comparaba Option[_] != "" (siempre true),
+    // por lo que retornaba true si EXISTE una fila de filiacion (stash o app), sin chequear contenido.
     val stashFilQ = for {
       pp  <- Tables.protoProfiles if pp.id === id
       pd  <- Tables.stashProfileData if pd.id === pp.id
@@ -374,7 +371,7 @@ class SlickProtoProfileRepository @Inject()(
     for {
       stashFil <- db.run(stashFilQ.result.headOption)
       appFil   <- db.run(appFilQ.result.headOption)
-    } yield stashFil.exists(isComplete) || appFil.exists(isComplete)
+    } yield stashFil.isDefined || appFil.isDefined
   }
 
   override def setRejectMotive(id: Long, motive: String, rejectionUser: String, idMotive: Long, timeRejected: Timestamp): Future[Int] =
@@ -398,7 +395,7 @@ class SlickProtoProfileRepository @Inject()(
       .map(_ => Right(id))
       .recover { case e: Exception =>
         logger.error(s"Error deleting batch $id", e)
-        Left(messages("error.E0304"))
+        Left(messages("error.E0941"))
       }
   }
 
@@ -407,7 +404,7 @@ class SlickProtoProfileRepository @Inject()(
       sql"""SELECT COUNT(*) FROM "APP"."PROTO_PROFILE" WHERE "ID_BATCH" = $idBatch AND "STATUS" = 'Imported'""".as[Long].head
     ).map(Right(_)).recover { case e: Exception =>
       logger.error(s"Error counting imported profiles for batch $idBatch", e)
-      Left(messages("error.E0304"))
+      Left(messages("error.E0941"))
     }
 
   override def countAllProtoProfilesInBatch(batchId: Long): Future[Int] =

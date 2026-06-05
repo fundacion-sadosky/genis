@@ -107,15 +107,19 @@ class ProfileDataController @Inject()(
   }
 
   def deleteProfile(profileId: SampleCode): Action[JsValue] = Action.async(parse.json) { request =>
-    val userId = request.headers.get("X-USER").getOrElse("")
-    request.body.validate[DeletedMotive].fold(
-      errors => Future.successful(BadRequest(Json.obj("status" -> "KO", "message" -> JsError.toJson(errors)))),
-      motive =>
-        profileDataService.deleteProfile(profileId, motive, userId).map {
-          case Left(error) => BadRequest(Json.obj("status" -> "KO", "message" -> error))
-          case Right(sc) => Ok(Json.toJson(sc))
-        }
-    )
+    // #218 review S1Q2: sin X-USER no se ejecuta la baja ni se audita con actor vacio.
+    request.headers.get("X-USER") match
+      case None =>
+        Future.successful(BadRequest(Json.obj("status" -> "KO", "message" -> "Falta el encabezado X-USER.")))
+      case Some(userId) =>
+        request.body.validate[DeletedMotive].fold(
+          errors => Future.successful(BadRequest(Json.obj("status" -> "KO", "message" -> JsError.toJson(errors)))),
+          motive =>
+            profileDataService.deleteProfile(profileId, motive, userId).map {
+              case Left(error) => BadRequest(Json.obj("status" -> "KO", "message" -> error))
+              case Right(sc) => Ok(Json.toJson(sc))
+            }
+        )
   }
 
   def getDeleteMotive(sampleCode: SampleCode): Action[AnyContent] = Action.async {
@@ -152,6 +156,10 @@ class ProfileDataController @Inject()(
   def get(id: Long): Action[JsValue] = Action.async(parse.json) { _ =>
     profileDataService.get(id).map { case (profileData, group, _) =>
       Ok(Json.obj("profile" -> profileData, "category" -> group))
+    }.recover { case e: java.util.NoSuchElementException =>
+      // #218 review S3Q4: grupo/categoria inconsistente -> error controlado, sin filtrar ids internos.
+      logger.error(s"get($id): grupo/categoria inconsistente", e)
+      InternalServerError(Json.obj("status" -> "KO", "message" -> "No se pudo obtener el perfil por datos inconsistentes."))
     }
   }
 
@@ -182,6 +190,10 @@ class ProfileDataController @Inject()(
       case Some((pd, group, category)) =>
         Ok(Json.obj("profileData" -> pd, "group" -> group, "category" -> category))
       case None => BadRequest
+    }.recover { case e: java.util.NoSuchElementException =>
+      // #218 review S3Q4: grupo/categoria inconsistente -> error controlado, sin filtrar ids internos.
+      logger.error(s"findByCodeWithAssociations(${globalCode.text}): grupo/categoria inconsistente", e)
+      InternalServerError(Json.obj("status" -> "KO", "message" -> "No se pudo obtener el perfil por datos inconsistentes."))
     }
   }
 

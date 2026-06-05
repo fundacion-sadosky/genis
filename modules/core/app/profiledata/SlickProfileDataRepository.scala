@@ -449,7 +449,7 @@ class SlickProfileDataRepository @Inject()(
     yield result
     db.run(action.transactionally).recover { case e =>
       logger.error(s"updateUploadStatus failed for $globalCode", e)
-      Left(e.getMessage)
+      Left(msg("error.E0941"))
     }
 
   def findUploadedProfilesByCodes(globalCodes: Seq[SampleCode]): Future[Seq[SampleCode]] =
@@ -472,12 +472,15 @@ class SlickProfileDataRepository @Inject()(
 
   def gefFailedProfilesUploaded(): Future[List[ProfileUploadedRow]] =
     db.run(profileUplTable.filter(_.status === 1L).result.map(_.toList))
+      .recover { case e => logger.error("gefFailedProfilesUploaded failed", e); Nil }
 
   def gefFailedProfilesUploadedDeleted(): Future[List[ProfileUploadedRow]] =
     db.run(profileUplTable.filter(_.status === 5L).result.map(_.toList))
+      .recover { case e => logger.error("gefFailedProfilesUploadedDeleted failed", e); Nil }
 
   def gefFailedProfilesSentDeleted(labCode: String): Future[List[ProfileSentRow]] =
     db.run(profileSentTable.filter(r => r.status === 5L && r.labCode === labCode).result.map(_.toList))
+      .recover { case e => logger.error("gefFailedProfilesSentDeleted failed", e); Nil }
 
   def updateProfileSentStatus(
     globalCode: String,
@@ -497,7 +500,7 @@ class SlickProfileDataRepository @Inject()(
     yield result
     db.run(action.transactionally).recover { case e =>
       logger.error(s"updateProfileSentStatus failed for $globalCode", e)
-      Left(e.getMessage)
+      Left(msg("error.E0941"))
     }
 
   def getMtRcrs(): Future[MtRCRS] =
@@ -512,7 +515,7 @@ class SlickProfileDataRepository @Inject()(
     db.run(profileRecTable.insertOrUpdate(row).map(_ => Right(())).transactionally)
       .recover { case e =>
         logger.error("addProfileReceivedApproved error", e)
-        Left(e.getMessage)
+        Left(msg("error.E0941"))
       }
 
   def addProfileReceivedRejected(
@@ -524,7 +527,7 @@ class SlickProfileDataRepository @Inject()(
     db.run(profileRecTable.insertOrUpdate(row).map(_ => Right(())).transactionally)
       .recover { case e =>
         logger.error("addProfileReceivedRejected error", e)
-        Left(e.getMessage)
+        Left(msg("error.E0941"))
       }
 
   def updateInterconnectionError(
@@ -536,12 +539,13 @@ class SlickProfileDataRepository @Inject()(
         case None => DBIO.successful(Left(msg("error.E0940")))
         case Some(row) =>
           profileRecTable
-            .insertOrUpdate(row.copy(status = status, interconnectionError = Some(interconnectionError)))
+            .insertOrUpdate(row.copy(status = status, interconnectionError = Some(interconnectionError),
+              operationOriginatedInInstance = ""))
             .map(_ => Right(()))
     yield result
     db.run(action.transactionally).recover { case e =>
       logger.error(s"updateInterconnectionError failed for $globalCode", e)
-      Left(e.getMessage)
+      Left(msg("error.E0941"))
     }
 
   def updateProfileReceivedStatus(
@@ -559,7 +563,7 @@ class SlickProfileDataRepository @Inject()(
     yield Right(())
     db.run(action.transactionally).recover { case e =>
       logger.error(s"updateProfileReceivedStatus failed for $globalCode", e)
-      Left(e.toString)
+      Left(msg("error.E0941"))
     }
 
   def getPendingApprovalNotification(labCode: String): Future[Seq[ProfileReceivedRow]] =

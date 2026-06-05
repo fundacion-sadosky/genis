@@ -22,3 +22,53 @@ error.E0646= E0646: No se puede pasar el usuario del estado {0} al estado {1}.
 error.E0654= E0654: Existen usuarios asociados al rol.
 error.E0802= E0802: La sesión es inválida o ha expirado.
 error.E0803= E0803: Token inválido.
+
+# Profile data / deletion / categories (#218 — copiadas literal del legacy conf/messages)
+error.E0100= E0100: Se esperaba impactar sobre 1 solo registro y se impactaron {0}.
+error.E0101= E0101: Perfil no encontrado.
+error.E0102= E0102: Error al insertar el motivo de rechazo.
+error.E0103= E0103: Algunos perfiles no se pudieron actualizar.
+error.E0104= E0104: No se puede pasar del estado {0} al estado {1}.
+error.E0105= E0105: Perfil inexistente: {0}.
+error.E0107= E0107: Código debe ser único para cada perfil.
+error.E0108= E0108: El genetista responsable debe ser siempre el mismo para {0}.
+error.E0117= E0117: No se pudo cambiar información del perfil.
+error.E0118= E0118: El perfil {0} está participando de un escenario pendiente.
+error.E0119= E0119: No se pudo agregar el perfil.
+error.E0125= E0125: El perfil {0} está asociado a un caso.
+error.E0126= E0126: El perfil {0} está asociado a un pedigri activo o en construcción.
+error.E0127= E0127: El perfil {0} no puede ser eliminado.
+error.E0129= E0129: El perfil {0} tiene matches de MPI/DVI pendientes.
+error.E0130= E0130: El perfil {0} se encuentra en un pedigri con matches pendientes.
+error.E0132= E0132: No se pudo actualizar la categoría del perfil.
+error.E0200= E0200: No existe usuario de GeneMapper: {0}.
+error.E0303= E0303: No se puede importar el perfil.
+error.E0600= E0600: No existe la categoría {0}.
+error.E0660= E0660: Actualización de categoría incorrecta: se actualizaron {0} registros.
+error.E0731= E0731: No se pudo conectar con la instancia superior. El perfil queda listo para replicarse cuando se reestablezca la conexión.
+error.E0732= E0732: El perfil posee una coincidencia con un perfil ya replicado.
+error.E0900= E0900: No existe el perfil {0}.
+error.E0940= E0940: No existe código global. *
+error.E0951= E0951: No se pudo obtener imagen del perfil {0} debido a que el token es inválido o ha expirado.
+
+# Bulk upload / GeneMapper parsing (#218 — copiadas literal del legacy)
+error.E0301= E0301: Error importando el lote.
+error.E0302= E0302: El formato de las líneas no coincide con la cabecera.
+error.E0304= E0304: No se puede eliminar el lote porque contiene muestras aceptadas.
+error.E0305= E0305: Faltan parámetros en la cabecera del archivo.
+error.E0306= E0306: El perfil ''{0}'' está pendiente de aprobación en el lote #{1}.
+error.E0310= E0310: El perfil no puede tener mas de 4 rangos.
+error.E0315= E0315: El perfil ya tiene un análisis mitocondrial.
+error.E0316= E0316: El Kit ''{0}'' No existe en la base de datos.
+error.E0661= E0661: La categoría debe ser siempre la misma para {0}.
+error.E0680= E0680: El marcador ''{0}'' no esta definido en el sistema.
+error.E0681= E0681: El marcador ''{0}'' no pertenece al kit ''{1}''.
+error.E0690= E0690: El kit debe ser siempre el mismo para {0}.
+error.E0691= E0691: El kit ''{0}'' no esta definido en el sistema.
+
+# Error genérico de BD / interconexión (#218 review — decisiones S1Q3 / S1Q4)
+error.E0941= E0941: Error al acceder a la base de datos. Intente nuevamente.
+
+# Success (#218 — copiadas literal del legacy)
+success.S0100= S0100: Se ha actualizado el perfil {0} correctamente.
+success.S0602= S0602: La búsqueda de coincidencias fue relanzada con el perfil modificado: {0}.

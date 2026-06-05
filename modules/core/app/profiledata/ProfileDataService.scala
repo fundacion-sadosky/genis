@@ -309,7 +309,8 @@ class ProfileDataServiceImpl @Inject()(
     profileDataRepository.getProfileReceivedStatusByGlobalCode(globalCode).map(_.isDefined)
 
   override def getProfileReceivedLabCode(globalCode: SampleCode): Future[Option[String]] =
-    profileDataRepository.getProfileReceivedLabInferior(globalCode.text).map(s => if s.isEmpty then None else Some(s))
+    // Fidelidad legacy (#218 review S4Q1): el legacy devuelve Some(inferiorLab) siempre, aun vacio.
+    profileDataRepository.getProfileReceivedLabInferior(globalCode.text).map(s => Some(s))
 
   override def deleteProfile(
     globalCode: SampleCode, motive: DeletedMotive, userId: String, validateMPI: Boolean = true
@@ -324,23 +325,31 @@ class ProfileDataServiceImpl @Inject()(
             profileDataRepository.delete(globalCode, motive).flatMap { resp =>
               if resp == 1 then
                 traceService.add(Trace(globalCode, userId, new Date(), DeleteInfo(userId, "Solicitado por: " + motive.solicitor + " " + motive.motive)))
-                for
-                  sendSup  <- shouldSendDeleteToSuperiorInstance(globalCode)
-                  sendInf  <- shouldSendDeleteToInferiorInstance(globalCode)
-                  supUrl   <- if sendSup then connectionRepository.getSupInstanceUrl().map(_.getOrElse("")) else Future.successful("")
-                  _        <- (if sendSup then
-                                Future.successful(interconnectionService.inferiorDeleteProfile(globalCode, motive, supUrl, userId, labCode))
-                              else Future.successful(()))
-                  infLabOpt <- if sendInf then getProfileReceivedLabCode(globalCode) else Future.successful(None)
-                  _        <- infLabOpt match
-                    case Some(infLab) =>
-                      for
-                        _ <- profileDataRepository.updateProfileReceivedStatus(infLab, globalCode.text, 19L, Some(motive.motive), false, None, Some(userId), labCode)
-                        infUrlOpt <- connectionRepository.getInfInstanceUrl(infLab)
-                        _ = infUrlOpt.foreach(infUrl => interconnectionService.sendDeletionToInferior(globalCode.text, motive, labCode, infUrl, userId, labCode))
-                      yield ()
-                    case None => Future.successful(())
-                yield Right(globalCode)
+                // Fire-and-forget (#218 review S2Q1): la baja local ya esta confirmada; la propagacion a
+                // instancias superior/inferior NO se encadena al resultado, de modo que un fallo de
+                // interconexion no convierte una baja exitosa en error. Se loguea server-side.
+                val propagation =
+                  for
+                    sendSup  <- shouldSendDeleteToSuperiorInstance(globalCode)
+                    sendInf  <- shouldSendDeleteToInferiorInstance(globalCode)
+                    supUrl   <- if sendSup then connectionRepository.getSupInstanceUrl().map(_.getOrElse("")) else Future.successful("")
+                    _        <- (if sendSup then
+                                  Future.successful(interconnectionService.inferiorDeleteProfile(globalCode, motive, supUrl, userId, labCode))
+                                else Future.successful(()))
+                    infLabOpt <- if sendInf then getProfileReceivedLabCode(globalCode) else Future.successful(None)
+                    _        <- infLabOpt match
+                      case Some(infLab) =>
+                        for
+                          _ <- profileDataRepository.updateProfileReceivedStatus(infLab, globalCode.text, 19L, Some(motive.motive), false, None, Some(userId), labCode)
+                          infUrlOpt <- connectionRepository.getInfInstanceUrl(infLab)
+                          _ = infUrlOpt.foreach(infUrl => interconnectionService.sendDeletionToInferior(globalCode.text, motive, labCode, infUrl, userId, labCode))
+                        yield ()
+                      case None => Future.successful(())
+                  yield ()
+                propagation.recover { case e =>
+                  logger.error(s"deleteProfile interconnection propagation failed for ${globalCode.text}", e)
+                }
+                Future.successful(Right(globalCode))
               else
                 Future.successful(Left(msg("error.E0117")))
             }
@@ -463,7 +472,8 @@ class ProfileDataServiceImpl @Inject()(
       yield (i, p, s)
     }.getOrElse(Right((None, None, None)))
     images match
-      case Left(_) => Future.successful(Left(msg("error.E0119")))
+      // #218 review S5Q1: propagar el error real de imagenes (E0951), consistente con updateProfileCategoryData.
+      case Left(error) => Future.successful(Left(error))
       case Right((inprints, pictures, signatures)) =>
         val pd = profileData.pdAttempToPd(labCode)
         val gcFuture = profileData.laboratory
