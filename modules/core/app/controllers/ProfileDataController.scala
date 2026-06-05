@@ -38,9 +38,17 @@ class ProfileDataController @Inject()(
     Future.successful(Ok(Json.obj("data" -> true)))
   }
 
-  // NOTE: legacy awaited MatchingProcessStatus (Play 2 Iteratee broadcast) before checking replication.
-  // Play 3 has no equivalent, so matching is fired and the replication check uses pre-fire results.
-  // The replication guard and superior-instance upload are fully implemented.
+  // TODO(#218 review S2Q2 — BLOQUEADO por la migracion del motor de matching):
+  //   El legacy esperaba el fin del matching (MatchJobEndend via MatchingProcessStatus, un broadcast
+  //   Iteratee de Play 2) ANTES de checkForReplicatedMatches, de modo que el guard de replicacion
+  //   operaba sobre resultados de matching recien recalculados.
+  //   En core esto no se puede replicar todavia: MatchingService esta bindeado al stub
+  //   (ProfileModule:60); findMatches es no-op y findMatchingResults siempre devuelve None, por lo que
+  //   tanto el disparo como el guard de replicacion son no-funcionales hasta migrar el motor (Spark).
+  //   Diseño previsto al migrar matching: exponer un Future[MatchJobStatus] (o Future[Unit]) desde
+  //   MatchingService/MatchingProcessStatus y encadenarlo aca, entre fireMatching y
+  //   checkForReplicatedMatches, en lugar del fireMatching fire-and-forget actual.
+  //   Ver .claude/migration-review-218-deferred.md (S2Q2).
   def modifyCategory(globalCode: SampleCode, replicate: Boolean, userName: String): Action[JsValue] =
     Action.async(parse.json) { request =>
       request.body.validate[ProfileDataAttempt].fold(
@@ -63,6 +71,8 @@ class ProfileDataController @Inject()(
                         Future.successful(Ok(Json.arr(Json.obj("status" -> "error", "message" -> error))))
                       case Right(_) =>
                         profileService.fireMatching(globalCode)
+                        // TODO(S2Q2): cuando matching este migrado, esperar aca el fin del job
+                        // (Future[MatchJobStatus]) antes de evaluar checkForReplicatedMatches.
                         if !replicate then
                           Future.successful(Ok(Json.arr(
                             Json.obj("status" -> "OK", "message" -> msg("success.S0100", globalCode.text)),
