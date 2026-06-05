@@ -55,27 +55,33 @@ class ProfileDataController @Inject()(
                   Future.successful(Ok(Json.arr(Json.obj("status" -> "error", "message" -> msg("error.E0101")))))
                 case Some(prof) =>
                   val updatedProf = prof.copy(categoryId = profileData.category)
-                  profileService.updateProfile(updatedProf).flatMap { _ =>
-                    profileService.fireMatching(globalCode)
-                    if !replicate then
-                      Future.successful(Ok(Json.arr(
-                        Json.obj("status" -> "OK", "message" -> msg("success.S0100", globalCode.text)),
-                        Json.obj("status" -> "OK", "message" -> msg("success.S0602", globalCode.text))
-                      )))
-                    else
-                      checkForReplicatedMatches(prof).flatMap {
-                        case Left(error) =>
-                          Future.successful(Ok(Json.arr(Json.obj("status" -> "error", "message" -> error))))
-                        case Right(_) =>
-                          profileDataService.get(globalCode).foreach { pdOpt =>
-                            pdOpt.foreach(pd => interconnectionService.uploadProfileToSuperiorInstance(updatedProf, pd, userName))
-                          }
+                  profileService.updateProfile(updatedProf)
+                    .map(_ => Right(()): Either[String, Unit])
+                    .recover { case _ => Left(msg("error.E0132")) }
+                    .flatMap {
+                      case Left(error) =>
+                        Future.successful(Ok(Json.arr(Json.obj("status" -> "error", "message" -> error))))
+                      case Right(_) =>
+                        profileService.fireMatching(globalCode)
+                        if !replicate then
                           Future.successful(Ok(Json.arr(
                             Json.obj("status" -> "OK", "message" -> msg("success.S0100", globalCode.text)),
                             Json.obj("status" -> "OK", "message" -> msg("success.S0602", globalCode.text))
                           )))
-                      }
-                  }
+                        else
+                          checkForReplicatedMatches(prof).flatMap {
+                            case Left(error) =>
+                              Future.successful(Ok(Json.arr(Json.obj("status" -> "error", "message" -> error))))
+                            case Right(_) =>
+                              profileDataService.get(globalCode).flatMap { pdOpt =>
+                                pdOpt.foreach(pd => interconnectionService.uploadProfileToSuperiorInstance(updatedProf, pd, userName))
+                                Future.successful(Ok(Json.arr(
+                                  Json.obj("status" -> "OK", "message" -> msg("success.S0100", globalCode.text)),
+                                  Json.obj("status" -> "OK", "message" -> msg("success.S0602", globalCode.text))
+                                )))
+                              }
+                          }
+                    }
               }
           }
       )

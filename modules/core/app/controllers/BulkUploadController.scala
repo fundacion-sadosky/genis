@@ -18,6 +18,9 @@ class BulkUploadController @Inject()(
     userService: UserService
 )(implicit ec: ExecutionContext) extends AbstractController(cc):
 
+  private def parseStatus(status: String): Option[ProtoProfileStatus.Value] =
+    scala.util.Try(ProtoProfileStatus.withName(status)).toOption
+
   def getBatchesStep1(page: Int, pageSize: Int): Action[AnyContent] = Action.async { request =>
     val userId = request.headers.get("X-USER").get
     val offset = (page - 1) * pageSize
@@ -72,7 +75,7 @@ class BulkUploadController @Inject()(
   }
 
   def uploadProtoProfiles(label: Option[String], analysisType: String) = Action.async(parse.multipartFormData) { request =>
-    val user = request.session("X-USER")
+    val user = request.headers.get("X-USER").get
     request.body.file("file").fold(Future.successful(NotFound("Missing file"))) { csvFile =>
       val fileType = Files.probeContentType(csvFile.ref.file.toPath)
       if fileType == "text/plain" then
@@ -94,7 +97,9 @@ class BulkUploadController @Inject()(
 
   def updateProtoProfileStatus(id: Long, status: String, replicate: Boolean, desktopSearch: Boolean = false): Action[AnyContent] = Action.async { request =>
     val userId = request.headers.get("X-USER").get
-    bulkUploadService.updateProtoProfileStatus(id, ProtoProfileStatus.withName(status), userId, replicate, desktopSearch).map(errors => Ok(Json.toJson(errors)))
+    parseStatus(status) match
+      case None     => Future.successful(BadRequest(Json.obj("message" -> "Estado de perfil inválido.")))
+      case Some(st) => bulkUploadService.updateProtoProfileStatus(id, st, userId, replicate, desktopSearch).map(errors => Ok(Json.toJson(errors)))
   }
 
   def updateProtoProfileData(id: Long, category: AlphanumericId): Action[AnyContent] = Action.async { request =>
@@ -108,12 +113,15 @@ class BulkUploadController @Inject()(
   def updateBatchStatus(idBatch: Long, status: String, replicateAll: Boolean): Action[JsValue] = Action.async(parse.json) { request =>
     val idsToReplicate = request.body.validate[List[Long]].getOrElse(Nil)
     val userId = request.headers.get("X-USER").get
-    userService.isSuperUser(userId).flatMap { isSuperUser =>
-      bulkUploadService.updateBatchStatus(idBatch, ProtoProfileStatus.withName(status), userId, isSuperUser, replicateAll, idsToReplicate).map {
-        case Right(id)    => Ok(Json.toJson(id))
-        case Left(error)  => BadRequest(Json.toJson(error))
-      }
-    }
+    parseStatus(status) match
+      case None => Future.successful(BadRequest(Json.obj("message" -> "Estado de perfil inválido.")))
+      case Some(st) =>
+        userService.isSuperUser(userId).flatMap { isSuperUser =>
+          bulkUploadService.updateBatchStatus(idBatch, st, userId, isSuperUser, replicateAll, idsToReplicate).map {
+            case Right(id)    => Ok(Json.toJson(id))
+            case Left(error)  => BadRequest(Json.toJson(error))
+          }
+        }
   }
 
   def updateProtoProfileRulesMismatch(): Action[JsValue] = Action.async(parse.json) { request =>

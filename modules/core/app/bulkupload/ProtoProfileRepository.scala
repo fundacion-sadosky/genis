@@ -37,7 +37,7 @@ trait ProtoProfileRepository {
   def getBatchSearchModalViewByIdOrLabel(input: String, idCase: Long): Future[List[BatchModelView]]
   def mtExistente(sampleName: String): Future[Boolean]
   def updateProtoProfileStatus(internalCode: String, status: String): Future[Int]
-  def getProtoProfileStatus(internalCode: String): String
+  def getProtoProfileStatus(internalCode: String): Future[String]
 }
 
 @Singleton
@@ -67,5 +67,5 @@ class ProtoProfileRepositoryStub extends ProtoProfileRepository {
   override def getBatchSearchModalViewByIdOrLabel(input: String, idCase: Long): Future[List[BatchModelView]] = Future.successful(List.empty)
   override def mtExistente(sampleName: String): Future[Boolean] = Future.successful(false)
   override def updateProtoProfileStatus(internalCode: String, status: String): Future[Int] = Future.successful(0)
-  override def getProtoProfileStatus(internalCode: String): String = ""
+  override def getProtoProfileStatus(internalCode: String): Future[String] = Future.successful("")
 }

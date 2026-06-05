@@ -11,6 +11,10 @@ error.E0603=E0603: Las categorias de origin y destino deben ser diferentes.
 success.S0600=S0600: La modificación de categoría fue registrada exitosamente.
 success.S0601=S0601: La modificación de categoría fue eliminada correctamente.
 
+# Bulk upload validation errors
+error.E0662= E0662: El asignado {0} no coincide.
+error.E0663= E0663: La categoría del perfil {0} no coincide con {1}.
+
 # User/Role errors
 error.E0641= E0641: No existe el usuario.
 error.E0650= E0650: El responsable ''{0}'' no es un usuario genetista del sistema.

@@ -124,6 +124,7 @@ class SlickProfileDataRepository @Inject()(
 
   override def getProfileUploadStatusByGlobalCode(globalCode: SampleCode): Future[Option[Long]] =
     db.run(profileUplTable.filter(_.globalCode === globalCode.text).map(_.status).result.headOption)
+      .recover { case _ => None }
 
   override def findUploadedProfilesByCodes(codes: List[SampleCode]): Future[List[SampleCode]] =
     db.run(
@@ -494,7 +495,10 @@ class SlickProfileDataRepository @Inject()(
             .insertOrUpdate(ProfileSentRow(pd.id, labCode, pd.globalCode, status, motive, interconnectionError))
             .map(_ => Right(()))
     yield result
-    db.run(action.transactionally).recover { case e => Left(e.getMessage) }
+    db.run(action.transactionally).recover { case e =>
+      logger.error(s"updateProfileSentStatus failed for $globalCode", e)
+      Left(e.getMessage)
+    }
 
   def getMtRcrs(): Future[MtRCRS] =
     db.run(mtRcrsTable.result.map(rows => MtRCRS(rows.map(r => r.position -> r.base).toMap)))
@@ -535,7 +539,10 @@ class SlickProfileDataRepository @Inject()(
             .insertOrUpdate(row.copy(status = status, interconnectionError = Some(interconnectionError)))
             .map(_ => Right(()))
     yield result
-    db.run(action.transactionally).recover { case e => Left(e.getMessage) }
+    db.run(action.transactionally).recover { case e =>
+      logger.error(s"updateInterconnectionError failed for $globalCode", e)
+      Left(e.getMessage)
+    }
 
   def updateProfileReceivedStatus(
     labCode: String, globalCode: String, status: Long, motive: Option[String],
@@ -566,6 +573,7 @@ class SlickProfileDataRepository @Inject()(
 
   def getProfileReceivedStatusByGlobalCode(gc: SampleCode): Future[Option[Long]] =
     db.run(profileRecTable.filter(_.globalCode === gc.text).map(_.status).result.headOption)
+      .recover { case _ => None }
 
   def getIsProfileReplicated(globalCode: SampleCode): Future[Boolean] =
     db.run(

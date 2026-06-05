@@ -44,7 +44,8 @@ class SlickImportToProfileData @Inject()(
       gc        = preFicGc + nextVal
       ppGc      = ppGcD + id
       pdRow    <- stashProfileData.filter(_.id === id).result.head
-      _        <- profilesData += pdRow.copy(id = 0L, globalCode = gc, assignee = assignee, fromDesktopSearch = desktopSearch)
+      _        <- profilesData += pdRow.copy(id = 0L, globalCode = gc, assignee = assignee,
+                    deleted = false, deletedSolicitor = None, deletedMotive = None, fromDesktopSearch = desktopSearch)
       pdfRows  <- stashProfileDataFiliation.filter(_.profileData === ppGc).result
       _        <- profileDataFiliations ++= pdfRows.map(_.copy(id = 0L, profileData = gc))
       resRows  <- stashProfileDataFiliationRes.filter(_.profileDataFiliation === ppGc).result

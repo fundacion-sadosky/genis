@@ -151,24 +151,31 @@ class BulkUploadServiceImpl @Inject()(
       validatorF.flatMap { validator =>
         val csvFile = new File(tempFile.file.getAbsolutePath + "_permanent")
         tempFile.moveTo(csvFile.toPath, replace = true)
-        val either = if analysisType == "Autosomal" then
-          GeneMapperFileParser.parse(csvFile, validator)
-        else
-          GeneMapperFileMitoParser.parse(csvFile, validator, mtRcrs)
-        either.fold[Future[Either[String, Long]]](
-          error => {
-            logger.error(error)
-            Future.successful(Left(error))
-          },
-          stream => {
-            val kits = stream.map(_.kit).distinct.toSeq
-            kitService.findLociByKits(kits).flatMap { kits =>
-              val batchIdF = protoRepo.createBatch(user, stream, labCode, kits, label, analysisType)
-              batchIdF.onComplete(_ => csvFile.delete())
-              batchIdF.map(Right(_))
+        // Parsing may throw synchronously (e.g. IndexOutOfBoundsException). Capture it into the
+        // Future so the _permanent temp file (forensic genetic data) is removed on EVERY path —
+        // parser Left, sync throw, downstream failure and success — not only the success branch.
+        val resultF: Future[Either[String, Long]] = scala.util.Try(
+          if analysisType == "Autosomal" then
+            GeneMapperFileParser.parse(csvFile, validator)
+          else
+            GeneMapperFileMitoParser.parse(csvFile, validator, mtRcrs)
+        ).fold(
+          e => Future.failed(e),
+          _.fold[Future[Either[String, Long]]](
+            error => {
+              logger.error(error)
+              Future.successful(Left(error))
+            },
+            stream => {
+              val kits = stream.map(_.kit).distinct.toSeq
+              kitService.findLociByKits(kits).flatMap { kits =>
+                protoRepo.createBatch(user, stream, labCode, kits, label, analysisType).map(Right(_))
+              }
             }
-          }
+          )
         )
+        // delete only after createBatch has fully consumed the lazy stream (Future completed).
+        resultF.andThen { case _ => csvFile.delete() }
       }
     }.recover {
       case _: IndexOutOfBoundsException =>

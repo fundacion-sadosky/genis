@@ -439,17 +439,19 @@ class ProfileDataServiceImpl @Inject()(
             val oldProfileData = profileDataRepository.findByCode(globalCode)
             val updatePromise = profileDataRepository.updateProfileData(globalCode, pd, inprints, pictures, signatures)
             for
-              old <- oldProfileData
-              _   <- updatePromise
+              old     <- oldProfileData
+              updated <- updatePromise
             yield
-              traceService.add(Trace(globalCode, userName, new Date(),
-                ProfileCategoryModificationInfo(old.map(_.category.text).getOrElse(""), profileData.category.text, userName)))
-              profileData.dataFiliation.foreach { fd =>
-                cache.pop(TemporaryAssetKey(fd.inprint))
-                cache.pop(TemporaryAssetKey(fd.picture))
-                cache.pop(TemporaryAssetKey(fd.signature))
-              }
-              None
+              if updated then
+                traceService.add(Trace(globalCode, userName, new Date(),
+                  ProfileCategoryModificationInfo(old.map(_.category.text).getOrElse(""), profileData.category.text, userName)))
+                profileData.dataFiliation.foreach { fd =>
+                  cache.pop(TemporaryAssetKey(fd.inprint))
+                  cache.pop(TemporaryAssetKey(fd.picture))
+                  cache.pop(TemporaryAssetKey(fd.signature))
+                }
+                None
+              else Some(msg("error.E0132"))
             }.recover { case _ => Some(msg("error.E0132")) }
 
   override def create(profileData: ProfileDataAttempt): Future[Either[String, SampleCode]] =

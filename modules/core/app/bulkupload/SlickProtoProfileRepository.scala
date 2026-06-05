@@ -16,8 +16,7 @@ import types.{AlphanumericId, SampleCode}
 
 import java.sql.Timestamp
 import java.util.Date
-import scala.concurrent.duration.{Duration, SECONDS}
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class SlickProtoProfileRepository @Inject()(
@@ -368,7 +367,7 @@ class SlickProtoProfileRepository @Inject()(
 
     val appFilQ = for {
       pp  <- Tables.protoProfiles if pp.id === id
-      pd  <- Tables.profilesData if pd.internalSampleCode === pp.sampleName
+      pd  <- Tables.profilesData if pd.internalCode === pp.sampleName
       pdfil <- Tables.profileDataFiliations if pdfil.profileData === pd.globalCode
     } yield pdfil
 
@@ -458,9 +457,7 @@ class SlickProtoProfileRepository @Inject()(
       case _ => Future.successful(false)
     }
 
-  override def getProtoProfileStatus(internalCode: String): String =
-    Await.result(
-      db.run(Tables.protoProfiles.filter(_.sampleName === internalCode).map(_.status).result.headOption),
-      Duration(3, SECONDS)
-    ).getOrElse("Unknown")
+  override def getProtoProfileStatus(internalCode: String): Future[String] =
+    db.run(Tables.protoProfiles.filter(_.sampleName === internalCode).map(_.status).result.headOption)
+      .map(_.getOrElse("Unknown"))
 }
