@@ -245,7 +245,7 @@ class LocusServiceTest extends AnyWordSpec with Matchers with MockitoSugar:
 
       val result = Await.result(service.locusRangeMap(), duration)
 
-      result(locusWithRange.id) mustBe AleleRange(BigDecimal(5), BigDecimal(30))
-      result(locusNoRange.id) mustBe AleleRange(BigDecimal(0), BigDecimal(99))
+      result(locusWithRange.id) mustBe matching.AleleRange(BigDecimal(5), BigDecimal(30))
+      result(locusNoRange.id) mustBe matching.AleleRange(BigDecimal(0), BigDecimal(99))
     }
   }

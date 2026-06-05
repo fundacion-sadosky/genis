@@ -14,7 +14,7 @@ import kits.{FullStrKit, StrKit, StrKitLocus, StrKitService, NewStrKitLocus}
 import inbox.NotificationInfo
 import probability.ProbabilityService
 import profile.Analysis
-import services.{CountryService, GeneticistService, LaboratoryService, UserService}
+import services.{Country, CountryService, GeneticistService, LaboratoryService, Province, UserService}
 import stats.{Fmins, PopBaseFreqResult, PopulationBaseFrequency, PopulationBaseFrequencyGrouppedByLocus, PopulationBaseFrequencyNameView, PopulationBaseFrequencyService, PopulationBaseFrequencyView, ProbabilityModel}
 import types.{AlphanumericId, Geneticist, Laboratory, Permission, StatOption}
 import security.User
@@ -38,22 +38,24 @@ class StubOperationLogService extends OperationLogService:
 @Singleton
 class StubLaboratoryService extends LaboratoryService:
   var listResult: Future[Seq[Laboratory]] = Future.successful(Seq.empty)
+  var listDescriptiveResult: Future[Seq[Laboratory]] = Future.successful(Seq.empty)
   var addResult: Future[Int] = Future.successful(1)
   var getResult: Future[Option[Laboratory]] = Future.successful(None)
   var updateResult: Future[Int] = Future.successful(1)
 
   override def list(): Future[Seq[Laboratory]] = listResult
+  override def listDescriptive(): Future[Seq[Laboratory]] = listDescriptiveResult
   override def add(lab: Laboratory): Future[Int] = addResult
   override def get(id: String): Future[Option[Laboratory]] = getResult
   override def update(lab: Laboratory): Future[Int] = updateResult
 
 @Singleton
 class StubCountryService extends CountryService:
-  var listCountriesResult: Future[Seq[String]] = Future.successful(Seq.empty)
-  var listProvincesResult: Future[Seq[String]] = Future.successful(Seq.empty)
+  var listCountriesResult: Future[Seq[Country]] = Future.successful(Seq.empty)
+  var listProvincesResult: Future[Seq[Province]] = Future.successful(Seq.empty)
 
-  override def listCountries: Future[Seq[String]] = listCountriesResult
-  override def listProvinces(country: String): Future[Seq[String]] = listProvincesResult
+  override def listCountries: Future[Seq[Country]] = listCountriesResult
+  override def listProvinces(country: String): Future[Seq[Province]] = listProvincesResult
 
 @Singleton
 class StubGeneticistService extends GeneticistService:

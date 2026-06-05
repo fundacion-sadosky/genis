@@ -1,7 +1,7 @@
 package kits
 
-import com.google.inject.Provider
 import javax.inject.{Inject, Singleton}
+import matching.NewMatchingResult
 import matching.AleleRange
 import pedigree.MutationService
 import profile.{Allele, Profile}
@@ -26,10 +26,8 @@ trait LocusService:
 class LocusServiceImpl @Inject()(
   cache: CacheService,
   locusRepository: LocusRepository,
-  mutationServiceProvider: Provider[MutationService]
+  mutationService: MutationService
 )(implicit ec: ExecutionContext) extends LocusService:
-
-  private def mutationService: MutationService = mutationServiceProvider.get()
 
   private def cleanCache(): Unit =
     cache.pop(LocusCacheKey)
@@ -68,9 +66,9 @@ class LocusServiceImpl @Inject()(
   override def getLocusByAnalysisType(analysisType: Int): Future[Seq[String]] =
     locusRepository.getLocusByAnalysisType(analysisType).map(_.map(_.id))
 
-  override def locusRangeMap(): Future[Map[String, AleleRange]] =
+  override def locusRangeMap(): Future[NewMatchingResult.AlleleMatchRange] =
     list().map { loci =>
-      loci.map(l => l.id -> AleleRange(l.minAlleleValue.getOrElse(0), l.maxAlleleValue.getOrElse(99))).toMap
+      loci.map(l => l.id -> matching.AleleRange(l.minAlleleValue.getOrElse(0), l.maxAlleleValue.getOrElse(99))).toMap
     }
 
   override def saveLocusAlleles(list: List[(String, Double)]): Future[Either[String, Int]] =

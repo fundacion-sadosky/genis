@@ -44,8 +44,8 @@ class LocusControllerTest extends PlaySpec with GuiceOneAppPerTest:
     override def getLocusByAnalysisType(analysisType: Int): Future[Seq[String]] =
       Future.successful(Seq("LOCUS 1"))
 
-    override def locusRangeMap(): Future[Map[String, AleleRange]] =
-      Future.successful(Map("LOCUS 1" -> AleleRange(BigDecimal(5), BigDecimal(30))))
+    override def locusRangeMap(): Future[matching.NewMatchingResult.AlleleMatchRange] =
+      Future.successful(Map("LOCUS 1" -> matching.AleleRange(BigDecimal(5), BigDecimal(30))))
 
     override def saveLocusAlleles(list: List[(String, Double)]): Future[Either[String, Int]] =
       Future.successful(Right(0))
