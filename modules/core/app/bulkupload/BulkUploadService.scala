@@ -130,53 +130,65 @@ class BulkUploadServiceImpl @Inject()(
         category.aliases.map { _ -> id } :+ (id.text -> id)
       }
     }
-    val validatorF = for
+    // #218 review S5Q3: datos en memoria que NO dependen del archivo (kits/aliases/geneticists/categorias).
+    val baseDataF = for
       geneticists      <- userService.findUserAssignable.map(_.map(u =>
                            UserView(u.id, u.firstName, u.lastName, u.email, u.roles, u.status, u.geneMapperId, u.phone1, u.phone2, u.superuser)).toList)
       kits             <- kitsF
       alKit            <- aliasKits
       lociAl           <- lociAlias
       categoryAliases  <- categoryAliasesF
-    yield
-      Validator(
-        protoRepo,
-        kits.map((k, v) => k.toLowerCase -> v),
-        alKit.map((k, v) => k.toLowerCase -> v),
-        lociAl.map((k, v) => k.toLowerCase -> v),
-        geneticists,
-        categoryAliases.map((k, v) => k -> v).toMap,
-        messages
-      )
+    yield (kits, alKit, lociAl, geneticists, categoryAliases)
+
     protoProfiledataService.getMtRcrs().flatMap { mtRcrs =>
-      validatorF.flatMap { validator =>
-        val csvFile = new File(tempFile.file.getAbsolutePath + "_permanent")
-        tempFile.moveTo(csvFile.toPath, replace = true)
-        // Parsing may throw synchronously (e.g. IndexOutOfBoundsException). Capture it into the
-        // Future so the _permanent temp file (forensic genetic data) is removed on EVERY path —
-        // parser Left, sync throw, downstream failure and success — not only the success branch.
-        val resultF: Future[Either[String, Long]] = scala.util.Try(
-          if analysisType == "Autosomal" then
-            GeneMapperFileParser.parse(csvFile, validator)
-          else
-            GeneMapperFileMitoParser.parse(csvFile, validator, mtRcrs)
-        ).fold(
-          e => Future.failed(e),
-          _.fold[Future[Either[String, Long]]](
-            error => {
-              logger.error(error)
-              Future.successful(Left(error))
-            },
-            stream => {
-              val kits = stream.map(_.kit).distinct.toSeq
-              kitService.findLociByKits(kits).flatMap { kits =>
-                protoRepo.createBatch(user, stream, labCode, kits, label, analysisType).map(Right(_))
-              }
-            }
-          )
-        )
-        // delete only after createBatch has fully consumed the lazy stream (Future completed).
-        resultF.andThen { case _ => csvFile.delete() }
-      }
+      val csvFile = new File(tempFile.file.getAbsolutePath + "_permanent")
+      tempFile.moveTo(csvFile.toPath, replace = true)
+      // Primer pase barato: sampleNames distintos -> precarga las validaciones de BD (S5Q3), de modo que
+      // el Validator no haga Await por-perfil durante el consumo del LazyList en createBatch.
+      // El parseo puede lanzar sincronicamente (p.ej. IndexOutOfBoundsException); se captura en el Future
+      // para borrar el _permanent (datos forenses) en TODA ruta (Left, throw, fallo, exito).
+      val resultF: Future[Either[String, Long]] = scala.util.Try(
+        GeneMapperFileParser.readDistinctSampleNames(csvFile)
+      ).fold(
+        e => Future.failed(e),
+        sampleNames =>
+          for
+            base                                           <- baseDataF
+            (kits, alKit, lociAl, geneticists, categories)  = base
+            cache                                          <- protoRepo.preloadValidationData(sampleNames)
+            validator = Validator(
+                          cache,
+                          kits.map((k, v) => k.toLowerCase -> v),
+                          alKit.map((k, v) => k.toLowerCase -> v),
+                          lociAl.map((k, v) => k.toLowerCase -> v),
+                          geneticists,
+                          categories.map((k, v) => k -> v).toMap,
+                          messages
+                        )
+            result <- scala.util.Try(
+                        if analysisType == "Autosomal" then
+                          GeneMapperFileParser.parse(csvFile, validator)
+                        else
+                          GeneMapperFileMitoParser.parse(csvFile, validator, mtRcrs)
+                      ).fold(
+                        e => Future.failed(e),
+                        _.fold[Future[Either[String, Long]]](
+                          error => {
+                            logger.error(error)
+                            Future.successful(Left(error))
+                          },
+                          stream => {
+                            val kitsUsed = stream.map(_.kit).distinct.toSeq
+                            kitService.findLociByKits(kitsUsed).flatMap { kitsLoci =>
+                              protoRepo.createBatch(user, stream, labCode, kitsLoci, label, analysisType).map(Right(_))
+                            }
+                          }
+                        )
+                      )
+          yield result
+      )
+      // delete only after createBatch has fully consumed the lazy stream (Future completed).
+      resultF.andThen { case _ => csvFile.delete() }
     }.recover {
       case _: IndexOutOfBoundsException =>
         logger.error(messages("error.E0302"))

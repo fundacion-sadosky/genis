@@ -7,11 +7,6 @@ import play.api.i18n.Messages
 import types.{AlphanumericId, SampleCode}
 import user.UserView
 
-import scala.concurrent.Await
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-import scala.concurrent.duration.{Duration, SECONDS}
-
 case class ProtoProfileBuilder(
     validator: Validator,
     id: Long = 0,
@@ -195,8 +190,25 @@ case class ProtoProfileBuilder(
   }
 }
 
+/**
+ * Datos de validacion que dependen de la BD, precargados ANTES de parsear (#218 review S5Q3).
+ * Reemplaza los Await.result por-perfil del Validator (heredados del legacy) por lookups en memoria,
+ * evitando bloquear hilos del ExecutionContext durante el consumo del LazyList en createBatch.
+ *  - existsBySample: sampleName -> (globalCode de perfil existente, idBatch de proto-perfil pendiente)
+ *  - mtExistsBySample: sampleNames cuyo perfil existente ya tiene analisis mitocondrial (locus 4)
+ *  - categoryByGcAndAssignee: (globalCode, assignee) -> categoria persistida en PROFILE_DATA
+ */
+case class BulkValidationCache(
+    existsBySample: Map[String, (Option[SampleCode], Option[Long])] = Map.empty,
+    mtExistsBySample: Set[String] = Set.empty,
+    categoryByGcAndAssignee: Map[(String, String), String] = Map.empty)
+
+object BulkValidationCache {
+  val empty: BulkValidationCache = BulkValidationCache()
+}
+
 case class Validator(
-    protoRepo: ProtoProfileRepository,
+    cache: BulkValidationCache,
     kits: Map[String, List[String]],
     kitAlias: Map[String, String],
     locusAlias: Map[String, String],
@@ -205,7 +217,8 @@ case class Validator(
     messages: Messages) {
 
   def validateSampleName(sampleName: String): (Option[String], Option[SampleCode]) = {
-    val (sampleCodeOpt, batchIdOpt): (Option[SampleCode], Option[Long]) = Await.result(protoRepo.exists(sampleName), Duration(3, SECONDS))
+    val (sampleCodeOpt, batchIdOpt): (Option[SampleCode], Option[Long]) =
+      cache.existsBySample.getOrElse(sampleName, (None, None))
     val res = if (sampleCodeOpt.isEmpty && batchIdOpt.isDefined)
       Some(messages("error.E0306", sampleName, batchIdOpt.get))
     else None
@@ -213,7 +226,10 @@ case class Validator(
   }
 
   def validateAssigneAndCategory(globalCode: SampleCode, assigne: String, category: Option[AlphanumericId]): Option[String] =
-    Await.result(protoRepo.validateAssigneAndCategory(globalCode, assigne, category), Duration(3, SECONDS))
+    cache.categoryByGcAndAssignee.get((globalCode.text, assigne)) match {
+      case None      => Some(messages("error.E0662", assigne))
+      case Some(cat) => category.flatMap(cty => if (cat == cty.text) None else Some(messages("error.E0663", cat, cty.text)))
+    }
 
   def validateKit(kit: String): (Option[String], String) =
     kitAlias.get(kit.toLowerCase).fold((Option(messages("error.E0691", kit)), kit)) { alias =>
@@ -238,5 +254,5 @@ case class Validator(
     categoryAlias.get(category)
 
   def validarMtExistente(sampleName: String): Boolean =
-    Await.result(protoRepo.mtExistente(sampleName), Duration(300, SECONDS))
+    cache.mtExistsBySample.contains(sampleName)
 }

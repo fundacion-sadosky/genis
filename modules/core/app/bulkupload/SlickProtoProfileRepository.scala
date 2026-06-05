@@ -454,6 +454,51 @@ class SlickProtoProfileRepository @Inject()(
       case _ => Future.successful(false)
     }
 
+  // #218 review S5Q3: precarga en una sola tanda las validaciones que el Validator hacia por-perfil
+  // con Await (exists / mtExistente / validateAssigneAndCategory), keyeadas por sampleName.
+  override def preloadValidationData(sampleNames: Seq[String]): Future[BulkValidationCache] = {
+    val names = sampleNames.distinct
+    if (names.isEmpty) Future.successful(BulkValidationCache.empty)
+    else {
+      // Equivalente batch de exists(): perfil existente (PROFILE_DATA no borrado por internalSampleCode)
+      // y proto-perfil pendiente (PROTO_PROFILE por sampleName en estados pendientes).
+      val profileQ = Tables.profilesData
+        .filter(pd => (pd.internalSampleCode inSet names) && pd.deleted === false)
+        .map(pd => (pd.internalSampleCode, pd.globalCode))
+      val protoQ = Tables.protoProfiles
+        .filter(pp => (pp.sampleName inSet names) &&
+          (pp.status inSet Seq("ReadyForApproval", "Approved", "Incomplete")))
+        .map(pp => (pp.sampleName, pp.idBatch))
+
+      for {
+        profileRows <- db.run(profileQ.result)
+        protoRows   <- db.run(protoQ.result)
+        existsBySample = names.map { sn =>
+          val gc    = profileRows.find(_._1 == sn).map(r => SampleCode(r._2))
+          val batch = protoRows.find(_._1 == sn).map(_._2)
+          sn -> (gc, batch)
+        }.toMap
+        // Equivalente batch de validateAssigneAndCategory: categoria persistida por (globalCode, assignee)
+        // para los perfiles preexistentes. El lookup por (gc, assigne) reproduce queryCheckAssigne.
+        preexistingGcs = existsBySample.values.flatMap(_._1.map(_.text)).toSeq.distinct
+        categoryRows <- if (preexistingGcs.isEmpty) Future.successful(Seq.empty[(String, String, String)])
+                        else db.run(
+                          Tables.profilesData
+                            .filter(_.globalCode inSet preexistingGcs)
+                            .map(pd => (pd.globalCode, pd.assignee, pd.category))
+                            .result
+                        )
+        categoryByGcAndAssignee = categoryRows.map { case (gc, asg, cat) => (gc, asg) -> cat }.toMap
+        // Equivalente batch de mtExistente: perfiles preexistentes cuyo profile ya tiene analisis mito (locus 4).
+        preexistingBySample = existsBySample.collect { case (sn, (Some(sc), _)) => sn -> sc }.toSeq
+        mtFlags <- Future.sequence(preexistingBySample.map { case (sn, sc) =>
+                     profileRepository.get(sc).map(p => sn -> p.exists(_.genotypification.get(4).isDefined))
+                   })
+        mtExistsBySample = mtFlags.collect { case (sn, true) => sn }.toSet
+      } yield BulkValidationCache(existsBySample, mtExistsBySample, categoryByGcAndAssignee)
+    }
+  }
+
   override def getProtoProfileStatus(internalCode: String): Future[String] =
     db.run(Tables.protoProfiles.filter(_.sampleName === internalCode).map(_.status).result.headOption)
       .map(_.getOrElse("Unknown"))

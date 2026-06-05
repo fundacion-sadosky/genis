@@ -12,6 +12,22 @@ object GeneMapperFileParser {
     override val delimiter = '\t'
   }
 
+  // #218 review S5Q3: primer pase barato para precargar validaciones de BD. Lee solo la columna
+  // "Sample Name" (presente en el header autosomal y mitocondrial) y devuelve los valores distintos.
+  def readDistinctSampleNames(csvFile: File): Seq[String] = {
+    val reader = CSVReader.open(csvFile)(GeneMapperFileFormat)
+    try {
+      val rows = reader.iterator
+      if (!rows.hasNext) Seq.empty
+      else {
+        val header = rows.next()
+        val idx = header.indexOf("Sample Name")
+        if (idx < 0) Seq.empty
+        else rows.map(_.lift(idx).getOrElse("")).filter(_.nonEmpty).toSeq.distinct
+      }
+    } finally reader.close()
+  }
+
   private def parseHeader(header: Seq[String])(using messages: Messages): Either[String, GeneMaperFileHeader] =
     header
       .zipWithIndex

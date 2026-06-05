@@ -38,6 +38,9 @@ trait ProtoProfileRepository {
   def mtExistente(sampleName: String): Future[Boolean]
   def updateProtoProfileStatus(internalCode: String, status: String): Future[Int]
   def getProtoProfileStatus(internalCode: String): Future[String]
+  // #218 review S5Q3: precarga en memoria de las validaciones que dependen de BD, para el set de
+  // sampleNames de un archivo, evitando Await por-perfil durante el parseo.
+  def preloadValidationData(sampleNames: Seq[String]): Future[BulkValidationCache]
 }
 
 @Singleton
@@ -68,4 +71,5 @@ class ProtoProfileRepositoryStub extends ProtoProfileRepository {
   override def mtExistente(sampleName: String): Future[Boolean] = Future.successful(false)
   override def updateProtoProfileStatus(internalCode: String, status: String): Future[Int] = Future.successful(0)
   override def getProtoProfileStatus(internalCode: String): Future[String] = Future.successful("")
+  override def preloadValidationData(sampleNames: Seq[String]): Future[BulkValidationCache] = Future.successful(BulkValidationCache.empty)
 }
