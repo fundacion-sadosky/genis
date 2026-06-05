@@ -17,6 +17,16 @@ class ValidatorTest extends AnyWordSpec with Matchers:
   private def validator(cache: BulkValidationCache): Validator =
     Validator(cache, Map.empty, Map.empty, Map.empty, Nil, Map.empty, messages)
 
+  // Helper para los metodos puros basados en mapas (alias de kit/locus/categoria, geneticistas).
+  private def validatorWith(
+    kits: Map[String, List[String]] = Map.empty,
+    kitAlias: Map[String, String] = Map.empty,
+    locusAlias: Map[String, String] = Map.empty,
+    geneticists: List[user.UserView] = Nil,
+    categoryAlias: Map[String, types.AlphanumericId] = Map.empty
+  ): Validator =
+    Validator(BulkValidationCache.empty, kits, kitAlias, locusAlias, geneticists, categoryAlias, messages)
+
   "Validator.validateSampleName (cache-backed)" should {
     "devolver error (E0306) y sin SampleCode cuando hay proto-perfil pendiente pero no perfil existente" in {
       val v = validator(BulkValidationCache(existsBySample = Map("S1" -> (None, Some(42L)))))
@@ -64,5 +74,71 @@ class ValidatorTest extends AnyWordSpec with Matchers:
     }
     "devolver false cuando no" in {
       validator(BulkValidationCache.empty).validarMtExistente("S1") mustBe false
+    }
+  }
+
+  // ---- Metodos puros basados en mapas (tenian cobertura en el legacy ProtoProfileBuilderTest) ----
+
+  "Validator.validateKit" should {
+    "resolver el alias del kit (case-insensitive) sin error" in {
+      val v = validatorWith(kitAlias = Map("kit1" -> "IDKIT1"))
+      v.validateKit("KIT1") mustBe (None, "IDKIT1")
+    }
+    "devolver E0691 cuando el kit no esta definido" in {
+      val (err, kit) = validatorWith().validateKit("DESCONOCIDO")
+      err.exists(_.contains("E0691")) mustBe true
+      kit mustBe "DESCONOCIDO"
+    }
+  }
+
+  "Validator.validateMarker" should {
+    "resolver el alias del marcador (case-insensitive) sin error cuando el kit no restringe" in {
+      val v = validatorWith(locusAlias = Map("marker1" -> "IDMARKER1"))
+      v.validateMarker("KIT1", "MARKER1") mustBe (Nil, "IDMARKER1")
+    }
+    "devolver E0680 cuando el marcador no esta definido (autosomal)" in {
+      val (errs, mrk) = validatorWith().validateMarker("KIT1", "MARKER2")
+      errs.exists(_.contains("E0680")) mustBe true
+      mrk mustBe "MARKER2"
+    }
+    "devolver E0681 cuando el marcador no pertenece al kit (autosomal)" in {
+      val v = validatorWith(
+        kits = Map("kit1" -> List("IDMARKER2")),
+        locusAlias = Map("marker1" -> "IDMARKER1")
+      )
+      val (errs, mrk) = v.validateMarker("KIT1", "MARKER1")
+      errs.exists(_.contains("E0681")) mustBe true
+      mrk mustBe "MARKER1"
+    }
+    "no devolver error cuando el marcador pertenece al kit" in {
+      val v = validatorWith(
+        kits = Map("kit1" -> List("IDMARKER1")),
+        locusAlias = Map("marker1" -> "IDMARKER1")
+      )
+      v.validateMarker("KIT1", "MARKER1") mustBe (Nil, "IDMARKER1")
+    }
+    "devolver E0310 cuando el marcador no esta definido (mitocondrial)" in {
+      val (errs, _) = validatorWith().validateMarker("KIT1", "MARKER2", mitocondrial = true)
+      errs.exists(_.contains("E0310")) mustBe true
+    }
+  }
+
+  "Validator.validateCategory" should {
+    "resolver la categoria por alias" in {
+      val id = AlphanumericId("IDCAT")
+      validatorWith(categoryAlias = Map("alias" -> id)).validateCategory("alias") mustBe Some(id)
+    }
+    "devolver None cuando la categoria no esta en el mapa" in {
+      validatorWith().validateCategory("desconocida") mustBe None
+    }
+  }
+
+  "Validator.validateAssignee" should {
+    "no devolver error cuando el geneticista existe por geneMapperId" in {
+      val g = user.UserView("g1", "G", "Uno", "g1@test.com", Seq.empty, user.UserStatus.active, "GM1", "")
+      validatorWith(geneticists = List(g)).validateAssignee("GM1") mustBe None
+    }
+    "devolver E0650 cuando el geneticista no existe" in {
+      validatorWith().validateAssignee("GM1").exists(_.contains("E0650")) mustBe true
     }
   }
