@@ -36,8 +36,8 @@ class LaboratoriesControllerTest extends PlaySpec with GuiceOneAppPerTest {
         bind[RoleRepository].to[StubRoleRepository],
         bind[LaboratoryService].toInstance(labStub),
         bind[CountryService].toInstance(countryStub),
-        bind[StrKitService].toInstance(new StubStrKitService),
-        bind[ProbabilityService].toInstance(new StubProbabilityService),
+        new fixtures.StubStrKitModule,
+        new fixtures.StubProbabilityModule,
         bind[ExecutionContext].qualifiedWith("lrmix-context").toInstance(ExecutionContext.global),
         bind[LdapHealthService].toInstance(new StubLdapHealthService)
       )

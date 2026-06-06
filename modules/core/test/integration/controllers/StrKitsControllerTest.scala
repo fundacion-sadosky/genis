@@ -31,7 +31,9 @@ class StrKitsControllerTest extends PlaySpec with GuiceOneAppPerTest {
         bind[UserRepository].to[StubUserRepository],
         bind[RoleRepository].to[StubRoleRepository],
         bind[StrKitService].toInstance(kitStub),
-        bind[ProbabilityService].toInstance(new StubProbabilityService),
+        bind[kits.LocusService].toInstance(new fixtures.LocusServiceStub),
+        bind[kits.AnalysisTypeService].toInstance(new kits.AnalysisTypeServiceStub),
+        new fixtures.StubProbabilityModule,
         bind[ExecutionContext].qualifiedWith("lrmix-context").toInstance(ExecutionContext.global),
         bind[LdapHealthService].toInstance(new StubLdapHealthService)
       )

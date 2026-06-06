@@ -41,7 +41,7 @@ class MotiveControllerTest extends PlaySpec with GuiceOneAppPerTest {
         bind[UserRepository].to[StubUserRepository],
         bind[RoleRepository].to[StubRoleRepository],
         bind[MotiveService].toInstance(stubMotiveService),
-        bind[ProbabilityService].toInstance(new StubProbabilityService),
+        new fixtures.StubProbabilityModule,
         bind[ExecutionContext].qualifiedWith("lrmix-context").toInstance(ExecutionContext.global),
         bind[LdapHealthService].toInstance(new StubLdapHealthService)
       )

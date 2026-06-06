@@ -49,7 +49,7 @@ class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest with Mocki
         bind[LimsArchivesExporterService].toInstance(limsStub),
         bind[CategoryService].toInstance(new StubCategoryService),
         bind[CacheService].toInstance(cacheStub),
-        bind[ProbabilityService].toInstance(new StubProbabilityService),
+        new fixtures.StubProbabilityModule,
         bind[ExecutionContext].qualifiedWith("lrmix-context").toInstance(ExecutionContext.global),
         bind[LdapHealthService].toInstance(new StubLdapHealthService),
         bind[MongoHealthService].toInstance(new StubMongoHealthService),
@@ -57,6 +57,8 @@ class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest with Mocki
         bind[MongoDatabase].toInstance(mock[MongoDatabase]),
         bind[String].qualifiedWith("labCode").toInstance("SHDG"),
         bind[ProfileRepository].toInstance(mock[ProfileRepository]),
+        bind[profiledata.ProfileDataRepository].toInstance(mock[profiledata.ProfileDataRepository]),
+        bind[connections.InterconnectionService].toInstance(new connections.InterconnectionServiceStub),
         bind[TraceService].to[TraceServiceStub],
         bind[ProfileDataService].to[ProfileDataServiceStub]
       )

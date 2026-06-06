@@ -78,10 +78,10 @@ class UserAndRoleControllerTest extends PlaySpec with GuiceOneAppPerTest {
         bind[RoleRepository].to[StubRoleRepository],
         bind[UserService].toInstance(userServiceStub),
         bind[RoleService].toInstance(roleServiceStub),
-        bind[StrKitService].toInstance(new StubStrKitService),
+        new fixtures.StubStrKitModule,
         bind[DisclaimerService].toInstance(new StubDisclaimerService),
         bind[MotiveService].toInstance(new StubMotiveService),
-        bind[ProbabilityService].toInstance(new StubProbabilityService),
+        new fixtures.StubProbabilityModule,
         bind[ExecutionContext].qualifiedWith("lrmix-context").toInstance(ExecutionContext.global),
         bind[LDAPConnectionPool].toInstance(createInMemoryLdapPool()),
         bind[LdapHealthService].toInstance(new StubLdapHealthService)

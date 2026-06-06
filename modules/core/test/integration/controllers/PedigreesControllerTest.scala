@@ -52,7 +52,7 @@ class PedigreesControllerTest extends PlaySpec with GuiceOneAppPerTest {
         bind[RoleRepository].to[StubRoleRepository],
         bind[UserService].toInstance(new StubUserService),
         bind[LdapHealthService].toInstance(new StubLdapHealthService),
-        bind[ProbabilityService].toInstance(new StubProbabilityService),
+        new fixtures.StubProbabilityModule,
         bind[TraceService].toInstance(new TraceServiceStub),
         // pedigree domain stubs (replicate StubPedigreeModule por overrides)
         bind[BayesianNetworkService].toInstance(new BayesianNetworkServiceStub),

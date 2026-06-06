@@ -10,7 +10,11 @@ import audit.{Key, OperationLogEntry, OperationLogEntryAttemp, OperationLogLotVi
   OperationLogSearch, OperationLogService, SignedOperationLogEntry}
 import configdata.{BioMaterialType, CrimeType, CrimeTypeService, BioMaterialTypeService}
 import disclaimer.{Disclaimer, DisclaimerService}
-import kits.{FullStrKit, StrKit, StrKitLocus, StrKitService, NewStrKitLocus}
+import kits.{AnalysisType, FullLocus, FullStrKit, Locus, LocusService, StrKit, StrKitLocus, StrKitService, NewStrKitLocus}
+import matching.{AleleRange, MatchResult}
+import probability.CalculationTypeService
+import profile.Profile
+import types.SampleCode
 import inbox.NotificationInfo
 import probability.ProbabilityService
 import profile.Analysis
@@ -195,3 +199,26 @@ class StubMongoHealthService extends profile.MongoHealthService:
 class StubPostgresHealthService extends configdata.PostgresHealthService:
   var result: Try[(String, String)] = Success(("UP", "PostgreSQL 15.0"))
   override def checkStatus(): Try[(String, String)] = result
+
+@Singleton
+class LocusServiceStub extends LocusService:
+  override def add(locus: FullLocus): Future[Either[String, String]] = Future.successful(Right(""))
+  override def update(locus: FullLocus): Future[Either[String, Unit]] = Future.successful(Right(()))
+  override def listFull(): Future[Seq[FullLocus]] = Future.successful(Seq.empty)
+  override def list(): Future[Seq[Locus]] = Future.successful(Seq.empty)
+  override def delete(id: String): Future[Either[String, String]] = Future.successful(Right(id))
+  override def getLocusByAnalysisTypeName(analysisType: String): Future[Seq[String]] = Future.successful(Seq.empty)
+  override def getLocusByAnalysisType(analysisType: Int): Future[Seq[String]] = Future.successful(Seq.empty)
+  override def locusRangeMap(): Future[Map[String, AleleRange]] = Future.successful(Map.empty)
+  override def saveLocusAlleles(list: List[(String, Double)]): Future[Either[String, Int]] = Future.successful(Right(0))
+  override def saveLocusAllelesFromProfile(p: Profile): Future[Either[String, Int]] = Future.successful(Right(0))
+  override def refreshAllKis(): Future[Unit] = Future.successful(())
+
+@Singleton
+class CalculationTypeServiceStub extends CalculationTypeService:
+  override def getAnalysisTypeByCalculation(calculation: String): Future[AnalysisType] =
+    Future.failed(new UnsupportedOperationException("stub"))
+  override def filterProfile(p: Profile, calculation: String): Future[Profile.Genotypification] = Future.successful(Map.empty)
+  override def filterProfiles(profiles: Seq[Profile], calculation: String): Future[Seq[Profile.Genotypification]] = Future.successful(Seq.empty)
+  override def filterCodes(codes: List[SampleCode], calculation: String, profiles: List[Profile] = Nil): Future[Seq[Profile.Genotypification]] = Future.successful(Seq.empty)
+  override def filterMatchResults(matchResults: Seq[MatchResult], calculation: String): Future[Seq[MatchResult]] = Future.successful(Seq.empty)

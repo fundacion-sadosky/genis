@@ -34,6 +34,7 @@ class ProbabilityControllerTest extends PlaySpec with GuiceOneAppPerTest {
         bind[RoleRepository].to[StubRoleRepository],
         bind[LdapHealthService].toInstance(new StubLdapHealthService),
         bind[ProbabilityService].toInstance(probabilityStub),
+        bind[probability.CalculationTypeService].toInstance(new fixtures.CalculationTypeServiceStub),
         bind[PopulationBaseFrequencyService].toInstance(popFreqStub),
         bind[ExecutionContext].qualifiedWith("lrmix-context").toInstance(ExecutionContext.global)
       )
