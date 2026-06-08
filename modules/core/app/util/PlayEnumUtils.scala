@@ -19,4 +19,3 @@ object PlayEnumUtils:
 
   def enumFormat[E <: Enumeration](e: E): Format[e.Value] =
     Format(enumReads(e), enumWrites(e))
-

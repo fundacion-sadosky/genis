@@ -19,6 +19,10 @@ case class ProfileDataAssociationInfo(internalSampleCode: String, globalCode: Sa
   override val description: String = s"Asociación de perfil $globalCode"
   override val url: String = s"/profiles/$globalCode"
 
+case class BulkUploadInfo(protoProfileId: String, sampleName: String) extends NotificationInfo:
+  override val description: String = s"Nuevo perfil para importación: $sampleName"
+  override val url: String = s"/profiles/bulkupload-step2/protoprofile/$protoProfileId"
+
 case class PedigreeMatchingInfo(
   matchedProfile: SampleCode,
   caseType: Option[String] = None,

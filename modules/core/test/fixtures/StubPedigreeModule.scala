@@ -21,7 +21,8 @@ class StubPedigreeModule(env: Environment, conf: Configuration) extends Abstract
     bind(classOf[PedCheckService]).to(classOf[PedCheckServiceStub])
     bind(classOf[PedigreeMatcher]).to(classOf[PedigreeMatcherStub])
     bind(classOf[MutationService]).to(classOf[MutationServiceStub])
-    bind(classOf[profiledata.ProfileDataService]).to(classOf[profiledata.ProfileDataServiceStub])
+    // profiledata ya está migrado (#218): profiledata.ProfileDataModule (real) provee
+    // ProfileDataService. Ya no se stubea acá para no duplicar el binding.
     bind(classOf[MatchingProcessStatus]).to(classOf[MatchingProcessStatusImpl])
     bind(classOf[search.FullTextSearchService]).to(classOf[search.FullTextSearchServiceStub])
     ()

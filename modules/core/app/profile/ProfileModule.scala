@@ -58,8 +58,6 @@ bind(classOf[kits.QualityParamsProvider]).to(classOf[kits.QualityParamsProviderS
     bind(classOf[matching.MatchingRepository]).to(classOf[matching.MatchingRepositoryStub])
     bind(classOf[matching.MatchingService]).to(classOf[matching.MatchingServiceStub])
     bind(classOf[pedigree.PedigreeService]).to(classOf[pedigree.PedigreeServiceStub])
-    bind(classOf[profiledata.ProfileDataRepository]).to(classOf[profiledata.ProfileDataRepositoryStub])
-    bind(classOf[profiledata.ProfileDataService]).to(classOf[profiledata.ProfileDataServiceStub])
     bind(classOf[ProfileService]).to(classOf[ProfileServiceImpl])
     bind(classOf[ProfileExporterService]).to(classOf[ProfileExporterServiceImpl])
     bind(classOf[LimsArchivesExporterService]).to(classOf[LimsArchivesExporterServiceImpl])
