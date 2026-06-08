@@ -1,133 +1,191 @@
 package trace
 
-import java.util.Date
-import types.SampleCode
-import configdata.{CategoryAssociation, MatchingRule}
-import _root_.util.PlayEnumUtils
+import jakarta.inject.{Inject, Singleton}
+import configdata.{CategoryAssociation, CategoryConfiguration, CategoryService, MatchingRule}
+import kits.{AnalysisType, AnalysisTypeService}
+import matching.{Algorithm, Stringency}
+import pedigree.PedigreeDataRepository
+import play.api.Logger
+import play.api.i18n.{Lang, MessagesApi}
+import profile.ProfileRepository
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-// --- Match type enums ---
+trait TraceService {
+  def add(trace: Trace): Future[Either[String, Long]]
+  def search(traceSearch: TraceSearch): Future[Seq[Trace]]
+  def count(traceSearch: TraceSearch): Future[Int]
+  def searchPedigree(traceSearch: TraceSearchPedigree): Future[Seq[TracePedigree]]
+  def countPedigree(traceSearch: TraceSearchPedigree): Future[Int]
+  def addTracePedigree(trace: TracePedigree): Future[Either[String, Long]]
+  def getFullDescription(id: Long): Future[String]
+}
 
-object MatchTypeInfo extends Enumeration:
-  type MatchTypeInfo = Value
-  val Insert, Update, Delete = Value
-  implicit val enumTypeFormat: play.api.libs.json.Format[MatchTypeInfo.Value] = PlayEnumUtils.enumFormat(MatchTypeInfo)
+@Singleton
+class TraceServiceImpl @Inject() (
+  traceRepository: TraceRepository,
+  categoryService: CategoryService,
+  analysisTypeService: AnalysisTypeService,
+  profileRepository: ProfileRepository,
+  pedigreeDataRepository: PedigreeDataRepository,
+  messagesApi: MessagesApi
+)(implicit ec: ExecutionContext) extends TraceService {
 
-// --- Trace types for pedigree matching ---
+  private val logger = Logger(this.getClass)
+  private implicit val lang: Lang = Lang.defaultLang
 
-trait PedigreeMatchActionInfo:
-  val pedigree: Long
-  val analysisType: Int
+  override def addTracePedigree(trace: TracePedigree): Future[Either[String, Long]] =
+    traceRepository.addTracePedigree(trace).recover {
+      case e: Throwable =>
+        val error = messagesApi("error.E0131", trace.kind.toString, trace.pedigree.toString)
+        logger.error(error, e)
+        Left(error)
+    }
 
-case class PedigreeMatchInfo(
-  matchId: String,
-  pedigree: Long,
-  analysisType: Int,
-  matchType: MatchTypeInfo.Value,
-  courtCase: Option[String] = None,
-  pedigreeName: Option[String] = None
-) extends TraceInfo with PedigreeMatchActionInfo:
-  val matchTypeDescription = matchType match
-    case MatchTypeInfo.Insert => "Generación"
-    case MatchTypeInfo.Update => "Actualización"
-    case MatchTypeInfo.Delete => "Baja"
-  val description =
-    if courtCase.isDefined && pedigreeName.isDefined then
-      s"$matchTypeDescription de coincidencia con el pedigrí ${pedigreeName.get} del caso ${courtCase.get}"
-    else
-      s"$matchTypeDescription de coincidencia con el pedigrí $pedigree"
+  override def add(trace: Trace): Future[Either[String, Long]] =
+    traceRepository.add(trace).recover {
+      case e: Throwable =>
+        val error = messagesApi("error.E0121", trace.kind.toString, trace.profile.text)
+        logger.error(error, e)
+        Left(error)
+    }
 
-case class PedigreeMatchInfo2(
-  matchId: String,
-  pedigree: Long,
-  profile: String,
-  analysisType: Int,
-  matchType: MatchTypeInfo.Value
-) extends TraceInfo with PedigreeMatchActionInfo:
-  val matchTypeDescription = matchType match
-    case MatchTypeInfo.Insert => "Generación"
-    case MatchTypeInfo.Update => "Actualización"
-    case MatchTypeInfo.Delete => "Baja"
-  val description = s"$matchTypeDescription de coincidencia con el perfil $profile."
+  override def count(traceSearch: TraceSearch): Future[Int] =
+    traceRepository.count(traceSearch)
 
-// --- Core trace types ---
+  override def search(traceSearch: TraceSearch): Future[Seq[Trace]] =
+    traceRepository.search(traceSearch)
 
-trait TraceService:
-  def add(trace: Trace): Future[Unit]
-  def addTracePedigree(trace: TracePedigree): Future[Unit]
+  override def countPedigree(traceSearch: TraceSearchPedigree): Future[Int] =
+    traceRepository.countPedigree(traceSearch)
 
-@jakarta.inject.Singleton
-class TraceServiceStub extends TraceService:
-  override def add(trace: Trace): Future[Unit] = Future.successful(())
-  override def addTracePedigree(trace: TracePedigree): Future[Unit] = Future.successful(())
+  override def searchPedigree(traceSearch: TraceSearchPedigree): Future[Seq[TracePedigree]] =
+    traceRepository.searchPedigree(traceSearch)
 
-case class Trace(
-  globalCode: SampleCode,
-  userId: String,
-  date: Date,
-  info: TraceInfo
-)
+  override def getFullDescription(id: Long): Future[String] =
+    traceRepository.getById(id) flatMap {
+      case None        => Future.successful("")
+      case Some(trace) => trace.trace match {
+        case ti: AnalysisInfo            => stringify(ti)
+        case ti: ProcessInfo             => stringify(ti)
+        case ti: MatchActionInfo         => stringify(ti)
+        case ti: PedigreeMatchActionInfo => stringify(ti)
+        case ti: AssociationInfo         => stringify(ti)
+        case ti: PedigreeStatusChangeInfo => stringify(ti)
+        case ti: PedigreeCopyInfo        => stringify(ti)
+        case ti: PedigreeEditInfo        => stringify(ti)
+        case ti: PedigreeNewScenarioInfo => stringify(ti)
+        case _                           => Future.successful("")
+      }
+    }
 
-case class TracePedigree(
-  pedigree: Long,
-  userId: String,
-  date: Date,
-  info: TraceInfo
-)
+  private def stringify(ti: AssociationInfo): Future[String] = {
+    def stringifyCategoryAssociation(ca: CategoryAssociation): Future[String] =
+      categoryService.getCategory(ca.categoryRelated).map { categoryOpt =>
+        val category = categoryOpt.fold(ca.categoryRelated.toString)(_.name)
+        s"Categoría: $category / No coincidencias toleradas: ${ca.mismatches}"
+      }
 
-trait TraceInfo
+    for {
+      profileOpt   <- profileRepository.findByCode(ti.profile)
+      assocStrings <- Future.sequence(ti.categoryAssociations.map(stringifyCategoryAssociation))
+    } yield {
+      // profileOpt es None cuando el perfil referenciado fue borrado o la traza apunta a
+      // un código viejo: degradar a "no disponible" en lugar de lanzar NoSuchElementException.
+      val perfilDesc = profileOpt.fold(s"${ti.profile.text} (no disponible)")(p =>
+        s"${p.globalCode.text} (${p.internalSampleCode})")
+      s"Perfil: $perfilDesc\nReglas de asociación:\n${assocStrings.mkString("\n")}"
+    }
+  }
 
-case class AnalysisInfo(
-  loci: List[String],
-  kit: Option[String],
-  `type`: Option[Int],
-  categoryConfiguration: configdata.CategoryConfiguration
-) extends TraceInfo
+  private def stringify(ti: AnalysisInfo): Future[String] = {
+    def stringifyCategoryConfiguration(cc: CategoryConfiguration): String =
+      s"Cantidad mínima de marcadores con alelos: ${cc.minLocusPerProfile} / " +
+        s"Cantidad máxima de marcadores con trisomías: ${cc.maxOverageDeviatedLoci} / " +
+        s"Cantidad máxima de alelos por marcador: ${cc.maxAllelesPerLocus} / " +
+        s"Es categoría multialélica?: ${if (cc.multiallelic) "Sí" else "No"} "
 
-case class AssociationInfo(
-  associatedCode: SampleCode,
-  assignee: String,
-  associations: Seq[CategoryAssociation]
-) extends TraceInfo
+    val future = ti.analysisType.fold[Future[Option[AnalysisType]]](Future.successful(None))(at => analysisTypeService.getById(at))
+    future.map { analysisTypeOpt =>
+      val suffix = analysisTypeOpt.fold("")(at => s"Tipo: ${at.name}\n")
+      s"${suffix}Reglas de validación:\n${stringifyCategoryConfiguration(ti.categoryConfiguration)}"
+    }
+  }
 
-case class PedigreeMatchProcessInfo(matchingRules: Seq[MatchingRule]) extends TraceInfo
+  private def stringify(ti: MatchActionInfo): Future[String] =
+    for {
+      profileOpt      <- profileRepository.findByCode(ti.profile)
+      analysisTypeOpt <- analysisTypeService.getById(ti.analysisType)
+      // Solo se busca la categoría si el perfil existe; si no, se degrada (Q-I1).
+      categoryOpt     <- profileOpt match
+        case Some(p) => categoryService.getCategory(p.categoryId)
+        case None    => Future.successful(Option.empty[configdata.FullCategory])
+    } yield {
+      val analysisName = analysisTypeOpt.fold(ti.analysisType.toString)(_.name)
+      profileOpt.fold(
+        s"Tipo: $analysisName / Perfil coincidente: ${ti.profile.text} (no disponible)"
+      ) { profile =>
+        val category = categoryOpt.fold(profile.categoryId.toString)(_.name)
+        s"Tipo: $analysisName / " +
+          s"Perfil coincidente: ${profile.globalCode.text} (${profile.internalSampleCode}) / Categoría: $category / " +
+          s"Usuario responsable: ${profile.assignee}"
+      }
+    }
 
-case class PedigreeDiscardInfo(
-  matchId: String,
-  pedigree: Long,
-  user: String,
-  analysisType: Int,
-  courtCase: Option[String] = None,
-  pedigreeName: Option[String] = None
-) extends TraceInfo with PedigreeMatchActionInfo
+  private def stringify(ti: PedigreeEditInfo): Future[String] =
+    Future.successful("PedigreeEdit")
 
-case class PedigreeConfirmInfo(
-  matchId: String,
-  pedigree: Long,
-  user: String,
-  analysisType: Int,
-  courtCase: Option[String] = None,
-  pedigreeName: Option[String] = None
-) extends TraceInfo with PedigreeMatchActionInfo
+  private def stringify(ti: PedigreeCopyInfo): Future[String] =
+    Future.successful("PedigreeCopy")
 
-case class PedigreeStatusChangeInfo(status: String) extends TraceInfo
-case class PedigreeEditInfo(pedigreeId: Long) extends TraceInfo
-case class PedigreeCopyInfo(pedigreeId: Long, name: String) extends TraceInfo
-case class PedigreeNewScenarioInfo(id: String, nombre: String) extends TraceInfo
+  private def stringify(ti: PedigreeNewScenarioInfo): Future[String] =
+    Future.successful("PedigreeNewScenario")
 
-case class PedigreeDiscardInfo2(
-  matchId: String,
-  pedigree: Long,
-  profile: String,
-  user: String,
-  analysisType: Int
-) extends TraceInfo with PedigreeMatchActionInfo
+  private def stringify(ti: PedigreeStatusChangeInfo): Future[String] =
+    Future.successful("PedigreeStatusChange")
 
-case class PedigreeConfirmInfo2(
-  matchId: String,
-  pedigree: Long,
-  profile: String,
-  user: String,
-  analysisType: Int
-) extends TraceInfo with PedigreeMatchActionInfo
+  private def stringify(ti: PedigreeMatchActionInfo): Future[String] =
+    for {
+      pedigreeOpt     <- pedigreeDataRepository.getPedigreeMetaData(ti.pedigree)
+      analysisTypeOpt <- analysisTypeService.getById(ti.analysisType)
+    } yield {
+      // pedigreeOpt es None cuando PedigreeDataRepository está en stub (TODO: migrate pedigree).
+      // Devuelve descripción parcial en lugar de lanzar NoSuchElementException.
+      val pedigreeDesc = pedigreeOpt.fold(s"id=${ti.pedigree}") { p =>
+        s"${p.pedigreeMetaData.id} (${p.pedigreeMetaData.name})"
+      }
+      val assigneeDesc = pedigreeOpt.fold("N/A")(_.pedigreeMetaData.assignee)
+      val analysisName = analysisTypeOpt.fold(ti.analysisType.toString)(_.name)
+      s"Tipo: $analysisName / " +
+        s"Pedigrí coincidente: $pedigreeDesc / " +
+        s"Usuario responsable: $assigneeDesc"
+    }
+
+  private def stringify(ti: ProcessInfo): Future[String] = {
+    def stringifyMatchingRule(mr: MatchingRule): Future[String] =
+      for {
+        categoryOpt     <- categoryService.getCategory(mr.categoryRelated)
+        analysisTypeOpt <- analysisTypeService.getById(mr.`type`)
+      } yield {
+        val analysisType = analysisTypeOpt.get
+        val category = categoryOpt.fold(mr.categoryRelated.toString)(_.name)
+        s"Categoría: $category / Tipo: ${analysisType.name} / Exigencia: ${stringifyStringency(mr.minimumStringency, mr.matchingAlgorithm)}" +
+          s" / Cant. mínima de coincidencias: ${mr.minLocusMatch} / Cant. máxima de no coincidencias: ${mr.mismatchsAllowed}"
+      }
+
+    def stringifyStringency(stringency: Stringency.Value, algorithm: Algorithm.Value): String =
+      algorithm match {
+        case Algorithm.GENIS_MM => "Mezcla Mezcla"
+        case Algorithm.ENFSI => stringency match {
+          case Stringency.LowStringency      => "Baja"
+          case Stringency.ModerateStringency => "Media"
+          case Stringency.HighStringency     => "Alta"
+          case _                             => stringency.toString
+        }
+      }
+
+    Future.sequence(ti.matchingRules.map(stringifyMatchingRule)).map { seq =>
+      "Reglas de búsqueda:\n" + seq.mkString("\n")
+    }
+  }
+}

@@ -155,6 +155,13 @@ GET     /api/v2/locus/export          controllers.LocusController.exportLocus
 POST    /api/v2/locus/import          controllers.LocusController.importLocus
 
 
+# Trace (trazabilidad)
+POST    /api/v2/trace/search                    controllers.Traces.search
+POST    /api/v2/trace/total                     controllers.Traces.count
+POST    /api/v2/trace/search-pedigree           controllers.Traces.searchPedigree
+POST    /api/v2/trace/total-pedigree            controllers.Traces.countPedigree
+GET     /api/v2/trace/full-description/:id      controllers.Traces.getFullDescription(id: Long)
+
 # Population Base Frequency (Frecuencia Base Poblacional)
 POST    /api/v2/populationBaseFreq                    controllers.PopulationBaseFreqController.uploadPopulationFile
 GET     /api/v2/populationBaseFreq                    controllers.PopulationBaseFreqController.getAllBaseNames

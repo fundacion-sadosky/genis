@@ -86,7 +86,7 @@ class PedigreeServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
       when(pedigreeRepo.changeStatus(eqTo(pedigreeId), any())).thenReturn(Future.successful(Right(pedigreeId)))
       when(dataRepo.changePedigreeStatus(eqTo(pedigreeId), any())).thenReturn(Future.successful(Right(pedigreeId)))
       val traceService = mock[TraceService]
-      when(traceService.addTracePedigree(any())).thenReturn(Future.successful(()))
+      when(traceService.addTracePedigree(any())).thenReturn(Future.successful(Right(0L)))
       val (svc2, dataRepo2, pedigreeRepo2) = buildService(dataRepo = dataRepo, pedigreeRepo = pedigreeRepo, traceService = traceService)
 
       val result = await(svc2.changePedigreeStatus(pedigreeId, PedigreeStatus.Active, assignee, isSuperUser = false))
@@ -109,7 +109,7 @@ class PedigreeServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
       when(pedigreeRepo.changeStatus(eqTo(pedigreeId), any())).thenReturn(Future.successful(Right(pedigreeId)))
       when(dataRepo.changePedigreeStatus(eqTo(pedigreeId), any())).thenReturn(Future.successful(Right(pedigreeId)))
       val traceService = mock[TraceService]
-      when(traceService.addTracePedigree(any())).thenReturn(Future.successful(()))
+      when(traceService.addTracePedigree(any())).thenReturn(Future.successful(Right(0L)))
       val (svc2, dataRepo2, pedigreeRepo2) = buildService(dataRepo = dataRepo, pedigreeRepo = pedigreeRepo, traceService = traceService)
 
       val result = await(svc2.changePedigreeStatus(pedigreeId, PedigreeStatus.Active, superUser, isSuperUser = true))
@@ -299,7 +299,7 @@ class PedigreeServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
           .thenReturn(Future.successful(Right(p.id)))
       }
       val traceSvc = mock[TraceService]
-      when(traceSvc.addTracePedigree(any())).thenReturn(Future.successful(()))
+      when(traceSvc.addTracePedigree(any())).thenReturn(Future.successful(Right(0L)))
       val (svc, _, _) = buildService(dataRepo = dataRepo, pedigreeRepo = pedigreeRepo, traceService = traceSvc)
 
       val result = await(svc.closeAllPedigrees(courtCaseId, assignee))
@@ -339,7 +339,7 @@ class PedigreeServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
           .thenReturn(Future.successful(Right(id)))
       }
       val traceSvc = mock[TraceService]
-      when(traceSvc.addTracePedigree(any())).thenReturn(Future.successful(()))
+      when(traceSvc.addTracePedigree(any())).thenReturn(Future.successful(Right(0L)))
       val (svc, _, _) = buildService(dataRepo = dataRepo, pedigreeRepo = pedigreeRepo, traceService = traceSvc)
 
       val result = await(svc.closeAllPedigrees(courtCaseId, assignee))
@@ -369,7 +369,7 @@ class PedigreeServiceTest extends AnyWordSpec with Matchers with MockitoSugar wi
       when(pedigreeRepo.changeStatus(eqTo(41L), eqTo(PedigreeStatus.Closed)))
         .thenReturn(Future.successful(Left("mongo down")))
       val traceSvc = mock[TraceService]
-      when(traceSvc.addTracePedigree(any())).thenReturn(Future.successful(()))
+      when(traceSvc.addTracePedigree(any())).thenReturn(Future.successful(Right(0L)))
       val (svc, _, _) = buildService(dataRepo = dataRepo, pedigreeRepo = pedigreeRepo, traceService = traceSvc)
 
       val result = await(svc.closeAllPedigrees(courtCaseId, assignee))
