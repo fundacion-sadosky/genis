@@ -1,6 +1,7 @@
 package util
 
 import play.api.libs.json.*
+import scala.language.implicitConversions
 
 object PlayEnumUtils:
 
@@ -10,11 +11,11 @@ object PlayEnumUtils:
         try JsSuccess(e.withName(s))
         catch
           case _: NoSuchElementException =>
-            JsError(s"Enumeration expected of type: '${e.getClass}', but it does not contain value: '$s'")
+            JsError(s"Enumeration expected of type: '${e.getClass}', but it does not appear to contain the value: '$s'")
       case _ => JsError("String value expected")
 
-  def enumWrites[E <: Enumeration](e: E): Writes[e.Value] = new Writes[e.Value]:
-    def writes(v: e.Value): JsValue = JsString(v.toString)
+  def enumWrites[E <: Enumeration](e: E): Writes[e.Value] =
+    Writes[e.Value](v => JsString(v.toString))
 
   def enumFormat[E <: Enumeration](e: E): Format[e.Value] =
     Format(enumReads(e), enumWrites(e))

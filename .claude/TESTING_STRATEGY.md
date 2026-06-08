@@ -445,6 +445,55 @@ private def cleanTestData(): Unit =
 limpieza desde ahi. No confies en una columna del hijo que el test pueda
 variar.
 
+## Probar `.recover` con un throw sincronico
+
+Cuando el codigo usa `.recover { case e => Left("error.XXXX") }`, escribir al
+menos un test que dispare la excepcion por una via *sincronica* —
+`opt.getOrElse(throw ...)`, `require(...)`, division por cero — y no solo por
+un Future failed. El recover puede quedar mal ubicado (dentro del `flatMap` en
+lugar de envolver el Future externo) y no atrapar el throw sincronico, dejando
+escapar la excepcion como Future failed.
+
+```scala
+// MAL: el throw escapa, el recover solo aplica al for-comprehension interno
+repo.get(id).flatMap { optX =>
+  val x = optX.getOrElse(throw new RuntimeException("error.E0201"))
+  (for ... yield ...).recover { case _ => Left("error.E0630") }
+}
+
+// BIEN: el recover envuelve TODO incluido el throw sincronico
+repo.get(id).flatMap { optX =>
+  val x = optX.getOrElse(throw new RuntimeException("error.E0201"))
+  for ... yield ...
+}.recover { case _ => Left("error.E0630") }
+```
+
+Test que detecta esta variante:
+
+```scala
+"recover atrapa throw sincronico (getOrElse) → Left("error.E0630")" in {
+  val ped = pedigreeGenogram().copy(frequencyTable = None)   // dispara getOrElse(throw)
+  when(repo.get(id)).thenReturn(Future.successful(Some(ped)))
+  await(svc.method(id)) mustBe Left("error.E0630")
+}
+```
+
+## Tests del helper `localize` en controllers
+
+Cuando el controller usa un helper tipo `localize("error.EXXXX|arg1|arg2")`
+para traducir errores via `messagesApi.preferred(...)`, los tests del endpoint
+deben asertar dos cosas:
+
+- **positivamente** que el mensaje traducido aparezca: `body must include("E0XXXX")`
+- **negativamente** que la clave cruda NO aparezca: `body must not include "error.EXXXX"`
+
+Sin la asercion negativa, si la clave se borra del `conf/messages` el test
+sigue verde por casualidad — Play devuelve la clave verbatim cuando no la
+encuentra, y `must include("E0XXXX")` matchea igual.
+
+Para args con `MessageFormat`, asertar tambien la sustitucion:
+`body must not include "{0}"`.
+
 ## Checklist para Nuevos Tests
 
 ### Unit Test
@@ -453,12 +502,14 @@ variar.
 - [ ] Ubicado en `test/unit/<dominio>/`
 - [ ] Nombre termina en `Test.scala`
 - [ ] Usa fixtures del dominio correspondiente
+- [ ] Si el codigo usa `.recover`, hay al menos un test que dispara excepcion sincronica para validar el alcance del recover
 
 ### Controller/Route Test
 - [ ] Usa `GuiceOneAppPerTest` con stubs (no Dockers)
 - [ ] Ubicado en `test/integration/controllers/`
 - [ ] Nombre termina en `Test.scala`
 - [ ] Deshabilita modulos que conectan a infraestructura real
+- [ ] Si el controller traduce errores con `localize`, asertar positiva y negativamente (la clave cruda NO debe aparecer en el body)
 
 ### Infrastructure Integration Test
 - [ ] Documenta que Dockers necesita

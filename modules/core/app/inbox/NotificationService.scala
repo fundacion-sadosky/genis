@@ -23,6 +23,28 @@ case class BulkUploadInfo(protoProfileId: String, sampleName: String) extends No
   override val description: String = s"Nuevo perfil para importación: $sampleName"
   override val url: String = s"/profiles/bulkupload-step2/protoprofile/$protoProfileId"
 
+case class PedigreeMatchingInfo(
+  matchedProfile: SampleCode,
+  caseType: Option[String] = None,
+  courtCaseId: Option[String] = None
+) extends NotificationInfo:
+  override val description: String =
+    s"Nueva coincidencia de búsqueda de personas (${caseType.getOrElse("")}) " +
+      s"para el perfil: ${matchedProfile.text}"
+  override val url: String =
+    if caseType.contains("DVI") then
+      s"/court-case/${courtCaseId.getOrElse("")}?tab=6"
+    else
+      s"pedigreeMatchesGroups/groups.html?g=profile&p=${matchedProfile.text}"
+
+case class PedigreeLRInfo(
+  pedigreeId: Long,
+  courtCaseId: Long,
+  scenarioName: String
+) extends NotificationInfo:
+  override val description: String = s"El escenario $scenarioName finalizó el cálculo del LR"
+  override val url: String = s"/pedigree/$courtCaseId/$pedigreeId?s=$scenarioName"
+
 trait NotificationService:
   def push(userId: String, info: NotificationInfo): Unit
   def solve(userId: String, info: NotificationInfo): Unit

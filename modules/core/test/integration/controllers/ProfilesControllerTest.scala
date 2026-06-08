@@ -17,8 +17,10 @@ import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import profile.*
+import profiledata.{ProfileDataService, ProfileDataServiceStub}
 import security.{StubUserRepository, StubRoleRepository, UserRepository}
 import services.CacheService
+import trace.{TraceService, TraceServiceStub}
 import types.SampleCode
 import user.{LdapHealthService, RoleRepository, UsersModule}
 import probability.{ProbabilityModule, ProbabilityService}
@@ -43,7 +45,6 @@ class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest {
       .disable[ProfileModule]
       .disable[ProbabilityModule]
       .disable[BulkUploadModule]
-      .disable[StrKitModule]
       .disable[profiledata.ProfileDataModule]
       .overrides(
         bind[UserRepository].to[StubUserRepository],
@@ -63,7 +64,8 @@ class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest {
         bind[ProfileDataRepository].to[profiledata.ProfileDataRepositoryStub],
         bind[matching.MatchingService].toInstance(new matching.MatchingServiceStub),
         bind[InterconnectionService].toInstance(new connections.InterconnectionServiceStub),
-        bind[StrKitService].toInstance(new StubStrKitService)
+        bind[StrKitService].toInstance(new StubStrKitService),
+        bind[TraceService].to[TraceServiceStub]
       )
       .configure("play.http.secret.key" -> "test-secret-key-for-testing-purposes-only-not-for-production-1234")
       .build()
