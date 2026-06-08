@@ -31,7 +31,7 @@ object TraceFixtures:
 
   val analysisType = AnalysisType(1, "Autosomal")
 
-  val pedigreeMetaData   = PedigreeMetaData(15L, "Pedigree Test", "assignee1")
+  val pedigreeMetaData   = PedigreeMetaData(id = 15L, courtCaseId = 0L, name = "Pedigree Test", assignee = "assignee1")
   val pedigreeData       = PedigreeDataCreation(pedigreeMetaData)
 
   val genotypification: GenotypificationByType = Map(1 -> Map("CSF1PO" -> List(AlleleValue("10"))))

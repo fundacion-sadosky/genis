@@ -405,4 +405,328 @@ object Tables {
                       ((OperationLogRecordRow.apply _).tupled, OperationLogRecordRow.unapply)
   }
   val OperationLogRecord = TableQuery[OperationLogRecordTable]
+
+  // ---------------------------------------------------------------------------
+  // Mutation model tables (pedigree / MPI-DVI)
+  // ---------------------------------------------------------------------------
+
+  case class MutationModelTypeRow(id: Long, description: String)
+  object MutationModelTypeRow { def tupled = (apply _).tupled }
+
+  class MutationModelTypeTable(tag: Tag)
+      extends Table[MutationModelTypeRow](tag, Some("APP"), "MUTATION_MODEL_TYPE") {
+    def id          = column[Long]("ID", O.PrimaryKey, O.AutoInc)
+    def description = column[String]("DESCRIPTION")
+    def *           = (id, description) <> (MutationModelTypeRow.tupled, MutationModelTypeRow.unapply)
+  }
+  val MutationModelType = TableQuery[MutationModelTypeTable]
+
+  case class MutationModelRow(
+    id: Long,
+    name: String,
+    mutationType: Long,
+    active: Boolean,
+    ignoreSex: Boolean,
+    cantSaltos: Long
+  )
+  object MutationModelRow { def tupled = (apply _).tupled }
+
+  class MutationModelTable(tag: Tag)
+      extends Table[MutationModelRow](tag, Some("APP"), "MUTATION_MODEL") {
+    def id           = column[Long]("ID", O.PrimaryKey, O.AutoInc)
+    def name         = column[String]("NAME")
+    def mutationType = column[Long]("MUTATION_MODEL_TYPE")
+    def active       = column[Boolean]("ACTIVE")
+    def ignoreSex    = column[Boolean]("IGNORE_SEX")
+    def cantSaltos   = column[Long]("CANT_SALTOS")
+    def * = (id, name, mutationType, active, ignoreSex, cantSaltos) <> (MutationModelRow.tupled, MutationModelRow.unapply)
+  }
+  val MutationModel = TableQuery[MutationModelTable]
+
+  case class MutationModelParameterRow(
+    id: Long,
+    idMutationModel: Long,
+    locus: String,
+    sex: String,
+    mutationRate: Option[scala.math.BigDecimal],
+    mutationRange: Option[scala.math.BigDecimal],
+    mutationRateMicrovariant: Option[scala.math.BigDecimal]
+  )
+  object MutationModelParameterRow { def tupled = (apply _).tupled }
+
+  class MutationModelParameterTable(tag: Tag)
+      extends Table[MutationModelParameterRow](tag, Some("APP"), "MUTATION_MODEL_PARAMETER") {
+    def id                        = column[Long]("ID", O.PrimaryKey, O.AutoInc)
+    def idMutationModel           = column[Long]("ID_MUTATION_MODEL")
+    def locus                     = column[String]("LOCUS")
+    def sex                       = column[String]("SEX")
+    def mutationRate              = column[Option[scala.math.BigDecimal]]("MUTATION_RATE")
+    def mutationRange             = column[Option[scala.math.BigDecimal]]("MUTATION_RANGE")
+    def mutationRateMicrovariant  = column[Option[scala.math.BigDecimal]]("MUTATION_RATE_MICROVARIANT")
+    def * = (id, idMutationModel, locus, sex, mutationRate, mutationRange, mutationRateMicrovariant) <> (MutationModelParameterRow.tupled, MutationModelParameterRow.unapply)
+  }
+  val MutationModelParameter = TableQuery[MutationModelParameterTable]
+
+  case class MutationModelKiRow(
+    id: Long,
+    idMutationModelParameter: Long,
+    allele: Double,
+    ki: scala.math.BigDecimal
+  )
+  object MutationModelKiRow { def tupled = (apply _).tupled }
+
+  class MutationModelKiTable(tag: Tag)
+      extends Table[MutationModelKiRow](tag, Some("APP"), "MUTATION_MODEL_KI") {
+    def id                       = column[Long]("ID", O.PrimaryKey, O.AutoInc)
+    def idMutationModelParameter = column[Long]("ID_MUTATION_MODEL_PARAMETER")
+    def allele                   = column[Double]("ALLELE")
+    def ki                       = column[scala.math.BigDecimal]("KI")
+    def * = (id, idMutationModelParameter, allele, ki) <> (MutationModelKiRow.tupled, MutationModelKiRow.unapply)
+  }
+  val MutationModelKi = TableQuery[MutationModelKiTable]
+
+  case class MutationDefaultParameterRow(
+    id: Long,
+    locus: String,
+    sex: String,
+    mutationRate: Option[scala.math.BigDecimal]
+  )
+  object MutationDefaultParameterRow { def tupled = (apply _).tupled }
+
+  class MutationDefaultParameterTable(tag: Tag)
+      extends Table[MutationDefaultParameterRow](tag, Some("APP"), "MUTATION_DEFAULT_PARAMETER") {
+    def id           = column[Long]("ID", O.PrimaryKey, O.AutoInc)
+    def locus        = column[String]("LOCUS")
+    def sex          = column[String]("SEX")
+    def mutationRate = column[Option[scala.math.BigDecimal]]("MUTATION_RATE")
+    def * = (id, locus, sex, mutationRate) <> (MutationDefaultParameterRow.tupled, MutationDefaultParameterRow.unapply)
+  }
+  val MutationDefaultParameter = TableQuery[MutationDefaultParameterTable]
+
+  case class LocusAllelesRow(id: Long, locus: String, allele: Double)
+  object LocusAllelesRow { def tupled = (apply _).tupled }
+
+  class LocusAlleleTable(tag: Tag)
+      extends Table[LocusAllelesRow](tag, Some("APP"), "LOCUS_ALLELE") {
+    def id     = column[Long]("ID", O.PrimaryKey, O.AutoInc)
+    def locus  = column[String]("LOCUS")
+    def allele = column[Double]("ALLELE")
+    def *      = (id, locus, allele) <> (LocusAllelesRow.tupled, LocusAllelesRow.unapply)
+  }
+  val LocusAllele = TableQuery[LocusAlleleTable]
+
+  // ---------------------------------------------------------------------------
+  // Court Case / Pedigree tables
+  // ---------------------------------------------------------------------------
+
+  case class CourtCaseRow(
+    id: Long,
+    attorney: Option[String] = None,
+    court: Option[String] = None,
+    assignee: String,
+    internalSampleCode: String,
+    crimeInvolved: Option[String] = None,
+    crimeType: Option[String] = None,
+    criminalCase: Option[String] = None,
+    status: String = "Open",
+    caseType: String = "MPI"
+  )
+  object CourtCaseRow {
+    def tupled = (CourtCaseRow.apply _).tupled
+  }
+
+  class CourtCaseTable(tag: Tag) extends Table[CourtCaseRow](tag, Some("APP"), "COURT_CASE") {
+    def id               = column[Long]("ID", O.PrimaryKey, O.AutoInc)
+    def attorney         = column[Option[String]]("ATTORNEY", O.Length(100, varying = true), O.Default(None))
+    def court            = column[Option[String]]("COURT", O.Length(100, varying = true), O.Default(None))
+    def assignee         = column[String]("ASSIGNEE", O.Length(50, varying = true))
+    def internalSampleCode = column[String]("INTERNAL_SAMPLE_CODE", O.Length(50, varying = true))
+    def crimeInvolved    = column[Option[String]]("CRIME_INVOLVED", O.Length(50, varying = true), O.Default(None))
+    def crimeType        = column[Option[String]]("CRIME_TYPE", O.Length(50, varying = true), O.Default(None))
+    def criminalCase     = column[Option[String]]("CRIMINAL_CASE", O.Length(50, varying = true), O.Default(None))
+    def status           = column[String]("STATUS", O.Default("Open"))
+    def caseType         = column[String]("CASE_TYPE", O.Length(50, varying = true), O.Default("MPI"))
+    def *                = (id, attorney, court, assignee, internalSampleCode, crimeInvolved, crimeType, criminalCase, status, caseType) <> (CourtCaseRow.tupled, CourtCaseRow.unapply)
+  }
+  val CourtCase = TableQuery[CourtCaseTable]
+
+  case class CaseTypeRow(id: String, name: String)
+  object CaseTypeRow {
+    def tupled = (CaseTypeRow.apply _).tupled
+  }
+
+  class CaseTypeTable(tag: Tag) extends Table[CaseTypeRow](tag, Some("APP"), "CASE_TYPE") {
+    def id   = column[String]("ID", O.PrimaryKey, O.Length(50, varying = true))
+    def name = column[String]("NAME", O.Length(50, varying = true))
+    def *    = (id, name) <> (CaseTypeRow.tupled, CaseTypeRow.unapply)
+  }
+  val CaseType = TableQuery[CaseTypeTable]
+
+  case class CourtCaseFiliationDataRow(
+    id: Long,
+    courtCaseId: Long,
+    firstname: Option[String] = None,
+    lastname: Option[String] = None,
+    sex: Option[String] = None,
+    dateOfBirth: Option[java.sql.Date] = None,
+    dateOfBirthFrom: Option[java.sql.Date] = None,
+    dateOfBirthTo: Option[java.sql.Date] = None,
+    dateOfMissing: Option[java.sql.Date] = None,
+    nationality: Option[String] = None,
+    identification: Option[String] = None,
+    height: Option[String] = None,
+    weight: Option[String] = None,
+    haircolor: Option[String] = None,
+    skincolor: Option[String] = None,
+    clothing: Option[String] = None,
+    alias: String,
+    particularities: Option[String] = None
+  )
+  object CourtCaseFiliationDataRow {
+    def tupled = (CourtCaseFiliationDataRow.apply _).tupled
+  }
+
+  class CourtCaseFiliationDataTable(tag: Tag) extends Table[CourtCaseFiliationDataRow](tag, Some("APP"), "COURT_CASE_DATA_FILIATION") {
+    def id              = column[Long]("ID", O.PrimaryKey, O.AutoInc)
+    def courtCaseId     = column[Long]("ID_COURT_CASE")
+    def firstname       = column[Option[String]]("FIRSTNAME", O.Length(100, varying = true), O.Default(None))
+    def lastname        = column[Option[String]]("LASTNAME", O.Length(100, varying = true), O.Default(None))
+    def sex             = column[Option[String]]("SEX", O.Length(50, varying = true), O.Default(None))
+    def dateOfBirth     = column[Option[java.sql.Date]]("DATE_OF_BIRTH", O.Default(None))
+    def dateOfBirthFrom = column[Option[java.sql.Date]]("DATE_OF_BIRTH_FROM", O.Default(None))
+    def dateOfBirthTo   = column[Option[java.sql.Date]]("DATE_OF_BIRTH_TO", O.Default(None))
+    def dateOfMissing   = column[Option[java.sql.Date]]("DATE_OF_MISSING", O.Default(None))
+    def nationality     = column[Option[String]]("NATIONALITY", O.Length(50, varying = true), O.Default(None))
+    def identification  = column[Option[String]]("IDENTIFICATION", O.Length(50, varying = true), O.Default(None))
+    def height          = column[Option[String]]("HEIGHT", O.Length(50, varying = true), O.Default(None))
+    def weight          = column[Option[String]]("WEIGHT", O.Length(50, varying = true), O.Default(None))
+    def haircolor       = column[Option[String]]("HAIRCOLOR", O.Length(50, varying = true), O.Default(None))
+    def skincolor       = column[Option[String]]("SKINCOLOR", O.Length(50, varying = true), O.Default(None))
+    def clothing        = column[Option[String]]("CLOTHING", O.Length(50, varying = true), O.Default(None))
+    def alias           = column[String]("ALIAS", O.Length(50, varying = true))
+    def particularities = column[Option[String]]("PARTICULARITIES", O.Length(50, varying = true), O.Default(None))
+    def *               = (id, courtCaseId, firstname, lastname, sex, dateOfBirth, dateOfBirthFrom, dateOfBirthTo,
+                           dateOfMissing, nationality, identification, height, weight, haircolor, skincolor,
+                           clothing, alias, particularities) <> (CourtCaseFiliationDataRow.tupled, CourtCaseFiliationDataRow.unapply)
+  }
+  val CourtCaseFiliationData = TableQuery[CourtCaseFiliationDataTable]
+
+  case class PedigreeRow(
+    id: Long,
+    courtCaseId: Long,
+    name: String,
+    creationDate: java.sql.Date,
+    status: String = "UnderConstruction",
+    assignee: String,
+    consistencyRun: Boolean = false
+  )
+  object PedigreeRow {
+    def tupled = (PedigreeRow.apply _).tupled
+  }
+
+  class PedigreeTable(tag: Tag) extends Table[PedigreeRow](tag, Some("APP"), "PEDIGREE") {
+    def id              = column[Long]("ID", O.PrimaryKey, O.AutoInc)
+    def courtCaseId     = column[Long]("ID_COURT_CASE")
+    def name            = column[String]("NAME", O.Length(100, varying = true))
+    def creationDate    = column[java.sql.Date]("CREATION_DATE")
+    def status          = column[String]("STATUS", O.Default("UnderConstruction"))
+    def assignee        = column[String]("ASSIGNEE", O.Length(50, varying = true))
+    def consistencyRun  = column[Boolean]("CONSISTENCY_RUN")
+    def *               = (id, courtCaseId, name, creationDate, status, assignee, consistencyRun) <> (PedigreeRow.tupled, PedigreeRow.unapply)
+  }
+  val Pedigree = TableQuery[PedigreeTable]
+
+  case class CourtCaseProfilesRow(
+    idCourtCase: Long,
+    globalCode: String,
+    profileType: String,
+    groupedBy: Option[String]
+  )
+  object CourtCaseProfilesRow {
+    def tupled = (CourtCaseProfilesRow.apply _).tupled
+  }
+
+  class CourtCaseProfilesTable(tag: Tag) extends Table[CourtCaseProfilesRow](tag, Some("APP"), "COURT_CASE_PROFILE") {
+    def idCourtCase = column[Long]("ID_COURT_CASE")
+    def globalCode  = column[String]("GLOBAL_CODE", O.Length(50, varying = true))
+    def profileType = column[String]("PROFILE_TYPE", O.Length(50, varying = true))
+    def groupedBy   = column[Option[String]]("GROUPED_BY", O.Default(None))
+    def pk          = primaryKey("COURT_CASE_PROFILE_PK", (idCourtCase, globalCode))
+    def *           = (idCourtCase, globalCode, profileType, groupedBy) <> (CourtCaseProfilesRow.tupled, CourtCaseProfilesRow.unapply)
+  }
+  val CourtCaseProfiles = TableQuery[CourtCaseProfilesTable]
+
+  // Slim ProfileData row — only columns needed for pedigree joins
+  case class PedigreeProfileDataRow(
+    id: Long,
+    category: String,
+    globalCode: String,
+    internalCode: String,
+    internalSampleCode: String,
+    assignee: String
+  )
+  object PedigreeProfileDataRow {
+    def tupled = (PedigreeProfileDataRow.apply _).tupled
+  }
+
+  class PedigreeProfileDataTable(tag: Tag) extends Table[PedigreeProfileDataRow](tag, Some("APP"), "PROFILE_DATA") {
+    def id                 = column[Long]("ID", O.PrimaryKey, O.AutoInc)
+    def category           = column[String]("CATEGORY", O.Length(50, varying = true))
+    def globalCode         = column[String]("GLOBAL_CODE", O.Length(50, varying = true))
+    def internalCode       = column[String]("INTERNAL_CODE", O.Length(50, varying = true))
+    def internalSampleCode = column[String]("INTERNAL_SAMPLE_CODE", O.Length(50, varying = true))
+    def assignee           = column[String]("ASSIGNEE", O.Length(50, varying = true))
+    def deleted            = column[Boolean]("DELETED", O.Default(false))
+    def *                  = (id, category, globalCode, internalCode, internalSampleCode, assignee) <> (PedigreeProfileDataRow.tupled, PedigreeProfileDataRow.unapply)
+  }
+  val PedigreeProfileData = TableQuery[PedigreeProfileDataTable]
+
+  // Slim ProtoProfile row — only columns needed for pedigree joins
+  case class PedigreeProtoProfileRow(
+    id: Long,
+    sampleName: String,
+    idBatch: Long,
+    status: String,
+    preexistence: Option[String]
+  )
+  object PedigreeProtoProfileRow {
+    def tupled = (PedigreeProtoProfileRow.apply _).tupled
+  }
+
+  class PedigreeProtoProfileTable(tag: Tag) extends Table[PedigreeProtoProfileRow](tag, Some("APP"), "PROTO_PROFILE") {
+    def id          = column[Long]("ID", O.PrimaryKey, O.AutoInc)
+    def sampleName  = column[String]("SAMPLE_NAME", O.Length(50, varying = true))
+    def idBatch     = column[Long]("ID_BATCH")
+    def status      = column[String]("STATUS", O.Length(50, varying = true))
+    def preexistence = column[Option[String]]("PREEXISTENCE", O.Default(None))
+    def *           = (id, sampleName, idBatch, status, preexistence) <> (PedigreeProtoProfileRow.tupled, PedigreeProtoProfileRow.unapply)
+  }
+  val PedigreeProtoProfile = TableQuery[PedigreeProtoProfileTable]
+
+  // Slim BatchProtoProfile row — only columns needed for pedigree joins
+  case class PedigreeBatchProtoProfileRow(id: Long, label: Option[String])
+  object PedigreeBatchProtoProfileRow {
+    def tupled = (PedigreeBatchProtoProfileRow.apply _).tupled
+  }
+
+  class PedigreeBatchProtoProfileTable(tag: Tag) extends Table[PedigreeBatchProtoProfileRow](tag, Some("APP"), "BATCH_PROTO_PROFILE") {
+    def id    = column[Long]("ID", O.PrimaryKey, O.AutoInc)
+    def label = column[Option[String]]("LABEL", O.Default(None))
+    def *     = (id, label) <> (PedigreeBatchProtoProfileRow.tupled, PedigreeBatchProtoProfileRow.unapply)
+  }
+  val PedigreeBatchProtoProfile = TableQuery[PedigreeBatchProtoProfileTable]
+
+  case class PedCheckRow(id: Long, idPedigree: Long, locus: String, globalCode: String)
+  object PedCheckRow {
+    def tupled = (PedCheckRow.apply _).tupled
+  }
+
+  class PedCheckTable(tag: Tag) extends Table[PedCheckRow](tag, Some("APP"), "PEDCHECK") {
+    def id         = column[Long]("ID", O.PrimaryKey, O.AutoInc)
+    def idPedigree = column[Long]("ID_PEDIGREE")
+    def locus      = column[String]("LOCUS", O.Length(50, varying = true))
+    def globalCode = column[String]("GLOBAL_CODE", O.Length(50, varying = true))
+    def *          = (id, idPedigree, locus, globalCode) <> (PedCheckRow.tupled, PedCheckRow.unapply)
+  }
+  val PedCheck = TableQuery[PedCheckTable]
 }
