@@ -29,7 +29,6 @@ class ProtoProfileDataControllerTest extends PlaySpec with GuiceOneAppPerTest:
     profileDataStub = new StubProfileDataService
     GuiceApplicationBuilder()
       .disable[UsersModule]
-      .disable[StrKitModule]
       .disable[ProbabilityModule]
       .disable[BulkUploadModule]
       .disable[ProfileDataModule]

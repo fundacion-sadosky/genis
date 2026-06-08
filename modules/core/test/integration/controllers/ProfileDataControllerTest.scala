@@ -34,7 +34,6 @@ class ProfileDataControllerTest extends PlaySpec with GuiceOneAppPerTest:
     pdStub = new StubProfileDataService
     GuiceApplicationBuilder()
       .disable[UsersModule]
-      .disable[StrKitModule]
       .disable[ProbabilityModule]
       .disable[BulkUploadModule]
       .disable[ProfileDataModule]

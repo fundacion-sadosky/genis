@@ -29,7 +29,6 @@ class BulkUploadControllerTest extends PlaySpec with GuiceOneAppPerTest:
     userStub  = new StubUserService
     GuiceApplicationBuilder()
       .disable[UsersModule]
-      .disable[StrKitModule]
       .disable[ProbabilityModule]
       .disable[BulkUploadModule]
       .disable[ProfileDataModule]
