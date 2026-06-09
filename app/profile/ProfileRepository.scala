@@ -97,12 +97,15 @@ abstract class ProfileRepository {
 
   def removeEpg(id: String):Future[Either[String,String]]
 
+  def removeAll():Future[Either[String,String]]
+  def removeProfile(globalCode: SampleCode):Future[Either[String,String]]
+
   def getProfileOwnerByFileId(id: String):Future[(String,SampleCode)]
 
   def getProfileOwnerByEpgId(id: String): Future[(String,SampleCode)]
 
   def getAllProfiles(): Future[List[(SampleCode, String)]]
-  
+
 }
 
 class MongoProfileRepository extends ProfileRepository {
@@ -230,8 +233,8 @@ class MongoProfileRepository extends ProfileRepository {
         "electropherogram" -> array,
         "name" -> name) else
       BSONDocument("profileId" -> globalCode.text,
-      "analysisId" -> analysisId,
-      "electropherogram" -> array)
+        "analysisId" -> analysisId,
+        "electropherogram" -> array)
 
     val result = electropherograms.insert(imageToStore)
     result.map { result => Right(globalCode) }
@@ -360,7 +363,7 @@ class MongoProfileRepository extends ProfileRepository {
       BSONDocument("profileId" -> globalCode.text,
         "analysisId" -> analysisId,
         "content" -> array,
-      "name"->name)
+        "name"->name)
 
     val result = files.insert(imageToStore)
     result.map { result => Right(globalCode) }
@@ -572,15 +575,15 @@ class MongoProfileRepository extends ProfileRepository {
       .find(query)
       .cursor[Profile]()
       .collect[List](Int.MaxValue, Cursor.FailOnError[List[Profile]]())
-/*
-    result.map(listProfiles => {
-      if(laboratory.isDefined && laboratory.get!=""){
-        listProfiles.filter(_.globalCode.text.contains(s"-${laboratory.get}-"))
-      }else{
-        listProfiles
-      }
-    })
-*/
+    /*
+        result.map(listProfiles => {
+          if(laboratory.isDefined && laboratory.get!=""){
+            listProfiles.filter(_.globalCode.text.contains(s"-${laboratory.get}-"))
+          }else{
+            listProfiles
+          }
+        })
+    */
     result
   }
 
@@ -596,6 +599,19 @@ class MongoProfileRepository extends ProfileRepository {
     Right(id)
   }
 
+  def removeAll():Future[Either[String,String]] = Future{
+    val query = Json.obj()
+    profiles.remove(query)
+    files.remove(query)
+    electropherograms.remove(query)
+    Right("all")
+  }
+
+  def removeProfile(globalCode: SampleCode):Future[Either[String,String]] = Future{
+    val query = Json.obj("_id" -> globalCode.text)
+    profiles.findAndRemove(query)
+    Right(globalCode.text)
+  }
   def getProfileOwnerByFileId(id: String): Future[(String,SampleCode)] = {
     this.getProfileOwnerByEpgOrFileId(id,files);
   }
@@ -608,7 +624,7 @@ class MongoProfileRepository extends ProfileRepository {
         .map(res => res.map( x => (x.assignee, x.globalCode) )))).map(_.flatten)
     })).map( x => x.getOrElse(("",SampleCode(""))))
   }
-  
+
   override def getAllProfiles() : Future[List[(SampleCode, String)]]= {
     profiles
       .find(Json.obj())

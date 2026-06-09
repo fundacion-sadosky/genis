@@ -17,82 +17,82 @@ import scala.language.postfixOps
 abstract class FullTextSearchService {
   def searchTotalProfileDatas(search: ProfileDataSearch): Future[Int]
   def searchFilterTotalAndTotalProfileDatas(
-    search: ProfileDataSearch
-  ): Future[(Int, Int)]
+                                             search: ProfileDataSearch
+                                           ): Future[(Int, Int)]
   def searchProfileDatas(
-    search: ProfileDataSearch
-  ): Future[Seq[ProfileDataFull]]
+                          search: ProfileDataSearch
+                        ): Future[Seq[ProfileDataFull]]
   def searchProfileDatasWithFilter
-    (input: String)
-    (filter: ProfileData => Boolean): Future[Seq[ProfileData]]
+  (input: String)
+  (filter: ProfileData => Boolean): Future[Seq[ProfileData]]
   def searchProfileDatasWithFilterPaging
-    (input: String,page:Int,pageSize:Int)
-    (filter: ProfileData => Boolean): Future[Seq[ProfileData]]
+  (input: String,page:Int,pageSize:Int)
+  (filter: ProfileData => Boolean): Future[Seq[ProfileData]]
   def searchProfileDatasWithFilterNodeAssociation
-    (input: String)
-    (filter: ProfileDataWithBatch => Boolean)
-    : Future[Seq[ProfileDataWithBatch]]
+  (input: String)
+  (filter: ProfileDataWithBatch => Boolean)
+  : Future[Seq[ProfileDataWithBatch]]
 
 }
 
 @Singleton
 class FullTextSearchServiceImpl @Inject() (
-  fullTextSearch: FullTextSearch,
-  profileDataRepo: ProfileDataRepository
-) extends FullTextSearchService {
+                                            fullTextSearch: FullTextSearch,
+                                            profileDataRepo: ProfileDataRepository
+                                          ) extends FullTextSearchService {
 
   override def searchProfileDatas(
-    search: ProfileDataSearch
-  ): Future[Seq[ProfileDataFull]] = {
+                                   search: ProfileDataSearch
+                                 ): Future[Seq[ProfileDataFull]] = {
     if (search.input.isEmpty) {
       profileDataRepo.getProfilesByUser(search)
     } else
-      {
-        fullTextSearch
-          .searchProfiles(search)
-          .flatMap(
-            list => {
-              profileDataRepo
-                .findUploadedProfilesByCodes(
-                  list.map(_.globalCode)
-                )
-                .map(
-                  uploadedProfiles => {
-                    list.map(
-                      pd =>
-                        ProfileDataFull(
-                          pd.category,
-                          pd.globalCode,
-                          pd.attorney,
-                          pd.bioMaterialType,
-                          pd.court,
-                          pd.crimeInvolved,
-                          pd.crimeType,
-                          pd.criminalCase,
-                          pd.internalSampleCode,
-                          pd.assignee,
-                          pd.laboratory,
-                          pd.deleted,
-                          pd.deletedMotive,
-                          pd.responsibleGeneticist,
-                          pd.profileExpirationDate,
-                          pd.sampleDate,
-                          pd.sampleEntryDate,
-                          pd.dataFiliation,
-                          uploadedProfiles.contains(pd.globalCode),
-                          pd.isExternal
-                        )
-                    )
-                  }
-                )
-            }
-          )
-      }
+    {
+      fullTextSearch
+        .searchProfiles(search)
+        .flatMap(
+          list => {
+            profileDataRepo
+              .findUploadedProfilesByCodes(
+                list.map(_.globalCode)
+              )
+              .map(
+                _ => {
+                  list.map(
+                    pd =>
+                      ProfileDataFull(
+                        pd.category,
+                        pd.globalCode,
+                        pd.attorney,
+                        pd.bioMaterialType,
+                        pd.court,
+                        pd.crimeInvolved,
+                        pd.crimeType,
+                        pd.criminalCase,
+                        pd.internalSampleCode,
+                        pd.assignee,
+                        pd.laboratory,
+                        pd.deleted,
+                        pd.deletedMotive,
+                        pd.responsibleGeneticist,
+                        pd.profileExpirationDate,
+                        pd.sampleDate,
+                        pd.sampleEntryDate,
+                        pd.dataFiliation,
+                        profileDataRepo.getIsProfileReplicated(pd.globalCode),
+                        pd.isExternal
+                      )
+                  )
+                }
+              )
+          }
+        )
+    }
   }
 
   // solo se utiliza en un test
   override def searchTotalProfileDatas
-    (search: ProfileDataSearch)
+  (search: ProfileDataSearch)
   : Future[Int] = {
     if (search.input.isEmpty) {
       profileDataRepo.getTotalProfilesByUser(search)
@@ -102,8 +102,8 @@ class FullTextSearchServiceImpl @Inject() (
   }
 
   override def searchFilterTotalAndTotalProfileDatas(
-    search: ProfileDataSearch
-  ) : Future[(Int, Int)] = {
+                                                      search: ProfileDataSearch
+                                                    ) : Future[(Int, Int)] = {
     if (search.input.isEmpty) {
       profileDataRepo
         .getTotalProfilesByUser(
@@ -136,8 +136,8 @@ class FullTextSearchServiceImpl @Inject() (
   }
 
   override def searchProfileDatasWithFilter
-    (input: String)
-    (filter: ProfileData => Boolean)
+  (input: String)
+  (filter: ProfileData => Boolean)
   : Future[Seq[ProfileData]] = {
     val search = ProfileDataSearch(
       userId = "",
@@ -150,8 +150,8 @@ class FullTextSearchServiceImpl @Inject() (
       .map{ result => result.filter { filter } }
   }
   override def searchProfileDatasWithFilterPaging
-    (input: String, page:Int, pageSize:Int)
-    (filter: ProfileData => Boolean)
+  (input: String, page:Int, pageSize:Int)
+  (filter: ProfileData => Boolean)
   : Future[Seq[ProfileData]] = {
     val search = ProfileDataSearch(
       userId = "",
@@ -165,8 +165,8 @@ class FullTextSearchServiceImpl @Inject() (
       .map{ result => result.filter { filter } }
   }
   override def searchProfileDatasWithFilterNodeAssociation
-    (input: String)
-    (filter: ProfileDataWithBatch => Boolean)
+  (input: String)
+  (filter: ProfileDataWithBatch => Boolean)
   : Future[Seq[ProfileDataWithBatch]] = {
     val search = ProfileDataSearch(
       userId = "",

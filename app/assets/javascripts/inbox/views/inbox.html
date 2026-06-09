@@ -51,9 +51,9 @@
                             <td><i class="glyphicon glyphicon-flag inbox-clickable"
                                 ng-class="{'inbox-flagged': n.flagged, 'inbox-unflagged': !n.flagged}"
                                 ng-click="changeFlag(n)" help-tip="inbox.mark" help-tip-placement="right"></i></td>
-                            <td class="inbox-clickable" ng-click="goTo(n.url)">{{n.creationDate | date:'yyyy-MM-dd HH:mm:ss'}}</td>
-                            <td class="inbox-clickable" ng-click="goTo(n.url)"><span class="badge inbox-badge noti-kind-{{n.kind}}">{{'inbox.kind.' + n.kind | i18next}}</span></td>
-                            <td class="inbox-clickable" ng-click="goTo(n.url)">{{n.description}}</td>
+                            <td class="inbox-clickable" ng-click="goTo(n)">{{n.creationDate | date:'yyyy-MM-dd HH:mm:ss'}}</td>
+                            <td class="inbox-clickable" ng-click="goTo(n)"><span class="badge inbox-badge noti-kind-{{n.kind}}">{{'inbox.kind.' + n.kind | i18next}}</span></td>
+                            <td class="inbox-clickable" ng-click="goTo(n)">{{n.description}}</td>
                             <td></td>
                             <td class="inbox-checkbox">
                                 <input type="checkbox" ng-model="n.selected" />

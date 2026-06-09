@@ -8,11 +8,13 @@ import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Result, Results}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import profiledata.DeletedMotive
+import profiledata.{DeletedMotive, ProfileDataService}
 import specs.PdgSpec
 import stubs.Stubs
 
 import scala.concurrent.Future
+import bulkupload.ProtoProfileRepository
+import matching.MatchingRepository
 
 class InterconnectionsTest extends PdgSpec with MockitoSugar with Results {
 
@@ -20,13 +22,16 @@ class InterconnectionsTest extends PdgSpec with MockitoSugar with Results {
   val instances = List(instanceStub)
   val instancesStatus = List(InferiorInstanceStatus(id=1,description=""))
   val approvalSearch = ProfileApprovalSearch(1,5)
+
   "Interconnection controller" must {
 
     "get connections no ok" in {
+      val protoRepo = mock[ProtoProfileRepository]
       val interconnectionService = mock[InterconnectionService]
       when(interconnectionService.getConnections()).thenReturn(Future.successful(Left("DB Error")))
 
-      val target = new Interconnections(interconnectionService, null)
+      val profileDataService = mock[ProfileDataService]
+      val target = new Interconnections(protoRepo, interconnectionService, profileDataService, null, null)
       val result: Future[Result] = target.getConnections().apply(FakeRequest())
       status(result) mustBe INTERNAL_SERVER_ERROR
 
@@ -36,7 +41,8 @@ class InterconnectionsTest extends PdgSpec with MockitoSugar with Results {
       val interconnectionService = mock[InterconnectionService]
       when(interconnectionService.getConnections()).thenReturn(Future.successful(Right(Connection("192.168.0.1:9000", "192.168.0.2:9000"))))
 
-      val target = new Interconnections(interconnectionService, null)
+
+      val target = new Interconnections(mock[ProtoProfileRepository], interconnectionService, null, null, null)
       val result: Future[Result] = target.getConnections().apply(FakeRequest())
       status(result) mustBe OK
 
@@ -48,7 +54,7 @@ class InterconnectionsTest extends PdgSpec with MockitoSugar with Results {
       when(interconnectionService.updateConnections(conn)).
         thenReturn(Future.successful(Right(Connection("192.168.0.1:9000", "192.168.0.2:9000"))))
 
-      val target = new Interconnections(interconnectionService, null)
+      val target = new Interconnections(mock[ProtoProfileRepository], interconnectionService, null, null, null)
       val jsRequest = Json.obj("superiorInstance" -> "192.168.0.1:9000", "pki" -> "192.168.0.2:9000")
 
       val request = FakeRequest().withBody(jsRequest)
@@ -63,7 +69,7 @@ class InterconnectionsTest extends PdgSpec with MockitoSugar with Results {
       when(interconnectionService.updateConnections(conn)).
         thenReturn(Future.successful(Right(Connection("192.168.0.1:9000", "192.168.0.2:9000"))))
 
-      val target = new Interconnections(interconnectionService, null)
+      val target = new Interconnections(mock[ProtoProfileRepository], interconnectionService, null, null, null)
       val jsRequest = Json.obj("malrequest" -> "192.168.0.1:9000", "pki" -> "192.168.0.2:9000")
 
       val request = FakeRequest().withBody(jsRequest)
@@ -78,7 +84,7 @@ class InterconnectionsTest extends PdgSpec with MockitoSugar with Results {
       when(interconnectionService.updateConnections(conn)).
         thenReturn(Future.successful(Left("Db Error")))
 
-      val target = new Interconnections(interconnectionService, null)
+      val target = new Interconnections(mock[ProtoProfileRepository], interconnectionService, null ,null, null)
       val jsRequest = Json.obj("superiorInstance" -> "192.168.0.1:9000", "pki" -> "192.168.0.2:9000")
 
       val request = FakeRequest().withBody(jsRequest)
@@ -93,7 +99,7 @@ class InterconnectionsTest extends PdgSpec with MockitoSugar with Results {
         thenReturn(Future.successful(Right(())))
       when(interconnectionService.getConnectionsStatus("testnook")).
         thenReturn(Future.successful(Left("no ok")))
-      val target = new Interconnections(interconnectionService, null)
+      val target = new Interconnections(mock[ProtoProfileRepository], interconnectionService, null, null, null)
 
       val resultOk: Future[Result] = target.getConnectionStatus("testok").apply(FakeRequest())
       status(resultOk) mustBe OK
@@ -103,7 +109,7 @@ class InterconnectionsTest extends PdgSpec with MockitoSugar with Results {
     }
     "get category tree combo ok" in {
       val interconnectionService = mock[InterconnectionService]
-      val target = new Interconnections(interconnectionService, null)
+      val target = new Interconnections(mock[ProtoProfileRepository], interconnectionService, null, null, null)
       val jsValue: JsValue = Json.parse(
         """
           {
@@ -114,7 +120,7 @@ class InterconnectionsTest extends PdgSpec with MockitoSugar with Results {
     }
     "get insertConnection ok" in {
       val interconnectionService = mock[InterconnectionService]
-      val target = new Interconnections(interconnectionService, null)
+      val target = new Interconnections(mock[ProtoProfileRepository], interconnectionService, null, null, null)
       when(interconnectionService.connect).thenReturn(Future.successful(Right()))
       val resultOk: Future[Result] = target.insertConnection().apply(FakeRequest())
       status(resultOk) mustBe OK
@@ -122,7 +128,7 @@ class InterconnectionsTest extends PdgSpec with MockitoSugar with Results {
 
     "get insertInferiorInstanceConnection ok" in {
       val interconnectionService = mock[InterconnectionService]
-      val target = new Interconnections(interconnectionService, null)
+      val target = new Interconnections(mock[ProtoProfileRepository], interconnectionService, null, null, null)
       when(interconnectionService.insertInferiorInstanceConnection("a", "SHDG")).thenReturn(Future.successful(Right()))
 
       val request = FakeRequest().withHeaders("X-URL-INSTANCIA-INFERIOR" -> "a").withHeaders(HeaderInsterconnections.laboratoryImmediateInstance -> "SHDG")
@@ -132,7 +138,7 @@ class InterconnectionsTest extends PdgSpec with MockitoSugar with Results {
     }
     "get insertInferiorInstanceConnection no ok" in {
       val interconnectionService = mock[InterconnectionService]
-      val target = new Interconnections(interconnectionService, null)
+      val target = new Interconnections(mock[ProtoProfileRepository], interconnectionService, null, null, null)
       when(interconnectionService.insertInferiorInstanceConnection("a", "lab")).thenReturn(Future.successful(Right()))
 
       val resultOk: Future[Result] = target.insertInferiorInstanceConnection().apply(FakeRequest())
@@ -141,7 +147,7 @@ class InterconnectionsTest extends PdgSpec with MockitoSugar with Results {
 
     "get getInferiorInstancesok" in {
       val interconnectionService = mock[InterconnectionService]
-      val target = new Interconnections(interconnectionService, null)
+      val target = new Interconnections(mock[ProtoProfileRepository], interconnectionService, null, null, null)
       when(interconnectionService.getAllInferiorInstances()).thenReturn(Future.successful(Right(instances)))
 
       val resultOk: Future[Result] = target.getInferiorInstances().apply(FakeRequest())
@@ -150,7 +156,7 @@ class InterconnectionsTest extends PdgSpec with MockitoSugar with Results {
 
     "get getInferiorInstancesStatus ok" in {
       val interconnectionService = mock[InterconnectionService]
-      val target = new Interconnections(interconnectionService, null)
+      val target = new Interconnections(mock[ProtoProfileRepository], interconnectionService, null, null, null)
       when(interconnectionService.getAllInferiorInstanceStatus()).thenReturn(Future.successful(Right(instancesStatus)))
 
       val resultOk: Future[Result] = target.getInferiorInstancesStatus().apply(FakeRequest())
@@ -159,7 +165,7 @@ class InterconnectionsTest extends PdgSpec with MockitoSugar with Results {
 
     "get updateInferiorInstance ok" in {
       val interconnectionService = mock[InterconnectionService]
-      val target = new Interconnections(interconnectionService, null)
+      val target = new Interconnections(mock[ProtoProfileRepository], interconnectionService, null, null, null)
       when(interconnectionService.updateInferiorInstance(instanceStub)).thenReturn(Future.successful(Right()))
       val jsValue: JsValue = Json.parse(
         """
@@ -171,7 +177,7 @@ class InterconnectionsTest extends PdgSpec with MockitoSugar with Results {
     }
     "get updateInferiorInstance no ok" in {
       val interconnectionService = mock[InterconnectionService]
-      val target = new Interconnections(interconnectionService, null)
+      val target = new Interconnections(mock[ProtoProfileRepository], interconnectionService, null, null, null)
       when(interconnectionService.updateInferiorInstance(instanceStub)).thenReturn(Future.successful(Right()))
       val jsValue: JsValue = Json.parse(
         """
@@ -185,7 +191,7 @@ class InterconnectionsTest extends PdgSpec with MockitoSugar with Results {
 
     "get getPendingProfiles ok" in {
       val interconnectionService = mock[InterconnectionService]
-      val target = new Interconnections(interconnectionService, null)
+      val target = new Interconnections(mock[ProtoProfileRepository], interconnectionService, null, null, null)
       when(interconnectionService.getPendingProfiles(approvalSearch)).thenReturn(Future.successful(Nil))
       val resultOk: Future[Result] = target.getPendingProfiles(1,5).apply(FakeRequest())
       status(resultOk) mustBe OK
@@ -193,7 +199,7 @@ class InterconnectionsTest extends PdgSpec with MockitoSugar with Results {
 
     "post importProfile ok" in {
       val interconnectionService = mock[InterconnectionService]
-      val target = new Interconnections(interconnectionService, null)
+      val target = new Interconnections(mock[ProtoProfileRepository], interconnectionService, null, null, null)
 
 
       val request = FakeRequest().withBody(Json.toJson(ProfileTransfer(Stubs.mixtureProfile,Some(Stubs.mixtureProfile)))).withHeaders(HeaderInsterconnections.labCode -> "")
@@ -206,7 +212,7 @@ class InterconnectionsTest extends PdgSpec with MockitoSugar with Results {
 
     "post importProfile no ok 1" in {
       val interconnectionService = mock[InterconnectionService]
-      val target = new Interconnections(interconnectionService, null)
+      val target = new Interconnections(mock[ProtoProfileRepository], interconnectionService, null, null, null)
 
       val request = FakeRequest().withBody(Json.toJson(Stubs.mixtureProfile)).withHeaders(HeaderInsterconnections.labCode -> "")
         .withHeaders(HeaderInsterconnections.sampleEntryDate -> "")
@@ -215,7 +221,7 @@ class InterconnectionsTest extends PdgSpec with MockitoSugar with Results {
     }
     "post importProfile no ok 2" in {
       val interconnectionService = mock[InterconnectionService]
-      val target = new Interconnections(interconnectionService, null)
+      val target = new Interconnections(mock[ProtoProfileRepository], interconnectionService, null, null, null)
 
       val jsValue: JsValue = Json.parse(
         """
@@ -230,13 +236,13 @@ class InterconnectionsTest extends PdgSpec with MockitoSugar with Results {
     "post approveProfiles ok" in {
 
       val interconnectionService = mock[InterconnectionService]
-      val target = new Interconnections(interconnectionService, null)
+      val target = new Interconnections(mock[ProtoProfileRepository], interconnectionService, null, null, null)
       val requestObj: List[ProfileApproval] = Nil
-      when(interconnectionService.approveProfiles(requestObj)).thenReturn(Future.successful(Right(())))
+      when(interconnectionService.approveProfiles(requestObj, "test-user")).thenReturn(Future.successful(Right(())))
 
       val request = FakeRequest().withBody(Json.toJson(requestObj))
 
-      val resultOk: Future[Result] = target.approveProfiles().apply(request)
+      val resultOk: Future[Result] = target.approveProfiles("test-user").apply(request)
       status(resultOk) mustBe OK
 
     }
@@ -244,13 +250,13 @@ class InterconnectionsTest extends PdgSpec with MockitoSugar with Results {
     "post approveProfiles no ok" in {
 
       val interconnectionService = mock[InterconnectionService]
-      val target = new Interconnections(interconnectionService, null)
+      val target = new Interconnections(mock[ProtoProfileRepository], interconnectionService, null, null, null)
       val requestObj: List[ProfileApproval] = Nil
-      when(interconnectionService.approveProfiles(requestObj)).thenReturn(Future.successful(Left("error")))
+      when(interconnectionService.approveProfiles(requestObj, "test-user")).thenReturn(Future.successful(Left("error")))
 
       val request = FakeRequest().withBody(Json.toJson(requestObj))
 
-      val resultOk: Future[Result] = target.approveProfiles().apply(request)
+      val resultOk: Future[Result] = target.approveProfiles("test-user").apply(request)
       status(resultOk) mustBe BAD_REQUEST
 
     }
@@ -258,7 +264,7 @@ class InterconnectionsTest extends PdgSpec with MockitoSugar with Results {
     "post approveProfiles no ok2" in {
 
       val interconnectionService = mock[InterconnectionService]
-      val target = new Interconnections(interconnectionService, null)
+      val target = new Interconnections(mock[ProtoProfileRepository], interconnectionService, null, null, null)
 
       val requestObj: JsValue = Json.parse(
         """
@@ -266,91 +272,33 @@ class InterconnectionsTest extends PdgSpec with MockitoSugar with Results {
 
       val request = FakeRequest().withBody(Json.toJson(requestObj))
 
-      val resultOk: Future[Result] = target.approveProfiles().apply(request)
+      val resultOk: Future[Result] = target.approveProfiles("test-user").apply(request)
       status(resultOk) mustBe BAD_REQUEST
 
     }
     "post uploadProfile ok" in {
       val interconnectionService = mock[InterconnectionService]
-      val target = new Interconnections(interconnectionService, null)
+      val target = new Interconnections(mock[ProtoProfileRepository], interconnectionService, null, null, null)
       val globalCode = ""
-      when(interconnectionService.uploadProfile(globalCode)).thenReturn(Future.successful(Right(())))
+      when(interconnectionService.uploadProfile(globalCode, "tst-admin")).thenReturn(Future.successful(Right(())))
 
       val request = FakeRequest()
 
-      val resultOk: Future[Result] = target.uploadProfile(globalCode).apply(request)
+      val resultOk: Future[Result] = target.uploadProfile(globalCode,"tst-admin").apply(request)
       status(resultOk) mustBe OK
     }
 
     "delete rejectPendingProfile ok" in {
       val interconnectionService = mock[InterconnectionService]
-      val target = new Interconnections(interconnectionService, null)
+      val target = new Interconnections(mock[ProtoProfileRepository], interconnectionService, null, null, null)
       val globalCode = ""
-      when(interconnectionService.rejectProfile(ProfileApproval(globalCode), "motive", 1L, None)).thenReturn(Future.successful(Right(())))
+      when(interconnectionService.rejectProfile(ProfileApproval(globalCode), "motive", 1L, "usuario")).thenReturn(Future.successful(Right(())))
 
       val request = FakeRequest()
 
-      val resultOk: Future[Result] = target.rejectPendingProfile(globalCode, "motive", 1L).apply(request)
+      val resultOk: Future[Result] = target.rejectPendingProfile(globalCode, "motive", 1L, "usuario", false).apply(request)
       status(resultOk) mustBe OK
 
-    }
-
-    "delete Profile ok" in {
-
-      val interconnectionService = mock[InterconnectionService]
-      val target = new Interconnections(interconnectionService, null)
-
-      when(interconnectionService.receiveDeleteProfile("AR-C-SHDG-1190", DeletedMotive("ahierro", "motivo", 2),"SHDG","SHDG")).thenReturn(Future.successful(Right(())))
-      val requestObj: JsValue = Json.parse(
-        """
-          {"solicitor":"ahierro","motive":"motivo","selectedMotive":2} """)
-
-      val request = FakeRequest().withHeaders("X-URL-INSTANCIA-INFERIOR" -> "example.com")
-        .withHeaders(HeaderInsterconnections.labCode -> "SHDG")
-        .withHeaders(HeaderInsterconnections.laboratoryOrigin -> "SHDG")
-        .withHeaders(HeaderInsterconnections.laboratoryImmediateInstance -> "SHDG")
-        .withBody(Json.toJson(requestObj))
-
-      val resultOk: Future[Result] = target.deleteProfile("AR-C-SHDG-1190").apply(request)
-      status(resultOk) mustBe OK
-    }
-
-    "delete Profile no ok" in {
-
-      val interconnectionService = mock[InterconnectionService]
-      val target = new Interconnections(interconnectionService, null)
-
-      when(interconnectionService.receiveDeleteProfile("AR-C-SHDG-1190", DeletedMotive("ahierro", "motivo", 2),"","")).thenReturn(Future.successful(Right(())))
-      val requestObj: JsValue = Json.parse(
-        """
-          {"soliitor":"ahierro","motive":"motivo","selectedMotive":2} """)
-
-      val request = FakeRequest().withHeaders("X-URL-INSTANCIA-INFERIOR" -> "example.com")
-        .withHeaders(HeaderInsterconnections.labCode -> "SHDG")
-        .withHeaders(HeaderInsterconnections.laboratoryOrigin -> "SHDG")
-        .withHeaders(HeaderInsterconnections.laboratoryImmediateInstance -> "SHDG")
-        .withBody(Json.toJson(requestObj))
-
-      val resultOk: Future[Result] = target.deleteProfile("AR-C-SHDG-1190").apply(request)
-      status(resultOk) mustBe BAD_REQUEST
-    }
-    "delete Profile no ok2" in {
-
-      val interconnectionService = mock[InterconnectionService]
-      val target = new Interconnections(interconnectionService, null)
-
-      when(interconnectionService.receiveDeleteProfile("AR-C-SHDG-1190", DeletedMotive("ahierro", "motivo", 2),"","")).thenReturn(Future.successful(Right(())))
-      val requestObj: JsValue = Json.parse(
-        """
-          {"soliitor":"ahierro","motive":"motivo","selectedMotive":2} """)
-
-      val request = FakeRequest().withHeaders("X-URL-INSTANCIA-INFERIOR" -> "example.com")
-        .withHeaders(HeaderInsterconnections.laboratoryOrigin -> "SHDG")
-        .withHeaders(HeaderInsterconnections.laboratoryImmediateInstance -> "SHDG")
-        .withBody(Json.toJson(requestObj))
-
-      val resultOk: Future[Result] = target.deleteProfile("AR-C-SHDG-1190").apply(request)
-      status(resultOk) mustBe BAD_REQUEST
     }
   }
 }

@@ -154,7 +154,7 @@ class Scenarios @Inject()(
         userService.isSuperUser(userId).flatMap(isSuperUser => {
           (for {
             scenarioUpdated <- scenarioService.validate(userId, scenario, isSuperUser)
-            scenarioId <- matchingService.validate(scenario)
+            scenarioId <- matchingService.validate(scenario, userId)
           } yield (scenarioUpdated, scenarioId)).map {
             case (Right(id), Right(_)) => Ok(Json.toJson(id)).withHeaders("X-CREATED-ID" -> id)
             case (Left(e), Left(error2)) => {

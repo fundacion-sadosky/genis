@@ -6,9 +6,9 @@ function(angular, ProfileDataService, ProfileDataController, MandatoryDataContro
 
 angular
 	.module('pdg.profiledata', ['pdg.common'])
-	.service('profileDataService', ['playRoutes','$log', ProfileDataService])
+	.service('profileDataService', ['playRoutes', 'userService','$log', ProfileDataService])
 	.service('profileDataCommonService', ['$q','playRoutes','$log', ProfileDataCommonService])
-	.controller('profileDataController', ['$scope', '$log', 'profileDataService', 'profileDataCommonService', '$filter', '$routeParams', 'alertService', ProfileDataController])
+	.controller('profileDataController', ['$scope', '$log', 'profileDataService', 'profileDataCommonService','$filter', '$routeParams', 'alertService', ProfileDataController])
 	.controller('mandatoryDataController', ['$scope', 'profileDataCommonService', MandatoryDataController])
 	.controller('courtCaseDataController', ['$scope', 'profileDataCommonService', CourtCaseDataController])
 	.controller('sampleDataController', ['$scope', 'profileDataCommonService','alertService', SampleDataController])

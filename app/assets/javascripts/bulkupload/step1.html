@@ -18,7 +18,7 @@
     </div>
 </div>
 
-<div class="container-top">
+<foot class="container-top">
     <div class="row">
         <div class="bulkupload-search">
             <div class="content">
@@ -65,8 +65,8 @@
             <div class=" pull-right padding-right-0  ">
                 <button id="subirArchivo" type="file" class="btn btn-primary-action pull-right" ng-click="addLote()"
                 help-tip="format.bulkUpload" help-data-html="true" title="A<font style='text-transform: lowercase;'>rchivos de ejemplo con
-                    campos obligatorios</font></br></br> <div class='col-md-6'> Autosomal:</br><a href='/assets/archivos-ejemplos/Autosomal.txt' download='Autosomal'>D<font style='text-transform: lowercase;'>escargar archivo</font></a></div>
-                <div class='col-md-6'>Mitocondrial:</br><a href='/assets/archivos-ejemplos/Mitocondrial.txt' download='Mitocondrial'>D<font style='text-transform: lowercase;'>escargar archivo</font></a></div>" help-tip-placement="left">
+                    campos obligatorios</font></br></br> <div class='col-md-6'> Autosomal:</br><a href='/assets/sample-files/Autosomal.txt' download='Autosomal'>D<font style='text-transform: lowercase;'>escargar archivo</font></a></div>
+                <div class='col-md-6'>Mitocondrial:</br><a href='/assets/sample-files/Mitocondrial.txt' download='Mitocondrial'>D<font style='text-transform: lowercase;'>escargar archivo</font></a></div>" help-tip-placement="left">
                 
                 <!-- <span class="glyphicon glyphicon-plus-sign" aria-hiden="true"></span> -->
                 <span>Nuevo Lote</span>
@@ -183,9 +183,34 @@
                                         class="btn btn-default btn-link-action btn-link-border" title="Aprobar análisis" ng-click="approve(r, l.id)">
                                         <span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span>
                                     </button>
-                                    <a ng-show="r.rejectMotive" popover="{{r.rejectMotive}}" popover-placement="left-bottom" >Ver Motivo de Rechazo</a>
-                                    <a ng-show="r.errors.length > 0" popover="{{r.errors.join()}}" popover-placement="left-bottom">Ver errores</a>
-                                    
+
+                                    <button
+                                        data-ng-show="r.rejectMotive"
+                                        class="btn btn-default btn-link-action btn-link-border"
+                                        data-ng-click="toggleShowRejectMotive(r)"
+                                    >
+                                        <span data-ng-show="!r.showMotive">Motivo de rechazo</span>
+                                        <span data-ng-show="r.showMotive">Ocultar rechazo</span>
+                                    </button>
+                                    <button
+                                        data-ng-show="r.errors.length>0"
+                                        class="btn btn-default btn-link-action btn-link-border"
+                                        data-ng-click="toggleShowError(r)"
+                                    >
+                                        <span data-ng-show="!r.showErrors">Ver errores</span>
+                                        <span data-ng-show="r.showErrors">Ocultar err.</span>
+                                    </button>
+                                    <span
+                                        data-ng-show="r.showMotive"
+                                    >
+                                        <br>Motivo: {{r.rejectMotive}}
+                                    </span>
+                                    <span
+                                        data-ng-show="r.showErrors"
+                                        data-ng-repeat="err in r.errors"
+                                    >
+                                        <br>{{err}}
+                                    </span>
                                 </td>
                                 
                                 <td class="text-center" title="Ver genotipificación">
@@ -201,7 +226,7 @@
                             </tr>
                             <tr>
                                 <td colspan="8" style="padding-top: 25px; text-align: center;">
-                                    <pagination ng-disabled="isProcessing" style="position: initial; transform: translate(0, 0);" boundary-links="true" ng-change="changePage(l)" items-per-page="{{l.pageSize}}" max-size="10" total-items="l.totalAnalysis" ng-model="l.page" class="pagination-sm" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;"  rotate="false"></pagination>
+                                    <pagination ng-disabled="isProcessing" style="position: initial; transform: translate(0, 0);" boundary-links="true" ng-change="changePage(l)" items-per-page="{{l.protoprofilesPageSize}}" max-size="10" total-items="l.totalAnalysis" ng-model="l.page" class="pagination-sm" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;"  rotate="false"></pagination>
                                 </td>
                             </tr>
                         </tbody>
@@ -214,4 +239,23 @@
 </table>
 </div>
 </div>
+    <footer style="z-index:2">
+        <div style="width: 100%;">
+            <pagination
+                ng-disabled="isProcessing"
+                boundary-links="true"
+                items-per-page="batchesPageSize"
+                total-items="totalBatches"
+                ng-model="batchesPage"
+                ng-change="changeBatchesPage()"
+                max-size="10"
+                class="pagination-sm"
+                previous-text="&lsaquo;"
+                next-text="&rsaquo;"
+                first-text="&laquo;"
+                last-text="&raquo;"
+                rotate="false">
+            </pagination>
+        </div>
+    </footer>
 </div>

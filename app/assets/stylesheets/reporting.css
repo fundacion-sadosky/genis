@@ -1,23 +1,42 @@
 .report-title {
     color:black;
     text-align: left;
-    font-family:'Lato';
+    font-family:'DejaVu Sans';
     font-weight: bold;
     font-size: 14pt;
 }
 
 .report-heading {
-    color:blue !important;
+    color:darkgrey !important;
     text-align: center!important;
-    font-family:'Lato' !important;
+    font-family:'DejaVu Sans' !important;
     font-weight: bold !important;
     font-size: 14pt !important;
 }
 
 .report-body {
     color: black;
-    font-family: 'Lato';
+    font-family: 'DejaVu Sans';
     text-align: center;
     font-weight: normal;
     font-size: 12pt;
+}
+
+/* Standalone table styles for PDF rendering — no Bootstrap dependency */
+table.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1em;
+}
+
+table.table-bordered,
+table.table-bordered th,
+table.table-bordered td {
+    border: 1px solid #dddddd;
+}
+
+table.table th,
+table.table td {
+    padding: 6px 10px;
+    vertical-align: middle;
 }

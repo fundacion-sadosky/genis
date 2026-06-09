@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<div class="modal-header">
+    <h4 class="active">Resultados de la búsqueda de escritorio</h4>
+</div>
+
+</div>
+<div
+        id="report"
+        ng-show=false
+        data-ng-include="'/assets/javascripts/matches/views/comparison-report.html'"
+        ng-controller="comparisonReportController"
+></div>
+</div>
+
+<div class="modal-body">
+    <div class="row">
+
+        <div class="col-md-12 text-center not-matchStatus" title="Estado del proceso de búsqueda de coincidencias">
+            <a id="matchiNoti" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+
+                <b data-ng-if="stall" >
+                    <div ng-if="!hasMatches()" class="text-center">
+                        <p>No se encontraron coincidencias.</p>
+                    </div>
+
+                </b>
+
+                <div data-ng-if="working" class="d-inline-flex flex-column align-items-center">
+                    <i class="fa-stack">
+                        <i class="fa fa-spinner fa-pulse fa-stack-2x"></i>
+                        <i class="icon-estado_proceso_busqueda-coincidencias icon-stack-2x"></i>
+                    </i>
+                    <div style="font-size:12px; margin-top:4px;">
+                        Búsqueda de coincidencias en proceso
+                    </div>
+                </div>
+
+                <i data-ng-if="fail" class="fa-stack">
+                    <i class="fa fa-ban fa-stack-2x text-danger"></i>
+                    <i class="icon-estado_proceso_busqueda-coincidencias icon-stack-2x"></i>
+                </i>
+
+            </a>
+        </div>
+
+
+        <div class="col-md-12">
+
+            <div ng-if="hasMatches()" class="matches-table-wrapper">
+                <table class="table table-striped table-hover">
+                    <thead>
+                    <tr>
+                        <th>Coincidencia</th>
+                        <th> </th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="(match, matchingId) in matches">
+                        <td>{{ match }}</td>
+                        <td>
+                            <button
+                                    type="button"
+                                    class="btn btn-default btn-sm"
+                                    ng-click="printDesktopSearchReport(match)">
+                                Imprimir reporte
+                            </button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+
+
+        </div>
+
+
+
+    </div>
+</div>
+<div class="modal-footer">
+    <div class="btn btn-link-action" ng-click="cancel()">
+            <span title="Cerrar">
+                <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+            </span>
+        <span class="btn-link-action">Cerrar</span>
+    </div>
+</div>
+
+ <! ng-click="closeModal(files, nombreLote, tipoAnalisis)" -->

@@ -1,7 +1,7 @@
 define([], function() {
 'use strict';
 
-function LoginController($scope, $log, $location, userService) {
+function LoginController($scope, $log, $location, userService, profileDataService, profileService) {
 
 
     localStorage.removeItem("searchPedigree");
@@ -25,11 +25,28 @@ function LoginController($scope, $log, $location, userService) {
 		$scope.showLogin = true;
         $scope.loginform.$setPristine();
 	});
-    
+
+	$scope.removeDesktopProfiles = function() {
+		profileDataService.getDesktopProfiles().then(function(profiles) {
+			console.debug("removing desktop profiles: ", profiles.data);
+			profiles.data.forEach(function(profile) {
+				profileService.removeProfile(profile).then(function () {
+					console.log("Desktop profile removed:", profile);
+				});
+
+				profileDataService.removeProfile(profile).then(function () {
+					console.log("Desktop profile data removed:", profile);
+				});
+			});
+		});
+	};
+
+
 	$scope.login = function(authenticate) {
 		
 		userService.authenticate(authenticate).then(function(){
 			$scope.credentials = {};
+			$scope.removeDesktopProfiles();
 		}, function(xhr/*, status, error*/){
 			$scope.requestToken = undefined;
 			$scope.unauthorized = true;

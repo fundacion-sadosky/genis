@@ -108,7 +108,8 @@ class TraceServiceImpl @Inject() (
     def stringifyCategoryConfiguration(cc: CategoryConfiguration): String = {
       s"Cantidad mínima de marcadores con alelos: ${cc.minLocusPerProfile} / " +
         s"Cantidad máxima de marcadores con trisomías: ${cc.maxOverageDeviatedLoci} / " +
-        s"Cantidad máxima de alelos por marcador: ${cc.maxAllelesPerLocus}"
+        s"Cantidad máxima de alelos por marcador: ${cc.maxAllelesPerLocus} / " +
+        s"Es categoría multialélica?: ${if (cc.multiallelic) "Sí" else "No"} "
     }
 
     val future = ti.analysisType.fold[Future[Option[AnalysisType]]](Future.successful(None))({ at => analysisTypeService.getById(at)})

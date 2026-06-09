@@ -275,8 +275,8 @@ class Spark2Matcher @Inject() (
       .foreach { case ((rightProfile, analysisType), matchingId) =>
         traceService.add(Trace(searched.globalCode, searched.assignee, new Date(),
           MatchInfo(matchingId, SampleCode(rightProfile), analysisType, MatchTypeInfo.Delete)))
-        traceService.add(Trace(SampleCode(rightProfile), searched.assignee, new Date(),
-          MatchInfo(matchingId, searched.globalCode, analysisType, MatchTypeInfo.Delete)))
+        //traceService.add(Trace(SampleCode(rightProfile), searched.assignee, new Date(),
+        //  MatchInfo(matchingId, searched.globalCode, analysisType, MatchTypeInfo.Delete)))
     }
 
     matchesToReplaceRDD
@@ -291,8 +291,8 @@ class Spark2Matcher @Inject() (
 
         traceService.add(Trace(searched.globalCode, searched.assignee, new Date(),
           MatchInfo(matchingId, SampleCode(matchProfile), analysisType, MatchTypeInfo.Update)))
-        traceService.add(Trace(SampleCode(matchProfile), searched.assignee, new Date(),
-          MatchInfo(matchingId, searched.globalCode, analysisType, MatchTypeInfo.Update)))
+        //traceService.add(Trace(SampleCode(matchProfile), searched.assignee, new Date(),
+        //  MatchInfo(matchingId, searched.globalCode, analysisType, MatchTypeInfo.Update)))
     }
 
     matchesToInsertRDD
@@ -305,8 +305,8 @@ class Spark2Matcher @Inject() (
 
         traceService.add(Trace(searched.globalCode, searched.assignee, new Date(),
           MatchInfo(matchingId, SampleCode(rightProfile), analysisType, MatchTypeInfo.Insert)))
-        traceService.add(Trace(SampleCode(rightProfile), searched.assignee, new Date(),
-          MatchInfo(matchingId, searched.globalCode, analysisType, MatchTypeInfo.Insert)))
+        //traceService.add(Trace(SampleCode(rightProfile), searched.assignee, new Date(),
+        //  MatchInfo(matchingId, searched.globalCode, analysisType, MatchTypeInfo.Insert)))
 
     }
 
@@ -361,7 +361,7 @@ class Spark2Matcher @Inject() (
     matchesToDeleteRDD
       .collect
       .foreach { case ((rightProfile, analysisType), matchingId) =>
-        this.interconnectionService.deleteMatch(matchingId,rightProfile)
+        this.interconnectionService.deleteMatch(matchingId,rightProfile, null)
       }
 
   }
@@ -396,19 +396,36 @@ class Spark2Matcher @Inject() (
         val rightAssignee = doc.get("rightProfile", classOf[BasicDBObject]).getString("assignee")
         val rightProfile = doc.get("rightProfile", classOf[BasicDBObject]).getString("globalCode")
 
-        val leftNoti = MatchingInfo(SampleCode(leftProfile), SampleCode(rightProfile), matchingId)
-
-        if(!leftProfile.contains(labActual) && !rightProfile.contains(labActual) ){
-          this.interconnectionService.notify(leftNoti,Permission.INTERCON_NOTIF)
-        }else {
-          notificationService.push(leftAssignee, leftNoti)
-          userService.sendNotifToAllSuperUsers(leftNoti, Seq(leftAssignee))
-          if (leftAssignee != rightAssignee) {
-            val rightNoti = MatchingInfo(SampleCode(rightProfile), SampleCode(leftProfile), matchingId)
-            notificationService.push(rightAssignee, rightNoti)
-            userService.sendNotifToAllSuperUsers(rightNoti, Seq(rightAssignee))
+        val isDesktopF: Future[Option[Boolean]] = for {
+          rightDesktopOpt <- profileDataRepository.isDesktopProfile(SampleCode(rightProfile))
+          leftDesktopOpt  <- profileDataRepository.isDesktopProfile(SampleCode(leftProfile))
+        } yield {
+          (rightDesktopOpt, leftDesktopOpt) match {
+            case (Some(r), Some(l)) => Some(r || l)
+            case (Some(r), None)    => Some(r)
+            case (None, Some(l))    => Some(l)
+            case _                  => None
           }
         }
+
+        isDesktopF.foreach { isDesktopOpt =>
+          val isDesktop = isDesktopOpt.getOrElse(false)
+          val leftNoti = MatchingInfo(SampleCode(leftProfile), SampleCode(rightProfile), matchingId, isDesktop)
+
+          if(!leftProfile.contains(labActual) && !rightProfile.contains(labActual) ){
+            this.interconnectionService.notify(leftNoti, Seq(Permission.INTERCON_NOTIF))
+          }else {
+            notificationService.push(leftAssignee, leftNoti)
+            userService.sendNotifToAllSuperUsers(leftNoti, Seq(leftAssignee))
+            if (leftAssignee != rightAssignee) {
+              val rightNoti = MatchingInfo(SampleCode(rightProfile), SampleCode(leftProfile), matchingId, isDesktop)
+              notificationService.push(rightAssignee, rightNoti)
+              userService.sendNotifToAllSuperUsers(rightNoti, Seq(rightAssignee))
+            }
+          }
+        }
+
+        
       }
 
     matchesToInsertRDD
@@ -421,19 +438,26 @@ class Spark2Matcher @Inject() (
         val rightAssignee = doc.get("rightProfile", classOf[BasicDBObject]).getString("assignee")
         val rightProfile = doc.get("rightProfile", classOf[BasicDBObject]).getString("globalCode")
 
-        val leftNoti = MatchingInfo(SampleCode(leftProfile), SampleCode(rightProfile), matchingId)
+        val isDesktopF: Future[Option[Boolean]] = profileDataRepository.isDesktopProfile(SampleCode(leftProfile))
+        isDesktopF.foreach { isDesktopOpt =>
+          val isDesktop = isDesktopOpt.getOrElse(false)
+          val leftNoti = MatchingInfo(SampleCode(leftProfile), SampleCode(rightProfile), matchingId, isDesktop)
 
-        if(!leftProfile.contains(labActual) && !rightProfile.contains(labActual) ){
-          notificationService.push(nomRespSuperior,leftNoti)
-          userService.sendNotifToAllSuperUsers(leftNoti, Seq(leftAssignee))
-        }else {
-          notificationService.push(leftAssignee, leftNoti)
-          userService.sendNotifToAllSuperUsers(leftNoti, Seq(leftAssignee))
-          if (leftAssignee != rightAssignee) {
-            val rightNoti = MatchingInfo(SampleCode(rightProfile), SampleCode(leftProfile), matchingId)
-            notificationService.push(rightAssignee, rightNoti)
-            userService.sendNotifToAllSuperUsers(rightNoti, Seq(rightAssignee))
-
+          if (!leftProfile.contains(labActual) && !rightProfile.contains(labActual)) {
+            notificationService.push(nomRespSuperior, leftNoti)
+            userService.sendNotifToAllSuperUsers(leftNoti, Seq(leftAssignee))
+          } else {
+            notificationService.push(leftAssignee, leftNoti)
+            userService.sendNotifToAllSuperUsers(leftNoti, Seq(leftAssignee))
+            if (leftAssignee != rightAssignee) {
+              val isDesktopF: Future[Option[Boolean]] = profileDataRepository.isDesktopProfile(SampleCode(rightProfile))
+              isDesktopF.foreach { isDesktopOpt =>
+                val isDesktop = isDesktopOpt.getOrElse(false)
+                val rightNoti = MatchingInfo(SampleCode(rightProfile), SampleCode(leftProfile), matchingId, isDesktop)
+                notificationService.push(rightAssignee, rightNoti)
+                userService.sendNotifToAllSuperUsers(rightNoti, Seq(rightAssignee))
+              }
+            }
           }
         }
       }

@@ -15,7 +15,7 @@ services:
       - ./pgsql_init:/docker-entrypoint-initdb.d
   
   openldap:
-    image: docker.io/bitnami/openldap:2.6
+    image: docker.io/bitnamilegacy/openldap:2.6
     container_name: genis_ldap
     restart: always
     ports:
@@ -42,7 +42,7 @@ services:
       - ./mongo_init:/docker-entrypoint-initdb.d
   
   mongo-express:
-    image: mongo-express
+    image: mongo-express:0.54.0
     container_name: genis_mongo-express
     restart: always    
     ports:

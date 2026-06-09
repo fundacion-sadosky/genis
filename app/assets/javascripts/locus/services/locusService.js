@@ -1,7 +1,7 @@
 define(['lodash', 'angular'],function(_,angular) {
     'use strict';
 
-    function LocusService(playRoutes) {
+    function LocusService(playRoutes, $http) {
 
         this.add = function (locus) {
             return playRoutes.controllers.Locis.add().post(locus);
@@ -86,6 +86,19 @@ define(['lodash', 'angular'],function(_,angular) {
         this.getOutOfLadderBase = function(allele){
             return allele.substring(0,allele.length-1);
         }.bind(this);
+        this.exportLocus = function () {
+            return playRoutes.controllers.Locis.export().get();
+        };
+        this.importLocus = function(formData) {
+            // Extract the URL from the Play routes object.
+            var url = playRoutes.controllers.Locis.importLocus().url;
+
+            // Use $http directly to ensure proper FormData handling.
+            return $http.post(url, formData, {
+                transformRequest: angular.identity,
+                headers: { 'Content-Type': undefined }  // Let the browser set multipart/form-data with boundary.
+            });
+        };
     }
         
     return LocusService;

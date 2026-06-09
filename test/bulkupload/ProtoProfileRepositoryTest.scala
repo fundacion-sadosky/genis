@@ -92,7 +92,7 @@ class ProtoProfileRepositoryTest extends PdgSpec with MockitoSugar {
 
       val id = Await.result(repo.createBatch("user", Seq(ProtoProfile(0, "sample1", "user1", "CATT", ProtoProfileStatus.ReadyForApproval, "kit", geno, mismatches, matchingRules, Seq("1error", "2error"), "",None)).toStream, "SHDG", kitMap,None,"Autosomal"), duration)
 
-      val rest = Await.result(repo.getBatchesStep1("user", false), duration)
+      val rest = Await.result(repo.getBatchesStep1("user", false, 1, 10), duration)
 
       rest.size must be(1)
 
@@ -110,7 +110,7 @@ class ProtoProfileRepositoryTest extends PdgSpec with MockitoSugar {
 
       val id = Await.result(repo.createBatch("user", seq.toStream, "SHDG", kitMap,None,"Autosomal"), duration)
 
-      val rest = Await.result(repo.getBatchesStep1("SuperUser", true), duration)
+      val rest = Await.result(repo.getBatchesStep1("SuperUser", true, 1, 10), duration)
 
       rest.size must be(1)
 

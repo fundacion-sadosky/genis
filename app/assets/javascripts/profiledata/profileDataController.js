@@ -134,7 +134,7 @@ define([], function() {
     $scope.saveProfile = function() {
 
       //$scope.profileData.globalCode = "";
-
+      console.log('Profile data before save:', $scope.profileData);
       if($scope.inNameOf && !$scope.profileData.responsibleGeneticist){
 
         alertService.error({message: 'No ha ingresado el Genetista responsable'});

@@ -32,6 +32,7 @@ abstract class UserService {
   def findByGeneMapper(geneMapper: String): Future[Option[UserView]]
   def findUserAssignableByRole(roleId: String): Future[Seq[User]]
   def findUsersIdWithPermission(permission:Permission):Future[Seq[String]]
+  def findUsersIdWithPermissions(permission:Seq[Permission]):Future[Seq[String]]
   def isSuperUser(userId: String) : Future[Boolean]
   def isSuperUserByGeneMapper(geneMapperId: String) : Future[Boolean]
   def findSuperUsers():Future[Seq[String]]
@@ -298,6 +299,40 @@ class UserServiceImpl @Inject() (
       .map(res => {
         res.flatten.toSet.toSeq
       })
+  }
+  
+  override def findUsersIdWithPermissions(
+    permissions:Seq[Permission]
+  ):Future[Seq[String]] = {
+    Future
+      .sequence(
+        roleService
+          .getRolePermissions()
+          .filter {
+            case (role, rolePermissions) =>
+              val has_required_permissions = rolePermissions
+                .intersect(permissions.toSet)
+                .size
+                .equals(permissions.size)
+              has_required_permissions
+          }.map {
+            case (role, _) =>
+              val users = this
+                .findUserAssignableByRole(role)
+                .map(
+                  list => {
+                    list.map(_.id)
+                  }
+                )
+              users
+          }
+      )
+      .map(
+        res => {
+          val users = res.flatten.toSet.toSeq
+          users
+        }
+      )
   }
 
   override def isSuperUser(userId: String): Future[Boolean] = {

@@ -4,7 +4,7 @@ function(angular, inboxController, advancedSearchController, inboxService, homeC
 
 angular
     .module('pdg.inbox', ['pdg.common', 'jm.i18next'])
-    .controller('inboxController', ['$scope', '$location', 'inboxService', 'alertService', '$q', 'userService', inboxController])
+    .controller('inboxController', ['$scope', '$location', 'inboxService', 'alertService', '$q', 'userService', 'notificationsService', inboxController])
     .controller('advancedSearchController', ['$scope','alertService', advancedSearchController])
     .controller('homeController', ['$scope', 'userService', homeController])
     .service('inboxService', ['playRoutes', inboxService])

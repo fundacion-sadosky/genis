@@ -4,9 +4,8 @@
 
 # Home page
 GET      /                                                    @controllers.Application.index
-
+# Configuración de categorías
 GET      /status                                              @controllers.Status.status
-
 GET      /categoryTree                                        @controllers.Categories.categoryTree
 GET      /categories                                          @controllers.Categories.list
 GET      /categoriesWithProfiles                              @controllers.Categories.listWithProfiles
@@ -20,14 +19,26 @@ POST     /catmodification                                     @controllers.Categ
 DELETE   /catmodification                                     @controllers.Categories.unregisterCategoryModification(from: types.AlphanumericId, to: types.AlphanumericId)
 GET      /catmodification                                     @controllers.Categories.getCategoryModifications(catId: types.AlphanumericId)
 GET      /catmodifications                                    @controllers.Categories.allCategoryModifications
+GET      /catmodifications/export                             @controllers.Categories.exportModifications
+GET      /categories/export                                   @controllers.Categories.exportCategories
+POST     /categories/import                                   @controllers.Categories.importGroupsAndCategories
 
 GET      /categories-mapping                                  @controllers.Categories.listCategoriesMapping
 PUT      /categories-mapping                                  @controllers.Categories.insertOrUpdateCategoriesMapping
+GET      /categories-mapping/export                           @controllers.Categories.exportMappings
+
+GET      /category-configurations/export                      @controllers.Categories.exportConfigurations
+GET      /category-associations/export                        @controllers.Categories.exportAssociations
+GET      /category-alias/export                               @controllers.Categories.exportAlias
+GET      /category-matching-rules/export                      @controllers.Categories.exportMatchingRules
 
 POST     /group                                               @controllers.Categories.addGroup
 PUT      /group/:groupId                                      @controllers.Categories.updateGroup(groupId: types.AlphanumericId)
 DELETE   /group/:groupId                                      @controllers.Categories.removeGroup(groupId: types.AlphanumericId)
+GET      /group/export                                        @controllers.Categories.exportGroups
+POST     /group/import                                        @controllers.Categories.importGroups
 
+#
 GET      /crimeTypes                                          @controllers.CrimeTypes.list
 GET      /bioMaterialTypes                                    @controllers.BioMaterialTypes.list
 POST	 /bioMaterialTypes									  @controllers.BioMaterialTypes.insert
@@ -44,25 +55,30 @@ PUT      /populationBaseFreqDefault/:name                     @controllers.Popul
 GET      /populationBaseFreqCharacteristics                   @controllers.PopulationBaseFreq.getAllBasesCharacteristics
 
 # Operation Logs
-GET      /operationLog                                        @controllers.OperationLogs.getLogLots(page: Int ?= 0, pageSize: Int ?= 50)
+GET      /operationLog                                        @controllers.OperationLogs.getLogLots(page: Int, pageSize: Int)
 POST     /operationLogSearch                                  @controllers.OperationLogs.searchLogs
 GET      /operationLog/:id/verification                       @controllers.OperationLogs.checkLogLot(id: Long)
 HEAD     /operationLog                                        @controllers.OperationLogs.getTotalLots
 POST     /operationLogLot                                     @controllers.OperationLogs.getTotalLogs
 
 # ProfileData
+GET      /profiledata/count                                   @controllers.ProfileData.countProfiles()
 GET      /profiledata/:id                                     @controllers.ProfileData.get(id: Long)
 GET      /profiledata                                         @controllers.ProfileData.findByCode(globalCode: types.SampleCode)
 POST     /profiledata                                         @controllers.ProfileData.create
+DELETE   /profiledata/:globalCode                             @controllers.ProfileData.removeProfile(globalCode: types.SampleCode)
 GET      /profiles-deleted/motive/:id                         @controllers.ProfileData.getDeleteMotive(id: types.SampleCode)
 PUT      /profiledata-deleted/:id                             @controllers.ProfileData.deleteProfile(id: types.SampleCode)
 GET      /profiledataWithAssociations                         @controllers.ProfileData.findByCodeWithAssociations(globalCode: types.SampleCode)
 PUT      /profiledata/:id/                                    @controllers.ProfileData.update(id: types.SampleCode)
-PUT      /profiledata/modify-category/:id/                    @controllers.ProfileData.modifyCategory(id: types.SampleCode, replicate: Boolean)
+PUT      /profiledata/modify-category/:id/                    @controllers.ProfileData.modifyCategory(id: types.SampleCode, replicate: Boolean, userName: String)
 GET      /profiledata-readonly                                @controllers.ProfileData.isReadOnly(globalCode: types.SampleCode)
 GET      /profiledata-complete/:id                            @controllers.ProfileData.getByCode(id: types.SampleCode)
 GET      /profiledata-editable/:id                            @controllers.ProfileData.isEditable(id: types.SampleCode)
 GET      /profilesdata                                        @controllers.ProfileData.findByCodes(globalCode: List[types.SampleCode])
+GET      /profiledata-desktop                                 @controllers.ProfileData.getDesktopProfiles
+GET      /profileData/isProfileReplicated/:internalCode       @controllers.ProfileData.getIsProfileReplicatedInternalCode(internalCode: String)
+
 
 POST     /uploadImage                                         @controllers.Resources.uploadImage
 POST     /uploadFile                                          @controllers.Resources.uploadFile
@@ -119,16 +135,21 @@ POST     /profile-exportToLims                                @controllers.Profi
 GET      /get-profile-export/:user                            @controllers.Profiles.getExportFile(user: String)
 GET      /get-alta-file-export                                @controllers.Profiles.getLimsAltaFile()
 GET      /get-match-file-export                               @controllers.Profiles.getLimsMatchFile()
+DELETE   /profiles/remove                                     @controllers.Profiles.removeAll()
+DELETE   /profiles/:profileId                                 @controllers.Profiles.removeProfile(profileId: types.SampleCode)
 
 # BulkUpload
 POST     /bulkuploader                                        @controllers.BulkUpload.uploadProtoProfiles(label: Option[String], analysisType: String)
 GET      /bulkupload/step1/protoprofiles                      @controllers.BulkUpload.getProtoProfilesStep1(batchId: Long, page: Int, pageSize: Int)
 GET      /bulkupload/step2/protoprofiles                      @controllers.BulkUpload.getProtoProfilesStep2(geneMapperId: String, batchId: Long, page: Int, pageSize: Int)
-GET      /bulkupload/step1/batches                            @controllers.BulkUpload.getBatchesStep1()
-GET      /bulkupload/step2/batches                            @controllers.BulkUpload.getBatchesStep2(geneMapperId : String)
-POST     /protoprofiles/:id/status                            @controllers.BulkUpload.updateProtoProfileStatus(id: Long, status: String,replicate:Boolean)
+GET      /bulkupload/step1/batches                            @controllers.BulkUpload.getBatchesStep1(page: Int, pageSize: Int)
+GET      /bulkupload/step1/count                              @controllers.BulkUpload.countBatchesStep1()
+GET      /bulkupload/step2/batches                            @controllers.BulkUpload.getBatchesStep2(geneMapperId : String, page: Int, pageSize: Int)
+GET      /bulkupload/step2/count                              @controllers.BulkUpload.countBatchesStep2(geneMapperId: String)
+POST     /protoprofiles/:id/status                            @controllers.BulkUpload.updateProtoProfileStatus(id: Long, status: String,replicate:Boolean, desktopSearch:Boolean)
 POST     /protoprofiles/multiple-status                       @controllers.BulkUpload.updateBatchStatus(idBatch: Long, status: String,replicateAll:Boolean)
 GET      /bulkupload/protoprofiles/:id                        @controllers.BulkUpload.getProtoProfileById(id: Long)
+GET      /bulkupload/step2/batch/:batchId/count               @controllers.BulkUpload.countAllProtoProfilesInBatch(batchId: Long)
 POST     /protoprofiles/:id/subcategory                       @controllers.BulkUpload.updateProtoProfileData(id: Long, category: types.AlphanumericId)
 POST     /protoprofiles/matchingrules                         @controllers.BulkUpload.updateProtoProfileRulesMismatch
 POST	 /protoprofiles-reject/:id							  @controllers.BulkUpload.rejectProtoProfile(id: Long, motive: String,idMotive:Long)
@@ -150,17 +171,17 @@ POST     /user-total-matches                                  @controllers.Match
 POST     /user-matches-group                                  @controllers.Matching.getMatchesByGroup
 POST     /user-total-matches-group                            @controllers.Matching.getTotalMatchesByGroup
 GET      /mixture/compare                                     @controllers.Matching.getComparedMixtureGene(globalCodes: List[String],matchId:String,isCollapsing:Option[Boolean],isScreening:Option[Boolean])
-POST     /convertHit                                          @controllers.Matching.convertHit(matchingId: String, firingCode: types.SampleCode)
-POST     /convertDiscard                                      @controllers.Matching.convertDiscard(matchId: String, firingCode: types.SampleCode)
-POST     /uploadStatus                                        @controllers.Matching.uploadStatus(matchId: String, firingCode: types.SampleCode)
+POST     /convertHit                                          @controllers.Matching.convertHit(matchingId: String, firingCode: types.SampleCode, userName: String)
+POST     /convertDiscard                                      @controllers.Matching.convertDiscard(matchId: String, firingCode: types.SampleCode, userName: String)
+POST     /uploadStatus                                        @controllers.Matching.uploadStatus(matchId: String, firingCode: types.SampleCode, userName: String)
 GET      /canUploadMatchStatus                                @controllers.Matching.canUploadMatchStatus(matchId: String)
 GET      /getByMatchedProfileId                               @controllers.Matching.getByMatchedProfileId(matchingId: String, isPedigreeMatch: Boolean,isCollapsing:Option[Boolean],isScreening:Option[Boolean])
 #GET      /comparedGenotyfications                             @controllers.Matching.getComparedGenotyfications(globalCode: types.SampleCode, matchedGlobalCode: types.SampleCode)
 POST     /lr                                                  @controllers.Matching.getLR
 #POST     /mixture/lr                                          @controllers.Matching.getMixtureLRByLocus
 DELETE   /collapsing/partial                                  @controllers.Matching.deleteByLeftProfile(globalCode: String,courtCaseId:Long)
-POST     /masiveDiscardByGlobalCode                           @controllers.Matching.masiveDiscardByGlobalCode(firingCode: types.SampleCode)
-POST     /masiveDiscardByMatchesList                          @controllers.Matching.masiveDiscardByMatchesList(firingCode: types.SampleCode, matches: List[String])
+POST     /masiveDiscardByGlobalCode                           @controllers.Matching.masiveDiscardByGlobalCode(firingCode: types.SampleCode, userName: String)
+POST     /masiveDiscardByMatchesList                          @controllers.Matching.masiveDiscardByMatchesList(firingCode: types.SampleCode, matches: List[String], userName: String)
 GET      /matching-profile                                    @controllers.Matching.searchMatchesProfile(globalCode: String)
 
 # Notifications
@@ -170,6 +191,7 @@ POST     /notifications/search                                @controllers.Notif
 POST     /notifications/total                                 @controllers.Notifications.count
 DELETE   /notifications/:id    								  @controllers.Notifications.delete(id: Long)
 POST     /notifications/flag/:id							  @controllers.Notifications.changeFlag(id: Long, flag: Boolean)
+POST    /notifications/:id/pending                            @controllers.Notifications.changePending(id: Long, pending: Boolean)
 
 # Scenarios
 POST     /default-scenario                                    @controllers.Scenarios.getDefaultScenario(firingProfile: types.SampleCode, matchingProfile: types.SampleCode)
@@ -212,6 +234,8 @@ GET      /rolesForSU                                          @controllers.Roles
 GET      /permissions                                         @controllers.Roles.listPermissions()
 GET      /permissionsfull                                     @controllers.Roles.listFullPermissions()
 GET      /operations                                          @controllers.Roles.listOperations()
+GET      /roles/export                                        @controllers.Roles.exportRoles
+POST     /roles/import                                        @controllers.Roles.importRoles
 PUT      /roles                                               @controllers.Roles.updateRole()
 POST     /roles                                               @controllers.Roles.addRole()
 DELETE   /roles/:id                                           @controllers.Roles.deleteRole(id: String)
@@ -304,6 +328,9 @@ GET      /locus                                               @controllers.Locis
 GET      /locus-full                                          @controllers.Locis.listFull
 DELETE   /locus/delete/:id                                    @controllers.Locis.delete(id: String)
 GET      /locus/ranges                                        @controllers.Locis.ranges
+GET      /locus/export                                        @controllers.Locis.export
+POST     /locus/import                                        @controllers.Locis.importLocus
+
 
 # Kits
 GET      /strkits/:id                                         @controllers.StrKits.get(id: String)
@@ -313,7 +340,10 @@ GET      /strkits/:kitId/loci                                 @controllers.StrKi
 GET      /strkits-full                                        @controllers.StrKits.listFull
 POST     /strkit/create                                       @controllers.StrKits.add
 PUT      /strkit/update                                       @controllers.StrKits.update
+GET      /strkit/export                                       @controllers.StrKits.exportKits
+POST     /strkit/import                                       @controllers.StrKits.importKits
 DELETE   /strkit/delete/:id                                   @controllers.StrKits.delete(id: String)
+
 
 # Trace
 POST     /trace/search                                        @controllers.Traces.search
@@ -334,17 +364,18 @@ GET      /instances/inferior                                  @controllers.Inter
 GET      /instances/inferior/status                           @controllers.Interconnections.getInferiorInstancesStatus
 PUT      /instances/inferior                                  @controllers.Interconnections.updateInferiorInstance
 POST     /superior/profile                                    @controllers.Interconnections.importProfile
-POST     /inferior/profile                                    @controllers.Interconnections.uploadProfile(globalCode:String)
-POST     /superior/profile/approval                           @controllers.Interconnections.approveProfiles
+POST     /inferior/profile                                    @controllers.Interconnections.uploadProfile(globalCode:String, userName: String)
+POST     /superior/profile/approval                           @controllers.Interconnections.approveProfiles(userName:String)
 GET      /superior/profile/approval                           @controllers.Interconnections.getPendingProfiles(page:Int,pageSize:Int)
 GET      /superior/profile/approval-total                     @controllers.Interconnections.getTotalPendingProfiles
-DELETE   /superior/profile/approval                           @controllers.Interconnections.rejectPendingProfile(id:String,motive:String,idMotive:Long)
-PUT      /inferior/profile/status                             @controllers.Interconnections.updateUploadStatus(globalCode:String,status:Long,motive:Option[String],isCategoryModification:Boolean)
+DELETE   /superior/profile/approval                           @controllers.Interconnections.rejectPendingProfile(id:String,motive:String,idMotive:Long,userName:String,isCategoryModification:Boolean)
+PUT      /inferior/profile/status                             @controllers.Interconnections.updateUploadStatus(globalCode:String,status:Long,motive:Option[String],userName:String,isCategoryModification:Boolean, operationOriginatedInInstance: Option[String])
 GET      /inferior/profile/status                             @controllers.Interconnections.getUploadStatus(globalCode:String)
-#DELETE   /superior/profile/:id                                @controllers.Interconnections.deleteProfile(id:String)
+DELETE   /superior/profile/:id/:userName                      @controllers.Interconnections.deleteProfileFromInferior(id:String, userName: String)
 POST     /inferior/match/                                     @controllers.Interconnections.receiveMatchFromSuperior()
 POST     /interconection/match/status                         @controllers.Interconnections.receiveMatchStatus()
 POST     /interconnection/file                                @controllers.Interconnections.receiveFile()
+GET      /interconnection/getIsProfileReplicableInternalCode/:internalCode   @controllers.Interconnections.getIsProfileReplicableInternalCode(internalCode: String)
 
 
 # Motives
@@ -360,5 +391,15 @@ DELETE   /motive/:id                                          @controllers.Motiv
 GET      /assets/*file                                        controllers.Assets.versioned(path="/public", file: Asset)
 
 # Reporting
-GET     /reportes/primerReporte                                 @controllers.ReportingController.getPrimerReporte
-GET     /reportes/profilesReporting/:fechaDesde/:fechaHasta     @controllers.ReportingController.getProfilesReporting(fechaDesde: String, fechaHasta:String)
+GET     /reportes/primerReporte                                                     @controllers.ReportingController.getPrimerReporte
+GET     /reportes/profilesReporting                                                 @controllers.ReportingController.getAllProfilesReporting()
+GET     /reportes/profilesReporting/:fechaDesde/:fechaHasta                         @controllers.ReportingController.getProfilesReporting(fechaDesde: String, fechaHasta:String)
+GET     /reportes/profilesByUser                                                    @controllers.ReportingController.getAllProfilesByUser()
+GET     /reportes/activesInactiveByCategory                                         @controllers.ReportingController.getActivesInactiveByCategory()
+GET     /reportes/enviadosInstanciaSuperior                                         @controllers.ReportingController.getEnviados()
+GET     /reportes/recibidosInstanciaInferior                                        @controllers.ReportingController.getRecibidos()
+GET     /reportes/categoriaCambio                                                   @controllers.ReportingController.getCategoriaCambio()
+GET     /reportes/listadoCompleto                                                   @controllers.ReportingController.getListadoCompleto()
+GET     /reportes/listadoCoincidencias                                              @controllers.ReportingController.getListadoCoincidencias()
+GET     /reportes/generarListedoReplicadosAInstanciaSuperior                        @controllers.ReportingController.getListadoReplicadosAInstanciaSuperior()
+GET     /reportes/generarListedoRecibidosInstanciasInferiores                       @controllers.ReportingController.getListedoRecibidosInstanciasInferiores()

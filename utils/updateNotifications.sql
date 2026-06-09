@@ -1,0 +1,64 @@
+--Requiere la creación de la tabla TRACE2 en la instancia inferior como se especifica en el README
+WITH ProcessedNotifications AS (
+    SELECT
+        n."ID",
+        n."KIND" AS notification_kind, -- Added to check for 'rejectedProfile'
+        n."USER" AS notification_user, -- Added to use as fallback userName
+        n."INFO"::jsonb AS original_info_jsonb,
+        (n."INFO"::jsonb ->> 'globalCode') AS extracted_global_code_text,
+        -- Calculate the final userName based on combined priority rules
+        COALESCE(
+            -- Priority 1-3: Attempt to find userName from TRACE2 based on specific KINDS or empty TRACE
+            (SELECT
+                t."USER"
+            FROM "APP"."TRACE2" AS t
+            WHERE t."PROFILE" = (n."INFO"::jsonb ->> 'globalCode')
+            ORDER BY
+                CASE
+                    WHEN t."KIND" = 'interconectionAproved' THEN 1 -- Highest priority
+                    WHEN t."KIND" = 'aprovedProfile' THEN 2      -- Second priority
+                    WHEN t."TRACE"::jsonb = '{}' THEN 3          -- Third priority: TRACE is empty JSON
+                    ELSE 999                                   -- Fallback for any other kinds/conditions
+                END ASC,
+                t."DATE" DESC -- Tie-breaker: if multiple matches with same priority, pick newest
+            LIMIT 1
+            ),
+            -- Priority 4: If TRACE2 lookup yielded NULL, and NOTIFICATION.KIND is 'rejectedProfile', use NOTIFICATION.USER
+            CASE
+                WHEN n."KIND" = 'rejectedProfile' THEN n."USER"
+                ELSE NULL -- If not 'rejectedProfile' and TRACE2 lookup is NULL, then final userName is truly NULL
+            END
+        ) AS final_user_name_text
+    FROM "APP"."NOTIFICATION" AS n
+    WHERE
+        n."KIND" IN ('aprovedProfile', 'rejectedProfile') -- Now include both kinds for processing
+        AND (n."INFO"::jsonb ? 'globalCode') -- Ensure 'globalCode' key exists in INFO
+        AND NOT (n."INFO"::jsonb ? 'userName') -- Only update if 'userName' is NOT already present
+)
+UPDATE "APP"."NOTIFICATION" AS n
+SET
+    "INFO" = (
+        SELECT
+            '{' ||
+            -- 1. Explicitly add 'globalCode' as the first key
+            '"globalCode":' || to_json(pn.extracted_global_code_text)::text || ',' ||
+            -- 2. Explicitly add 'userName' as the second key
+            '"userName":' || COALESCE(to_json(pn.final_user_name_text)::text, 'null') ||
+            -- 3. Append the rest of the original keys, if any
+            CASE
+                -- If, after removing 'globalCode' and 'userName', the remaining object is empty, don't add a comma
+                WHEN (pn.original_info_jsonb - 'globalCode' - 'userName')::text = '{}'
+                THEN ''
+                ELSE
+                    -- Otherwise, add a comma and the string representation of the remaining keys
+                    -- We remove the outer braces '{' and '}' from the remaining JSON string
+                    ',' || substring((pn.original_info_jsonb - 'globalCode' - 'userName')::text FROM 2 FOR length((pn.original_info_jsonb - 'globalCode' - 'userName')::text) - 2)
+            END
+            || '}' -- Close the main JSON object
+        FROM ProcessedNotifications AS pn_sub
+        WHERE pn_sub."ID" = pn."ID"
+    )::text
+FROM
+    ProcessedNotifications AS pn
+WHERE
+    n."ID" = pn."ID";

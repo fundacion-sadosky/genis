@@ -11,7 +11,7 @@ import play.api.mvc.{Action, AnyContent, BodyParsers, Controller, Results}
 import probability._
 import profile.ProfileService
 import profiledata.ProfileDataAttempt
-import types.SampleCode
+import types.{Permission, SampleCode}
 import user.UserService
 
 import scala.concurrent.Future
@@ -103,21 +103,20 @@ class Matching @Inject()(
   }
 
 
-  def convertDiscard(matchId: String, firingCode: SampleCode) = Action.async { request =>
-    val userId = request.headers.get("X-USER").get
-
-    userService.isSuperUser(userId).flatMap(isSuperUser => {
-      matchingService.convertDiscard(matchId, firingCode, isSuperUser) map {
+  def convertDiscard(matchId: String, firingCode: SampleCode, userName: String) = Action.async { request =>
+    userService.isSuperUser(userName).flatMap(isSuperUser => {
+      matchingService.convertDiscard(matchId, firingCode, isSuperUser, true, userName) map {
         case Right(result) => Ok(Json.toJson(result)).withHeaders("X-CREATED-ID" -> result.toString())
         case Left(error) => BadRequest(Json.obj("status" -> "KO", "message" -> Json.toJson(error)))
       }
     })
   }
-  def uploadStatus(matchId: String, firingCode: types.SampleCode) = Action.async { request =>
+
+  def uploadStatus(matchId: String, firingCode: types.SampleCode, userName: String) = Action.async { request =>
     val userId = request.headers.get("X-USER").get
 
     userService.isSuperUser(userId).flatMap(isSuperUser => {
-      matchingService.uploadStatus(matchId, firingCode, isSuperUser) map { message =>
+      matchingService.uploadStatus(matchId, firingCode, isSuperUser, userName) map { message =>
         Ok(Json.toJson(message)).withHeaders("X-CREATED-ID" -> message.toString())
       }
     })
@@ -131,12 +130,13 @@ class Matching @Inject()(
 
   //  def uploadStatus(matchId: String, firingCode: types.SampleCode) = play.mvc.Results.TODO
 
-  def convertHit(matchId: String, firingCode: SampleCode) = Action.async { request =>
+  def convertHit(matchId: String, firingCode: SampleCode, userName: String) = Action.async { request =>
 
-    matchingService.convertHit(matchId, firingCode) map {
+    matchingService.convertHit(matchId, firingCode, true, userName) map {
       case Right(result) => Ok(Json.toJson(result)).withHeaders("X-CREATED-ID" -> result.toString())
       case Left(error) => BadRequest(Json.obj("status" -> "KO", "message" -> Json.toJson(error)))
     }
+
   }
 
   def getByMatchedProfileId(
@@ -218,22 +218,22 @@ class Matching @Inject()(
   //    })
   //  }
 
-  def masiveDiscardByGlobalCode(firingCode: SampleCode) = Action.async { request =>
+  def masiveDiscardByGlobalCode(firingCode: SampleCode, userName:String) = Action.async { request =>
     val userId = request.headers.get("X-USER").get
 
     userService.isSuperUser(userId).flatMap(isSuperUser => {
-      matchingService.masiveGroupDiscardByGlobalCode(firingCode, isSuperUser) map {
+      matchingService.masiveGroupDiscardByGlobalCode(firingCode, isSuperUser, true, userName) map {
         case Right(result) => Ok(Json.toJson(result)).withHeaders("X-CREATED-ID" -> result.toString())
         case Left(error) => BadRequest(Json.obj("status" -> "KO", "message" -> Json.toJson(error)))
       }
     })
   }
 
-  def masiveDiscardByMatchesList(firingCode: types.SampleCode, matches: List[String]) = Action.async { request =>
+  def masiveDiscardByMatchesList(firingCode: types.SampleCode, matches: List[String], userName: String) = Action.async { request =>
     val userId = request.headers.get("X-USER").get
 
     userService.isSuperUser(userId).flatMap(isSuperUser => {
-      matchingService.masiveGroupDiscardByMatchesList(firingCode, matches, isSuperUser) map {
+      matchingService.masiveGroupDiscardByMatchesList(firingCode, matches, isSuperUser, true, userName) map {
         case Right(result) => Ok(Json.toJson(result)).withHeaders("X-CREATED-ID" -> result.toString())
         case Left(error) => BadRequest(Json.obj("status" -> "KO", "message" -> Json.toJson(error)))
       }

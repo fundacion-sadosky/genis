@@ -6,6 +6,25 @@ Para una explicación detallada sobre como instalar GENis y configurar el softwa
 
 Para informarse sobre el funcionamiento del sistema consulte el [manual de usuario de GENis](https://github.com/fundacion-sadosky/genis/files/9739748/manual.pdf).
 
+## Requerimientos de Hardware
+
+### Procesador
+- Mínimo: procesador de 64 bits quad-core a 3 GHz (Intel Core i5/i7, Xeon E o AMD equivalente)
+- Recomendado: 8 núcleos o más
+
+### Memoria
+- Mínimo requerido: 8 GB RAM
+- Mínimo recomendado: 16 GB RAM
+
+### Almacenamiento
+- 64 GB SSD reservados para el sistema operativo y aplicaciones de base
+- 500 GB para almacenamiento de datos (SSD recomendado para mejor rendimiento)
+
+### Conectividad
+- Placa de red Gigabit Ethernet (1 Gbps) o superior
+
+---
+
 ## Configurar un entorno de ejecución de GENis
 
 GENis está desarrollado en Scala, para correr la aplicación se requiere JRE 8 y para continuar su desarrollo JDK 8 y Sbt.

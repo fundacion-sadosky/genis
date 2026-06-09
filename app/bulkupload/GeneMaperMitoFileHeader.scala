@@ -21,23 +21,23 @@ case class GeneMaperMitoFileHeader(
                                     HeaderLine: Seq[String])
 
 case class GeneMaperFileMitoHeaderBuilder(
- sampleName: Int = -1,
- UD1: Int = -1,
- SpecimenCategory: Int = -1,
- RangeFrom: Int = -1,
- RangeTo: Int = -1,
- Variacion1: Int = -1, Variacion2: Int = -1, Variacion3: Int = -1, Variacion4: Int = -1, Variacion5: Int = -1,
- Variacion6: Int = -1, Variacion7: Int = -1, Variacion8: Int = -1, Variacion9: Int = -1, Variacion10: Int = -1,
- Variacion11: Int = -1, Variacion12: Int = -1, Variacion13: Int = -1, Variacion14: Int = -1, Variacion15: Int = -1,
- Variacion16: Int = -1, Variacion17: Int = -1, Variacion18: Int = -1, Variacion19: Int = -1, Variacion20: Int = -1,
- Variacion21: Int = -1, Variacion22: Int = -1, Variacion23: Int = -1, Variacion24: Int = -1, Variacion25: Int = -1,
- Variacion26: Int = -1, Variacion27: Int = -1, Variacion28: Int = -1, Variacion29: Int = -1, Variacion30: Int = -1,
- Variacion31: Int = -1, Variacion32: Int = -1, Variacion33: Int = -1, Variacion34: Int = -1, Variacion35: Int = -1,
- Variacion36: Int = -1, Variacion37: Int = -1, Variacion38: Int = -1, Variacion39: Int = -1, Variacion40: Int = -1,
- Variacion41: Int = -1, Variacion42: Int = -1, Variacion43: Int = -1, Variacion44: Int = -1, Variacion45: Int = -1,
- Variacion46: Int = -1, Variacion47: Int = -1, Variacion48: Int = -1, Variacion49: Int = -1, Variacion50: Int = -1,
+  sampleName: Int = -1,
+  UD1: Int = -1,
+  SpecimenCategory: Int = -1,
+  RangeFrom: Int = -1,
+  RangeTo: Int = -1,
+  Variacion1: Int = -1, Variacion2: Int = -1, Variacion3: Int = -1, Variacion4: Int = -1, Variacion5: Int = -1,
+  Variacion6: Int = -1, Variacion7: Int = -1, Variacion8: Int = -1, Variacion9: Int = -1, Variacion10: Int = -1,
+  Variacion11: Int = -1, Variacion12: Int = -1, Variacion13: Int = -1, Variacion14: Int = -1, Variacion15: Int = -1,
+  Variacion16: Int = -1, Variacion17: Int = -1, Variacion18: Int = -1, Variacion19: Int = -1, Variacion20: Int = -1,
+  Variacion21: Int = -1, Variacion22: Int = -1, Variacion23: Int = -1, Variacion24: Int = -1, Variacion25: Int = -1,
+  Variacion26: Int = -1, Variacion27: Int = -1, Variacion28: Int = -1, Variacion29: Int = -1, Variacion30: Int = -1,
+  Variacion31: Int = -1, Variacion32: Int = -1, Variacion33: Int = -1, Variacion34: Int = -1, Variacion35: Int = -1,
+  Variacion36: Int = -1, Variacion37: Int = -1, Variacion38: Int = -1, Variacion39: Int = -1, Variacion40: Int = -1,
+  Variacion41: Int = -1, Variacion42: Int = -1, Variacion43: Int = -1, Variacion44: Int = -1, Variacion45: Int = -1,
+  Variacion46: Int = -1, Variacion47: Int = -1, Variacion48: Int = -1, Variacion49: Int = -1, Variacion50: Int = -1,
 
- HeaderLine: Seq[String] = Nil) {
+  HeaderLine: Seq[String] = Nil) {
 
   def buildWith(s: String, i: Int): GeneMaperFileMitoHeaderBuilder = {
     s match {
@@ -96,7 +96,7 @@ case class GeneMaperFileMitoHeaderBuilder(
       case "Mut48"          => GeneMaperFileMitoHeaderBuilder(this.sampleName, this.UD1, this.SpecimenCategory, this.RangeFrom, this.RangeTo, this.Variacion1, this.Variacion2,this.Variacion3, this.Variacion4, this.Variacion5, this.Variacion6, this.Variacion7, this.Variacion8, this.Variacion9, this.Variacion10, this.Variacion11, this.Variacion12, this.Variacion13, this.Variacion14, this.Variacion15, this.Variacion16, this.Variacion17, this.Variacion18, this.Variacion19, this.Variacion20, this.Variacion21, this.Variacion22, this.Variacion23, this.Variacion24, this.Variacion25, this.Variacion26, this.Variacion27, this.Variacion28, this.Variacion29, this.Variacion30, this.Variacion31, this.Variacion32, this.Variacion33, this.Variacion34, this.Variacion35, this.Variacion36, this.Variacion37, this.Variacion38, this.Variacion39, this.Variacion40, this.Variacion41, this.Variacion42, this.Variacion43, this.Variacion44, this.Variacion45, this.Variacion46, this.Variacion47, i, this.Variacion49, this.Variacion50, this.HeaderLine)
       case "Mut49"          => GeneMaperFileMitoHeaderBuilder(this.sampleName, this.UD1, this.SpecimenCategory, this.RangeFrom, this.RangeTo, this.Variacion1, this.Variacion2,this.Variacion3, this.Variacion4, this.Variacion5, this.Variacion6, this.Variacion7, this.Variacion8, this.Variacion9, this.Variacion10, this.Variacion11, this.Variacion12, this.Variacion13, this.Variacion14, this.Variacion15, this.Variacion16, this.Variacion17, this.Variacion18, this.Variacion19, this.Variacion20, this.Variacion21, this.Variacion22, this.Variacion23, this.Variacion24, this.Variacion25, this.Variacion26, this.Variacion27, this.Variacion28, this.Variacion29, this.Variacion30, this.Variacion31, this.Variacion32, this.Variacion33, this.Variacion34, this.Variacion35, this.Variacion36, this.Variacion37, this.Variacion38, this.Variacion39, this.Variacion40, this.Variacion41, this.Variacion42, this.Variacion43, this.Variacion44, this.Variacion45, this.Variacion46, this.Variacion47, this.Variacion48, i, this.Variacion50, this.HeaderLine)
       case "Mut50"          => GeneMaperFileMitoHeaderBuilder(this.sampleName, this.UD1, this.SpecimenCategory, this.RangeFrom, this.RangeTo, this.Variacion1, this.Variacion2,this.Variacion3, this.Variacion4, this.Variacion5, this.Variacion6, this.Variacion7, this.Variacion8, this.Variacion9, this.Variacion10, this.Variacion11, this.Variacion12, this.Variacion13, this.Variacion14, this.Variacion15, this.Variacion16, this.Variacion17, this.Variacion18, this.Variacion19, this.Variacion20, this.Variacion21, this.Variacion22, this.Variacion23, this.Variacion24, this.Variacion25, this.Variacion26, this.Variacion27, this.Variacion28, this.Variacion29, this.Variacion30, this.Variacion31, this.Variacion32, this.Variacion33, this.Variacion34, this.Variacion35, this.Variacion36, this.Variacion37, this.Variacion38, this.Variacion39, this.Variacion40, this.Variacion41, this.Variacion42, this.Variacion43, this.Variacion44, this.Variacion45, this.Variacion46, this.Variacion47, this.Variacion48, this.Variacion49, i, this.HeaderLine)
-      case _                   => this
+      case _                => this
     }
   }
 
@@ -109,13 +109,35 @@ case class GeneMaperFileMitoHeaderBuilder(
       this.Variacion21 > -1 && this.Variacion22 > -1 && this.Variacion23 > -1 && this.Variacion24 > -1 && this.Variacion25 > -1 &&
       this.Variacion26 > -1 && this.Variacion27 > -1 && this.Variacion28 > -1 && this.Variacion29 > -1 && this.Variacion30 > -1 &&
       this.Variacion31 > -1 && this.Variacion32 > -1 && this.Variacion33 > -1 && this.Variacion34 > -1 && this.Variacion35 > -1 &&
-      this.Variacion36 > -1 && this.Variacion37 > -1 && this.Variacion38 > -1 && this.Variacion39 > -1 && this.Variacion40 > -1&&
+      this.Variacion36 > -1 && this.Variacion37 > -1 && this.Variacion38 > -1 && this.Variacion39 > -1 && this.Variacion40 > -1 &&
       this.Variacion41 > -1 && this.Variacion42 > -1 && this.Variacion43 > -1 && this.Variacion44 > -1 && this.Variacion45 > -1 &&
       this.Variacion46 > -1 && this.Variacion47 > -1 && this.Variacion48 > -1 && this.Variacion49 > -1 && this.Variacion50 > -1
-    )
-      Right(GeneMaperMitoFileHeader(this.sampleName, this.UD1, this.SpecimenCategory, this.RangeFrom, this.RangeTo,this.Variacion1, this.Variacion2, this.Variacion3, this.Variacion4, this.Variacion5, this.Variacion6, this.Variacion7, this.Variacion8, this.Variacion9, this.Variacion10, this.Variacion11, this.Variacion12, this.Variacion13, this.Variacion14, this.Variacion15, this.Variacion16, this.Variacion17, this.Variacion18, this.Variacion19, this.Variacion20, this.Variacion21, this.Variacion22, this.Variacion23, this.Variacion24, this.Variacion25, this.Variacion26, this.Variacion27, this.Variacion28, this.Variacion29, this.Variacion30, this.Variacion31, this.Variacion32, this.Variacion33, this.Variacion34, this.Variacion35, this.Variacion36, this.Variacion37, this.Variacion38, this.Variacion39, this.Variacion40, this.Variacion41, this.Variacion42, this.Variacion43, this.Variacion44, this.Variacion45, this.Variacion46, this.Variacion47, this.Variacion48, this.Variacion49, this.Variacion50, this.HeaderLine))
-    else
+    ) {
+      Right(
+        GeneMaperMitoFileHeader(
+          this.sampleName,
+          this.UD1,
+          this.SpecimenCategory,
+          this.RangeFrom,
+          this.RangeTo,
+          this.Variacion1, this.Variacion2, this.Variacion3, this.Variacion4,
+          this.Variacion5, this.Variacion6, this.Variacion7, this.Variacion8,
+          this.Variacion9, this.Variacion10, this.Variacion11, this.Variacion12,
+          this.Variacion13, this.Variacion14, this.Variacion15, this.Variacion16,
+          this.Variacion17, this.Variacion18, this.Variacion19, this.Variacion20,
+          this.Variacion21, this.Variacion22, this.Variacion23, this.Variacion24,
+          this.Variacion25, this.Variacion26, this.Variacion27, this.Variacion28,
+          this.Variacion29, this.Variacion30, this.Variacion31, this.Variacion32,
+          this.Variacion33, this.Variacion34, this.Variacion35, this.Variacion36,
+          this.Variacion37, this.Variacion38, this.Variacion39, this.Variacion40,
+          this.Variacion41, this.Variacion42, this.Variacion43, this.Variacion44,
+          this.Variacion45, this.Variacion46, this.Variacion47, this.Variacion48,
+          this.Variacion49, this.Variacion50, this.HeaderLine
+        )
+      )
+    } else {
       Left(Messages("error.E0305"))
+    }
   }
 }
 

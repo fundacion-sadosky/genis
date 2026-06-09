@@ -8,7 +8,7 @@ angular
     .controller('newLocusController', ['$scope', 'locusService', 'alertService', newLocusController])
     .controller('listLocusController', ['$scope', 'locusService', 'alertService','$modal', listLocusController])
     .controller('locusUpdateController', ['$scope', 'locusService', 'alertService', locusUpdateController])
-    .service('locusService', ['playRoutes', locusService])
+    .service('locusService', ['playRoutes', '$http', locusService])
     .service('analysisTypeService', ['playRoutes', '$q', analysisTypeService])
     .config(['$routeProvider', function($routeProvider) {
         $routeProvider.when('/locus',  {templateUrl: '/assets/javascripts/locus/views/locus.html', controller: 'locusController'});

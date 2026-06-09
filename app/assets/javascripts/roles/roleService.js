@@ -1,7 +1,7 @@
 define([], function() {
 'use strict';
 
-function RoleService(playRoutes) {
+function RoleService(playRoutes, $http) {
 
 	this.getRoles = function() {
 		return playRoutes.controllers.Roles.getRoles().get();
@@ -34,6 +34,21 @@ function RoleService(playRoutes) {
 	
 	this.deleteRole = function(role) {
 		return playRoutes.controllers.Roles.deleteRole(role.id).delete();
+	};
+	
+	this.exportRoles = function() {
+		return playRoutes.controllers.Roles.exportRoles().get();
+	};
+	
+	this.importRoles = function(formData) {
+		// Extract the URL from the Play routes object.
+		var url = playRoutes.controllers.Roles.importRoles().url;
+
+		// Use $http directly to ensure proper FormData handling.
+		return $http.post(url, formData, {
+			transformRequest: angular.identity,
+			headers: { 'Content-Type': undefined }  // Let the browser set multipart/form-data with boundary.
+		});
 	};
 }
 	

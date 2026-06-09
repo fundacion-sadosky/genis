@@ -2,13 +2,14 @@
         cantPendientes : Integer, fechaDesde: String, fechaHasta: String)
 <html>
     <head>
+        <meta charset="UTF-8">
         <link rel="stylesheet" type="text/css" href="@routes.Assets.versioned("stylesheets/reporting.css")">
         <link rel="stylesheet" type="text/css" href="@routes.Assets.versioned("stylesheets/main.css")">
         <!--<link rel="stylesheet" type="text/css" href="@routes.Assets.versioned("stylesheets/mainTest.css")">-->
         <title>@title</title>
-        @headerReporting()
     </head>
     <body>
+        @headerReporting()
         <div class="report-title" >
             Resumen de perfiles entre @fechaDesde y @fechaHasta:
         </div>

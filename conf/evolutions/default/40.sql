@@ -1,0 +1,39 @@
+# --- !Ups
+-- Actualiza las foreign keys para que se eliminen en cascada si se borra una categoría
+
+ALTER TABLE "APP"."CATEGORY_MODIFICATIONS"
+DROP CONSTRAINT IF EXISTS "fk_from";
+
+ALTER TABLE "APP"."CATEGORY_MODIFICATIONS"
+    ADD CONSTRAINT "fk_from"
+        FOREIGN KEY ("From")
+            REFERENCES "APP"."CATEGORY"("ID")
+            ON DELETE CASCADE;
+
+ALTER TABLE "APP"."CATEGORY_MODIFICATIONS"
+DROP CONSTRAINT IF EXISTS "fk_to";
+
+ALTER TABLE "APP"."CATEGORY_MODIFICATIONS"
+    ADD CONSTRAINT "fk_to"
+        FOREIGN KEY ("To")
+            REFERENCES "APP"."CATEGORY"("ID")
+            ON DELETE CASCADE;
+
+# --- !Downs
+-- Revierte las constraints a su forma original (sin ON DELETE CASCADE)
+
+ALTER TABLE "APP"."CATEGORY_MODIFICATIONS"
+DROP CONSTRAINT IF EXISTS "fk_from";
+
+ALTER TABLE "APP"."CATEGORY_MODIFICATIONS"
+    ADD CONSTRAINT "fk_from"
+        FOREIGN KEY ("From")
+            REFERENCES "APP"."CATEGORY"("ID");
+
+ALTER TABLE "APP"."CATEGORY_MODIFICATIONS"
+DROP CONSTRAINT IF EXISTS "fk_to";
+
+ALTER TABLE "APP"."CATEGORY_MODIFICATIONS"
+    ADD CONSTRAINT "fk_to"
+        FOREIGN KEY ("To")
+            REFERENCES "APP"."CATEGORY"("ID");

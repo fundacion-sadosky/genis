@@ -266,7 +266,7 @@ class ScenariosTest extends PdgSpec with MockitoSugar with Results {
       val scenario = Stubs.newScenario
       val jsRequest = Json.toJson(scenario)
       val matchingServiceMock = mock[MatchingService]
-      when(matchingServiceMock.validate(scenario)).thenReturn(Future.successful(Right("Ok")))
+      when(matchingServiceMock.validate(scenario, "userName")).thenReturn(Future.successful(Right("Ok")))
       val scenarioServiceMock = mock[ScenarioService]
       when(scenarioServiceMock.validate("geneticist", scenario, false)).thenReturn(Future.successful(Left("Error")))
       val userService = mock[UserService]
@@ -289,7 +289,7 @@ class ScenariosTest extends PdgSpec with MockitoSugar with Results {
       when(scenarioServiceMock.validate("geneticist", scenario, false)).thenReturn(Future.successful(Right("Id")))
 
       val matchingServiceMock = mock[MatchingService]
-      when(matchingServiceMock.validate(scenario)).thenReturn(Future.successful(Right("Ok")))
+      when(matchingServiceMock.validate(scenario, "userName")).thenReturn(Future.successful(Right("Ok")))
       val userService = mock[UserService]
       when(userService.isSuperUser("geneticist")).thenReturn(Future.successful((false)))
 

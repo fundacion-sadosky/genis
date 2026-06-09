@@ -8,7 +8,8 @@ case class ProfileCategoryModificationSetup(
   updatedCategory: AlphanumericId,
   assignee: String,
   profileApproval: ProfileApproval,
-  approvalResult: Option[Either[String, SampleCode]]
+  approvalResult: Option[Either[String, SampleCode]],
+  userName: String
 ) {
   def isCategoryUpdated() : Boolean = {
     this

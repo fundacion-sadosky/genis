@@ -21,6 +21,7 @@ app-2.11/
 
 # suggested by play framework
 logs
+!logs/.gitkeep
 tmp
 dist
 .cache
@@ -58,3 +59,8 @@ public/export/
 # dev conf files 
 application-dev.conf
 logger-dev.xml
+
+# Utils sample files
+utils/*.csv
+utils/*.tsv
+utils/*.txt

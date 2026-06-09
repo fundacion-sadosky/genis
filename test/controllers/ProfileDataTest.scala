@@ -72,7 +72,8 @@ class ProfileDataTest extends PdgSpec with MockitoSugar with Results {
         mockProfileService,
         mockCategoryService,
         mockMatchingService,
-        mockInterconnectionService
+        mockInterconnectionService,
+        null
       )
 
       val result: Future[Result] = target.create().apply(request)
@@ -100,7 +101,8 @@ class ProfileDataTest extends PdgSpec with MockitoSugar with Results {
         mockProfileService,
         mockCategoryService,
         mockMatchingService,
-        mockInterconnectioService
+        mockInterconnectioService,
+        null
       )
       val result: Future[Result] = target.create().apply(request)
 
@@ -123,7 +125,7 @@ class ProfileDataTest extends PdgSpec with MockitoSugar with Results {
         mockProfileService,
         mockCategoryService,
         mockMatchingService,
-        mockInterconnectionService
+        mockInterconnectionService,null
       )
       val result: Future[Result] = target.findByCode(pd.globalCode).apply(FakeRequest())
 

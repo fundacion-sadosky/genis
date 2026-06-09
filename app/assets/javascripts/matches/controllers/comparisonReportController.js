@@ -62,8 +62,8 @@ define(
         var nDiff = new Set(allAlleles).size;
         return nDiff;
       };
-      var markerMap = new Map();
       $scope.getMarker = function(marker, profileId) {
+        var markerMap = new Map();
         if (markerMap.size===0) {
           markerMap = new Map(
             $scope
@@ -79,10 +79,11 @@ define(
         return markerMap
           .get(marker)
           .get(profileId)
-          .map(function(x){return x+"/"+x;})
+          .map(function(x){return x;})
           .join(" ");
       };
       $scope.markers = function() {
+        console.debug("Comparison report controller - Markers being sorted")
         var markers = $scope
           .comparision
           .filter(function(x) {return !x.locus.startsWith("HV");})
@@ -90,6 +91,7 @@ define(
         markers.sort();
         return markers;
       };
+
     }
     return ComparisonReportController;
   }

@@ -4,15 +4,20 @@ define([], function() {
 	function MatchesService(playRoutes, userService) {
 		
 		this.doHit = function(matchingId, firingCode){
-			return playRoutes.controllers.Matching.convertHit(matchingId, firingCode).post();
+			//Pasar el usuario conectado
+			var userName = userService.getUser().name;
+			return playRoutes.controllers.Matching.convertHit(matchingId, firingCode, userName).post();
 		};
 		
 		this.doDiscard = function(matchingId, firingCode){
-			return playRoutes.controllers.Matching.convertDiscard(matchingId, firingCode).post();
+			//Pasar el usuario conectado
+			var userName = userService.getUser().name;
+			return playRoutes.controllers.Matching.convertDiscard(matchingId, firingCode, userName).post();
 		};
 
 		this.doUpload = function(matchingId, firingCode){
-			return playRoutes.controllers.Matching.uploadStatus(matchingId, firingCode).post();
+			var userName = userService.getUser().name;
+			return playRoutes.controllers.Matching.uploadStatus(matchingId, firingCode, userName).post();
 		};
 
 		this.canUpload = function(matchingId){
@@ -52,8 +57,22 @@ define([], function() {
             var user = userService.getUser();
             search.user = user.name;
             search.isSuperUser = user.superuser;
+			console.debug("Searching matches with: ", search)
 			return playRoutes.controllers.Matching.getMatches().post(search);
 		};
+
+		this.searchMatchesByCode = function (globalCode) {
+			var searchObject = {};
+
+			searchObject.profile = globalCode;
+
+			searchObject.page = 0;
+			searchObject.pageSize = 30;
+			searchObject.ascending = false;
+
+			return this.searchMatches(searchObject);
+
+		}
 
 		this.getTotalMatches = function(search){
 			var user = userService.getUser();
@@ -136,11 +155,13 @@ define([], function() {
 		};
 
 		this.descarteMasivoByGlobalCode = function (globalCode) {
-			return playRoutes.controllers.Matching.masiveDiscardByGlobalCode(globalCode).post();
+			var userName = userService.getUser().name;
+			return playRoutes.controllers.Matching.masiveDiscardByGlobalCode(globalCode, userName).post();
 		};
 
 		this.descarteMasivoByList = function (globalCode, matches) {
-			return playRoutes.controllers.Matching.masiveDiscardByMatchesList(globalCode, matches).post();
+			var userName = userService.getUser().name;
+			return playRoutes.controllers.Matching.masiveDiscardByMatchesList(globalCode, matches, userName).post();
 		};
 	}
 

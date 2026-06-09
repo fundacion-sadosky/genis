@@ -72,7 +72,7 @@ class MatchingServiceTest extends PdgSpec with MockitoSugar {
 
       val matchingService = new MatchingServiceSparkImpl(null, matchingRepository, Stubs.notificationServiceMock, null, null, scenarioRepository, null, Stubs.traceServiceMock, null, null, null, null, null, null)
 
-      val result = Await.result(matchingService.convertDiscard("548395fssei2938f", SampleCode("AR-B-IMBICE-501"), false,false), duration)
+      val result = Await.result(matchingService.convertDiscard("548395fssei2938f", SampleCode("AR-B-IMBICE-501"), false,false, "userName"), duration)
 
       result.isRight mustBe true
 
@@ -90,7 +90,7 @@ class MatchingServiceTest extends PdgSpec with MockitoSugar {
 
       val matchingService = new MatchingServiceSparkImpl(null, matchingRepository, null, null, null, scenarioRepository, null, Stubs.traceServiceMock, null, null, null, null, null, null)
 
-      val result = Await.result(matchingService.convertDiscard("548395fssei2938f", SampleCode("AR-B-IMBICE-501"), false,false), duration)
+      val result = Await.result(matchingService.convertDiscard("548395fssei2938f", SampleCode("AR-B-IMBICE-501"), false,false, "userName"), duration)
 
       result.isLeft mustBe true
       result mustBe Left("E0902: La coincidencia está siendo utilizada en un escenario pendiente.")
@@ -115,7 +115,7 @@ class MatchingServiceTest extends PdgSpec with MockitoSugar {
 
       val matchingService = new MatchingServiceSparkImpl(null, matchingRepository, Stubs.notificationServiceMock, null, null, null, null, traceService, null, null, null, null, null, null)
 
-      Await.result(matchingService.convertHit(mongoId.id, SampleCode("AR-B-IMBICE-500"),false), duration)
+      Await.result(matchingService.convertHit(mongoId.id, SampleCode("AR-B-IMBICE-500"),false, "userName"), duration)
 
       //Se agrega el thread sleep porque hay un promise onSuccess
       Thread.sleep(2000)
@@ -146,7 +146,7 @@ class MatchingServiceTest extends PdgSpec with MockitoSugar {
 
       val matchingService = new MatchingServiceSparkImpl(null, matchingRepository, Stubs.notificationServiceMock, null, null, scenarioRepository, null, traceService, null, null, null, null, null, null)
 
-      Await.result(matchingService.convertDiscard(mongoId.id, SampleCode("AR-B-IMBICE-500"),false, false), duration)
+      Await.result(matchingService.convertDiscard(mongoId.id, SampleCode("AR-B-IMBICE-500"),false, false, "userName"), duration)
 
       //Se agrega el thread sleep porque hay un promise onSuccess
       Thread.sleep(2000)

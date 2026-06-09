@@ -23,6 +23,7 @@ abstract class NotificationService {
   def delete(id: Long): Future[Either[String, Long]]
   def changeFlag(id: Long, flag: Boolean): Future[Either[String, Long]]
   def getNotifications(userId: String): Enumerator[Notification]
+  def changePending(id: Long, pending: Boolean): Future[Either[String, Long]]
 }
 
 @Singleton
@@ -91,5 +92,20 @@ class NotificationServiceImpl @Inject() (akkaSystem: ActorSystem,
   override def changeFlag(id: Long, flag: Boolean): Future[Either[String, Long]] = {
     notificationRepository.changeFlag(id, flag)
   }
+
+  override def changePending(id: Long, pending: Boolean): Future[Either[String, Long]] = {
+    notificationRepository.getById(id).flatMap {
+      case None => Future.successful(Left("No existe la notificación"))
+      case Some(notification) => {
+        if (notification.pending && !pending) {
+          in.push(notification.copy(pending = false))
+        } else if (!notification.pending && pending) {
+          in.push(notification.copy(pending = true))
+        }
+        notificationRepository.updatePending(id, pending)
+      }
+    }
+  }
+
 
 }

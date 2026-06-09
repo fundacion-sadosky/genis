@@ -2,12 +2,10 @@ package configdata
 
 import java.sql.SQLException
 import javax.inject.{Inject, Singleton}
-
 import matching.{Algorithm, Stringency}
 import models.Tables
 import models.Tables._
-import play.api.Application
-
+import play.api.{Application, Logger}
 import play.api.db.slick.Config.driver.simple._
 import play.api.db.slick.DB
 import play.api.i18n.Messages
@@ -24,9 +22,15 @@ abstract class CategoryRepository extends DefaultDb with Transaction {
 
   def listCategoriesWithProfiles: Future[List[Category]]
 
+  def listConfigurations: Future[Seq[CategoryConfigurationRow]]
+  def listAssociations: Future[Seq[CategoryAssociationRow]]
+  def listAlias: Future[Seq[CategoryAliasRow]]
+  def listMatchingRules: Future[Seq[CategoryMatchingRow]]
+
   def addCategory(cat: Category): Future[AlphanumericId]
   def updateCategory(category: Category): Future[Int]
   def removeCategory(categoryId: AlphanumericId): Future[Int]
+  def removeAllCategories(): Future[Int]
 
   def updateFullCategory(category: FullCategory)(implicit session: Session): Either[String, AlphanumericId]
 
@@ -44,6 +48,7 @@ abstract class CategoryRepository extends DefaultDb with Transaction {
   def addGroup(group: Group): Future[AlphanumericId]
   def updateGroup(group: Group): Future[Int]
   def removeGroup(groupId: AlphanumericId): Future[Int]
+  def removeAllGroups(): Future[Int]
 
   def insertOrUpdateMapping(categoryMapping: CategoryMappingList): Future[Either[String, Unit]]
   def listCategoriesMapping: Future[List[FullCategoryMapping]]
@@ -167,6 +172,8 @@ class SlickCategoryRepository @Inject() (implicit app: Application) extends Cate
     cm <- categoryMatching if (cm.category === categoryId)
   ) yield (cm)
 
+
+
   val querysubCategoryMatching = Compiled(queryDefineCategoryMatching _)
 
   private def queryDefineSubcategoryAssociationRules(categoryId: Column[String]) = for (
@@ -191,6 +198,31 @@ class SlickCategoryRepository @Inject() (implicit app: Application) extends Cate
   val getMappingById = Compiled(queryGetMappingById _)
   private def queryGetMappingReverseById(id: Column[String]) = categoryMappingTable.filter(_.idSuperior === id)
   val getMappingReverseById = Compiled(queryGetMappingReverseById _)
+  
+  private val queryGetAllCategoryMatching =
+    Compiled(categoryMatching.filter(_ => LiteralColumn(true)))
+
+  private val queryGetAllCategoryAssoc =
+    Compiled(categoryAssoc.filter(_ => LiteralColumn(true)))
+
+  private val queryGetAllCategoryAlias =
+    Compiled(categoriesAlias.filter(_ => LiteralColumn(true)))
+
+  private val queryGetAllCategoryConfiguration =
+    Compiled(categoryConfiguration.filter(_ => LiteralColumn(true)))
+
+  private val queryGetAllCategoryMapping =
+    Compiled(categoryMappingTable.filter(_ => LiteralColumn(true)))
+
+  private val queryGetAllCategoryModifications =
+    Compiled(categoriesModifications.filter(_ => LiteralColumn(true)))
+
+  private val queryGetAllCategories =
+    Compiled(categories.filter(_ => LiteralColumn(true)))
+
+  private val queryGetAllGroups =
+    Compiled(groups.filter(_ => LiteralColumn(true)))
+
   override def listGroupsAndCategories: Future[Seq[(Group, Option[Category])]] = Future {
     DB.withSession { implicit session =>
       queryGetGroupsCategories.list.map {
@@ -234,7 +266,7 @@ class SlickCategoryRepository @Inject() (implicit app: Application) extends Cate
 
         val thisConf = conf.filter { _.category == cat.id }.map { x =>
           x.`type` -> CategoryConfiguration(x.collectionUri, x.draftUri,
-            x.minLocusPerProfile, x.maxOverageDeviatedLoci, x.maxAllelesPerLocus)
+            x.minLocusPerProfile, x.maxOverageDeviatedLoci, x.maxAllelesPerLocus, x.multiallelic)
         }.toMap
 
         val thisMatchRules = matchs.filter { _._1.category == cat.id }.map {
@@ -259,6 +291,67 @@ class SlickCategoryRepository @Inject() (implicit app: Application) extends Cate
           thisAlias,
           thisMatchRules,
           Some(cat.tipo))
+      }
+    }
+  }
+
+  override def listConfigurations: Future[Seq[CategoryConfigurationRow]] = Future {
+    DB.withSession { implicit session =>
+      confQuery.list map {conf =>
+        CategoryConfigurationRow(
+          conf.id,
+          conf.category,
+          conf.`type`,
+          conf.collectionUri,
+          conf.draftUri,
+          conf.minLocusPerProfile,
+          conf.maxOverageDeviatedLoci,
+          conf.maxAllelesPerLocus,
+          conf.multiallelic
+          )
+        }
+      }
+    }
+  override def listAssociations: Future[Seq[CategoryAssociationRow]] = Future {
+    DB.withSession { implicit session =>
+      assocQuery.list map {assoc =>
+        CategoryAssociationRow(
+          assoc.id,
+          assoc.category,
+          assoc.categoryRelated,
+          assoc.mismatchs,
+          assoc.`type`
+        )
+      }
+    }
+  }
+  override def listAlias: Future[Seq[CategoryAliasRow]] = Future {
+    DB.withSession { implicit session =>
+      aliasQuery.list map {alias =>
+        CategoryAliasRow(
+          alias.alias,
+          alias.category
+        )
+      }
+    }
+  }
+  override def listMatchingRules: Future[Seq[CategoryMatchingRow]] = Future {
+    DB.withSession { implicit session =>
+      queryGetAllCategoryMatching.list map {matchingRule =>
+        CategoryMatchingRow(
+          matchingRule.id,
+          matchingRule.category,
+          matchingRule.categoryRelated,
+          matchingRule.priority,
+          matchingRule.minimumStringency,
+          matchingRule.failOnMatch,
+          matchingRule.forwardToUpper,
+          matchingRule.matchingAlgorithm,
+          matchingRule.minLocusMatch,
+          matchingRule.mismatchsAllowed,
+          matchingRule.`type`,
+          matchingRule.considerForN
+        )
       }
     }
   }
@@ -399,12 +492,69 @@ class SlickCategoryRepository @Inject() (implicit app: Application) extends Cate
   override def removeCategory(categoryId: AlphanumericId): Future[Int] = Future {
     // TODO check if there is a CategoryModification associated with this category
     //      if so, remove it
+
     DB.withTransaction { implicit session =>
       getMappingById(categoryId.text).delete
       val res = queryGetCategory(categoryId.text).delete
       res
     }
   }
+  override def removeAllCategories(): Future[Int] = Future {
+    try {
+      DB.withTransaction { implicit session =>
+
+        val m1 = queryGetAllCategoryMatching.delete
+        val m2 = queryGetAllCategoryAssoc.delete
+        val m3 = queryGetAllCategoryAlias.delete
+        val m4 = queryGetAllCategoryConfiguration.delete
+        val m5 = queryGetAllCategoryMapping.delete
+        val m6 = queryGetAllCategoryModifications.delete
+
+        val allCategories = queryGetAllCategories.run
+        Logger.info("Categories to remove: " + (allCategories).toString())
+
+        val m7 = queryGetAllCategories.delete
+
+        Logger.info(
+          s"""
+             |Deleted:
+             |categories=$m7
+         """.stripMargin
+        )
+
+        m7
+      }
+    } catch {
+      case e: Throwable =>
+        Logger.error("Error removing all categories", e)
+        throw e
+    }
+  }
+
+
+  override def removeAllGroups(): Future[Int] = Future {
+    try {
+      DB.withTransaction { implicit session =>
+
+        val allGroups = queryGetAllGroups.run
+        Logger.info("Groups to remove: " + (allGroups).toString())
+
+        val res = queryGetAllGroups.delete
+
+        Logger.info(
+          s"""
+             |Deleted:=$res
+         """
+        )
+        res
+      }
+    } catch {
+      case e: Throwable =>
+        Logger.error("Error removing all groups", e)
+        throw e
+    }
+  }
+
 
   override def updateCategory(category: Category): Future[Int] = Future {
     DB.withTransaction { implicit session =>
@@ -418,7 +568,7 @@ class SlickCategoryRepository @Inject() (implicit app: Application) extends Cate
       val rows = configurations.map {
         case (analysisType, conf) =>
           CategoryConfigurationRow(0, categoryId.text, analysisType, conf.collectionUri, conf.draftUri,
-            conf.minLocusPerProfile, conf.maxOverageDeviatedLoci, conf.maxAllelesPerLocus) }
+            conf.minLocusPerProfile, conf.maxOverageDeviatedLoci, conf.maxAllelesPerLocus, conf.multiallelic) }
       categoryConfiguration ++= rows
       Right(categoryId)
     } catch {

@@ -6,6 +6,7 @@ define(
 		'./matchesController',
 		'./controllers/comparisonController',
 		'./controllers/comparisonReportController',
+		'./controllers/desktopSearchReportController',
 		'./controllers/statsOptionModalController',
 		'./directives/pdgProfileDataInfo',
 		'./directives/pdgProfileDataInfoPopover',
@@ -19,6 +20,7 @@ define(
 		matchesController,
 		comparisonController,
 		comparisonReportController,
+		desktopSearchReportController,
 		statsOptionModalController,
 		pdgProfileDataInfo,
 		pdgProfileDataInfoPopover,
@@ -53,14 +55,6 @@ define(
 				]
 			)
 			.controller(
-				'comparisonReportController',
-				[
-					'$scope',
-					'matchesService',
-					comparisonReportController
-				]
-			)
-			.controller(
 				'comparisonController',
 				[
 					'$scope',
@@ -80,6 +74,39 @@ define(
 					'locusService',
 					'$window',
 					comparisonController
+				]
+			)
+			.controller(
+				'comparisonReportController',
+				[
+					'$scope',
+					'matchesService',
+					comparisonReportController
+				]
+			)
+			.controller(
+				'desktopSearchReportController',
+				[
+					'$scope',
+					'$routeParams',
+					'$modal',
+					'$timeout',
+					'$filter',
+					'$q',
+					'matchesService',
+					'profileDataService',
+					'profileService',
+					'$sce',
+					'statsService',
+					'alertService',
+					'cryptoService',
+					'appConf',
+					'analysisTypeService',
+					'locusService',
+					'$window',
+					'notificationsService',
+					'shared',
+					desktopSearchReportController
 				]
 			)
 			.controller(

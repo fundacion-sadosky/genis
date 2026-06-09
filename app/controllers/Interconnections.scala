@@ -1,11 +1,14 @@
 package controllers
 
+import bulkupload.ProtoProfileRepository
+
 import javax.inject.{Inject, Singleton}
 import play.api.libs.json.{JsError, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, BodyParsers, Controller}
 
 import javax.inject.{Inject, Singleton}
 import com.ning.http.client.Request
+import connections.HeaderInsterconnections.labCode
 import trace.{TraceSearch, TraceService}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
@@ -15,13 +18,16 @@ import connections._
 import play.api.Logger
 import play.api.i18n.Messages
 import types.SampleCode
-import profiledata.ProfileDataService
+import profiledata.{ProfileDataRepository, ProfileDataService}
+import matching.{MatchingRepository, MatchResult}
 
 @Singleton
-class Interconnections @Inject()(
-  interconnectionService : InterconnectionService,
-  profiledataService: ProfileDataService
-) extends Controller {
+class Interconnections @Inject()( val protoRepo: ProtoProfileRepository,
+                                  interconnectionService : InterconnectionService,
+                                  profiledataService: ProfileDataService,
+                                  profileDataRepository: ProfileDataRepository,
+                                  matchingRepository: MatchingRepository
+                                ) extends Controller {
   val logger: Logger = Logger(this.getClass())
 
   def getConnections = Action.async {
@@ -81,14 +87,14 @@ class Interconnections @Inject()(
       val laboratory = request.headers.get(HeaderInsterconnections.laboratoryImmediateInstance)
 
       (url,laboratory) match {
-         case (Some(urlContent),Some(laboratory)) => {
-           interconnectionService.insertInferiorInstanceConnection(urlContent,laboratory).map{
-             case Left(e) => BadRequest(Json.obj("message" -> e))
-             case Right(()) => Ok.withHeaders("X-CREATED-ID" -> laboratory)
-           }
-         }
-         case (_,_) => Future.successful(BadRequest(Json.obj("message" -> "Debe completar los parámetros de url ")))
-       }
+        case (Some(urlContent),Some(laboratory)) => {
+          interconnectionService.insertInferiorInstanceConnection(urlContent,laboratory).map{
+            case Left(e) => BadRequest(Json.obj("message" -> e))
+            case Right(()) => Ok.withHeaders("X-CREATED-ID" -> laboratory)
+          }
+        }
+        case (_,_) => Future.successful(BadRequest(Json.obj("message" -> "Debe completar los parámetros de url ")))
+      }
 
     }
 
@@ -126,7 +132,7 @@ class Interconnections @Inject()(
         })
     }
   }
-// Instancia superior recibe profile
+  // Instancia superior recibe profile
   def importProfile(): Action[JsValue] = Action.async(BodyParsers.parse.json) {
 
     request => {
@@ -144,7 +150,7 @@ class Interconnections @Inject()(
           Some(dateAdded),
           Some(labCodeInstanceOrigin),
           Some(labCodeInmediateInstanceOrigin)
-        ) =>
+          ) =>
           val input = request.body.validate[connections.ProfileTransfer]
           input.fold(
             errors => {
@@ -171,8 +177,8 @@ class Interconnections @Inject()(
       }
     }
   }
-  // instancia superior recibe el codigo de profile a borrar
-  def deleteProfile(id:String) = Action.async(BodyParsers.parse.json) {
+  // instancia superior recibe el codigo y el usuario que borró el perfil en la instancia inferior
+  def deleteProfileFromInferior(id:String, userName: String) = Action.async(BodyParsers.parse.json) {
     request =>{
       val labcode = request.headers.get(HeaderInsterconnections.labCode)
       val labCodeInstanceOrigin = request.headers.get(HeaderInsterconnections.laboratoryOrigin)
@@ -185,7 +191,7 @@ class Interconnections @Inject()(
             Future.successful(BadRequest(JsError.toFlatJson(errors)))
           },
             motive => {
-              interconnectionService.receiveDeleteProfile(id,motive,lio,li).map{
+              interconnectionService.receiveDeleteProfile(id,motive,lio,li, true, userName).map{
                 case Left(e) => BadRequest(Json.obj("message" -> e))
                 case Right(_) => Ok.withHeaders("X-CREATED-ID" -> id.toString)
               }
@@ -197,26 +203,42 @@ class Interconnections @Inject()(
       }
     }
   }
-  def approveProfiles(): Action[JsValue] = Action.async(BodyParsers.parse.json){
-    request =>{
-      val input = request.body.validate[List[ProfileApproval]]
-      input.fold(errors => {
-        Future.successful(BadRequest(JsError.toFlatJson(errors)))
-      },
-        approvals => {
-          interconnectionService
-            .approveProfiles(approvals)
-            .map{
-            case Left(e) => BadRequest(Json.obj("message" -> e))
-            case Right(()) => Ok.withHeaders(
-              "X-CREATED-ID" -> approvals
-                .map(a=>a.globalCode)
-                .mkString(start = "[",sep =",",end ="]")
-            )
-          }
-        }
-      )
 
+  def retrieveImmediateInferiorInstanceLabCode(globalCode: String): String = {
+    profileDataRepository.getImmediateInferiorInstanceLabCode(globalCode)
+  }
+
+  def approveProfiles(userName: String): Action[JsValue] = Action.async(BodyParsers.parse.json) { request =>
+    val input = request.body.validate[List[ProfileApproval]]
+    input.fold(
+      errors => Future.successful(BadRequest(JsError.toFlatJson(errors))),
+      approvals => {
+        // Llamamos directamente al servicio.
+        // Se asume que interconnectionService.approveProfiles internamente desencadena
+        // la lógica que lleva a notifyApprovalChangeStatus.
+        interconnectionService.approveProfiles(approvals, userName).map {
+          case Left(e) =>
+            // Manejo de error del servicio
+            BadRequest(Json.obj("message" -> e))
+
+          case Right(()) =>
+            // Éxito: Solo devolvemos el OK con los headers correspondientes.
+            // La actualización de PROFILE_RECEIVED ya ocurrió en el flujo interno.
+            Ok.withHeaders(
+              "X-CREATED-ID" -> approvals.map(a => a.globalCode).mkString(start = "[", sep = ",", end = "]")
+            )
+        }
+      }
+    )
+  }
+
+
+  private def getLabCodeFromGlobalCode(globalCode: String): Option[String] = {
+    val parts = globalCode.split("-")
+    if (parts.length >= 4) {
+      Some(parts(2))
+    } else {
+      None  // Or handle the case where the globalCode doesn't have the expected format
     }
   }
 
@@ -236,41 +258,56 @@ class Interconnections @Inject()(
     }
   }
 
-  def rejectPendingProfile(id: String,motive:String,idMotive:Long) = Action.async {
-      request => {
-        val user = request.headers.get("X-USER")
-          interconnectionService.rejectProfile(ProfileApproval(id),motive,idMotive,user).map{
-            case Left(e) => BadRequest(Json.obj("message" -> e))
-            case Right(()) => Ok.withHeaders("X-CREATED-ID" -> id)
+
+  def rejectPendingProfile(id: String,motive:String,idMotive:Long, userName:String, isCategoryModification: Boolean) = Action.async {
+    request => {
+      interconnectionService.rejectProfile(ProfileApproval(id),motive,idMotive,userName).map{
+        case Left(e) => BadRequest(Json.obj("message" -> e))
+        case Right(()) => {
+          val labCode: Option[String] = getLabCodeFromGlobalCode(id)
+          labCode match {
+            //Insertar el perfil en PROFILE_RECEIVED table
+            case Some(code) => {
+              profiledataService.addProfileReceivedRejected(code, id, 21L,  motive,userName, isCategoryModification)
+            }// Using profiledataService to access the repository
+            case None => Future.successful(Left("Invalid global code format")) // Or handle the missing labCode case
           }
+          Ok.withHeaders("X-CREATED-ID" -> id)
+        }
+      }
     }
   }
 
-  def uploadProfile(globalCode:String) = Action.async {
+
+
+  //Cuando se recibe un perfil de una instancia inferior
+  def uploadProfile(globalCode:String, userName: String) = Action.async {
     _ => {
-      interconnectionService.uploadProfile(globalCode).map{
+      interconnectionService.uploadProfile(globalCode, userName).map{
         case Left(e) => BadRequest(Json.obj("message" -> e))
         case Right(()) => Ok.withHeaders("X-CREATED-ID" -> globalCode)
       }
     }
   }
-
+// Acá se entra desde routes (es decir que se hace UPDATE de un perfile subido (Update de PROFILE_UPLOADED)
   def updateUploadStatus(
-    globalCode: String,
-    status:Long,
-    motive:Option[String],
-    isCategoryModification:Boolean = false
-  ): Action[AnyContent] = Action.async {
+                          globalCode: String,
+                          status:Long,
+                          motive:Option[String],
+                          userName:String,
+                          isCategoryModification:Boolean = false,
+                          operationOriginatedInInstance: Option[String]
+                        ): Action[AnyContent] = Action.async {
     _ => {
       interconnectionService
-        .updateUploadStatus(globalCode, status, motive, isCategoryModification)
+        .updateUploadStatus(globalCode, status, motive, userName, isCategoryModification, operationOriginatedInInstance.getOrElse(""))
         .map{
           case Left(e) => BadRequest(Json.obj("message" -> e))
           case Right(()) => Ok.withHeaders("X-CREATED-ID" -> globalCode)
         }
     }
   }
-  
+
   def getUploadStatus(globalCode: String): Action[AnyContent] = Action.async {
     _ => {
       profiledataService
@@ -311,7 +348,8 @@ class Interconnections @Inject()(
             convertStatusInterconnection.rightProfileCode,
             convertStatusInterconnection.status,
             convertStatusInterconnection.labOrigin,
-            convertStatusInterconnection.labImmediate).map{
+            convertStatusInterconnection.labImmediate,
+            convertStatusInterconnection.userName).map{
             case _ => Ok.withHeaders("X-CREATED-ID" -> "")
           }
         }
@@ -330,6 +368,12 @@ class Interconnections @Inject()(
           }
         }
       )
+    }
+  }
+
+  def getIsProfileReplicableInternalCode(internalCode: String) = Action.async { _ =>
+    interconnectionService.isUplpoadableInternalCode(internalCode).map { isReplicable =>
+      Ok(Json.toJson(isReplicable))
     }
   }
 }

@@ -153,7 +153,8 @@ function ProfileService(playRoutes, $log, $q, userService) {
 		return playRoutes.controllers.Profiles.getLabels(sampleCode).get();
 	};
     this.uploadProfile = function(globalGlode) {
-        return playRoutes.controllers.Interconnections.uploadProfile(globalGlode).post();
+		var userName = userService.getUser().name;
+        return playRoutes.controllers.Interconnections.uploadProfile(globalGlode, userName).post();
     };
     this.isReadOnly = function(sampleCode) {
         return playRoutes.controllers.Profiles.isReadOnly(sampleCode).get();
@@ -166,6 +167,15 @@ function ProfileService(playRoutes, $log, $q, userService) {
 	this.removeEpg = function(fileId) {
 		return playRoutes.controllers.Profiles.removeEpg(fileId).delete();
 	};
+
+	this.removeAll = function() {
+		return playRoutes.controllers.Profiles.removeAll().delete();
+	};
+
+	this.removeProfile = function(globalCode) {
+		return playRoutes.controllers.Profiles.removeProfile(globalCode).delete();
+	};
+
 }
 
 return ProfileService;

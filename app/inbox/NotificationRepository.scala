@@ -25,6 +25,7 @@ abstract class NotificationRepository {
   def search(notiSearch: NotificationSearch): Future[IndexedSeq[Notification]]
   def count(notiSearch: NotificationSearch): Future[Int]
   def changeFlag(id: Long, flag: Boolean): Future[Either[String, Long]]
+  def updatePending(id: Long, pending: Boolean): Future[Either[String, Long]]
 }
 
 @Singleton
@@ -46,6 +47,12 @@ class SlickNotificationRepository @Inject() (implicit app: Application) extends 
     for{
       notif <- notifications if notif.id === id
     } yield (notif.id, notif.flagged)
+  }
+
+  val queryGetPending = Compiled { id: Column[Long] =>
+    for{
+      notif <- notifications if notif.id === id
+    } yield (notif.id, notif.pending)
   }
 
   val queryGetByUser = Compiled { userId: Column[String] =>
@@ -201,6 +208,21 @@ class SlickNotificationRepository @Inject() (implicit app: Application) extends 
     DB.withTransaction { implicit session =>
       try {
         queryGetFlag(id).update((id, flag))
+        Right(id)
+      } catch {
+        case e: Exception => {
+          e.printStackTrace()
+          Left(e.getMessage)
+        }
+      }
+    }
+  }
+
+  override def updatePending(id: Long, pending: Boolean): Future[Either[String, Long]] = Future {
+    DB.withTransaction { implicit session =>
+      try {
+        // Use the new queryGetPending to update only the pending status
+        queryGetPending(id).update((id, pending))
         Right(id)
       } catch {
         case e: Exception => {

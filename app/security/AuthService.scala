@@ -191,7 +191,15 @@ class AuthServiceImpl @Inject() (
     Option[String],
     otp: Option[TotpToken]
   ): Try[String] = {
-    if (isPublicResource(encryptedUri)) {
+    if (encryptedUri.startsWith("/categories/import")) {
+      Success(encryptedUri) // No desencriptar
+    } else if (encryptedUri.startsWith("/strkit/import")) {
+      Success(encryptedUri) // No desencriptar
+    } else if (encryptedUri.startsWith("/locus/import")) {
+      Success(encryptedUri) // No desencriptar
+    } else if (encryptedUri.startsWith("/roles/import")) {
+      Success(encryptedUri) // No desencriptar
+    } else if (isPublicResource(encryptedUri)) {
       Success(encryptedUri)
     } else {
       userNameOpt.fold[Try[String]] {

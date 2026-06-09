@@ -8,7 +8,8 @@ case class CategoryConfiguration(
     draftUri: String = "",
     minLocusPerProfile: String = "K",
     maxOverageDeviatedLoci: String = "0",
-    maxAllelesPerLocus: Int = 6
+    maxAllelesPerLocus: Int = 6,
+    multiallelic: Boolean = false
 )
 
 object CategoryConfiguration {

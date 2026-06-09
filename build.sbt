@@ -1,8 +1,15 @@
 import WebKeys._
 //import com.nescale.gitstamp.GitStampPlugin._
+import scala.concurrent.duration._
 import RjsKeys._
 
 //Seq(gitStampSettings: _*)
+
+// Headless dev mode: block forever instead of waiting for Ctrl+D via jline
+PlayKeys.playInteractionMode := new play.PlayInteractionMode {
+  def waitForCancel(): Unit = { val lock = new AnyRef; lock.synchronized { lock.wait() } }
+  def doWithoutEcho(f: => Unit): Unit = f
+}
 
 name := """genis"""
 
@@ -16,7 +23,7 @@ transitiveClassifiers := Seq("sources", "javadoc")
 // TODO Set your organization here; ThisBuild means it will apply to all sub-modules
 organization in ThisBuild := "ar.org.fundacionsadosky"
 
-version := "5.1.12"
+version := "5.1.13"
 
 packageDescription := "Genis app"
 
@@ -155,7 +162,8 @@ libraryDependencies ++= Seq(
   "org.webjars" % "font-awesome" % "4.4.0",
   "org.webjars" % "d3js" % "3.5.5-1",
   "org.webjars" % "dagre-d3" % "0.4.10",
-  "org.webjars" % "animate.css" % "3.5.2"
+  "org.webjars" % "animate.css" % "3.5.2",
+  "org.webjars.npm" % "jszip" % "3.10.1" exclude("org.webjars.npm", "lie")
   )
 
 // LDAP 
@@ -170,7 +178,7 @@ libraryDependencies ++= Seq(
 
 // Async
 libraryDependencies ++= Seq(
- "org.scala-lang.modules" %% "scala-async" % "0.9.6"
+  "org.scala-lang.modules" %% "scala-async" % "0.9.6"
 )
 
 // TOTP 
@@ -182,10 +190,10 @@ resolvers += "Cascading Conjars" at "https://conjars.wensel.net/repo/"
 
 // Spark 2.0
 libraryDependencies ++= Seq(
-	"org.apache.spark" %% "spark-core" % "2.1.1" withSources() withJavadoc(),
+  "org.apache.spark" %% "spark-core" % "2.1.1" withSources() withJavadoc(),
   "org.apache.spark" %% "spark-sql" % "2.1.1",
-	//"org.mongodb.spark" % "mongo-spark-connector_2.11" % "2.0.0" withSources() withJavadoc(),
-	"org.mongodb" % "mongo-java-driver" % "3.2.2" withSources() withJavadoc(),
+  //"org.mongodb.spark" % "mongo-spark-connector_2.11" % "2.0.0" withSources() withJavadoc(),
+  "org.mongodb" % "mongo-java-driver" % "3.2.2" withSources() withJavadoc(),
   "org.scala-graph" %% "graph-core" % "1.11.5"
 )
 
@@ -212,6 +220,9 @@ libraryDependencies ++= Seq(
   "nu.validator.htmlparser" % "htmlparser" % "1.4"
 )
 
+// Include empty logs directory in dist package
+mappings in Universal += file("logs/.gitkeep") -> "logs/.gitkeep"
+
 // Scala Compiler Options
 scalacOptions in ThisBuild ++= Seq(
   "-target:jvm-1.8",
@@ -228,10 +239,12 @@ scalacOptions in ThisBuild ++= Seq(
 
 // Java compiler options
 javacOptions in ThisBuild ++= Seq(
-	"-source", "1.8",
-	"-target", "1.8"
+  "-source", "1.8",
+  "-target", "1.8"
 )
 
+// JVM options for production packaging (headless mode required for PDF generation on servers without X11)
+javaOptions in Universal += "-Djava.awt.headless=true"
 //
 // sbt-web configuration
 // https://github.com/sbt/sbt-web
@@ -245,7 +258,8 @@ JsEngineKeys.command := Some(new sbt.File("//usr//bin//nodejs"))
 // rjs = RequireJS, uglifies, shrinks to one file, replaces WebJars with CDN
 // digest = Adds hash to filename
 // gzip = Zips all assets, Asset controller serves them automatically when client accepts them
-pipelineStages := Seq(digest, rjs, gzip)
+includeFilter in (Assets, JshintKeys.jshint) := NothingFilter
+pipelineStages := Seq(digest, gzip)
 
 // RequireJS with sbt-rjs (https://github.com/sbt/sbt-rjs#sbt-rjs)
 // ~~~
@@ -260,6 +274,11 @@ RjsKeys.paths += ("team" -> ("/team" -> "empty:"))
 webJarCdns := Map("org.webjars" -> "//cdn.jsdelivr.net/webjars")
 
 includeFilter in (Assets, LessKeys.less) := "mainTest.less" | "main.less" | "mainAmarillo.less" | "mainAzul.less" | "mainVerde.less"
+
+concurrentRestrictions in ThisBuild := Seq(
+  Tags.limitAll(1)
+)
+JsEngineKeys.npmTimeout := 180.seconds
 
 //RjsKeys.mainModule := "main"
 

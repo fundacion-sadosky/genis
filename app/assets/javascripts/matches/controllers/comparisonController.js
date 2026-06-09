@@ -13,7 +13,7 @@ define([ 'angular','lodash' ], function(angular,_) {
 		matcherService,
 		profiledataService,
 		profileService,
-		$sce, 
+		$sce,
 		statsService,
 		alertService,
 		cryptoService,
@@ -53,7 +53,7 @@ define([ 'angular','lodash' ], function(angular,_) {
 				$scope.locusById[l.id] = l;
 			});
 		});
-        
+
 		$scope.showLocus = function(locus) {
 			if ($scope.locusById && $scope.results) {
 				return $scope.locusById[locus].analysisType === $scope.results.type;
@@ -130,7 +130,7 @@ define([ 'angular','lodash' ], function(angular,_) {
 				},function (response) {
 					alertService.error({message: response.data.message});
 				}
-				);
+			);
 		};
 
 		var loadCalculation = function() {
@@ -173,7 +173,7 @@ define([ 'angular','lodash' ], function(angular,_) {
 						$scope.matchingAlleles = Object
 							.keys($scope.results.matchingAlleles)
 							.map(
-								function (value) { 
+								function (value) {
 									return value.replace(",",".") ;
 								}
 							);
@@ -240,7 +240,7 @@ define([ 'angular','lodash' ], function(angular,_) {
 		profiledataService.getProfilesData([$scope.profileId, $scope.matchedProfileId]).then(
 			function(response) {
 				var profileDataTemp = response.data.filter(function(x){return x.globalCode === $scope.profileId;})[0];
-					var matchedProfileDataTemp = response.data.filter(function(x){return x.globalCode === $scope.matchedProfileId;})[0];
+				var matchedProfileDataTemp = response.data.filter(function(x){return x.globalCode === $scope.matchedProfileId;})[0];
 				if(!_.isUndefined(profileDataTemp)){
 					$scope.profileData = profileDataTemp;
 				}
@@ -249,7 +249,7 @@ define([ 'angular','lodash' ], function(angular,_) {
 				}
 				$scope.$apply();
 			});
-		
+
 		$scope.labeledGenotypifications = {};
 		$scope.labels = {};
 		profileService.getProfile($scope.profileId).then(
@@ -287,7 +287,7 @@ define([ 'angular','lodash' ], function(angular,_) {
 				$scope.$apply();
 			}
 		};
-		
+
 		matcherService
 			.getComparedGenotyfications(
 				$scope.profileId,
@@ -296,26 +296,26 @@ define([ 'angular','lodash' ], function(angular,_) {
 				$scope.isCollapsingMatch,
 				$scope.isScreening
 			).then(
-				function(response) {
-					function mtConvert(item) {
-						item.locusSort = item.locus;
-						if(item.locus === 'HV1'){
-								item.locusSort = 'HV1_VAR';
-						}
-						if(item.locus === 'HV2'){
-								item.locusSort = 'HV2_VAR';
-						}
-						if(item.locus === 'HV3'){
-								item.locusSort = 'HV3_VAR';
-						}
-						if(item.locus === 'HV4'){
-								item.locusSort = 'HV4_VAR';
-						}
-						return item;
+			function(response) {
+				function mtConvert(item) {
+					item.locusSort = item.locus;
+					if(item.locus === 'HV1'){
+						item.locusSort = 'HV1_VAR';
 					}
-					$scope.comparision = _.sortBy(response.data.map(mtConvert), ['locusSort']);
-					console.log('comparision',$scope.comparision);
-					$scope.$apply();
+					if(item.locus === 'HV2'){
+						item.locusSort = 'HV2_VAR';
+					}
+					if(item.locus === 'HV3'){
+						item.locusSort = 'HV3_VAR';
+					}
+					if(item.locus === 'HV4'){
+						item.locusSort = 'HV4_VAR';
+					}
+					return item;
+				}
+				$scope.comparision = _.sortBy(response.data.map(mtConvert), ['locusSort']);
+				console.log('comparision',$scope.comparision);
+				$scope.$apply();
 			}
 		);
 		function encryptedEpgs(profile, epgs) {
@@ -323,12 +323,12 @@ define([ 'angular','lodash' ], function(angular,_) {
 				return cryptoService.encryptBase64("/profiles/" + profile + "/epg/" + e.fileId);
 			});
 		}
-		
+
 		profileService.getElectropherogramsByCode($scope.profileId).then(
 			function(response) {
 				$scope.epg = encryptedEpgs($scope.profileId, response.data);
 			});
-	
+
 		profileService.getElectropherogramsByCode($scope.matchedProfileId).then(
 			function(response) {
 				$scope.matchedepg = encryptedEpgs($scope.matchedProfileId, response.data);
@@ -354,42 +354,42 @@ define([ 'angular','lodash' ], function(angular,_) {
 				report.close();
 			});
 		};
-		
+
 		profiledataService.getCategories().then(function(response){
 			$scope.categories = response.data;
 		});
-		
+
 		$scope.getSubcatName2 = function(catId){
 			return matcherService.getSubCatName($scope.categories, catId);
 		};
-		
+
 		$scope.getSubcatName = function(catId){
 			return matcherService.getSubCatName($scope.categories, catId);
 		};
-        $scope.backCollapsing = function(){
-            $window.history.back();
-        };
+		$scope.backCollapsing = function(){
+			$window.history.back();
+		};
 		$scope.showElectropherograms = function(){
 			modalInstanceEpg = $modal.open({
 				templateUrl:'/assets/javascripts/matches/views/electropherograms-modal.html',
 				scope: $scope
 			});
 		};
-		
+
 		$scope.getStatsInfo = function(){
 			if (!$scope.selectedOptions){return;}
-			
+
 			var statHeader = '<div class="form-group"><label>lblTitle:</label> ';
 			var statFooter = '</div>';
 			var selOpt = $scope.selectedOptions;
 			return statHeader.replace('lblTitle', 'Base de datos de frecuencia') +
-				((selOpt.frequencyTable)? selOpt.frequencyTable: '')  + statFooter + 
+				((selOpt.frequencyTable)? selOpt.frequencyTable: '')  + statFooter +
 				statHeader.replace('lblTitle', 'Modelo estadístico') +
-				((selOpt.probabilityModel)? selOpt.probabilityModel: '') + statFooter + 
-				statHeader.replace('lblTitle', '&Theta;') + 
+				((selOpt.probabilityModel)? selOpt.probabilityModel: '') + statFooter +
+				statHeader.replace('lblTitle', '&Theta;') +
 				((selOpt.theta)? selOpt.theta: '') + statFooter;
 		};
-		
+
 		function getRandomMatchProbabilitiesByLocus() {
 			if(
 				!$scope.selectedOptions ||
@@ -403,16 +403,16 @@ define([ 'angular','lodash' ], function(angular,_) {
 				return;
 			}
 			matcherService.getLR(
-					$scope.profileId,
-					$scope.matchedProfileId,
-					$scope.matchingId,
-					$scope.selectedOptions)
+				$scope.profileId,
+				$scope.matchedProfileId,
+				$scope.matchingId,
+				$scope.selectedOptions)
 				.then(function(response) {
-						$scope.statsResolved = response.data.detailed;
-						$scope.pvalue = response.data.total;
-					});
+					$scope.statsResolved = response.data.detailed;
+					$scope.pvalue = response.data.total;
+				});
 		}
-		
+
 		$scope.showStatsOptions = function(){
 			var modalStatInstance = $modal.open({
 				templateUrl:'/assets/javascripts/matches/views/stats-option-modal.html',
@@ -421,28 +421,28 @@ define([ 'angular','lodash' ], function(angular,_) {
 					selectedOptions: function() {
 						return $scope.selectedOptions;
 					},
-          mix: function() {
-              return $scope.mixF && $scope.mixM;
-          },
-          profileData: function() {
-              var obj = {};
-              obj[$scope.profileId] = $scope.profileData;
-              obj[$scope.matchedProfileId] = $scope.matchedProfileData;
-              return obj;
-          }
+					mix: function() {
+						return $scope.mixF && $scope.mixM;
+					},
+					profileData: function() {
+						var obj = {};
+						obj[$scope.profileId] = $scope.profileData;
+						obj[$scope.matchedProfileId] = $scope.matchedProfileData;
+						return obj;
+					}
 				}
 			});
 			modalStatInstance.result.then(
 				function (statsOptions) {
 					$scope.selectedOptions = statsOptions;
 					getRandomMatchProbabilitiesByLocus();
-				}, 
+				},
 				function () {//dismissed
 				}
 			);
 		};
-        $scope.shouldShowMaxAlelle = locusService.shouldShowMaxAlelle;
-        $scope.shouldShowMinAlelle = locusService.shouldShowMinAlelle;
+		$scope.shouldShowMaxAlelle = locusService.shouldShowMaxAlelle;
+		$scope.shouldShowMinAlelle = locusService.shouldShowMinAlelle;
 
 		$scope.setLabel = function(p, locus, allele, associated) {
 			if (associated) {
@@ -455,31 +455,31 @@ define([ 'angular','lodash' ], function(angular,_) {
 			}
 		};
 
-        $scope.getLabelCaption = function(label) {
-            for (var id in $scope.labelSets) {
-                var elements = $scope.labelSets[id];
-                if (elements[label]) {
-                    return elements[label].caption;
-                }
-            }
-            return '';
-        };
-        
-        $scope.getProfileLabelCaption = function(globalCode, item) {
-            var lab = globalCode.split("-")[2];
-            if(lab === appConf.labCode){
-                profileService.getProfile(globalCode).then(
-                    function(response) {
-                        $scope.associations[item] = globalCode + " (" + response.data.profileData.internalSampleCode + ")";
-                    });
-            } else {
-                $scope.associations[item] = globalCode;
-            }
-        };
-        
-        $scope.checkLabel = function (p) {
-            return $scope.labels[p] && ["1","2","3","4"].indexOf($scope.labels[p][0]) === -1;
-        };
+		$scope.getLabelCaption = function(label) {
+			for (var id in $scope.labelSets) {
+				var elements = $scope.labelSets[id];
+				if (elements[label]) {
+					return elements[label].caption;
+				}
+			}
+			return '';
+		};
+
+		$scope.getProfileLabelCaption = function(globalCode, item) {
+			var lab = globalCode.split("-")[2];
+			if(lab === appConf.labCode){
+				profileService.getProfile(globalCode).then(
+					function(response) {
+						$scope.associations[item] = globalCode + " (" + response.data.profileData.internalSampleCode + ")";
+					});
+			} else {
+				$scope.associations[item] = globalCode;
+			}
+		};
+
+		$scope.checkLabel = function (p) {
+			return $scope.labels[p] && ["1","2","3","4"].indexOf($scope.labels[p][0]) === -1;
+		};
 
 		$scope.getAnalysisName = function (item){
 			if (item && $scope.analysisTypes) {
@@ -488,10 +488,10 @@ define([ 'angular','lodash' ], function(angular,_) {
 		};
 
 		function cantidadDeContributors() {
-					profileService.findByCode($scope.profileId).then(function (result) {
-						$scope.profileIContributors = result.data.contributors;
-					profileService.findByCode($scope.matchedProfileId).then(function (result) {
-						$scope.matchingIContributors = result.data.contributors;
+			profileService.findByCode($scope.profileId).then(function (result) {
+				$scope.profileIContributors = result.data.contributors;
+				profileService.findByCode($scope.matchedProfileId).then(function (result) {
+					$scope.matchingIContributors = result.data.contributors;
 					if(( $scope.profileIContributors === 2 && $scope.matchingIContributors > 2 ) ||
 						($scope.profileIContributors > 2 && $scope.matchingIContributors === 2)) {
 						$scope.matchAg = true;

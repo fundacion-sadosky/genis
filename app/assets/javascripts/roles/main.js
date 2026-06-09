@@ -5,7 +5,7 @@ function(angular, roleService, roleController, roleModalController, pdgOperation
 
 angular
 	.module('pdg.roles', ['pdg.common'])
-	.service('roleService', ['playRoutes', roleService])
+	.service('roleService', ['playRoutes', '$http', roleService])
 	.controller('roleController', ['$scope', 'roleService', '$modal', 'alertService', '$filter', roleController])
 	.controller('roleModalController', ['$scope', 'roleService', 'role', 'mode','alertService', roleModalController])
 	.directive('pdgOperationsPopover', ['$compile', '$filter', pdgOperationsPopover])

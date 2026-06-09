@@ -32,16 +32,16 @@ define(['angular', 'jquery','lodash'], function(ng, $,_) {
           }
         );
     }
-    function getUndoubtedlyCategories() {
+    function getForensicCategories() {
       $scope.innvCategories = Object
         .entries($scope.categories)
         .map(function(x) {return x[1];})
-        .filter( function(cat) { return cat.tipo === 1 && cat.isReference; } );
+        .filter( function(cat) { return cat.tipo === 1; } );
     }
     $scope.isCategoryModificationRowVisible = false;
     $scope.showCategoryModifications = function() {
       loadCategoryModifications();
-      getUndoubtedlyCategories();
+      getForensicCategories();
       $scope.isCatModVisible = true;
       $scope.isCatGrpEditVisible = false;
       $scope.isCategoryModificationRowVisible = false;
@@ -309,7 +309,7 @@ define(['angular', 'jquery','lodash'], function(ng, $,_) {
               var exists = cat.configurations.hasOwnProperty(id);
               if (!exists) {
                 cat.configurations[id] = {collectionUri: '', draftUri: '',
-                  minLocusPerProfile: 'K', maxOverageDeviatedLoci: '0', 'maxAllelesPerLocus': 6};
+                  minLocusPerProfile: 'K', maxOverageDeviatedLoci: '0', 'maxAllelesPerLocus': 6, multiallelic: false};
               }
             }
           }

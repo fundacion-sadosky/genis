@@ -10,6 +10,7 @@ abstract class QualityParamsProvider {
   def minLocusQuantityAllowedPerProfile(category: FullCategory, kit: StrKit): Int
   def maxOverageDeviatedLociPerProfile(category: FullCategory, kit: StrKit): Int
   def maxAllelesPerLocus(category: FullCategory, kit: StrKit): Int
+  def multiallelic(category: FullCategory, kit: StrKit): Boolean
 }
 
 @Singleton
@@ -44,6 +45,10 @@ class QualityParamsProviderImpl() extends QualityParamsProvider {
 
   override def maxAllelesPerLocus(category: FullCategory, kit: StrKit): Int = {
     findConfiguration(category, kit.`type`).fold(6)(_.maxAllelesPerLocus)
+  }
+  
+  override def multiallelic(category: FullCategory, kit: StrKit): Boolean = {
+    findConfiguration(category, kit.`type`).fold(false)(_.multiallelic)
   }
 
   private def findConfiguration(category: FullCategory, searched: Int): Option[CategoryConfiguration] = {
