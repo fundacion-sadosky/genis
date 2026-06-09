@@ -54,7 +54,7 @@ import java.sql.Timestamp
 //import play.api.db.slick.Config.driver.simple._
 import scala.slick.driver.PostgresDriver.simple._
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Success, Failure}
+import scala.util.{Success, Failure, Try}
 
 abstract class ProfileDataRepository extends DefaultDb with Transaction  {
   /**
@@ -1173,8 +1173,8 @@ class SlickProfileDataRepository @Inject() (
 
   override def getGlobalCode(internalSampleCode: String): Future[Option[SampleCode]] = Future {
     DB.withSession { implicit session =>
-      queryGetGlobalCode(internalSampleCode).firstOption.map {
-        SampleCode(_)
+      queryGetGlobalCode(internalSampleCode).firstOption.flatMap {
+        s => Try(SampleCode(s)).toOption
       }
     }
   }

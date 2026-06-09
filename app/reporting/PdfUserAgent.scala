@@ -22,7 +22,7 @@ class PdfUserAgent(outputDevice: ITextOutputDevice) extends ITextUserAgent(outpu
     * @return Image resource object.
     */
   override def getImageResource(uri: String): ImageResource = {
-    Play.current.resourceAsStream(uri).fold(super.getImageResource(uri)) { toImageResource(uri) }
+    Play.current.resourceAsStream(toClasspathPath(uri)).fold(super.getImageResource(uri)) { toImageResource(uri) }
   }
 
   /**
@@ -32,7 +32,7 @@ class PdfUserAgent(outputDevice: ITextOutputDevice) extends ITextUserAgent(outpu
     * @return CSS resource object.
     */
   override def getCSSResource(uri: String): CSSResource = {
-    Play.current.resourceAsStream(uri).fold(super.getCSSResource(uri)) { toCssResource }
+    Play.current.resourceAsStream(toClasspathPath(uri)).fold(super.getCSSResource(uri)) { toCssResource }
   }
 
   /**
@@ -42,7 +42,7 @@ class PdfUserAgent(outputDevice: ITextOutputDevice) extends ITextUserAgent(outpu
     * @return XML resource object.
     */
   override def getXMLResource(uri: String): XMLResource = {
-    Play.current.resourceAsStream(uri).fold(super.getXMLResource(uri)) { XMLResource.load }
+    Play.current.resourceAsStream(toClasspathPath(uri)).fold(super.getXMLResource(uri)) { XMLResource.load }
   }
 
   /**
@@ -52,7 +52,21 @@ class PdfUserAgent(outputDevice: ITextOutputDevice) extends ITextUserAgent(outpu
     * @return Binary resource as bytearray.
     */
   override def getBinaryResource(uri: String): Array[Byte] = {
-    Play.current.resourceAsStream(uri).fold(super.getBinaryResource(uri)) { toByteArray }
+    Play.current.resourceAsStream(toClasspathPath(uri)).fold(super.getBinaryResource(uri)) { toByteArray }
+  }
+
+  /**
+    * Converts a full asset URI (e.g. http://host/assets/images/logo.png)
+    * to a classpath-relative path (e.g. public/images/logo.png).
+    * Falls back to the original URI if it cannot be parsed as a URL.
+    *
+    * @param uri the resource URI.
+    * @return Classpath-relative path.
+    */
+  private def toClasspathPath(uri: String): String = {
+    val path = try new java.net.URL(uri).getPath catch { case _: Exception => return uri }
+    if (path.startsWith("/assets/")) "public" + path.drop("/assets".length)
+    else path
   }
 
   /**

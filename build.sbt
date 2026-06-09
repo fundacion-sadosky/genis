@@ -5,6 +5,12 @@ import RjsKeys._
 
 //Seq(gitStampSettings: _*)
 
+// Headless dev mode: block forever instead of waiting for Ctrl+D via jline
+PlayKeys.playInteractionMode := new play.PlayInteractionMode {
+  def waitForCancel(): Unit = { val lock = new AnyRef; lock.synchronized { lock.wait() } }
+  def doWithoutEcho(f: => Unit): Unit = f
+}
+
 name := """genis"""
 
 // Scala Version, Play supports both 2.10 and 2.11
@@ -157,7 +163,7 @@ libraryDependencies ++= Seq(
   "org.webjars" % "d3js" % "3.5.5-1",
   "org.webjars" % "dagre-d3" % "0.4.10",
   "org.webjars" % "animate.css" % "3.5.2",
-  "org.webjars.npm" % "jszip" % "3.10.1"
+  "org.webjars.npm" % "jszip" % "3.10.1" exclude("org.webjars.npm", "lie")
   )
 
 // LDAP 

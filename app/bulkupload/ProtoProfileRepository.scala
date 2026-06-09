@@ -3,6 +3,7 @@ package bulkupload
 import java.util.Date
 
 import scala.concurrent.Future
+import scala.util.Try
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -103,7 +104,7 @@ class SlickProtoProfileRepository @Inject() (
       row.id, row.sampleName,
       row.assignee, row.category,
       ProtoProfileStatus.withName(row.status),
-      row.panel, geno, mm, mr, se, row.genemapperLine, preexistence = row.preexistence.map(SampleCode(_)), rejectMotive = row.rejectMotive)
+      row.panel, geno, mm, mr, se, row.genemapperLine, preexistence = row.preexistence.flatMap(s => Try(SampleCode(s)).toOption), rejectMotive = row.rejectMotive)
   }
 
   private def queryDefineCheckAssigne(globalCode: Column[String], assigne: Column[String]) = for {
@@ -380,7 +381,7 @@ class SlickProtoProfileRepository @Inject() (
             pp.id, pp.sampleName,
             pp.assignee, pp.category,
             ProtoProfileStatus.withName(pp.status),
-            pp.panel, geno, mm, mr, se, pp.genemapperLine, pp.preexistence.map(SampleCode(_)), None)
+            pp.panel, geno, mm, mr, se, pp.genemapperLine, pp.preexistence.flatMap(s => Try(SampleCode(s)).toOption), None)
 
       }
     }
@@ -488,7 +489,7 @@ class SlickProtoProfileRepository @Inject() (
       val existsQuery = profileIdQuery ++ batchIdQuery
 
       existsQuery.list.foldLeft[(Option[SampleCode], Option[Long])]((None, None))((a, b) => b._1 match {
-        case "PROFILE_ID" => (Some(SampleCode(b._2)), a._2)
+        case "PROFILE_ID" => (Try(SampleCode(b._2)).toOption, a._2)
         case "BATCH_ID"   => (a._1, Some(b._2.trim.toLong))
       })
 

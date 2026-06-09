@@ -83,8 +83,12 @@ class SlickImportToProfileData @Inject() (
     val preFicGc = if (labo == labCode)
       s"$country-$prov-$labCode-"
     else {
-      val lab = queryGetLabByCode(labo).firstOption.get
-      lab.country + "-" + lab.province + "-" + lab.codeName + "-"
+      queryGetLabByCode(labo).firstOption match {
+        case Some(lab) if lab.country.nonEmpty && lab.province.nonEmpty && lab.codeName.nonEmpty =>
+          lab.country + "-" + lab.province + "-" + lab.codeName + "-"
+        case _ =>
+          s"$country-$prov-$labCode-"
+      }
     }
 
     val gc = preFicGc + nextVal
