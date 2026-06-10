@@ -19,6 +19,7 @@ trait MatchingCalculatorService:
     stats: StatOption,
     allelesRanges: Option[NewMatchingResult.AlleleMatchRange] = None
   ): Future[Option[LRResult]]
+  def createDefaultScenario(sample: Profile, profile: Profile, stats: StatOption): scenarios.CalculationScenario
 
 @Singleton
 class MatchingCalculatorServiceImpl @Inject()(

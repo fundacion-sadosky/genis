@@ -69,6 +69,27 @@ class MongoMatchingRepository @Inject()(
       .into(new java.util.ArrayList[Document]()).asScala.map(docToMatchResult).toSeq
   }
 
+  override def matchesWithFullHit(globalCode: SampleCode): Future[Seq[MatchResult]] = Future {
+    val profileFilter = Filters.or(
+      Filters.eq("leftProfile.globalCode", globalCode.text),
+      Filters.eq("rightProfile.globalCode", globalCode.text)
+    )
+    val hitFilter = Filters.and(
+      Filters.eq("leftProfile.status",  MatchStatus.hit.toString),
+      Filters.eq("rightProfile.status", MatchStatus.hit.toString)
+    )
+    matches.find(Filters.and(profileFilter, hitFilter))
+      .into(new java.util.ArrayList[Document]()).asScala.map(docToMatchResult).toSeq
+  }
+
+  override def getByFiringAndMatchingProfile(firingCode: SampleCode, matchingCode: SampleCode): Future[Option[MatchResult]] = Future {
+    val filter = Filters.or(
+      Filters.and(Filters.eq("leftProfile.globalCode", firingCode.text),  Filters.eq("rightProfile.globalCode", matchingCode.text)),
+      Filters.and(Filters.eq("leftProfile.globalCode", matchingCode.text), Filters.eq("rightProfile.globalCode", firingCode.text))
+    )
+    Option(matches.find(filter).first()).map(docToMatchResult)
+  }
+
   override def removeMatchesByProfile(globalCode: SampleCode): Future[Either[String, String]] = Future {
     val filter = Filters.or(
       Filters.eq("leftProfile.globalCode",  globalCode.text),
@@ -288,25 +309,35 @@ class MongoMatchingRepository @Inject()(
     pipeline.toSeq
   }
 
-  override def getMatches(search: MatchCardSearch): Future[Seq[MatchCardForense]] = Future {
-    val pipeline = (buildMatchesAggrPipeline(search) :+
-      Document.parse(s"""{"$$skip": ${search.page * search.pageSize}}""") :+
-      Document.parse(s"""{"$$limit": ${search.pageSize}}""")).asJava
-
-    matches.aggregate(pipeline).into(new java.util.ArrayList[Document]()).asScala.toSeq.map { doc =>
-      val globalCode       = doc.getString("_id")
-      val pending          = doc.getInteger(MatchGlobalStatus.pending.toString, 0)
-      val hit              = doc.getInteger(MatchGlobalStatus.hit.toString, 0)
-      val discarded        = doc.getInteger(MatchGlobalStatus.discarded.toString, 0)
-      val conflict         = doc.getInteger(MatchGlobalStatus.conflict.toString, 0)
-      val lastDate         = doc.getDate("lastDate")
-      val category         = Option(doc.getString("category")).getOrElse("")
-
-      val mc = MatchCard(SampleCode(globalCode), pending, hit, discarded, conflict,
-        1, globalCode, AlphanumericId(category), lastDate, "", "")
-      val lr = MatchCardMejorLr(globalCode, AlphanumericId(category), 0, MatchStatus.pending,
-        MatchStatus.pending, 0.0, 0.0, 0.0, SampleCode(globalCode), 1)
-      MatchCardForense(mc, lr)
+  override def getMatches(search: MatchCardSearch): Future[Seq[MatchCardForense]] = {
+    val isCollapsing = search.isCollapsing.contains(true)
+    val summariesF = Future {
+      val pipeline = (buildMatchesAggrPipeline(search) :+
+        Document.parse(s"""{"$$skip": ${search.page * search.pageSize}}""") :+
+        Document.parse(s"""{"$$limit": ${search.pageSize}}""")).asJava
+      matches.aggregate(pipeline).into(new java.util.ArrayList[Document]()).asScala.toSeq.map { doc =>
+        val globalCode = doc.getString("_id")
+        val pending    = doc.getInteger(MatchGlobalStatus.pending.toString, 0)
+        val hit        = doc.getInteger(MatchGlobalStatus.hit.toString, 0)
+        val discarded  = doc.getInteger(MatchGlobalStatus.discarded.toString, 0)
+        val conflict   = doc.getInteger(MatchGlobalStatus.conflict.toString, 0)
+        val lastDate   = doc.getDate("lastDate")
+        val category   = Option(doc.getString("category")).getOrElse("")
+        (globalCode, pending, hit, discarded, conflict, lastDate, category)
+      }
+    }
+    summariesF.flatMap { summaries =>
+      Future.sequence(summaries.map { (globalCode, pending, hit, discarded, conflict, lastDate, category) =>
+        val mc = MatchCard(SampleCode(globalCode), pending, hit, discarded, conflict,
+          1, globalCode, AlphanumericId(category), lastDate, "", "")
+        getProfileLr(SampleCode(globalCode), isCollapsing)
+          .map(lr => MatchCardForense(mc, lr))
+          .recover { case _ =>
+            val lr = MatchCardMejorLr(globalCode, AlphanumericId(category), 0, MatchStatus.pending,
+              MatchStatus.pending, 0.0, 0.0, 0.0, SampleCode(globalCode), 1)
+            MatchCardForense(mc, lr)
+          }
+      })
     }
   }
 
@@ -464,7 +495,7 @@ class MongoMatchingRepository @Inject()(
     val isRight = mr.rightProfile.globalCode == globalCode
     val (ownerP, matchP) = if (isRight) (mr.rightProfile, mr.leftProfile) else (mr.leftProfile, mr.rightProfile)
     val shared  = if (isRight) mr.result.rightPonderation else mr.result.leftPonderation
-    MatchCardMejorLr(ownerP.globalCode.text, matchP.categoryId, mr.result.totalAlleles,
+    MatchCardMejorLr(matchP.globalCode.text, matchP.categoryId, mr.result.totalAlleles,
       ownerP.status, matchP.status, shared, mr.mismatches.toDouble, mr.lr, matchP.globalCode, mr.`type`)
   }
 

@@ -10,6 +10,8 @@ import scala.concurrent.Future
 trait MatchingRepository:
   def matchesNotDiscarded(globalCode: SampleCode): Future[Seq[MatchResult]]
   def matchesWithPartialHit(globalCode: SampleCode): Future[Seq[MatchResult]]
+  def matchesWithFullHit(globalCode: SampleCode): Future[Seq[MatchResult]]
+  def getByFiringAndMatchingProfile(firingCode: SampleCode, matchingCode: SampleCode): Future[Option[MatchResult]]
   def removeMatchesByProfile(globalCode: SampleCode): Future[Either[String, String]]
   def findSuperiorProfile(globalCode: SampleCode): Future[Option[Profile]]
   def findSuperiorProfileData(globalCode: SampleCode): Future[Option[ProfileData]]
@@ -39,6 +41,8 @@ trait MatchingRepository:
 class MatchingRepositoryStub extends MatchingRepository:
   override def matchesNotDiscarded(globalCode: SampleCode): Future[Seq[MatchResult]] = Future.successful(Seq.empty)
   override def matchesWithPartialHit(globalCode: SampleCode): Future[Seq[MatchResult]] = Future.successful(Seq.empty)
+  override def matchesWithFullHit(globalCode: SampleCode): Future[Seq[MatchResult]] = Future.successful(Seq.empty)
+  override def getByFiringAndMatchingProfile(firingCode: SampleCode, matchingCode: SampleCode): Future[Option[MatchResult]] = Future.successful(None)
   override def removeMatchesByProfile(globalCode: SampleCode): Future[Either[String, String]] = Future.successful(Right(""))
   override def findSuperiorProfile(globalCode: SampleCode): Future[Option[Profile]] = Future.successful(None)
   override def findSuperiorProfileData(globalCode: SampleCode): Future[Option[ProfileData]] = Future.successful(None)

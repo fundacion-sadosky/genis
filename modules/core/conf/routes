@@ -224,6 +224,16 @@ GET     /api/v2/profiledata/count                                   controllers.
 GET     /profiledata-complete/:globalCode                           controllers.ProfileDataController.getByCode(globalCode: types.SampleCode)
 GET     /profileData/isProfileReplicated/:internalCode              controllers.ProfileDataController.isProfileReplicated(internalCode: String)
 GET     /profiledata/count                                          controllers.ProfileDataController.countProfiles()
+GET     /profiledataWithAssociations                                controllers.ProfileDataController.findByCodeWithAssociations(globalCode: types.SampleCode)
+POST    /scenarios/search                                           controllers.ScenariosController.search
+POST    /scenarios/create                                           controllers.ScenariosController.create
+PUT     /scenarios/get                                              controllers.ScenariosController.get
+POST    /scenarios/validate                                         controllers.ScenariosController.validate
+POST    /scenarios/update                                           controllers.ScenariosController.update
+PUT     /scenarios/delete                                           controllers.ScenariosController.delete
+POST    /scenarios/ncorrection                                      controllers.ScenariosController.getNCorrection
+GET     /matchesForScenario                                         controllers.ScenariosController.findMatches(scenarioId: Option[String], firingCode: Option[types.SampleCode], matchingCode: Option[types.SampleCode])
+POST    /default-scenario                                           controllers.ScenariosController.getDefaultScenario(firingProfile: types.SampleCode, matchingProfile: types.SampleCode)
 
 # Aliases legacy para URLs cifradas por UrlDecryptRequestHandler
 # El frontend cifra rutas /profiles/... y el handler descifra a la misma ruta legacy
