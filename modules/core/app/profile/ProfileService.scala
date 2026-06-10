@@ -3,6 +3,7 @@ package profile
 import java.io.File
 import java.nio.file.{Files, Paths}
 import java.util.{Calendar, Date, UUID}
+import jakarta.inject.Provider
 import javax.inject.{Inject, Named, Singleton}
 import configdata.*
 import connections.InterconnectionService
@@ -97,7 +98,7 @@ class ProfileServiceImpl @Inject()(
   probabilityService: ProbabilityService,
   locusService: LocusService,
   traceService: TraceService,
-  pedigreeService: PedigreeService,
+  pedigreeServiceProvider: Provider[PedigreeService],
   analysisTypeService: AnalysisTypeService,
   @Named("labelsSet") labelsSet: Profile.LabelSets,
   interconnectionService: InterconnectionService,
@@ -106,6 +107,8 @@ class ProfileServiceImpl @Inject()(
   matchingAlgorithmService: MatchingAlgorithmService,
   messagesApi: MessagesApi
 )(implicit ec: ExecutionContext) extends ProfileService {
+
+  private def pedigreeService: PedigreeService = pedigreeServiceProvider.get()
 
   private implicit val messages: Messages = messagesApi.preferred(Seq.empty)
 

@@ -40,9 +40,6 @@ class PedigreeModule(env: Environment, conf: Configuration) extends AbstractModu
     bind(classOf[PedCheckRepository]).to(classOf[SlickPedCheckRepository])
     bind(classOf[PedigreeService]).to(classOf[PedigreeServiceImpl])
     bind(classOf[search.FullTextSearchService]).to(classOf[search.FullTextSearchServiceStub])
-    // ProfileDataService se bindea acá (no en ProfileModule) para que fixtures.StubPedigreeModule
-    // pueda sustituirlo por un stub en tests sin chocar con ProfileModule (que está enabled en tests).
-    bind(classOf[profiledata.ProfileDataService]).to(classOf[profiledata.ProfileDataServiceImpl])
 
   @Provides @Named("mongoBlockingEC") @Singleton
   def provideMongoBlockingExecutionContext(actorSystem: ActorSystem): ExecutionContext =

@@ -604,8 +604,8 @@ object Tables {
 
   class ExternalProfileDataTable(tag: Tag) extends Table[ExternalProfileDataRow](tag, Some("APP"), "EXTERNAL_PROFILE_DATA") {
     def id                  = column[Long]("ID", O.PrimaryKey)
-    def laboratoryOrigin    = column[String]("LABORATORY_ORIGIN", O.Length(50, varying = true))
-    def laboratoryImmediate = column[String]("LABORATORY_IMMEDIATE", O.Length(50, varying = true))
+    def laboratoryOrigin    = column[String]("LABORATORY_INSTANCE_ORIGIN", O.Length(50, varying = true))
+    def laboratoryImmediate = column[String]("LABORATORY_INSTANCE_INMEDIATE", O.Length(50, varying = true))
     def * = (id, laboratoryOrigin, laboratoryImmediate) <> (ExternalProfileDataRow.tupled, ExternalProfileDataRow.unapply)
   }
 
