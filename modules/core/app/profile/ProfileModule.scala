@@ -56,9 +56,8 @@ class ProfileModule(environment: Environment, conf: Configuration) extends Abstr
     bind(classOf[kits.QualityParamsProvider]).to(classOf[kits.QualityParamsProviderStub])
     // LocusService, LocusRepository → kits.StrKitModule
     // MatchingAlgorithmService, MatchingRepository, MatchingService → matching.MatchingModule
-    bind(classOf[profiledata.ProfileDataRepository]).to(classOf[profiledata.ProfileDataRepositoryImpl])
-    // ProfileDataService → pedigree.PedigreeModule (espejado por fixtures.StubPedigreeModule en tests)
-    bind(classOf[trace.TraceService]).to(classOf[trace.TraceServiceStub])
+    // ProfileDataRepository, ProfileDataService → profiledata.ProfileDataModule
+    // TraceService → trace.TraceModule
 
     bind(classOf[ProfileService]).to(classOf[ProfileServiceImpl])
     bind(classOf[ProfileExporterService]).to(classOf[ProfileExporterServiceImpl])

@@ -18,24 +18,23 @@ GET     /sensitiveOper.js                   controllers.ApplicationController.se
 GET     /analysistypes                      controllers.AnalysisTypesController.list
 
 # BulkUpload — URLs legacy (sin /api/v2/) porque el frontend las cifra con ese prefijo
-POST    /bulkuploader                                            controllers.core.BulkUploadController.uploadProtoProfiles(label: Option[String], analysisType: String)
-GET     /bulkupload/step1/count                                  controllers.core.BulkUploadController.countBatchesStep1()
-GET     /bulkupload/step1/batches                                controllers.core.BulkUploadController.getBatchesStep1(page: Int, pageSize: Int)
-GET     /bulkupload/step2/count                                  controllers.core.BulkUploadController.countBatchesStep2(geneMapperId: String)
-GET     /bulkupload/step2/batches                                controllers.core.BulkUploadController.getBatchesStep2(geneMapperId: String, page: Int, pageSize: Int)
-GET     /bulkupload/step1/protoprofiles                          controllers.core.BulkUploadController.getProtoProfilesStep1(batchId: Long, page: Int, pageSize: Int)
-GET     /bulkupload/step2/protoprofiles                          controllers.core.BulkUploadController.getProtoProfilesStep2(geneMapperId: String, batchId: Long, page: Int, pageSize: Int)
-GET     /bulkupload/protoprofiles/:id                            controllers.core.BulkUploadController.getProtoProfileById(id: Long)
-GET     /bulkupload/step2/batch/:batchId/count                   controllers.core.BulkUploadController.countAllProtoProfilesInBatch(batchId: Long)
-GET     /bulkupload/batches                                      controllers.core.BulkUploadController.searchBatch(filter: String)
-GET     /batch-modal                                             controllers.core.BulkUploadController.getBatchSearchModalViewByIdOrLabel(input: String, idCase: Long)
-GET     /interconnection/getIsProfileReplicableInternalCode/:internalCode controllers.core.BulkUploadController.getIsProfileReplicableInternalCode(internalCode: String)
-POST    /protoprofiles/:id/status                                controllers.core.BulkUploadController.updateProtoProfileStatus(id: Long, status: String, replicate: Boolean, desktopSearch: Boolean ?= false)
-POST    /protoprofiles/multiple-status                           controllers.core.BulkUploadController.updateBatchStatus(idBatch: Long, status: String, replicateAll: Boolean)
-POST    /protoprofiles/:id/subcategory                           controllers.core.BulkUploadController.updateProtoProfileData(id: Long, category: types.AlphanumericId)
-POST    /protoprofiles/matchingrules                             controllers.core.BulkUploadController.updateProtoProfileRulesMismatch()
-POST    /protoprofiles-reject/:id                                controllers.core.BulkUploadController.rejectProtoProfile(id: Long, motive: String, idMotive: Long)
-DELETE  /bulkupload/:id                                          controllers.core.BulkUploadController.deleteBatch(id: Long)
+POST    /bulkuploader                                            controllers.BulkUploadController.uploadProtoProfiles(label: Option[String], analysisType: String)
+GET     /bulkupload/step1/count                                  controllers.BulkUploadController.countBatchesStep1()
+GET     /bulkupload/step1/batches                                controllers.BulkUploadController.getBatchesStep1(page: Int, pageSize: Int)
+GET     /bulkupload/step2/count                                  controllers.BulkUploadController.countBatchesStep2(geneMapperId: String)
+GET     /bulkupload/step2/batches                                controllers.BulkUploadController.getBatchesStep2(geneMapperId: String, page: Int, pageSize: Int)
+GET     /bulkupload/step1/protoprofiles                          controllers.BulkUploadController.getProtoProfilesStep1(batchId: Long, page: Int, pageSize: Int)
+GET     /bulkupload/step2/protoprofiles                          controllers.BulkUploadController.getProtoProfilesStep2(geneMapperId: String, batchId: Long, page: Int, pageSize: Int)
+GET     /bulkupload/protoprofiles/:id                            controllers.BulkUploadController.getProtoProfileById(id: Long)
+GET     /bulkupload/step2/batch/:batchId/count                   controllers.BulkUploadController.countAllProtoProfilesInBatch(batchId: Long)
+GET     /bulkupload/batches                                      controllers.BulkUploadController.searchBatch(filter: String)
+GET     /batch-modal                                             controllers.BulkUploadController.getBatchSearchModalViewByIdOrLabel(input: String, idCase: Long)
+POST    /protoprofiles/:id/status                                controllers.BulkUploadController.updateProtoProfileStatus(id: Long, status: String, replicate: Boolean, desktopSearch: Boolean ?= false)
+POST    /protoprofiles/multiple-status                           controllers.BulkUploadController.updateBatchStatus(idBatch: Long, status: String, replicateAll: Boolean)
+POST    /protoprofiles/:id/subcategory                           controllers.BulkUploadController.updateProtoProfileData(id: Long, category: types.AlphanumericId)
+POST    /protoprofiles/matchingrules                             controllers.BulkUploadController.updateProtoProfileRulesMismatch()
+POST    /protoprofiles-reject/:id                                controllers.BulkUploadController.rejectProtoProfile(id: Long, motive: String, idMotive: Long)
+DELETE  /bulkupload/:id                                          controllers.BulkUploadController.deleteBatch(id: Long)
 
 # Matching / Coincidencias
 GET     /matching                            controllers.MatchingController.findMatchesByCode(globalCode: types.SampleCode)
@@ -214,15 +213,12 @@ PUT     /api/v2/roles                      controllers.RoleController.updateRole
 DELETE  /api/v2/roles/:id                  controllers.RoleController.deleteRole(id: String)
 
 # ProfileData (datos de PostgreSQL: internalSampleCode, assignee, etc.)
-GET     /api/v2/profilesdata                                        controllers.ProfileDataController.findByCodes(globalCode: String)
-GET     /api/v2/profiledata                                         controllers.ProfileDataController.findByCodeSingle(globalCode: types.SampleCode)
 # URLs cifradas — el jsroutes genera /api/v2/... → UrlDecryptHandler descifra a /api/v2/... → match directo
 GET     /api/v2/profiledata-complete/:globalCode                    controllers.ProfileDataController.getByCode(globalCode: types.SampleCode)
-GET     /api/v2/profileData/isProfileReplicated/:internalCode       controllers.ProfileDataController.isProfileReplicated(internalCode: String)
 GET     /api/v2/profiledata/count                                   controllers.ProfileDataController.countProfiles()
 # Aliases sin /api/v2/ por si llegan via nginx rewrite o directamente
 GET     /profiledata-complete/:globalCode                           controllers.ProfileDataController.getByCode(globalCode: types.SampleCode)
-GET     /profileData/isProfileReplicated/:internalCode              controllers.ProfileDataController.isProfileReplicated(internalCode: String)
+GET     /profileData/isProfileReplicated/:internalCode              controllers.ProfileDataController.getIsProfileReplicatedInternalCode(internalCode: String)
 GET     /profiledata/count                                          controllers.ProfileDataController.countProfiles()
 GET     /profiledataWithAssociations                                controllers.ProfileDataController.findByCodeWithAssociations(globalCode: types.SampleCode)
 POST    /scenarios/search                                           controllers.ScenariosController.search
@@ -279,6 +275,13 @@ GET     /api/v2/locus/export          controllers.LocusController.exportLocus
 POST    /api/v2/locus/import          controllers.LocusController.importLocus
 
 
+# Trace (trazabilidad)
+POST    /api/v2/trace/search                    controllers.Traces.search
+POST    /api/v2/trace/total                     controllers.Traces.count
+POST    /api/v2/trace/search-pedigree           controllers.Traces.searchPedigree
+POST    /api/v2/trace/total-pedigree            controllers.Traces.countPedigree
+GET     /api/v2/trace/full-description/:id      controllers.Traces.getFullDescription(id: Long)
+
 # Population Base Frequency (Frecuencia Base Poblacional)
 POST    /api/v2/populationBaseFreq                    controllers.PopulationBaseFreqController.uploadPopulationFile
 GET     /api/v2/populationBaseFreq                    controllers.PopulationBaseFreqController.getAllBaseNames
@@ -287,6 +290,51 @@ GET     /api/v2/populationBaseFreqCharacteristics     controllers.PopulationBase
 GET     /api/v2/populationBaseFreq/:name              controllers.PopulationBaseFreqController.getByName(name: String)
 PUT     /api/v2/populationBaseFreq/:name              controllers.PopulationBaseFreqController.toggleStateBase(name: String)
 PUT     /api/v2/populationBaseFreqDefault/:name       controllers.PopulationBaseFreqController.setBaseAsDefault(name: String)
+
+# BulkUpload
+POST    /api/v2/bulkuploader                                              controllers.BulkUploadController.uploadProtoProfiles(label: Option[String], analysisType: String)
+GET     /api/v2/bulkupload/step1/protoprofiles                           controllers.BulkUploadController.getProtoProfilesStep1(batchId: Long, page: Int, pageSize: Int)
+GET     /api/v2/bulkupload/step2/protoprofiles                           controllers.BulkUploadController.getProtoProfilesStep2(geneMapperId: String, batchId: Long, page: Int, pageSize: Int)
+GET     /api/v2/bulkupload/step1/batches                                 controllers.BulkUploadController.getBatchesStep1(page: Int, pageSize: Int)
+GET     /api/v2/bulkupload/step1/count                                   controllers.BulkUploadController.countBatchesStep1
+GET     /api/v2/bulkupload/step2/batches                                 controllers.BulkUploadController.getBatchesStep2(geneMapperId: String, page: Int, pageSize: Int)
+GET     /api/v2/bulkupload/step2/count                                   controllers.BulkUploadController.countBatchesStep2(geneMapperId: String)
+POST    /api/v2/protoprofiles/:id/status                                 controllers.BulkUploadController.updateProtoProfileStatus(id: Long, status: String, replicate: Boolean, desktopSearch: Boolean)
+POST    /api/v2/protoprofiles/multiple-status                            controllers.BulkUploadController.updateBatchStatus(idBatch: Long, status: String, replicateAll: Boolean)
+GET     /api/v2/bulkupload/protoprofiles/:id                             controllers.BulkUploadController.getProtoProfileById(id: Long)
+GET     /api/v2/bulkupload/step2/batch/:batchId/count                    controllers.BulkUploadController.countAllProtoProfilesInBatch(batchId: Long)
+POST    /api/v2/protoprofiles/:id/subcategory                            controllers.BulkUploadController.updateProtoProfileData(id: Long, category: types.AlphanumericId)
+POST    /api/v2/protoprofiles/matchingrules                              controllers.BulkUploadController.updateProtoProfileRulesMismatch()
+POST    /api/v2/protoprofiles-reject/:id                                 controllers.BulkUploadController.rejectProtoProfile(id: Long, motive: String, idMotive: Long)
+DELETE  /api/v2/bulkupload/:id                                           controllers.BulkUploadController.deleteBatch(id: Long)
+GET     /api/v2/bulkupload/batches                                       controllers.BulkUploadController.searchBatch(filter: String)
+GET     /api/v2/batch-modal                                              controllers.BulkUploadController.getBatchSearchModalViewByIdOrLabel(input: String, idCase: Long)
+
+# ProtoProfileData
+GET     /api/v2/protoprofiledata-complete/:id                            controllers.ProtoProfileDataController.getByCode(id: types.SampleCode)
+POST    /api/v2/protoprofiledata                                         controllers.ProtoProfileDataController.create
+PUT     /api/v2/protoprofiledata/:id                                     controllers.ProtoProfileDataController.update(id: types.SampleCode)
+GET     /api/v2/protoprofiledata-editable/:id                            controllers.ProtoProfileDataController.isEditable(id: types.SampleCode)
+GET     /api/v2/resources/proto/static/:type/:id                         controllers.ProtoProfileDataController.getResources(type: String, id: Long)
+
+# ProfileData
+GET     /api/v2/profiledata/count                                        controllers.ProfileDataController.countProfiles()
+GET     /api/v2/profiledata/:id                                          controllers.ProfileDataController.get(id: Long)
+GET     /api/v2/profiledata                                              controllers.ProfileDataController.findByCode(globalCode: types.SampleCode)
+POST    /api/v2/profiledata                                              controllers.ProfileDataController.create
+DELETE  /api/v2/profiledata/:globalCode                                  controllers.ProfileDataController.removeProfile(globalCode: types.SampleCode)
+GET     /api/v2/profiles-deleted/motive/:id                              controllers.ProfileDataController.getDeleteMotive(id: types.SampleCode)
+PUT     /api/v2/profiledata-deleted/:id                                  controllers.ProfileDataController.deleteProfile(id: types.SampleCode)
+GET     /api/v2/profiledataWithAssociations                              controllers.ProfileDataController.findByCodeWithAssociations(globalCode: types.SampleCode)
+PUT     /api/v2/profiledata/:id/                                         controllers.ProfileDataController.update(id: types.SampleCode)
+PUT     /api/v2/profiledata/modify-category/:id/                         controllers.ProfileDataController.modifyCategory(id: types.SampleCode, replicate: Boolean, userName: String)
+GET     /api/v2/profiledata-readonly                                     controllers.ProfileDataController.isReadOnly(globalCode: types.SampleCode)
+GET     /api/v2/profiledata-complete/:id                                 controllers.ProfileDataController.getByCode(id: types.SampleCode)
+GET     /api/v2/profiledata-editable/:id                                 controllers.ProfileDataController.isEditable(id: types.SampleCode)
+GET     /api/v2/profilesdata                                             controllers.ProfileDataController.findByCodes(globalCode: List[types.SampleCode])
+GET     /api/v2/profiledata-desktop                                      controllers.ProfileDataController.getDesktopProfiles
+GET     /api/v2/profileData/isProfileReplicated/:internalCode            controllers.ProfileDataController.getIsProfileReplicatedInternalCode(internalCode: String)
+GET     /api/v2/resources/static/:type/:id                               controllers.ProfileDataController.getResources(type: String, id: Long)
 
 # Mutation models (MPI/DVI)
 GET     /api/v2/mutation-models                              controllers.MutationController.getAllMutationModels()

@@ -1,15 +1,34 @@
 package bulkupload
 
 import com.github.tototoshi.csv.{CSVReader, DefaultCSVFormat}
+import play.api.i18n.Messages
+
 import java.io.File
 import scala.annotation.tailrec
 
-object GeneMapperFileParser:
+object GeneMapperFileParser {
 
-  implicit object GeneMapperFileFormat extends DefaultCSVFormat:
+  implicit object GeneMapperFileFormat extends DefaultCSVFormat {
     override val delimiter = '\t'
+  }
 
-  private def parseHeader(header: Seq[String]): Either[String, GeneMaperFileHeader] =
+  // #218 review S5Q3: primer pase barato para precargar validaciones de BD. Lee solo la columna
+  // "Sample Name" (presente en el header autosomal y mitocondrial) y devuelve los valores distintos.
+  def readDistinctSampleNames(csvFile: File): Seq[String] = {
+    val reader = CSVReader.open(csvFile)(GeneMapperFileFormat)
+    try {
+      val rows = reader.iterator
+      if (!rows.hasNext) Seq.empty
+      else {
+        val header = rows.next()
+        val idx = header.indexOf("Sample Name")
+        if (idx < 0) Seq.empty
+        else rows.map(_.lift(idx).getOrElse("")).filter(_.nonEmpty).toSeq.distinct
+      }
+    } finally reader.close()
+  }
+
+  private def parseHeader(header: Seq[String])(using messages: Messages): Either[String, GeneMaperFileHeader] =
     header
       .zipWithIndex
       .foldLeft(GeneMaperFileHeaderBuilder(HeaderLine = header)) { case (builder, tup) => builder.buildWith(tup._1, tup._2) }
@@ -21,8 +40,8 @@ object GeneMapperFileParser:
     mapa: GeneMaperFileHeader,
     builder: ProtoProfileBuilder,
     input: LazyList[List[String]]
-  ): (ProtoProfile, LazyList[List[String]]) =
-    input match
+  ): (ProtoProfile, LazyList[List[String]]) = {
+    input match {
       case LazyList() => (builder.build, LazyList.empty)
       case line #:: tail if line(mapa.sampleName) == prev(mapa.sampleName) =>
         val bldrMd = builder
@@ -38,20 +57,32 @@ object GeneMapperFileParser:
         val alleles = alleleIndexes.map(line.lift).map(_.getOrElse(""))
         val bldr = bldrMd.buildWithMarker(line(mapa.Marker), alleles)
         parseLine(line, mapa, bldr, tail)
-      case head #:: tail => (builder.build, input)
+      case _ => (builder.build, input)
+    }
+  }
 
-  def parse(csvFile: File, validator: Validator): Either[String, LazyList[ProtoProfile]] =
-    def profileStream(source: LazyList[List[String]], header: GeneMaperFileHeader): LazyList[ProtoProfile] =
-      if source.isEmpty then LazyList.empty
-      else
+  def parse(
+    csvFile: File,
+    validator: Validator
+  )(using messages: Messages): Either[String, LazyList[ProtoProfile]] = {
+    def profileStream(
+      source: LazyList[List[String]],
+      header: GeneMaperFileHeader
+    ): LazyList[ProtoProfile] = {
+      if (source.isEmpty) LazyList.empty
+      else {
         val (protoProfile, remainingLines) = parseLine(
-          source.head, header,
+          source.head,
+          header,
           ProtoProfileBuilder(validator, genemapperLine = Seq(header.HeaderLine)),
           source
         )
         protoProfile #:: profileStream(remainingLines, header)
-
-    val stream = CSVReader.open(csvFile).toLazyList()
+      }
+    }
+    val stream = CSVReader.open(csvFile).iterator.map(_.toList).to(LazyList)
     val header = stream.head
-    val lines  = stream.tail
+    val lines = stream.tail
     parseHeader(header).map(h => profileStream(lines, h))
+  }
+}

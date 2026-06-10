@@ -1,6 +1,6 @@
 package bulkupload
 
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.{Format, Json}
 
 case class BatchModelView(
   idBatch: Long,
@@ -9,4 +9,4 @@ case class BatchModelView(
 )
 
 object BatchModelView:
-  implicit val format: OFormat[BatchModelView] = Json.format
+  implicit val batchModelViewFormat: Format[BatchModelView] = Json.format

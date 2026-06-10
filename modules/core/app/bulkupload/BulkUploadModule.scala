@@ -5,16 +5,20 @@ import com.google.inject.name.Names
 import play.api.{Configuration, Environment}
 import profiledata.{ImportToProfileData, SlickImportToProfileData}
 
-class BulkUploadModule(environment: Environment, conf: Configuration) extends AbstractModule:
+class BulkUploadModule(environment: Environment, configuration: Configuration) extends AbstractModule:
   override def configure(): Unit =
-    val ppGcDummy = conf.getOptional[String]("protoprofile.globalCode.dummy").getOrElse("XX-X-XXXX-")
-    bind(classOf[String]).annotatedWith(Names.named("protoProfileGcDummy")).toInstance(ppGcDummy)
+    val labCode = configuration.get[String]("laboratory.code")
+    bind(classOf[String]).annotatedWith(Names.named("labCode")).toInstance(labCode)
 
-    val country  = conf.getOptional[String]("laboratory.country").getOrElse(conf.getOptional[String]("country").getOrElse("AR"))
-    val province = conf.getOptional[String]("laboratory.province").getOrElse(conf.getOptional[String]("province").getOrElse("C"))
+    val country = configuration.get[String]("laboratory.country")
     bind(classOf[String]).annotatedWith(Names.named("country")).toInstance(country)
+
+    val province = configuration.get[String]("laboratory.province")
     bind(classOf[String]).annotatedWith(Names.named("province")).toInstance(province)
 
-    bind(classOf[BulkUploadService]).to(classOf[BulkUploadServiceImpl])
+    val ppgcd = configuration.get[String]("protoprofile.globalCode.dummy")
+    bind(classOf[String]).annotatedWith(Names.named("protoProfileGcDummy")).toInstance(ppgcd)
+
     bind(classOf[ProtoProfileRepository]).to(classOf[SlickProtoProfileRepository])
+    bind(classOf[BulkUploadService]).to(classOf[BulkUploadServiceImpl])
     bind(classOf[ImportToProfileData]).to(classOf[SlickImportToProfileData])

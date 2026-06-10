@@ -1,7 +1,7 @@
 package bulkupload
 
 import java.util.Date
-import play.api.libs.json.{Json, OFormat, OWrites}
+import play.api.libs.json.{Json, OWrites}
 
 case class ProtoProfilesBatch(
   id: Long,
@@ -26,9 +26,12 @@ case class ProtoProfilesBatchView(
 )
 
 object ProtoProfilesBatchView:
-  implicit val format: OFormat[ProtoProfilesBatchView] = Json.format
+  implicit val viewFormat: play.api.libs.json.OFormat[ProtoProfilesBatchView] = Json.format
 
-case class BatchDetails(batch: ProtoProfilesBatchView, protoProfiles: Seq[ProtoProfile])
+case class BatchDetails(
+  batch: ProtoProfilesBatchView,
+  protoProfiles: Seq[ProtoProfile]
+)
 
 object BatchDetails:
-  implicit val writes: OWrites[BatchDetails] = Json.writes
+  implicit val viewFormat: OWrites[BatchDetails] = Json.writes[BatchDetails]

@@ -1,8 +1,8 @@
 package profiledata
 
-import java.util.Date
 import play.api.libs.json.*
 import play.api.libs.functional.syntax.*
+import java.util.Date
 
 case class DataFiliation(
   fullName: Option[String],
@@ -19,7 +19,7 @@ case class DataFiliation(
 )
 
 object DataFiliation:
-  implicit val format: OFormat[DataFiliation] = Json.format
+  implicit val dataFiliationFormat: Format[DataFiliation] = Json.format[DataFiliation]
 
 case class DataFiliationAttempt(
   fullName: Option[String],
@@ -35,38 +35,47 @@ case class DataFiliationAttempt(
   signature: String
 ):
   def dfAttempToDf: DataFiliation = DataFiliation(
-    fullName, nickname, birthday, birthPlace,
-    nationality, identification, identificationIssuingAuthority,
-    address, Nil, Nil, Nil
+    fullName, nickname, birthday, birthPlace, nationality,
+    identification, identificationIssuingAuthority, address,
+    Nil, Nil, Nil
   )
 
+  def isComplete: Boolean =
+    fullName.exists(_.nonEmpty) || nickname.exists(_.nonEmpty) ||
+      birthday.isDefined || birthPlace.exists(_.nonEmpty) ||
+      nationality.exists(_.nonEmpty) || identification.exists(_.nonEmpty) ||
+      identificationIssuingAuthority.exists(_.nonEmpty) || address.exists(_.nonEmpty)
+
 object DataFiliationAttempt:
-  given reads: Reads[DataFiliationAttempt] = (
-    (__ \ "fullName").readNullable[String] and
-    (__ \ "nickname").readNullable[String] and
-    (__ \ "birthday").readNullable[Date] and
-    (__ \ "birthPlace").readNullable[String] and
-    (__ \ "nationality").readNullable[String] and
-    (__ \ "identification").readNullable[String] and
-    (__ \ "identificationIssuingAuthority").readNullable[String] and
-    (__ \ "address").readNullable[String] and
-    (__ \ "token" \ "inprint").read[String] and
-    (__ \ "token" \ "picture").read[String] and
+  implicit val dataFiliationAttemptReads: Reads[DataFiliationAttempt] = (
+    (__ \ "fullName").readNullable[String] ~
+    (__ \ "nickname").readNullable[String] ~
+    (__ \ "birthday").readNullable[Date] ~
+    (__ \ "birthPlace").readNullable[String] ~
+    (__ \ "nationality").readNullable[String] ~
+    (__ \ "identification").readNullable[String] ~
+    (__ \ "identificationIssuingAuthority").readNullable[String] ~
+    (__ \ "address").readNullable[String] ~
+    (__ \ "token" \ "inprint").read[String] ~
+    (__ \ "token" \ "picture").read[String] ~
     (__ \ "token" \ "signature").read[String]
   )(DataFiliationAttempt.apply)
 
-  given writes: Writes[DataFiliationAttempt] = (
-    (__ \ "fullName").write[Option[String]] and
-    (__ \ "nickname").write[Option[String]] and
-    (__ \ "birthday").write[Option[Date]] and
-    (__ \ "birthPlace").write[Option[String]] and
-    (__ \ "nationality").write[Option[String]] and
-    (__ \ "identification").write[Option[String]] and
-    (__ \ "identificationIssuingAuthority").write[Option[String]] and
-    (__ \ "address").write[Option[String]] and
+  // Preserves legacy write behavior (fullName written twice — legacy fidelity)
+  implicit val dataFiliationAttemptWrites: Writes[DataFiliationAttempt] = (
+    (__ \ "fullName").write[Option[String]] ~
+    (__ \ "nickname").write[Option[String]] ~
+    (__ \ "birthday").write[Option[Date]] ~
+    (__ \ "birthPlace").write[Option[String]] ~
+    (__ \ "nationality").write[Option[String]] ~
+    (__ \ "identification").write[Option[String]] ~
+    (__ \ "identificationIssuingAuthority").write[Option[String]] ~
+    (__ \ "address").write[Option[String]] ~
     (__ \ "idImages").write[String]
-  )(dfa => (dfa.fullName, dfa.nickname, dfa.birthday, dfa.birthPlace,
-            dfa.nationality, dfa.identification, dfa.identificationIssuingAuthority,
-            dfa.address, dfa.inprint))
+  )((d: DataFiliationAttempt) =>
+    (d.fullName, d.fullName, d.birthday, d.birthPlace, d.nationality,
+     d.identification, d.identificationIssuingAuthority, d.address, d.inprint)
+  )
 
-  given format: Format[DataFiliationAttempt] = Format(reads, writes)
+  implicit val dataFiliationAttemptFormat: Format[DataFiliationAttempt] =
+    Format(dataFiliationAttemptReads, dataFiliationAttemptWrites)

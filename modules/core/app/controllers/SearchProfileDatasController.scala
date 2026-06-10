@@ -85,9 +85,11 @@ class SearchProfileDatasController @Inject()(
       assignee              = r.assignee,
       laboratory            = r.laboratory,
       deleted               = r.deleted,
+      deletedMotive         = None,
       responsibleGeneticist = r.responsibleGeneticist,
       profileExpirationDate = r.profileExpirationDate.map(d => new java.util.Date(d.getTime)),
       sampleDate            = r.sampleDate.map(d => new java.util.Date(d.getTime)),
       sampleEntryDate       = r.sampleEntryDate.map(d => new java.util.Date(d.getTime)),
+      dataFiliation         = None,
       isExternal            = false
     )

@@ -354,10 +354,12 @@ class PedigreeMatchesServiceTest extends AnyWordSpec with Matchers with MockitoS
         assignee = assignee,
         laboratory = "",
         deleted = false,
+        deletedMotive = None,
         responsibleGeneticist = None,
         profileExpirationDate = None,
         sampleDate = None,
         sampleEntryDate = None,
+        dataFiliation = None,
         isExternal = false
       )
       when(profileDataRepo.get(SampleCode("AR-B-HIBA-1"))).thenReturn(Future.successful(Some(pd)))
@@ -376,7 +378,7 @@ class PedigreeMatchesServiceTest extends AnyWordSpec with Matchers with MockitoS
       val match1 = pedigreeDirectLinkMatch(profileCode = "AR-B-HIBA-99")
       when(matchesRepo.getMatchesByGroup(any())).thenReturn(Future.successful(Seq(match1)))
       val profileDataRepo = mock[ProfileDataRepository]
-      when(profileDataRepo.get(any())).thenReturn(Future.successful(None))
+      when(profileDataRepo.get(any[SampleCode]())).thenReturn(Future.successful(None))
       val svc = buildService(matchesRepo = matchesRepo, profileDataRepo = profileDataRepo)
 
       val search = PedigreeMatchGroupSearch(user = assignee, isSuperUser = false, id = pedigreeId.toString,

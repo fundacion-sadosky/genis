@@ -6,6 +6,8 @@ import scala.util.{Success, Try}
 import java.io.File
 import javax.inject.Singleton
 
+import bulkupload.{BatchModelView, BulkUploadService, ProtoProfile, ProtoProfileStatus, ProtoProfilesBatchView}
+import configdata.{BioMaterialType, CrimeType, CrimeTypeService, BioMaterialTypeService, MatchingRule}
 import audit.{Key, OperationLogEntry, OperationLogEntryAttemp, OperationLogLotView,
   OperationLogSearch, OperationLogService, SignedOperationLogEntry}
 import configdata.{BioMaterialType, CrimeType, CrimeTypeService, BioMaterialTypeService}
@@ -16,8 +18,10 @@ import probability.CalculationTypeService
 import profile.Profile
 import types.SampleCode
 import inbox.NotificationInfo
+import play.api.libs.Files.TemporaryFile
 import probability.ProbabilityService
 import profile.Analysis
+import search.PaginationSearch
 import services.{Country, CountryService, GeneticistService, LaboratoryService, Province, UserService}
 import stats.{Fmins, PopBaseFreqResult, PopulationBaseFrequency, PopulationBaseFrequencyGrouppedByLocus, PopulationBaseFrequencyNameView, PopulationBaseFrequencyService, PopulationBaseFrequencyView, ProbabilityModel}
 import types.{AlphanumericId, Geneticist, Laboratory, Permission, StatOption}
@@ -222,3 +226,31 @@ class CalculationTypeServiceStub extends CalculationTypeService:
   override def filterProfiles(profiles: Seq[Profile], calculation: String): Future[Seq[Profile.Genotypification]] = Future.successful(Seq.empty)
   override def filterCodes(codes: List[SampleCode], calculation: String, profiles: List[Profile] = Nil): Future[Seq[Profile.Genotypification]] = Future.successful(Seq.empty)
   override def filterMatchResults(matchResults: Seq[MatchResult], calculation: String): Future[Seq[MatchResult]] = Future.successful(Seq.empty)
+class StubBulkUploadService extends BulkUploadService:
+  var deleteBatchResult: Future[Either[String, Long]]                           = Future.successful(Right(0L))
+  var updateProtoProfileDataResult: Future[Either[Seq[String], ProtoProfile]]  = Future.successful(Left(Seq("stub")))
+  var updateBatchStatusResult: Future[Either[String, Long]]                    = Future.successful(Right(0L))
+  var updateProtoProfileRulesMismatchResult: Future[Boolean]                   = Future.successful(false)
+  var rejectProtoProfileResult: Future[Seq[String]]                            = Future.successful(Seq.empty)
+  var updateProtoProfileStatusResult: Future[Seq[String]]                      = Future.successful(Seq.empty)
+  var getBatchSearchModalResult: Future[List[BatchModelView]]                  = Future.successful(List.empty)
+
+  override def getBatchesStep1(userId: String, isSuperUser: Boolean, offset: Int, limit: Int)                           = Future.successful(Seq.empty)
+  override def countBatchesStep1(userId: String, isSuperUser: Boolean)                                                 = Future.successful(0)
+  override def getBatchesStep2(userId: String, geneMapperId: String, isSuperUser: Boolean, offset: Int, limit: Int)    = Future.successful(Seq.empty)
+  override def countBatchesStep2(userId: String, geneMapperId: String, isSuperUser: Boolean)                           = Future.successful(0)
+  override def countAllProtoProfilesInBatch(batchId: Long)                                                            = Future.successful(0)
+  override def getProtoProfile(id: Long)                                                                               = Future.successful(None)
+  override def getProtoProfileWithBatchId(id: Long)                                                                    = Future.successful(None)
+  override def getProtoProfilesStep1(batchId: Long, paginationSearch: Option[PaginationSearch])                       = Future.successful(Seq.empty)
+  override def getProtoProfilesStep2(batchId: Long, geneMapperId: String, isSuperUser: Boolean, paginationSearch: Option[PaginationSearch] = None) = Future.successful(Seq.empty)
+  override def uploadProtoProfiles(user: String, csvFile: TemporaryFile, label: Option[String], analysisType: String) = Future.successful(Left("stub"))
+  override def rejectProtoProfile(id: Long, motive: String, userId: String, idMotive: Long)                           = rejectProtoProfileResult
+  override def updateProtoProfileStatus(id: Long, status: ProtoProfileStatus.Value, userId: String, replicate: Boolean, desktopSearch: Boolean) = updateProtoProfileStatusResult
+  override def updateProtoProfileData(id: Long, category: AlphanumericId, userId: String)                             = updateProtoProfileDataResult
+  override def updateBatchStatus(idBatch: Long, status: ProtoProfileStatus.Value, userId: String, isSuperUser: Boolean, replicateAll: Boolean, idsToReplicate: List[Long]) = updateBatchStatusResult
+  override def updateProtoProfileRulesMismatch(id: Long, matchingRules: Seq[MatchingRule], mismatches: Profile.Mismatch) = updateProtoProfileRulesMismatchResult
+  override def deleteBatch(id: Long)                                                                                   = deleteBatchResult
+  override def searchBatch(userId: String, isSuperUser: Boolean, search: String)                                      = Future.successful(Seq.empty)
+  override def getBatchSearchModalViewByIdOrLabel(input: String, idCase: Long)                                        = getBatchSearchModalResult
+  override protected def replicateProtoProfile(protoProfile: ProtoProfile, userId: String)                            = Future.successful(Seq.empty)

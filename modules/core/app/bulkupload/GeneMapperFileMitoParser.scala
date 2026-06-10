@@ -2,20 +2,21 @@ package bulkupload
 
 import java.io.File
 import com.github.tototoshi.csv.{CSVReader, DefaultCSVFormat}
+import play.api.i18n.Messages
 import profile.{AlleleValue, Mitocondrial, MtRCRS}
+
 import scala.annotation.tailrec
 
-object GeneMapperFileMitoParser:
+object GeneMapperFileMitoParser {
 
-  implicit object GeneMapperFileMitoFormat extends DefaultCSVFormat:
+  implicit object GeneMapperFileMitoFormat extends DefaultCSVFormat {
     override val delimiter = '\t'
+  }
 
-  private def parseHeader(header: Seq[String]): Either[String, GeneMaperMitoFileHeader] =
+  private def parseHeader(header: Seq[String])(using messages: Messages): Either[String, GeneMaperMitoFileHeader] =
     header
       .zipWithIndex
-      .foldLeft(GeneMaperFileMitoHeaderBuilder(HeaderLine = header)) {
-        case (builder, tup) => builder.buildWith(tup._1, tup._2)
-      }
+      .foldLeft(GeneMaperFileMitoHeaderBuilder(HeaderLine = header)) { case (builder, tup) => builder.buildWith(tup._1, tup._2) }
       .build
 
   @tailrec
@@ -26,8 +27,8 @@ object GeneMapperFileMitoParser:
     input: LazyList[List[String]],
     index: Int,
     mito: MtRCRS
-  ): (ProtoProfile, LazyList[List[String]]) =
-    input match
+  ): (ProtoProfile, LazyList[List[String]]) = {
+    input match {
       case LazyList() => (builder.build, LazyList.empty)
       case line #:: tail if line(mapa.sampleName) == prev(mapa.sampleName) =>
         val MitoRango = Seq(line(mapa.RangeFrom), line(mapa.RangeTo))
@@ -56,7 +57,7 @@ object GeneMapperFileMitoParser:
           mapa.Variacion49, mapa.Variacion50
         )
         val Mito = variations.map(line.lift).map(_.getOrElse(""))
-        val valido    = validarRangoVariaciones(line(mapa.RangeTo), line(mapa.RangeFrom), Mito)
+        val valido = validarRangoVariaciones(line(mapa.RangeTo), line(mapa.RangeFrom), Mito)
         val posiciones = convertirPosiciones(Mito)
         val bldr = bldrMd
           .buildWithMarker(s"HV${index}", Mito, mitocondrial = true)
@@ -64,74 +65,139 @@ object GeneMapperFileMitoParser:
           .buildWithAllelesVal(posiciones, mito)
           .buildWithMtExistente()
         parseLine(line, mapa, bldr, tail, index + 1, mito)
-      case head #:: tail => (builder.build, input)
+      case _ => (builder.build, input)
+    }
+  }
 
-  def parse(csvFile: File, validator: Validator, mito: MtRCRS): Either[String, LazyList[ProtoProfile]] =
-    val stream = CSVReader.open(csvFile).toLazyList()
+  def parse(
+    csvFile: File,
+    validator: Validator,
+    mito: MtRCRS
+  )(using messages: Messages): Either[String, LazyList[ProtoProfile]] = {
+    val stream = CSVReader.open(csvFile).iterator.map(_.toList).to(LazyList)
     parseCsvStream(stream, validator, mito)
+  }
 
-  def parseCsvStream(csv: LazyList[List[String]], validator: Validator, mito: MtRCRS): Either[String, LazyList[ProtoProfile]] =
-    def profileStream(source: LazyList[List[String]], header: GeneMaperMitoFileHeader): LazyList[ProtoProfile] =
-      if source.isEmpty then LazyList.empty
-      else
+  def parseCsvStream(
+    csv: LazyList[List[String]],
+    validator: Validator,
+    mito: MtRCRS
+  )(using messages: Messages): Either[String, LazyList[ProtoProfile]] = {
+    val index = 1
+    def profileStream(
+      source: LazyList[List[String]],
+      header: GeneMaperMitoFileHeader
+    ): LazyList[ProtoProfile] = {
+      if (source.isEmpty) LazyList.empty
+      else {
         val (protoProfile, remainingLines) = parseLine(
-          source.head, header,
+          source.head,
+          header,
           ProtoProfileBuilder(validator, genemapperLine = Seq(header.HeaderLine)),
-          source, 1, mito
+          source,
+          index,
+          mito
         )
         protoProfile #:: profileStream(remainingLines, header)
-
+      }
+    }
     val header = csv.head
-    val lines  = csv.tail
+    val lines = csv.tail
     parseHeader(header).map(h => profileStream(lines, h))
+  }
 
-  def validarMaxMin(max: String, min: String): Option[String] =
+  def validarMaxMin(max: String, min: String): Option[String] = {
     val maxInt = toInt(max)
     val minInt = toInt(min)
     val minMito = 1
     val maxMito = 16569
     val minDLoop = 16024
     val maxDLoop = 576
-    lazy val anyIsEmpty    = minInt.isEmpty || maxInt.isEmpty
-    lazy val maxOutOfMito  = maxInt.get > maxMito || maxInt.get < minMito
-    lazy val minOutOfMito  = minInt.get > maxMito || minInt.get < minMito
-    lazy val outOfGenome   = anyIsEmpty || maxOutOfMito || minOutOfMito
-    lazy val maxOutDloop   = maxInt.get > maxDLoop && maxInt.get < minDLoop
-    lazy val minOutDloop   = minInt.get > maxDLoop && minInt.get < minDLoop
-    lazy val outOfDloop    = maxOutDloop || minOutDloop
-    lazy val minGteMax     = minInt.get >= maxInt.get
-    if outOfGenome then Some("E0308")
-    else if outOfDloop then Some("E0312")
-    else if minGteMax then Some("E0309")
-    else None
+    lazy val anyIsEmpty = minInt.isEmpty || maxInt.isEmpty
+    lazy val maxOutOfMito = maxInt.get > maxMito || maxInt.get < minMito
+    lazy val minOutOfMito = minInt.get > maxMito || minInt.get < minMito
+    lazy val outOfGenome = anyIsEmpty || maxOutOfMito || minOutOfMito
+    lazy val maxOutDloop = maxInt.get > maxDLoop && maxInt.get < minDLoop
+    lazy val minOutDloop = minInt.get > maxDLoop && minInt.get < minDLoop
+    lazy val outOfDloop = maxOutDloop || minOutDloop
+    lazy val minGreaterThanMax = minInt.get >= maxInt.get
+    outOfGenome match {
+      case true => Option("E0308")
+      case false if outOfDloop => Option("E0312")
+      case false if minGreaterThanMax => Option("E0309")
+      case _ => None
+    }
+  }
 
-  def validarRangoVariaciones(max: String, min: String, variaciones: Seq[String]): Option[String] =
-    val maxD   = toInt(max).map(_.toDouble + 0.9)
+  def validarRangoVariaciones(
+    max: String,
+    min: String,
+    variaciones: Seq[String]
+  ): Option[String] = {
+    val maxInt = toInt(max).get + 0.9
     val minInt = toInt(min)
-    val invalidInRange = (v: String) =>
-      if v.isEmpty then false
-      else AlleleValue(v) match
-        case Mitocondrial(_, pos) =>
-          maxD.exists(mx => pos.toDouble > mx) || minInt.exists(mn => pos.toDouble < mn)
-        case _ => false
-    val invalidInReference = (s: String) =>
-      if s.isEmpty then false
-      else AlleleValue(s) match
-        case Mitocondrial(_, pos) =>
-          (576 < pos.toDouble && pos.toDouble < 16024) || pos.toDouble > 16569 || pos.toDouble < 1
-        case _ => false
-    if variaciones.exists(invalidInRange) then Some("E0307")
-    else if variaciones.exists(invalidInReference) then Some("E0311")
-    else None
+    var contador = 0
+    val invalidPositionInGivenRanges = (v: String) => {
+      var result = true
+      if (minInt.isEmpty || maxInt <= 0) {
+        result = false
+      } else {
+        if (v != "") {
+          val allele = AlleleValue(v)
+          result = allele match {
+            case Mitocondrial(_, position) => !(
+              position == null ||
+              maxInt < position.toDouble ||
+              position.toDouble < minInt.get
+            )
+            case _ => false
+          }
+        } else {
+          contador += 1
+        }
+      }
+      !result
+    }
+    val invalidPositionInReferenceRanges = (s: String) => {
+      var resultado = true
+      if (s != "") {
+        val alelo = AlleleValue(s)
+        resultado = alelo match {
+          case Mitocondrial(_, position) => !(
+            position == null ||
+              (576 < position.toDouble && position.toDouble < 16024) ||
+              position.toDouble > 16569 ||
+              position.toDouble < 1
+            )
+          case _ => false
+        }
+      }
+      !resultado
+    }
+    lazy val valido = variaciones.exists(invalidPositionInGivenRanges)
+    lazy val validar = variaciones.exists(invalidPositionInReferenceRanges)
+    valido match {
+      case true => Option("E0307")
+      case false if validar => Option("E0311")
+      case false => None
+    }
+  }
 
   def toInt(s: String): Option[Int] =
-    try Some(s.toInt) catch case _: Exception => None
+    try Some(s.toInt)
+    catch { case _: Exception => None }
 
   def convertirPosiciones(alelos: List[String]): List[(Mitocondrial, String)] =
     alelos.map { alelo =>
-      if alelo.isEmpty then (null, "")
-      else AlleleValue(alelo) match
-        case m @ Mitocondrial(base, pos) if !pos.toString.contains(".") =>
-          (m, alelo.substring(0, 1))
-        case _ => (null, "")
+      if (alelo != "") {
+        val al = AlleleValue(alelo)
+        al match {
+          case Mitocondrial(base, pos) if !pos.toString.contains(".") =>
+            (Mitocondrial(base, pos), alelo.substring(0, 1))
+          case _ => (null, "")
+        }
+      } else {
+        (null, "")
+      }
     }
+}
