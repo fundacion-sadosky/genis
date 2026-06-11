@@ -76,7 +76,7 @@ class Spark2MatcherScreening @Inject()(
     categories: Seq[AlphanumericId]
   ): RDD[Profile] = {
     val profilesReadConf = ReadConfig(
-      Map("uri" -> s"$mongoUri.profiles"),
+      Map("uri" -> mongoUri, "collection" -> "profiles"),
       None
     )
     import collection.JavaConverters._
