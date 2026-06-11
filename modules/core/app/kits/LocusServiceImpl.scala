@@ -1,7 +1,8 @@
 package kits
 
-import javax.inject.{Inject, Singleton}
+import jakarta.inject.{Inject, Provider, Singleton}
 import matching.NewMatchingResult
+import matching.AleleRange
 import pedigree.MutationService
 import profile.{Allele, Profile}
 import services.{CacheService, LocusCacheKey}
@@ -16,7 +17,7 @@ trait LocusService:
   def delete(id: String): Future[Either[String, String]]
   def getLocusByAnalysisTypeName(analysisType: String): Future[Seq[String]]
   def getLocusByAnalysisType(analysisType: Int): Future[Seq[String]]
-  def locusRangeMap(): Future[NewMatchingResult.AlleleMatchRange]
+  def locusRangeMap(): Future[Map[String, AleleRange]]
   def saveLocusAlleles(list: List[(String, Double)]): Future[Either[String, Int]]
   def saveLocusAllelesFromProfile(p: Profile): Future[Either[String, Int]]
   def refreshAllKis(): Future[Unit]
@@ -25,8 +26,10 @@ trait LocusService:
 class LocusServiceImpl @Inject()(
   cache: CacheService,
   locusRepository: LocusRepository,
-  mutationService: MutationService
+  mutationServiceProvider: Provider[MutationService]
 )(implicit ec: ExecutionContext) extends LocusService:
+
+  private def mutationService: MutationService = mutationServiceProvider.get()
 
   private def cleanCache(): Unit =
     cache.pop(LocusCacheKey)

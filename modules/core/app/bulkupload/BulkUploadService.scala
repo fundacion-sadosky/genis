@@ -141,7 +141,7 @@ class BulkUploadServiceImpl @Inject()(
     yield (kits, alKit, lociAl, geneticists, categoryAliases)
 
     protoProfiledataService.getMtRcrs().flatMap { mtRcrs =>
-      val csvFile = new File(tempFile.file.getAbsolutePath + "_permanent")
+      val csvFile = new File(tempFile.path.toAbsolutePath.toString + "_permanent")
       tempFile.moveTo(csvFile.toPath, replace = true)
       // Primer pase barato: sampleNames distintos -> precarga las validaciones de BD (S5Q3), de modo que
       // el Validator no haga Await por-perfil durante el consumo del LazyList en createBatch.

@@ -1,10 +1,13 @@
 package scenarios
 
-import matching.{MongoId, NewMatchingResult}
-import probability.LRResult
+import javax.inject.{Inject, Named, Singleton}
+import matching.{MatchingAlgorithm, MatchingRepository, MongoId, NewMatchingResult}
+import probability.{CalculationTypeService, FullCalculationScenario, FullHypothesis, LRMixCalculator, LRResult, PValueCalculator}
+import profile.ProfileService
+import stats.PopulationBaseFrequencyService
 import types.SampleCode
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 trait ScenarioService:
   def getLRMix(scenario: CalculationScenario, allelesRanges: Option[NewMatchingResult.AlleleMatchRange] = None): Future[Option[LRResult]]
@@ -43,3 +46,183 @@ class ScenarioServiceStub extends ScenarioService:
     Future.successful(Right(scenario._id.id))
   override def getNCorrection(request: NCorrectionRequest): Future[Either[String, NCorrectionResponse]] =
     Future.successful(Left("Not implemented"))
+
+@Singleton
+class ScenarioServiceImpl @Inject()(
+  populationBaseFrequencyService: PopulationBaseFrequencyService,
+  calculationTypeService: CalculationTypeService,
+  matchingRepository: MatchingRepository,
+  scenarioRepository: ScenarioRepository,
+  profileService: ProfileService,
+  @Named("lrmix-context") lrmixEc: ExecutionContext
+)(using ec: ExecutionContext) extends ScenarioServiceStub:
+
+  override def getLRMix(
+    scenario: CalculationScenario,
+    allelesRanges: Option[NewMatchingResult.AlleleMatchRange] = None
+  ): Future[Option[LRResult]] =
+    val frequencyTableFuture = populationBaseFrequencyService
+      .getByName(scenario.stats.frequencyTable)
+      .map(maybeFrequencyTable => PValueCalculator.parseFrequencyTable(maybeFrequencyTable.get))
+    val fullScenarioFuture = convertFullScenario(scenario)
+    for
+      frequencyTable <- frequencyTableFuture
+      fullScenario   <- fullScenarioFuture
+      lr             <- LRMixCalculator.calculateLRMix(fullScenario, frequencyTable, allelesRanges)(using lrmixEc)
+    yield Some(lr)
+
+  private def convertFullScenario(scenario: CalculationScenario): Future[FullCalculationScenario] =
+    val calculation    = LRMixCalculator.name
+    val profiles       = scenario.profiles.getOrElse(Nil)
+    val sampleFut      = calculationTypeService.filterCodes(List(scenario.sample), calculation, profiles).map(_.head)
+    val selectedPFut   = calculationTypeService.filterCodes(scenario.prosecutor.selected, calculation, profiles)
+    val unselectedPFut = calculationTypeService.filterCodes(scenario.prosecutor.unselected, calculation, profiles)
+    val selectedDFut   = calculationTypeService.filterCodes(scenario.defense.selected, calculation, profiles)
+    val unselectedDFut = calculationTypeService.filterCodes(scenario.defense.unselected, calculation, profiles)
+    for
+      sample      <- sampleFut
+      selectedP   <- selectedPFut
+      unselectedP <- unselectedPFut
+      selectedD   <- selectedDFut
+      unselectedD <- unselectedDFut
+    yield FullCalculationScenario(
+      sample,
+      FullHypothesis(selectedP.toArray, unselectedP.toArray, scenario.prosecutor.unknowns, scenario.prosecutor.dropOut),
+      FullHypothesis(selectedD.toArray, unselectedD.toArray, scenario.defense.unknowns, scenario.defense.dropOut),
+      scenario.stats
+    )
+
+  override def search(userId: String, scenarioSearch: ScenarioSearch, isSuperUser: Boolean): Future[Seq[Scenario]] =
+    scenarioRepository.get(userId, scenarioSearch, isSuperUser)
+
+  override def add(scenario: Scenario): Future[Either[String, String]] =
+    scenarioRepository.add(scenario)
+
+  override def delete(userId: String, id: MongoId, isSuperUser: Boolean): Future[Either[String, String]] =
+    scenarioRepository.delete(userId, id, isSuperUser)
+
+  override def get(userId: String, id: MongoId, isSuperUser: Boolean): Future[Option[Scenario]] =
+    scenarioRepository.get(userId, id, isSuperUser)
+
+  override def validate(userId: String, scenario: Scenario, isSuperUser: Boolean): Future[Either[String, String]] =
+    scenarioRepository.validate(userId, scenario, isSuperUser)
+
+  override def update(userId: String, scenario: Scenario, isSuperUser: Boolean): Future[Either[String, String]] =
+    scenarioRepository.update(userId, scenario, isSuperUser)
+
+  override def getNCorrection(request: NCorrectionRequest): Future[Either[String, NCorrectionResponse]] =
+    matchingRepository.getByFiringAndMatchingProfile(request.firingCode, request.matchingCode).map {
+      case None => Left("No se encontró la coincidencia")
+      case Some(mr) =>
+        val n = mr.n
+        if request.bigN > n then
+          val dmp = 1 - Math.pow(1 - (1.0 / request.lr), n.toDouble)
+          val donnellyBaldwin = (1 + ((n - 1.0) / (request.bigN - n))) * request.lr
+          Right(NCorrectionResponse(dmp, donnellyBaldwin, n))
+        else
+          Left(s"El N ingresado (${request.bigN}) debe ser mayor al N del match ($n)")
+    }
+
+  override def findExistingMatches(scenario: Scenario): Future[Seq[ScenarioOption]] =
+    profileService.findByCode(scenario.calculationScenario.sample).flatMap {
+      case None          => Future.successful(Seq.empty)
+      case Some(firing)  =>
+        val profiles = scenario.calculationScenario.prosecutor.selected ++
+                       scenario.calculationScenario.prosecutor.unselected
+        profilesToScenarioOptions(firing, profiles, associated = false)
+    }
+
+  override def findMatchesForScenario(userId: String, globalCode: SampleCode, isSuperUser: Boolean): Future[Seq[ScenarioOption]] =
+    for
+      notDiscarded <- getOptionsForNotDiscardedMatches(userId, globalCode, isSuperUser)
+      associated   <- getOptionsForAssociations(userId, globalCode, isSuperUser)
+    yield dedup(notDiscarded ++ associated)
+
+  override def findMatchesForRestrainedScenario(userId: String, firingCode: SampleCode, matchingCode: SampleCode, isSuperUser: Boolean): Future[Seq[ScenarioOption]] =
+    matchingRepository.getByFiringAndMatchingProfile(firingCode, matchingCode).flatMap {
+      case None => Future.successful(Seq.empty)
+      case Some(mr) =>
+        val fromUser = isFromUser(mr, matchingCode, userId)
+        if !isSuperUser && !fromUser then Future.successful(Seq.empty)
+        else
+          for
+            r1    <- matchResultsToScenarioOptions(firingCode, Seq(mr))
+            fullHits <- matchingRepository.matchesWithFullHit(firingCode)
+            r2    <- matchResultsToScenarioOptions(firingCode, fullHits, onlyReferences = true)
+            assoc <- getOptionsForAssociations(userId, firingCode, isSuperUser = true)
+          yield dedup(r1 ++ r2 ++ assoc)
+    }
+
+  private def dedup(opts: Seq[ScenarioOption]): Seq[ScenarioOption] =
+    opts.foldLeft(List.empty[ScenarioOption]) { (acc, o) =>
+      if acc.exists(_.globalCode == o.globalCode) then acc else acc :+ o
+    }
+
+  private def isFromUser(mr: matching.MatchResult, code: SampleCode, userId: String): Boolean =
+    val isRight = mr.rightProfile.globalCode == code
+    val prof    = if isRight then mr.rightProfile else mr.leftProfile
+    prof.assignee == userId
+
+  private def getOptionsForNotDiscardedMatches(userId: String, globalCode: SampleCode, isSuperUser: Boolean): Future[Seq[ScenarioOption]] =
+    matchingRepository.matchesNotDiscarded(globalCode).flatMap { mrs =>
+      calculationTypeService.filterMatchResults(mrs, LRMixCalculator.name).flatMap { filtered =>
+        if isSuperUser || filtered.forall(isFromUser(_, globalCode, userId)) then
+          matchResultsToScenarioOptions(globalCode, filtered).map(_.filter(_.contributors == 1))
+        else
+          Future.successful(Seq.empty)
+      }
+    }
+
+  private def getOptionsForAssociations(userId: String, globalCode: SampleCode, isSuperUser: Boolean): Future[Seq[ScenarioOption]] =
+    profileService.findByCode(globalCode).flatMap {
+      case None => Future.successful(Seq.empty)
+      case Some(firing) =>
+        if !isSuperUser && firing.assignee != userId then Future.successful(Seq.empty)
+        else
+          val assocCodes = profileService.validProfilesAssociated(firing.labeledGenotypification).map(SampleCode(_))
+          profilesToScenarioOptions(firing, assocCodes, associated = true)
+    }
+
+  private def profilesToScenarioOptions(firing: profile.Profile, codes: Seq[SampleCode], associated: Boolean): Future[Seq[ScenarioOption]] =
+    Future.sequence(codes.map { code =>
+      for
+        matchOpt <- profileService.findByCode(code)
+        at       <- calculationTypeService.getAnalysisTypeByCalculation(LRMixCalculator.name)
+        dropOuts <- calculateDropOuts(firing, matchOpt.get)
+      yield
+        val mp = matchOpt.get
+        val (leftP, rightP) = MatchingAlgorithm.sharedAllelePonderation(
+          firing.genotypification.getOrElse(at.id, Map.empty),
+          mp.genotypification.getOrElse(at.id, Map.empty)
+        )
+        val pond = if !firing.isReference && mp.isReference then rightP else leftP
+        ScenarioOption(mp.globalCode, mp.internalSampleCode, mp.categoryId, pond,
+          mp.contributors.getOrElse(1), dropOuts, associated)
+    })
+
+  private def matchResultsToScenarioOptions(firingCode: SampleCode, results: Seq[matching.MatchResult], onlyReferences: Boolean = false): Future[Seq[ScenarioOption]] =
+    Future.sequence(results.map { mr =>
+      val isRight     = firingCode == mr.rightProfile.globalCode
+      val matchingCode = if isRight then mr.leftProfile.globalCode else mr.rightProfile.globalCode
+      for
+        firingOpt  <- profileService.findByCode(firingCode)
+        matchOpt   <- profileService.findByCode(matchingCode)
+        dropOuts   <- calculateDropOuts(firingOpt.get, matchOpt.get)
+      yield
+        val fp = firingOpt.get
+        val mp = matchOpt.get
+        if !onlyReferences || mp.isReference then
+          Some(ScenarioOption(mp.globalCode, mp.internalSampleCode, mp.categoryId,
+            MatchingAlgorithm.uniquePonderation(mr, fp, mp),
+            mp.contributors.getOrElse(1), dropOuts, associated = false))
+        else None
+    }).map(_.flatten)
+
+  private def calculateDropOuts(firing: profile.Profile, matching: profile.Profile): Future[Int] =
+    calculationTypeService.getAnalysisTypeByCalculation(LRMixCalculator.name).map { at =>
+      val leftG  = firing.genotypification.getOrElse(at.id, Map.empty)
+      val rightG = matching.genotypification.getOrElse(at.id, Map.empty)
+      leftG.keySet.intersect(rightG.keySet).foldLeft(0) { (acc, marker) =>
+        acc + rightG(marker).toSet.diff(leftG(marker).toSet).size
+      }
+    }

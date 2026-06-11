@@ -1,15 +1,34 @@
 package services
 
+import scala.concurrent.{ExecutionContext, Future}
 
-trait CountryService {
-  def listCountries: scala.concurrent.Future[Seq[String]]
-  def listProvinces(country: String): scala.concurrent.Future[Seq[String]]
-}
+import javax.inject.{Inject, Singleton}
+import play.api.libs.json.{Json, OWrites}
+import slick.jdbc.JdbcBackend.Database
+import slick.jdbc.PostgresProfile.api._
 
-import javax.inject.Singleton
+import models.Tables
+
+case class Country(code: String, name: String)
+case class Province(code: String, name: String)
+
+object Country:
+  implicit val writes: OWrites[Country] = Json.writes[Country]
+
+object Province:
+  implicit val writes: OWrites[Province] = Json.writes[Province]
+
+trait CountryService:
+  def listCountries: Future[Seq[Country]]
+  def listProvinces(country: String): Future[Seq[Province]]
 
 @Singleton
-class CountryServiceImpl extends CountryService {
-  override def listCountries: scala.concurrent.Future[Seq[String]] = scala.concurrent.Future.successful(Seq.empty)
-  override def listProvinces(country: String): scala.concurrent.Future[Seq[String]] = scala.concurrent.Future.successful(Seq.empty)
-}
+class CountryServiceImpl @Inject() (db: Database)(using ec: ExecutionContext) extends CountryService:
+
+  override def listCountries: Future[Seq[Country]] =
+    db.run(Tables.countries.sortBy(_.name).result)
+      .map(_.map(r => Country(r.code, r.name)))
+
+  override def listProvinces(country: String): Future[Seq[Province]] =
+    db.run(Tables.provinces.filter(_.country === country).sortBy(_.name).result)
+      .map(_.map(r => Province(r.code, r.name)))

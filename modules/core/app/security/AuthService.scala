@@ -213,7 +213,11 @@ class AuthServiceImpl @Inject() (
       uri.equals("/") ||
       uri.equals("/favicon.ico") ||
       uri.equals("/login") ||
+      uri.equals("/api/v2/login") ||
       uri.equals("/status") ||
+      uri.equals("/api/v2/status") ||
+      uri.equals("/health") ||
+      uri.startsWith("/.well-known/") ||
       uri.equals("/superior/category-tree-combo") ||
       uri.equals("/superior/connection") ||
       uri.startsWith("/superior/profile") ||
@@ -356,30 +360,35 @@ class AuthServiceImpl @Inject() (
             logger.trace("using " + authenticatedPair)
             val uriToDecrypt = encryptedUri.substring(1)
             logger.trace("decrypting " + uriToDecrypt)
-            val decryptedUriBytes = cryptoService.decrypt(
-              Base64.getDecoder.decode(uriToDecrypt),
-              authenticatedPair
-            )
-            val decryptedUri = new String(decryptedUriBytes)
-            logger.trace("decryptedUri is " + decryptedUri)
-            val operation = AuthorisationOperation(decryptedUri.takeWhile(_ != '?'), verb)
-            val isAuthorized = canPerform(userName, operation)
-            if (isAuthorized) {
-              if (validateSensitiveTotp(userName, operation, otp)) {
-                Success(decryptedUri)
+            Try {
+              val decryptedUriBytes = cryptoService.decrypt(
+                Base64.getUrlDecoder.decode(uriToDecrypt),
+                authenticatedPair
+              )
+              new String(decryptedUriBytes)
+            }.flatMap { decryptedUri =>
+              logger.trace("decryptedUri is " + decryptedUri)
+              val resourcePath = decryptedUri.takeWhile(_ != '?')
+              val resourceForPerm = if resourcePath.startsWith("/api/v2") then resourcePath.stripPrefix("/api/v2") else resourcePath
+              val operation = AuthorisationOperation(resourceForPerm, verb)
+              val isAuthorized = canPerform(userName, operation)
+              if (isAuthorized) {
+                if (validateSensitiveTotp(userName, operation, otp)) {
+                  Success(decryptedUri)
+                } else {
+                  Failure(
+                    new IllegalAccessException(
+                      s"User $userName has not provided a valid Totp for resource $operation"
+                    )
+                  )
+                }
               } else {
                 Failure(
                   new IllegalAccessException(
-                    s"User $userName has not provided a valid Totp for resource $operation"
+                    s"User $userName has no priviledges for resource $operation"
                   )
                 )
               }
-            } else {
-              Failure(
-                new IllegalAccessException(
-                  s"User $userName has no priviledges for resource $operation"
-                )
-              )
             }
           })
       }

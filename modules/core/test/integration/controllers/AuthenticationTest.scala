@@ -31,8 +31,8 @@ class AuthenticationTest extends PlaySpec with GuiceOneAppPerTest {
       .overrides(
         bind[UserRepository].to[StubUserRepository],
         bind[RoleRepository].to[StubRoleRepository],
-        bind[StrKitService].toInstance(new StubStrKitService),
-        bind[ProbabilityService].toInstance(new StubProbabilityService),
+        new fixtures.StubStrKitModule,
+        new fixtures.StubProbabilityModule,
         bind[ExecutionContext].qualifiedWith("lrmix-context").toInstance(ExecutionContext.global),
         bind[LdapHealthService].toInstance(new StubLdapHealthService)
       )

@@ -81,7 +81,9 @@ class LocusControllerTest extends PlaySpec with GuiceOneAppPerTest:
         bind[UserRepository].to[StubUserRepository],
         bind[RoleRepository].to[StubRoleRepository],
         bind[LocusService].toInstance(stubLocusService),
-        bind[StrKitService].toInstance(stubStrKitService)
+        bind[StrKitService].toInstance(stubStrKitService),
+        bind[AnalysisTypeService].toInstance(new AnalysisTypeServiceStub),
+        bind[user.LdapHealthService].toInstance(new fixtures.StubLdapHealthService)
       )
       .configure("play.http.secret.key" -> "test-secret-key-for-testing-purposes-only-not-for-production-1234")
       .build()

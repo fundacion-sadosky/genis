@@ -235,7 +235,6 @@ define([ 'angular','lodash' ], function(angular,_) {
 		analysisTypeService.listById().then(function(response) {
 			$scope.analysisTypes = response;
 			getResults();
-			$scope.$apply();
 		});
 		profiledataService.getProfilesData([$scope.profileId, $scope.matchedProfileId]).then(
 			function(response) {
@@ -315,7 +314,6 @@ define([ 'angular','lodash' ], function(angular,_) {
 				}
 				$scope.comparision = _.sortBy(response.data.map(mtConvert), ['locusSort']);
 				console.log('comparision',$scope.comparision);
-				$scope.$apply();
 			}
 		);
 		function encryptedEpgs(profile, epgs) {

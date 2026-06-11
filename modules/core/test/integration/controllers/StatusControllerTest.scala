@@ -8,12 +8,12 @@ import play.api.Application
 import play.api.test._
 import play.api.test.Helpers._
 
-import fixtures.{StubLdapHealthService, StubProbabilityService, StubStrKitService}
+import fixtures.{StubLdapHealthService, StubProbabilityModule, StubStrKitModule}
 import security.{UserRepository, StubUserRepository}
 import user.{LdapHealthService, RoleRepository, UsersModule}
 import security.StubRoleRepository
-import kits.{StrKitModule, StrKitService}
-import probability.{ProbabilityModule, ProbabilityService}
+import kits.StrKitModule
+import probability.ProbabilityModule
 
 import scala.concurrent.ExecutionContext
 
@@ -27,8 +27,8 @@ class StatusControllerTest extends PlaySpec with GuiceOneAppPerTest {
       .overrides(
         bind[UserRepository].to[StubUserRepository],
         bind[RoleRepository].to[StubRoleRepository],
-        bind[StrKitService].toInstance(new StubStrKitService),
-        bind[ProbabilityService].toInstance(new StubProbabilityService),
+        new StubStrKitModule,
+        new StubProbabilityModule,
         bind[ExecutionContext].qualifiedWith("lrmix-context").toInstance(ExecutionContext.global),
         bind[LdapHealthService].toInstance(new StubLdapHealthService)
       )

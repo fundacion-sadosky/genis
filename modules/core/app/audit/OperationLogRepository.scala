@@ -6,6 +6,7 @@ import javax.inject.{Inject, Named, Singleton}
 
 import scala.collection.immutable.IndexedSeq
 import scala.concurrent.{ExecutionContext, Future}
+import scala.language.implicitConversions
 
 import play.api.Logger
 import slick.jdbc.PostgresProfile.api._

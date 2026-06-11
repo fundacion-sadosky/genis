@@ -168,7 +168,8 @@ object LRMixCalculator {
           (key, Some(0.0))
         }
       } else {
-        (key, None)
+        // Marker not in frequency table — show 0 in table, excluded from total
+        (key, Some(0.0))
       }
     }).toMap
   }

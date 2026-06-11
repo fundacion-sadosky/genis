@@ -304,7 +304,7 @@ class SlickPedigreeDataRepository @Inject() (
         q = q.filter(r => r._7.isEmpty || r._7 === r._1)
       case Some(CollapsingStatus.Collapsed) =>
         q = q.filter(r => r._7.isDefined && r._7 =!= r._1)
-      case None => // no filter
+      case _ => // no filter
     q
   }
 

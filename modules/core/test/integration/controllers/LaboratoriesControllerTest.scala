@@ -11,7 +11,7 @@ import play.api.libs.json.Json
 
 import fixtures.{StubCountryService, StubLaboratoryService, StubLdapHealthService, StubProbabilityService, StubStrKitService}
 import security.{StubRoleRepository, StubUserRepository, UserRepository}
-import services.{CountryService, LaboratoryService}
+import services.{Country, CountryService, LaboratoryService, Province}
 import user.{LdapHealthService, RoleRepository, UsersModule}
 import kits.{StrKitModule, StrKitService}
 import probability.{ProbabilityModule, ProbabilityService}
@@ -36,8 +36,8 @@ class LaboratoriesControllerTest extends PlaySpec with GuiceOneAppPerTest {
         bind[RoleRepository].to[StubRoleRepository],
         bind[LaboratoryService].toInstance(labStub),
         bind[CountryService].toInstance(countryStub),
-        bind[StrKitService].toInstance(new StubStrKitService),
-        bind[ProbabilityService].toInstance(new StubProbabilityService),
+        new fixtures.StubStrKitModule,
+        new fixtures.StubProbabilityModule,
         bind[ExecutionContext].qualifiedWith("lrmix-context").toInstance(ExecutionContext.global),
         bind[LdapHealthService].toInstance(new StubLdapHealthService)
       )
@@ -72,23 +72,25 @@ class LaboratoriesControllerTest extends PlaySpec with GuiceOneAppPerTest {
     }
 
     "list countries" in {
-      countryStub.listCountriesResult = scala.concurrent.Future.successful(Seq("AR", "BR"))
+      val countries = Seq(Country("AR", "Argentina"), Country("BR", "Brasil"))
+      countryStub.listCountriesResult = scala.concurrent.Future.successful(countries)
 
       val request = FakeRequest(GET, "/api/v2/country")
       val result = route(app, request).get
 
       status(result) mustBe OK
-      contentAsJson(result).as[Seq[String]] mustBe Seq("AR", "BR")
+      contentAsJson(result) mustBe Json.toJson(countries)
     }
 
     "list provinces for a country" in {
-      countryStub.listProvincesResult = scala.concurrent.Future.successful(Seq("Buenos Aires", "Córdoba"))
+      val provinces = Seq(Province("B", "Buenos Aires"), Province("X", "Córdoba"))
+      countryStub.listProvincesResult = scala.concurrent.Future.successful(provinces)
 
       val request = FakeRequest(GET, "/api/v2/provinces/AR")
       val result = route(app, request).get
 
       status(result) mustBe OK
-      contentAsJson(result).as[Seq[String]] mustBe Seq("Buenos Aires", "Córdoba")
+      contentAsJson(result) mustBe Json.toJson(provinces)
     }
 
     "add laboratory successfully with X-CREATED-ID header" in {

@@ -1,6 +1,6 @@
 package configdata
 
-import models.Tables.laboratories
+import models.Tables.{laboratories, countries, provinces}
 import types.Laboratory
 import slick.jdbc.PostgresProfile.api._
 import scala.concurrent.{ExecutionContext, Future}
@@ -9,6 +9,7 @@ import javax.inject.{Inject, Singleton}
 trait LaboratoryRepository {
   def add(lab: Laboratory): Future[Int]
   def getAll(): Future[Seq[Laboratory]]
+  def getAllDescriptive(): Future[Seq[Laboratory]]
   def get(id: String): Future[Option[Laboratory]]
   def update(lab: Laboratory): Future[Int]
 }
@@ -44,19 +45,26 @@ class SlickLaboratoryRepository @Inject() (
       row.dropOut
     )
 
-  override def add(lab: Laboratory): Future[Int] = {
+  override def add(lab: Laboratory): Future[Int] =
     db.run(laboratories += toRow(lab))
-  }
 
-  override def getAll(): Future[Seq[Laboratory]] = {
+  override def getAll(): Future[Seq[Laboratory]] =
     db.run(laboratories.result).map(_.map(fromRow))
+
+  override def getAllDescriptive(): Future[Seq[Laboratory]] = {
+    val q = for {
+      lab <- laboratories
+      cn  <- countries if cn.code === lab.country
+      pr  <- provinces if pr.code === lab.province
+    } yield (lab, cn, pr)
+    db.run(q.result).map(_.map { case (lab, cn, pr) =>
+      Laboratory(lab.name, lab.codeName, cn.name, pr.name, lab.address, lab.telephone, lab.contactEmail, lab.dropIn, lab.dropOut)
+    })
   }
 
-  override def get(id: String): Future[Option[Laboratory]] = {
+  override def get(id: String): Future[Option[Laboratory]] =
     db.run(laboratories.filter(_.codeName === id).result.headOption).map(_.map(fromRow))
-  }
 
-  override def update(lab: Laboratory): Future[Int] = {
+  override def update(lab: Laboratory): Future[Int] =
     db.run(laboratories.filter(_.codeName === lab.code).update(toRow(lab)))
-  }
 }

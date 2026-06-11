@@ -33,8 +33,8 @@ class BioMaterialTypesTest extends PlaySpec with GuiceOneAppPerTest {
         bind[UserRepository].to[StubUserRepository],
         bind[RoleRepository].to[StubRoleRepository],
         bind[BioMaterialTypeService].toInstance(bmtStub),
-        bind[StrKitService].toInstance(new StubStrKitService),
-        bind[ProbabilityService].toInstance(new StubProbabilityService),
+        new fixtures.StubStrKitModule,
+        new fixtures.StubProbabilityModule,
         bind[ExecutionContext].qualifiedWith("lrmix-context").toInstance(ExecutionContext.global),
         bind[LdapHealthService].toInstance(new StubLdapHealthService)
       )

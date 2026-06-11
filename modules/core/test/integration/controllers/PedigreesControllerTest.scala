@@ -52,7 +52,7 @@ class PedigreesControllerTest extends PlaySpec with GuiceOneAppPerTest {
         bind[RoleRepository].to[StubRoleRepository],
         bind[UserService].toInstance(new StubUserService),
         bind[LdapHealthService].toInstance(new StubLdapHealthService),
-        bind[ProbabilityService].toInstance(new StubProbabilityService),
+        new fixtures.StubProbabilityModule,
         bind[TraceService].toInstance(new TraceServiceStub),
         // pedigree domain stubs (replicate StubPedigreeModule por overrides)
         bind[BayesianNetworkService].toInstance(new BayesianNetworkServiceStub),
@@ -64,7 +64,7 @@ class PedigreesControllerTest extends PlaySpec with GuiceOneAppPerTest {
         bind[PedigreeMatcher].toInstance(new PedigreeMatcherStub),
         bind[MutationService].toInstance(new MutationServiceStub),
         bind[profiledata.ProfileDataService].toInstance(new profiledata.ProfileDataServiceStub),
-        bind[MatchingProcessStatus].toInstance(new MatchingProcessStatusImpl),
+        bind[MatchingProcessStatus].to[MatchingProcessStatusImpl],
         bind[search.FullTextSearchService].toInstance(new search.FullTextSearchServiceStub),
         bind[ExecutionContext].qualifiedWith("lrmix-context").toInstance(ExecutionContext.global)
       )

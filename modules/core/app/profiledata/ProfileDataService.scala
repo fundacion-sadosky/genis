@@ -1,6 +1,6 @@
 package profiledata
 
-import jakarta.inject.{Inject, Named, Singleton}
+import jakarta.inject.{Inject, Named, Provider, Singleton}
 import models.Tables.{ProfileReceivedRow, ProfileSentRow, ProfileUploadedRow, ExternalProfileDataRow}
 import play.api.Logging
 import play.api.i18n.{Lang, MessagesApi}
@@ -222,7 +222,7 @@ class ProfileDataServiceImpl @Inject()(
   bioMatService: BioMaterialTypeService,
   crimeTypeService: CrimeTypeService,
   laboratoryService: LaboratoryService,
-  matchingService: MatchingService,
+  matchingServiceProvider: Provider[MatchingService],
   scenarioRepository: ScenarioRepository,
   profileRepository: ProfileRepository,
   traceService: TraceService,
@@ -230,11 +230,15 @@ class ProfileDataServiceImpl @Inject()(
   @Named("country") val country: String,
   @Named("province") val province: String,
   interconnectionService: InterconnectionService,
-  profileService: ProfileService,
-  pedigreeService: PedigreeService,
+  profileServiceProvider: Provider[ProfileService],
+  pedigreeServiceProvider: Provider[PedigreeService],
   userService: UserService,
   messagesApi: play.api.i18n.MessagesApi
 )(implicit ec: ExecutionContext) extends ProfileDataService with Logging:
+
+  private def matchingService: MatchingService = matchingServiceProvider.get()
+  private def profileService: ProfileService   = profileServiceProvider.get()
+  private def pedigreeService: PedigreeService = pedigreeServiceProvider.get()
 
   private implicit val lang: Lang = Lang("es")
   private def msg(key: String, args: Any*): String = messagesApi(key, args*)(lang)

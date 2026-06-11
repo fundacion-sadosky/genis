@@ -144,10 +144,7 @@ case class ProtoProfileBuilder(
   ): ProtoProfileBuilder = {
     var errores = this.errors
     val pos = alelos
-      .map {
-        case (Mitocondrial(base, position), letra) => base -> position.toInt -> letra
-        case _ => 'b' -> 0 -> "borrar"
-      }
+      .map { case (Mitocondrial(base, position), letra) => base -> position.toInt -> letra }
       .filter(_._2 != "borrar")
     if (pos.nonEmpty) {
       val validacion = pos.map { posicion =>

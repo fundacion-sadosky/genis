@@ -1,7 +1,7 @@
 package modules.core
 
 import com.google.inject.AbstractModule
-import inbox.{NotificationService, NoOpNotificationService}
+import matching.{MatchingProcessStatus, MatchingProcessStatusImpl}
 import services.{CountryService, LaboratoryService, GeneticistService, UserService}
 import services.{LaboratoryServiceImpl, GeneticistServiceImpl, CountryServiceImpl, UserServiceImpl}
 import stats.{PopulationBaseFrequencyRepository, PopulationBaseFrequencyRepositoryImpl}
@@ -16,7 +16,8 @@ class CoreModule extends AbstractModule {
       bind(classOf[GeneticistService]).to(classOf[GeneticistServiceImpl])
       bind(classOf[CountryService]).to(classOf[CountryServiceImpl])
       bind(classOf[UserService]).to(classOf[UserServiceImpl])
-      bind(classOf[NotificationService]).to(classOf[NoOpNotificationService])
+      // NotificationService ahora es responsabilidad de inbox.NotificationModule
+      bind(classOf[MatchingProcessStatus]).to(classOf[MatchingProcessStatusImpl])
 
       // Population Base Frequency (stats module)
       bind(classOf[PopulationBaseFrequencyRepository]).to(classOf[PopulationBaseFrequencyRepositoryImpl])

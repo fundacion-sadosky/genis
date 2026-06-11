@@ -109,7 +109,7 @@ class MutationControllerTest extends PlaySpec with GuiceOneAppPerTest {
         bind[UserRepository].to[StubUserRepository],
         bind[RoleRepository].to[StubRoleRepository],
         bind[MutationService].toInstance(mutationStub),
-        bind[ProbabilityService].toInstance(new StubProbabilityService),
+        new fixtures.StubProbabilityModule,
         bind[ExecutionContext].qualifiedWith("lrmix-context").toInstance(ExecutionContext.global),
         bind[LdapHealthService].toInstance(new StubLdapHealthService)
       )

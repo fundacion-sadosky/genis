@@ -12,8 +12,17 @@ class StrKitServiceImpl @Inject()(
   def listFull(): Future[Seq[FullStrKit]] = repository.listFull()
   def findLociByKit(kitId: String): Future[List[StrKitLocus]] = repository.findLociByKit(kitId)
   def findLociByKits(kitIds: Seq[String]): Future[Map[String, List[StrKitLocus]]] = repository.findLociByKits(kitIds)
-  def getKitAlias: Future[Map[String, String]] = repository.getKitsAlias
-  def getLocusAlias: Future[Map[String, String]] = repository.getLociAlias
+  def getKitAlias: Future[Map[String, String]] =
+    for
+      aliases <- repository.getKitsAlias
+      kits    <- repository.list()
+    yield aliases ++ kits.map(k => k.id -> k.id)
+
+  def getLocusAlias: Future[Map[String, String]] =
+    for
+      aliases <- repository.getLociAlias
+      lociIds <- repository.getAllLoci
+    yield aliases ++ lociIds.map(id => id -> id)
   def add(kit: StrKit): Future[Either[String, String]] = repository.add(kit)
   def addAlias(id: String, alias: String): Future[Either[String, String]] = repository.addAlias(id, alias)
   def addLocus(id: String, locus: NewStrKitLocus): Future[Either[String, String]] = repository.addLocus(id, locus)

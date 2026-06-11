@@ -1,3 +1,61 @@
+
+# Frontend SPA shell — serves the AngularJS single-page app
+GET     /                                   controllers.ApplicationController.index
+GET     /pedigree                           controllers.ApplicationController.pedigree
+GET     /assets/*file                       controllers.Assets.versioned(path="/public", file: Asset)
+
+# JavaScript router + SPA bootstrap assets (legacy shim for Angular frontend)
+# Rutas /api/v2/* usadas por nginx (proxy desde los paths sin prefijo)
+GET     /api/v2/jsroutes.js                 controllers.ApplicationController.jsRoutes
+GET     /api/v2/appConf.js                  controllers.ApplicationController.appConf
+GET     /api/v2/sensitiveOper.js            controllers.ApplicationController.sensitiveOper
+# Rutas sin prefijo para acceso directo a :9001 (sin nginx)
+GET     /jsroutes.js                        controllers.ApplicationController.jsRoutes
+GET     /appConf.js                         controllers.ApplicationController.appConf
+GET     /sensitiveOper.js                   controllers.ApplicationController.sensitiveOper
+
+# Analysis types
+GET     /analysistypes                      controllers.AnalysisTypesController.list
+
+# BulkUpload — URLs legacy (sin /api/v2/) porque el frontend las cifra con ese prefijo
+POST    /bulkuploader                                            controllers.BulkUploadController.uploadProtoProfiles(label: Option[String], analysisType: String)
+GET     /bulkupload/step1/count                                  controllers.BulkUploadController.countBatchesStep1()
+GET     /bulkupload/step1/batches                                controllers.BulkUploadController.getBatchesStep1(page: Int, pageSize: Int)
+GET     /bulkupload/step2/count                                  controllers.BulkUploadController.countBatchesStep2(geneMapperId: String)
+GET     /bulkupload/step2/batches                                controllers.BulkUploadController.getBatchesStep2(geneMapperId: String, page: Int, pageSize: Int)
+GET     /bulkupload/step1/protoprofiles                          controllers.BulkUploadController.getProtoProfilesStep1(batchId: Long, page: Int, pageSize: Int)
+GET     /bulkupload/step2/protoprofiles                          controllers.BulkUploadController.getProtoProfilesStep2(geneMapperId: String, batchId: Long, page: Int, pageSize: Int)
+GET     /bulkupload/protoprofiles/:id                            controllers.BulkUploadController.getProtoProfileById(id: Long)
+GET     /bulkupload/step2/batch/:batchId/count                   controllers.BulkUploadController.countAllProtoProfilesInBatch(batchId: Long)
+GET     /bulkupload/batches                                      controllers.BulkUploadController.searchBatch(filter: String)
+GET     /batch-modal                                             controllers.BulkUploadController.getBatchSearchModalViewByIdOrLabel(input: String, idCase: Long)
+POST    /protoprofiles/:id/status                                controllers.BulkUploadController.updateProtoProfileStatus(id: Long, status: String, replicate: Boolean, desktopSearch: Boolean ?= false)
+POST    /protoprofiles/multiple-status                           controllers.BulkUploadController.updateBatchStatus(idBatch: Long, status: String, replicateAll: Boolean)
+POST    /protoprofiles/:id/subcategory                           controllers.BulkUploadController.updateProtoProfileData(id: Long, category: types.AlphanumericId)
+POST    /protoprofiles/matchingrules                             controllers.BulkUploadController.updateProtoProfileRulesMismatch()
+POST    /protoprofiles-reject/:id                                controllers.BulkUploadController.rejectProtoProfile(id: Long, motive: String, idMotive: Long)
+DELETE  /bulkupload/:id                                          controllers.BulkUploadController.deleteBatch(id: Long)
+
+# Matching / Coincidencias
+GET     /matching                            controllers.MatchingController.findMatchesByCode(globalCode: types.SampleCode)
+POST    /user-total-matches-group            controllers.MatchingController.getTotalMatchesByGroup
+POST    /user-matches-group                  controllers.MatchingController.getMatchesByGroup
+POST    /user-total-matches                  controllers.MatchingController.getTotalMatches
+POST    /user-matches                        controllers.MatchingController.getMatches
+GET     /matching-profile                    controllers.MatchingController.searchMatchesProfile(globalCode: String)
+POST    /convertDiscard                      controllers.MatchingController.convertDiscard(matchId: String, firingCode: types.SampleCode, userName: String)
+POST    /uploadStatus                        controllers.MatchingController.uploadStatus(matchId: String, firingCode: types.SampleCode, userName: String)
+GET     /canUploadMatchStatus                controllers.MatchingController.canUploadMatchStatus(matchId: String)
+POST    /convertHit                          controllers.MatchingController.convertHit(matchId: String, firingCode: types.SampleCode, userName: String)
+GET     /getByMatchedProfileId               controllers.MatchingController.getByMatchedProfileId(matchingId: String, isPedigreeMatch: Boolean, isCollapsing: Option[Boolean], isScreening: Option[Boolean])
+GET     /mixture/compare                     controllers.MatchingController.getComparedMixtureGene(globalCodes: String, matchId: String, isCollapsing: Option[Boolean], isScreening: Option[Boolean])
+POST    /lr                                  controllers.MatchingController.getLR()
+DELETE  /collapsing/partial                  controllers.MatchingController.deleteByLeftProfile(globalCode: String, courtCaseId: Long)
+POST    /masiveDiscardByGlobalCode           controllers.MatchingController.masiveDiscardByGlobalCode(firingCode: types.SampleCode, userName: String)
+POST    /masiveDiscardByMatchesList          controllers.MatchingController.masiveDiscardByMatchesList(firingCode: types.SampleCode, matches: List[String], userName: String)
+
+GET     /api/v2/analysistypes               controllers.AnalysisTypesController.list
+
 # Disclaimer endpoint (migrated from legacy)
 GET     /api/v2/disclaimer                   controllers.DisclaimerController.getDisclaimer
 
@@ -30,8 +88,26 @@ DELETE  /api/v2/bioMaterialTypes/:bmtId               controllers.BioMaterialTyp
 # Authentication endpoints
 POST    /api/v2/login                       controllers.core.Authentication.login()
 
+# Notifications (inbox)
+POST    /api/v2/notifications/search            controllers.NotificationsController.search
+
+# Búsqueda de perfiles (listado principal de perfiles)
+# Búsqueda de perfiles — jsroutes genera /api/v2/search/profileData/*
+POST    /api/v2/search/profileData/search       controllers.SearchProfileDatasController.search
+POST    /api/v2/search/profileData/searchTotal  controllers.SearchProfileDatasController.searchTotal
+POST    /api/v2/notifications/total             controllers.NotificationsController.count
+GET     /api/v2/notifications                   controllers.NotificationsController.getNotifications
+GET     /api/v2/match-notifications             controllers.NotificationsController.getMatchNotifications
+# Aliases sin /api/v2/ — usados por EventSource (SSE) que descifra la URL directamente
+GET     /notifications                          controllers.NotificationsController.getNotifications
+GET     /match-notifications                    controllers.NotificationsController.getMatchNotifications
+DELETE  /api/v2/notifications/:id               controllers.NotificationsController.delete(id: Long)
+POST    /api/v2/notifications/flag/:id          controllers.NotificationsController.changeFlag(id: Long, flag: Boolean)
+POST    /api/v2/notifications/:id/pending       controllers.NotificationsController.changePending(id: Long, pending: Boolean)
+
 # Laboratories
 GET     /api/v2/laboratory                      controllers.LaboratoriesController.list()
+GET     /laboratory/descriptive                 controllers.LaboratoriesController.listDescriptive()
 GET     /api/v2/country                         controllers.LaboratoriesController.listCountries()
 GET     /api/v2/provinces/:country              controllers.LaboratoriesController.listProvinces(country: String)
 POST    /api/v2/laboratory                      controllers.LaboratoriesController.addLab()
@@ -46,15 +122,16 @@ GET     /api/v2/geneticist-users                controllers.GeneticistsControlle
 PUT     /api/v2/geneticist                      controllers.GeneticistsController.updateGeneticist()
 
 # STR Kits
-GET     /api/v2/strkits/:id           controllers.StrKitsController.get(id: String)
-GET     /api/v2/strkits-full/:id      controllers.StrKitsController.getFull(id: String)
-GET     /api/v2/strkits               controllers.StrKitsController.list()
-GET     /api/v2/strkits-full          controllers.StrKitsController.listFull()
-POST    /api/v2/strkits               controllers.StrKitsController.add()
-PUT     /api/v2/strkits               controllers.StrKitsController.update()
-DELETE  /api/v2/strkits/:id           controllers.StrKitsController.delete(id: String)
-POST    /api/v2/strkits/import        controllers.StrKitsController.importKits()
-GET     /api/v2/strkits/export        controllers.StrKitsController.exportKits()
+GET     /api/v2/strkits                          controllers.StrKitsController.list()
+GET     /api/v2/strkits-full                     controllers.StrKitsController.listFull()
+GET     /api/v2/strkits/export                   controllers.StrKitsController.exportKits()
+POST    /api/v2/strkits/import                   controllers.StrKitsController.importKits()
+GET     /api/v2/strkits/:id                      controllers.StrKitsController.get(id: String)
+GET     /api/v2/strkits-full/:id                 controllers.StrKitsController.getFull(id: String)
+GET     /api/v2/strkits/:kitId/loci              controllers.StrKitsController.findLociByKit(kitId: String)
+POST    /api/v2/strkits                          controllers.StrKitsController.add()
+PUT     /api/v2/strkits                          controllers.StrKitsController.update()
+DELETE  /api/v2/strkits/:id                      controllers.StrKitsController.delete(id: String)
 
 # Categories
 GET     /api/v2/categories                                    controllers.CategoriesController.categoryTree
@@ -86,6 +163,25 @@ GET     /api/v2/export/categoryMappings                       controllers.Catego
 GET     /api/v2/export/categories                             controllers.CategoriesController.exportCategories
 POST    /api/v2/import/categories                             controllers.CategoriesController.importGroupsAndCategories
 
+# Categories - alias legacy (para compatibilidad con jsroutes del front mientras no se actualice)
+# catmodification: en legacy usa query params (from, to, catId); modern usa path params.
+# Se agregan alias con query params para que nginx pueda hacer rewrite simple.
+GET    /api/v2/catmodification                              controllers.CategoriesController.getCategoryModifications(catId: types.AlphanumericId)
+POST   /api/v2/catmodification                              controllers.CategoriesController.registerCategoryModification(from: types.AlphanumericId, to: types.AlphanumericId)
+DELETE /api/v2/catmodification                              controllers.CategoriesController.unregisterCategoryModification(from: types.AlphanumericId, to: types.AlphanumericId)
+GET    /api/v2/catmodifications                             controllers.CategoriesController.allCategoryModifications
+GET    /api/v2/catmodifications/export                      controllers.CategoriesController.exportModifications
+# categories-mapping: legacy usa PUT, modern usa POST. Se agrega alias PUT.
+GET    /api/v2/categories-mapping                           controllers.CategoriesController.listCategoriesMapping
+PUT    /api/v2/categories-mapping                           controllers.CategoriesController.insertOrUpdateCategoriesMapping
+GET    /api/v2/categories-mapping/export                    controllers.CategoriesController.exportMappings
+# Export aliases (legacy paths distintos a los modern /export/*)
+GET    /api/v2/categories/export                            controllers.CategoriesController.exportCategories
+GET    /api/v2/category-configurations/export               controllers.CategoriesController.exportConfigurations
+GET    /api/v2/category-associations/export                 controllers.CategoriesController.exportAssociations
+GET    /api/v2/category-alias/export                        controllers.CategoriesController.exportAlias
+GET    /api/v2/category-matching-rules/export               controllers.CategoriesController.exportMatchingRules
+
 # Motive
 GET     /api/v2/motive                controllers.MotiveController.getMotives(id: Long, abm: Boolean)
 GET     /api/v2/motive-types          controllers.MotiveController.getMotivesTypes
@@ -115,6 +211,30 @@ GET     /api/v2/roles                      controllers.RoleController.getRoles
 POST    /api/v2/roles                      controllers.RoleController.addRole
 PUT     /api/v2/roles                      controllers.RoleController.updateRole
 DELETE  /api/v2/roles/:id                  controllers.RoleController.deleteRole(id: String)
+
+# ProfileData (datos de PostgreSQL: internalSampleCode, assignee, etc.)
+# URLs cifradas — el jsroutes genera /api/v2/... → UrlDecryptHandler descifra a /api/v2/... → match directo
+GET     /api/v2/profiledata-complete/:globalCode                    controllers.ProfileDataController.getByCode(globalCode: types.SampleCode)
+GET     /api/v2/profiledata/count                                   controllers.ProfileDataController.countProfiles()
+# Aliases sin /api/v2/ por si llegan via nginx rewrite o directamente
+GET     /profiledata-complete/:globalCode                           controllers.ProfileDataController.getByCode(globalCode: types.SampleCode)
+GET     /profileData/isProfileReplicated/:internalCode              controllers.ProfileDataController.getIsProfileReplicatedInternalCode(internalCode: String)
+GET     /profiledata/count                                          controllers.ProfileDataController.countProfiles()
+GET     /profiledataWithAssociations                                controllers.ProfileDataController.findByCodeWithAssociations(globalCode: types.SampleCode)
+POST    /scenarios/search                                           controllers.ScenariosController.search
+POST    /scenarios/create                                           controllers.ScenariosController.create
+PUT     /scenarios/get                                              controllers.ScenariosController.get
+POST    /scenarios/validate                                         controllers.ScenariosController.validate
+POST    /scenarios/update                                           controllers.ScenariosController.update
+PUT     /scenarios/delete                                           controllers.ScenariosController.delete
+POST    /scenarios/ncorrection                                      controllers.ScenariosController.getNCorrection
+GET     /matchesForScenario                                         controllers.ScenariosController.findMatches(scenarioId: Option[String], firingCode: Option[types.SampleCode], matchingCode: Option[types.SampleCode])
+POST    /default-scenario                                           controllers.ScenariosController.getDefaultScenario(firingProfile: types.SampleCode, matchingProfile: types.SampleCode)
+
+# Aliases legacy para URLs cifradas por UrlDecryptRequestHandler
+# El frontend cifra rutas /profiles/... y el handler descifra a la misma ruta legacy
+GET     /profiles/:profileId/epg/:epgId      controllers.ProfilesController.getElectropherogramImage(profileId: types.SampleCode, epgId: String)
+GET     /profiles/:profileId/file/:fileId    controllers.ProfilesController.getFile(profileId: types.SampleCode, fileId: String)
 
 # Profiles
 GET     /api/v2/profiles/:id                                        controllers.ProfilesController.findByCode(id: types.SampleCode)
@@ -234,7 +354,6 @@ HEAD    /api/v2/operationLog                          controllers.OperationLogsC
 POST    /api/v2/operationLogLot                       controllers.OperationLogsController.getTotalLogs
 POST    /api/v2/operationLogSearch                    controllers.OperationLogsController.searchLogs
 GET     /api/v2/operationLog/:id/verification         controllers.OperationLogsController.checkLogLot(id: Long)
-
 # Pedigree / Court Cases (MPI/DVI)
 POST    /api/v2/pedigree/court-cases                                controllers.PedigreesController.getCourtCases
 POST    /api/v2/pedigree/total-court-cases                          controllers.PedigreesController.getTotalCourtCases

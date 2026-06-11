@@ -34,8 +34,3 @@ case class FullLocus(
 
 object FullLocus:
   given OFormat[FullLocus] = Json.format[FullLocus]
-
-case class AleleRange(min: BigDecimal, max: BigDecimal)
-
-object AleleRange:
-  given OFormat[AleleRange] = Json.format[AleleRange]

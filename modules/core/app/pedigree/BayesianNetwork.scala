@@ -1157,6 +1157,7 @@ object BayesianNetwork {
       case Variable(_, _, VariableKind.Genotype, _, _) =>
         n.getOrElse(vertex.marker, Nil).toArray
       case Variable(_, _, VariableKind.Heterocygote, _, _) => Array(0.0)
+      case _ => Array.empty[Double]
     }
     val matrix = generatePermutations(
       possibilities,

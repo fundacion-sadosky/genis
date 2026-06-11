@@ -204,7 +204,7 @@
 
 
 
-<div class="text-right noprint" ng-class="{'col-md-9': mixF || mixM} padding-right-0">
+<div class="text-right noprint padding-right-0" ng-class="{'col-md-9': mixF || mixM}">
 	
 	<ui-select ng-if="showCalculation" id="kits" ng-model="kitId" ng-change="sortLoci(kitId.id)" ng-disabled="status == 'dblCheck'" style="float:left; width:150px;">
 		<ui-select-match id="select-kit" placeholder="Seleccionar Kit">[{{getAnalysisName($select.selected)}}] {{$select.selected.name}}</ui-select-match>

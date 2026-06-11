@@ -51,13 +51,14 @@ class ProfileModule(environment: Environment, conf: Configuration) extends Abstr
 
     // Stub bindings for dependencies not yet migrated
     bind(classOf[connections.InterconnectionService]).to(classOf[connections.InterconnectionServiceStub])
-    bind(classOf[inbox.NotificationService]).to(classOf[inbox.NoOpNotificationService])
-    bind(classOf[kits.AnalysisTypeService]).to(classOf[kits.AnalysisTypeServiceStub])
-bind(classOf[kits.QualityParamsProvider]).to(classOf[kits.QualityParamsProviderStub])
-    bind(classOf[matching.MatchingAlgorithmService]).to(classOf[matching.MatchingAlgorithmServiceStub])
-    bind(classOf[matching.MatchingRepository]).to(classOf[matching.MatchingRepositoryStub])
-    bind(classOf[matching.MatchingService]).to(classOf[matching.MatchingServiceStub])
-    bind(classOf[pedigree.PedigreeService]).to(classOf[pedigree.PedigreeServiceStub])
+    // NotificationService ya está en inbox.NotificationModule
+    // AnalysisTypeService → kits.StrKitModule
+    bind(classOf[kits.QualityParamsProvider]).to(classOf[kits.QualityParamsProviderStub])
+    // LocusService, LocusRepository → kits.StrKitModule
+    // MatchingAlgorithmService, MatchingRepository, MatchingService → matching.MatchingModule
+    // ProfileDataRepository, ProfileDataService → profiledata.ProfileDataModule
+    // TraceService → trace.TraceModule
+
     bind(classOf[ProfileService]).to(classOf[ProfileServiceImpl])
     bind(classOf[ProfileExporterService]).to(classOf[ProfileExporterServiceImpl])
     bind(classOf[LimsArchivesExporterService]).to(classOf[LimsArchivesExporterServiceImpl])

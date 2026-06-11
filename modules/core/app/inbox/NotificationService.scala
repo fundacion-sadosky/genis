@@ -1,54 +1,93 @@
 package inbox
 
-import types.SampleCode
+import java.util.Date
+import javax.inject.{Inject, Singleton}
 
-// TODO: Agregar campo `kind: NotificationType` cuando se migre el módulo de notificaciones completo
-trait NotificationInfo:
-  val description: String
-  val url: String
+import scala.concurrent.{ExecutionContext, Future}
 
-case class UserPendingInfo(userName: String) extends NotificationInfo:
-  override val description: String = s"El usuario: $userName está pendiente de aprobación"
-  override val url: String = "/users"
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.stream.scaladsl.{BroadcastHub, Keep, MergeHub, Source}
+import play.api.Logger
+import play.api.libs.json.Json
 
-case class ProfileDataInfo(internalSampleCode: String, globalCode: SampleCode) extends NotificationInfo:
-  override val description: String = s"Perfil $globalCode creado"
-  override val url: String = s"/profiles/$globalCode"
-
-case class ProfileDataAssociationInfo(internalSampleCode: String, globalCode: SampleCode) extends NotificationInfo:
-  override val description: String = s"Asociación de perfil $globalCode"
-  override val url: String = s"/profiles/$globalCode"
-
-case class BulkUploadInfo(protoProfileId: String, sampleName: String) extends NotificationInfo:
-  override val description: String = s"Nuevo perfil para importación: $sampleName"
-  override val url: String = s"/profiles/bulkupload-step2/protoprofile/$protoProfileId"
-
-case class PedigreeMatchingInfo(
-  matchedProfile: SampleCode,
-  caseType: Option[String] = None,
-  courtCaseId: Option[String] = None
-) extends NotificationInfo:
-  override val description: String =
-    s"Nueva coincidencia de búsqueda de personas (${caseType.getOrElse("")}) " +
-      s"para el perfil: ${matchedProfile.text}"
-  override val url: String =
-    if caseType.contains("DVI") then
-      s"/court-case/${courtCaseId.getOrElse("")}?tab=6"
-    else
-      s"pedigreeMatchesGroups/groups.html?g=profile&p=${matchedProfile.text}"
-
-case class PedigreeLRInfo(
-  pedigreeId: Long,
-  courtCaseId: Long,
-  scenarioName: String
-) extends NotificationInfo:
-  override val description: String = s"El escenario $scenarioName finalizó el cálculo del LR"
-  override val url: String = s"/pedigree/$courtCaseId/$pedigreeId?s=$scenarioName"
+// PedigreeMatchingInfo y PedigreeLRInfo viven en inbox.Notification.scala (con sus Format y ruteo de serialización)
 
 trait NotificationService:
+  def search(notiSearch: NotificationSearch): Future[Seq[Notification]]
+  def count(notiSearch: NotificationSearch): Future[Int]
   def push(userId: String, info: NotificationInfo): Unit
   def solve(userId: String, info: NotificationInfo): Unit
+  def delete(id: Long): Future[Either[String, Long]]
+  def changeFlag(id: Long, flag: Boolean): Future[Either[String, Long]]
+  def getNotifications(userId: String): Source[Notification, ?]
+  def changePending(id: Long, pending: Boolean): Future[Either[String, Long]]
 
-class NoOpNotificationService extends NotificationService:
-  override def push(userId: String, info: NotificationInfo): Unit = ()
-  override def solve(userId: String, info: NotificationInfo): Unit = ()
+@Singleton
+class NotificationServiceImpl @Inject() (
+  notificationRepository: NotificationRepository
+)(using ec: ExecutionContext, mat: Materializer) extends NotificationService:
+
+  private val logger = Logger(this.getClass)
+
+  // Reemplaza Concurrent.broadcast[Notification] de Play 2 con Pekko BroadcastHub
+  private val (broadcastSink, broadcastSource) =
+    MergeHub.source[Notification](perProducerBufferSize = 16)
+      .toMat(BroadcastHub.sink[Notification](bufferSize = 256))(Keep.both)
+      .run()
+
+  override def push(userId: String, info: NotificationInfo): Unit =
+    val n = Notification(0, userId, new Date(), None, false, true, info)
+    notificationRepository.add(n).foreach {
+      case Right(id) =>
+        val notification = n.copy(id = id)
+        logger.trace(s"notif pushed: $notification")
+        Source.single(notification).runWith(broadcastSink)
+      case Left(msg) =>
+        throw new RuntimeException(msg)
+    }
+
+  override def solve(userId: String, info: NotificationInfo): Unit =
+    notificationRepository.get(userId, Json.toJson(info).toString, info.kind.toString).foreach { notis =>
+      notis.foreach { original =>
+        val notification = original.copy(updateDate = Some(new Date()), pending = false, info = info)
+        notificationRepository.update(notification).foreach {
+          case Right(_) =>
+            logger.trace(s"notif solved: $notification")
+            Source.single(notification).runWith(broadcastSink)
+          case Left(msg) =>
+            throw new RuntimeException(msg)
+        }
+      }
+    }
+
+  override def getNotifications(userId: String): Source[Notification, ?] =
+    broadcastSource.filter(_.user == userId)
+
+  override def search(notiSearch: NotificationSearch): Future[Seq[Notification]] =
+    notificationRepository.search(notiSearch)
+
+  override def count(notiSearch: NotificationSearch): Future[Int] =
+    notificationRepository.count(notiSearch)
+
+  override def delete(id: Long): Future[Either[String, Long]] =
+    notificationRepository.getById(id).flatMap {
+      case None => Future.successful(Left("No existe la notificación"))
+      case Some(notification) =>
+        if notification.pending then
+          Source.single(notification.copy(pending = false)).runWith(broadcastSink)
+        notificationRepository.delete(id)
+    }
+
+  override def changeFlag(id: Long, flag: Boolean): Future[Either[String, Long]] =
+    notificationRepository.changeFlag(id, flag)
+
+  override def changePending(id: Long, pending: Boolean): Future[Either[String, Long]] =
+    notificationRepository.getById(id).flatMap {
+      case None => Future.successful(Left("No existe la notificación"))
+      case Some(notification) =>
+        if notification.pending && !pending then
+          Source.single(notification.copy(pending = false)).runWith(broadcastSink)
+        else if !notification.pending && pending then
+          Source.single(notification.copy(pending = true)).runWith(broadcastSink)
+        notificationRepository.updatePending(id, pending)
+    }

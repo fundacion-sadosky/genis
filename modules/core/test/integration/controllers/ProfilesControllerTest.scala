@@ -1,5 +1,6 @@
 package integration.controllers
 
+import com.mongodb.client.MongoDatabase
 import bulkupload.{BulkUploadModule, BulkUploadService}
 import configdata.CategoryService
 import connections.InterconnectionService
@@ -8,6 +9,7 @@ import profiledata.{ProfileDataRepository, ProfileDataService}
 import kits.{StrKitModule, StrKitService}
 import fixtures.StubStrKitService
 
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play._
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
 import play.api.Application
@@ -27,7 +29,7 @@ import probability.{ProbabilityModule, ProbabilityService}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest {
+class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest with MockitoSugar {
 
   private var profileStub: StubProfileService = _
   private var exportStub: StubProfileExporterService = _
@@ -54,10 +56,14 @@ class ProfilesControllerTest extends PlaySpec with GuiceOneAppPerTest {
         bind[LimsArchivesExporterService].toInstance(limsStub),
         bind[CategoryService].toInstance(new StubCategoryService),
         bind[CacheService].toInstance(cacheStub),
-        bind[ProbabilityService].toInstance(new StubProbabilityService),
+        new fixtures.StubProbabilityModule,
         bind[ExecutionContext].qualifiedWith("lrmix-context").toInstance(ExecutionContext.global),
         bind[LdapHealthService].toInstance(new StubLdapHealthService),
         bind[MongoHealthService].toInstance(new StubMongoHealthService),
+        // ProfileModule is disabled — provide its deps needed by MatchingModule (ProfileMatcher)
+        bind[MongoDatabase].toInstance(mock[MongoDatabase]),
+        bind[String].qualifiedWith("labCode").toInstance("SHDG"),
+        bind[ProfileRepository].toInstance(mock[ProfileRepository]),
         bind[BulkUploadService].toInstance(new StubBulkUploadService),
         bind[ProfileDataService].toInstance(new StubProfileDataService),
         bind[ProfileDataService].qualifiedWith("stashed").toInstance(new StubProfileDataService),
