@@ -2,6 +2,7 @@ package unit.profiledata
 
 import configdata.{BioMaterialTypeService, CategoryService, CrimeTypeService}
 import connections.InterconnectionService
+import jakarta.inject.Provider
 import security.ConnectionRepository
 import fixtures.{ProfileDataFixtures, StubCacheService}
 import inbox.NotificationService
@@ -51,9 +52,9 @@ class ProfileDataServiceTest extends AnyWordSpec with Matchers with MockitoSugar
   ): ProfileDataServiceImpl =
     new ProfileDataServiceImpl(
       cache, repo, categoryService, connectionRepo, notificationService,
-      bioMatService, crimeTypeService, labService, matchingService, scenarioRepo,
+      bioMatService, crimeTypeService, labService, () => matchingService, scenarioRepo,
       profileRepo, traceService, "SHDG", "AR", "C",
-      interconnectionSvc, profileService, pedigreeService, userService, messagesApi
+      interconnectionSvc, () => profileService, () => pedigreeService, userService, messagesApi
     )(using ec)
 
   "ProfileDataService.findByCode" must {

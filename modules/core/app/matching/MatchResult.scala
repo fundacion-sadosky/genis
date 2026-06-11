@@ -99,8 +99,8 @@ object MatchResult {
     (__ \ "n").read[Long].orElse(Reads.pure(0L)) ~
     (__ \ "superiorProfileInfo").readNullable[JsValue] ~
     Reads.pure(None: Option[Long]) ~
-    (__ \ "lr").read[Double](doubleReads) ~
-    (__ \ "mismatches").read[Int]
+    (__ \ "lr").read[Double](doubleReads).orElse(Reads.pure(0.0)) ~
+    (__ \ "mismatches").read[Int].orElse(Reads.pure(0))
   )(MatchResult.apply)
 
   implicit val writes: OWrites[MatchResult] = Json.writes[MatchResult]

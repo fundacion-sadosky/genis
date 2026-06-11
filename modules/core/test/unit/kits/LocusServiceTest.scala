@@ -1,5 +1,6 @@
 package kits
 
+import jakarta.inject.Provider
 import org.mockito.Mockito.{verify, when, never}
 import org.mockito.ArgumentMatchers.any
 import org.scalatestplus.mockito.MockitoSugar
@@ -21,10 +22,10 @@ class LocusServiceTest extends AnyWordSpec with Matchers with MockitoSugar:
   val id: String = fullLocus.locus.id
   val errorMsg: String = "Error message"
 
-  private def mockMutationService(): MutationService =
+  private def mockMutationService(): Provider[MutationService] =
     val ms = mock[MutationService]
     when(ms.addLocus(any[FullLocus])).thenReturn(Future.successful(Right(())))
-    ms
+    () => ms
 
   "LocusServiceImpl" must {
 
@@ -185,27 +186,29 @@ class LocusServiceTest extends AnyWordSpec with Matchers with MockitoSugar:
     "call mutationService.addLocus when analysisType is 1" in {
       val repo = mock[LocusRepository]
       when(repo.add(any[FullLocus])).thenReturn(Future.successful(Right(id)))
-      val mutationService = mockMutationService()
+      val ms = mock[MutationService]
+      when(ms.addLocus(any[FullLocus])).thenReturn(Future.successful(Right(())))
       val cache = new StubCacheService
-      val service = new LocusServiceImpl(cache, repo, mutationService)
+      val service = new LocusServiceImpl(cache, repo, () => ms)
 
       Await.result(service.add(fullLocus), duration)
 
       // fullLocus has analysisType == 1
-      verify(mutationService).addLocus(any[FullLocus])
+      verify(ms).addLocus(any[FullLocus])
     }
 
     "not call mutationService.addLocus when analysisType is not 1" in {
       val repo = mock[LocusRepository]
       val nonAutosomal = LocusFixtures.fullLocus3NonAutosomal
       when(repo.add(any[FullLocus])).thenReturn(Future.successful(Right(nonAutosomal.locus.id)))
-      val mutationService = mockMutationService()
+      val ms = mock[MutationService]
+      when(ms.addLocus(any[FullLocus])).thenReturn(Future.successful(Right(())))
       val cache = new StubCacheService
-      val service = new LocusServiceImpl(cache, repo, mutationService)
+      val service = new LocusServiceImpl(cache, repo, () => ms)
 
       Await.result(service.add(nonAutosomal), duration)
 
-      verify(mutationService, never()).addLocus(any[FullLocus])
+      verify(ms, never()).addLocus(any[FullLocus])
     }
 
     "get locus by analysis type name" in {
