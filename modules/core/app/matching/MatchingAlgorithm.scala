@@ -39,7 +39,7 @@ object MatchingAlgorithm {
   def extractMtRange(profile: Profile.Genotypification):
     List[((Int, Int), String)] = {
     profile
-      .filterKeys(_.endsWith("_RANGE"))
+      .view.filterKeys(_.endsWith("_RANGE")).toMap
       .map { case (pRange, _) => getRange(pRange, profile) }
       .toList
   }
@@ -99,25 +99,23 @@ object MatchingAlgorithm {
     q: Profile.Genotypification
   ): List[(List[Mitocondrial], List[Mitocondrial])] = {
     val prang = p
-      .filterKeys(x => x.endsWith("_RANGE"))
+      .view.filterKeys(x => x.endsWith("_RANGE")).toMap
       .map { pRange => getRange(pRange._1.toString, p) }
       .toList
     val qrange = q
-      .filterKeys(x => x.endsWith("_RANGE"))
+      .view.filterKeys(x => x.endsWith("_RANGE")).toMap
       .map { qRange => getRange(qRange._1.toString, q) }
       .toList
     val rangeCombinations = for { x <- prang; y <- qrange } yield (x, y)
     rangeCombinations
-      .map {
-        case (pr, qr) =>
-          mergeRanges(pr._1, qr._1)
-            .map(
-              range => (
-                getSequence(p, pr._2.replace("_RANGE", ""), range),
-                getSequence(q, qr._2.replace("_RANGE", ""), range)
-              )
+      .map { case (pr, qr) =>
+        mergeRanges(pr._1, qr._1)
+          .map(
+            range => (
+              getSequence(p, pr._2.replace("_RANGE", ""), range),
+              getSequence(q, qr._2.replace("_RANGE", ""), range)
             )
-        case _ => None
+          )
       }
       .filter(_.isDefined)
       .map(_.get)
@@ -180,6 +178,7 @@ object MatchingAlgorithm {
       case ((a, b), (c, d)) if a <= c && b >= d => Some((c, d))
       case ((a, b), (c, d)) if a >= c && b <= d => Some((a, b))
       case ((a, b), (c, d)) if a >= c && b >= d => Some((a, d))
+      case _ => None
     }
   }
 
@@ -580,10 +579,10 @@ object MatchingAlgorithm {
       case (Some(seqV1), Some(seqV2)) => {
         val suspect = (
           intersectMatch(diffMatch(mix1, seqV1), mix2)
-            union intersectMatch(diffMatch(mix2, seqV2), mix1)
+            ++ intersectMatch(diffMatch(mix2, seqV2), mix1)
         )
-        val cond1 = mix1 forall (x => containsMatch((suspect union seqV1), x))
-        val cond2 = mix2 forall (x => containsMatch((suspect union seqV2), x))
+        val cond1 = mix1 forall (x => containsMatch((suspect ++ seqV1), x))
+        val cond2 = mix2 forall (x => containsMatch((suspect ++ seqV2), x))
         val cond3 = suspect forall (x => containsMatch(intersectMatch(mix1, mix2), x))
         if (cond1 && cond2 && cond3) Stringency.ModerateStringency else Stringency.Mismatch
       }
@@ -591,7 +590,7 @@ object MatchingAlgorithm {
         val suspectBase = intersectMatch(mix1, mix2)
         val possibleSuspects = suspectBase.combinations(1) ++ suspectBase.combinations(2)
         val maybeSuspect = possibleSuspects.find { suspect =>
-          val cond1 = mix1 forall (x => containsMatch((suspect union seqV1), x))
+          val cond1 = mix1 forall (x => containsMatch((suspect ++ seqV1), x))
           val cond2 = diffMatch(mix2, suspect).length <= 2
           val cond3 = suspect forall (x => containsMatch(intersectMatch(mix1, mix2), x))
           val result = cond1 && cond2 && cond3
@@ -607,7 +606,7 @@ object MatchingAlgorithm {
         val possibleSuspects = suspectBase.combinations(1) ++ suspectBase.combinations(2)
         val maybeSuspect = possibleSuspects.find { suspect =>
           val cond1 = diffMatch(mix1, suspect).length <= 2
-          val cond2 = mix2 forall (x => containsMatch((suspect union seqV2), x))
+          val cond2 = mix2 forall (x => containsMatch((suspect ++ seqV2), x))
           val cond3 = suspect forall (x => containsMatch(intersectMatch(mix1, mix2), x))
           val result = cond1 && cond2 && cond3
           result
@@ -645,7 +644,7 @@ object MatchingAlgorithm {
     val matchLevel = (victim1, victim2) match {
       case (Some(seqV1), None) => {
         val suspect = mix2
-        val cond1 = mix1 forall (x => containsMatch((suspect union seqV1), x))
+        val cond1 = mix1 forall (x => containsMatch((suspect ++ seqV1), x))
         val cond2 = diffMatch(suspect, mix1).length == 0
         val result = cond1 && cond2
         result match {
@@ -655,7 +654,7 @@ object MatchingAlgorithm {
       }
       case (None, Some(seqV2)) => {
         val suspect = mix1
-        val cond1 = mix2 forall (x => containsMatch((suspect union seqV2), x))
+        val cond1 = mix2 forall (x => containsMatch((suspect ++ seqV2), x))
         val cond2 = diffMatch(suspect, mix2).length == 0
         val result = cond1 && cond2
         result match {
@@ -672,6 +671,7 @@ object MatchingAlgorithm {
           case false => Stringency.Mismatch
         }
       }
+      case (Some(_), Some(_)) => Stringency.Mismatch
     }
     matchLevel
   }

@@ -1,7 +1,6 @@
 // Eliminada dependencia play-slick, solo usar slick puro
 import scala.concurrent.duration._
 
-import com.typesafe.sbt.less.Import.LessKeys
 // These old imports are removed (from sbt-web plugins that are deprecated)
 // import WebKeys._
 // import RjsKeys._
@@ -78,59 +77,49 @@ lazy val core = (project in file("modules/core"))
 
       // OTP (TOTP) - aerogear
       "org.jboss.aerogear" % "aerogear-otp-java" % "1.0.0",
-      
+
       // Logback
       "ch.qos.logback" % "logback-classic" % "1.5.15",
       "ch.qos.logback" % "logback-core" % "1.5.15",
-      
+
       // JWT actualizado
       "com.auth0" % "java-jwt" % "4.5.0",
-      
+
       // LDAP actualizado
       "com.unboundid" % "unboundid-ldapsdk" % "7.0.4",
 
       // scala-graph (para BayesianNetwork: eliminación de variables en pedigree)
       "org.scala-graph" %% "graph-core" % "2.0.2",
       
+      // Frontend WebJars (same as legacy app)
+      "org.webjars" % "requirejs" % "2.1.14-1",
+      "org.webjars" % "underscorejs" % "1.6.0-3",
+      "org.webjars" % "jquery" % "3.1.1-1",
+      "org.webjars" % "jquery-ui" % "1.11.1",
+      "org.webjars" % "bootstrap" % "3.3.7-1" exclude("org.webjars", "jquery"),
+      "org.webjars" % "angularjs" % "1.4.0" exclude("org.webjars", "jquery"),
+      "org.webjars" % "angular-ui-bootstrap" % "0.13.3",
+      "org.webjars" % "angular-ui-select" % "0.13.1",
+      "org.webjars" % "angular-ui-sortable" % "0.13.0",
+      "org.webjars" % "cryptojs" % "3.1.2",
+      "org.webjars" % "angular-file-upload" % "4.1.3",
+      "org.webjars" % "angular-hotkeys" % "1.4.0",
+      "org.webjars" % "i18next" % "1.7.3",
+      "org.webjars" % "ng-i18next" % "0.3.2",
+      "org.webjars" % "qrcodejs" % "07f829d",
+      "org.webjars" % "font-awesome" % "4.4.0",
+      "org.webjars" % "d3js" % "3.5.5-1",
+      "org.webjars" % "dagre-d3" % "0.4.10",
+      "org.webjars" % "animate.css" % "3.5.2",
+      "org.webjars.npm" % "jszip" % "3.10.1",
+      "org.webjars.npm" % "lodash" % "4.17.4",
+
       // Testing
       "org.scalatestplus.play" %% "scalatestplus-play" % "7.0.1" % Test,
       "org.scalatest" %% "scalatest" % "3.2.19" % Test,
-      "org.scalatestplus" %% "mockito-5-12" % "3.2.19.0" % Test,
-
-      // WebJars (frontend SPA dependencies — same versions as legacy)
-      "org.webjars" % "requirejs"              % "2.1.14-1",
-      "org.webjars" % "angularjs"              % "1.4.0" exclude("org.webjars", "jquery"),
-      "org.webjars" % "angular-ui-bootstrap"   % "0.13.3",
-      "org.webjars" % "angular-ui-select"      % "0.13.1",
-      "org.webjars" % "angular-ui-sortable"    % "0.13.0",
-      "org.webjars" % "jquery"                 % "3.1.1-1",
-      "org.webjars" % "jquery-ui"              % "1.11.1",
-      "org.webjars" % "bootstrap"              % "3.3.7-1" exclude("org.webjars", "jquery"),
-      "org.webjars.npm" % "lodash"             % "4.17.4",
-      "org.webjars" % "underscorejs"           % "1.6.0-3",
-      "org.webjars" % "cryptojs"               % "3.1.2",
-      "org.webjars" % "angular-file-upload"    % "4.1.3",
-      "org.webjars" % "angular-hotkeys"        % "1.4.0",
-      "org.webjars" % "i18next"                % "1.7.3",
-      "org.webjars" % "ng-i18next"             % "0.3.2",
-      "org.webjars" % "qrcodejs"               % "07f829d",
-      "org.webjars" % "font-awesome"           % "4.4.0",
-      "org.webjars" % "d3js"                   % "3.5.5-1",
-      "org.webjars" % "dagre-d3"               % "0.4.10",
-      "org.webjars" % "animate.css"            % "3.5.2",
-      "org.webjars.npm" % "jszip"              % "3.10.1",
-      // Required by sbt-less 2.0.0 / LESS 4 to resolve WebJar @imports over the sbt-web virtual HTTP filesystem
-      "org.webjars.npm" % "needle"             % "3.3.1"
+      "org.scalatestplus" %% "mockito-5-12" % "3.2.19.0" % Test
     ),
-
-    // Include legacy frontend assets (JS, LESS/CSS) and static public files
-    Assets / unmanagedSourceDirectories += baseDirectory.value / ".." / ".." / "app" / "assets",
-    Assets / unmanagedResourceDirectories += baseDirectory.value / ".." / ".." / "public",
-    // LESS compilation disabled: pre-compiled CSS is in modules/core/public/stylesheets/
-    // sbt-less 2.0.0 (LESS 4) requires `needle` npm package for WebJar HTTP resolution which
-    // Trireme can't load. Use the static pre-compiled CSS instead.
-    Assets / LessKeys.less / includeFilter := NothingFilter,
-
+    
     // Modern corre en puerto 9001 (legacy usa 9000)
     PlayKeys.playDefaultPort := 9001,
 

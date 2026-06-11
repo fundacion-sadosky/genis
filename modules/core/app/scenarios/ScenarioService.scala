@@ -116,7 +116,7 @@ class ScenarioServiceImpl @Inject()(
       case Some(mr) =>
         val n = mr.n
         if request.bigN > n then
-          val dmp = 1 - Math.pow(1 - (1.0 / request.lr), n)
+          val dmp = 1 - Math.pow(1 - (1.0 / request.lr), n.toDouble)
           val donnellyBaldwin = (1 + ((n - 1.0) / (request.bigN - n))) * request.lr
           Right(NCorrectionResponse(dmp, donnellyBaldwin, n))
         else

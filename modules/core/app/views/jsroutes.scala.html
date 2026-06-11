@@ -360,7 +360,8 @@ var jsRoutes = {};
     return _wA({method: 'GET', url: '/profiledata-editable/' + _enc(id)});
   };
   _root.controllers.ProfileData.findByCodes = function(globalCode) {
-    return _wA({method: 'GET', url: '/api/v2/profilesdata' + _qS(['globalCode=' + _enc(globalCode)])});
+    var params = [].concat(globalCode).map(function(c) { return 'globalCode=' + _enc(c); });
+    return _wA({method: 'GET', url: '/api/v2/profilesdata' + _qS(params)});
   };
   _root.controllers.ProfileData.getDesktopProfiles = function() {
     return _wA({method: 'GET', url: '/profiledata-desktop'});
@@ -383,7 +384,8 @@ var jsRoutes = {};
     return _wA({method: 'GET', url: '/api/v2/profiles/full/' + _enc(globalCode)});
   };
   _root.controllers.Profiles.findByCodes = function(globalCodes) {
-    return _wA({method: 'GET', url: '/api/v2/profiles' + _qS(['globalCodes=' + _enc(globalCodes)])});
+    var params = [].concat(globalCodes).map(function(c) { return 'globalCodes=' + _enc(c); });
+    return _wA({method: 'GET', url: '/api/v2/profiles' + _qS(params)});
   };
   _root.controllers.Profiles.create = function() {
     return _wA({method: 'POST', url: '/api/v2/profiles'});

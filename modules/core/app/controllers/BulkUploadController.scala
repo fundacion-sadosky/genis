@@ -21,8 +21,13 @@ class BulkUploadController @Inject()(
   private def parseStatus(status: String): Option[ProtoProfileStatus.Value] =
     scala.util.Try(ProtoProfileStatus.withName(status)).toOption
 
+  private def extractUserId(request: play.api.mvc.RequestHeader): String =
+    request.headers.get("X-USER")
+      .orElse(request.session.get("X-USER"))
+      .get
+
   def getBatchesStep1(page: Int, pageSize: Int): Action[AnyContent] = Action.async { request =>
-    val userId = request.headers.get("X-USER").get
+    val userId = extractUserId(request)
     val offset = (page - 1) * pageSize
     userService.isSuperUser(userId).flatMap { isSuperUser =>
       bulkUploadService.getBatchesStep1(userId, isSuperUser, offset, pageSize).map(batches => Ok(Json.toJson(batches)))
@@ -30,14 +35,14 @@ class BulkUploadController @Inject()(
   }
 
   def countBatchesStep1: Action[AnyContent] = Action.async { request =>
-    val userId = request.headers.get("X-USER").get
+    val userId = extractUserId(request)
     userService.isSuperUser(userId).flatMap { isSuperUser =>
       bulkUploadService.countBatchesStep1(userId, isSuperUser).map(total => Ok(Json.obj("total" -> total)))
     }
   }
 
   def getBatchesStep2(geneMapperId: String, page: Int, pageSize: Int): Action[AnyContent] = Action.async { request =>
-    val userId = request.headers.get("X-USER").get
+    val userId = extractUserId(request)
     val offset = (page - 1) * pageSize
     userService.isSuperUser(userId).flatMap { isSuperUser =>
       bulkUploadService.getBatchesStep2(userId, geneMapperId, isSuperUser, offset, pageSize).map(batch => Ok(Json.toJson(batch)))
@@ -45,7 +50,7 @@ class BulkUploadController @Inject()(
   }
 
   def countBatchesStep2(geneMapperId: String): Action[AnyContent] = Action.async { request =>
-    val userId = request.headers.get("X-USER").get
+    val userId = extractUserId(request)
     userService.isSuperUser(userId).flatMap { isSuperUser =>
       bulkUploadService.countBatchesStep2(userId, geneMapperId, isSuperUser).map(total => Ok(Json.obj("total" -> total)))
     }
@@ -75,10 +80,10 @@ class BulkUploadController @Inject()(
   }
 
   def uploadProtoProfiles(label: Option[String], analysisType: String) = Action.async(parse.multipartFormData) { request =>
-    val user = request.headers.get("X-USER").get
+    val user = extractUserId(request)
     request.body.file("file").fold(Future.successful(NotFound("Missing file"))) { csvFile =>
-      val fileType = Files.probeContentType(csvFile.ref.file.toPath)
-      if fileType == "text/plain" then
+      val fileType = Files.probeContentType(csvFile.ref.path)
+      if fileType == null || fileType == "text/plain" || fileType == "text/csv" then
         bulkUploadService.uploadProtoProfiles(user, csvFile.ref, label, analysisType).map {
           _.fold(
             error   => BadRequest(Json.obj("message" -> error)),
@@ -91,19 +96,19 @@ class BulkUploadController @Inject()(
   }
 
   def rejectProtoProfile(id: Long, motive: String, idMotive: Long): Action[AnyContent] = Action.async { request =>
-    val userId = request.headers.get("X-USER").get
+    val userId = extractUserId(request)
     bulkUploadService.rejectProtoProfile(id, motive, userId, idMotive).map(errors => Ok(Json.toJson(errors)))
   }
 
   def updateProtoProfileStatus(id: Long, status: String, replicate: Boolean, desktopSearch: Boolean = false): Action[AnyContent] = Action.async { request =>
-    val userId = request.headers.get("X-USER").get
+    val userId = extractUserId(request)
     parseStatus(status) match
       case None     => Future.successful(BadRequest(Json.obj("message" -> "Estado de perfil inválido.")))
       case Some(st) => bulkUploadService.updateProtoProfileStatus(id, st, userId, replicate, desktopSearch).map(errors => Ok(Json.toJson(errors)))
   }
 
   def updateProtoProfileData(id: Long, category: AlphanumericId): Action[AnyContent] = Action.async { request =>
-    val userId = request.headers.get("X-USER").get
+    val userId = extractUserId(request)
     bulkUploadService.updateProtoProfileData(id, category, userId).map {
       case Left(e)   => BadRequest(Json.obj("message" -> e))
       case Right(pp) => Ok(Json.toJson(pp))
@@ -112,7 +117,7 @@ class BulkUploadController @Inject()(
 
   def updateBatchStatus(idBatch: Long, status: String, replicateAll: Boolean): Action[JsValue] = Action.async(parse.json) { request =>
     val idsToReplicate = request.body.validate[List[Long]].getOrElse(Nil)
-    val userId = request.headers.get("X-USER").get
+    val userId = extractUserId(request)
     parseStatus(status) match
       case None => Future.successful(BadRequest(Json.obj("message" -> "Estado de perfil inválido.")))
       case Some(st) =>
@@ -143,7 +148,7 @@ class BulkUploadController @Inject()(
   }
 
   def searchBatch(filter: String): Action[AnyContent] = Action.async { request =>
-    val userId = request.headers.get("X-USER").get
+    val userId = extractUserId(request)
     userService.isSuperUser(userId).flatMap { isSuperUser =>
       bulkUploadService.searchBatch(userId, isSuperUser, filter).map(batch => Ok(Json.toJson(batch)))
     }
