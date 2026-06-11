@@ -91,6 +91,29 @@ lazy val core = (project in file("modules/core"))
       // scala-graph (para BayesianNetwork: eliminación de variables en pedigree)
       "org.scala-graph" %% "graph-core" % "2.0.2",
       
+      // Frontend WebJars (same as legacy app)
+      "org.webjars" % "requirejs" % "2.1.14-1",
+      "org.webjars" % "underscorejs" % "1.6.0-3",
+      "org.webjars" % "jquery" % "3.1.1-1",
+      "org.webjars" % "jquery-ui" % "1.11.1",
+      "org.webjars" % "bootstrap" % "3.3.7-1" exclude("org.webjars", "jquery"),
+      "org.webjars" % "angularjs" % "1.4.0" exclude("org.webjars", "jquery"),
+      "org.webjars" % "angular-ui-bootstrap" % "0.13.3",
+      "org.webjars" % "angular-ui-select" % "0.13.1",
+      "org.webjars" % "angular-ui-sortable" % "0.13.0",
+      "org.webjars" % "cryptojs" % "3.1.2",
+      "org.webjars" % "angular-file-upload" % "4.1.3",
+      "org.webjars" % "angular-hotkeys" % "1.4.0",
+      "org.webjars" % "i18next" % "1.7.3",
+      "org.webjars" % "ng-i18next" % "0.3.2",
+      "org.webjars" % "qrcodejs" % "07f829d",
+      "org.webjars" % "font-awesome" % "4.4.0",
+      "org.webjars" % "d3js" % "3.5.5-1",
+      "org.webjars" % "dagre-d3" % "0.4.10",
+      "org.webjars" % "animate.css" % "3.5.2",
+      "org.webjars.npm" % "jszip" % "3.10.1",
+      "org.webjars.npm" % "lodash" % "4.17.4",
+
       // Testing
       "org.scalatestplus.play" %% "scalatestplus-play" % "7.0.1" % Test,
       "org.scalatest" %% "scalatest" % "3.2.19" % Test,
