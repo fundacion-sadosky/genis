@@ -387,6 +387,8 @@ class MatchingServiceSparkImpl @Inject() (
         spak2Matcher.findMatchesInBackGround(globalCode)
       case Some("MPI") =>
         pedigreeSparkMatcher.findMatchesInBackGround(globalCode, matchType.get)
+      case Some("DVI") =>
+        pedigreeSparkMatcher.findMatchesInBackGround(globalCode, matchType.get)
       case _ => ()
     }
   }
