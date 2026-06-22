@@ -69,7 +69,7 @@ class Spark2Matcher @Inject() (
   }
 
   protected def getProfilesRDD(globalCode: SampleCode, categories: Seq[AlphanumericId]) = {
-    val profilesReadConf = ReadConfig(Map("uri" -> s"$mongoUri.profiles"), None)
+    val profilesReadConf = ReadConfig(Map("uri" -> mongoUri, "collection" -> "profiles"), None)
 
     import collection.JavaConverters._
 
@@ -106,7 +106,7 @@ class Spark2Matcher @Inject() (
   }
 
   protected def getExistingMatchesRDD(globalCode: String) = {
-    val matchesReadConf = ReadConfig(Map("uri" -> s"$mongoUri.$matchesTable"), None)
+    val matchesReadConf = ReadConfig(Map("uri" -> mongoUri, "collection" -> matchesTable), None)
 
     val existingMatchesFilter = `match`(
       Filters.or(
@@ -142,7 +142,7 @@ class Spark2Matcher @Inject() (
   protected def saveMatchesToInsert(matchesToInsertRDD: RDD[MatchResult],locusRangeMap: NewMatchingResult.AlleleMatchRange,searched: Profile) = {
     val matchingLRs: Set[LRCalculation] = mapLRs(matchesToInsertRDD,locusRangeMap,searched)
 
-    val matchesWriteConf = WriteConfig(Map("uri" -> s"$mongoUri.$matchesTable"), None)
+    val matchesWriteConf = WriteConfig(Map("uri" -> mongoUri, "collection" -> matchesTable), None)
 
     val matchResultToDoc = (matchResult: MatchResult) => {
       val leftProfile = Json.toJson(matchResult.leftProfile).toString()
@@ -175,7 +175,7 @@ class Spark2Matcher @Inject() (
 
   protected def saveMatchesToReplace(matchesToReplaceRDD: RDD[(String, MatchResult)],locusRangeMap: NewMatchingResult.AlleleMatchRange,searched: Profile) = {
     val matchingLRs: Set[LRCalculation] = mapLRs(matchesToReplaceRDD.map(_._2),locusRangeMap,searched)
-    val matchesWriteConf = WriteConfig(Map("uri" -> s"$mongoUri.$matchesTable"), None)
+    val matchesWriteConf = WriteConfig(Map("uri" -> mongoUri, "collection" -> matchesTable), None)
 
     val matchResultToDocWithId = (tup: (String, MatchResult)) => {
       val matchResult = tup._2
@@ -219,7 +219,7 @@ class Spark2Matcher @Inject() (
 
   }
   protected def saveMatchesToDelete(matchesToDeleteRDD: RDD[((String, Integer), String)]) = {
-    val matchesWriteConf = WriteConfig(Map("uri" -> s"$mongoUri.$matchesTable"), None)
+    val matchesWriteConf = WriteConfig(Map("uri" -> mongoUri, "collection" -> matchesTable), None)
 
     matchesToDeleteRDD
       .foreachPartition(iter =>
