@@ -190,6 +190,10 @@ define(['jquery', 'lodash'], function($, _) {
             getAllBatches();
         };
 
+        $scope.changePage = function (batch) {
+            getBatchProtoProfiles(batch);
+        };
+
         var getBatchItem = function(id, batch) {
             if (batch){
                 batch.isProcessing = true;
@@ -478,30 +482,31 @@ define(['jquery', 'lodash'], function($, _) {
         };
 
         $scope.importBatch = function(batch) {
-            $scope.matches = {};
             batch.isProcessing = true;
             var protoprofilesFromBatch = $scope.protoProfiles[batch.id];
             var promises = [];
 
             if (!_.isUndefined(protoprofilesFromBatch)) {
                 protoprofilesFromBatch.forEach(function(sample) {
-                    // MODIFIED: Only process profiles that have the status 'Approved'
                     if (sample.status === 'Approved') {
-                        // updateStatus handles the changeStatus API call, the replication flag, and the desktopSearch flag per item
-                        promises.push(updateStatus(sample, 'Imported', batch));
+                        var id = parseInt(sample.id, 10);
+                        var isDesktopSearch =
+                            batch.desktopSearch &&
+                            protoprofilesFromBatch.length === 1 &&
+                            sample.id === protoprofilesFromBatch[0].id;
+                        promises.push(
+                            bulkuploadService.changeStatus(id, 'Imported', sample.replicate, isDesktopSearch)
+                        );
                     }
                 });
             }
 
-            // Wait for all individual updates to complete
             $q.all(promises).then(function() {
-                batch.isProcessing = false;
-                getBatchProtoProfiles(batch); // Refresh the list from backend
-                alertService.success({message: 'Se han importado los perfiles exitosamente.'});
-            }, function(response) {
-                batch.isProcessing = false;
                 getBatchProtoProfiles(batch);
-                // Individual errors are usually handled inside updateStatus via alertService
+                alertService.success({message: 'Se han importado los perfiles exitosamente.'});
+            }, function() {
+                getBatchProtoProfiles(batch);
+                alertService.error({message: 'Hubo un error al importar los perfiles.'});
             });
         };
 
