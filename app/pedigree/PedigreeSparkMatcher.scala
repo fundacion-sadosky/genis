@@ -72,7 +72,7 @@ class PedigreeSparkMatcherImpl @Inject()(
   private val duration = Duration(100, SECONDS)
 
   private def getExistingMatchesRDD(input: Either[Profile, PedigreeGenogram]) = {
-    val readConfig = ReadConfig(Map("uri" -> mongoUri, "collection" -> "pedigreeMatches"), None)
+    val readConfig = ReadConfig(Map("uri" -> s"$mongoUri.pedigreeMatches"), None)
 
     val filter = input match {
       case Left(profile) => `match`(Filters.eq("profile.globalCode", profile.globalCode.text))
@@ -116,7 +116,7 @@ class PedigreeSparkMatcherImpl @Inject()(
     (profile.categoryId, rules)
   }
   private def getScreeningProfilesRDD(screeningProfiles:Set[SampleCode]): RDD[Profile] = {
-    val readConfig = ReadConfig(Map("uri" -> mongoUri, "collection" -> "profiles"), None)
+    val readConfig = ReadConfig(Map("uri" -> s"$mongoUri.profiles"), None)
 
     var filter =
       `match`(Filters.and(Filters.eq("deleted", false), Filters.in("globalCode", screeningProfiles.map(_.text).asJava)))
@@ -144,7 +144,7 @@ class PedigreeSparkMatcherImpl @Inject()(
       .map(docToProfile)
   }
   private def getProfilesRDD(input: Either[Profile, PedigreeGenogram]): RDD[Profile] = {
-    val readConfig = ReadConfig(Map("uri" -> mongoUri, "collection" -> "profiles"), None)
+    val readConfig = ReadConfig(Map("uri" -> s"$mongoUri.profiles"), None)
 
     /*Si es de un caso de DVI busca solo en los perfiles de restos del caso*/
 
@@ -194,7 +194,7 @@ class PedigreeSparkMatcherImpl @Inject()(
   }
 
   private def getPedigrees(profile: Profile, matchType: String): Seq[(Long, String, String,Boolean/*, Seq[Individual], Option[Long]*/)] = {
-    val readConf = ReadConfig(Map("uri" -> mongoUri, "collection" -> "pedigrees"), None)
+    val readConf = ReadConfig(Map("uri" -> s"$mongoUri.pedigrees"), None)
 
     val filter = `match`(
       Filters.and(Filters.eq("caseType", matchType), Filters.in("status", Seq(PedigreeStatus.Active.toString).asJava)))
@@ -224,7 +224,7 @@ class PedigreeSparkMatcherImpl @Inject()(
   }
 
   private def getPedigreeGenotypificationRDD(pedigreeId: Long): RDD[PedigreeGenotypification] = {
-    val readConfig = ReadConfig(Map("uri" -> mongoUri, "collection" -> "pedigreeGenotypification"), None)
+    val readConfig = ReadConfig(Map("uri" -> s"$mongoUri.pedigreeGenotypification"), None)
 
     val filter = `match`(Filters.eq("_id", pedigreeId.toString))
 
@@ -320,7 +320,7 @@ $inputMsg has matched against ${matchesRDD.count()} $inputMatch candidates
   }
 
   private def saveMatchesToInsert(matchesToInsertRDD: RDD[PedigreeMatchResult]) = {
-    val matchesWriteConf = WriteConfig(Map("uri" -> mongoUri, "collection" -> "pedigreeMatches"), None)
+    val matchesWriteConf = WriteConfig(Map("uri" -> s"$mongoUri.pedigreeMatches"), None)
 
     val matchResultToDoc = (matchResult: PedigreeMatchResult) => {
       val profile = Json.toJson(matchResult.profile).toString()
@@ -351,7 +351,7 @@ $inputMsg has matched against ${matchesRDD.count()} $inputMatch candidates
 
   private def saveMatchesToReplace(matchesToReplaceRDD: RDD[(String, PedigreeMatchResult)]) = {
 
-    val matchesWriteConf = WriteConfig(Map("uri" -> mongoUri, "collection" -> "pedigreeMatches"), None)
+    val matchesWriteConf = WriteConfig(Map("uri" -> s"$mongoUri.pedigreeMatches"), None)
 
     val matchResultToDocWithId = (tup: (String, PedigreeMatchResult)) => {
       val matchResult = tup._2
@@ -396,7 +396,7 @@ $inputMsg has matched against ${matchesRDD.count()} $inputMatch candidates
   }
 
   private def saveMatchesToDelete(matchesToDeleteRDD: RDD[((String, String, String, Integer), String)]) = {
-    val matchesWriteConf = WriteConfig(Map("uri" -> mongoUri, "collection" -> "pedigreeMatches"), None)
+    val matchesWriteConf = WriteConfig(Map("uri" -> s"$mongoUri.pedigreeMatches"), None)
 
     matchesToDeleteRDD
       .foreachPartition(iter =>

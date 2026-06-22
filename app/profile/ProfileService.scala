@@ -739,9 +739,29 @@ class ProfileServiceImpl @Inject() (
                 Future.successful(Left(errs))
 
               case Right(profile) =>
-                // Lanzar el matching ruteado por tipo de categoría y bloquear hasta que termine.
-                triggerMatchingAndAwait(profile, category).flatMap {
-                  case MatchJobEndend | PedigreeMatchJobEnded =>
+                // 1. Lanzar proceso de matching
+                fireMatching(profile.globalCode)
+
+                // 2. Esperar a que termine el job de matching
+                val matchEndPromise = Promise[MatchJobStatus]()
+
+                matchingProcessStatus.getJobStatus()
+                  .apply(
+                    Iteratee.foreach[MatchJobStatus] { status =>
+                      // Solo completa el promise la primera vez que se recibe un estado final
+                      if (!matchEndPromise.isCompleted) {
+                        status match {
+                          case MatchJobEndend => matchEndPromise.success(status)
+                          case MatchJobFail => matchEndPromise.success(status) // Fallo el promise con el estado de fallo
+                          case _ => // Otros estados, ignorar y seguir esperando
+                        }
+                      }
+                    }
+                  )
+
+                // 3. Cuando termina el matching, decidir qué hacer
+                matchEndPromise.future.flatMap {
+                  case MatchJobEndend =>
                     // Matching terminó OK
                     if (replicate) {
                       // Si hay que replicar, subir ahora al superior
@@ -778,27 +798,6 @@ class ProfileServiceImpl @Inject() (
             case t: Throwable => Left(List(t.getMessage))
           }
       }
-  }
-
-  private[profile] def triggerMatchingAndAwait(profile: Profile, category: FullCategory): Future[MatchJobStatus] = {
-    // Rutear según el tipo de categoría: MPI/DVI (pedigree) → PedigreeSparkMatcher,
-    // resto → Spark2Matcher directo. (Antes se pasaba None siempre, salteando el cotejo de pedigree.)
-    matchingService.findMatches(profile.globalCode, categoryService.getCategoryTypeFromFullCategory(category))
-    val matchEndPromise = Promise[MatchJobStatus]()
-    matchingProcessStatus.getJobStatus()
-      .apply(
-        Iteratee.foreach[MatchJobStatus] { status =>
-          if (!matchEndPromise.isCompleted) {
-            status match {
-              // El matcher directo pushea MatchJobEndend; el de pedigree, PedigreeMatchJobEnded.
-              case MatchJobEndend | PedigreeMatchJobEnded => matchEndPromise.success(status)
-              case MatchJobFail => matchEndPromise.success(status)
-              case _ =>
-            }
-          }
-        }
-      )
-    matchEndPromise.future
   }
 
 
