@@ -2,6 +2,7 @@ package matching
 
 import java.util.Date
 
+import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
 import org.apache.spark.scheduler.JobSucceeded
 import org.apache.spark.scheduler.SparkListener
@@ -18,7 +19,7 @@ import org.bson.codecs.configuration.CodecRegistries
 import com.mongodb.DBObject
 import com.mongodb.MongoClient
 import com.mongodb.MongoClientOptions
-import com.mongodb.MongoClientURI
+import com.mongodb.ServerAddress
 import com.mongodb.spark.MongoClientFactory
 import com.mongodb.spark.MongoConnector
 import play.api.Logger
@@ -76,19 +77,18 @@ class MatchResultCodec extends Codec[MatchResult] {
 
 }
 
-class CustomMongoClientFactory(mongoUri: String) extends MongoClientFactory {
+class CustomMongoClientFactory(sparkConf: SparkConf) extends MongoClientFactory {
 
   def create(): MongoClient = {
     val defaultCodecs = MongoClient.getDefaultCodecRegistry
     val customCodecs = CodecRegistries.fromCodecs(new MatchResultCodec())
     val codecs = CodecRegistries.fromRegistries(customCodecs, defaultCodecs)
 
-    // The builder only provides the custom codecs; host, port, credentials
-    // and TLS (?ssl=true) all come from mongodb.uri (single source of truth).
-    val optionsBuilder = MongoClientOptions
+    val options = MongoClientOptions
       .builder()
       .codecRegistry(codecs)
-    new MongoClient(new MongoClientURI(mongoUri, optionsBuilder))
+      .build()
+    new MongoClient(new ServerAddress("localhost"), options)
   }
 }
 
@@ -111,7 +111,5 @@ object Spark2 {
     sc
   }
 
-  lazy val mongoUri: String = play.api.Play.current.configuration.getString("mongodb.uri").get
-
-  lazy val connector = MongoConnector(new CustomMongoClientFactory(mongoUri))
+  lazy val connector = MongoConnector(new CustomMongoClientFactory(context.getConf))
 }

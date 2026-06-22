@@ -191,7 +191,7 @@ class MongoMatchingRepository @Inject() (@Named("mongoUri") val mongoUri: String
 
   private def getMatchesRDD(search: MatchGroupSearch): RDD[Document] = {
     val matchesTables = if(search.isCollapsing.contains(true)){"collapsingMatches"}else{"matches"}
-    val matchesReadConfig = ReadConfig(Map("uri" -> mongoUri, "collection" -> matchesTables), None)
+    val matchesReadConfig = ReadConfig(Map("uri" -> s"$mongoUri.$matchesTables"), None)
 
 
     val filterStatus = if(search.status.isDefined ){
@@ -257,7 +257,7 @@ class MongoMatchingRepository @Inject() (@Named("mongoUri") val mongoUri: String
   private def getProfilesRDD(globalCodes: Array[String]) = {
     import scala.collection.JavaConverters._
 
-    val profilesReadConfig = ReadConfig(Map("uri" -> mongoUri, "collection" -> "profiles"), None)
+    val profilesReadConfig = ReadConfig(Map("uri" -> s"$mongoUri.profiles"), None)
 
     val profilesFilter = `match`(Filters.and(
      // Filters.ne("deleted", true),
@@ -456,7 +456,7 @@ class MongoMatchingRepository @Inject() (@Named("mongoUri") val mongoUri: String
 
   private def getProfileReference(globalCodes: String) = {
 
-    val profilesReadConfig = ReadConfig(Map("uri" -> mongoUri, "collection" -> "profiles"), None)
+    val profilesReadConfig = ReadConfig(Map("uri" -> s"$mongoUri.profiles"), None)
 
     val profilesFilter = `match`(Filters.and(
       //Filters.ne("deleted", true),

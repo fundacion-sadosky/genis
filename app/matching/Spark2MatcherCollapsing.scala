@@ -102,7 +102,7 @@ class Spark2MatcherCollapsing @Inject()(
     ()
   }
   def getProfilesRDDForCollapsing(globalCodes: List[String], categories: Seq[AlphanumericId]) = {
-    val profilesReadConf = ReadConfig(Map("uri" -> mongoUri, "collection" -> "profiles"), None)
+    val profilesReadConf = ReadConfig(Map("uri" -> s"$mongoUri.profiles"), None)
 
     import collection.JavaConverters._
 
@@ -243,7 +243,7 @@ Profile ${searched.globalCode} has matched in collapsing against ${newMatchesRDD
   }
 
   def getExistingMatchesRDD(globalCode: String,idCourtCase: Long) = {
-    val matchesReadConf = ReadConfig(Map("uri" -> mongoUri, "collection" -> "collapsingMatches"), None)
+    val matchesReadConf = ReadConfig(Map("uri" -> s"$mongoUri.collapsingMatches"), None)
 
     val existingMatchesFilter = `match`(Filters.and(
       Filters.eq("leftProfile.globalCode", globalCode),
