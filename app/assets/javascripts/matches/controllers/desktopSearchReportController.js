@@ -565,17 +565,21 @@ define([ 'angular','lodash' ], function(angular,_) {
 		$scope.printDesktopSearchReport = function(matchedProfileId) {
 			$scope.showCalculation = true;
 			$scope.matchedProfileId = matchedProfileId;
-			console.debug("Al momento de imprimir el reporte, $scope.profileData es: ", $scope.profileData);
 			$scope.matchingId = $scope.matches[matchedProfileId];
 
-			profiledataService.getProfileDataBySampleCode(matchedProfileId).then(function (response) {
-				$scope.matchedProfileData = response.data;
-				console.debug("Obteniendo el tipo de análisis para el reporte.");
-				var head = '<head><title>Comparación</title>';
-				$("link").each(function () {
-					head += '<link rel="stylesheet" href="' + $(this)[0].href + '" />';
-				});
-				head += "</head>";
+			var head = '<head><title>Comparación</title>';
+			$("link").each(function () {
+				head += '<link rel="stylesheet" href="' + $(this)[0].href + '" />';
+			});
+			head += "</head>";
+
+			$q.all([
+				profiledataService.getProfileDataBySampleCode(matchedProfileId),
+				profiledataService.getProfileDataBySampleCode($scope.profileId)
+			]).then(function (profileResponses) {
+				$scope.matchedProfileData = profileResponses[0].data;
+				$scope.profileData = profileResponses[1].data;
+
 				analysisTypeService.listById().then(function(response) {
 					$scope.analysisTypes = response;
 					statsService
@@ -583,7 +587,6 @@ define([ 'angular','lodash' ], function(angular,_) {
 						.then(
 							function (opts) {
 								$scope.selectedOptions = opts;
-								console.debug("Preparando comparación para impresión.");
 								$q.all([
 									$scope.setComparisions(),
 									getResults(),
@@ -596,20 +599,21 @@ define([ 'angular','lodash' ], function(angular,_) {
 									var lrResponse = responses[2];
 									$scope.statsResolved = lrResponse.data.detailed;
 									$scope.pvalue = lrResponse.data.total;
-									$scope.$apply();
-									console.debug("Imprimiendo reporte");
-									var report = window.open('', '_blank');
-									report.document.write(
-										'<html>' + head +
-										'<body>' +
-										$('#report').html() +
-										'</body></html>'
-									);
-									report.document.close();
-									$(report).on('load', function () {
-										report.print();
-										report.close();
-									});
+									// $timeout defer DOM capture until after Angular's digest updates #report
+									$timeout(function () {
+										var report = window.open('', '_blank');
+										report.document.write(
+											'<html>' + head +
+											'<body>' +
+											$('#report').html() +
+											'</body></html>'
+										);
+										report.document.close();
+										$(report).on('load', function () {
+											report.print();
+											report.close();
+										});
+									}, 0);
 								});
 							});
 				});

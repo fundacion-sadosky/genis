@@ -483,31 +483,14 @@ define(['jquery', 'lodash'], function($, _) {
 
         $scope.importBatch = function(batch) {
             batch.isProcessing = true;
-            var protoprofilesFromBatch = $scope.protoProfiles[batch.id];
-            var promises = [];
-
-            if (!_.isUndefined(protoprofilesFromBatch)) {
-                protoprofilesFromBatch.forEach(function(sample) {
-                    if (sample.status === 'Approved') {
-                        var id = parseInt(sample.id, 10);
-                        var isDesktopSearch =
-                            batch.desktopSearch &&
-                            protoprofilesFromBatch.length === 1 &&
-                            sample.id === protoprofilesFromBatch[0].id;
-                        promises.push(
-                            bulkuploadService.changeStatus(id, 'Imported', sample.replicate, isDesktopSearch)
-                        );
-                    }
+            bulkuploadService.changeBatchStatus(batch.id, 'Imported', [], false)
+                .then(function() {
+                    getBatchProtoProfiles(batch);
+                    alertService.success({message: 'Se han importado los perfiles exitosamente.'});
+                }, function() {
+                    getBatchProtoProfiles(batch);
+                    alertService.error({message: 'Hubo un error al importar los perfiles.'});
                 });
-            }
-
-            $q.all(promises).then(function() {
-                getBatchProtoProfiles(batch);
-                alertService.success({message: 'Se han importado los perfiles exitosamente.'});
-            }, function() {
-                getBatchProtoProfiles(batch);
-                alertService.error({message: 'Hubo un error al importar los perfiles.'});
-            });
         };
 
         $scope.deleteBatch = function(batch) {

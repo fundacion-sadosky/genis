@@ -202,11 +202,11 @@ class ProfileServiceImpl @Inject() (
               // Locked if exists AND status != 3.
 
               if (!thirdParam) {
-                // If thirdParam is false, it means it Exists AND status != 3. So it is locked.
-                (true, Messages("error.E0728"), thirdParam) // (ReadOnly, Error, False)
+                // thirdParam is false: Not exists OR status == 3. So it is editable.
+                (false, "", thirdParam) // (Not ReadOnly, No Error, False = not uploaded to superior)
               } else {
-                // If thirdParam is true, it means (Not Exists) OR (Status == 3). So it is editable.
-                (false, "", thirdParam) // (Not ReadOnly, No Error, True)
+                // thirdParam is true: Exists AND status != 3. So it is locked.
+                (true, Messages("error.E0728"), thirdParam) // (ReadOnly, Error, True = uploaded to superior)
               }
           }
         }
