@@ -208,20 +208,3 @@ WHERE  pu."GLOBAL_CODE" = t."PROFILE"
 
 COMMIT;
 
--- Extra: perfiles sin interconectionAproved que igualmente fueron cargados
-UPDATE "APP"."PROFILE_UPLOADED"
-SET    "STATUS" = 4
-WHERE  "GLOBAL_CODE" IN (
-  'AR-B-SCJBA-1261',
-  'AR-B-SCJBA-1262',
-  'AR-B-SCJBA-1263',
-  'AR-B-SCJBA-1264',
-  'AR-B-SCJBA-1265',
-  'AR-B-SCJBA-1266',
-  'AR-B-SCJBA-1267',
-  'AR-B-SCJBA-1268',
-  'AR-B-SCJBA-1269',
-  'AR-B-SCJBA-1270',
-  'AR-B-SCJBA-1274',
-  'AR-B-SCJBA-1285'
-);
