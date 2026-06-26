@@ -91,7 +91,7 @@ class Application @Inject() (app: play.api.Application, @Named("genisManifest") 
     } yield {
       //s"$iver r${gcom.take(9)}"
       s"$iver"
-    }).getOrElse("develop")
+    }).getOrElse("5.1.13")
 
     var appJson = Json.obj(
       "manifest" -> manifest,
