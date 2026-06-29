@@ -599,21 +599,30 @@ define([ 'angular','lodash' ], function(angular,_) {
 									var lrResponse = responses[2];
 									$scope.statsResolved = lrResponse.data.detailed;
 									$scope.pvalue = lrResponse.data.total;
-									// $timeout defer DOM capture until after Angular's digest updates #report
-									$timeout(function () {
-										var report = window.open('', '_blank');
-										report.document.write(
-											'<html>' + head +
-											'<body>' +
-											$('#report').html() +
-											'</body></html>'
-										);
-										report.document.close();
-										$(report).on('load', function () {
-											report.print();
-											report.close();
-										});
-									}, 0);
+									var tryPrint = function () {
+										var reportContent = $('#report').html();
+										if (!reportContent || reportContent.trim().length === 0) {
+											$timeout(tryPrint, 10);
+											return;
+										}
+										try {
+											var report = window.open('', '_blank');
+											report.document.write(
+												'<html>' + head +
+												'<body>' +
+												reportContent +
+												'</body></html>'
+											);
+											$(report).on('load', function () {
+												report.print();
+												report.close();
+											});
+											report.document.close();
+										} catch (e) {
+											$timeout(tryPrint, 10);
+										}
+									};
+									$timeout(tryPrint, 0);
 								});
 							});
 				});
