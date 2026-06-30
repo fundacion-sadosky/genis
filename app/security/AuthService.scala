@@ -227,7 +227,7 @@ class AuthServiceImpl @Inject() (
                   val uriToDecrypt = encryptedUri.substring(1)
                   logger.trace("decrypting " + uriToDecrypt)
                   val decryptedUriBytes = cryptoService.decrypt(
-                    Base64.decodeBase64(uriToDecrypt),
+                    Base64.decodeBase64(uriToDecrypt.replace('-', '+').replace('_', '/')),
                     authenticatedPair
                   )
                   val decryptedUri = new String(decryptedUriBytes)

@@ -255,7 +255,6 @@ define([ 'angular','lodash' ], function(angular,_) {
 				if(!_.isUndefined(matchedProfileDataTemp)){
 					$scope.matchedProfileData = matchedProfileDataTemp;
 				}
-				$scope.$apply();
 			});
 		
 		$scope.labeledGenotypifications = {};
@@ -292,7 +291,6 @@ define([ 'angular','lodash' ], function(angular,_) {
 				localProfileData.sampleEntryDate = superiorProfileData.sampleEntryDate;
 				localProfileData.sampleDate = superiorProfileData.sampleDate;
 				localProfileData.profileExpirationDate = superiorProfileData.profileExpirationDate;
-				$scope.$apply();
 			}
 		};
 
@@ -328,7 +326,6 @@ define([ 'angular','lodash' ], function(angular,_) {
 
 					$scope.comparision = _.sortBy(response.data.map(mtConvert), ['locusSort']);
 					console.log('comparision', $scope.comparision);
-					$scope.$apply();
 				}
 			);
 		};
@@ -599,6 +596,7 @@ define([ 'angular','lodash' ], function(angular,_) {
 									var lrResponse = responses[2];
 									$scope.statsResolved = lrResponse.data.detailed;
 									$scope.pvalue = lrResponse.data.total;
+									$scope.showCalculation = true;
 									var tryPrint = function () {
 										var reportContent = $('#report').html();
 										if (!reportContent || reportContent.trim().length === 0) {

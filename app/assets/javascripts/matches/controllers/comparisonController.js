@@ -235,7 +235,6 @@ define([ 'angular','lodash' ], function(angular,_) {
 		analysisTypeService.listById().then(function(response) {
 			$scope.analysisTypes = response;
 			getResults();
-			$scope.$apply();
 		});
 		profiledataService.getProfilesData([$scope.profileId, $scope.matchedProfileId]).then(
 			function(response) {
@@ -247,7 +246,6 @@ define([ 'angular','lodash' ], function(angular,_) {
 				if(!_.isUndefined(matchedProfileDataTemp)){
 					$scope.matchedProfileData = matchedProfileDataTemp;
 				}
-				$scope.$apply();
 			});
 
 		$scope.labeledGenotypifications = {};
@@ -255,12 +253,10 @@ define([ 'angular','lodash' ], function(angular,_) {
 		profileService.getProfile($scope.profileId).then(
 			function(response) {
 				$scope.assignProfile($scope.profileId,response.data);
-				$scope.$apply();
 			});
 		profileService.getProfile($scope.matchedProfileId).then(
 			function(response) {
 				$scope.assignProfile($scope.matchedProfileId,response.data);
-				$scope.$apply();
 			}
 		);
 		$scope.assignProfile = function (profileId, profile){
@@ -284,7 +280,6 @@ define([ 'angular','lodash' ], function(angular,_) {
 				localProfileData.sampleEntryDate = superiorProfileData.sampleEntryDate;
 				localProfileData.sampleDate = superiorProfileData.sampleDate;
 				localProfileData.profileExpirationDate = superiorProfileData.profileExpirationDate;
-				$scope.$apply();
 			}
 		};
 
@@ -315,7 +310,6 @@ define([ 'angular','lodash' ], function(angular,_) {
 				}
 				$scope.comparision = _.sortBy(response.data.map(mtConvert), ['locusSort']);
 				console.log('comparision',$scope.comparision);
-				$scope.$apply();
 			}
 		);
 		function encryptedEpgs(profile, epgs) {
@@ -335,24 +329,26 @@ define([ 'angular','lodash' ], function(angular,_) {
 			});
 
 		$scope.printReport = function() {
+			$scope.showCalculation = true;
 			var head = '<head><title>Comparación</title>';
 			$("link").each(function () {
 				head += '<link rel="stylesheet" href="' + $(this)[0].href + '" />';
 			});
 			head += "</head>";
-			$scope.$apply();
-			var report = window.open('', '_blank');
-			report.document.write(
-				'<html>' + head +
-				'<body>' +
-				$('#report').html() +
-				'</body></html>'
-			);
-			report.document.close();
-			$(report).on('load', function(){
-				report.print();
-				report.close();
-			});
+			$timeout(function() {
+				var report = window.open('', '_blank');
+				report.document.write(
+					'<html>' + head +
+					'<body>' +
+					$('#report').html() +
+					'</body></html>'
+				);
+				report.document.close();
+				$(report).on('load', function(){
+					report.print();
+					report.close();
+				});
+			}, 0);
 		};
 
 		profiledataService.getCategories().then(function(response){

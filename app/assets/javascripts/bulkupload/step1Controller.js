@@ -132,22 +132,17 @@ define(['lodash'], function(_) {
                     deferred.reject(response.data);
                 } else {
                     if (status === 'Approved') {
-                        for (var i in $scope.batches) {
-                            var batch = $scope.batches[i];
-                            if (batch.id === batchId) {
-                                batch.approvedAnalysis++;
-                                sample.status = 'Approved';
-
-                            }
-                        }
+                        // ReadyForApproval → Approved: ambos cuentan como pendingAnalysis,
+                        // no hay cambio en los contadores del lote.
+                        sample.status = 'Approved';
                     }
                     if (status === 'Disapproved') {
                         for (var j in $scope.batches) {
                             var batchj = $scope.batches[j];
                             if (batchj.id === batchId) {
                                 batchj.rejectedAnalysis++;
+                                batchj.pendingAnalysis--;
                                 sample.status = 'Disapproved';
-
                             }
                         }
                     }
