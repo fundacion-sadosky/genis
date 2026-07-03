@@ -377,5 +377,41 @@ ldapadd -x -D cn=admin,dc=genis,dc=local -H ldap://:1389 -W -f /tmp/file.ldiff -
 se solicitará el password del usuario **admin** que se puede consultar en *docker-compose.yml* y por defecto es **adminp**.
 
 Salir del contenedor con `CTRL+D`.
+Crear un systemd service (recomendado para producción)
+Crea /etc/systemd/system/genis.service:
+```
+ini[Unit]
+Description=GENis Forensic System
+After=network.target
 
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/usr/share/genis
+ExecStart=/usr/share/genis/bin/genis \
+  -v \
+  -DapplyEvolutions.default=true \
+  -DapplyDownEvolutions.default=true \
+  -DapplyEvolutions.logDb=true \
+  -DapplyDownEvolutions.logDb=true \
+  -Dhttp.port=9000 \
+  -Dhttps.port=9443 \
+  -Dconfig.file=/usr/share/genis/conf/application.conf \
+  -Dlogger.file=/usr/share/genis/conf/logger.xml
+Restart=always
+RestartSec=10
 
+[Install]
+WantedBy=multi-user.target
+
+```
+Luego:
+```
+sudo systemctl daemon-reload
+sudo systemctl start genis
+sudo systemctl enable genis  # Para que inicie automáticamente
+```
+Ver estado:
+```
+sudo systemctl status genis
+```
