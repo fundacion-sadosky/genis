@@ -377,6 +377,7 @@ ldapadd -x -D cn=admin,dc=genis,dc=local -H ldap://:1389 -W -f /tmp/file.ldiff -
 se solicitará el password del usuario **admin** que se puede consultar en *docker-compose.yml* y por defecto es **adminp**.
 
 Salir del contenedor con `CTRL+D`.
+
 Crear un systemd service (recomendado para producción)
 Crea /etc/systemd/system/genis.service:
 ```
