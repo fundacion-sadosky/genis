@@ -2,7 +2,7 @@ package controllers
 
 import javax.inject._
 import play.api.mvc._
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.{Json, JsError, OFormat}
 import kits._
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -35,11 +35,27 @@ class StrKitsController @Inject()(
   }
 
   def add(): Action[AnyContent] = Action.async { implicit request =>
-    Future.successful(NotImplemented)
+    request.body.asJson.map(_.validate[FullStrKit]) match
+      case None => Future.successful(BadRequest(Json.obj("status" -> "KO", "message" -> "Expected JSON body")))
+      case Some(result) => result.fold(
+        errors => Future.successful(BadRequest(JsError.toJson(errors))),
+        kit => strKitService.add(kit).map {
+          case Right(id)   => Ok(Json.toJson(id)).withHeaders("X-CREATED-ID" -> id)
+          case Left(error) => BadRequest(Json.obj("status" -> "KO", "message" -> Json.toJson(error)))
+        }
+      )
   }
 
   def update(): Action[AnyContent] = Action.async { implicit request =>
-    Future.successful(NotImplemented)
+    request.body.asJson.map(_.validate[FullStrKit]) match
+      case None => Future.successful(BadRequest(Json.obj("status" -> "KO", "message" -> "Expected JSON body")))
+      case Some(result) => result.fold(
+        errors => Future.successful(BadRequest(Json.obj("status" -> "KO", "message" -> JsError.toJson(errors)))),
+        kit => strKitService.update(kit).map {
+          case Right(id)   => Ok(Json.toJson(id)).withHeaders("X-CREATED-ID" -> id)
+          case Left(error) => BadRequest(Json.toJson(error))
+        }
+      )
   }
 
   def delete(id: String): Action[AnyContent] = Action.async { implicit request =>

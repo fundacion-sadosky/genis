@@ -94,3 +94,4 @@ error.E0500= E0500: Error al actualizar la configuración el motivo.
 error.E0630= E0630: Error inesperado en la base de datos.
 error.E0631= E0631: Identificador de coincidencia inválido o inexistente.
 error.E0901= E0901: Nombre ya utilizado.
+error.E0697= E0697: El parámetro representativo no puede ser mayor a la cantidad de marcadores.

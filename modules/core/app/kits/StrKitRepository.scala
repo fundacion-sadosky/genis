@@ -16,6 +16,10 @@ trait StrKitRepository {
   def addAlias(id: String, alias: String): Future[Either[String, String]]
   def addLocus(id: String, locus: NewStrKitLocus): Future[Either[String, String]]
   def update(kit: StrKit): Future[Either[String, String]]
+  /** Alta transaccional de un kit completo: kit + alias + loci (atómico). */
+  def addFull(full: FullStrKit): Future[Either[String, String]]
+  /** Modificación transaccional: representative_parameter + reemplazo de alias (atómico). */
+  def updateFull(full: FullStrKit): Future[Either[String, String]]
   def delete(id: String): Future[Either[String, String]]
   def deleteAlias(id: String): Future[Either[String, String]]
   def deleteLocus(id: String): Future[Either[String, String]]

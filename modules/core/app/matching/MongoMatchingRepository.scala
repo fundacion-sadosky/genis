@@ -277,7 +277,7 @@ class MongoMatchingRepository @Inject()(
         )
       )
 
-    // Additional post-group filters
+    // Additional post-group filters (applied after grouping, _id = ownerCodes)
     val profileFilter: Option[Bson]  = search.profile.map(gc => Filters.eq("_id", gc))
     val labFilter: Option[Bson]      = search.laboratoryCode.map(lc => Filters.regex("_id", s".*-$lc-.*"))
     val fromFilter: Option[Bson]     = search.hourFrom.map(d  => Filters.gte("lastDate", d))
@@ -288,11 +288,52 @@ class MongoMatchingRepository @Inject()(
     val postFilters: List[Bson] = List(profileFilter, labFilter, fromFilter, untilFilter, catFilter, statusFilter).flatten
     val postMatchStage: Option[Bson] = if (postFilters.isEmpty) None else Some(Aggregates.`match`(Filters.and(postFilters*)))
 
+    // Mirrors the legacy two-pass pipeline from MatchingRepository.prepareDataQuery:
+    // (1) add an ownerCodes array with the globalCode(s) that "own" this match from the user's view,
+    // (2) unwind to produce one document per owning profile per match,
+    // (3) group by ownerCode accumulating status counts from both left and right positions.
+    // This ensures a profile's pending/hit/discarded/conflict counts are correct regardless of
+    // whether it appears as the left or right side of the stored match document.
+    val addOwnerCodesStage: Document =
+      if (search.isSuperUser)
+        Document.parse("""{
+          "$addFields": {
+            "ownerCodes": ["$leftProfile.globalCode", "$rightProfile.globalCode"]
+          }
+        }""")
+      else
+        Document.parse(s"""{
+          "$$addFields": {
+            "ownerCodes": {
+              "$$cond": [
+                {"$$and": [
+                  {"$$eq": ["$$leftProfile.assignee",  "${search.user}"]},
+                  {"$$eq": ["$$rightProfile.assignee", "${search.user}"]}
+                ]},
+                ["$$leftProfile.globalCode", "$$rightProfile.globalCode"],
+                {"$$cond": [
+                  {"$$eq": ["$$leftProfile.assignee", "${search.user}"]},
+                  ["$$leftProfile.globalCode"],
+                  ["$$rightProfile.globalCode"]
+                ]}
+              ]
+            }
+          }
+        }""")
+
+    val unwindOwnerCodesStage = Aggregates.unwind("$ownerCodes")
+
     val groupStage = Document.parse(s"""{
       "$$group": {
-        "_id": "$$leftProfile.globalCode",
+        "_id": "$$ownerCodes",
         "lastDate": {"$$max": "$$matchingDate"},
-        "category": {"$$first": "$$leftProfile.categoryId"},
+        "category": {
+          "$$first": {
+            "$$cond": [{"$$eq": ["$$ownerCodes", "$$leftProfile.globalCode"]},
+                       "$$leftProfile.categoryId",
+                       "$$rightProfile.categoryId"]
+          }
+        },
         "${MatchGlobalStatus.pending}":   {"$$sum": {"$$cond": [{"$$or": [{"$$eq":["$$leftProfile.status","${MatchStatus.pending}"]},{"$$eq":["$$rightProfile.status","${MatchStatus.pending}"]}]}, 1, 0]}},
         "${MatchGlobalStatus.hit}":       {"$$sum": {"$$cond": [{"$$and":[{"$$eq":["$$leftProfile.status","${MatchStatus.hit}"]},{"$$eq":["$$rightProfile.status","${MatchStatus.hit}"]}]}, 1, 0]}},
         "${MatchGlobalStatus.discarded}": {"$$sum": {"$$cond": [{"$$and":[{"$$eq":["$$leftProfile.status","${MatchStatus.discarded}"]},{"$$eq":["$$rightProfile.status","${MatchStatus.discarded}"]}]}, 1, 0]}},
@@ -302,8 +343,12 @@ class MongoMatchingRepository @Inject()(
 
     val sortDoc = Document.parse(s"""{"$$sort": {"lastDate": ${if (search.ascending) 1 else -1}, "_id": 1}}""")
 
-    val pipeline = scala.collection.mutable.Buffer[Bson](Aggregates.`match`(matchFilter))
-    pipeline += groupStage
+    val pipeline = scala.collection.mutable.Buffer[Bson](
+      Aggregates.`match`(matchFilter),
+      addOwnerCodesStage,
+      unwindOwnerCodesStage,
+      groupStage
+    )
     postMatchStage.foreach(pipeline += _)
     pipeline += sortDoc
     pipeline.toSeq
