@@ -140,3 +140,31 @@ class StrKitRepositoryImpl @Inject()(db: Database)(implicit ec: ExecutionContext
     db.run(kitsLociRel.filter(_.strkit === id).delete)
       .map(_ => Right(id))
       .recover { case e => Left(e.getMessage) }
+
+  override def addFull(full: FullStrKit): Future[Either[String, String]] =
+    val kitRow    = StrKitRow(full.id, full.name, full.`type`, full.locy_quantity, full.representative_parameter)
+    val aliasRows = full.alias.map(a => StrKitAliasRow(full.id, a))
+    val locusRows = full.locus.map(l => StrKitLocusRow(full.id, l.locus, l.fluorophore, Some(l.order)))
+    val action = for
+      _ <- kits += kitRow
+      _ <- kitsAlias ++= aliasRows
+      _ <- kitsLociRel ++= locusRows
+    yield full.id
+    db.run(action.transactionally)
+      .map(Right(_))
+      .recover {
+        case e: SQLException if e.getSQLState != null && e.getSQLState.startsWith("23") =>
+          Left(s"El kit ${full.id} ya existe")
+        case e => Left(e.getMessage)
+      }
+
+  override def updateFull(full: FullStrKit): Future[Either[String, String]] =
+    val aliasRows = full.alias.map(a => StrKitAliasRow(full.id, a))
+    val action = for
+      _ <- kits.filter(_.id === full.id).map(_.representativeParameter).update(full.representative_parameter)
+      _ <- kitsAlias.filter(_.kit === full.id).delete
+      _ <- kitsAlias ++= aliasRows
+    yield full.id
+    db.run(action.transactionally)
+      .map(Right(_))
+      .recover { case e => Left(e.getMessage) }

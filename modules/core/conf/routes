@@ -60,6 +60,7 @@ GET     /api/v2/analysistypes               controllers.AnalysisTypesController.
 GET     /api/v2/disclaimer                   controllers.DisclaimerController.getDisclaimer
 
 # Probability endpoints (migrated from legacy)
+POST    /lr-mix                              controllers.ProbabilityController.calculateLRMix
 POST    /api/v2/lr-mix                        controllers.ProbabilityController.calculateLRMix
 GET     /api/v2/probability/stats/:laboratory controllers.ProbabilityController.getStats(laboratory: String)
 # Routes for Core Module (Scala 3 + Play 3)
