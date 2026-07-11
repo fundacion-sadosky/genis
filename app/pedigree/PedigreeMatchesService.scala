@@ -45,6 +45,8 @@ abstract class PedigreeMatchesService {
 
   def getMatchesPedigree(search: PedMatchCardSearch): Future[Seq[MatchCardPedigrees]]
 
+  def getCardMatches(search: PedigreeMatchGroupSearch): Future[List[MatchCardPed]]
+
   def masiveGroupDiscardByGroup(id: String, group: String, isSuperUser: Boolean, userId: String, replicate:Boolean = true) : Future[Either[String, String]]
 
   def exportMatchesByGroup(matchesToExport : Seq[PedigreeMatchResultData])
@@ -324,6 +326,31 @@ class PedigreeMatchesServiceImpl @Inject()(
 
   override def countMatchesByGroup(search: PedigreeMatchGroupSearch): Future[Int] = {
     pedigreeMatchesRepository.countMatchesByGroup(search)
+  }
+
+  override def getCardMatches(search: PedigreeMatchGroupSearch): Future[List[MatchCardPed]] = {
+    pedigreeMatchesRepository.getMatchesByGroupPedigree(search).flatMap { matchP =>
+      if (search.groupBy == "profile") {
+        Future.sequence(matchP.map { m =>
+          pedigreeDataRepository.getPedigreeMetaData(m.internalCode.toLong).map { x =>
+            m.copy(
+              sampleCode = x.map(_.pedigreeMetaData.name).getOrElse(""),
+              internalCode = x.map(_.pedigreeMetaData.courtCaseName).getOrElse(""),
+              courtCaseId = x.map(_.pedigreeMetaData.courtCaseId.toString).getOrElse(""),
+              courtCaseName = x.map(_.pedigreeMetaData.courtCaseName).getOrElse("")
+            )
+          }
+        })
+      } else {
+        Future.sequence(matchP.map { m =>
+          profileDataRepo.get(SampleCode(m.sampleCode)).map { x =>
+            val auxCate = x.map(_.category.text).get
+            val categoria = categoryService.getCategory(AlphanumericId(auxCate))
+            m.copy(sampleCode = x.map(_.internalSampleCode).getOrElse(""), categoryId = categoria.get.name)
+          }
+        })
+      }
+    }
   }
 
   override def allMatchesDiscarded(pedigreeId: Long): Future[Boolean] = {

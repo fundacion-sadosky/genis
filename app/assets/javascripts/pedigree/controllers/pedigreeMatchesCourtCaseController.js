@@ -49,13 +49,16 @@ define(['angular','lodash','jquery'], function(angular,_,$) {
 
       $scope.grupoId = 'pedigree';
 
-      $scope.currentPages = 1;
       $scope.tamaPagina = 30;
 
       $scope.sortFields = 'date';
       $scope.ascendings = false;
 
-      $scope.itemsTotales = '0';
+      // Estado de paginación independiente por tarjeta de pedigrí/perfil
+      // (antes era un único currentPages/itemsTotales compartido por
+      // todas las tarjetas, lo que impedía ver más de la primera página
+      // de coincidencias en pedigríes con muchos matches).
+      $scope.cardPaging = {};
 
       var user = userService.getUser();
       var userName = user.name;
@@ -125,7 +128,7 @@ define(['angular','lodash','jquery'], function(angular,_,$) {
           searchObject.pageSize = $scope.pageSize;
           searchObject.group = $scope.grupoId;
           searchObject.pageSizeMatch = $scope.tamaPagina;
-          searchObject.pageMatch = $scope.currentPages - 1;
+          searchObject.pageMatch = 0;
 
           searchObject.sortField=$scope.sortFields;
           searchObject.ascending= $scope.ascendings;
@@ -144,14 +147,58 @@ define(['angular','lodash','jquery'], function(angular,_,$) {
               if ($scope.totalItems !== '0') {
                   pedigreeMatchesService.findMatchesPedigree(searchObject).then(function(response) {
                       $scope.matches = response.data;
+                      $scope.cardPaging = {};
+                      $scope.matches.forEach(function(card) {
+                          $scope.cardPaging[card.matchCard.id] = {
+                              currentPage: 1,
+                              pageSize: $scope.tamaPagina,
+                              totalItems: '0'
+                          };
+                          $scope.refreshCardTotal(card);
+                      });
                       $scope.isProcessing = false;
                   }, function() { $scope.isProcessing = false; });
               } else {
                   $scope.noResult = true;
-                  $scope.isProcessing = false; 
+                  $scope.isProcessing = false;
               }
 
           }, function() { $scope.isProcessing = false; });
+      };
+
+      var createCardSearchObject = function(card) {
+          var paging = $scope.cardPaging[card.matchCard.id];
+          var searchObject = {};
+          searchObject.kind = 'Compatibility';
+          searchObject.sortField = $scope.sortFields;
+          searchObject.ascending = $scope.ascendings;
+          searchObject.page = paging.currentPage - 1;
+          searchObject.pageSize = paging.pageSize;
+          searchObject.id = card.matchCard.id;
+          searchObject.groupBy = $scope.grupoId;
+          if ($scope.tabFiltro && $scope.tabFiltro.length > 0) {
+              searchObject.status = $scope.tabFiltro;
+          }
+          searchObject.idCourCase = $scope.idCourtCase;
+          return searchObject;
+      };
+
+      $scope.refreshCardTotal = function(card) {
+          var searchObject = createCardSearchObject(card);
+          pedigreeMatchesGroupsService.countMatchesByGroup(searchObject).then(function(response) {
+              $scope.cardPaging[card.matchCard.id].totalItems = response.headers('X-MATCHES-LENGTH');
+          });
+      };
+
+      $scope.searchCardMatches = function(card) {
+          var searchObject = createCardSearchObject(card);
+          pedigreeMatchesService.getCardMatches(searchObject).then(function(response) {
+              card.matchCardPed = response.data;
+          });
+      };
+
+      $scope.changePage = function() {
+          $scope.findMatches($scope.previousSearch);
       };
 
       $scope.clearSearch = function(){

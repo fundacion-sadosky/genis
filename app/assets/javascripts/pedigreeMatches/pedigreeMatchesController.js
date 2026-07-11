@@ -426,6 +426,10 @@ define(['angular','lodash','jquery'], function(angular,_,$) {
             $scope.findMatches($scope.previousSearch);
         };
 
+        $scope.changePage = function() {
+            $scope.findMatches($scope.previousSearch);
+        };
+
         $scope.getGroups = function(match){
             var filtro = "&i="+$scope.indexFiltro;
             return '#/pedigreeMatchesGroups/groups.html?g=' + match.groupBy + "&p=" + match.id + filtro;

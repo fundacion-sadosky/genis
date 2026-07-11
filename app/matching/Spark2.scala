@@ -114,4 +114,14 @@ object Spark2 {
   lazy val mongoUri: String = play.api.Play.current.configuration.getString("mongodb.uri").get
 
   lazy val connector = MongoConnector(new CustomMongoClientFactory(mongoUri))
+
+  // mongo-spark-connector 2.0.1-SNAPSHOT only resolves the collection from the
+  // uri path (database.collection), not from a separate "collection" option.
+  // Insert it before any query string (?authSource=...&ssl=true) rather than
+  // appending it, so uris with options remain valid.
+  def collectionUri(uri: String, collection: String): String = {
+    val queryIndex = uri.indexOf('?')
+    if (queryIndex == -1) s"$uri.$collection"
+    else s"${uri.substring(0, queryIndex)}.$collection${uri.substring(queryIndex)}"
+  }
 }

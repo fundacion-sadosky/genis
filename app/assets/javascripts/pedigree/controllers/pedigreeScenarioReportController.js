@@ -66,7 +66,10 @@ define(
             function (acc, x) { 
               var entries = Object.entries(x.g);
               entries = entries
-                .map(function(x){return [x[0],x[1][0]+"/"+x[1][1]];});
+                .map(function(x){
+                  var alleles = x[1].filter(function(a){return a !== undefined && a !== null && a !== '';});
+                  return [x[0], alleles.join("/")];
+                });
               acc[x.locus] = Object.fromEntries(entries);
               return acc;
             },

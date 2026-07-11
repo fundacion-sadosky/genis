@@ -259,6 +259,7 @@ POST     /pedigreeMatches/search                              @controllers.Pedig
 POST     /pedigreeMatches/count                               @controllers.Pedigrees.countMatches()
 POST     /pedigreeMatches/groups/search                       @controllers.Pedigrees.getMatchesByGroup
 POST     /pedigreeMatches/groups/count                        @controllers.Pedigrees.countMatchesByGroup
+POST     /pedigreeMatches/card/search                         @controllers.Pedigrees.getCardMatches
 POST     /pedigreeMatches/groups/export                       @controllers.Pedigrees.exportMatchesByGroup
 GET      /get-pedigreeMatches-export                          @controllers.Pedigrees.getMatchesExportFile()
 POST     /pedigreeMatches/masiveDiscardByGroup                @controllers.Pedigrees.masiveDiscardByGroup(id: String, group: String)

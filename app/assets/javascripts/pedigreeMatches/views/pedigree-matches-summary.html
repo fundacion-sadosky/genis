@@ -54,7 +54,7 @@
         <tr ng-repeat="marker in markers">
           <td class="summary-table-index">{{marker}}</td>
           <td class="summary-table-elem" ng-repeat="profileData in chunk">
-            {{markerMap[profileData[0]][marker].join(" / ")}}
+            {{markerMap[profileData[0]][marker] | allelesJoin}}
           </td>
         </tr>
       </table>

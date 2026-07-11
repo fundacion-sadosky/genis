@@ -24,6 +24,13 @@ define([], function() {
             return playRoutes.controllers.Pedigrees.countMatches().post(search);
         };
 
+        this.getCardMatches = function(search) {
+            var user = userService.getUser();
+            search.user = user.name;
+            search.isSuperUser = user.superuser;
+            return playRoutes.controllers.Pedigrees.getCardMatches().post(search);
+        };
+
 		this.getCourtCase = function(courtcaseId) {
 			return playRoutes.controllers.Pedigrees.getCourtCaseFull(courtcaseId).get();
 		};

@@ -131,6 +131,19 @@ define([ 'angular','appConf' ], function(angular,appConf) {
             }
         };
     }]);
+
+    /**
+     * Joins the alleles of a marker with " / ", omitting empty positions
+     * (marcador homocigota: un solo alelo cargado, no debe mostrar "/").
+     */
+    mod.filter('allelesJoin', function() {
+        return function(alleles) {
+            if (!alleles) { return ''; }
+            return alleles
+                .filter(function(a) { return a !== undefined && a !== null && a !== ''; })
+                .join(' / ');
+        };
+    });
 	
 	mod.filter('showcode', function(){
 	

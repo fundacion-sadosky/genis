@@ -307,7 +307,7 @@
                     </tr>
                     <tr>
                         <td colspan="12" style="padding-top: 25px; text-align: center;">
-                            <pagination style="position: initial; transform: translate(0, 0);" boundary-links="true" ng-change="searchMatches('Compatibility',match.matchCard.id)" items-per-page="{{tamaPagina}}" max-size="5" total-items="itemsTotales" ng-model="currentPages" class="pagination-sm" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;"  rotate="false"></pagination>
+                            <pagination style="position: initial; transform: translate(0, 0);" boundary-links="true" ng-change="searchCardMatches(match)" items-per-page="{{cardPaging[match.matchCard.id].pageSize}}" max-size="5" total-items="cardPaging[match.matchCard.id].totalItems" ng-model="cardPaging[match.matchCard.id].currentPage" class="pagination-sm" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;"  rotate="false"></pagination>
                         </td>
                     </tr>
                     </tbody>

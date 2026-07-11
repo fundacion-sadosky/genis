@@ -393,6 +393,26 @@ class Pedigrees @Inject() (
 
   }
 
+  def getCardMatches = Action.async(BodyParsers.parse.json) { request =>
+    val input = request.body.validate[PedigreeMatchGroupSearch]
+
+    input.fold(
+      errors => {
+        Future.successful(BadRequest(JsError.toFlatJson(errors)))
+      },
+      search => {
+        userService.isSuperUser(search.user).flatMap(isSuperUser => {
+          val newSearch = new PedigreeMatchGroupSearch(search.user, isSuperUser, search.id, search.groupBy, search.kind, search.page, search.pageSize,
+            search.sortField, search.ascending, search.status, search.idCourCase)
+          pedigreeMatchesService.getCardMatches(newSearch).map {
+            matches => Ok(Json.toJson(matches))
+          }
+        })
+      }
+    )
+
+  }
+
 
   def canEdit(pedigreeId: Long) = Action.async { request =>
     pedigreeMatchesService.allMatchesDiscarded(pedigreeId) map { editable =>

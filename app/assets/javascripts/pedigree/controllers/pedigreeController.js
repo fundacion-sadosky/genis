@@ -36,7 +36,7 @@ var PedigreeCtrl = function($scope, $filter, pedigreeService, $routeParams, $mod
         } 
     };
     
-    pedigreeService.getScenarios($scope.pedigreeId).then(function(response) {
+    var scenariosLoaded = pedigreeService.getScenarios($scope.pedigreeId).then(function(response) {
         $scope.scenarios = response.data;
         $scope.scenarios.forEach(function(scenario) {
             $scope.tabs.push({active:false});
@@ -47,18 +47,23 @@ var PedigreeCtrl = function($scope, $filter, pedigreeService, $routeParams, $mod
     });
 
     $scope.addScenario = function(scenario) {
-        $modal.open({
-            templateUrl:'/assets/javascripts/pedigree/views/scenario-name-modal.html',
-            controller: 'scenarioNameModalController'
-        }).result.then(function (response) {
-            if (response.ok) {
-                scenario.name = response.name;
-                scenario.description = response.description;
-                $scope.scenarios.push(scenario);
-                $scope.tabs.push({active:true});
-            }
+        // Espera a que termine de cargar $scope.scenarios (carga asíncrona
+        // independiente de la del pedigrí) para evitar pushear sobre un
+        // array todavía indefinido cuando se arma el escenario apenas se
+        // entra a la pantalla (primer intento aparecía vacío).
+        scenariosLoaded.then(function () {
+            $modal.open({
+                templateUrl:'/assets/javascripts/pedigree/views/scenario-name-modal.html',
+                controller: 'scenarioNameModalController'
+            }).result.then(function (response) {
+                if (response.ok) {
+                    scenario.name = response.name;
+                    scenario.description = response.description;
+                    $scope.scenarios.push(scenario);
+                    $scope.tabs.push({active:true});
+                }
+            });
         });
-
     };
 
     $scope.isMale = function(node) {
