@@ -2160,6 +2160,25 @@ trait Tables {
   }
   lazy val PedCheck = new TableQuery(tag => new PedCheck(tag, Some("APP"), "PEDCHECK"))
 
+  case class PedigreeMatchingParameterRow(id: Long, maxMendelianExclusions: Int)
+  /** GetResult implicit for fetching PedigreeMatchingParameterRow objects using plain SQL queries */
+  implicit def GetResultPedigreeMatchingParameterRow(implicit e0: GR[Long], e1: GR[Int]): GR[PedigreeMatchingParameterRow] = GR{
+    prs => import prs._
+      PedigreeMatchingParameterRow.tupled((<<[Long], <<[Int]))
+  }
+  /** Table name of table PEDIGREE_MATCHING_PARAMETER. Objects of this class serve as prototypes for rows in queries. */
+  class PedigreeMatchingParameter(_tableTag: Tag, schema: Option[String], tableName: String) extends Table[PedigreeMatchingParameterRow](_tableTag, schema, tableName) {
+    def * = (id, maxMendelianExclusions) <> (PedigreeMatchingParameterRow.tupled, PedigreeMatchingParameterRow.unapply)
+    /** Maps whole row to an option. Useful for outer joins. */
+    def ? = (id.?, maxMendelianExclusions.?).shaped.<>({r=>import r._; _1.map(_=> PedigreeMatchingParameterRow.tupled((_1.get, _2.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+
+    /** Database column ID DBType(BIGINT), PrimaryKey */
+    val id: Column[Long] = column[Long]("ID", O.PrimaryKey)
+    /** Database column MAX_MENDELIAN_EXCLUSIONS DBType(INTEGER) */
+    val maxMendelianExclusions: Column[Int] = column[Int]("MAX_MENDELIAN_EXCLUSIONS")
+  }
+  lazy val PedigreeMatchingParameter = new TableQuery(tag => new PedigreeMatchingParameter(tag, Some("APP"), "PEDIGREE_MATCHING_PARAMETER"))
+
 
 
   case class InferiorInstanceProfileStatusRow(id: Long, status: String)

@@ -71,8 +71,9 @@ object BayesianNetwork {
     mutationModelType: Option[Long] = None,
     mutationModelData: Option[List[MutationModelData]] = None,
     seenAlleles: Map[String, List[Double]] = Map.empty,
-    locusRangeMap:NewMatchingResult.AlleleMatchRange = Map.empty
-  ): Double = {
+    locusRangeMap:NewMatchingResult.AlleleMatchRange = Map.empty,
+    maxExclusionsAllowed: Int = 0
+  ): (Double, Map[String, MarkerLRDetail]) = {
     val n = if(seenAlleles.isEmpty) {
       getNFromTable(frequencyTable)
     } else {
@@ -121,6 +122,30 @@ object BayesianNetwork {
 //      val deltaT = endGenotypificationTime - startGenotypificationTime
 //      logger.info(s"--- GetGenotypification: ${deltaT} ---")
 //    }
+    // Genotipificacion "estricta" (sin modelo mutacional), calculada
+    // aparte, solo para poder clasificar el detalle por marcador del
+    // escenario (exclusion vs. salto mutacional) independientemente de lo
+    // que el modelo mutacional real pueda "explicar" — mismo mecanismo
+    // que PedigreeGenotypificationService.saveGenotypification usa para
+    // el matching de pedigries. Si no hay modelo mutacional configurado,
+    // no hace falta recalcular: ya son la misma.
+    val strictGenotypification = if (mutationModelType.isEmpty) {
+      genotypification
+    } else {
+      getGenotypification(
+        profiles,
+        genogram,
+        normalizedFrequencyTable,
+        analysisType,
+        linkage,
+        Some(markers),
+        verbose,
+        locusRangeMap,
+        None,
+        None,
+        n
+      )
+    }
     val startLRTime = System.currentTimeMillis()
     val genoMarkers = getMarkersFromCpts(genotypification).toArray
     val lr = calculateLR(
@@ -143,14 +168,16 @@ object BayesianNetwork {
       linkage,
       mutationModelType,
       mutationModelData,
-      n
+      n,
+      maxExclusionsAllowed,
+      strictGenotypification
     )
     val endLRTime = System.currentTimeMillis()
     if (verbose) {
       logger.info(s"--- GetLR: ${endLRTime-startLRTime} ---")
       logger.info(s"--- LR: ${lr._1} ---")
     }
-    lr._1
+    (lr._1, lr._4)
   }
 // Al activar el pedigree
   def getLR(
@@ -161,8 +188,10 @@ object BayesianNetwork {
     genotypification: Array[PlainCPT],
     mutationModelType: Option[Long] = None,
     mutationModelData: Option[List[MutationModelData]] = None,
-    n: Map[String,List[Double]] = Map.empty
-  ): (Double, String) = {
+    n: Map[String,List[Double]] = Map.empty,
+    maxExclusionsAllowed: Int = 0,
+    strictGenotypification: Array[PlainCPT] = Array.empty
+  ): (Double, String, List[String], Map[String, MarkerLRDetail]) = {
     val linkeage:Linkage = Map.empty
     //TODO: cambiar unknowns.head para que use todos los del array
     val unknownAlias = unknowns.head
@@ -182,7 +211,9 @@ object BayesianNetwork {
       linkeage,
       mutationModelType,
       mutationModelData,
-      n
+      n,
+      maxExclusionsAllowed,
+      strictGenotypification
     )
     logger.info(
       s"--- Profile: ${
@@ -204,8 +235,10 @@ object BayesianNetwork {
     linkage: Linkage,
     mutationModelType: Option[Long] = None,
     mutationModelData: Option[List[MutationModelData]] = None,
-    n: Map[String, List[Double]] = Map.empty
-  ) : (Double, String) = {
+    n: Map[String, List[Double]] = Map.empty,
+    maxExclusionsAllowed: Int = 0,
+    strictGenotypification: Array[PlainCPT] = Array.empty
+  ) : (Double, String, List[String], Map[String, MarkerLRDetail]) = {
     val markersToFilter = getMarkersToFilter(
       markers,
       queryProfiles,
@@ -231,20 +264,48 @@ object BayesianNetwork {
         "compartían ningún alelo con la familia "
       }"""
     }
-    val evidenceProbabilityLog = getEvidenceProbabilityLog(genotypificationFiltered)
+    // getQueryProbabilityLog consume (via prodFactor) el iterador de
+    // matrix de los CPTs que recibe, sin resetearlo. genotypificationFiltered
+    // se vuelve a usar mas abajo para calcular la evidencia del
+    // denominador (evidenceGenotypification) — si le pasaramos los
+    // mismos objetos, quedarian "vacios" para esa segunda lectura aunque
+    // los datos originales esten intactos. Por eso getQueryProbabilityLog
+    // trabaja sobre una COPIA independiente (mismos datos, iteradores
+    // propios), dejando genotypificationFiltered intacto para reutilizar.
+    val genotypificationForQuery = genotypificationFiltered.map { cpt =>
+      val arr = cpt.matrix.toArray
+      cpt.matrix = arr.iterator
+      new PlainCPT(cpt.header, arr.iterator, arr.length)
+    }
     val queryProbabilityLog = getQueryProbabilityLog(
       markers,
       queryProfilesFiltered,
-      genotypificationFiltered,
+      genotypificationForQuery,
       analysisType,
       normalizedFrequencyTable,
       linkage,
       mutationModelType,
       mutationModelData,
-      n
+      n,
+      maxExclusionsAllowed,
+      strictGenotypification
     )
+    // Los marcadores con exclusion mendeliana tolerada ya quedan afuera
+    // del numerador (queryProbabilityLog los excluye del calculo). Para
+    // que su contribucion sea realmente neutra (multiplicador 1 en el LR)
+    // y no una penalizacion, tambien hay que sacarlos del denominador
+    // (evidencia familiar + probabilidad del genotipo del candidato) —
+    // si no, el denominador sigue "cobrando" un marcador que el
+    // numerador no aporta, y el LR queda artificialmente bajo aunque el
+    // marcador este tolerado.
+    val toleratedMarkers = queryProbabilityLog._3.toArray
+    val evidenceGenotypification = filterGenotypification(
+      genotypificationFiltered,
+      toleratedMarkers
+    )
+    val evidenceProbabilityLog = getEvidenceProbabilityLog(evidenceGenotypification)
     val genotypeProbabilityLog = getGenotypeProbabilityLog(
-      queryProfilesFiltered,
+      filterQueryProfile(queryProfilesFiltered, toleratedMarkers),
       normalizedFrequencyTable
     )
     val lr = if (evidenceProbabilityLog.isEmpty || genotypeProbabilityLog.isEmpty || queryProbabilityLog._1.isEmpty) {
@@ -267,7 +328,7 @@ object BayesianNetwork {
         message = messageInit + queryProbabilityLog._2
       }
     }
-    (lr, message)
+    (lr, message, queryProbabilityLog._3, queryProbabilityLog._4)
   }
 
   private def getMarkersToFilter(
@@ -280,26 +341,37 @@ object BayesianNetwork {
     var markersToFilter: Array[Profile.Marker] = Array.empty
     markers.foreach {
       marker => {
-        val pVariable = s"${unknown}_${marker}_p"
-        val mVariable = s"${unknown}_${marker}_m"
         if (queryProfiles(unknown).contains(marker)) {
           // si no tiene el marcador no hace nada
           val alleles = queryProfiles(unknown)(marker)
-          val noAlleleInGenotypeAndN = ! isAnyAlellesInGenotipeAndN(
-            marker,
-            alleles,
-            pVariable,
-            mVariable,
-            genotypification,
-            n
-          )
-          if (noAlleleInGenotypeAndN) {
+          // Un marcador solo se descarta del calculo de LR cuando el
+          // alelo observado es realmente desconocido para la poblacion
+          // (no figura en la tabla de frecuencias `n`). Si el alelo
+          // existe en `n` pero no es alcanzable a partir del genotipo
+          // familiar conocido (isAnyAlellesInGenotipeAndN), NO se
+          // descarta: es una exclusion mendeliana real y debe pesar en
+          // el LR (via el CPT/producto de factores, o via el modelo de
+          // mutacion si hay uno configurado), no desaparecer del calculo
+          // como si no se hubiera tipificado.
+          val noAlleleInN = ! isAlleleInN(marker, alleles, n)
+          if (noAlleleInN) {
             markersToFilter = markersToFilter ++ List(marker)
           }
         }
       }
     }
     markersToFilter
+  }
+
+  private def isAlleleInN(
+    marker: String,
+    alelles: Array[Double],
+    n: Map[String,List[Double]]
+  ) : Boolean = {
+    alelles.forall(
+      n.getOrElse(marker, List.empty)
+        .contains(_)
+    )
   }
 
   private def getIncompleteMarkers(
@@ -543,11 +615,112 @@ object BayesianNetwork {
     frequencyTable: FrequencyTable,
     linkage: Linkage, mutationModelType: Option[Long] = None,
     mutationModelData: Option[List[MutationModelData]] = None,
-    n: Map[String, List[Double]] = Map.empty
-  ): (Option[Double], String) = {
+    n: Map[String, List[Double]] = Map.empty,
+    maxExclusionsAllowed: Int = 0,
+    strictGenotypification: Array[PlainCPT] = Array.empty
+  ): (Option[Double], String, List[String], Map[String, MarkerLRDetail]) = {
     var cpts = genotypification
     var message = ""
     val unknown = queryProfiles.keys.head
+    // LR individual por marcador (para el detalle del reporte de
+    // escenario): se llena a medida que se procesa cada marcador en el
+    // loop principal, mas abajo.
+    val markerQueryLog = scala.collection.mutable.Map[String, Double]()
+
+    // Deteccion de exclusiones mendelianas ESTRICTAS (sin modelo
+    // mutacional), para decidir cuales tolerar: para cada marcador se
+    // arma el CPT del candidato y se lo cruza (join) contra los CPTs
+    // "estrictos" de la familia (calculados sin ningun modelo de
+    // mutacion, sea cual sea el configurado para el LR real). Si el join
+    // no produce ninguna fila, el candidato no comparte ningun alelo
+    // directo con la familia en ese locus — una exclusion mendeliana real
+    // e independiente del modelo mutacional (que podria "explicarla" via
+    // una mutacion de pocos pasos, pero eso no es lo que el usuario
+    // configura como tolerancia).
+    // Si no vino strictGenotypification (pedigries activados antes de
+    // este cambio), se usa la genotipificacion real como fallback: puede
+    // subestimar exclusiones si el modelo mutacional es muy permisivo.
+    val exclusionDetectionCpts = if (strictGenotypification.nonEmpty) strictGenotypification else genotypification
+    val exclusionMarkers: Set[String] = markers.filter {
+      marker =>
+        val pVariable = s"${unknown}_${marker}_p"
+        val mVariable = s"${unknown}_${marker}_m"
+        queryProfiles(unknown).contains(marker) && {
+          val alleles = queryProfiles(unknown)(marker)
+          val dependentCPTs = exclusionDetectionCpts.filter(
+            cpt => cpt.header.contains(pVariable) ||
+              cpt.header.contains(mVariable)
+          )
+          if (dependentCPTs.isEmpty) {
+            false
+          } else {
+            val header = Array(pVariable, mVariable) :+ "Probability"
+            val variable = Variable(
+              "",
+              marker,
+              if (alleles.length > 1) { VariableKind.Heterocygote }
+                else { VariableKind.Homocygote }
+            )
+            val matrix = generatePermutations(
+              Array(alleles, alleles),
+              header,
+              variable,
+              frequencyTable,
+              linkage,
+              None,
+              None,
+              n
+            )
+            val ukCPT = new PlainCPT(header, matrix.iterator, matrix.size)
+            // PlainCPT.prodFactor consume el iterador de matrix de AMBOS
+            // operandos sin resetearlo despues: es seguro en el uso
+            // original porque cada CPT se descartaba tras usarse una vez.
+            // Aca dependentCPTs son objetos COMPARTIDOS por referencia
+            // (se pueden volver a leer para otro marcador o mas abajo),
+            // asi que hay que restaurarles el iterador despues del join.
+            val dependentCPTsSnapshot = dependentCPTs.map { cpt =>
+              val arr = cpt.matrix.toArray
+              cpt.matrix = arr.iterator
+              arr
+            }
+            val product = prodFactor(unknown, ukCPT +: dependentCPTs)
+            dependentCPTs.zip(dependentCPTsSnapshot).foreach {
+              case (cpt, arr) => cpt.matrix = arr.iterator
+            }
+            extractMatrixFromPlainCPT(product).isEmpty
+          }
+        }
+    }.toSet
+
+    val toleratedExclusions: Set[String] =
+      if (exclusionMarkers.size <= maxExclusionsAllowed) exclusionMarkers else Set.empty
+
+    logger.info(
+      s"--- Tolerancia exclusiones: unknown=$unknown maxAllowed=$maxExclusionsAllowed " +
+      s"exclusionMarkers=${exclusionMarkers.mkString(",")} toleradas=${toleratedExclusions.mkString(",")} ---"
+    )
+
+    // Log de la evidencia familiar CRUDA por marcador (antes de cruzarla
+    // con el candidato), para el detalle de LR por marcador. Se calcula
+    // ANTES del loop principal porque ese loop hace joins (prodFactor)
+    // que consumen el iterador de estos mismos CPTs compartidos — leerlo
+    // despues encontraria todo vacio (el mismo problema que con
+    // dependentCPTs en la deteccion de exclusiones, mas arriba).
+    val markerEvidenceLog: Map[String, Double] = markers.flatMap {
+      marker =>
+        if (!queryProfiles(unknown).contains(marker)) {
+          None
+        } else {
+          val pVariable = s"${unknown}_${marker}_p"
+          val mVariable = s"${unknown}_${marker}_m"
+          val rawFamilyCpts = genotypification.filter(
+            cpt => cpt.header.contains(pVariable) || cpt.header.contains(mVariable)
+          )
+          val rows = rawFamilyCpts.flatMap(extractMatrixFromPlainCPT)
+          if (rows.isEmpty) None else Some(marker -> math.log(rows.map(_.last).sum))
+        }
+    }.toMap
+
     markers.foreach {
       marker => {
         val pVariable = s"${unknown}_${marker}_p"
@@ -555,11 +728,23 @@ object BayesianNetwork {
         // si no tiene el marcador no hace nada
         if (queryProfiles(unknown).contains(marker)) {
           val alleles = queryProfiles(unknown)(marker)
-          // Si es sin mutaciones o todos los alelos estan en el genotipo toma
-          // las prob normal,
-          // sino toma la prob solo del alelo que esta y usa como prob del alelo
-          // raro la menor prob de la variable en el genotipo del pedigree
-          if (
+          if (toleratedExclusions.contains(marker)) {
+            // Exclusion mendeliana estricta tolerada: el marcador no debe
+            // aportar evidencia al LR (como si no se hubiera tipificado),
+            // sea cual sea la rama (con o sin modelo mutacional) que le
+            // hubiera tocado. Hay que sacar del acumulador el CPT
+            // familiar crudo de este marcador (no solo dejar de
+            // agregarle el producto con el candidato): si quedara
+            // adentro y tuviera 0 filas (puede pasar si el modelo de
+            // mutacion podo todas las combinaciones), getEvidenceProbabilityLog
+            // devuelve None para TODO el calculo, no solo para este
+            // marcador.
+            val dependentCPTs = cpts.filter(
+              cpt => cpt.header.contains(pVariable) ||
+                cpt.header.contains(mVariable)
+            )
+            cpts = cpts diff dependentCPTs
+          } else if (
             mutationModelType.isEmpty /*Sin mutaciones*/ ||
             isAllAlellesInGenotipeAndN(
               marker, alleles, pVariable, mVariable, genotypification, n
@@ -581,7 +766,7 @@ object BayesianNetwork {
               mutationModelType,
               mutationModelData,
               n
-            ) //TODO pasarle los datos del modelo de mutacion
+            )
             val ukCPT = new PlainCPT(header, matrix.iterator, matrix.size)
             val dependentCPTs = cpts.filter(
               cpt => cpt.header.contains(pVariable) ||
@@ -589,11 +774,17 @@ object BayesianNetwork {
             )
             val product = prodFactor(unknown, ukCPT +: dependentCPTs)
             cpts = (cpts diff dependentCPTs) :+ product
+            val productRows = extractMatrixFromPlainCPT(product)
+            if (productRows.nonEmpty) {
+              markerQueryLog(marker) = math.log(productRows.map(_.last).sum)
+            }
           } else {
-            // es con mutaciones y no estan todos los alelos en el genotipo
-            // Hay algun alelo que no esta en la genotipificacion, pero alguno
-            // que si
-            val alelleInGenotype = getAlelleInGenotype(
+            // es con mutaciones y no estan todos los alelos en el genotipo.
+            // Puede ser que falte uno solo (mutacion aislada: uno de los
+            // alelos si esta en el genotipo familiar) o que falten los dos
+            // (exclusion completa en este locus, solo posible ahora que el
+            // marcador ya no se descarta del calculo).
+            val alelleInGenotypeOpt = getAlelleInGenotype(
               marker, alleles, pVariable, mVariable, genotypification
             )
             val dependentCPTs = cpts.filter(
@@ -601,26 +792,33 @@ object BayesianNetwork {
                 cpt.header.contains(mVariable)
             )
             val header = Array(pVariable, mVariable) :+ "Probability"
-            val probabilityPVariable : Double = getProbabilityOf(
-              pVariable, alelleInGenotype, dependentCPTs
-            )
-            val probabilityMVariable : Double = getProbabilityOf(
-              mVariable, alelleInGenotype, dependentCPTs
-            )
             val minPorbabilityOfPVarible = getMinProbabilityofVariable(
               pVariable, dependentCPTs, marker, frequencyTable
             )
             val minPorbabilityOfMVarible = getMinProbabilityofVariable(
               mVariable, dependentCPTs, marker, frequencyTable
             )
+            val probability = alelleInGenotypeOpt match {
+              case Some(alelleInGenotype) =>
+                // Un alelo si esta en el genotipo familiar: su probabilidad
+                // real de esa variable, mas la probabilidad minima del
+                // genotipo para el alelo mutado/no visto en la otra variable.
+                val probabilityPVariable : Double = getProbabilityOf(
+                  pVariable, alelleInGenotype, dependentCPTs
+                )
+                val probabilityMVariable : Double = getProbabilityOf(
+                  mVariable, alelleInGenotype, dependentCPTs
+                )
+                (probabilityMVariable * minPorbabilityOfPVarible) +
+                  (probabilityPVariable * minPorbabilityOfMVarible)
+              case None =>
+                // Ningun alelo del candidato es alcanzable desde la familia:
+                // se tratan los dos como mutados/no vistos, usando la
+                // probabilidad minima de cada variable.
+                minPorbabilityOfPVarible * minPorbabilityOfMVarible
+            }
             var x : Array[Double] = Array.empty
-            // La probabilidad va a ser la suma de las probabilidades de la
-            // variable de la madre y la variable del padre en el genotipo del
-            // alelo que si está
-            x = x ++ alleles :+ (
-              (probabilityMVariable * minPorbabilityOfPVarible) +
-                (probabilityPVariable * minPorbabilityOfMVarible)
-            )
+            x = x ++ alleles :+ probability
 
             val matrixResult = ArrayBuffer(x)
             val cptResult = new PlainCPT(
@@ -629,6 +827,9 @@ object BayesianNetwork {
               matrixResult.size
             )
             cpts = (cpts diff dependentCPTs) :+ cptResult
+            if (probability > 0) {
+              markerQueryLog(marker) = math.log(probability)
+            }
 
             if (message.isEmpty) {
               message =
@@ -643,7 +844,42 @@ object BayesianNetwork {
     }
 
     val evidenceProbability = getEvidenceProbabilityLog(cpts)
-    (evidenceProbability, message)
+
+    // Detalle de LR por marcador (para el reporte de escenario): mismo
+    // razonamiento que el LR total (query - evidencia - genotipo) pero
+    // aislado por marcador, ya que bajo independencia de loci el LR total
+    // es el producto de los LR individuales. Los marcadores tolerados no
+    // participan del calculo (LR neutro = 1.0, ya excluidos por diseño);
+    // el resto se clasifica como "mutation" si no tiene un alelo
+    // compartido de forma directa con la familia (exclusionMarkers) o
+    // "normal" si si lo tiene.
+    val markerDetails: Map[String, MarkerLRDetail] = markers.flatMap {
+      marker =>
+        if (!queryProfiles(unknown).contains(marker)) {
+          None
+        } else if (toleratedExclusions.contains(marker)) {
+          Some(marker -> MarkerLRDetail(1.0, "excluded"))
+        } else {
+          val alleles = queryProfiles(unknown)(marker)
+          val genotypeProb = if (alleles.length == 1) {
+            val f = getFrequency(alleles(0), marker, frequencyTable)
+            f * f
+          } else if (alleles.length == 2) {
+            2 * getFrequency(alleles(0), marker, frequencyTable) *
+              getFrequency(alleles(1), marker, frequencyTable)
+          } else {
+            1.0
+          }
+          val classification = if (exclusionMarkers.contains(marker)) "mutation" else "normal"
+          val markerLR = (markerQueryLog.get(marker), markerEvidenceLog.get(marker)) match {
+            case (Some(q), Some(e)) if genotypeProb > 0 => math.exp(q - e - math.log(genotypeProb))
+            case _ => 0.0
+          }
+          Some(marker -> MarkerLRDetail(markerLR, classification))
+        }
+    }.toMap
+
+    (evidenceProbability, message, toleratedExclusions.toList, markerDetails)
   }
 
   private def getProbabilityOf(
@@ -659,12 +895,16 @@ object BayesianNetwork {
       cpt => {
         val matrixArray = cpt.matrix.toArray
         cpt.matrix = matrixArray.iterator
-        probability = matrixArray
+        // Puede no haber ninguna fila para este alelo (CPT podado por
+        // probabilidad 0 tras aplicar el modelo de mutacion): en ese caso
+        // no hay probabilidad real que usar, se mantiene 0.0 en vez de
+        // reventar con un .apply(0) sobre un array vacio.
+        matrixArray
           .filter(
             elem => elem.contains(alelle)
           )
-          .apply(0)
-          .last
+          .headOption
+          .foreach(row => probability = row.last)
       }
     }
 
@@ -698,7 +938,13 @@ object BayesianNetwork {
       cpt => {
         val matrixArray = cpt.matrix.toArray
         cpt.matrix = matrixArray.iterator
-        probability = matrixArray.minBy(elem => elem.last).last
+        // Si el CPT quedo sin filas (todas las combinaciones tenian
+        // probabilidad 0 y se podaron), no hay ningun "minimo" que
+        // calcular: se mantiene 0.0 en vez de reventar con
+        // UnsupportedOperationException: empty.minBy.
+        if (matrixArray.nonEmpty) {
+          probability = matrixArray.minBy(elem => elem.last).last
+        }
 /*
         val matrixArraYOrderer = matrixArray.sortBy(elem => elem.last)
         if ((matrixArraYOrderer.length >= cantMinFrecBeforeMin) && (cantMinFrecBeforeMin != 0))
@@ -775,7 +1021,7 @@ object BayesianNetwork {
     pVariable: String,
     mVariable: String,
     genotypification: Array[PlainCPT]
-  ) : Double = {
+  ) : Option[Double] = {
     val markerCpts = genotypification
       .filter(
         cpt =>cpt.header.contains(mVariable) || cpt.header.contains(pVariable)
@@ -789,7 +1035,13 @@ object BayesianNetwork {
         }
       )
     )
-    alellesInGenotype(0)
+    // Puede no haber ningun alelo alcanzable desde la familia (exclusion
+    // completa en este locus): antes del fix del bug de descarte de
+    // marcadores ese caso nunca llegaba aca, porque el marcador se
+    // eliminaba del calculo entero. Ahora que las exclusiones reales
+    // pesan en el LR, este metodo debe devolver None en vez de asumir
+    // que siempre hay al menos un alelo compatible.
+    alellesInGenotype.headOption
   }
 
   /**
@@ -1295,16 +1547,14 @@ object BayesianNetwork {
               .find(_.allele == allelei)
               .map(_.ki)
               .getOrElse(zero)
-            // si es menor o igual a la cant de saltos del modelo y es salto
-            // entero
+            // Distancia entre alelos, en unidades de repeticion. Se admiten
+            // pasos no enteros (microvariantes, ej. 13 -> 13.2 o 13 -> 15.2)
+            // con la misma formula de decaimiento geometrico: cuanto mayor
+            // la distancia (entera o fraccionaria), menor la probabilidad.
+            // Solo se excluye si la distancia supera la cantidad maxima de
+            // saltos configurada en el modelo.
             val alleleDiff = (allelei - allelej).abs
-            if (
-                (
-                  alleleDiff <= mutationMarkerData._3.cantSaltos.toDouble
-                ) && (
-                  alleleDiff % 1 == 0
-                )
-            ) {
+            if (alleleDiff <= mutationMarkerData._3.cantSaltos.toDouble) {
               (
                 ki * Math.pow(
                   mutationMarkerData._1
@@ -1600,16 +1850,17 @@ def generatePermutations(
           )
           var allelesM: Option[Array[Double]] = None
           var allelesP: Option[Array[Double]] = None
+          var motherIsUnknown = false
+          var fatherIsUnknown = false
 
           if (individual.idMother.isDefined) {
+            val mother = individuals.find(_.alias == individual.idMother.get).get
             allelesM = getAlleles(
               marker,
-              individuals
-                .find(_.alias == individual.idMother.get)
-                .get
-                .globalCode,
+              mother.globalCode,
               profiles
             )
+            motherIsUnknown = mother.unknown
             val name = getVariableName(
               individual.alias,
               marker,
@@ -1625,13 +1876,13 @@ def generatePermutations(
           }
 
           if (individual.idFather.isDefined) {
+            val father = individuals.find(_.alias == individual.idFather.get).get
             allelesP = getAlleles(
               marker,
-              individuals
-                .find(_.alias == individual.idFather.get)
-                .get.globalCode,
+              father.globalCode,
               profiles
             )
+            fatherIsUnknown = father.unknown
             val name = getVariableName(
               individual.alias,
               marker,
@@ -1646,8 +1897,20 @@ def generatePermutations(
             )
           }
 
+          // Si el padre o la madre contra quien se compara es el nodo
+          // "desconocido" (una hipotesis bajo evaluacion, ej. un
+          // candidato asignado en un escenario para probar si es la
+          // persona buscada), NUNCA hay que descartar la tipificacion
+          // real de este individuo aunque no coincida y no haya modelo
+          // mutacional: esa inconsistencia ES la exclusion mendeliana que
+          // hay que detectar, no un dato ambiguo para ignorar. El
+          // mecanismo de "descartar por mutacion sin modelo" solo tiene
+          // sentido cuando AMBOS parientes son individuos confirmados
+          // (con perfil propio, no una hipotesis).
           lazy val mutationsWithoutMutationModel =
-            allelesMutated(alleles, allelesM, allelesP) && mutationModelType.isEmpty
+            allelesMutated(alleles, allelesM, allelesP) &&
+            mutationModelType.isEmpty &&
+            !motherIsUnknown && !fatherIsUnknown
 
           if (mutationsWithoutMutationModel /* && TODO modelo sin mutaciones */) {
             alleles = None

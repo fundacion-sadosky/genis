@@ -70,6 +70,15 @@
                 </select>
             </div>
         </div>
+        <div class="item-input col-md-12">
+            <span class="col-md-8 padding-left-0">Máximo de exclusiones toleradas</span>
+            <div class="col-md-2 padding-left-0">
+                <input id="maxMendelianExclusions" type="number" min="0" step="1"
+                       class="form-control form-select text-right"
+                       ng-disabled="isActive()"
+                       data-ng-model="maxMendelianExclusions" />
+            </div>
+        </div>
     </div>
 </div>
 

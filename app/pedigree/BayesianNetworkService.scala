@@ -27,7 +27,7 @@ trait BayesianNetworkService {
     mutationModelType: Option[Long] = None,
     mutationModelData: Option[List[MutationModelData]] = None,
     n: Map[String,List[Double]] = Map.empty): Future[Array[PlainCPT]]
-  def calculateProbability(scenario: PedigreeScenario): Future[Double]
+  def calculateProbability(scenario: PedigreeScenario): Future[(Double, Map[String, MarkerLRDetail])]
   def getFrequencyTable(name: String): Future[(String, FrequencyTable)]
   def getFrequencyTables(names: Seq[String]): Future[Map[String, FrequencyTable]]
   def getLinkage(): Future[Linkage]
@@ -46,7 +46,9 @@ class BayesianNetworkServiceImpl @Inject() (
    mutationService: MutationService = null,
    mutationRepository: MutationRepository = null,
    pedigreeGenotypificationService: PedigreeGenotypificationService = null,
-   userService: UserService = null
+   userService: UserService = null,
+   pedigreeMatchingParameterRepository: PedigreeMatchingParameterRepository = null,
+   pedigreeProcessingLock: PedigreeProcessingLock = null
 ) extends BayesianNetworkService {
 
   implicit val executionContext: MessageDispatcher = akkaSystem
@@ -55,7 +57,7 @@ class BayesianNetworkServiceImpl @Inject() (
   // con este nombre se configura en el application.conf
   val calculation = "pedigree"
   override def calculateProbability(scenario: PedigreeScenario):
-    Future[Double] = {
+    Future[(Double, Map[String, MarkerLRDetail])] = {
     val codes = scenario.genogram.flatMap(_.globalCode).toList
 
     val lrFuture = (
@@ -80,6 +82,13 @@ class BayesianNetworkServiceImpl @Inject() (
           )
         n <- mutationService.getAllPossibleAllelesByLocus()
         listLocus <- locusService.list()
+        pedigreeOpt <- pedigreeService.getPedigree(scenario.pedigreeId)
+        maxExclusionsAllowed <- pedigreeOpt
+          .flatMap(_.pedigreeGenogram)
+          .flatMap(_.maxMendelianExclusions) match {
+          case Some(configured) => Future.successful(configured)
+          case None => pedigreeMatchingParameterRepository.getMaxMendelianExclusions
+        }
       } yield {
         val locusRangesDefault: NewMatchingResult.AlleleMatchRange =
           listLocus
@@ -104,7 +113,8 @@ class BayesianNetworkServiceImpl @Inject() (
               mutationModelType,
               mutationModelData,
               n,
-              locusRangesDefault
+              locusRangesDefault,
+              maxExclusionsAllowed
             )
           )
       }
@@ -113,9 +123,10 @@ class BayesianNetworkServiceImpl @Inject() (
 
     lrFuture
       .foreach {
-        lr =>
+        case (lr, markerDetails) =>
+          pedigreeProcessingLock.release(scenario.pedigreeId)
           pedigreeScenarioService
-            .updateScenario(getScenarioWithLR(scenario, lr))
+            .updateScenario(getScenarioWithLR(scenario, lr, markerDetails))
           pedigreeService
             .getPedigree(scenario.pedigreeId)
             .foreach {
@@ -142,13 +153,15 @@ class BayesianNetworkServiceImpl @Inject() (
       }
 
     lrFuture.onFailure {
-      case _ => pedigreeScenarioService
-        .updateScenario(
-          getScenarioWithProcessing(
-            scenario,
-            processing = false
+      case _ =>
+        pedigreeProcessingLock.release(scenario.pedigreeId)
+        pedigreeScenarioService
+          .updateScenario(
+            getScenarioWithProcessing(
+              scenario,
+              processing = false
+            )
           )
-        )
     }
     lrFuture
   }
@@ -162,11 +175,13 @@ class BayesianNetworkServiceImpl @Inject() (
 
   private def getScenarioWithLR(
     scenario: PedigreeScenario,
-    lr: Double
+    lr: Double,
+    markerDetails: Map[String, MarkerLRDetail]
   ): PedigreeScenario = {
     scenario.copy(
       lr = Some(lr.toString),
-      isProcessing = false
+      isProcessing = false,
+      markerDetails = markerDetails
     )
   }
 

@@ -1,7 +1,7 @@
 define(['visjs/vis', 'jquery'], function(vis, $) {
 'use strict';
 
-var PedigreeCtrl = function($scope, $filter, pedigreeService, $routeParams, $modal, statsService, alertService, $timeout) {
+var PedigreeCtrl = function($scope, $filter, pedigreeService, $routeParams, $modal, statsService, alertService, $timeout, $q) {
     $scope.courtcaseId = $routeParams.courtcaseId;
     $scope.pedigreeId = $routeParams.pedigreeId;
     $scope.tabs = [{active: true},{active:false}];
@@ -81,7 +81,29 @@ var PedigreeCtrl = function($scope, $filter, pedigreeService, $routeParams, $mod
     };
 
     $scope.createNetwork = function(nodes, containerDiv, selectable) {
-        return $timeout(function() {
+        var deferred = $q.defer();
+        var attempts = 0;
+        var maxAttempts = 30;
+        // Al entrar directo a un escenario (ej. desde una notificación),
+        // el ng-include del tab-pane todavia puede no haber insertado el
+        // div "containerDiv" en el DOM cuando este metodo se dispara —
+        // new vis.Network(undefined, ...) revienta con un error interno
+        // de vis.js ("hasChildNodes" de undefined) y la promesa nunca
+        // resuelve, dejando "network" sin asignar (rompe drawGraph e
+        // Imprimir reporte mas adelante). Reintentar hasta que el
+        // elemento realmente exista en el DOM.
+        var tryCreate = function() {
+            attempts++;
+            var container = $("#" + containerDiv).get(0);
+            if (!container) {
+                if (attempts >= maxAttempts) {
+                    deferred.reject('No se encontró el contenedor del genograma: ' + containerDiv);
+                    return;
+                }
+                $timeout(tryCreate, 150);
+                return;
+            }
+
             var shapes = {
                 'Unknown': 'diamond',
                 'Male': 'square',
@@ -140,8 +162,6 @@ var PedigreeCtrl = function($scope, $filter, pedigreeService, $routeParams, $mod
             var nodesData = new vis.DataSet(nodesArray);
             var edgesData = new vis.DataSet(edgesArray);
 
-            var container = $("#" + containerDiv).get(0);
-
             var data = {
                 nodes: nodesData,
                 edges: edgesData
@@ -198,8 +218,11 @@ var PedigreeCtrl = function($scope, $filter, pedigreeService, $routeParams, $mod
 
             var network = new vis.Network(container,data,options);
             network.fit();
-            return network;
-        }, 0);
+            deferred.resolve(network);
+        };
+
+        $timeout(tryCreate, 0);
+        return deferred.promise;
     };
 
     $scope.defaultFrequencyTable = function(pedigree) {

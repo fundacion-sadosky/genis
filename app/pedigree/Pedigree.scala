@@ -44,7 +44,12 @@ case class PedigreeGenogram(
   numberOfMismatches: Option[Int],
   caseType:String,
   mutationModelId: Option[Long] = None,
-  idCourtCase: Long
+  idCourtCase: Long,
+  // Sobreescritura por pedigri del parametro global "Maximo de
+  // Exclusiones Permitidas" (ver PedigreeMatchingParameterService). None
+  // significa que se usa el valor global configurado en Parametros
+  // Estadisticos; se define en la pantalla de activacion del pedigri.
+  maxMendelianExclusions: Option[Int] = None
 )
 
 object PedigreeGenogram {
@@ -70,7 +75,8 @@ object PedigreeGenogram {
     (__ \ "numberOfMismatches").readNullable[Int] and
     (__ \ "caseType").read[String] and
     (__ \ "mutationModelId").readNullable[Long] and
-    (__ \ "idCourtCase").read[Long])(PedigreeGenogram.apply _)
+    (__ \ "idCourtCase").read[Long] and
+    (__ \ "maxMendelianExclusions").readNullable[Int])(PedigreeGenogram.apply _)
 
   implicit val pedigreeWrites: OWrites[PedigreeGenogram] = (
     (__ \ "_id").write[Long] and
@@ -84,7 +90,8 @@ object PedigreeGenogram {
     (__ \ "numberOfMismatches").writeNullable[Int] and
     (__ \ "caseType").write[String] and
     (__ \ "mutationModelId").writeNullable[Long] and
-    (__ \ "idCourtCase").write[Long])((pedigreeGenogram: PedigreeGenogram) => (
+    (__ \ "idCourtCase").write[Long] and
+    (__ \ "maxMendelianExclusions").writeNullable[Int])((pedigreeGenogram: PedigreeGenogram) => (
     pedigreeGenogram._id,
     pedigreeGenogram.assignee,
     pedigreeGenogram.genogram,
@@ -96,7 +103,8 @@ object PedigreeGenogram {
     pedigreeGenogram.numberOfMismatches,
     pedigreeGenogram.caseType,
     pedigreeGenogram.mutationModelId,
-    pedigreeGenogram.idCourtCase
+    pedigreeGenogram.idCourtCase,
+    pedigreeGenogram.maxMendelianExclusions
   ))
 
   implicit val pedigreeFormat: OFormat[PedigreeGenogram] = OFormat(pedigreeReads, pedigreeWrites)
@@ -107,7 +115,15 @@ case class PedigreeGenotypification(
   genotypification: Array[PlainCPT2],
   boundary: Double,
   frequencyTable: String,
-  unknowns: Array[String]
+  unknowns: Array[String],
+  // Misma genotipificacion pero calculada SIN modelo mutacional, sea cual
+  // sea el modelo configurado para el pedigri. Sirve unicamente para
+  // contar exclusiones mendelianas "estrictas" (comparte alelo directo
+  // con la familia, sin mutacion) al decidir cuantas tolerar — el CPT de
+  // "genotypification" ya viene mezclado con el modelo mutacional y no
+  // se puede usar para ese conteo sin contaminarlo con lo que el modelo
+  // pueda explicar via mutacion.
+  strictGenotypification: Array[PlainCPT2] = Array.empty
 )
 
 object PedigreeGenotypification {
@@ -121,24 +137,32 @@ object PedigreeGenotypification {
 
   implicit val longFormat: Format[Long] = Format(longReads, longWrites)
 
+  // strictGenotypification via readNullable + default en el apply, en
+  // vez de .read directo: los documentos guardados antes de agregar este
+  // campo no lo tienen, y Play-JSON no completa el default del case
+  // class cuando el campo falta (mismo patron ya usado en varios lugares
+  // de este archivo).
   implicit val pedigreeGenotypificationReads: Reads[PedigreeGenotypification] = (
     (__ \ "_id").read[Long] and
     (__ \ "genotypification").read[Array[PlainCPT2]] and
     (__ \ "boundary").read[Double] and
     (__ \ "frequencyTable").read[String] and
-    (__ \ "unknowns").read[Array[String]])(PedigreeGenotypification.apply _)
+    (__ \ "unknowns").read[Array[String]] and
+    (__ \ "strictGenotypification").read[Array[PlainCPT2]].orElse(Reads.pure(Array.empty[PlainCPT2])))(PedigreeGenotypification.apply _)
 
   implicit val pedigreeGenotypificationWrites: OWrites[PedigreeGenotypification] = (
     (__ \ "_id").write[Long] and
     (__ \ "genotypification").write[Array[PlainCPT2]] and
     (__ \ "boundary").write[Double] and
     (__ \ "frequencyTable").write[String] and
-    (__ \ "unknowns").write[Array[String]])((pedigreeGenotypification: PedigreeGenotypification) => (
+    (__ \ "unknowns").write[Array[String]] and
+    (__ \ "strictGenotypification").write[Array[PlainCPT2]])((pedigreeGenotypification: PedigreeGenotypification) => (
     pedigreeGenotypification._id,
     pedigreeGenotypification.genotypification,
     pedigreeGenotypification.boundary,
     pedigreeGenotypification.frequencyTable,
-    pedigreeGenotypification.unknowns))
+    pedigreeGenotypification.unknowns,
+    pedigreeGenotypification.strictGenotypification))
 
   implicit val pedigreeGenotypificationFormat: OFormat[PedigreeGenotypification] = OFormat(pedigreeGenotypificationReads, pedigreeGenotypificationWrites)
 }
@@ -216,7 +240,8 @@ case class CourtCaseModelView(
   criminalCase: Option[String],
   override val status: PedigreeStatus,
   caseType:String,
-  numberOfPendingMatches:Int = 0) extends Persisted
+  numberOfPendingMatches:Int = 0,
+  pedigreeStatus: Option[String] = None) extends Persisted
 
 object CourtCaseModelView {
   implicit val formatCCMV = Json.format[CourtCaseModelView]

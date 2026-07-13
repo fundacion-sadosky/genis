@@ -1,0 +1,24 @@
+<div class="report-table-title">LR por marcador</div>
+<table>
+  <tr>
+    <td class="sce-report-ind-title"><div>Marcador</div></td>
+    <td class="sce-report-ind-title"><div>LR</div></td>
+    <td class="sce-report-ind-title"><div>Detalle</div></td>
+  </tr>
+  <tr
+    ng-repeat="(marker, detail) in scenario.markerDetails"
+    ng-class="{'marker-excluded': detail.classification === 'excluded', 'marker-mutation': detail.classification === 'mutation'}"
+  >
+    <td class="sce-report-ind-elem-slim"><div>{{marker}}</div></td>
+    <td class="sce-report-ind-elem-slim">
+      <div>{{detail.classification === 'excluded' ? '—' : (detail.lr | likelihoodratioComp: true: true)}}</div>
+    </td>
+    <td class="sce-report-ind-elem">
+      <div>
+        <span ng-if="detail.classification === 'excluded'">Exclusión mendeliana tolerada</span>
+        <span ng-if="detail.classification === 'mutation'">Salto mutacional</span>
+        <span ng-if="detail.classification === 'normal'">Match directo</span>
+      </div>
+    </td>
+  </tr>
+</table>

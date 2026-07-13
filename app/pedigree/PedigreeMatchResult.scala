@@ -1,6 +1,7 @@
 package pedigree
 
 import matching.{MatchingProfile, NewMatchingResult}
+import play.api.libs.functional.syntax._
 import play.api.libs.json.{Format, Writes, _}
 import types.{MongoDate, MongoId}
 
@@ -77,12 +78,29 @@ case class PedigreeCompatibilityMatch(
    compatibility: Double,
    matchingId:String = "",
    mtProfile:String = "",
-   message:String = "") extends PedigreeMatchResult {
+   message:String = "",
+   mendelianExclusions: List[String] = List.empty) extends PedigreeMatchResult {
   override val kind = PedigreeMatchKind.Compatibility
 }
 
 object PedigreeCompatibilityMatch {
-  implicit val reads: Reads[PedigreeCompatibilityMatch] = Json.reads[PedigreeCompatibilityMatch]
+  // Reads manual (en vez de Json.format/Json.reads, que en esta version de
+  // Play no respetan los valores por defecto del case class): los matches
+  // guardados en Mongo antes de agregar "mendelianExclusions" no tienen ese
+  // campo, y sin el .orElse parsearlos tira error.path.missing en vez de
+  // usar el default de lista vacia.
+  implicit val reads: Reads[PedigreeCompatibilityMatch] = (
+    (__ \ "_id").read[MongoId] and
+    (__ \ "matchingDate").read[MongoDate] and
+    (__ \ "type").read[Int] and
+    (__ \ "profile").read[MatchingProfile] and
+    (__ \ "pedigree").read[PedigreeInfo] and
+    (__ \ "compatibility").read[Double] and
+    (__ \ "matchingId").read[String].orElse(Reads.pure("")) and
+    (__ \ "mtProfile").read[String].orElse(Reads.pure("")) and
+    (__ \ "message").read[String].orElse(Reads.pure("")) and
+    (__ \ "mendelianExclusions").read[List[String]].orElse(Reads.pure(List.empty))
+  )(PedigreeCompatibilityMatch.apply _)
   implicit val writes: OWrites[PedigreeCompatibilityMatch] = new OWrites[PedigreeCompatibilityMatch] {
     def writes(mr: PedigreeCompatibilityMatch): JsObject = {
       Json.obj(
@@ -95,7 +113,8 @@ object PedigreeCompatibilityMatch {
         "kind" -> mr.kind,
         "matchingId" -> mr.matchingId,
         "mtProfile" -> mr.mtProfile,
-        "message" -> mr.message
+        "message" -> mr.message,
+        "mendelianExclusions" -> mr.mendelianExclusions
       )
     }
   }

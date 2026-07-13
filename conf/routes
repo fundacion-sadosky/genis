@@ -254,6 +254,7 @@ GET      /search/profileDataForPedigree                       @controllers.Searc
 GET      /filter/profileDataForPedigree                       @controllers.Pedigrees.filterProfilesForPedigree(input: String,idCase:Long, tab: Boolean, tipo: Int,page:Int,pageSize:Int)
 GET      /filter/profileDataForPedigree/count                 @controllers.Pedigrees.countProfilesForPedigree(input: String,idCase:Long, tab: Boolean, tipo: Int)
 POST     /pedigree/status                                     @controllers.Pedigrees.changePedigreeStatus(id: Long, status: String)
+POST     /pedigree/cancel-matching                            @controllers.Pedigrees.cancelMatching(id: Long)
 POST     /pedigree/courtCaseStatus                            @controllers.Pedigrees.changeCourtCaseStatus(id: Long, status: String, closeProfiles: Boolean)
 POST     /pedigreeMatches/search                              @controllers.Pedigrees.findMatches()
 POST     /pedigreeMatches/count                               @controllers.Pedigrees.countMatches()
@@ -320,6 +321,9 @@ DELETE  /mutation-models/:id                                  @controllers.Mutat
 POST    /mutation-models                                      @controllers.MutationController.insert
 PUT     /mutation-models                                      @controllers.MutationController.update
 PUT     /mutation-models-matrix                               @controllers.MutationController.generateMatrix
+
+GET     /pedigree-matching-parameter                          @controllers.PedigreeMatchingParameterController.get()
+PUT     /pedigree-matching-parameter                          @controllers.PedigreeMatchingParameterController.update()
 
 # Locus
 GET      /analysistypes                                       @controllers.AnalysisTypes.list

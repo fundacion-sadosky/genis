@@ -58,10 +58,12 @@ object PedigreeMatchingAlgorithm {
       }).getOrElse(Nil).toList.map(marker => "_"+marker+"_")
   }
   def filterGenotipification(pG:PedigreeGenotypification,markers:List[String]):PedigreeGenotypification = {
-    pG.copy(genotypification = pG.genotypification.
-      filter(plainCPT => plainCPT.header
-          .find(marker => markers.find(marker2 => marker.contains(marker2)).isDefined).isDefined
-          ))
+    def matchesMarkers(plainCPT: PlainCPT2): Boolean =
+      plainCPT.header.find(marker => markers.find(marker2 => marker.contains(marker2)).isDefined).isDefined
+    pG.copy(
+      genotypification = pG.genotypification.filter(matchesMarkers),
+      strictGenotypification = pG.strictGenotypification.filter(matchesMarkers)
+    )
   }
   def extractMarker(s:String):String={
     if(s.contains("_")){
@@ -84,7 +86,8 @@ object PedigreeMatchingAlgorithm {
   def findCompatibilityMatches(frequencyTable: BayesianNetwork.FrequencyTable, p: Profile, pG: PedigreeGenotypification,
                                idPedigree: Long, assignee: String, analysisType: AnalysisType, mutationModelType: Option[Long] = None,
                                mutationModelData: Option[List[(MutationModelParameter, List[MutationModelKi],MutationModel)]] = None,
-                               n: Map[String,List[Double]] = Map.empty, caseType : String, idCourtCase: Long): Seq[PedigreeMatchResult] = {
+                               n: Map[String,List[Double]] = Map.empty, caseType : String, idCourtCase: Long,
+                               maxExclusionsAllowed: Int = 0): Seq[PedigreeMatchResult] = {
     val genoMarkers = BayesianNetwork.getMarkersFromCpts(pG.genotypification)
     val profile :Profile = p.copy(genotypification = filterGeno(p.genotypification,genoMarkers))
     val markers = getMarkers(profile)
@@ -93,7 +96,8 @@ object PedigreeMatchingAlgorithm {
 
     //TODO: cambiar pedigreeGenotypification.unknowns.head para que use todos los del array
     val genotypification = pedigreeGenotypification.genotypification.map(plainCPT2 => PlainCPT(plainCPT2.header, plainCPT2.matrix.iterator, plainCPT2.matrix.length))
-    val lr = BayesianNetwork.getLR(pedigreeGenotypification.unknowns, profile, frequencyTable, analysisType, genotypification, mutationModelType, mutationModelData,n)
+    val strictGenotypification = pedigreeGenotypification.strictGenotypification.map(plainCPT2 => PlainCPT(plainCPT2.header, plainCPT2.matrix.iterator, plainCPT2.matrix.length))
+    val lr = BayesianNetwork.getLR(pedigreeGenotypification.unknowns, profile, frequencyTable, analysisType, genotypification, mutationModelType, mutationModelData, n, maxExclusionsAllowed, strictGenotypification)
 //    val lr = BayesianNetwork.getLR(pedigreeGenotypification.unknowns, profile, frequencyTable, analysisType, pedigreeGenotypification.genotypification, mutationModelType, mutationModelData,n)
       if (lr._1 >= pedigreeGenotypification.boundary) {
         val oid = MongoId(new ObjectId().toString)
@@ -101,7 +105,7 @@ object PedigreeMatchingAlgorithm {
         val matchingPedigree = PedigreeMatchingProfile(idPedigree, NodeAlias(pedigreeGenotypification.unknowns.head), assignee, MatchStatus.pending, caseType, idCourtCase)
 
         logger.debug(s"Created compatibility match result with id ${oid.id}")
-        Seq(PedigreeCompatibilityMatch(oid, MongoDate(new Date()), analysisType.id, matchingProfile, matchingPedigree, lr._1, message = lr._2))
+        Seq(PedigreeCompatibilityMatch(oid, MongoDate(new Date()), analysisType.id, matchingProfile, matchingPedigree, lr._1, message = lr._2, mendelianExclusions = lr._3))
       } else Seq.empty
   }
 

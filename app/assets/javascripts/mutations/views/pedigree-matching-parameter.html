@@ -1,0 +1,49 @@
+<div class="row padding-0 breadcrumb_column">
+    <div class="col-md-12 padding-0">
+        <div class="row padding-0">
+            <div class="breadcrumb_content">
+                <ol class="breadcrumb">
+                    <li>
+                        <div class="btn volver" onclick="history.back()">
+                            <span  class="icon-atras" title="Volver"></span>
+                        </div>
+                    </li>
+                    <li class="active">Máximo de Exclusiones Permitidas</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-top">
+    <div class="row padding-0 content">
+        <form name="maxExclusionsForm" class="form-inline" novalidate>
+            <div class="form-group">
+                <label for="maxMendelianExclusions">Máximo de exclusiones mendelianas toleradas por match:</label>
+                <input
+                    id="maxMendelianExclusions"
+                    type="number"
+                    class="form-control form-select"
+                    min="0"
+                    step="1"
+                    data-ng-model="maxMendelianExclusions"
+                    data-ng-required="true"
+                    required
+                />
+            </div>
+            <button
+                id="saveMaxMendelianExclusions"
+                type="button"
+                class="btn btn-primary-action"
+                data-ng-click="save()"
+                data-ng-disabled="maxExclusionsForm.$invalid || isProcessing"
+            >Guardar</button>
+            <span id="processingSpan" class="icon-refresh" ng-class="{'spinner': isProcessing}" data-ng-show="isProcessing"></span>
+        </form>
+        <p class="italic" style="margin-top: 15px;">
+            Cantidad máxima de marcadores con exclusión mendeliana que se toleran al calcular una coincidencia de
+            pedigrí por compatibilidad. Si un candidato supera esta cantidad de marcadores excluidos, la
+            coincidencia se descarta. Los marcadores tolerados quedan marcados en el listado de coincidencias.
+        </p>
+    </div>
+</div>

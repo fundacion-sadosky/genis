@@ -75,6 +75,12 @@ class PedigreeModule(conf: Configuration) extends AbstractModule {
 
     bind(classOf[PedCheckRepository]).to(classOf[SlickPedCheckRepository])
 
+    bind(classOf[PedigreeMatchingParameterService]).to(classOf[PedigreeMatchingParameterServiceImpl])
+
+    bind(classOf[PedigreeMatchingParameterRepository]).to(classOf[SlickPedigreeMatchingParameterRepository])
+
+    bind(classOf[PedigreeProcessingLock]).to(classOf[PedigreeProcessingLockImpl])
+
     ()
   }
   

@@ -17,6 +17,7 @@
                 {{scenario.description}}
             </div>
         </div>
+
         <table class="table table-condensed table-genogram">
             <thead>
             <tr>
@@ -96,6 +97,21 @@
     </div>
     <div class="col-md-7 ">
         <div id="genogram_{{$index}}" class="genogram"></div>
+    </div>
+</div>
+
+<div class="m-b-10" ng-if="scenario.markerDetails">
+    <div
+        class="pedigree-scenario-lr m-b-10"
+        ng-repeat="(marker, detail) in scenario.markerDetails"
+        ng-class="{'marker-excluded': detail.classification === 'excluded', 'marker-mutation': detail.classification === 'mutation'}"
+    >
+        LR <span class="bold">{{marker}}</span> =
+        <input type="text" class="form-control form-select" style="width: auto; display: inline"
+               value="{{detail.classification === 'excluded' ? 'Excluido' : (detail.lr | likelihoodratioCompScenario: true: true)}}"
+               disabled="disabled" />
+        <span ng-if="detail.classification === 'mutation'">(salto mutacional)</span>
+        <span ng-if="detail.classification === 'excluded'">(exclusión mendeliana tolerada)</span>
     </div>
 </div>
 

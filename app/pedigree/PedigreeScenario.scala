@@ -19,7 +19,11 @@ case class PedigreeScenario(
    lr: Option[String] = None,
    validationComment: Option[String] = None,
    matchId: Option[String] = None,
-   mutationModelId: Option[Long] = None
+   mutationModelId: Option[Long] = None,
+   // Detalle de LR por marcador del ultimo calculo ("Calcular LR"), para
+   // el reporte de escenario: rojo/excluded, naranja/mutation, sin
+   // color/normal. Ver MarkerLRDetail.
+   markerDetails: Map[String, MarkerLRDetail] = Map.empty
 )
 
 object PedigreeScenario {
@@ -52,7 +56,8 @@ object PedigreeScenario {
     (__ \ "lr").readNullable[String] and
     (__ \ "validationComment").readNullable[String] and
     (__ \ "matchId").readNullable[String] and
-    (__ \ "mutationModelId").readNullable[Long])(PedigreeScenario.apply _)
+    (__ \ "mutationModelId").readNullable[Long] and
+    (__ \ "markerDetails").read[Map[String, MarkerLRDetail]].orElse(Reads.pure(Map.empty[String, MarkerLRDetail])))(PedigreeScenario.apply _)
 
 
   implicit val scenarioWrites: OWrites[PedigreeScenario] = (
@@ -67,7 +72,8 @@ object PedigreeScenario {
     (__ \ "lr").writeNullable[String] and
     (__ \ "validationComment").writeNullable[String] and
     (__ \ "matchId").writeNullable[String] and
-    (__ \ "mutationModelId").writeNullable[Long])((pedigreeScenario: PedigreeScenario) => (
+    (__ \ "mutationModelId").writeNullable[Long] and
+    (__ \ "markerDetails").write[Map[String, MarkerLRDetail]])((pedigreeScenario: PedigreeScenario) => (
     pedigreeScenario._id,
     pedigreeScenario.pedigreeId,
     pedigreeScenario.name,
@@ -79,7 +85,8 @@ object PedigreeScenario {
     pedigreeScenario.lr.map(_.toString),
     pedigreeScenario.validationComment,
     pedigreeScenario.matchId,
-    pedigreeScenario.mutationModelId))
+    pedigreeScenario.mutationModelId,
+    pedigreeScenario.markerDetails))
 
   implicit val scenarioFormat: OFormat[PedigreeScenario] = OFormat(scenarioReads, scenarioWrites)
 }

@@ -23,6 +23,13 @@
     </table>
   </div>
 
+  <!-- LR por marcador -->
+  <div
+    class="scenarios-section scenarios-with-padding"
+    ng-if="scenario.markerDetails"
+    data-ng-include="'/assets/javascripts/pedigree/views/pedigree-scenario-marker-details.html'"
+  ></div>
+
   <!-- Individuos -->
   <div class="scenarios-section scenarios-with-padding">
     <div class="report-table-title">Individuos del pedigrí</div>

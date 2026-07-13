@@ -41,6 +41,10 @@ trait PedigreeSparkMatcher{
   def findMatchesInBackGround(globalCode: SampleCode, matchType: String): Unit
   def findMatchesBlocking(globalCode: SampleCode, matchType: String)
   def findMatchesBlocking(idPedigree: Long): Unit
+  // Cancela el job de Spark del matching de compatibilidad actualmente en
+  // curso para ese pedigri, si lo hay. Devuelve false si no habia ningun
+  // matching corriendo para ese pedigri (ya termino, o nunca empezo).
+  def cancelMatching(idPedigree: Long): Boolean
 }
 
 @Singleton
@@ -63,13 +67,36 @@ class PedigreeSparkMatcherImpl @Inject()(
   matchingServiceSpark:MatchingService = null,
   matchingRepository:MatchingRepository = null,
   pedigreeDataRepo: PedigreeDataRepository= null,
-  userService: UserService = null) extends PedigreeSparkMatcher{
+  userService: UserService = null,
+  pedigreeMatchingParameterRepository: PedigreeMatchingParameterRepository = null,
+  pedigreeGenotypificationRepository: PedigreeGenotypificationRepository = null,
+  pedigreeProcessingLock: PedigreeProcessingLock = null) extends PedigreeSparkMatcher{
 
   private val matchingActor = akkaSystem.actorOf(PedigreeMatchingActor.props(this))
 
   private val logger = Logger(this.getClass)
 
   private val duration = Duration(100, SECONDS)
+
+  // El matching de un pedigri corre siempre sobre el mismo actor de mailbox
+  // unica (matchingActor), asi que a lo sumo hay un pedigri matcheando a la
+  // vez via este camino. runningPedigreeJobGroup trackea cual, para poder
+  // cancelar el job de Spark correspondiente sin afectar otros jobs.
+  private val runningPedigreeJobGroup = new java.util.concurrent.atomic.AtomicReference[Option[Long]](None)
+  private val cancelledPedigrees = java.util.concurrent.ConcurrentHashMap.newKeySet[Long]()
+
+  private def pedigreeJobGroupId(idPedigree: Long): String = s"pedigree-matching-$idPedigree"
+
+  override def cancelMatching(idPedigree: Long): Boolean = {
+    if (runningPedigreeJobGroup.get().contains(idPedigree)) {
+      cancelledPedigrees.add(idPedigree)
+      Spark2.context.cancelJobGroup(pedigreeJobGroupId(idPedigree))
+      logger.info(s"Cancelacion solicitada para el matching del pedigri $idPedigree")
+      true
+    } else {
+      false
+    }
+  }
 
   private def getExistingMatchesRDD(input: Either[Profile, PedigreeGenogram]) = {
     val readConfig = ReadConfig(Map("uri" -> mongoUri, "collection" -> "pedigreeMatches"), None)
@@ -335,11 +362,12 @@ $inputMsg has matched against ${matchesRDD.count()} $inputMatch candidates
       bson.put("kind", matchResult.kind.toString)
       matchResult match {
         case PedigreeDirectLinkMatch(_,_,_,_,_,result) => bson.put("result", JSON.parse(Json.toJson(result).toString))
-        case PedigreeCompatibilityMatch(_,_,_,_,_,compatibility,matchingId,mtProfile, message) => {
+        case PedigreeCompatibilityMatch(_,_,_,_,_,compatibility,matchingId,mtProfile, message, mendelianExclusions) => {
           bson.put("compatibility", compatibility)
           bson.put("matchingId", matchingId)
           bson.put("mtProfile", mtProfile)
           bson.put("message", message)
+          bson.put("mendelianExclusions", mendelianExclusions.asJava)
         }
         case _ => ()
       }
@@ -367,11 +395,12 @@ $inputMsg has matched against ${matchesRDD.count()} $inputMatch candidates
       bson.put("kind", matchResult.kind.toString)
       matchResult match {
         case PedigreeDirectLinkMatch(_,_,_,_,_,result) => bson.put("result", JSON.parse(Json.toJson(result).toString))
-        case PedigreeCompatibilityMatch(_,_,_,_,_,compatibility,matchingId,mtProfile, message) => {
+        case PedigreeCompatibilityMatch(_,_,_,_,_,compatibility,matchingId,mtProfile, message, mendelianExclusions) => {
           bson.put("compatibility", compatibility)
           bson.put("matchingId", matchingId)
           bson.put("mtProfile", mtProfile)
           bson.put("message", message)
+          bson.put("mendelianExclusions", mendelianExclusions.asJava)
         }
         case _ => ()
       }
@@ -474,8 +503,15 @@ $inputMsg has matched against ${matchesRDD.count()} $inputMatch candidates
           )
       }
     }
-    val pedigreeGenotypification = getPedigreeGenotypificationRDD(pedigreeId)
-      .first()
+    // Lectura directa (no via RDD/Spark, ver comentario en
+    // PedigreeGenotypificationRepository.get): leer esta coleccion a
+    // traves de Spark devolvia el CPT con la matriz vacia para marcadores
+    // con muchas filas (modelo mutacional Stepwise), aunque el documento
+    // en Mongo estuviera completo.
+    val pedigreeGenotypification = Await.result(
+      pedigreeGenotypificationRepository.get(pedigreeId),
+      duration
+    ).get
     val alias = pedigreeGenotypification.unknowns.head
 
     val analysisType = Await
@@ -494,6 +530,13 @@ $inputMsg has matched against ${matchesRDD.count()} $inputMatch candidates
     val mutationModelType: Option[Long] = if (mutationModel.nonEmpty) Some(mutationModel.get.mutationType) else None
     val mutationModelData = Await.result(mutationService.getMutationModelData(mutationModel,markers),duration)
     val n = Await.result(mutationService.getAllPossibleAllelesByLocus(),duration)
+    // El pedigri puede sobreescribir el parametro global "Maximo de
+    // Exclusiones Permitidas" en la pantalla de activacion; si no lo
+    // hizo (None), se usa el valor global configurado en Parametros
+    // Estadisticos.
+    val maxExclusionsAllowed = pedigree.maxMendelianExclusions.getOrElse(
+      Await.result(pedigreeMatchingParameterRepository.getMaxMendelianExclusions, duration)
+    )
     val profilesRDD = getProfilesRDD(Right(pedigree))
     val matchesRDD: RDD[PedigreeMatchResult] = profilesRDD.map(p => {
       MatchingAlgorithm.convertProfileWithConvertedOutOfLadderAlleles(p,locusRangeMap)
@@ -504,7 +547,7 @@ $inputMsg has matched against ${matchesRDD.count()} $inputMatch candidates
       val mitoMatchesMap = mithocondrialMatches._2.map(t => t.globalCode -> t.matchId).toMap
       val mitoM = mitoMatchesMap.get(p.globalCode.text)
       if(executeScreeningMitochondrial && mitoM.isDefined){
-        findCompatibilityMatches(frequencyTable._2, p, pedigreeGenotypification, pedigreeId, assignee, analysisType, mutationModelType, mutationModelData,n, caseType, idCourtCase)
+        findCompatibilityMatches(frequencyTable._2, p, pedigreeGenotypification, pedigreeId, assignee, analysisType, mutationModelType, mutationModelData,n, caseType, idCourtCase, maxExclusionsAllowed)
           .map{
             case pedigreeMatchResult:PedigreeCompatibilityMatch =>{
               Some(pedigreeMatchResult.copy(matchingId = mitoM.get,mtProfile = mtProfileCode))
@@ -515,7 +558,7 @@ $inputMsg has matched against ${matchesRDD.count()} $inputMatch candidates
         if(executeScreeningMitochondrial && isMt && mtProfileCode.nonEmpty){
           Nil
         }else{
-          findCompatibilityMatches(frequencyTable._2, p, pedigreeGenotypification, pedigreeId, assignee, analysisType, mutationModelType, mutationModelData,n, caseType,idCourtCase)
+          findCompatibilityMatches(frequencyTable._2, p, pedigreeGenotypification, pedigreeId, assignee, analysisType, mutationModelType, mutationModelData,n, caseType,idCourtCase, maxExclusionsAllowed)
         }
       }
     }
@@ -609,6 +652,13 @@ $inputMsg has matched against ${matchesRDD.count()} $inputMatch candidates
           val mutationModelType: Option[Long] = if (mutationModel.nonEmpty) Some(mutationModel.get.mutationType) else None
           val mutationModelData = Await.result(mutationService.getMutationModelData(mutationModel,markers),duration)
           val n = Await.result(mutationService.getAllPossibleAllelesByLocus(),duration)
+          // El pedigri puede sobreescribir el parametro global "Maximo de
+          // Exclusiones Permitidas" en la pantalla de activacion; si no lo
+          // hizo (None), se usa el valor global configurado en Parametros
+          // Estadisticos.
+          val maxExclusionsAllowed = completePedigree.get.maxMendelianExclusions.getOrElse(
+            Await.result(pedigreeMatchingParameterRepository.getMaxMendelianExclusions, duration)
+          )
           val caseType = completePedigree.get.caseType
           // Compatibilidad
           val pedigreeGenotypificationRDD = getPedigreeGenotypificationRDD(pedigreeId)
@@ -661,7 +711,8 @@ $inputMsg has matched against ${matchesRDD.count()} $inputMatch candidates
                     mutationModelData,
                     n,
                     caseType,
-                    idCourtCase
+                    idCourtCase,
+                    maxExclusionsAllowed
                   )
                   .map {
                     case pedigreeMatchResult:PedigreeCompatibilityMatch =>{
@@ -684,7 +735,8 @@ $inputMsg has matched against ${matchesRDD.count()} $inputMatch candidates
                         mutationModelData,
                         n,
                         caseType,
-                        idCourtCase
+                        idCourtCase,
+                        maxExclusionsAllowed
                       )
                   }
               }
@@ -862,17 +914,57 @@ $inputMsg has matched against ${matchesRDD.count()} $inputMatch candidates
   }
 
   override def findMatchesBlocking(idPedigree: Long): Unit = {
-    val f = pedigreeRepo.get(idPedigree)
-    val locusRangeMap:NewMatchingResult.AlleleMatchRange = locusService.locusRangeMap()
-    val result = Await.result(f, duration)
+    // El lock global (pedigreeProcessingLock) puede haber sido adquirido
+    // desde el controller antes de encolar este job (activacion) o puede
+    // no haberlo sido (ej. matching disparado desde otros caminos internos
+    // sin pasar por el controller); liberarlo aca siempre, sin importar el
+    // camino de salida, para no dejarlo trabado.
+    try {
+      val f = pedigreeRepo.get(idPedigree)
+      val locusRangeMap:NewMatchingResult.AlleleMatchRange = locusService.locusRangeMap()
+      val result = Await.result(f, duration)
 
-    result.foreach { p =>
+      result.foreach { p =>
 
-      if (p.status == PedigreeStatus.Active) {
-        findMatchesByPedigreeFunc(p,locusRangeMap)
-        Await.result(pedigreeRepo.setProcessed(idPedigree), duration)
+        if (p.status == PedigreeStatus.Active) {
+          runningPedigreeJobGroup.set(Some(idPedigree))
+          Spark2.context.setJobGroup(
+            pedigreeJobGroupId(idPedigree),
+            s"Matching de compatibilidad - pedigri $idPedigree",
+            interruptOnCancel = true
+          )
+          try {
+            try {
+              findMatchesByPedigreeFunc(p,locusRangeMap)
+            } catch {
+              case e: Exception if cancelledPedigrees.remove(idPedigree) =>
+                // Cancelacion pedida explicitamente por el usuario (ver
+                // cancelMatching): se descarta la excepcion de Spark (job
+                // cancelado) para no propagarla como si fuera un error.
+                logger.info(s"Matching del pedigri $idPedigree cancelado por el usuario")
+              case e: Exception =>
+                // Cualquier otro error inesperado tampoco debe dejar el
+                // pedigri trabado en processed=false para siempre (eso
+                // deshabilita el boton "Editar" sin forma de recuperarse
+                // salvo tocando la base a mano). Se loguea para diagnostico
+                // y se sigue igual hasta marcar processed=true abajo.
+                logger.error(s"Error corriendo el matching del pedigri $idPedigree", e)
+            }
+          } finally {
+            Spark2.context.clearJobGroup()
+            // set(None) en vez de compareAndSet: AtomicReference.compareAndSet
+            // compara por identidad de referencia, no por .equals(), asi que
+            // comparar contra un Some(idPedigree) recien construido nunca
+            // matchea el que se guardo antes con .set(...) y el valor
+            // quedaria trabado en Some para siempre.
+            runningPedigreeJobGroup.set(None)
+          }
+          Await.result(pedigreeRepo.setProcessed(idPedigree), duration)
+        }
+
       }
-
+    } finally {
+      pedigreeProcessingLock.release(idPedigree)
     }
   }
 }

@@ -26,9 +26,9 @@ trait PedigreeGenotypificationService {
     mutationModel: Option[MutationModel]
   ): Future[Either[String, Long]]
 
-  def calculateProbability(c: CalculateProbabilityScenarioPed): Double
+  def calculateProbability(c: CalculateProbabilityScenarioPed): (Double, Map[String, MarkerLRDetail])
 
-  def calculateProbabilityActor(calculateProbabilityScenarioPed: CalculateProbabilityScenarioPed): Future[Double]
+  def calculateProbabilityActor(calculateProbabilityScenarioPed: CalculateProbabilityScenarioPed): Future[(Double, Map[String, MarkerLRDetail])]
 }
 
 @Singleton
@@ -167,19 +167,59 @@ class PedigreeGenotypificationServiceImpl @Inject()(
                                     plainCPT.matrix.toArray
                                   )
                                 )
-                              val pedigreeGenotypification =
-                                PedigreeGenotypification(
-                                  pedigree._id,
-                                  newGenotypification,
-                                  pedigree.boundary,
-                                  pedigree.frequencyTable.get,
-                                  unknowns
-                                )
-                              logger.info("--- SAVE GENO END / Main branch ---")
-                              pedigreeGenotypificationRepository
-                                .upsertGenotypification(
-                                  pedigreeGenotypification
-                                )
+                              // Ademas de la genotipificacion "real" (con
+                              // el modelo mutacional configurado, si hay
+                              // uno), se calcula una version SIN modelo
+                              // mutacional. Sirve solo para contar
+                              // exclusiones mendelianas estrictas
+                              // (comparte alelo directo, sin mutacion) al
+                              // decidir cuantas tolerar — el CPT real ya
+                              // mezcla lo que el modelo mutacional pueda
+                              // explicar via mutacion, y no sirve para
+                              // ese conteo. Si no hay modelo mutacional
+                              // configurado, la version real YA es la
+                              // estricta: no hace falta recalcular.
+                              val strictGenotypificationFut =
+                                if (mutationModelType.isEmpty) {
+                                  Future.successful(newGenotypification)
+                                } else {
+                                  bayesianNetworkService
+                                    .getGenotypification(
+                                      pedigree,
+                                      profiles,
+                                      frequencyTable,
+                                      analysisType,
+                                      linkage,
+                                      None,
+                                      None,
+                                      n
+                                    )
+                                    .map(
+                                      _.map(
+                                        plainCPT => PlainCPT2(
+                                          plainCPT.header,
+                                          plainCPT.matrix.toArray
+                                        )
+                                      )
+                                    )
+                                }
+                              strictGenotypificationFut.flatMap {
+                                strictGenotypification =>
+                                  val pedigreeGenotypification =
+                                    PedigreeGenotypification(
+                                      pedigree._id,
+                                      newGenotypification,
+                                      pedigree.boundary,
+                                      pedigree.frequencyTable.get,
+                                      unknowns,
+                                      strictGenotypification
+                                    )
+                                  logger.info("--- SAVE GENO END / Main branch ---")
+                                  pedigreeGenotypificationRepository
+                                    .upsertGenotypification(
+                                      pedigreeGenotypification
+                                    )
+                              }
                             }
                           }
                       }
@@ -249,7 +289,7 @@ class PedigreeGenotypificationServiceImpl @Inject()(
 
   override def calculateProbability(
     c:CalculateProbabilityScenarioPed
-  ):Double = {
+  ):(Double, Map[String, MarkerLRDetail]) = {
     logger.info("--- CalculateProbability BEGIN ---")
     val probability = BayesianNetwork
       .calculateProbability(
@@ -262,7 +302,8 @@ class PedigreeGenotypificationServiceImpl @Inject()(
         c.mutationModelType,
         c.mutationModelData,
         c.seenAlleles,
-        c.locusRangeMap
+        c.locusRangeMap,
+        c.maxExclusionsAllowed
       )
     logger.info("--- CalculateProbability END ---")
     probability
@@ -270,7 +311,7 @@ class PedigreeGenotypificationServiceImpl @Inject()(
 
   override def calculateProbabilityActor(
     calculateProbabilityScenarioPed:CalculateProbabilityScenarioPed
-  ):Future[Double] = {
+  ):Future[(Double, Map[String, MarkerLRDetail])] = {
     implicit val timeout: Timeout = akka.util
       .Timeout(Some(Duration("30 days"))
       .collect { case d: FiniteDuration => d }.get)
@@ -278,7 +319,7 @@ class PedigreeGenotypificationServiceImpl @Inject()(
       bayesianGenotypificationActor ?
         calculateProbabilityScenarioPed
       )
-      .mapTo[Double]
+      .mapTo[(Double, Map[String, MarkerLRDetail])]
     result
   }
 }

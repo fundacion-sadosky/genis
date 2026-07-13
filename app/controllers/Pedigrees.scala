@@ -35,7 +35,52 @@ class Pedigrees @Inject() (
   profileDataService: ProfileDataService,
   pedCheckService: PedCheckService = null,
   traceService:TraceService = null,
-  userService: UserService = null) extends Controller with JsonSqlActions with JsonActions {
+  userService: UserService = null,
+  pedigreeSparkMatcher: PedigreeSparkMatcher = null,
+  pedigreeProcessingLock: PedigreeProcessingLock = null) extends Controller with JsonSqlActions with JsonActions {
+
+  // Activar un pedigri (dispara matching por Spark) y calcular el LR de un
+  // escenario son operaciones pesadas en memoria; correr mas de una a la
+  // vez puede saturar la heap de la JVM. Se rechaza la segunda mientras la
+  // primera sigue en curso, informando cual pedigri hay que esperar.
+  private def busyResult: Future[Result] = {
+    pedigreeProcessingLock.runningPedigreeId match {
+      case Some(runningId) =>
+        pedigreeService.getPedigree(runningId).map {
+          case Some(p) =>
+            Conflict(s"Espere a que finalice el procesamiento del pedigrí ${p.pedigreeMetaData.name}")
+          case None =>
+            Conflict("Espere a que finalice el procesamiento de otro pedigrí en curso")
+        }
+      case None =>
+        // El lock se libero justo entre el chequeo y este punto; el
+        // usuario puede reintentar.
+        Future.successful(Conflict("Espere a que finalice el procesamiento de otro pedigrí en curso"))
+    }
+  }
+
+  // Un pedigri "solo hermanos" es aquel donde el desconocido no tiene
+  // ningun padre/madre NI hijo/a genotipificado (globalCode asignado) en
+  // el genograma: solo hermanos genotipificados. Ahi no existe ningun
+  // criterio de exclusion mendeliana directa (compartir 0 alelos con un
+  // hermano es un resultado normal, no una exclusion), asi que el
+  // matching no puede descartar candidatos baratamente antes de construir
+  // la red bayesiana completa. Activar esto CON un modelo mutacional
+  // configurado (CPTs mucho mas grandes, ver StepwiseL4) contra el pool
+  // completo de perfiles matcheables del sistema es lo que veniamos
+  // viendo tirar la JVM por falta de memoria (pedigri 26). Ver
+  // docs/pedigree-matching-mendelian-exclusion-fix.md.
+  private def hasNoDirectExclusionCriterion(genogram: Seq[Individual]): Boolean = {
+    genogram.find(_.unknown).exists { unknown =>
+      val father = unknown.idFather.flatMap(alias => genogram.find(_.alias == alias))
+      val mother = unknown.idMother.flatMap(alias => genogram.find(_.alias == alias))
+      val hasGenotypedParent = father.exists(_.globalCode.isDefined) || mother.exists(_.globalCode.isDefined)
+      val hasGenotypedChild = genogram.exists { ind =>
+        (ind.idFather.contains(unknown.alias) || ind.idMother.contains(unknown.alias)) && ind.globalCode.isDefined
+      }
+      !hasGenotypedParent && !hasGenotypedChild
+    }
+  }
 
   def getCourtCases = Action.async(BodyParsers.parse.json) { request =>
     val pedigreeSearch = request.body.validate[PedigreeSearch]
@@ -207,6 +252,15 @@ class Pedigrees @Inject() (
       })
   }
 
+  def cancelMatching(id: Long) = Action {
+    val cancelled = pedigreeSparkMatcher.cancelMatching(id)
+    if (cancelled) {
+      Ok(Json.obj("cancelled" -> true))
+    } else {
+      NotFound(Json.obj("cancelled" -> false, "message" -> "No hay un matching en curso para este pedigrí"))
+    }
+  }
+
   private def closePedigree(id: Long, userId: String, isSuperUser: Boolean) = {
     pedigreeService.changePedigreeStatus(id, PedigreeStatus.Closed, userId, isSuperUser) flatMap {
         case Right(id) => Future.successful(Ok(Json.toJson(id)).withHeaders("X-CREATED-ID" -> id.toString))
@@ -235,18 +289,38 @@ class Pedigrees @Inject() (
         Future.successful(BadRequest(JsError.toFlatJson(errors)))
       },
       genogram => {
-        pedigreeService.addGenogram(genogram) flatMap {
-          case Right(id) =>
-            pedigreeService.changePedigreeStatus(id, PedigreeStatus.Active, userId, isSuperUser) flatMap {
-              case Right(id) => {
-                pedigreeGenotypificationService.generateGenotypificationAndFindMatches(id) map {
-                  case Right(id) => Ok(Json.toJson(id)).withHeaders("X-CREATED-ID" -> id.toString)
-                  case Left(error) => BadRequest(Json.toJson(error))
+        if (genogram.mutationModelId.isDefined && hasNoDirectExclusionCriterion(genogram.genogram)) {
+          Future.successful(BadRequest(
+            "Este pedigrí no tiene padre/madre ni hijo/a genotipificado del desconocido (solo hermanos), " +
+            "por lo que no existe un criterio de exclusión mendeliana directa. Activarlo con un modelo " +
+            "mutacional configurado dispara un cálculo mucho más costoso contra todo el pool de perfiles " +
+            "matcheables del sistema y puede agotar la memoria del servidor. Quite el modelo mutacional " +
+            "para activar este pedigrí."
+          ))
+        } else if (!pedigreeProcessingLock.tryAcquire(genogram._id)) {
+          busyResult
+        } else {
+          pedigreeService.addGenogram(genogram) flatMap {
+            case Right(id) =>
+              pedigreeService.changePedigreeStatus(id, PedigreeStatus.Active, userId, isSuperUser) flatMap {
+                case Right(id) => {
+                  pedigreeGenotypificationService.generateGenotypificationAndFindMatches(id) map {
+                    case Right(id) => Ok(Json.toJson(id)).withHeaders("X-CREATED-ID" -> id.toString)
+                    // Left: el job de Spark nunca se encolo, asi que nadie
+                    // mas va a liberar el lock.
+                    case Left(error) =>
+                      pedigreeProcessingLock.release(genogram._id)
+                      BadRequest(Json.toJson(error))
+                  }
                 }
+                case Left(error) =>
+                  pedigreeProcessingLock.release(genogram._id)
+                  Future.successful(BadRequest(Json.toJson(error)))
               }
-              case Left(error) => Future.successful(BadRequest(Json.toJson(error)))
-            }
-          case Left(error) => Future.successful(BadRequest(Json.toJson(error)))
+            case Left(error) =>
+              pedigreeProcessingLock.release(genogram._id)
+              Future.successful(BadRequest(Json.toJson(error)))
+          }
         }
       }
     )
@@ -507,13 +581,23 @@ class Pedigrees @Inject() (
   }
 
   private def activateClonePedigree(id : Long,userId:String) : Unit = {
-
-    pedigreeService.changePedigreeStatus(id, PedigreeStatus.Active, userId, true) map {
-      case Right(id) => {
-        pedigreeGenotypificationService.generateGenotypificationAndFindMatches(id)
+    // Best-effort: si hay otro pedigri procesando, se omite el matching
+    // automatico de este clon (el usuario puede activarlo a mano despues)
+    // en vez de competir por memoria con el que ya esta corriendo.
+    if (pedigreeProcessingLock.tryAcquire(id)) {
+      pedigreeService.changePedigreeStatus(id, PedigreeStatus.Active, userId, true) map {
+        case Right(id) => {
+          pedigreeGenotypificationService.generateGenotypificationAndFindMatches(id) map {
+            case Right(_) => ()
+            case Left(_) => pedigreeProcessingLock.release(id)
+          }
+        }
+        case Left(error) =>
+          pedigreeProcessingLock.release(id)
+          Future.successful(Left(error))
       }
-      case Left(error) => Future.successful(Left(error))
     }
+    ()
   }
 
   private def deleteFindProfile(scenario: PedigreeScenario, userId: String): Unit = {
@@ -558,7 +642,15 @@ class Pedigrees @Inject() (
 
     s.fold(
       errors => Future.successful(BadRequest(Json.obj("status" -> "KO", "message" -> JsError.toFlatJson(errors)))),
-      scenario => bayesianNetworkService.calculateProbability(scenario).map { lr => Ok(Json.toJson(lr)) }
+      scenario => {
+        if (!pedigreeProcessingLock.tryAcquire(scenario.pedigreeId)) {
+          busyResult
+        } else {
+          bayesianNetworkService.calculateProbability(scenario).map {
+            case (lr, markerDetails) => Ok(Json.obj("lr" -> lr, "markerDetails" -> Json.toJson(markerDetails)))
+          }
+        }
+      }
     )
   }
 

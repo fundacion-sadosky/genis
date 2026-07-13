@@ -19,7 +19,8 @@ case class CalculateProbabilityScenarioPed(
     MutationModel
   )]]=None,
   seenAlleles: Map[String, List[Double]] = Map.empty,
-  locusRangeMap:NewMatchingResult.AlleleMatchRange  = Map.empty
+  locusRangeMap:NewMatchingResult.AlleleMatchRange  = Map.empty,
+  maxExclusionsAllowed: Int = 0
 ) {
 
 }

@@ -113,14 +113,19 @@ class PedigreeServiceImpl @Inject() (
       pedigreeIds match {
         case Some(ids) =>
           if (ids.isEmpty) Future.successful(Seq.empty)
-          else pedigreeDataRepository.getAllCourtCases(Some(ids), pedigreeSearch).flatMap(fillPendingMatches)
-        case None => pedigreeDataRepository.getAllCourtCases(None, pedigreeSearch).flatMap(fillPendingMatches)
+          else pedigreeDataRepository.getAllCourtCases(Some(ids), pedigreeSearch).flatMap(fillPendingMatches).flatMap(fillPedigreeStatus)
+        case None => pedigreeDataRepository.getAllCourtCases(None, pedigreeSearch).flatMap(fillPendingMatches).flatMap(fillPedigreeStatus)
       }
     }
   }
   def fillPendingMatches(list:Seq[CourtCaseModelView]):Future[Seq[CourtCaseModelView]] = {
     Future.sequence(list.map(cc => this.countPendingCourCaseMatches(cc.id).map(result => {
       cc.copy(numberOfPendingMatches = result)
+    })))
+  }
+  def fillPedigreeStatus(list:Seq[CourtCaseModelView]):Future[Seq[CourtCaseModelView]] = {
+    Future.sequence(list.map(cc => pedigreeRepository.getPedigreeByCourtCaseId(cc.id).map(pedigrees => {
+      cc.copy(pedigreeStatus = pedigrees.headOption.map(_.status.toString))
     })))
   }
 
@@ -678,7 +683,7 @@ override def getMetadata( personDataSearch:PersonDataSearch): Future[List[Person
                 PedigreeEditInfo(id)))
             }
             val genogram = pedigreeDataCreation.pedigreeGenogram.get
-            val pedigreeGenogram = PedigreeGenogram(id, genogram.assignee, genogram.genogram, genogram.status, genogram.frequencyTable, genogram.processed, genogram.boundary, genogram.executeScreeningMitochondrial,genogram.numberOfMismatches, genogram.caseType,genogram.mutationModelId,genogram.idCourtCase)
+            val pedigreeGenogram = PedigreeGenogram(id, genogram.assignee, genogram.genogram, genogram.status, genogram.frequencyTable, genogram.processed, genogram.boundary, genogram.executeScreeningMitochondrial,genogram.numberOfMismatches, genogram.caseType,genogram.mutationModelId,genogram.idCourtCase,genogram.maxMendelianExclusions)
             this.addGenogram(pedigreeGenogram)
           })
       }
@@ -757,7 +762,7 @@ override def getMetadata( personDataSearch:PersonDataSearch): Future[List[Person
         PedigreeStatus.UnderConstruction, pedigreeAClonar.pedigreeMetaData.assignee)
       val newPedigreeGenogram = PedigreeGenogram(0, pedigreeAClonar.pedigreeGenogram.get.assignee, pedigreeAClonar.pedigreeGenogram.get.genogram, PedigreeStatus.UnderConstruction,
         pedigreeAClonar.pedigreeGenogram.get.frequencyTable, pedigreeAClonar.pedigreeGenogram.get.processed, pedigreeAClonar.pedigreeGenogram.get.boundary,
-        pedigreeAClonar.pedigreeGenogram.get.executeScreeningMitochondrial, pedigreeAClonar.pedigreeGenogram.get.numberOfMismatches, pedigreeAClonar.pedigreeGenogram.get.caseType ,pedigreeAClonar.pedigreeGenogram.get.mutationModelId, pedigreeAClonar.pedigreeGenogram.get.idCourtCase)
+        pedigreeAClonar.pedigreeGenogram.get.executeScreeningMitochondrial, pedigreeAClonar.pedigreeGenogram.get.numberOfMismatches, pedigreeAClonar.pedigreeGenogram.get.caseType ,pedigreeAClonar.pedigreeGenogram.get.mutationModelId, pedigreeAClonar.pedigreeGenogram.get.idCourtCase, pedigreeAClonar.pedigreeGenogram.get.maxMendelianExclusions)
       val newPedigreeDataCreation = PedigreeDataCreation(newPedigreeMetadata, Some(newPedigreeGenogram))
 
       createPedigree(newPedigreeDataCreation,userId,Some(pedigreeId))
