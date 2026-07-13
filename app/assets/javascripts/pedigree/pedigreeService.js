@@ -88,6 +88,10 @@ var PedigreeService = function(playRoutes, userService) {
 		return playRoutes.controllers.Pedigrees.changePedigreeStatus(id, status).post(genogram);
 	};
 
+	this.cancelMatching = function(id) {
+		return playRoutes.controllers.Pedigrees.cancelMatching(id).post();
+	};
+
 	this.changeStatus = function(id, status, closeProfiles,courtCase) {
 		return playRoutes.controllers.Pedigrees.changeCourtCaseStatus(id, status, closeProfiles).post(courtCase);
 	};

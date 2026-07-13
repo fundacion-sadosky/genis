@@ -234,7 +234,15 @@ var OriginalCtrl = function($scope, pedigreeService, $log, $routeParams, $modal,
 	};
 	
 	$scope.cancel = function(){
-		$route.reload();
+		if ($scope.pedigree && $scope.pedigree.status === 'Active' && !$scope.pedigree.processed) {
+			pedigreeService.cancelMatching($scope.pedigree._id).then(function() {
+				$route.reload();
+			}, function() {
+				$route.reload();
+			});
+		} else {
+			$route.reload();
+		}
 	};
 	
 	$scope.setUnknownIndividual = function(node) {
@@ -416,6 +424,7 @@ var OriginalCtrl = function($scope, pedigreeService, $log, $routeParams, $modal,
                            status: $scope.pedigree.status,
                            mito: $scope.pedigree.executeScreeningMitochondrial,
                            mismatch: $scope.pedigree.numberOfMismatches,
+                           maxMendelianExclusions: $scope.pedigree.maxMendelianExclusions,
                            isDVI:$scope.isDVI
                        };   }       }
                         }).result.then(function(response){
@@ -436,6 +445,7 @@ var OriginalCtrl = function($scope, pedigreeService, $log, $routeParams, $modal,
         }else{
             delete $scope.pedigree.mutationModelId;
         }
+        $scope.pedigree.maxMendelianExclusions = response.maxMendelianExclusions;
         changeStatus('Active');
     }
 
@@ -525,6 +535,18 @@ $scope.isEditable = function() {
                 $scope.pedigreeMetadata.status = $scope.pedigree.status;
                 $scope.pedigreeMetadata.creationDate = new Date();
             }
+
+            // Si se navega directo a un escenario (ej. desde una
+            // notificación, /pedigree/:courtCaseId/:pedigreeId?s=nombre),
+            // el tab "Pedigrí" (tabs[0]) puede pasar a inactivo antes de
+            // que este watch llegue a registrarse (carrera con
+            // loadScenario() en pedigreeController.js). Si eso pasa,
+            // el watch nunca commitea $scope._pedigree, que queda
+            // undefined para siempre y rompe los selects de
+            // Padre/Madre de original.html. Commitear siempre acá,
+            // sin depender del estado del tab.
+            commit();
+
             $scope.$watch('tabs[0].active', function() {
                 if ($scope.tabs[0].active) {
                     $scope.drawGraph($scope.pedigree.genogram).then(function (network) {
@@ -694,6 +716,7 @@ $scope.isEditable = function() {
                     status: $scope.pedigree.status,
                     mito: $scope.pedigree.executeScreeningMitochondrial,
                     mismatch: $scope.pedigree.numberOfMismatches,
+                    maxMendelianExclusions: $scope.pedigree.maxMendelianExclusions,
                     isDVI:$scope.isDVI
                 };   } }
             });

@@ -125,6 +125,11 @@ define(
             $scope.mitoRanges = getMitoRegions($scope.comparison);
             $scope.mitoAlleles = getMitoAlleles($scope.comparison);
             $scope.hasMito = hasMitocondrialData($scope);
+            // Avisa al controlador padre (pedigreeScenarioController) que
+            // los datos de comparacion de este escenario ya se cargaron,
+            // para que "Imprimir" pueda esperarlos en vez de clonar el
+            // reporte con las filas todavia vacias.
+            $scope.$emit('scenarioReportReady', $scope.$index);
           }
       );
       $scope.profileChunks = chunks(profilesAndAliases, 5);

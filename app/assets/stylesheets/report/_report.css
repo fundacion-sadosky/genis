@@ -89,6 +89,14 @@
     border-bottom-width: 1px;
 }
 
+.marker-excluded {
+    color: #c0392b;
+}
+
+.marker-mutation {
+    color: #d35400;
+}
+
 .cr-marker {
     width: 20%;
     font-weight: bold;

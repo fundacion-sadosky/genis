@@ -1,7 +1,7 @@
 define([], function() {
     'use strict';
 
-function activarPedModalCtrl($scope ,$modalInstance,data) {
+function activarPedModalCtrl($scope ,$modalInstance,data,mutationService) {
     $scope.isDVI= data.isDVI;
     $scope.pedigreeActiv= {};
     $scope.pedigreeName= data.pedigreeName;
@@ -25,11 +25,23 @@ function activarPedModalCtrl($scope ,$modalInstance,data) {
     $scope.mito=data.mito;
     $scope.status= data.status;
 
+    // Si el pedigrí ya tiene un valor propio de "Máximo de exclusiones
+    // toleradas" se usa ese; si no, se precarga con el parámetro global
+    // configurado en Parámetros Estadísticos (queda editable igual).
+    if(data.maxMendelianExclusions !== undefined && data.maxMendelianExclusions !== null){
+        $scope.maxMendelianExclusions = parseInt(data.maxMendelianExclusions);
+    }else{
+        mutationService.getMaxMendelianExclusions().then(function(response) {
+            $scope.maxMendelianExclusions = response.data.maxMendelianExclusions;
+        });
+    }
+
     $scope.close= function(){
         $scope.pedigreeActiv.boundary = $scope.boundary;
         $scope.pedigreeActiv.frequencyTable = $scope.freqTable;
         $scope.pedigreeActiv.mismatchMito = $scope.mismatchMito;
         $scope.pedigreeActiv.mitocondrial = $scope.mito;
+        $scope.pedigreeActiv.maxMendelianExclusions = parseInt($scope.maxMendelianExclusions);
         if($scope.mutationModelId){
             $scope.pedigreeActiv.mutationModelId = $scope.mutationModelId;
         }else {

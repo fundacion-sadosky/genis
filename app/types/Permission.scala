@@ -75,10 +75,10 @@ object Permission {
   }
   case object MUTATION_MODELS_CRUD extends Permission {
     override val operations: Set[StaticAuthorisationOperation] = Set(
-      StaticAuthorisationOperation("""/mutation-models|/mutation-models-types|/mutation-model|/mutation-model-parameters|/mutation-models/default-params""".r, """GET""".r, "MutationModelsGet"),
+      StaticAuthorisationOperation("""/mutation-models|/mutation-models-types|/mutation-model|/mutation-model-parameters|/mutation-models/default-params|/pedigree-matching-parameter""".r, """GET""".r, "MutationModelsGet"),
       StaticAuthorisationOperation("""/mutation-models.*""".r, """DELETE""".r, "MutationModelsDelete"),
       StaticAuthorisationOperation("""/mutation-models.*""".r, """POST""".r, "MutationModelsInsert"),
-      StaticAuthorisationOperation("""/mutation-models.*""".r, """PUT""".r, "MutationModelsUpdate")
+      StaticAuthorisationOperation("""/mutation-models.*|/pedigree-matching-parameter""".r, """PUT""".r, "MutationModelsUpdate")
     )
   }
   case object LABORATORY_CRUD extends Permission {
@@ -203,6 +203,7 @@ object Permission {
         StaticAuthorisationOperation("""/pedigree/create-court-cases|/pedigree/metadata|/pedigree-matches-courtcase/search""".r,"""POST""".r, "PedigreeCourtCaseCreate"),
         StaticAuthorisationOperation("""/pedigree/create-genogram""".r,"""POST""".r, "PedigreeGenogramCreate"),
         StaticAuthorisationOperation("""/pedigree/status""".r,"""POST""".r, "PedigreeChangeStatus"),
+        StaticAuthorisationOperation("""/pedigree/cancel-matching""".r,"""POST""".r, "PedigreeCancelMatching"),
         StaticAuthorisationOperation("""/pedigree/courtCaseStatus""".r,"""POST""".r, "CourtCaseChangeStatus"),
         StaticAuthorisationOperation("""/pedigreeMatches.*|/pedigree/pedigree-coincidencia|/pedigree/perfil-coincidencia|/get-pedigreeMatches-export""".r,""".*""".r, "PedigreeMatchesRead"),
         StaticAuthorisationOperation("""/search/profileDataForPedigree|/filter/profileDataForPedigree|/filter/profileDataForPedigree/count|/pedigree/profiles|/pedigree/total-alias|/pedigrees-profiles/total-association""".r,"""GET""".r, "PedigreeProfileAsocRead"),

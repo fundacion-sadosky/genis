@@ -47,6 +47,9 @@
                                           sort-action="sortBy('Compatibility', 'compatibility')" sort-field="compatibility"></pdg-sortable>
                         </th>
                         <th class="text-center col-md-1 head-column">
+                            Exclusiones Toleradas
+                        </th>
+                        <th class="text-center col-md-1 head-column">
                             <pdg-sortable name="Estado " predicate="sortField" reverse="!ascending"
                                           sort-action="sortBy('Compatibility', 'pedigreeStatus')" sort-field="pedigreeStatus"></pdg-sortable>
                         </th>
@@ -86,6 +89,13 @@
 
                         </td>
 
+                        <td class="text-center">
+                            <span ng-if="m.mendelianExclusions.length" class="text-danger" title="Marcadores con exclusión mendeliana tolerada">
+                                {{m.mendelianExclusions.join(', ')}}
+                            </span>
+                            <span ng-if="!m.mendelianExclusions.length">-</span>
+                        </td>
+
                         <td class="text-center">{{ matchStatus[m.pedigree.status] }}</td>
 
                        <!-- <td class="text-center">{{ matchStatus[m.profile.status] }}</td> -->
@@ -122,7 +132,7 @@
                         </td>
                     </tr>
                     <tr>
-                        <td colspan="12" style="padding-top: 25px; text-align: center;">
+                        <td colspan="13" style="padding-top: 25px; text-align: center;">
                             <pagination style="position: initial; transform: translate(0, 0);" boundary-links="true" ng-change="searchMatches('Compatibility')" items-per-page="{{pageSize}}" max-size="10" total-items="totalItems" ng-model="currentPage" class="pagination-sm" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;"  rotate="false"></pagination>
                         </td>
                     </tr>

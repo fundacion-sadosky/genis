@@ -90,11 +90,12 @@
             <table class="table  table-bordered" data-ng-show="!noResult">
                 <thead>
                     <tr>
-                        <th class="col-md-4"><pdg-sortable name="Código del Caso" predicate="sortField" reverse="!ascending"
+                        <th class="col-md-3"><pdg-sortable name="Código del Caso" predicate="sortField" reverse="!ascending"
                             sort-action="sortBy('code')" sort-field="code"></pdg-sortable></th>
                             <th class="col-md-1">Tipo de Caso</th>
                             <th class="col-md-2">Responsable</th>
                             <th class="col-md-1">Estado</th>
+                            <th class="col-md-1">Estado del Pedigrí</th>
                             <th class="col-md-1">Coincidencias Pendientes</th>
                             <th class="col-md-1">Ver Caso</th>
                             <th class="col-md-1">Cerrar</th>
@@ -107,6 +108,10 @@
                             <td class="centered">{{c.caseType}}</td>
                             <td class="centered">{{c.assignee}}</td>
                             <td>{{ "pedigree.status." + c.status | i18next }}</td>
+                            <td>
+                                <span ng-if="c.pedigreeStatus">{{ "pedigree.status." + c.pedigreeStatus | i18next }}</span>
+                                <span ng-if="!c.pedigreeStatus">No existe pedigrí aún</span>
+                            </td>
                             <td>{{c.numberOfPendingMatches}}</td>
                             <td class="col-md-1 centered">
                                 <a id="showpedigree_{{$index}}" ng-disabled="isDeleted(c)"  href=""

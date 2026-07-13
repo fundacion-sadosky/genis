@@ -46,6 +46,12 @@ define(['lodash'],function(_) {
         this.deleteMutationModelById = function(id)  {
             return playRoutes.controllers.MutationController.deleteMutationModelById(id).delete();
         };
+        this.getMaxMendelianExclusions = function() {
+            return playRoutes.controllers.PedigreeMatchingParameterController.get().get();
+        };
+        this.updateMaxMendelianExclusions = function(maxMendelianExclusions)  {
+            return playRoutes.controllers.PedigreeMatchingParameterController.update().put({maxMendelianExclusions: maxMendelianExclusions});
+        };
 
     }
 

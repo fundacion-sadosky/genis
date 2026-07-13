@@ -48,6 +48,14 @@ class MongoPedigreeScenarioRepository extends PedigreeScenarioRepository {
       result
     })
   }
+  private def toBSONMarkerDetails(markerDetails: Map[String, MarkerLRDetail]): BSONDocument = {
+    markerDetails.foldLeft(BSONDocument.empty) { case (doc, (marker, detail)) =>
+      doc ++ BSONDocument(marker -> BSONDocument(
+        "lr" -> detail.lr,
+        "classification" -> detail.classification
+      ))
+    }
+  }
   private def convertToBSON(scenario: PedigreeScenario) = {
     var scenarioBSON = BSONDocument("_id"->BSONObjectID(scenario._id.id),
       "pedigreeId"->scenario.pedigreeId.toString,
@@ -56,7 +64,8 @@ class MongoPedigreeScenarioRepository extends PedigreeScenarioRepository {
       "genogram"->toBSONDoc(scenario.genogram),
       "status"->scenario.status.toString,
       "frequencyTable"->scenario.frequencyTable,
-      "isProcessing"-> scenario.isProcessing
+      "isProcessing"-> scenario.isProcessing,
+      "markerDetails"-> toBSONMarkerDetails(scenario.markerDetails)
     )
     if(scenario.lr.isDefined){
       scenarioBSON = scenarioBSON.++("lr"->scenario.lr.get)

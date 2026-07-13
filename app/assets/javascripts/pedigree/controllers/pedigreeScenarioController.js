@@ -20,6 +20,29 @@ define(['angular', 'jquery'], function(angular, $) {
         $scope.drawGraph = function() {
             $scope.createNetwork($scope.scenario.genogram, "genogram_" + $scope.$index, false).then(function(n){
                 network = n;
+                // El tab a veces se activa en el mismo digest en que se
+                // instancia la red (al crear un escenario nuevo, o al
+                // entrar directo a un escenario desde una notificación)
+                // — el contenedor todavia no tiene tamano real (el
+                // tab-pane de Bootstrap no termino de mostrarse) y vis.js
+                // dibuja el genograma vacio. En vez de esperar un tiempo
+                // fijo (que puede no alcanzar si hay mas carga async en
+                // paralelo, como al entrar desde una notificación),
+                // reintentar hasta que el contenedor tenga tamano real.
+                var containerId = "genogram_" + $scope.$index;
+                var attempts = 0;
+                var maxAttempts = 15;
+                var tryFit = function() {
+                    attempts++;
+                    var hasSize = $('#' + containerId).width() > 0;
+                    if (network && (hasSize || attempts >= maxAttempts)) {
+                        network.redraw();
+                        network.fit();
+                    } else if (network) {
+                        $timeout(tryFit, 150);
+                    }
+                };
+                $timeout(tryFit, 150);
             });
         };
 
@@ -151,9 +174,11 @@ define(['angular', 'jquery'], function(angular, $) {
         $scope.getLR = function() {
             $scope.isProcessing = true;
             pedigreeService.getLR($scope.scenario).then(function(response) {
-               $scope.scenario.lr = response.data;
+               $scope.scenario.lr = response.data.lr;
+               $scope.scenario.markerDetails = response.data.markerDetails;
                 $scope.isProcessing = false;
-            }, function() {
+            }, function(response) {
+                alertService.error({message: response.data});
                 $scope.isProcessing = false;
             });
         };
@@ -163,31 +188,70 @@ define(['angular', 'jquery'], function(angular, $) {
             return !$scope.scenario.frequencyTable || unknowns.length !== 1 || !unknowns[0].globalCode || $scope.processing() || !$scope.scenario._id;
         };
 
+        // pedigreeScenarioReportController (controller del div #report_N)
+        // carga la comparacion de perfiles de forma asincronica y avisa
+        // via $emit cuando termina. Si "Imprimir" se clickea antes de eso,
+        // el reporte clonado sale con las filas de la tabla pero sin los
+        // alelos (todavia no cargaron). reportReadyIndexes trackea que
+        // escenarios ya avisaron que terminaron de cargar.
+        var reportReadyIndexes = {};
+        $scope.$on('scenarioReportReady', function(event, index) {
+            reportReadyIndexes[index] = true;
+        });
+
         $scope.printReport = function() {
             // network.fit(); // Center and adjust network size to canvas size.
-            network.selectNodes([]);
+            if (network) {
+                network.selectNodes([]);
+            }
 
             var head = '<head><title>Resultados caso ' + $scope.courtcase.internalSampleCode + '</title>';
             $("link").each(function () {
                 head += '<link rel="stylesheet" href="' + $(this)[0].href + '" />';
             });
             head += "</head>";
-            // el timeout es necesario para que se termine de cargar la red
-            $timeout(function(){
-                $scope.canvasURL = $('#genogram_' + $scope.$index + ' canvas').get(0).toDataURL();
-                $scope.$apply();
-                var report = window.open('', '_blank');
-                report.document.write(
-                  '<html>' + head +
-                  '<body>' + $('#report_'+$scope.$index).html() +
-                  '</body></html>'
-                );
-                report.document.close();
-                $(report).on('load', function(){
-                    report.print();
-                    report.close();
+            var doPrint = function(){
+                // el timeout es necesario para que se termine de cargar la red
+                $timeout(function(){
+                    $scope.canvasURL = $('#genogram_' + $scope.$index + ' canvas').get(0).toDataURL();
+                    $scope.$apply();
+                    var report = window.open('', '_blank');
+                    report.document.write(
+                      '<html>' + head +
+                      '<body>' + $('#report_'+$scope.$index).html() +
+                      '</body></html>'
+                    );
+                    report.document.close();
+                    $(report).on('load', function(){
+                        report.print();
+                        report.close();
+                    });
                 });
-            });
+            };
+
+            if (reportReadyIndexes[$scope.$index]) {
+                doPrint();
+            } else {
+                // Todavia no cargo la comparacion de perfiles: esperar el
+                // aviso (o como maximo 5 segundos, para no dejar el click
+                // en "Imprimir" colgado si la carga falla) antes de
+                // imprimir, asi el reporte clonado incluye los datos.
+                var printed = false;
+                var unwatch = $scope.$on('scenarioReportReady', function(event, index) {
+                    if (!printed && index === $scope.$index) {
+                        printed = true;
+                        unwatch();
+                        doPrint();
+                    }
+                });
+                $timeout(function() {
+                    if (!printed) {
+                        printed = true;
+                        unwatch();
+                        doPrint();
+                    }
+                }, 5000);
+            }
         };
         
         $scope.processing = function() {

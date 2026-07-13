@@ -23,7 +23,7 @@ transitiveClassifiers := Seq("sources", "javadoc")
 // TODO Set your organization here; ThisBuild means it will apply to all sub-modules
 organization in ThisBuild := "ar.org.fundacionsadosky"
 
-version := "5.1.13"
+version := "5.1.14"
 
 packageDescription := "Genis app"
 
