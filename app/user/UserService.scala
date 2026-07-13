@@ -343,8 +343,27 @@ class UserServiceImpl @Inject() (
     findByGeneMapper(geneMapperId).map(userOption => userOption.get.superuser)
   }
 
+  // sendNotifToAllSuperUsers is invoked once per match / per proto-profile
+  // when a batch is accepted (Spark2Matcher, BulkUploadService): each call
+  // used to fire a full LDAP search "(title=true)" over the single shared
+  // search connection, in bursts of 300+ searches per second that killed it
+  // by backpressure (resultCode=81; incident 2026-07-09, CDMX deployment).
+  // Memoize the Future for a short TTL: concurrent calls share the in-flight
+  // search and the list (which almost never changes) refreshes by itself.
+  private val superUsersTtlMillis = 30000L
+  @volatile private var superUsersCached: Option[(Long, Future[Seq[String]])] = None
+
   override def findSuperUsers(): Future[Seq[String]] = {
-    userRepository.findSuperUsers().map(_.map(LdapUser.toUser(_, roleService.getRolePermissions())).map(_.id)).map(_.toSet.toSeq)
+    val now = System.currentTimeMillis()
+    superUsersCached match {
+      case Some((ts, cached)) if now - ts < superUsersTtlMillis => cached
+      case _ =>
+        val fresh = userRepository.findSuperUsers().map(_.map(LdapUser.toUser(_, roleService.getRolePermissions())).map(_.id)).map(_.toSet.toSeq)
+        superUsersCached = Some((now, fresh))
+        // never cache a failure (e.g. LDAP briefly down)
+        fresh.onFailure { case _ => superUsersCached = None }
+        fresh
+    }
   }
 
   override def sendNotifToAllSuperUsers(info: NotificationInfo, excepThis: Seq[String]) = {
