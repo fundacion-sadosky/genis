@@ -79,12 +79,22 @@ define(
       };
       var getSexMarkers = function(comparisonData) {
         var extractLocusAndMergeAlleles = function(elem) {
-          var areAllXorY = Array
-            .from(Object.entries(elem.g))
+          var entries = Array.from(Object.entries(elem.g));
+          if (entries.length === 0) {
+            // Ningun individuo tiene alelos cargados para este locus (ej.
+            // un candidato sin genotipificacion en ese marcador puntual):
+            // no puede ser el marcador de sexo. Sin este corte, el reduce
+            // de abajo revienta con "Reduce of empty array with no
+            // initial value" y aborta toda la carga de la comparacion de
+            // perfiles antes de avisar que terminó (scenarioReportReady
+            // nunca se emite).
+            return [elem.locus, false];
+          }
+          var areAllXorY = entries
             .map(function(x) {return x[1];})
-            .reduce(function (a, x) {return a.concat(x);})
+            .reduce(function (a, x) {return a.concat(x);}, [])
             .map(function(x) {return x ==="X" || x === "Y";})
-            .reduce(function(a, x) {return a && x;});
+            .reduce(function(a, x) {return a && x;}, true);
           return [elem.locus, areAllXorY];
         };
         var sexMarker = comparisonData

@@ -216,6 +216,14 @@ define(['angular', 'jquery'], function(angular, $) {
                     $scope.canvasURL = $('#genogram_' + $scope.$index + ' canvas').get(0).toDataURL();
                     $scope.$apply();
                     var report = window.open('', '_blank');
+                    if (!report) {
+                        // window.open puede devolver null si el navegador
+                        // bloquea el popup (comun cuando se abre fuera de
+                        // la ventana de "user gesture" del click, ej. tras
+                        // esperar varios segundos la carga de datos).
+                        alertService.error({message: 'El navegador bloqueó la ventana de impresión. Habilite los popups para este sitio e intente de nuevo.'});
+                        return;
+                    }
                     report.document.write(
                       '<html>' + head +
                       '<body>' + $('#report_'+$scope.$index).html() +

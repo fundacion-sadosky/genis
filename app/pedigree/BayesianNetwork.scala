@@ -692,12 +692,70 @@ object BayesianNetwork {
         }
     }.toSet
 
+    // De las exclusionMarkers de arriba, solo las que el modelo mutacional
+    // activo NO puede explicar (o no hay modelo configurado) son
+    // candidatas a tolerancia. Si el modelo SI las explica — misma logica
+    // que las ramas normales del loop principal, mas abajo (linea
+    // "es con mutaciones y no estan todos los alelos en el genotipo") —
+    // se prefiere puntuarlas via el modelo mutacional en vez de sacarlas
+    // del calculo: la tolerancia es para exclusiones que el modelo no
+    // logra justificar, no para reemplazar el calculo del modelo cuando
+    // si puede. Se evalua con una "sonda" que replica exactamente esa
+    // rama sin tocar el acumulador `cpts` (que en este punto, antes del
+    // loop principal, todavia es igual a `genotypification`).
+    val unexplainableExclusions: Set[String] = exclusionMarkers.filter { marker =>
+      val alleles = queryProfiles(unknown)(marker)
+      val pVariable = s"${unknown}_${marker}_p"
+      val mVariable = s"${unknown}_${marker}_m"
+      if (mutationModelType.isEmpty) {
+        true
+      } else if (isAllAlellesInGenotipeAndN(marker, alleles, pVariable, mVariable, genotypification, n)) {
+        // El CPT con modelo mutacional ya incluye este alelo en su
+        // dominio (join exacto explicara la mutacion): explicable.
+        false
+      } else {
+        val dependentCPTs = genotypification.filter(
+          cpt => cpt.header.contains(pVariable) || cpt.header.contains(mVariable)
+        )
+        val alelleInGenotypeOpt = getAlelleInGenotype(
+          marker, alleles, pVariable, mVariable, genotypification
+        )
+        // Misma formula que la rama "es con mutaciones" del loop
+        // principal, mas abajo: frecuencia poblacional del alelo no
+        // rastreado, no el minimo del CPT.
+        val probability = alelleInGenotypeOpt match {
+          case Some(alelleInGenotype) =>
+            val otherAllele = alleles.find(_ != alelleInGenotype).getOrElse(alelleInGenotype)
+            val otherAlleleFrequency = getFrequency(otherAllele, marker, frequencyTable)
+            val probabilityPVariable: Double = getProbabilityOf(
+              pVariable, alelleInGenotype, dependentCPTs
+            )
+            val probabilityMVariable: Double = getProbabilityOf(
+              mVariable, alelleInGenotype, dependentCPTs
+            )
+            (probabilityMVariable * otherAlleleFrequency) +
+              (probabilityPVariable * otherAlleleFrequency)
+          case None =>
+            val freq0 = getFrequency(alleles(0), marker, frequencyTable)
+            val freq1 = if (alleles.length > 1) getFrequency(alleles(1), marker, frequencyTable) else freq0
+            freq0 * freq1
+        }
+        // probability > 0: el modelo mutacional le asigna una probabilidad
+        // real (paso alcanzable dentro de cantSaltos) => explicable, no
+        // tolerar. probability == 0 (paso fuera de rango, o sin datos):
+        // el modelo no la explica => candidata a tolerancia.
+        probability <= 0
+      }
+    }
+
     val toleratedExclusions: Set[String] =
-      if (exclusionMarkers.size <= maxExclusionsAllowed) exclusionMarkers else Set.empty
+      if (unexplainableExclusions.size <= maxExclusionsAllowed) unexplainableExclusions else Set.empty
 
     logger.info(
       s"--- Tolerancia exclusiones: unknown=$unknown maxAllowed=$maxExclusionsAllowed " +
-      s"exclusionMarkers=${exclusionMarkers.mkString(",")} toleradas=${toleratedExclusions.mkString(",")} ---"
+      s"exclusionMarkers=${exclusionMarkers.mkString(",")} " +
+      s"noExplicablesPorModelo=${unexplainableExclusions.mkString(",")} " +
+      s"toleradas=${toleratedExclusions.mkString(",")} ---"
     )
 
     // Log de la evidencia familiar CRUDA por marcador (antes de cruzarla
@@ -792,30 +850,39 @@ object BayesianNetwork {
                 cpt.header.contains(mVariable)
             )
             val header = Array(pVariable, mVariable) :+ "Probability"
-            val minPorbabilityOfPVarible = getMinProbabilityofVariable(
-              pVariable, dependentCPTs, marker, frequencyTable
-            )
-            val minPorbabilityOfMVarible = getMinProbabilityofVariable(
-              mVariable, dependentCPTs, marker, frequencyTable
-            )
+            // El alelo que no se puede rastrear hasta un ancestro
+            // genotipificado (mutado, o simplemente heredado de una rama
+            // del pedigri sin genotipificar — ej. un abuelo genotipificado
+            // pero padre no) se modela con su frecuencia poblacional real,
+            // no con el minimo de probabilidad del CPT familiar. Ese
+            // minimo representa el caso mutacional mas improbable de todo
+            // el dominio del CPT y subestima brutalmente la probabilidad
+            // de un alelo comun que solo no aparece en el CPT porque viene
+            // de un ancestro sin genotipificar (ver seccion 10 del doc:
+            // caso FAM9, PI1 con abuelo paterno genotipificado pero padre
+            // no — un alelo perfectamente normal tiraba el LR a ~0).
             val probability = alelleInGenotypeOpt match {
               case Some(alelleInGenotype) =>
                 // Un alelo si esta en el genotipo familiar: su probabilidad
-                // real de esa variable, mas la probabilidad minima del
-                // genotipo para el alelo mutado/no visto en la otra variable.
+                // real de esa variable, mas la frecuencia poblacional del
+                // alelo no rastreado en la otra variable.
+                val otherAllele = alleles.find(_ != alelleInGenotype).getOrElse(alelleInGenotype)
+                val otherAlleleFrequency = getFrequency(otherAllele, marker, frequencyTable)
                 val probabilityPVariable : Double = getProbabilityOf(
                   pVariable, alelleInGenotype, dependentCPTs
                 )
                 val probabilityMVariable : Double = getProbabilityOf(
                   mVariable, alelleInGenotype, dependentCPTs
                 )
-                (probabilityMVariable * minPorbabilityOfPVarible) +
-                  (probabilityPVariable * minPorbabilityOfMVarible)
+                (probabilityMVariable * otherAlleleFrequency) +
+                  (probabilityPVariable * otherAlleleFrequency)
               case None =>
                 // Ningun alelo del candidato es alcanzable desde la familia:
-                // se tratan los dos como mutados/no vistos, usando la
-                // probabilidad minima de cada variable.
-                minPorbabilityOfPVarible * minPorbabilityOfMVarible
+                // se tratan los dos como no rastreados, usando la
+                // frecuencia poblacional real de cada uno.
+                val freq0 = getFrequency(alleles(0), marker, frequencyTable)
+                val freq1 = if (alleles.length > 1) getFrequency(alleles(1), marker, frequencyTable) else freq0
+                freq0 * freq1
             }
             var x : Array[Double] = Array.empty
             x = x ++ alleles :+ probability
@@ -905,53 +972,6 @@ object BayesianNetwork {
           )
           .headOption
           .foreach(row => probability = row.last)
-      }
-    }
-
-    probability
-  }
-
-  private def getCountMinFrecbeforeMin(
-    marker: String,
-    frequencyTable: FrequencyTable
-  ) : Int = {
-    val frecMin = frequencyTable
-      .getOrElse(marker, Map.empty)
-      .get(-1.0)
-    val menorFrecMin = frequencyTable
-      .getOrElse(marker, Map.empty)
-      .filter(tuple => (tuple._2.<(frecMin.get)))
-    val cantMenores = menorFrecMin.keys.size
-    cantMenores
-  }
-
-  private def getMinProbabilityofVariable(
-    variable: String,
-    cpts: Array[PlainCPT],
-    marker: String,
-    frequencyTable: FrequencyTable
-  ) : Double = {
-    val cptsOfVariable = cpts.filter(cpt => cpt.header.contains(variable))
-//    val cantMinFrecBeforeMin = getCountMinFrecbeforeMin(marker, frequencyTable)
-    var probability = 0.0
-    cptsOfVariable.foreach {
-      cpt => {
-        val matrixArray = cpt.matrix.toArray
-        cpt.matrix = matrixArray.iterator
-        // Si el CPT quedo sin filas (todas las combinaciones tenian
-        // probabilidad 0 y se podaron), no hay ningun "minimo" que
-        // calcular: se mantiene 0.0 en vez de reventar con
-        // UnsupportedOperationException: empty.minBy.
-        if (matrixArray.nonEmpty) {
-          probability = matrixArray.minBy(elem => elem.last).last
-        }
-/*
-        val matrixArraYOrderer = matrixArray.sortBy(elem => elem.last)
-        if ((matrixArraYOrderer.length >= cantMinFrecBeforeMin) && (cantMinFrecBeforeMin != 0))
-          probability = matrixArraYOrderer.apply(cantMinFrecBeforeMin-1).last
-        else
-          probability = matrixArraYOrderer.apply(0).last
-*/
       }
     }
 

@@ -60,25 +60,59 @@ class Pedigrees @Inject() (
   }
 
   // Un pedigri "solo hermanos" es aquel donde el desconocido no tiene
-  // ningun padre/madre NI hijo/a genotipificado (globalCode asignado) en
-  // el genograma: solo hermanos genotipificados. Ahi no existe ningun
-  // criterio de exclusion mendeliana directa (compartir 0 alelos con un
-  // hermano es un resultado normal, no una exclusion), asi que el
-  // matching no puede descartar candidatos baratamente antes de construir
-  // la red bayesiana completa. Activar esto CON un modelo mutacional
-  // configurado (CPTs mucho mas grandes, ver StepwiseL4) contra el pool
-  // completo de perfiles matcheables del sistema es lo que veniamos
-  // viendo tirar la JVM por falta de memoria (pedigri 26). Ver
+  // NINGUN ancestro (padre, madre, abuelo, etc.) NI descendiente (hijo,
+  // nieto, etc.) genotipificado (globalCode asignado) en el genograma —
+  // solo parientes colaterales (hermanos, tios, primos) genotipificados,
+  // si los hay. Ahi no existe ningun criterio de exclusion mendeliana
+  // directa (compartir 0 alelos con un hermano es un resultado normal, no
+  // una exclusion), asi que el matching no puede descartar candidatos
+  // baratamente antes de construir la red bayesiana completa. Activar
+  // esto CON un modelo mutacional configurado (CPTs mucho mas grandes,
+  // ver StepwiseL4) contra el pool completo de perfiles matcheables del
+  // sistema es lo que veniamos viendo tirar la JVM por falta de memoria
+  // (pedigri 26).
+  //
+  // Un ancestro o descendiente genotipificado en CUALQUIER generacion
+  // (no solo el padre/madre o hijo/a directo) alcanza como criterio de
+  // exclusion: aunque sea indirecto (ej. abuelo paterno genotipificado
+  // pero padre no, pedigri FAM9/FAM12), la transmision mendeliana sigue
+  // aplicando a lo largo de toda la cadena — con el fix de la seccion 10
+  // (frecuencia poblacional en vez de minimo del CPT para el alelo no
+  // rastreado) ese caso ya se calcula correctamente, asi que no hace
+  // falta bloquear el modelo mutacional ahi. Ver
   // docs/pedigree-matching-mendelian-exclusion-fix.md.
   private def hasNoDirectExclusionCriterion(genogram: Seq[Individual]): Boolean = {
-    genogram.find(_.unknown).exists { unknown =>
-      val father = unknown.idFather.flatMap(alias => genogram.find(_.alias == alias))
-      val mother = unknown.idMother.flatMap(alias => genogram.find(_.alias == alias))
-      val hasGenotypedParent = father.exists(_.globalCode.isDefined) || mother.exists(_.globalCode.isDefined)
-      val hasGenotypedChild = genogram.exists { ind =>
-        (ind.idFather.contains(unknown.alias) || ind.idMother.contains(unknown.alias)) && ind.globalCode.isDefined
+    val byAlias: Map[NodeAlias, Individual] = genogram.map(ind => ind.alias -> ind).toMap
+
+    def hasGenotypedAncestor(alias: NodeAlias, visited: Set[NodeAlias]): Boolean = {
+      if (visited.contains(alias)) {
+        false
+      } else {
+        byAlias.get(alias).exists { ind =>
+          ind.globalCode.isDefined ||
+            ind.idFather.exists(f => hasGenotypedAncestor(f, visited + alias)) ||
+            ind.idMother.exists(m => hasGenotypedAncestor(m, visited + alias))
+        }
       }
-      !hasGenotypedParent && !hasGenotypedChild
+    }
+
+    def hasGenotypedDescendant(alias: NodeAlias, visited: Set[NodeAlias]): Boolean = {
+      if (visited.contains(alias)) {
+        false
+      } else {
+        genogram.exists { child =>
+          (child.idFather.contains(alias) || child.idMother.contains(alias)) &&
+            (child.globalCode.isDefined || hasGenotypedDescendant(child.alias, visited + alias))
+        }
+      }
+    }
+
+    genogram.find(_.unknown).exists { unknown =>
+      val hasGenotypedAncestorLine =
+        unknown.idFather.exists(f => hasGenotypedAncestor(f, Set(unknown.alias))) ||
+          unknown.idMother.exists(m => hasGenotypedAncestor(m, Set(unknown.alias)))
+      val hasGenotypedDescendantLine = hasGenotypedDescendant(unknown.alias, Set.empty)
+      !hasGenotypedAncestorLine && !hasGenotypedDescendantLine
     }
   }
 
@@ -291,11 +325,11 @@ class Pedigrees @Inject() (
       genogram => {
         if (genogram.mutationModelId.isDefined && hasNoDirectExclusionCriterion(genogram.genogram)) {
           Future.successful(BadRequest(
-            "Este pedigrí no tiene padre/madre ni hijo/a genotipificado del desconocido (solo hermanos), " +
-            "por lo que no existe un criterio de exclusión mendeliana directa. Activarlo con un modelo " +
-            "mutacional configurado dispara un cálculo mucho más costoso contra todo el pool de perfiles " +
-            "matcheables del sistema y puede agotar la memoria del servidor. Quite el modelo mutacional " +
-            "para activar este pedigrí."
+            "Este pedigrí no tiene ningún ancestro ni descendiente genotipificado del desconocido " +
+            "(solo parientes colaterales, ej. hermanos), por lo que no existe un criterio de exclusión " +
+            "mendeliana directa. Activarlo con un modelo mutacional configurado dispara un cálculo mucho " +
+            "más costoso contra todo el pool de perfiles matcheables del sistema y puede agotar la " +
+            "memoria del servidor. Quite el modelo mutacional para activar este pedigrí."
           ))
         } else if (!pedigreeProcessingLock.tryAcquire(genogram._id)) {
           busyResult
