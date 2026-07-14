@@ -694,57 +694,72 @@ object BayesianNetwork {
 
     // De las exclusionMarkers de arriba, solo las que el modelo mutacional
     // activo NO puede explicar (o no hay modelo configurado) son
-    // candidatas a tolerancia. Si el modelo SI las explica — misma logica
-    // que las ramas normales del loop principal, mas abajo (linea
-    // "es con mutaciones y no estan todos los alelos en el genotipo") —
-    // se prefiere puntuarlas via el modelo mutacional en vez de sacarlas
-    // del calculo: la tolerancia es para exclusiones que el modelo no
-    // logra justificar, no para reemplazar el calculo del modelo cuando
-    // si puede. Se evalua con una "sonda" que replica exactamente esa
-    // rama sin tocar el acumulador `cpts` (que en este punto, antes del
-    // loop principal, todavia es igual a `genotypification`).
+    // candidatas a tolerancia. Si el modelo SI las explica se prefiere
+    // puntuarlas via el modelo mutacional en vez de sacarlas del calculo:
+    // la tolerancia es para exclusiones que el modelo no logra justificar,
+    // no para reemplazar el calculo del modelo cuando si puede.
+    //
+    // La explicabilidad se prueba haciendo el MISMO join exacto
+    // (prodFactor) que hace la rama "normal" del loop principal, mas abajo,
+    // en vez de usar isAllAlellesInGenotipeAndN: esa funcion solo chequea
+    // si el alelo aparece en el DOMINIO de la variable p/m, y ese dominio
+    // es, en la practica, todo el rango poblacional de referencia (`n`) —
+    // no el rango alcanzable por el modelo de mutacion desde la evidencia
+    // familiar real. Por eso devolvia "explicable" para practicamente
+    // cualquier alelo que existiera en algun perfil de la base, aunque el
+    // join real (candidato x evidencia familiar) diera vacio — causando que
+    // exclusiones genuinas (fuera del alcance de cantSaltos) NUNCA se
+    // toleraran, se puntuaran con LR=0 (join vacio, sin fallback) y
+    // tiraran el LR total a cero en vez de tolerarse (bug detectado con
+    // el pedigri 84 ALARCON_GARCIA: D8S1179 con un alelo a 6 pasos de
+    // distancia se clasificaba como "mutation" con lr=0 en vez de
+    // "excluded").
     val unexplainableExclusions: Set[String] = exclusionMarkers.filter { marker =>
-      val alleles = queryProfiles(unknown)(marker)
-      val pVariable = s"${unknown}_${marker}_p"
-      val mVariable = s"${unknown}_${marker}_m"
       if (mutationModelType.isEmpty) {
         true
-      } else if (isAllAlellesInGenotipeAndN(marker, alleles, pVariable, mVariable, genotypification, n)) {
-        // El CPT con modelo mutacional ya incluye este alelo en su
-        // dominio (join exacto explicara la mutacion): explicable.
-        false
       } else {
+        val alleles = queryProfiles(unknown)(marker)
+        val pVariable = s"${unknown}_${marker}_p"
+        val mVariable = s"${unknown}_${marker}_m"
         val dependentCPTs = genotypification.filter(
           cpt => cpt.header.contains(pVariable) || cpt.header.contains(mVariable)
         )
-        val alelleInGenotypeOpt = getAlelleInGenotype(
-          marker, alleles, pVariable, mVariable, genotypification
-        )
-        // Misma formula que la rama "es con mutaciones" del loop
-        // principal, mas abajo: frecuencia poblacional del alelo no
-        // rastreado, no el minimo del CPT.
-        val probability = alelleInGenotypeOpt match {
-          case Some(alelleInGenotype) =>
-            val otherAllele = alleles.find(_ != alelleInGenotype).getOrElse(alelleInGenotype)
-            val otherAlleleFrequency = getFrequency(otherAllele, marker, frequencyTable)
-            val probabilityPVariable: Double = getProbabilityOf(
-              pVariable, alelleInGenotype, dependentCPTs
-            )
-            val probabilityMVariable: Double = getProbabilityOf(
-              mVariable, alelleInGenotype, dependentCPTs
-            )
-            (probabilityMVariable * otherAlleleFrequency) +
-              (probabilityPVariable * otherAlleleFrequency)
-          case None =>
-            val freq0 = getFrequency(alleles(0), marker, frequencyTable)
-            val freq1 = if (alleles.length > 1) getFrequency(alleles(1), marker, frequencyTable) else freq0
-            freq0 * freq1
+        if (dependentCPTs.isEmpty) {
+          true
+        } else {
+          val header = Array(pVariable, mVariable) :+ "Probability"
+          val variable = Variable(
+            "",
+            marker,
+            if (alleles.length > 1) { VariableKind.Heterocygote }
+              else { VariableKind.Homocygote }
+          )
+          val matrix = generatePermutations(
+            Array(alleles, alleles),
+            header,
+            variable,
+            frequencyTable,
+            linkage,
+            mutationModelType,
+            mutationModelData,
+            n
+          )
+          val ukCPT = new PlainCPT(header, matrix.iterator, matrix.size)
+          // Restaurar el iterador de los CPTs compartidos despues del join,
+          // igual que en la deteccion de exclusionMarkers de arriba.
+          val dependentCPTsSnapshot = dependentCPTs.map { cpt =>
+            val arr = cpt.matrix.toArray
+            cpt.matrix = arr.iterator
+            arr
+          }
+          val product = prodFactor(unknown, ukCPT +: dependentCPTs)
+          dependentCPTs.zip(dependentCPTsSnapshot).foreach {
+            case (cpt, arr) => cpt.matrix = arr.iterator
+          }
+          // Join vacio: ni siquiera con el modelo de mutacion aplicado hay
+          // una combinacion con probabilidad no nula => no explicable.
+          extractMatrixFromPlainCPT(product).isEmpty
         }
-        // probability > 0: el modelo mutacional le asigna una probabilidad
-        // real (paso alcanzable dentro de cantSaltos) => explicable, no
-        // tolerar. probability == 0 (paso fuera de rango, o sin datos):
-        // el modelo no la explica => candidata a tolerancia.
-        probability <= 0
       }
     }
 
