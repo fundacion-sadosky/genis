@@ -262,7 +262,9 @@ class AuthServiceImplTest extends AnyWordSpec with Matchers with MockitoSugar {
       // Encrypt a URI using the user's credentials
       val plainUri = "/populationBaseFreq"
       val encryptedBytes = crypto.encrypt(plainUri.getBytes("UTF-8"), fullUser.credentials)
-      val encryptedUri = "/" + Base64.getEncoder.encodeToString(encryptedBytes)
+      // El frontend Angular (cryptoService.js) codifica la URL cifrada en Base64 URL-safe
+      // sin padding (/ -> _, + -> -, se elimina =). Debe coincidir con getUrlDecoder del server.
+      val encryptedUri = "/" + Base64.getUrlEncoder.withoutPadding.encodeToString(encryptedBytes)
 
       val result = service.verifyAndDecryptRequest(encryptedUri, "GET", Some("testuser"), Some(SecurityFixtures.totpToken))
       result mustBe Success("/populationBaseFreq")
@@ -285,7 +287,9 @@ class AuthServiceImplTest extends AnyWordSpec with Matchers with MockitoSugar {
 
       val plainUri = "/populationBaseFreq"
       val encryptedBytes = crypto.encrypt(plainUri.getBytes("UTF-8"), fullUser.credentials)
-      val encryptedUri = "/" + Base64.getEncoder.encodeToString(encryptedBytes)
+      // El frontend Angular (cryptoService.js) codifica la URL cifrada en Base64 URL-safe
+      // sin padding (/ -> _, + -> -, se elimina =). Debe coincidir con getUrlDecoder del server.
+      val encryptedUri = "/" + Base64.getUrlEncoder.withoutPadding.encodeToString(encryptedBytes)
 
       val result = service.verifyAndDecryptRequest(encryptedUri, "GET", Some("testuser"), None)
       result.isFailure mustBe true
