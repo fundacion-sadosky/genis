@@ -158,10 +158,10 @@ class StubStrKitService extends StrKitService:
   override def findLociByKits(kitIds: Seq[String]) = findLociByKitsResult
   override def getKitAlias = kitAliasResult
   override def getLocusAlias = locusAliasResult
-  override def add(kit: StrKit) = addResult
+  override def add(kit: FullStrKit) = addResult
   override def addAlias(id: String, alias: String) = addAliasResult
   override def addLocus(id: String, locus: NewStrKitLocus) = addLocusResult
-  override def update(kit: StrKit) = updateResult
+  override def update(kit: FullStrKit) = updateResult
   override def delete(id: String) = deleteResult
   override def deleteAlias(id: String) = deleteAliasResult
   override def deleteLocus(id: String) = deleteLocusResult
