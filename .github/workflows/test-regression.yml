@@ -4,6 +4,16 @@ on:
   push:
     branches: [ new-dev ]
 
+# Needed so the job can commit the ratcheted baseline back to new-dev.
+# A push made with GITHUB_TOKEN does NOT re-trigger this workflow (GitHub's
+# loop-prevention), and the commit message carries [skip ci] as a belt-and-suspenders.
+permissions:
+  contents: write
+
+concurrency:
+  group: test-regression-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   test:
     name: Run Tests & Check Regression
@@ -12,6 +22,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Java 17
         uses: actions/setup-java@v4
@@ -42,98 +54,100 @@ jobs:
         id: run_tests
         continue-on-error: true
         run: |
+          # Capture sbt's real exit code even though the default GitHub shell
+          # runs with `-eo pipefail` (which would otherwise abort this block the
+          # moment sbt returns non-zero). The health decision does NOT depend on
+          # this exit code — it is parsed from the output — but we record it.
+          set +e
           sbt -Dsbt.color=false -Dsbt.log.noformat=true "core/test" 2>&1 | tee test-output.txt
-          PASSED=$(grep -oP 'succeeded \K[0-9]+' test-output.txt | awk '{sum+=$1} END {print sum+0}')
-          FAILED=$(grep -oP 'failed \K[0-9]+' test-output.txt | awk '{sum+=$1} END {print sum+0}')
-          echo "passed=$PASSED" >> "$GITHUB_OUTPUT"
-          echo "failed=$FAILED"  >> "$GITHUB_OUTPUT"
-          echo "Tests found — passed: $PASSED, failed: $FAILED"
+          code=${PIPESTATUS[0]}
+          echo "sbt_exit=$code" >> "$GITHUB_OUTPUT"
+          echo "sbt exited with $code"
 
-      - name: Save current results as JSON
+      - name: Evaluate regression
+        id: eval
         run: |
-          echo '{"passed":${{ steps.run_tests.outputs.passed }},"failed":${{ steps.run_tests.outputs.failed }}}' \
-            > test-current.json
-          cat test-current.json
+          python3 .github/scripts/check_regression.py \
+            --output test-output.txt \
+            --sbt-exit "${{ steps.run_tests.outputs.sbt_exit || '0' }}" \
+            --baseline .github/test-baseline.json \
+            --write-baseline
 
-      - name: Download previous baseline
-        id: download_baseline
-        uses: dawidd6/action-download-artifact@v6
-        with:
-          name: test-baseline
-          workflow: test-regression.yml
-          branch: new-dev
-          if_no_artifact_found: warn
-        continue-on-error: true
-
-      - name: Compare with baseline & detect regression
-        id: check_regression
-        run: |
-          CURRENT="${{ steps.run_tests.outputs.passed }}"
-          CURRENT="${CURRENT:-0}"
-
-          if [ -f "test-baseline.json" ]; then
-            BASELINE=$(python3 -c "import sys,json; print(json.load(open('test-baseline.json'))['passed'])")
-            echo "Baseline: $BASELINE  |  Current: $CURRENT"
-
-            if [ "$CURRENT" -lt "$BASELINE" ]; then
-              BROKEN=$(( BASELINE - CURRENT ))
-              echo "regression=true"    >> "$GITHUB_OUTPUT"
-              echo "baseline=$BASELINE" >> "$GITHUB_OUTPUT"
-              echo "current=$CURRENT"   >> "$GITHUB_OUTPUT"
-              echo "broken=$BROKEN"     >> "$GITHUB_OUTPUT"
-              echo "🚨 REGRESSION: $BROKEN test(s) broken!"
-            else
-              echo "regression=false" >> "$GITHUB_OUTPUT"
-              echo "✅ No regression (baseline=$BASELINE, current=$CURRENT)"
-            fi
-          else
-            echo "No baseline found (first run). Saving current state as new baseline."
-            echo "regression=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: 🚨 Notify Telegram on regression
-        if: steps.check_regression.outputs.regression == 'true'
+      - name: 🔴 Notify Telegram — build/harness broken
+        if: steps.eval.outputs.status == 'broken'
         env:
           TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           THREAD_ID: ${{ secrets.TELEGRAM_THREAD_ID }}
         run: |
-          SHORT_SHA="${{ github.sha }}"
-          SHORT_SHA="${SHORT_SHA:0:7}"
-          ACTOR="${{ github.actor }}"
-          BRANCH="${{ github.ref_name }}"
+          SHORT_SHA="${{ github.sha }}"; SHORT_SHA="${SHORT_SHA:0:7}"
           RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          BASELINE="${{ steps.check_regression.outputs.baseline }}"
-          CURRENT="${{ steps.check_regression.outputs.current }}"
-          BROKEN="${{ steps.check_regression.outputs.broken }}"
+          MESSAGE="🔴 *TESTS ROTOS — GENis (core)*
 
-          MESSAGE="🚨 *REGRESIÓN DE TESTS — GENis*
+          El tier de tests no compiló o no corrió correctamente, así que el detector quedaría ciego.
+          Motivo: ${{ steps.eval.outputs.reason }}
+          Medido: passed=${{ steps.eval.outputs.passed }}, failed=${{ steps.eval.outputs.failed }}, total=${{ steps.eval.outputs.total }}
 
-          Antes: ${BASELINE} tests pasaban ✅
-          Ahora: ${CURRENT} tests pasan ⚠️
-          Se rompieron: *${BROKEN} tests*
+          El baseline NO se tocó (protegido contra envenenamiento).
 
-          📌 \`${SHORT_SHA}\` por ${ACTOR}
-          🌿 Branch: \`${BRANCH}\`
+          📌 \`${SHORT_SHA}\` por ${{ github.actor }}
+          🌿 Branch: \`${{ github.ref_name }}\`
           🔗 [Ver run en GitHub Actions](${RUN_URL})"
-
           MESSAGE="$(echo "$MESSAGE" | sed 's/^[[:space:]]*//')"
-
           curl -s -X POST "https://api.telegram.org/bot${TOKEN}/sendMessage" \
             -d chat_id="${CHAT_ID}" \
             -d message_thread_id="${THREAD_ID}" \
             -d parse_mode="Markdown" \
             --data-urlencode text="${MESSAGE}"
 
-      - name: Update baseline artifact
-        if: steps.check_regression.outputs.regression == 'false'
-        run: cp test-current.json test-baseline.json
+      - name: 🚨 Notify Telegram — regression
+        if: steps.eval.outputs.status == 'regression'
+        env:
+          TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          THREAD_ID: ${{ secrets.TELEGRAM_THREAD_ID }}
+        run: |
+          SHORT_SHA="${{ github.sha }}"; SHORT_SHA="${SHORT_SHA:0:7}"
+          RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          MESSAGE="🚨 *REGRESIÓN DE TESTS — GENis*
 
-      - name: Upload baseline artifact
-        if: steps.check_regression.outputs.regression == 'false'
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-baseline
-          path: test-baseline.json
-          overwrite: true
-          retention-days: 90
+          Motivo: ${{ steps.eval.outputs.reason }}
+          Antes: passed=${{ steps.eval.outputs.baseline_passed }}, failed=${{ steps.eval.outputs.baseline_failed }} ✅
+          Ahora: passed=${{ steps.eval.outputs.passed }}, failed=${{ steps.eval.outputs.failed }} ⚠️
+
+          📌 \`${SHORT_SHA}\` por ${{ github.actor }}
+          🌿 Branch: \`${{ github.ref_name }}\`
+          🔗 [Ver run en GitHub Actions](${RUN_URL})"
+          MESSAGE="$(echo "$MESSAGE" | sed 's/^[[:space:]]*//')"
+          curl -s -X POST "https://api.telegram.org/bot${TOKEN}/sendMessage" \
+            -d chat_id="${CHAT_ID}" \
+            -d message_thread_id="${THREAD_ID}" \
+            -d parse_mode="Markdown" \
+            --data-urlencode text="${MESSAGE}"
+
+      # Best-effort: persists the (re)seeded / improved baseline back to new-dev.
+      # If new-dev is protected against Actions pushes this step fails softly
+      # (continue-on-error). In that case the maintainer should commit
+      # .github/test-baseline.json once by hand using the passed/failed numbers
+      # shown in this run's job summary — after that, every run compares against
+      # the committed file read-only and no push is needed.
+      - name: Commit updated baseline
+        if: steps.eval.outputs.update_baseline == 'true'
+        continue-on-error: true
+        run: |
+          if git diff --quiet -- .github/test-baseline.json; then
+            echo "Baseline sin cambios; nada que commitear."
+            exit 0
+          fi
+          git config user.name  "genis-ci[bot]"
+          git config user.email "genis-ci@users.noreply.github.com"
+          git add .github/test-baseline.json
+          git commit -m "chore(ci): baseline de tests → passed=${{ steps.eval.outputs.passed }} failed=${{ steps.eval.outputs.failed }} [skip ci]"
+          git push origin HEAD:new-dev \
+            || (git pull --rebase origin new-dev && git push origin HEAD:new-dev)
+
+      - name: Fail job on broken/regression
+        if: steps.eval.outputs.alert == 'true'
+        run: |
+          echo "::error::Tier de tests '${{ steps.eval.outputs.status }}': ${{ steps.eval.outputs.reason }}"
+          exit 1
