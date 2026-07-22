@@ -1,4 +1,6 @@
 {
-  "_comment": "Baseline de la suite de tests de core para el detector de regresiones (.github/workflows/test-regression.yml). Se auto-siembra en la primera corrida VÁLIDA de CI (compiló + corrió la suite) y sólo se actualiza en la dirección de mejora (más passed / menos failed). Una corrida rota (no compila) NO puede sobrescribir este archivo. Podés editarlo a mano en un PR para fijar el baseline.",
-  "seeded": false
+  "seeded": true,
+  "passed": 973,
+  "failed": 165,
+  "total": 1138
 }
