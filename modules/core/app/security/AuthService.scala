@@ -226,9 +226,12 @@ class AuthServiceImpl @Inject() (
       uri.equals("/interconection/match/status") ||
       uri.equals("/interconnection/file") ||
       uri.startsWith("/jsroutes.js") ||
+      uri.startsWith("/api/v2/jsroutes.js") ||
       uri.startsWith("/sensitiveOper") ||
+      uri.startsWith("/api/v2/sensitiveOper") ||
       uri.startsWith("/profiles-uploader/") ||
       uri.startsWith("/appConf") ||
+      uri.startsWith("/api/v2/appConf") ||
       uri.startsWith("/resources/temporary/") ||
       uri.startsWith("/resources/static/") ||
       uri.startsWith("/resources/proto/static/") ||
