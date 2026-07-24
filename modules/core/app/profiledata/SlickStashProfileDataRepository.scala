@@ -14,7 +14,7 @@ import scala.concurrent.{ExecutionContext, Future}
 // PROFILE_DATA_FILIATION_RESOURCES); all other tables remain APP schema.
 @Singleton
 class SlickStashProfileDataRepository @Inject()(
-  db: Database,
+  db: slick.jdbc.JdbcBackend.Database,
   messagesApi: MessagesApi
 )(implicit ec: ExecutionContext) extends SlickProfileDataRepository(db, messagesApi):
 
