@@ -1,6 +1,6 @@
 package unit.services
 
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{Await, ExecutionContext, Future, Promise}
 import scala.concurrent.duration.*
 
 import org.mockito.ArgumentMatchers.{any, anyString}
@@ -52,13 +52,12 @@ class UserServiceImplTest extends AnyWordSpec with Matchers with MockitoSugar wi
   private def buildServiceWithTtl(
       userRepository: UserRepository,
       roleService: RoleService,
-      ttlMillis: Long
+      ttl: FiniteDuration
   ): UserServiceImpl =
     new UserServiceImpl(
       userRepository, new StubCacheService, mock[CryptoService], mock[OTPService],
-      new NoOpNotificationService, roleService, messagesApi
-    ):
-      override protected val superUsersTtlMillis = ttlMillis
+      new NoOpNotificationService, roleService, messagesApi, ttl
+    )
 
   // ── signupRequest ──────────────────────────────────────────────
 
@@ -597,13 +596,40 @@ class UserServiceImplTest extends AnyWordSpec with Matchers with MockitoSugar wi
       verify(userRepo, times(1)).findSuperUsers()
     }
 
+    // This is the property the memo exists for: the burst that killed the LDAP search
+    // connection was concurrent, so callers must share the search that is still running,
+    // not just reuse an already finished result.
+    "share the in-flight search between concurrent callers" in {
+      val userRepo = mock[UserRepository]
+      val roleSvc = mock[RoleService]
+      when(roleSvc.getRolePermissions()).thenReturn(Map.empty[String, Set[Permission]])
+
+      val inFlight = Promise[Seq[LdapUser]]()
+      when(userRepo.findSuperUsers()).thenReturn(inFlight.future)
+
+      val service = buildService(userRepository = userRepo, roleService = roleSvc)
+
+      val first = service.findSuperUsers()
+      val second = service.findSuperUsers()
+
+      first.isCompleted mustBe false
+      second.isCompleted mustBe false
+      verify(userRepo, times(1)).findSuperUsers()
+
+      inFlight.success(Seq(UserFixtures.superLdapUser))
+
+      Await.result(first, timeout) mustBe Seq("superuser")
+      Await.result(second, timeout) mustBe Seq("superuser")
+      verify(userRepo, times(1)).findSuperUsers()
+    }
+
     "search LDAP again once the TTL window expired" in {
       val userRepo = mock[UserRepository]
       val roleSvc = mock[RoleService]
       when(roleSvc.getRolePermissions()).thenReturn(Map.empty[String, Set[Permission]])
       when(userRepo.findSuperUsers()).thenReturn(Future.successful(Seq(UserFixtures.superLdapUser)))
 
-      val service = buildServiceWithTtl(userRepo, roleSvc, ttlMillis = 50L)
+      val service = buildServiceWithTtl(userRepo, roleSvc, ttl = 50.millis)
 
       Await.result(service.findSuperUsers(), timeout) mustBe Seq("superuser")
       Thread.sleep(80)

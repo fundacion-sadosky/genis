@@ -1,17 +1,30 @@
 package modules.core
 
+import scala.concurrent.duration.{DurationInt, FiniteDuration}
+
 import com.google.inject.AbstractModule
+import com.google.inject.name.Names
+import play.api.{Configuration, Environment}
 import matching.{MatchingProcessStatus, MatchingProcessStatusImpl}
 import services.{CountryService, LaboratoryService, GeneticistService, UserService}
 import services.{LaboratoryServiceImpl, GeneticistServiceImpl, CountryServiceImpl, UserServiceImpl}
 import stats.{PopulationBaseFrequencyRepository, PopulationBaseFrequencyRepositoryImpl}
 import stats.{PopulationBaseFrequencyService, PopulationBaseFrequencyServiceImpl}
 
-class CoreModule extends AbstractModule {
+class CoreModule(environment: Environment, configuration: Configuration) extends AbstractModule {
   override def configure(): Unit = {
     val logger = org.slf4j.LoggerFactory.getLogger("modules.core.CoreModule")
     try {
       logger.info("[CoreModule] Starting configuration...")
+
+      // TTL del memo de superusuarios de UserServiceImpl (issue #304)
+      val superUsersCacheTtl = configuration
+        .getOptional[FiniteDuration]("user.superUsersCacheTtl")
+        .getOrElse(30.seconds)
+      bind(classOf[FiniteDuration])
+        .annotatedWith(Names.named("superUsersCacheTtl"))
+        .toInstance(superUsersCacheTtl)
+
       bind(classOf[LaboratoryService]).to(classOf[LaboratoryServiceImpl])
       bind(classOf[GeneticistService]).to(classOf[GeneticistServiceImpl])
       bind(classOf[CountryService]).to(classOf[CountryServiceImpl])
