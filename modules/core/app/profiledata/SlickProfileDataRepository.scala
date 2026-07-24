@@ -12,10 +12,11 @@ import types.{AlphanumericId, SampleCode}
 import java.sql.Timestamp
 import java.util.Calendar
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Try
 
 @Singleton
 class SlickProfileDataRepository @Inject()(
-  db: Database,
+  db: slick.jdbc.JdbcBackend.Database,
   messagesApi: MessagesApi
 )(implicit ec: ExecutionContext) extends ProfileDataRepository with Logging:
 
@@ -142,7 +143,7 @@ class SlickProfileDataRepository @Inject()(
         .map(_.globalCode)
         .result
         .headOption
-        .map(_.map(SampleCode(_)))
+        .map(_.flatMap(s => Try(SampleCode(s)).toOption))
     )
 
   // Full interface methods

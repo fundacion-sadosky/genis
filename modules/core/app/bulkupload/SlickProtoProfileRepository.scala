@@ -17,6 +17,7 @@ import types.{AlphanumericId, SampleCode}
 import java.sql.Timestamp
 import java.util.Date
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Try
 
 @Singleton
 class SlickProtoProfileRepository @Inject()(
@@ -42,7 +43,7 @@ class SlickProtoProfileRepository @Inject()(
       row.id, row.sampleName, row.assignee, row.category,
       ProtoProfileStatus.withName(row.status),
       row.panel, geno, mm, mr, se, row.genemapperLine,
-      preexistence = row.preexistence.map(SampleCode(_)),
+      preexistence = row.preexistence.flatMap(s => Try(SampleCode(s)).toOption),
       rejectMotive = row.rejectMotive
     )
   }
@@ -337,7 +338,7 @@ class SlickProtoProfileRepository @Inject()(
     ).map { rows =>
       rows.foldLeft[(Option[SampleCode], Option[Long])]((None, None)) { (acc, b) =>
         b._1.trim match {
-          case "PROFILE_ID" => (Some(SampleCode(b._2)), acc._2)
+          case "PROFILE_ID" => (Try(SampleCode(b._2)).toOption, acc._2)
           case "BATCH_ID"   => (acc._1, Some(b._2.trim.toLong))
           case _            => acc
         }
@@ -474,7 +475,7 @@ class SlickProtoProfileRepository @Inject()(
         profileRows <- db.run(profileQ.result)
         protoRows   <- db.run(protoQ.result)
         existsBySample = names.map { sn =>
-          val gc    = profileRows.find(_._1 == sn).map(r => SampleCode(r._2))
+          val gc    = profileRows.find(_._1 == sn).flatMap(r => Try(SampleCode(r._2)).toOption)
           val batch = protoRows.find(_._1 == sn).map(_._2)
           sn -> (gc, batch)
         }.toMap

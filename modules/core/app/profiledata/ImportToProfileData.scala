@@ -31,9 +31,11 @@ class SlickImportToProfileData @Inject()(
     if labo == labCode then
       DBIO.successful(s"$country-$prov-$labCode-")
     else
-      laboratories.filter(_.codeName === labo).result.headOption.map { labOpt =>
-        val lab = labOpt.get
-        s"${lab.country}-${lab.province}-${lab.codeName}-"
+      laboratories.filter(_.codeName === labo).result.headOption.map {
+        case Some(lab) if lab.country.nonEmpty && lab.province.nonEmpty && lab.codeName.nonEmpty =>
+          s"${lab.country}-${lab.province}-${lab.codeName}-"
+        case _ =>
+          s"$country-$prov-$labCode-"
       }
 
   override def fromProtoProfileData(id: Long, labCode: String, country: String, prov: String, assignee: String, desktopSearch: Boolean = false): Future[(SampleCode, String)] =
