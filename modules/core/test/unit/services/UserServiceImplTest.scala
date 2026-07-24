@@ -4,8 +4,10 @@ import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration.*
 
 import org.mockito.ArgumentMatchers.{any, anyString}
-import org.mockito.Mockito.{verify, when}
+import org.mockito.Mockito.{times, verify, when}
+import org.scalatest.concurrent.Eventually
 import org.scalatest.matchers.must.Matchers
+import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.i18n.DefaultMessagesApi
@@ -17,10 +19,13 @@ import services.{ClearPassRequestKey, FullUserKey, SignupRequestKey, UserService
 import types.{Permission, TotpToken}
 import user.*
 
-class UserServiceImplTest extends AnyWordSpec with Matchers with MockitoSugar:
+class UserServiceImplTest extends AnyWordSpec with Matchers with MockitoSugar with Eventually:
 
   given ExecutionContext = ExecutionContext.global
   private val timeout: Duration = Duration(5, "seconds")
+
+  override implicit val patienceConfig: PatienceConfig =
+    PatienceConfig(timeout = Span(2, Seconds), interval = Span(20, Millis))
 
   private val messagesApi = new DefaultMessagesApi(Map(
     "default" -> Map(
@@ -42,6 +47,18 @@ class UserServiceImplTest extends AnyWordSpec with Matchers with MockitoSugar:
       userRepository, cacheService, cryptoService, otpService,
       new NoOpNotificationService, roleService, messagesApi
     )
+
+  /** Same service with a shortened superuser memo TTL, so the expiry is testable without sleeping 30s. */
+  private def buildServiceWithTtl(
+      userRepository: UserRepository,
+      roleService: RoleService,
+      ttlMillis: Long
+  ): UserServiceImpl =
+    new UserServiceImpl(
+      userRepository, new StubCacheService, mock[CryptoService], mock[OTPService],
+      new NoOpNotificationService, roleService, messagesApi
+    ):
+      override protected val superUsersTtlMillis = ttlMillis
 
   // ── signupRequest ──────────────────────────────────────────────
 
@@ -559,5 +576,58 @@ class UserServiceImplTest extends AnyWordSpec with Matchers with MockitoSugar:
       val service = buildService(userRepository = userRepo)
 
       Await.result(service.isSuperUser("testuser"), timeout) mustBe false
+    }
+  }
+
+  // ── findSuperUsers (memo TTL — issue #304) ─────────────────────
+
+  "UserServiceImpl.findSuperUsers" must {
+
+    "search LDAP only once for repeated calls inside the TTL window" in {
+      val userRepo = mock[UserRepository]
+      val roleSvc = mock[RoleService]
+      when(roleSvc.getRolePermissions()).thenReturn(Map.empty[String, Set[Permission]])
+      when(userRepo.findSuperUsers()).thenReturn(Future.successful(Seq(UserFixtures.superLdapUser)))
+
+      val service = buildService(userRepository = userRepo, roleService = roleSvc)
+
+      Await.result(service.findSuperUsers(), timeout) mustBe Seq("superuser")
+      Await.result(service.findSuperUsers(), timeout) mustBe Seq("superuser")
+
+      verify(userRepo, times(1)).findSuperUsers()
+    }
+
+    "search LDAP again once the TTL window expired" in {
+      val userRepo = mock[UserRepository]
+      val roleSvc = mock[RoleService]
+      when(roleSvc.getRolePermissions()).thenReturn(Map.empty[String, Set[Permission]])
+      when(userRepo.findSuperUsers()).thenReturn(Future.successful(Seq(UserFixtures.superLdapUser)))
+
+      val service = buildServiceWithTtl(userRepo, roleSvc, ttlMillis = 50L)
+
+      Await.result(service.findSuperUsers(), timeout) mustBe Seq("superuser")
+      Thread.sleep(80)
+      Await.result(service.findSuperUsers(), timeout) mustBe Seq("superuser")
+
+      verify(userRepo, times(2)).findSuperUsers()
+    }
+
+    "not cache a failed search: the next call goes back to LDAP" in {
+      val userRepo = mock[UserRepository]
+      val roleSvc = mock[RoleService]
+      when(roleSvc.getRolePermissions()).thenReturn(Map.empty[String, Set[Permission]])
+      when(userRepo.findSuperUsers())
+        .thenReturn(Future.failed(new RuntimeException("LDAP down")))
+        .thenReturn(Future.successful(Seq(UserFixtures.superLdapUser)))
+
+      val service = buildService(userRepository = userRepo, roleService = roleSvc)
+
+      a[RuntimeException] must be thrownBy Await.result(service.findSuperUsers(), timeout)
+
+      // the cache is cleared by an asynchronous callback, so retry until it lands
+      eventually {
+        Await.result(service.findSuperUsers(), timeout) mustBe Seq("superuser")
+      }
+      verify(userRepo, times(2)).findSuperUsers()
     }
   }
