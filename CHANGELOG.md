@@ -1,5 +1,56 @@
 # Changelog
 
+## [v5.1.14] - 2026-07-22
+
+_Si está actualizando el sistema por favor lea: [`UPGRADING.md`](https://github.com/fundacion-sadosky/genis/blob/main/UPGRADING.md)._
+
+### Added
+
+- **Tolerancia configurable de exclusiones mendelianas en MPI/DVI**: se puede
+  configurar la cantidad máxima de marcadores con exclusión mendeliana que se
+  toleran en un match de compatibilidad antes de descartarlo. El parámetro es
+  global y se persiste en la nueva tabla `PEDIGREE_MATCHING_PARAMETER`
+  (evolution 44).
+  ([#289](https://github.com/fundacion-sadosky/genis/issues/289)).
+- El parámetro de exclusiones toleradas se muestra en la pantalla de activación
+  del pedigrí.
+  ([#290](https://github.com/fundacion-sadosky/genis/issues/290)).
+- **Cancelar el matching de un pedigrí**: se puede cancelar el proceso de cotejo
+  de un pedigrí en curso.
+  ([#288](https://github.com/fundacion-sadosky/genis/issues/288)).
+- Instrucciones para instalar GENis como servicio de systemd en el `README`.
+
+### Changed
+
+- Se optimizó el matching de MPI/pedigrí: las RDD de cada pedigrí se combinan
+  con una única llamada a `SparkContext.union()` en lugar de encadenar un
+  `union()` por pedigrí, que encarecía la planificación del job de Spark. El
+  tiempo de procesamiento por perfil baja ~57-61% (medido en desarrollo sobre
+  16 perfiles reales: de 350s a una mediana de 136s).
+  ([#301](https://github.com/fundacion-sadosky/genis/issues/301)).
+- Se documentaron en `conf/storage.conf` las opciones de conexión para desplegar
+  PostgreSQL y MongoDB en un servidor separado, junto con la recomendación de
+  mantener LDAP en el servidor de aplicación porque las contraseñas viajan sin
+  TLS.
+  ([#280](https://github.com/fundacion-sadosky/genis/issues/280)).
+
+### Fixed
+
+- El match por compatibilidad ya no descarta las exclusiones mendelianas del
+  cálculo: se manejan correctamente las exclusiones y mutaciones en MPI/DVI.
+  ([#288](https://github.com/fundacion-sadosky/genis/issues/288)).
+- Se corrigieron las caídas recurrentes por LDAP al aceptar lotes:
+  `findSuperUsers()` ya no dispara una búsqueda por cada match (se memoiza con
+  un TTL de 30 segundos) y la conexión de búsqueda se reconecta sola si se
+  corta.
+  ([#294](https://github.com/fundacion-sadosky/genis/issues/294)).
+- Se corrigió el paginado del listado de coincidencias de pedigrís.
+- Se corrigió la generación del reporte de Desktop Search y la impresión de
+  reportes.
+- Se corrigieron errores al agregar análisis o marcadores a un perfil existente.
+
+[v5.1.14]: https://github.com/fundacion-sadosky/genis/releases/tag/v5.1.14
+
 ## [v5.1.13] - 2026-03-30
 
 _Si está actualizando el sistema por favor lea: [`UPGRADING.md`](https://github.com/fundacion-sadosky/genis/blob/main/UPGRADING.md)._
@@ -86,9 +137,9 @@ _Si está actualizando el sistema por favor lea: [`UPGRADING.md`](https://github
 - Los perfiles descartados como coincidencia ya no se muestran coloreados como
   perfiles con match en el listado de perfiles.
 
-[v5.2.0]: https://github.com/fundacion-sadosky/genis/releases/tag/v5.2.0
+[v5.1.13]: https://github.com/fundacion-sadosky/genis/releases/tag/v5.1.13
 
-## v[5.1.12] - 2024-11-14
+## [v5.1.12] - 2024-11-14
 
 _Si está actualizando el sistema por favor lea:  [`UPGRADING.md`](https://github.com/fundacion-sadosky/genis/blob/main/UPGRADING.md)._
 
