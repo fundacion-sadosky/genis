@@ -3,6 +3,7 @@ package services
 import java.util.UUID
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration.{DurationInt, FiniteDuration}
 import scala.reflect.ClassTag
 
 import javax.inject.{Inject, Singleton}
@@ -44,7 +45,8 @@ class UserServiceImpl @Inject() (
     otpService: OTPService,
     notiService: NotificationService,
     roleService: RoleService,
-    messagesApi: MessagesApi
+    messagesApi: MessagesApi,
+    @jakarta.inject.Named("superUsersCacheTtl") superUsersCacheTtl: FiniteDuration = 30.seconds
 )(using ec: ExecutionContext) extends UserService:
 
   private val logger = Logger(this.getClass)
@@ -270,9 +272,10 @@ class UserServiceImpl @Inject() (
   // used to fire a full LDAP search "(title=true)" over the single shared
   // search connection, in bursts of 300+ searches per second that killed it
   // by backpressure (resultCode=81; incident 2026-07-09, CDMX deployment).
-  // Memoize the Future for a short TTL: concurrent calls share the in-flight
-  // search and the list (which almost never changes) refreshes by itself.
-  protected val superUsersTtlMillis = 30000L
+  // Memoize the Future for a short TTL (`user.superUsersCacheTtl`): concurrent
+  // calls share the in-flight search and the list (which almost never changes)
+  // refreshes by itself.
+  private val superUsersTtlMillis = superUsersCacheTtl.toMillis
   @volatile private var superUsersCached: Option[(Long, Future[Seq[String]])] = None
 
   override def findSuperUsers(): Future[Seq[String]] =
@@ -284,8 +287,13 @@ class UserServiceImpl @Inject() (
           _.map(LdapUser.toUser(_, roleService.getRolePermissions())).map(_.id).toSet.toSeq
         )
         superUsersCached = Some((now, fresh))
-        // never cache a failure (e.g. LDAP briefly down)
-        fresh.failed.foreach(_ => superUsersCached = None)
+        // never cache a failure (e.g. LDAP briefly down): drop the memo so the
+        // next caller retries. This is the only error path of the method, and
+        // its callers discard the failed Future, so log it here or it is lost.
+        fresh.failed.foreach { e =>
+          logger.warn("Superuser LDAP search failed; dropping the memo so the next call retries", e)
+          superUsersCached = None
+        }
         fresh
 
   override def sendNotifToAllSuperUsers(info: NotificationInfo, excepThis: Seq[String]): Unit =
