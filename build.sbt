@@ -11,6 +11,17 @@ publishMavenStyle := false
 
 scalaVersion := "2.11.11"
 
+// The validation harness (validation/scala) is compiled in its own configuration, so that
+// `sbt test` stays the short run of the reference cases.
+//   sbt validacion:test   |   validation/correr --lista
+lazy val Validacion = config("validacion") extend Test
+
+lazy val root = (project in file("."))
+  .configs(Validacion)
+  .settings(inConfig(Validacion)(Defaults.testSettings): _*)
+  .settings(sourceDirectory in Validacion := baseDirectory.value / "validation")
+  .settings(javaOptions in Validacion += "-Xmx6g")
+
 // Sources keep the layout they have in GENis: app/<package>/File.scala
 scalaSource in Compile := baseDirectory.value / "app"
 scalaSource in Test := baseDirectory.value / "test"
@@ -54,7 +65,8 @@ libraryDependencies ++= Seq(
   // An import in profile/AlleleValue.scala needs it on the classpath; unused when calculating.
   "org.apache.hadoop" % "hadoop-common" % "2.2.0" intransitive(),
   "com.typesafe.play" %% "play-test" % "2.3.10" % Test,
-  "org.scalatestplus" %% "play" % "1.2.0" % Test
+  "org.scalatestplus" %% "play" % "1.2.0" % Test,
+  "com.github.tototoshi" %% "scala-csv" % "1.2.0" % Test
 )
 
 scalacOptions ++= Seq("-target:jvm-1.8", "-encoding", "UTF-8", "-feature")

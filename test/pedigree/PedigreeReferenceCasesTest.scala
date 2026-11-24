@@ -122,4 +122,84 @@ class PedigreeReferenceCasesTest extends FlatSpec with Matchers {
     println(f"trio, Equal model   M1 expected $expected%.9f GENis $withModel%.9f")
     withModel shouldBe expected +- (expected * 1e-9)
   }
+
+  // The three cases below have more than two typed relatives or untyped people in between.
+  // They share one marker with four alleles.
+  private val (p1, p2, p3, p4) = (0.10, 0.20, 0.30, 0.40)
+  private val fourAlleles = Map("L1" -> Map(1.0 -> p1, 2.0 -> p2, 3.0 -> p3, 4.0 -> p4, -1.0 -> 0.0001))
+  private val fourAllelesUniverse = Map("L1" -> List(1.0, 2.0, 3.0, 4.0))
+
+  private def code(n: Int) = SampleCode(s"AR-C-TEST-$n")
+  private def founder(alias: String, sex: Sex.Value, typed: Option[Int]) =
+    Individual(NodeAlias(alias), None, None, sex, typed.map(code), unknown = false, None)
+  private def child(alias: String, father: String, mother: String, typed: Option[Int], unknown: Boolean = false) =
+    Individual(NodeAlias(alias), Some(NodeAlias(father)), Some(NodeAlias(mother)), Sex.Male, typed.map(code),
+      unknown, None)
+  private def lrOnL1(genogram: Array[Individual], profiles: Profile*): Double =
+    BayesianNetwork.calculateProbability(profiles.toArray, genogram, fourAlleles, autosomal, Map.empty,
+      seenAlleles = fourAllelesUniverse)._1
+
+  "Both paternal grandparents" should "give the LR of a grandchild whose parents are not typed" in {
+    // Grandfather 1,2 and grandmother 3,4; the father and the mother are not typed; the
+    // grandchild, 1,3, is the person of interest.
+    val genogram = Array(
+      founder("Grandfather", Sex.Male, Some(1)),
+      founder("Grandmother", Sex.Female, Some(2)),
+      child("Father", "Grandfather", "Grandmother", None),
+      founder("Mother", Sex.Female, None),
+      child("Grandchild", "Father", "Mother", Some(3), unknown = true))
+    val lr = lrOnL1(genogram,
+      profile(code(1), "L1" -> Seq(1, 2)), profile(code(2), "L1" -> Seq(3, 4)), profile(code(3), "L1" -> Seq(1, 3)))
+
+    // The father passes on each of the four grandparental alleles with probability 1/4; the
+    // other allele comes from the untyped mother, that is, from the population.
+    //   H1: P(1,3) = 1/4 p3 + 1/4 p1          H2: P(1,3) = 2 p1 p3
+    val expected = (p1 + p3) / (8 * p1 * p3)
+
+    println(f"two grandparents      expected $expected%.9f GENis $lr%.9f")
+    lr shouldBe expected +- (expected * 1e-9)
+  }
+
+  "Three full siblings" should "give the LR of a fourth sibling when no parent is typed" in {
+    // Siblings 1,2 / 1,3 / 2,4; neither parent is typed; the person of interest is 1,2.
+    val genogram = Array(
+      founder("Father", Sex.Male, None),
+      founder("Mother", Sex.Female, None),
+      child("Sibling1", "Father", "Mother", Some(1)),
+      child("Sibling2", "Father", "Mother", Some(2)),
+      child("Sibling3", "Father", "Mother", Some(3)),
+      child("Sibling4", "Father", "Mother", Some(4), unknown = true))
+    val lr = lrOnL1(genogram,
+      profile(code(1), "L1" -> Seq(1, 2)), profile(code(2), "L1" -> Seq(1, 3)), profile(code(3), "L1" -> Seq(2, 4)),
+      profile(code(4), "L1" -> Seq(1, 2)))
+
+    // The three siblings show four alleles, and each sibling takes one from each parent: 1
+    // and 2 are in different parents, so are 1 and 3, and 2 and 4. The parents can only be
+    // 1,4 and 2,3, and a further child of theirs is 1,2 with probability 1/4.
+    //   H1: P(1,2) = 1/4          H2: P(1,2) = 2 p1 p2
+    val expected = 0.25 / (2 * p1 * p2)
+
+    println(f"three siblings        expected $expected%.9f GENis $lr%.9f")
+    lr shouldBe expected +- (expected * 1e-9)
+  }
+
+  "A father and a full sibling" should "give the LR of another child of the same couple" in {
+    // Father 1,2; the mother is not typed; a sibling is 2,3; the person of interest is 2,4.
+    val genogram = Array(
+      founder("Father", Sex.Male, Some(1)),
+      founder("Mother", Sex.Female, None),
+      child("Sibling", "Father", "Mother", Some(2)),
+      child("Child", "Father", "Mother", Some(3), unknown = true))
+    val lr = lrOnL1(genogram,
+      profile(code(1), "L1" -> Seq(1, 2)), profile(code(2), "L1" -> Seq(2, 3)), profile(code(3), "L1" -> Seq(2, 4)))
+
+    // The sibling's 3 comes from the mother, so she carries a 3; her other allele is x with
+    // probability px. The child of interest takes 2 from the father (1/2) and, from the
+    // mother, her other allele (1/2), which is a 4 with probability p4.
+    //   H1: P(2,4) = 1/2 * 1/2 * p4          H2: P(2,4) = 2 p2 p4
+    val expected = 1 / (8 * p2)
+
+    println(f"father and sibling    expected $expected%.9f GENis $lr%.9f")
+    lr shouldBe expected +- (expected * 1e-9)
+  }
 }

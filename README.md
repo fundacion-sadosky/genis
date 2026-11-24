@@ -95,12 +95,13 @@ intentar compilar también los archivos de sólo lectura y a marcar errores en e
 | Suite | Qué muestra |
 |---|---|
 | `forensic.ForensicReferenceCasesTest` | Casos de referencia del motor forense: cada caso declara su LR esperado como una fórmula cerrada (fuente única, θ, mezclas de dos personas, drop-out, drop-in) y lo compara con el del motor. Al final imprime una tabla `case / expected / GENis / rel. diff / formula` |
-| `pedigree.PedigreeReferenceCasesTest` | Casos de referencia del motor de pedigrí: un dúo de paternidad con índice de paternidad calculable a mano, y un trío con una inconsistencia paterna, sin modelo de mutación y con el modelo Equal |
+| `pedigree.PedigreeReferenceCasesTest` | Casos de referencia del motor de pedigrí, cada uno con su cuenta a mano en el comentario: un dúo de paternidad; un trío con una inconsistencia paterna, sin modelo de mutación y con el modelo Equal; un nieto con los dos abuelos paternos tipificados; un cuarto hermano con tres hermanos tipificados; y un hijo con el padre y un hermano tipificados |
 | `standalone.MutationServiceExtractTest` | Que el extracto de `MutationService` coincide con el original |
 
 **Qué muestran.** Los casos comprueban que el motor reproduce, en situaciones chicas y con una
 tabla de frecuencias inventada, resultados que se pueden calcular a mano con las fórmulas de la
-literatura, y sirven de modelo para armar casos propios. No son una validación de GENis: para
+literatura, y sirven de modelo para armar casos propios. No son una validación de GENis: la
+validación del motor de pedigrí está en `validation/` (ver [Validación](#validación)), y para
 contrastar un caso real hay que reproducir sus entradas (tabla poblacional, θ, loci considerados,
 parámetros de mutación) y compararlo con una herramienta independiente (ver
 [Reproducir un cálculo](#reproducir-un-cálculo)).
@@ -218,6 +219,17 @@ alelo `0` (sin lectura) se descarta entero para ese perfil.
 
 Para el LR de un perfil individual contra un pedigrí ya genotipificado (el camino que usa el
 matching masivo de MPI) el punto de entrada es `BayesianNetwork.getLR`.
+
+### Qué modela cada motor
+
+Los dos motores no modelan lo mismo. Conviene tenerlo presente antes de comparar contra otra
+herramienta:
+
+| | Forense (`LRMixCalculator`) | MPI/DVI (`BayesianNetwork`) |
+|---|---|---|
+| Subestructura poblacional (θ) | Sí | No: el cálculo equivale a θ = 0 |
+| Drop-in y drop-out | Sí | No. Un marcador en el que el perfil consultado tiene un solo alelo queda fuera del cálculo (LR 1); un genotipo escrito con dos alelos iguales se toma como homocigoto |
+| Mutación | No aplica | Tres modelos: Equal, Stepwise y Stepwise extended. No hay otros |
 
 ---
 
@@ -400,6 +412,26 @@ Un procedimiento para contrastar un caso contra otra herramienta:
    `MarkerLRDetail` exponen el LR individual, que es donde se localiza cualquier divergencia.
 5. **Compará los totales en escala logarítmica.** El LR global de un pedigrí con 20 o más
    marcadores abarca muchos órdenes de magnitud.
+
+---
+
+## Validación
+
+`validation/` contiene la validación del cálculo de LR del **motor de pedigrí**, con su
+resultado. El motor forense no forma parte de ella. Tiene dos bloques:
+
+- **Catálogo**: 51 casos chicos (parentescos, mutación, alelo silente, frecuencias, invariantes)
+  cuyo LR se conoce en forma cerrada por la literatura (Evett y Weir 1998; Slooten 2011). El
+  LR del motor se compara con ese valor con una tolerancia relativa de 1e-9.
+- **Búsqueda masiva**: familias simuladas contra una nómina de personas de interés, celda por
+  celda, contra dos programas independientes ([Familias](https://familias.name/) y la suite
+  `pedtools`/`forrel`).
+
+El resultado de la última corrida publicada está en
+[`validation/referencia/out/VEREDICTO.txt`](validation/referencia/out/VEREDICTO.txt) (resumen)
+y en [`validation/referencia/out/INFORME.md`](validation/referencia/out/INFORME.md) (detalle
+por caso). Cómo volver a correrla, qué necesita y cuánto tarda cada bloque:
+[`validation/COMO-CORRER.md`](validation/COMO-CORRER.md).
 
 ---
 

@@ -94,15 +94,16 @@ to sbt) will also try to compile the read-only files and flag errors in them.
 | Suite | What it shows |
 |---|---|
 | `forensic.ForensicReferenceCasesTest` | Reference cases for the forensic engine: each case states its expected LR as a closed formula (single source, θ, two-person mixtures, drop-out, drop-in) and compares it with the engine's. It prints a `case / expected / GENis / rel. diff / formula` table at the end |
-| `pedigree.PedigreeReferenceCasesTest` | Reference cases for the pedigree engine: a paternity duo whose paternity index can be worked out by hand, and a trio with a paternal inconsistency, without a mutation model and with the Equal model |
+| `pedigree.PedigreeReferenceCasesTest` | Reference cases for the pedigree engine, each with its hand calculation in the comment: a paternity duo; a trio with a paternal inconsistency, without a mutation model and with the Equal model; a grandchild with both paternal grandparents typed; a fourth sibling with three siblings typed; and a child with the father and one sibling typed |
 | `standalone.MutationServiceExtractTest` | That the `MutationService` extract matches the original |
 
 **What they show.** The cases check that the engine reproduces, in small situations and with a
 made-up frequency table, results that can be worked out by hand from the formulas in the
 literature, and they serve as templates for writing your own cases. They are not a validation of
-GENis: to check a real case, reproduce its inputs (population table, θ, loci taken into account,
-mutation parameters) and compare it against an independent tool (see
-[Reproducing a calculation](#reproducing-a-calculation)).
+GENis: the validation of the pedigree engine lives in `validation/` (see
+[Validation](#validation)), and to check a real case you need to reproduce its inputs (population
+table, θ, loci taken into account, mutation parameters) and compare it against an independent
+tool (see [Reproducing a calculation](#reproducing-a-calculation)).
 
 ### Trying your own case
 
@@ -215,6 +216,17 @@ allele (no call) is dropped entirely for that profile.
 
 For the LR of a single profile against an already genotyped pedigree (the path used by MPI's
 bulk matching) the entry point is `BayesianNetwork.getLR`.
+
+### What each engine models
+
+The two engines do not model the same things. Keep this in mind before comparing against another
+tool:
+
+| | Forensic (`LRMixCalculator`) | MPI/DVI (`BayesianNetwork`) |
+|---|---|---|
+| Population substructure (θ) | Yes | No: the calculation is equivalent to θ = 0 |
+| Drop-in and drop-out | Yes | No. A marker where the queried profile has a single allele is left out of the calculation (LR 1); a genotype written with two equal alleles is taken as homozygous |
+| Mutation | Not applicable | Three models: Equal, Stepwise and Stepwise extended. There are no others |
 
 ---
 
@@ -397,6 +409,27 @@ A procedure to check a case against another tool:
    `MarkerLRDetail` expose the individual LR, which is where any divergence is localized.
 5. **Compare totals on a logarithmic scale.** The overall LR of a pedigree with 20 or more
    markers spans many orders of magnitude.
+
+---
+
+## Validation
+
+`validation/` holds the validation of the LR calculation of the **pedigree engine**, together
+with its result. The forensic engine is not part of it. It has two blocks:
+
+- **Catalogue**: 51 small cases (kinship, mutation, silent allele, frequencies, invariants) whose
+  LR is known in closed form from the literature (Evett and Weir 1998; Slooten 2011). The
+  engine's LR is compared with that value at a relative tolerance of 1e-9.
+- **Bulk search**: simulated families against a list of persons of interest, cell by cell,
+  against two independent programs ([Familias](https://familias.name/) and the
+  `pedtools`/`forrel` suite).
+
+The result of the latest published run is in
+[`validation/referencia/out/VEREDICTO.txt`](validation/referencia/out/VEREDICTO.txt) (summary)
+and in [`validation/referencia/out/INFORME.md`](validation/referencia/out/INFORME.md) (case by
+case). How to run it again, what it needs and how long each block takes:
+[`validation/COMO-CORRER.md`](validation/COMO-CORRER.md). The validation code, its guide and its
+report are written in Spanish.
 
 ---
 

@@ -1,0 +1,439 @@
+#!/usr/bin/env bash
+# ---------------------------------------------------------------------------
+# Orquestador de la validacion del calculo de LR por pedigri de GENis.
+#
+#   validation/correr --lista        el menu completo
+#   validation/correr masiva --plan  que haria, sin hacerlo
+#   validation/correr masiva         hacerlo
+#
+# Es el UNICO lugar que sabe el orden de los pasos, las rutas del intercambio y
+# las banderas de cada lado.
+#
+# La regla de la superficie es una sola:
+#   con sustantivo   corres ESE paso
+#   sin sustantivo   corres el bloque entero, en orden
+#
+# Se puede invocar desde cualquier directorio: la raiz del repositorio se
+# deduce de la ubicacion de este archivo, no del cwd.
+# ---------------------------------------------------------------------------
+set -uo pipefail
+
+AQUI="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"   # validation/
+RAIZ="$(cd "$AQUI/.." && pwd)"                          # raiz del repositorio
+REF="$AQUI/referencia"
+CORRIDAS="$AQUI/out/corridas"
+
+# --- valores por omision de cada paso --------------------------------------
+ESCALA=""                       # 500x20 -> "500 20" para scripts/02
+HILOS=""                        # RunnerMasiva: posicional 3; vacio = los nucleos
+PUENTE=3                        # celdas por (tipo, decil) del contraste interno
+SONDA_K=20                      # POI por tipo de la sonda de costo
+PAQUETE="$REF/out/masiva/paquete"
+SALIDA="$AQUI/out/masiva"
+HUMO=""
+MOTOR=""
+SOLO_COMPARAR=""
+CON_FAM_MUT=""                  # las ~39,6 h de Familias con mutacion: opt-in
+REANUDAR=""                     # RunnerMasiva: seguir sobre particiones de OTRA corrida
+
+PLAN_SOLO=0; SI=0; SIN_CANDADO=0; FORZAR=0; SIN_RESPALDO=0; LISTA=0
+
+# --- parseo -----------------------------------------------------------------
+POS=()
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --plan)                  PLAN_SOLO=1 ;;
+    --si)                    SI=1 ;;
+    --sin-candado)           SIN_CANDADO=1 ;;
+    --forzar)                FORZAR=1 ;;
+    --sin-respaldo)          SIN_RESPALDO=1 ;;
+    --lista|-h|--ayuda)      LISTA=1 ;;
+    --con-familias-mutacion) CON_FAM_MUT="--con-familias-mutacion" ;;
+    --reanudar)              REANUDAR=" --reanudar" ;;
+    --humo)                  HUMO=" --humo" ;;
+    --salida)  SALIDA="${2:-}";  shift ;;
+    --solo-comparar)         SOLO_COMPARAR=" --solo-comparar" ;;
+    --escala)  ESCALA="${2:-}";  shift ;;
+    --hilos)   HILOS="${2:-}";   shift ;;
+    --puente)  PUENTE="${2:-}";  shift ;;
+    --sonda)   SONDA_K="${2:-}"; shift ;;
+    --paquete) PAQUETE="${2:-}"; shift ;;
+    --motor)   MOTOR="${2:-}";   shift ;;
+    --*) printf 'bandera no reconocida: %s\n\n' "$1" >&2
+         printf 'validation/correr --lista  para ver el menu\n' >&2; exit 2 ;;
+    *) POS+=("$1") ;;
+  esac
+  shift
+done
+sub1="${POS[0]:-}"; sub2="${POS[1]:-}"; sub3="${POS[2]:-}"
+
+# --- acumulador de pasos ----------------------------------------------------
+P_LADO=(); P_ETIQ=(); P_EST=(); P_CARO=(); P_DIR=(); P_CMD=(); P_NOTA=(); P_ROTA=()
+ROTA=""   # la condicion cuya salida se rota si RunnerMasiva se niega; vacio = no aplica
+paso() {  # lado etiqueta estimado caro dir comando [nota]
+  P_LADO+=("$1"); P_ETIQ+=("$2"); P_EST+=("$3"); P_CARO+=("$4")
+  P_DIR+=("$5");  P_CMD+=("$6");  P_NOTA+=("${7:-}"); P_ROTA+=("$ROTA")
+}
+
+# `--escala 500x20` son los dos posicionales de scripts/02.
+escala_args() { [ -n "$ESCALA" ] && printf ' %s %s' "${ESCALA%%x*}" "${ESCALA##*x}" || true; }
+# Ruta relativa a la raiz del repositorio, para que el plan se lea igual
+# venga de donde venga. Cuando la ruta ES la raiz, "${x#$RAIZ/}" no recorta
+# nada (falta la barra) y devolvia el absoluto: de ahi el caso aparte.
+rel() { local p="${1#"$RAIZ"/}"; [ "$p" = "$RAIZ" ] && p="la raiz del repo"; printf '%s' "$p"; }
+
+# --- los pasos --------------------------------------------------------------
+p_b1_referencia() {
+  paso R "la referencia arma el paquete de casos" "~2 min" no "$REF" \
+    'Rscript scripts/00_validar.R' \
+    'deja validation/cases/ con los casos, la grilla y su MANIFIESTO.txt'
+}
+p_b1_genis() {
+  paso sbt "GENis contesta el catalogo" "~2 min" no "$RAIZ" \
+    'sbt "validacion:runMain validation.Runner validation/cases validation/out"' \
+    'deja resultados_genis.csv, contraste.txt y matrices_genis.csv'
+}
+p_b1_veredicto() {
+  paso R "la referencia emite el veredicto" "~2 min" no "$REF" \
+    'Rscript scripts/00_validar.R --con-genis' \
+    'SIN --con-genis se pierde en silencio la incorporacion anterior de GENis'
+}
+p_informe() {
+  paso R "el informe de la corrida, en dos niveles" "~10 s" no "$REF" \
+    'Rscript scripts/06_informe.R' \
+    'no recalcula nada: lee lo que hay en disco, verifica que las piezas sean de la misma corrida (manifiestos y SHA-256, no fechas). Imprime el veredicto y deja referencia/out/VEREDICTO.txt, INFORME.md e INFORME.pdf (LaTeX; sin pdflatex queda INFORME.tex).'
+}
+
+p_ma_respaldo() {
+  [ "$SIN_RESPALDO" = 1 ] && return 0
+  paso sh "respaldo de referencia/out/masiva (120 MB)" "~5 s" no "$REF" \
+    'cp -a out/masiva "out/masiva.respaldo-$(date +%Y%m%d-%H%M%S)"' \
+    'una corrida corta escribe en LOS MISMOS nombres que la real: el respaldo evita pisar una corrida completa. --sin-respaldo lo saltea.'
+}
+p_ma_paquete() {
+  local cmd est caro nota
+  cmd="Rscript scripts/02_busqueda_masiva.R$(escala_args)"
+  if [ -n "$CON_FAM_MUT" ]; then
+    cmd="$cmd --con-familias-mutacion"; est="~40 h"; caro=si
+    nota='Familias con mutacion INCLUIDA: ~39,6 h de reloj, ~192 h de nucleo. Mide a escala la diferencia de convencion entre Familias y pedsuite; no emite veredicto.'
+  else
+    est="~35 min"; caro=no
+    nota='Familias con mutacion OMITIDA: ahorra ~39,6 h. No emite veredicto (con mutacion el veredicto va contra pedsuite). Si hay filas de una corrida anterior, se PRESERVAN con su sello de procedencia. Para correrlo: --con-familias-mutacion'
+  fi
+  paso R "la referencia arma el paquete y corre el escenario" "$est" "$caro" "$REF" "$cmd" "$nota"
+}
+p_ma_sonda() {
+  paso sbt "sonda de costo por tipo de pedigri" "~45 min" no "$RAIZ" \
+    "sbt \"validacion:runMain validation.RunnerMasiva $(rel "$PAQUETE")/con_mutacion $(rel "$SALIDA") --sonda $SONDA_K\"" \
+    'no escribe entrega. Sobre el paquete completo con mutacion tarda ~44 min. Sirve para planificar la corrida: si un tipo no cierra con el tiempo disponible, achicar por el eje de FAMILIAS y nunca por el de POI: el costo es por familia y bajar los POI destruye la cola del ruido, que es lo que el escenario mide.'
+}
+p_ma_genis() {  # $1 = sin_mutacion | con_mutacion
+  local c="$1" est caro hilos nota_hilos
+  if [ "$c" = con_mutacion ]; then
+    est="~7 h + puente"; caro=si
+    # Sin --hilos, UN hilo: con mutacion, varias familias de hermanos en vuelo
+    # a la vez agotan la memoria de la JVM del arnes (-Xmx6g) y la corrida deja
+    # de avanzar. Con 1, cada familia sale a su costo nominal.
+    hilos=" ${HILOS:-1}"
+    nota_hilos="Por omision corre con 1 hilo: con varios, las familias de hermanos con mutacion agotan la memoria de la JVM. El puente con mutacion es serial y son HORAS mas (una celda de hermanos cuesta media genotipificacion); si se interrumpe queda 'puente = pendiente' en condiciones_masiva.txt y la entrega ya sirve para 'masiva comparar'. "
+  else
+    est="~20 min"; caro=no; hilos="${HILOS:+ $HILOS}"; nota_hilos=""
+  fi
+  ROTA="$c"
+  paso sbt "GENis corre la condicion $c" "$est" "$caro" "$RAIZ" \
+    "sbt \"validacion:runMain validation.RunnerMasiva $(rel "$PAQUETE")/$c $(rel "$SALIDA")/$c$hilos --puente $PUENTE$HUMO$REANUDAR\"" \
+    "${nota_hilos}se puede interrumpir y reanudar: la unidad es la familia y las ya completas se saltean, pero SOLO si son de esta misma corrida (mismo commit y mismo paquete: parcial/PROCEDENCIA.txt). Si la salida trae particiones de otra corrida, o una corrida ya cerrada, se mueve entera a $(rel "$SALIDA")/anteriores/<fecha>-<commit>/$c y el paso se relanza limpio; nada se borra. --reanudar fuerza seguir sobre particiones ajenas (p.ej. un commit hecho a mitad de una corrida) y lo deja declarado en condiciones_masiva.txt."
+  ROTA=""
+}
+p_ma_comparar() {
+  paso R "anticipo: 80 pares, sin recomputar ninguna matriz" "~1 min" no "$REF" \
+    'Rscript scripts/05_anticipo_via_larga.R'
+  paso R "comparacion celda a celda, sin_mutacion" "~10 min" no "$REF" \
+    "Rscript scripts/04_comparacion_masiva.R --condicion sin_mutacion --motor ${MOTOR:-ambos}$SOLO_COMPARAR"
+  paso R "comparacion celda a celda, con_mutacion" "~10 min" no "$REF" \
+    "Rscript scripts/04_comparacion_masiva.R --condicion con_mutacion --motor ${MOTOR:-pedsuite}$SOLO_COMPARAR" \
+    'con mutacion el veredicto va contra pedsuite y no contra Familias, que aplica otra convencion para los fundadores no tipificados.'
+}
+
+no_entiendo() {
+  printf 'no entiendo el paso: %s\n\n' "$1" >&2
+  printf 'validation/correr --lista  para ver el menu\n' >&2
+  exit 2
+}
+
+# --- armado del plan segun el subcomando ------------------------------------
+case "$sub1" in
+  bloque1)
+    case "$sub2" in
+      "")          p_b1_referencia; p_b1_genis; p_b1_veredicto; p_informe ;;
+      referencia)  p_b1_referencia ;;
+      genis)       p_b1_genis ;;
+      veredicto)   p_b1_veredicto ;;
+      *)           no_entiendo "bloque1 $sub2" ;;
+    esac ;;
+  masiva)
+    case "$sub2" in
+      "")        p_ma_respaldo; p_ma_paquete; p_ma_sonda
+                 p_ma_genis sin_mutacion; p_ma_genis con_mutacion; p_ma_comparar
+                 p_informe ;;
+      paquete)   p_ma_respaldo; p_ma_paquete ;;
+      sonda)     p_ma_sonda ;;
+      genis)
+        case "$sub3" in
+          "")            p_ma_genis sin_mutacion; p_ma_genis con_mutacion ;;
+          sin_mutacion)  p_ma_genis sin_mutacion ;;
+          con_mutacion)  p_ma_genis con_mutacion ;;
+          *)             no_entiendo "masiva genis $sub3" ;;
+        esac ;;
+      comparar)  p_ma_comparar ;;
+      *)         no_entiendo "masiva $sub2" ;;
+    esac ;;
+  todo)
+    p_b1_referencia; p_b1_genis; p_b1_veredicto
+    p_ma_respaldo; p_ma_paquete; p_ma_sonda
+    p_ma_genis sin_mutacion; p_ma_genis con_mutacion; p_ma_comparar
+    p_informe ;;
+  informe)
+    p_informe ;;
+  "")  LISTA=1 ;;
+  *)   no_entiendo "$sub1" ;;
+esac
+
+# --- el menu ----------------------------------------------------------------
+if [ "$LISTA" = 1 ]; then
+cat <<'MENU'
+
+  validation/correr <bloque> [paso] [banderas]
+
+  Con sustantivo corres ESE paso; sin sustantivo, el bloque entero en orden.
+
+  bloque1                       catalogo de casos     R -> sbt -> R   (~6 min)
+  bloque1 referencia              R     arma validation/cases/
+  bloque1 genis                   sbt   GENis contesta
+  bloque1 veredicto               R     emite el veredicto
+                                        (y cierra con el informe)
+
+  masiva                        busqueda masiva       R -> sbt -> R   (~1 dia)
+  masiva paquete                  R     arma el paquete y corre la referencia
+  masiva sonda                    sbt   costo por tipo; no escribe entrega
+  masiva genis                    sbt   las dos condiciones
+  masiva genis sin_mutacion       sbt   solo esa
+  masiva genis con_mutacion       sbt   solo esa
+  masiva comparar                 R     anticipo + comparacion celda a celda
+                                        (y cierra con el informe)
+
+  informe                       R     el veredicto por consola y el informe en
+                                      dos niveles, sobre lo que hay en disco;
+                                      no recalcula nada (~10 s)
+
+  todo                          bloque1 -> masiva -> informe
+
+  Banderas globales
+    --plan            imprime lo que haria y termina; no corre ni toca nada
+    --si              no pregunta (desatendido)
+    --sin-candado     no toma el candado ni mira si hay otra corrida
+    --forzar          el candado existe pero su proceso murio: tomarlo igual
+    --sin-respaldo    no respalda referencia/out/masiva antes de correr
+
+  Banderas de paso
+    --con-familias-mutacion   paga las ~39,6 h de Familias con mutacion.
+                              POR OMISION NO SE CORRE: no emite veredicto.
+    --escala 500x20   n_poi x n_familias, para 'masiva paquete'
+    --hilos N         paralelismo de RunnerMasiva. Sin la bandera: los nucleos
+                      sin mutacion, y UNO con mutacion (con varios, las
+                      familias de hermanos agotan la memoria de la JVM)
+    --puente K        celdas por (tipo, decil) del contraste interno de GENis
+    --sonda K         POI por tipo de la sonda
+    --paquete DIR     correr contra otro paquete (humo, otra copia)
+    --salida DIR      escribir la entrega de GENis en otro lado (humo, pruebas);
+                      por omision validation/out/masiva
+    --humo            marca la corrida como prueba en condiciones_masiva.txt
+    --reanudar        'masiva genis': seguir sobre particiones de OTRA corrida
+                      (commit o paquete distintos). Sin esto, esa salida se
+                      mueve a anteriores/ y el paso arranca limpio.
+    --motor X         ambos | pedsuite, para 'masiva comparar'
+    --solo-comparar   relee las matrices ya calculadas en vez de recalcularlas
+
+  Que pasa con una entrega anterior de GENis
+    'masiva genis' reanuda SOLO una corrida incompleta de este mismo commit y
+    este mismo paquete (el sello es out/masiva/<cond>/parcial/PROCEDENCIA.txt).
+    Cualquier otra salida --de otro commit, sin sello, o ya cerrada-- se mueve
+    entera a out/masiva/anteriores/<fecha>-<commit>/<cond>/ antes de correr,
+    y queda anotada en out/masiva/anteriores/INDICE.txt y en la bitacora.
+    Nunca se borra nada: anteriores/ crece ~120 MB por corrida rotada y se
+    poda a mano.
+
+MENU
+exit 0
+fi
+
+# --- impresion del plan -----------------------------------------------------
+n="${#P_CMD[@]}"
+hay_caro=no
+for c in "${P_CARO[@]}"; do [ "$c" = si ] && hay_caro=si; done
+
+n_caros=0
+for c in "${P_CARO[@]}"; do [ "$c" = si ] && n_caros=$((n_caros + 1)); done
+# No se suma un total de horas: hay pasos cuya duracion no esta medida y
+# publicar una suma que mezcla mediciones con adivinanzas seria peor que no
+# publicarla. Se dice cuantos pasos son caros, que es el dato accionable.
+printf '\nPlan: %s  (%d paso%s%s)\n\n' "${POS[*]}" "$n" \
+  "$([ "$n" -eq 1 ] || echo s)" \
+  "$([ "$n_caros" -gt 0 ] && printf ', %d de horas' "$n_caros")"
+for i in $(seq 0 $((n - 1))); do
+  printf '  %d  %-3s  %-46s %s\n' "$((i + 1))" "${P_LADO[$i]}" "${P_ETIQ[$i]}" "${P_EST[$i]}"
+  printf '        (en %s)\n' "$(rel "${P_DIR[$i]}")"
+  printf '        $ %s\n' "${P_CMD[$i]}"
+  if [ -n "${P_NOTA[$i]}" ]; then
+    printf '%s\n' "${P_NOTA[$i]}" | fold -s -w 66 | sed 's/^/          /'
+  fi
+  [ "${P_CARO[$i]}" = si ] && printf '          >> ESTE PASO CUESTA HORAS <<\n'
+  printf '\n'
+done
+
+[ "$PLAN_SOLO" = 1 ] && exit 0
+
+# --- candado ----------------------------------------------------------------
+bloque="${sub1:-todo}"
+CANDADO="$CORRIDAS/$bloque.lock"
+mkdir -p "$CORRIDAS"
+liberar() { [ "${TOMADO:-0}" = 1 ] && rm -f "$CANDADO"; }
+TOMADO=0
+if [ "$SIN_CANDADO" = 0 ]; then
+  if [ -e "$CANDADO" ]; then
+    pid_viejo="$(sed -n 's/^pid *//p' "$CANDADO" 2>/dev/null | head -1)"
+    if [ -n "$pid_viejo" ] && kill -0 "$pid_viejo" 2>/dev/null && [ "$FORZAR" = 0 ]; then
+      printf 'YA HAY UNA CORRIDA EN CURSO.\n\n' >&2
+      sed 's/^/  /' "$CANDADO" >&2
+      printf '\nNo se arranca nada. Si el proceso murio y el candado quedo\n' >&2
+      printf 'colgado, repetir con --forzar.\n\n' >&2
+      exit 3
+    fi
+    [ "$FORZAR" = 1 ] && printf '  (candado anterior tomado por --forzar)\n'
+    rm -f "$CANDADO"
+  fi
+  trap liberar EXIT INT TERM
+fi
+
+# --- confirmacion -----------------------------------------------------------
+if [ "$hay_caro" = si ] && [ "$SI" = 0 ]; then
+  if [ ! -t 0 ]; then
+    printf 'Hay pasos que cuestan horas y no hay terminal para confirmar.\n' >&2
+    printf 'Repetir con --si para correr desatendido.\n' >&2
+    exit 4
+  fi
+  printf 'Hay pasos que cuestan HORAS. Seguir? [s/N] '
+  read -r r
+  case "$r" in s|S|si|SI|Si) ;; *) printf 'No se corrio nada.\n'; exit 0 ;; esac
+fi
+
+# --- bitacora y corrida -----------------------------------------------------
+sello="$(date +%Y-%m-%d-%H%M%S)"
+LOG="$CORRIDAS/$sello-$bloque.log"
+# El hash SOLO no alcanza para decir que codigo produjo la corrida: un commit
+# limpio y ese mismo commit con archivos modificados son indistinguibles, y
+# ninguno de los dos se reproduce haciendo checkout. Mismo criterio que
+# Runner.scala y que commit_actual() de R/resultados.R. Se miran solo los
+# archivos ya trackeados: un archivo sin trackear no cambia el codigo que
+# corre.
+commit_de_la_corrida() {
+  local h est
+  h="$(cd "$RAIZ" && git rev-parse --short HEAD 2>/dev/null)" || h=""
+  if [ -z "$h" ]; then printf 'sin-commit'; return; fi
+  est="$(cd "$RAIZ" && git status --porcelain --untracked-files=no 2>/dev/null)"
+  if [ -n "$est" ]; then printf '%s-dirty' "$h"; else printf '%s' "$h"; fi
+}
+commit="$(commit_de_la_corrida)"
+
+if [ "$SIN_CANDADO" = 0 ]; then
+  { printf 'bloque    %s\n' "$bloque"
+    printf 'pid       %s\n' "$$"
+    printf 'arrancada %s\n' "$(date '+%F %T')"
+    printf 'bitacora  %s\n' "$(rel "$LOG")"; } > "$CANDADO"
+  TOMADO=1
+fi
+
+anotar() { printf '%s  %s\n' "$(date '+%F %T')" "$*" | tee -a "$LOG"; }
+plural="$([ "$n" -eq 1 ] && echo paso || echo pasos)"
+anotar "INICIO  $bloque  commit $commit  ($n $plural)"
+
+# --- rotacion de una salida de GENis que no es de esta corrida ---------------
+# RunnerMasiva se niega a reanudar sobre particiones de otra corrida (commit o
+# paquete distintos, o sin sello) y sobre una corrida ya cerrada, y lo anuncia
+# con una linea "[masiva] PROCEDENCIA ajena:" / "PROCEDENCIA completa:". Aca
+# se reacciona a esa linea, no al codigo de salida: sbt aplana cualquier fallo
+# de runMain a 1. La salida entera --particiones, entrega, cierre, puente-- se
+# MUEVE a anteriores/<fecha>-<commit>/<cond>/ y se relanza el paso. Es un mv
+# dentro del mismo sistema de archivos: instantaneo y sin copia. Nunca se
+# borra: una entrega de GENis cuesta horas de computo y no esta en git.
+motivo_de_rotacion() {  # desde_byte -> ajena | completa | "" (no hay que rotar)
+  # Sin anclar al inicio de linea: sbt antepone "[info] " a cada linea del
+  # proceso hijo.
+  tail -c +"$(( $1 + 1 ))" "$LOG" | sed -n 's/.*\[masiva\] PROCEDENCIA \(ajena\|completa\):.*/\1/p' | head -1
+}
+rotar() {  # cond motivo
+  local cond="$1" motivo="$2" dir="$SALIDA/$1" sello commit fecha ref n celdas destino k
+  sello="$dir/parcial/PROCEDENCIA.txt"
+  commit="$(sed -n 's/^commit = //p' "$sello" 2>/dev/null | head -1)"
+  [ -z "$commit" ] && commit="$(sed -n 's/^commit = //p' "$dir/condiciones_masiva.txt" 2>/dev/null | head -1)"
+  [ -z "$commit" ] && commit="sin-procedencia"
+  fecha="$(sed -n 's/^arrancada = //p' "$sello" 2>/dev/null | head -1 | sed 's/ /-/; s/://g')"
+  if [ -z "$fecha" ]; then
+    # Corridas anteriores al sello: la fecha del cierre, o la de la ultima particion.
+    ref="$dir/condiciones_masiva.txt"; [ -e "$ref" ] || ref="$dir/parcial"; [ -e "$ref" ] || ref="$dir"
+    fecha="$(date -r "$ref" +%F-%H%M%S)"
+  fi
+  n="$(ls "$dir/parcial"/*.csv 2>/dev/null | wc -l)"
+  celdas="$(sed -n 's/^celdas = //p' "$dir/condiciones_masiva.txt" 2>/dev/null | head -1)"
+  destino="$SALIDA/anteriores/$fecha-$commit/$cond"
+  k=2; while [ -e "$destino" ]; do destino="$SALIDA/anteriores/$fecha-$commit-$k/$cond"; k=$((k + 1)); done
+  mkdir -p "$(dirname "$destino")"
+  if ! mv "$dir" "$destino"; then
+    anotar "ABORTA  no se pudo mover $(rel "$dir") a $(rel "$destino"); no se relanza nada"
+    exit 7
+  fi
+  [ -e "$SALIDA/anteriores/INDICE.txt" ] || \
+    printf '# Salidas de GENis movidas por validation/correr antes de volver a correr. Nada se borra.\n# rotada | condicion | commit de la corrida movida | particiones | celdas | motivo | destino | bitacora\n' \
+      > "$SALIDA/anteriores/INDICE.txt"
+  printf '%s | %s | %s | %s | %s | %s | %s | %s\n' \
+    "$(date '+%F %T')" "$cond" "$commit" "$n" "${celdas:--}" "$motivo" \
+    "$(rel "$destino")" "$(rel "$LOG")" >> "$SALIDA/anteriores/INDICE.txt"
+  anotar "ROTADA  $(rel "$dir") -> $(rel "$destino")  ($motivo; $n particiones, commit $commit; nada se borro)"
+  anotar "        anteriores/ ocupa $(du -sh "$SALIDA/anteriores" 2>/dev/null | cut -f1); se poda a mano"
+}
+
+# Corre el paso i una vez; devuelve su codigo de salida.
+correr_paso() {  # i
+  local i="$1" t0 codigo dur
+  printf '        $ %s\n' "${P_CMD[$i]}" | tee -a "$LOG"
+  t0=$(date +%s)
+  ( cd "${P_DIR[$i]}" && eval "${P_CMD[$i]}" ) 2>&1 | tee -a "$LOG"
+  codigo=${PIPESTATUS[0]}
+  dur=$(( $(date +%s) - t0 ))
+  anotar "        exit $codigo  (${dur}s)"
+  return "$codigo"
+}
+
+for i in $(seq 0 $((n - 1))); do
+  anotar "PASO $((i + 1))/$n  [${P_LADO[$i]}]  ${P_ETIQ[$i]}"
+  [ "$TOMADO" = 1 ] && sed -i "s|^paso .*|paso      $((i + 1))/$n ${P_ETIQ[$i]}|" "$CANDADO" 2>/dev/null
+  [ "$TOMADO" = 1 ] && ! grep -q '^paso ' "$CANDADO" && printf 'paso      %d/%d %s\n' "$((i + 1))" "$n" "${P_ETIQ[$i]}" >> "$CANDADO"
+  desde=$(stat -c %s "$LOG")
+  correr_paso "$i"; codigo=$?
+  if [ "$codigo" -ne 0 ] && [ -n "${P_ROTA[$i]}" ]; then
+    motivo="$(motivo_de_rotacion "$desde")"
+    if [ -n "$motivo" ]; then
+      rotar "${P_ROTA[$i]}" "$motivo"
+      anotar "RELANZA el paso $((i + 1)) sobre una salida limpia"
+      correr_paso "$i"; codigo=$?
+    fi
+  fi
+  if [ "$codigo" -ne 0 ]; then
+    anotar "ABORTA  el paso $((i + 1)) fallo; los siguientes NO se corrieron"
+    printf '\nBitacora: %s\n\n' "$(rel "$LOG")"
+    exit "$codigo"
+  fi
+done
+
+anotar "FIN     $bloque  los $n $plural terminaron en 0"
+printf '\nBitacora: %s\n\n' "$(rel "$LOG")"
