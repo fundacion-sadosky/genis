@@ -9,7 +9,7 @@ import laboratories.LaboratoryService
 import org.codehaus.jackson.map.ext.CoreXMLDeserializers.DurationDeserializer
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import probability.{MixtureLRCalculator, _}
+import probability._
 import profile.{Profile, ProfileService}
 import profiledata.ProfileDataService
 import scenarios.{CalculationScenario, Hypothesis, ScenarioService}
@@ -46,7 +46,8 @@ class MatchingCalculatorServiceImpl @Inject() (
 
   val logger = Logger(this.getClass())
 
-  val calculation = MixtureLRCalculator.name
+  // Clave del mapa `calculation { mixmix = Autosomal }` de conf/genis-misc.conf, que lee ProbabilityModule.
+  val calculation = "mixmix"
 
   override def updateLrDefault(): Unit = Future{
     if(updateLr){
@@ -190,7 +191,16 @@ class MatchingCalculatorServiceImpl @Inject() (
     stats: StatOption,
     allelesRanges:Option[NewMatchingResult.AlleleMatchRange] = None
   ): Future[Option[LRResult]] = {
-    val (profile1, profile2, shouldAvg) = determineProfiles(firingProfile, matchingProfile)
+    // Entre dos categorías con pedigreeAssociation (la Agrupación de Restos) el LR se calcula
+    // sólo sobre los loci que los dos perfiles tienen. Un par forense no cumple la
+    // condición y sigue tal cual.
+    val (firing, matching) =
+      if (SharedLoci.applies(categoryService.listCategories, firingProfile, matchingProfile)) {
+        SharedLoci.restrictProfiles(firingProfile, matchingProfile)
+      } else {
+        (firingProfile, matchingProfile)
+      }
+    val (profile1, profile2, shouldAvg) = determineProfiles(firing, matching)
     if (shouldAvg) {
       for {
         result1 <- this.doGetLRByAlgorithm(profile1, profile2, stats, allelesRanges)
@@ -226,8 +236,6 @@ class MatchingCalculatorServiceImpl @Inject() (
         createDefaultScenario(firingProfile, matchingProfile, stats),
         allelesRanges
       )
-      //this.getLRByLocus(firingProfile.globalCode, matchingProfile.globalCode, stats)
-
     } else if (firingContributors > 1 && matchingContributors > 1) {
       // This case is never reached.
       // Q(n>1) y P(n>1) -> -
@@ -266,7 +274,14 @@ class MatchingCalculatorServiceImpl @Inject() (
     var defense = Hypothesis(List(), List(profile.globalCode), sampleContributors, stats.dropOut.get)
 
     if (sampleContributors > 1) {
-      val associations = profileService.validProfilesAssociated(sample.labeledGenotypification)
+      // El LR solo se calcula sobre autosómicos: como aportante conocido cuenta el perfil asociado
+      // por esos marcadores, nunca el asociado por otro tipo de análisis (Cromosoma Y).
+      val autosomalLoci = sample.genotypification.getOrElse(1, Map.empty).keySet
+      val otherLoci = (sample.genotypification - 1).values.flatMap(_.keySet).toSet
+      val associations = profileService.validProfilesAssociated(sample.labeledGenotypification).filter { code =>
+        val loci = sample.labeledGenotypification.flatMap(_.get(code)).map(_.keySet).getOrElse(Set.empty)
+        loci.exists(autosomalLoci.contains) || !loci.exists(otherLoci.contains)
+      }
       if (associations.nonEmpty) {
         val associated = SampleCode(associations.head)
         prosecutor = Hypothesis(List(associated, profile.globalCode), List(), sampleContributors - 2, stats.dropOut.get)
@@ -280,66 +295,6 @@ class MatchingCalculatorServiceImpl @Inject() (
 
     CalculationScenario(sample.globalCode, prosecutor, defense, stats,Some(List(firingProfile,matchingProfile)), isMixMix)
   }
-
-  /*private def getRMPByLocus(firingGlobalCode: SampleCode, matchingProfileCode: SampleCode, stats: StatOption) = {
-
-    lazy val calculationModel = getCalculationModel(stats.theta)
-    val model = calculationModel(ProbabilityModel.withName(stats.probabilityModel))
-
-    val frequencyTableFuture = populationBaseFrequencyService.getByName(stats.frequencyTable).map { maybeFrequencyTable =>
-      PValueCalculator.parseFrequencyTable(maybeFrequencyTable.get)
-    }
-
-    val resultFuture = matchingService.getByFiringAndMatchingProfile(firingGlobalCode, matchingProfileCode)
-
-    val futureOfFutureOfResult = frequencyTableFuture.flatMap { frequencyTable =>
-      val calculator = PValueCalculator.autosomalRMP(frequencyTable)(model) _
-
-      val emptyMap: Map[Profile.Marker, Option[Double]] = Map()
-
-      resultFuture flatMap {
-        case Some(result) => profileService.findByCode(result.globalCode) map {
-          case Some(profile) => calculator(result.matchingAlleles.keySet, profile)
-          case None => emptyMap
-        }
-        case None => Future.successful(emptyMap)
-      }
-
-    }
-
-    futureOfFutureOfResult
-  }*/
-
-
-  private def getTotalRmpByGlobacode(rmpByLocus: Map[Profile.Marker, Option[Double]]) = {
-    rmpByLocus.foldLeft(1.0: Double) { (prev, m) =>
-      if (m._2.isDefined && (m._2.get.isNaN || m._2.get == 0))  prev
-      else prev * m._2.getOrElse(1.0)
-    }
-  }
-
-  /*def getLRByLocus(firingGlobalCode: SampleCode, matchingProfileCode: SampleCode, stats: StatOption) = {
-
-    val resFutRmp = getRMPByLocus(firingGlobalCode, matchingProfileCode, stats)
-
-    val resFutLr = resFutRmp.map { rmpByGlobalcodeMap =>
-      rmpByGlobalcodeMap.map {
-        case (marker, rmp) =>
-          val lr = if (rmp.isDefined) Some(1.0 / rmp.get) else None
-          marker -> lr
-      }
-    }
-    val totalFut = resFutLr.map(getTotalRmpByGlobacode(_))
-
-    for {
-      detailedMap <- resFutLr
-      totalMap <- totalFut
-    } yield {
-      LRResult(totalMap, detailedMap)
-    }
-
-  }
-*/
 
   def getMixtureMixtureLRByLocus(
     mixture1: SampleCode,
@@ -374,14 +329,6 @@ class MatchingCalculatorServiceImpl @Inject() (
     } yield (analysisType, lProfiles, maybeFrequencyTable.get, asocProfMix1, asocProfMix2)
     f.map {
       case (analysisType, mixtureProfiles, frequencyTable, asocProfMix1, asocProfMix2) =>
-/*
-        val res = MixtureLRCalculator.lrMixMix(
-          mixtureProfiles(0).genotypification.getOrElse(analysisType.id, Map.empty), asocProfMix1.headOption,
-          mixtureProfiles(1).genotypification.getOrElse(analysisType.id, Map.empty), asocProfMix2.headOption,
-          PValueCalculator.parseFrequencyTable(frequencyTable),
-          getCalculationModel(frequencyTable.theta)(ProbabilityModel.withName(stats.probabilityModel)))
-        val total = getTotalRmpByGlobacode(res)
-*/
         val lrResult = LRMixCalculator.lrMixMixNuevo(
           mixtureProfiles(0).genotypification.getOrElse(analysisType.id, Map.empty),
           asocProfMix1.headOption,
@@ -395,17 +342,9 @@ class MatchingCalculatorServiceImpl @Inject() (
           stats.dropIn,
           stats.dropOut.getOrElse(0.0)
         )
-//        Some(LRResult(total, res))
         Some(lrResult)
 
     }
-  }
-
-
-  private def getCalculationModel(theta: Double) = {
-    Map(ProbabilityModel.HardyWeinberg -> new probability.HardyWeinbergCalculationProbability,
-      ProbabilityModel.NRCII41 -> new probability.NRCII41CalculationProbability(theta),
-      ProbabilityModel.NRCII410 -> new probability.NRCII410CalculationProbability(theta))
   }
 
 }

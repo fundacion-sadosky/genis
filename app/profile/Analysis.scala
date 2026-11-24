@@ -24,7 +24,11 @@ case class NewAnalysis(
   mismatches: Option[Profile.Mismatch],
   matchingRules: Option[Seq[MatchingRule]] = None,
   tokenRawFile: Option[String] = None,
-  nameRawFile: Option[String] = None)
+  nameRawFile: Option[String] = None,
+  /** Marcadores de banda unica que el analista eligio "descartar" al resolver la carga
+   *  masiva: vacios en la genotipificacion pero que igual cuentan para el minimo de
+   *  marcadores del kit. */
+  discardedSingleBandLoci: Option[Set[Profile.Marker]] = None)
 
 object NewAnalysis {
   implicit val analysisFormat = Json.format[NewAnalysis]

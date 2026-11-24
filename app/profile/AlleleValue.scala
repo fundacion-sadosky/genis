@@ -42,7 +42,7 @@ object AlleleValue {
       case mtSusDnaRegEx(base, position,letra) => Mitocondrial(text.charAt(text.size-1), BigDecimal(text.substring(1,text.size-1)))
       case mtDnaRegExMongo(base, position) => Mitocondrial(base.head, BigDecimal(position))
       case mtInsDnaRegExMongo(base, position) => Mitocondrial(base.head, BigDecimal(position))
-      case _ => throw new IllegalArgumentException(s"Allele Value Expected, but found '$text'")
+      case _ => throw new IllegalArgumentException(s"Se esperaba un valor de alelo, pero se encontró '$text'")
     }
   }
 

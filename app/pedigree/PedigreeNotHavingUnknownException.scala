@@ -1,0 +1,3 @@
+package pedigree
+
+final class PedigreeNotHavingUnknownException extends Exception

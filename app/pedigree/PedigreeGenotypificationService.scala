@@ -72,11 +72,17 @@ class PedigreeGenotypificationServiceImpl @Inject()(
             .toList
           val result = {
             for {
-              profiles <- profileRepository.findByCodes(codes)
-              analysisType <- calculationTypeService
-                .getAnalysisTypeByCalculation(BayesianNetwork.name)
+              // Un familiar tipificado con un nombre de ACTBP2/SE33 distinto del que usa
+              // la tabla de frecuencias en curso no empataría por nombre con la CPT y ese marcador
+              // quedaría afuera; y un familiar con dropout ("0") en algún marcador no
+              // debe aportar ese locus a la CPT. La huella y el universo que se persisten salen
+              // de estos mismos perfiles normalizados, por eso la tabla se resuelve primero.
               frequencyTable <- bayesianNetworkService
                 .getFrequencyTable(frequencyTableName)
+              profiles <- profileRepository.findByCodes(codes)
+                .map(_.map(BayesianNetwork.normalizarParaParentesco(_, frequencyTable._2)))
+              analysisType <- calculationTypeService
+                .getAnalysisTypeByCalculation(BayesianNetwork.name)
               linkage <- bayesianNetworkService.getLinkage()
               mutationModel <- if (pedigree.mutationModelId.isDefined) {
                 mutationRepository
@@ -143,106 +149,57 @@ class PedigreeGenotypificationServiceImpl @Inject()(
               .getMutationModelData(mutationModel, markers)
               .flatMap(
                 mutationModelData => {
-                  Future
-                    .successful(
-                      BayesianNetwork.extendNWithObservedAlleles(
-                        BayesianNetwork.getNFromTable(frequencyTable),
-                        profiles,
-                        pedigree.genogram.toArray,
-                        analysisType
-                      )
+                  // El universo con que se construye la CPT: el panel mas los
+                  // alelos observados en la familia. Se persiste con el documento.
+                  val n = BayesianNetwork.extendNWithObservedAlleles(
+                    BayesianNetwork.getNFromTable(frequencyTable),
+                    profiles,
+                    pedigree.genogram.toArray,
+                    analysisType
+                  )
+                  // Las cuatro genotipificaciones (principal, estricta, H2 y
+                  // con-marcador) salen de una sola composicion compartida con
+                  // rebuildMarker y con las pruebas de validacion; el servicio bayesiano
+                  // le suma lo que viene de la base (los rangos de locus).
+                  bayesianNetworkService
+                    .getFamilyGenotypification(
+                      pedigree,
+                      profiles,
+                      frequencyTable,
+                      analysisType,
+                      linkage,
+                      mutationModelType,
+                      mutationModelData,
+                      n
                     )
-                    .flatMap(
-                      n => {
-                        bayesianNetworkService
-                          .getGenotypification(
-                            pedigree,
-                            profiles,
-                            frequencyTable,
-                            analysisType,
-                            linkage,
-                            mutationModelType,
-                            mutationModelData,
-                            n
+                    .flatMap {
+                      genotypification =>
+                        val pedigreeGenotypification =
+                          PedigreeGenotypification(
+                            pedigree._id,
+                            genotypification.genotypification,
+                            pedigree.boundary,
+                            pedigree.frequencyTable.get,
+                            unknowns,
+                            genotypification.strictGenotypification,
+                            genotypification.genotypificationH2,
+                            genotypification.genotypificationWithMarkers,
+                            SingleBandExclusions.byIndividual(
+                              profiles,
+                              pedigree.genogram.toArray,
+                              frequencyTable
+                            ),
+                            universe = n,
+                            familyFingerprint = Some(
+                              CandidateUniverse.familyFingerprint(profiles, pedigree.genogram.toArray)
+                            )
                           )
-                          .flatMap {
-                            genotypification => {
-                              val newGenotypification = genotypification
-                                .map(
-                                  plainCPT => PlainCPT2(
-                                    plainCPT.header,
-                                    plainCPT.matrix.toArray
-                                  )
-                                )
-                              val strictGenotypificationFut =
-                                if (mutationModelType.isEmpty) {
-                                  Future.successful(newGenotypification)
-                                } else {
-                                  bayesianNetworkService
-                                    .getGenotypification(
-                                      pedigree,
-                                      profiles,
-                                      frequencyTable,
-                                      analysisType,
-                                      linkage,
-                                      None,
-                                      None,
-                                      n
-                                    )
-                                    .map(
-                                      _.map(
-                                        plainCPT => PlainCPT2(
-                                          plainCPT.header,
-                                          plainCPT.matrix.toArray
-                                        )
-                                      )
-                                    )
-                                }
-                              strictGenotypificationFut.flatMap {
-                                strictGenotypification =>
-                                  val normalizedFrequencyTable = BayesianNetwork
-                                    .getNormalizedFrequencyTable(frequencyTable)
-                                  val (rawGenotypificationH2, rawGenotypificationWithMarkers) =
-                                    BayesianNetwork.getGenotypificationExtras(
-                                      profiles,
-                                      pedigree.genogram.toArray,
-                                      normalizedFrequencyTable,
-                                      analysisType,
-                                      linkage,
-                                      frequencyTable.keys.toArray,
-                                      false,
-                                      Map.empty,
-                                      mutationModelType,
-                                      mutationModelData,
-                                      n
-                                    )
-                                  def toMarkerCpt2(mc: (String, PlainCPT)): MarkerPlainCPT2 =
-                                    MarkerPlainCPT2(mc._1, PlainCPT2(mc._2.header, mc._2.matrix.toArray))
-                                  val persistedGenotypificationH2 = rawGenotypificationH2
-                                    .map(_.map(toMarkerCpt2))
-                                  val persistedGenotypificationWithMarkers = rawGenotypificationWithMarkers
-                                    .map(toMarkerCpt2)
-                                  val pedigreeGenotypification =
-                                    PedigreeGenotypification(
-                                      pedigree._id,
-                                      newGenotypification,
-                                      pedigree.boundary,
-                                      pedigree.frequencyTable.get,
-                                      unknowns,
-                                      strictGenotypification,
-                                      persistedGenotypificationH2,
-                                      persistedGenotypificationWithMarkers
-                                    )
-                                  logger.info("--- SAVE GENO END / Main branch ---")
-                                  pedigreeGenotypificationRepository
-                                    .upsertGenotypification(
-                                      pedigreeGenotypification
-                                    )
-                              }
-                            }
-                          }
-                      }
-                    )
+                        logger.info("--- SAVE GENO END / Main branch ---")
+                        pedigreeGenotypificationRepository
+                          .upsertGenotypification(
+                            pedigreeGenotypification
+                          )
+                    }
                 }
               )
               .recoverWith {
@@ -321,8 +278,7 @@ class PedigreeGenotypificationServiceImpl @Inject()(
         c.mutationModelType,
         c.mutationModelData,
         c.seenAlleles,
-        c.locusRangeMap,
-        c.maxExclusionsAllowed
+        c.locusRangeMap
       )
     logger.info("--- CalculateProbability END ---")
     probability

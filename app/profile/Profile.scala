@@ -232,8 +232,15 @@ case class ProfileModelView(
   labelable: Boolean,
   editable: Boolean,
   isReference:Boolean,
+  /** Rige la regla de banda única (`FullCategory.singleBandRule`): la pantalla admite el
+    * alelo repetido y rechaza la banda única. */
+  singleBandRule: Boolean,
   readOnly: Boolean,
-  isUploadedToSuperior:Boolean
+  isUploadedToSuperior:Boolean,
+  // tiene otro perfil asociado
+  associated: Boolean,
+  // tipos de análisis de los marcadores de la asociación: no admiten análisis nuevos
+  associationAnalysisTypes: Seq[Int]
 )
 
 object ProfileModelView {

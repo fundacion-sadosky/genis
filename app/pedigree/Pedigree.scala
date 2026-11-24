@@ -44,8 +44,7 @@ case class PedigreeGenogram(
   numberOfMismatches: Option[Int],
   caseType:String,
   mutationModelId: Option[Long] = None,
-  idCourtCase: Long,
-  maxMendelianExclusions: Option[Int] = None
+  idCourtCase: Long
 )
 
 object PedigreeGenogram {
@@ -71,8 +70,7 @@ object PedigreeGenogram {
     (__ \ "numberOfMismatches").readNullable[Int] and
     (__ \ "caseType").read[String] and
     (__ \ "mutationModelId").readNullable[Long] and
-    (__ \ "idCourtCase").read[Long] and
-    (__ \ "maxMendelianExclusions").readNullable[Int])(PedigreeGenogram.apply _)
+    (__ \ "idCourtCase").read[Long])(PedigreeGenogram.apply _)
 
   implicit val pedigreeWrites: OWrites[PedigreeGenogram] = (
     (__ \ "_id").write[Long] and
@@ -86,8 +84,7 @@ object PedigreeGenogram {
     (__ \ "numberOfMismatches").writeNullable[Int] and
     (__ \ "caseType").write[String] and
     (__ \ "mutationModelId").writeNullable[Long] and
-    (__ \ "idCourtCase").write[Long] and
-    (__ \ "maxMendelianExclusions").writeNullable[Int])((pedigreeGenogram: PedigreeGenogram) => (
+    (__ \ "idCourtCase").write[Long])((pedigreeGenogram: PedigreeGenogram) => (
     pedigreeGenogram._id,
     pedigreeGenogram.assignee,
     pedigreeGenogram.genogram,
@@ -99,8 +96,7 @@ object PedigreeGenogram {
     pedigreeGenogram.numberOfMismatches,
     pedigreeGenogram.caseType,
     pedigreeGenogram.mutationModelId,
-    pedigreeGenogram.idCourtCase,
-    pedigreeGenogram.maxMendelianExclusions
+    pedigreeGenogram.idCourtCase
   ))
 
   implicit val pedigreeFormat: OFormat[PedigreeGenogram] = OFormat(pedigreeReads, pedigreeWrites)
@@ -120,7 +116,11 @@ case class PedigreeGenotypification(
   unknowns: Array[String],
   strictGenotypification: Array[PlainCPT2] = Array.empty,
   genotypificationH2: Option[Array[MarkerPlainCPT2]] = None,
-  genotypificationWithMarkers: Array[MarkerPlainCPT2] = Array.empty
+  genotypificationWithMarkers: Array[MarkerPlainCPT2] = Array.empty,
+  familySingleBand: Map[String, List[String]] = Map.empty,
+  // Universo de alelos con que se construyeron las CPT y huella de la familia.
+  universe: Map[String, List[Double]] = Map.empty,
+  familyFingerprint: Option[String] = None
 )
 
 object PedigreeGenotypification {
@@ -142,7 +142,10 @@ object PedigreeGenotypification {
     (__ \ "unknowns").read[Array[String]] and
     (__ \ "strictGenotypification").read[Array[PlainCPT2]].orElse(Reads.pure(Array.empty[PlainCPT2])) and
     (__ \ "genotypificationH2").readNullable[Array[MarkerPlainCPT2]].orElse(Reads.pure(None)) and
-    (__ \ "genotypificationWithMarkers").read[Array[MarkerPlainCPT2]].orElse(Reads.pure(Array.empty[MarkerPlainCPT2])))(PedigreeGenotypification.apply _)
+    (__ \ "genotypificationWithMarkers").read[Array[MarkerPlainCPT2]].orElse(Reads.pure(Array.empty[MarkerPlainCPT2])) and
+    (__ \ "familySingleBand").read[Map[String, List[String]]].orElse(Reads.pure(Map.empty[String, List[String]])) and
+    (__ \ "universe").read[Map[String, List[Double]]].orElse(Reads.pure(Map.empty[String, List[Double]])) and
+    (__ \ "familyFingerprint").readNullable[String].orElse(Reads.pure(None)))(PedigreeGenotypification.apply _)
 
   implicit val pedigreeGenotypificationWrites: OWrites[PedigreeGenotypification] = (
     (__ \ "_id").write[Long] and
@@ -152,7 +155,10 @@ object PedigreeGenotypification {
     (__ \ "unknowns").write[Array[String]] and
     (__ \ "strictGenotypification").write[Array[PlainCPT2]] and
     (__ \ "genotypificationH2").writeNullable[Array[MarkerPlainCPT2]] and
-    (__ \ "genotypificationWithMarkers").write[Array[MarkerPlainCPT2]])((pedigreeGenotypification: PedigreeGenotypification) => (
+    (__ \ "genotypificationWithMarkers").write[Array[MarkerPlainCPT2]] and
+    (__ \ "familySingleBand").write[Map[String, List[String]]] and
+    (__ \ "universe").write[Map[String, List[Double]]] and
+    (__ \ "familyFingerprint").writeNullable[String])((pedigreeGenotypification: PedigreeGenotypification) => (
     pedigreeGenotypification._id,
     pedigreeGenotypification.genotypification,
     pedigreeGenotypification.boundary,
@@ -160,7 +166,10 @@ object PedigreeGenotypification {
     pedigreeGenotypification.unknowns,
     pedigreeGenotypification.strictGenotypification,
     pedigreeGenotypification.genotypificationH2,
-    pedigreeGenotypification.genotypificationWithMarkers))
+    pedigreeGenotypification.genotypificationWithMarkers,
+    pedigreeGenotypification.familySingleBand,
+    pedigreeGenotypification.universe,
+    pedigreeGenotypification.familyFingerprint))
 
   implicit val pedigreeGenotypificationFormat: OFormat[PedigreeGenotypification] = OFormat(pedigreeGenotypificationReads, pedigreeGenotypificationWrites)
 }

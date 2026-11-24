@@ -27,6 +27,17 @@ trait BayesianNetworkService {
     mutationModelType: Option[Long] = None,
     mutationModelData: Option[List[MutationModelData]] = None,
     n: Map[String,List[Double]] = Map.empty): Future[Array[PlainCPT]]
+  /** La genotipificación completa que saveGenotypification persiste:
+    * BayesianNetwork.buildGenotypification con los rangos de locus de LocusService. */
+  def getFamilyGenotypification(
+    pedigree: PedigreeGenogram,
+    profiles: Array[Profile],
+    frequencyTable: FrequencyTable,
+    analysisType: AnalysisType,
+    linkage: Linkage,
+    mutationModelType: Option[Long] = None,
+    mutationModelData: Option[List[MutationModelData]] = None,
+    n: Map[String,List[Double]] = Map.empty): Future[BayesianNetwork.FamilyGenotypification]
   def calculateProbability(scenario: PedigreeScenario): Future[(Double, Map[String, MarkerLRDetail])]
   def getFrequencyTable(name: String): Future[(String, FrequencyTable)]
   def getFrequencyTables(names: Seq[String]): Future[Map[String, FrequencyTable]]
@@ -47,7 +58,6 @@ class BayesianNetworkServiceImpl @Inject() (
    mutationRepository: MutationRepository = null,
    pedigreeGenotypificationService: PedigreeGenotypificationService = null,
    userService: UserService = null,
-   pedigreeMatchingParameterRepository: PedigreeMatchingParameterRepository = null,
    pedigreeProcessingLock: PedigreeProcessingLock = null
 ) extends BayesianNetworkService {
 
@@ -64,10 +74,14 @@ class BayesianNetworkServiceImpl @Inject() (
         _ <- pedigreeScenarioService.updateScenario(
           getScenarioWithProcessing(scenario, processing = true)
         )
+        // calculateProbability normaliza de nuevo; acá hace falta para que los
+        // parámetros de mutación se pidan con el nombre canónico de ACTBP2/SE33 que use la
+        // tabla de frecuencias del escenario (por eso se resuelve primero).
+        frequencyTable <- getFrequencyTable(scenario.frequencyTable)
         profiles <- profileRepository.findByCodes(codes)
+          .map(_.map(BayesianNetwork.normalizarParaParentesco(_, frequencyTable._2)))
         analysisType <- calculationTypeService
           .getAnalysisTypeByCalculation(calculation)
-        frequencyTable <- getFrequencyTable(scenario.frequencyTable)
         linkage <- getLinkage()
         mutationModel <- if (scenario.mutationModelId.isDefined) {
           mutationRepository.getMutationModel(scenario.mutationModelId)
@@ -80,13 +94,6 @@ class BayesianNetworkServiceImpl @Inject() (
             profileRepository.getProfilesMarkers(profiles.toArray)
           )
         listLocus <- locusService.list()
-        pedigreeOpt <- pedigreeService.getPedigree(scenario.pedigreeId)
-        maxExclusionsAllowed <- pedigreeOpt
-          .flatMap(_.pedigreeGenogram)
-          .flatMap(_.maxMendelianExclusions) match {
-          case Some(configured) => Future.successful(configured)
-          case None => pedigreeMatchingParameterRepository.getMaxMendelianExclusions
-        }
       } yield {
         val n = BayesianNetwork.getNFromTable(frequencyTable._2)
         val locusRangesDefault: NewMatchingResult.AlleleMatchRange =
@@ -112,8 +119,7 @@ class BayesianNetworkServiceImpl @Inject() (
               mutationModelType,
               mutationModelData,
               n,
-              locusRangesDefault,
-              maxExclusionsAllowed
+              locusRangesDefault
             )
           )
       }
@@ -196,7 +202,7 @@ class BayesianNetworkServiceImpl @Inject() (
   ): Future[Array[PlainCPT]] = {
     Future {
       val normalizedFrequencyTable = BayesianNetwork
-        .getNormalizedFrequencyTable(frequencyTable)
+        .getNormalizedFrequencyTable(frequencyTable, n)
       BayesianNetwork
         .getGenotypification(
           profiles,
@@ -211,6 +217,35 @@ class BayesianNetworkServiceImpl @Inject() (
           mutationModelData,
           n
         )
+    }
+  }
+
+  override def getFamilyGenotypification(
+    pedigree: PedigreeGenogram,
+    profiles: Array[Profile],
+    frequencyTable: FrequencyTable,
+    analysisType: AnalysisType,
+    linkage: Linkage,
+    mutationModelType: Option[Long],
+    mutationModelData: Option[List[MutationModelData]],
+    n: Map[String,List[Double]]
+  ): Future[BayesianNetwork.FamilyGenotypification] = {
+    Future {
+      // verbose = true, como siempre tuvo la principal al activar un pedigrí
+      // (getGenotypification de arriba); sólo afecta el log.
+      BayesianNetwork.buildGenotypification(
+        profiles,
+        pedigree.genogram.toArray,
+        frequencyTable,
+        analysisType,
+        linkage,
+        None,
+        verbose = true,
+        locusService.locusRangeMap(),
+        mutationModelType,
+        mutationModelData,
+        n
+      )
     }
   }
 

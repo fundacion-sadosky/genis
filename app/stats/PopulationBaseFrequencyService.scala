@@ -71,6 +71,13 @@ class PopulationBaseFrequencyImpl @Inject() (
     s.replaceAll(",", ".").toDouble
   }
 
+  private val linesShown = 5
+
+  private def describeLines(lines: List[Int]): String = {
+    val shown = lines.take(linesShown).mkString(", ")
+    if (lines.length > linesShown) s"$shown y ${lines.length - linesShown} más" else shown
+  }
+
   private def validate(base: List[List[String]], locusAlias: Map[String, String]): Either[Seq[String], NormalizedPbF] = {
 
     val last = base.last
@@ -91,11 +98,17 @@ class PopulationBaseFrequencyImpl @Inject() (
       }
     }
 
-    val headerLength = markers.length
-
-    if ((headerLength + 1) != last.length) {
-      logger.error(s"HeaderLength is: ${headerLength + 1} and last entry length is: ${last.length}")
-      errors = errors :+ Messages("error.E0960",(headerLength + 1),last.length)
+    // Todas las filas se comparan con la cabecera: un E0960 por ancho distinto,
+    // con las lineas del archivo afectadas (la cabecera es la linea 1) o «todas» si no se salva ninguna.
+    // El ancho esperado sale de la cabecera del archivo, no de los marcadores reconocidos: con un locus
+    // desconocido (E0689) markers queda vacio y no corresponde sumar un E0960 falso.
+    val expectedLength = header.length + 1
+    val mismatched = tail.zipWithIndex.collect { case (row, i) if row.length != expectedLength => (i + 2, row.length) }
+    mismatched.groupBy(_._2).toSeq.sortBy(_._1).foreach { case (width, rows) =>
+      val lines = rows.map(_._1)
+      logger.error(s"HeaderLength is: $expectedLength and ${lines.length} rows have length $width (lines ${lines.mkString(",")})")
+      val where = if (lines.length == tail.length) "todas las filas" else "filas " + describeLines(lines)
+      errors = errors :+ Messages("error.E0960", expectedLength, lines.length, width, where)
     }
 
     var fmins: List[BigDecimal] = List.empty
@@ -185,7 +198,7 @@ class PopulationBaseFrequencyImpl @Inject() (
 
           val lines = this.save(PopulationBaseFrequency(name, theta, model, seqPsf ++ psfFmins))
 
-          lines map { l => PopBaseFreqResult("Imported", None, None, Seq.empty, Option(l)) }
+          lines map { l => saved("Imported", name, l) }
 
         } else {
           val key = TemporaryFreqDbKey(java.util.UUID.randomUUID.toString)
@@ -234,18 +247,30 @@ class PopulationBaseFrequencyImpl @Inject() (
       }
     }
 
-    insertFminInDb(id, fminsAsMap.toSeq) map { i => PopBaseFreqResult("Inserted", None, None, Seq.empty, Option(i)) }
+    insertFminInDb(id, fminsAsMap.toSeq)
   }
 
-  private def insertFminInDb(id: String, fmins: Seq[PopulationSampleFrequency]): Future[Int] = {
+  private def insertFminInDb(id: String, fmins: Seq[PopulationSampleFrequency]): Future[PopBaseFreqResult] = {
 
     val key = TemporaryFreqDbKey(id)
 
-    cache.pop(key).fold[Future[Int]](Future.successful(0)) { pbf =>
+    // Sin la base en caché (clave vencida o inexistente) no hay nada que guardar: Invalid, no Inserted
+    cache.pop(key).fold[Future[PopBaseFreqResult]](Future.successful(PopBaseFreqResult("Invalid", None, None, Seq(Messages("error.E0976")), None))) { pbf =>
 
       val newPbf = PopulationBaseFrequency(pbf.name, pbf.theta, pbf.model, pbf.base ++ fmins)
 
-      this.save(newPbf)
+      this.save(newPbf) map { i => saved("Inserted", pbf.name, i) }
+    }
+  }
+
+  // save devuelve -1 cuando el repositorio no inserto (nombre repetido, nombre de mas de 50 caracteres):
+  // eso no es un exito con -1 registros sino un rechazo, y la base ya no esta en cache
+  private def saved(status: String, name: String, inserted: Int): PopBaseFreqResult = {
+    if (inserted < 0) {
+      logger.error(s"Population base '$name' was not saved: the repository inserted nothing")
+      PopBaseFreqResult("Invalid", None, None, Seq(Messages("error.E0977", name)), None)
+    } else {
+      PopBaseFreqResult(status, None, None, Seq.empty, Option(inserted))
     }
   }
 
@@ -270,10 +295,10 @@ class PopulationBaseFrequencyImpl @Inject() (
 
   }
   // A diferencia de getAllPossibleAllelesByLocus (union de TODAS las tablas
-  // poblacionales cargadas + el catalogo LOCUS_ALLELE), este metodo calibra
+  // poblacionales cargadas + el catalogo de alelos), este metodo calibra
   // contra la MISMA tabla que BayesianNetworkService.calculateProbability usa
   // como "n" para un pedigri (ver comentario en BayesianNetworkService.scala:92-102):
-  // la tabla poblacional por defecto (hoy la unica en uso real: ESPAÑA). Usar
+  // la tabla poblacional por defecto. Usar
   // un dominio mas amplio en la calibracion de k_i que el que despues se
   // enumera en el calculo real hace que la fila de la matriz de mutacion ya
   // no sume 1 (k_i le resta masa a un vecino que en el calculo real nunca
@@ -281,17 +306,17 @@ class PopulationBaseFrequencyImpl @Inject() (
   //
   // Por locus se usa el dominio de la tabla por defecto SOLO cuando esa
   // tabla tiene alelos cargados bajo el mismo nombre que usa
-  // MUTATION_MODEL_PARAMETER.LOCUS, o bajo un alias reconocido (ACTBP2 y
+  // los parametros del modelo de mutacion, o bajo un alias reconocido (ACTBP2 y
   // SE33 son el mismo locus forense -- ver isActbp2Se33Alias). Los locus que
   // ni siquiera bajo alias aparecen en la tabla por defecto (ej. D6S1043,
-  // YIndel: ausentes de ESPAÑA) mantienen el comportamiento anterior
+  // YIndel) mantienen el comportamiento anterior
   // (dominio amplio via getAllPossibleAllelesByLocus, alimentado desde
-  // LOCUS_ALLELE) para no perder silenciosamente la cobertura del modelo de
-  // mutacion en un locus que sigue usandose en matches reales.
+  // el catalogo de alelos) para no perder silenciosamente la cobertura del modelo de
+  // mutacion en un locus que puede seguir usandose.
   //
   // Si en el futuro conviven pedigries con distintas tablas poblacionales
   // activas, este metodo deja de ser suficiente y hay que calibrar k_i por
-  // tabla (cambio de esquema en MUTATION_MODEL_KI).
+  // tabla (cambio de esquema).
   private def isActbp2Se33Alias(name: String): Boolean = {
     val upper = name.toUpperCase
     upper.contains("ACTBP2") || upper.contains("SE33")

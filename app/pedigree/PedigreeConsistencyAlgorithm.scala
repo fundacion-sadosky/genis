@@ -386,10 +386,15 @@ object PedigreeConsistencyAlgorithm {
       .genotypification
       .getOrElse(1, Map.empty)
       .getOrElse(marker, Nil)
-    strs
-      .map { allele => transformAlleleValues(allele) }
-      .toSet
-      .toArray
+    // Banda única: sin datos en este locus, igual que el motor (getAlleles).
+    if (SingleBand.isSingleBand(strs)) {
+      Array.empty[Double]
+    } else {
+      strs
+        .map { allele => transformAlleleValues(allele) }
+        .toSet
+        .toArray
+    }
   }
 
   private def transformToGenogram(alelles: Array[Double]) : (Double, Double) = {
@@ -431,7 +436,14 @@ object PedigreeConsistencyAlgorithm {
             val profileOpt = profiles.find(profile => profile.globalCode == individual.globalCode.get)
             profileOpt match{
               case Some(profile) => {
-                Array(transformToGenogram(getProfileAlleles(profile, 1, marker)))
+                val alelosDelPerfil = getProfileAlleles(profile, 1, marker)
+                // Banda única: sin dato en este locus, se abre a todas las combinaciones
+                // posibles del pedigree en vez de fijar un genotipo inexistente.
+                if (alelosDelPerfil.isEmpty) {
+                  combinationOfTwo(pedAlleles)
+                } else {
+                  Array(transformToGenogram(alelosDelPerfil))
+                }
               }
               case None => {
                 combinationOfTwo(pedAlleles)

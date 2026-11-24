@@ -367,7 +367,7 @@ object MatchingAlgorithm {
               val a = sequences
                 .map {
                   case (pSequence, qSequence) =>
-                    // TODO [#34] mtDnaMatch could return matching alleles, not
+                    // TODO mtDnaMatch could return matching alleles, not
                     //  only the count of matches.
                     mtDnaMatch(
                       config,
@@ -721,6 +721,9 @@ object MatchingAlgorithm {
     victim2: Option[Seq[AlleleValue]]
   ): Stringency = {
     val matchLevel = (victim1, victim2) match {
+      // Las dos mezclas tienen un perfil asociado en este marcador: ninguna es "el sospechoso",
+      // así que se resuelve como mezcla contra mezcla.
+      case (Some(_), Some(_)) => genotypeMatchOfMixes(mix1, victim1, mix2, victim2)
       case (Some(seqV1), None) => {
         val suspect = mix2
         val cond1 = mix1 forall (x => containsMatch((suspect union seqV1),x))
@@ -996,15 +999,15 @@ object MatchingAlgorithm {
             }
           }
       }
-      // WARNING: THIS just picks the first associated profile
+      // El genotipo a descontar junta las asociaciones del perfil (una por tipo de análisis)
 
       val matchLevels = if (matchingRule.matchingAlgorithm == Algorithm.GENIS_MM) {
-        val pVictimGenotype = p.labeledGenotypification.flatMap { mapOfLabeled => mapOfLabeled.values.toVector.lift(0) }
-        val qVictimGenotype = q.labeledGenotypification.flatMap { mapOfLabeled => mapOfLabeled.values.toVector.lift(0) }
+        val pVictimGenotype = AssociationLabels.discountGenotype(p.labeledGenotypification)
+        val qVictimGenotype = AssociationLabels.discountGenotype(q.labeledGenotypification)
         buildMatchResultMixMix(pGenotype, pVictimGenotype, qGenotype, qVictimGenotype, matchingRule.minimumStringency, loci.toList, matchingRule.mismatchsAllowed, Some(Map[Profile.Marker, Stringency]()))
       } else if (matchingRule.matchingAlgorithm == Algorithm.ENFSI) {
-        val pVictimGenotype = p.labeledGenotypification.flatMap { mapOfLabeled => mapOfLabeled.values.toVector.lift(0) }
-        val qVictimGenotype = q.labeledGenotypification.flatMap { mapOfLabeled => mapOfLabeled.values.toVector.lift(0) }
+        val pVictimGenotype = AssociationLabels.discountGenotype(p.labeledGenotypification)
+        val qVictimGenotype = AssociationLabels.discountGenotype(q.labeledGenotypification)
         if (pVictimGenotype.isDefined || qVictimGenotype.isDefined) {
           buildMatchResultWithVictim(pGenotype, pVictimGenotype, qGenotype, qVictimGenotype, matchingRule.minimumStringency, loci.toList, matchingRule.mismatchsAllowed, Some(Map[Profile.Marker, Stringency]()))
         } else {

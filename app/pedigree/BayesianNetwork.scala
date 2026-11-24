@@ -167,6 +167,78 @@ object BayesianNetwork {
     (genotypificationH2, genotypificationWithMarkers)
   }
 
+  /** La genotipificación completa de una familia, como la persiste
+    * PedigreeGenotypificationService.saveGenotypification: principal, estricta
+    * (sin modelo de mutación, sólo para contar exclusiones mendelianas) y las
+    * ramas H2 / con-marcador de getGenotypificationExtras. Ya en arrays
+    * (PlainCPT2), que es lo que viaja a Mongo. */
+  case class FamilyGenotypification(
+    genotypification: Array[PlainCPT2],
+    strictGenotypification: Array[PlainCPT2],
+    genotypificationH2: Option[Array[MarkerPlainCPT2]],
+    genotypificationWithMarkers: Array[MarkerPlainCPT2]
+  )
+  /** Alias del mismo tipo para el rehecho de un marcador. */
+  type RebuiltMarker = FamilyGenotypification
+
+  /** Una sola composición para los tres llamadores: el servicio al
+    * activar un pedigrí (todos los marcadores), `rebuildMarker` en el cotejo
+    * (un marcador) y las pruebas de validación. `frequencyTable` es la
+    * tabla cruda: se normaliza acá sobre `n`, el universo con que se construye
+    * la CPT (panel más alelos observados). `markers` acota la principal y la
+    * estricta (`None` = todos los de la tabla) y las ramas H2 / con-marcador,
+    * que sin acotar van sobre todos los marcadores de la tabla. `verbose` y
+    * `locusRangeMap` llegan a la principal y a la estricta; las extras se arman
+    * sin rangos y sin log, como siempre lo hizo el servicio. */
+  def buildGenotypification(
+    profiles: Array[Profile],
+    genogram: Array[Individual],
+    frequencyTable: FrequencyTable,
+    analysisType: AnalysisType,
+    linkage: Linkage,
+    markers: Option[Array[String]],
+    verbose: Boolean,
+    locusRangeMap: NewMatchingResult.AlleleMatchRange,
+    mutationModelType: Option[Long],
+    mutationModelData: Option[List[MutationModelData]],
+    n: Map[String, List[Double]]
+  ): FamilyGenotypification = {
+    val normalized = getNormalizedFrequencyTable(frequencyTable, n)
+    def toArrays(c: PlainCPT): PlainCPT2 = PlainCPT2(c.header, c.matrix.toArray)
+    def toMarkerArrays(mc: (String, PlainCPT)): MarkerPlainCPT2 = MarkerPlainCPT2(mc._1, toArrays(mc._2))
+    val main = getGenotypification(profiles, genogram, normalized, analysisType, linkage,
+      markers, verbose, locusRangeMap, mutationModelType, mutationModelData, n).map(toArrays)
+    val strict =
+      if (mutationModelType.isEmpty) {
+        main
+      } else {
+        getGenotypification(profiles, genogram, normalized, analysisType, linkage,
+          markers, verbose, locusRangeMap, None, None, n).map(toArrays)
+      }
+    val (h2, withMarkers) = getGenotypificationExtras(profiles, genogram, normalized, analysisType, linkage,
+      markers.getOrElse(frequencyTable.keys.toArray), false, Map.empty, mutationModelType, mutationModelData, n)
+    FamilyGenotypification(main, strict, h2.map(_.map(toMarkerArrays)), withMarkers.map(toMarkerArrays))
+  }
+
+  /** CPT de la familia para UN marcador, rehechas con el universo `n`:
+    * la misma construcción que saveGenotypification, acotada a `marker`. Se usa
+    * en el cotejo cuando el candidato trae un alelo que no estaba en el universo
+    * de la CPT persistida. El linkage es vacío porque
+    * BayesianNetworkService.getLinkage devuelve siempre Map.empty. */
+  def rebuildMarker(
+    profiles: Array[Profile],
+    genogram: Array[Individual],
+    frequencyTable: FrequencyTable,
+    analysisType: AnalysisType,
+    marker: String,
+    locusRangeMap: NewMatchingResult.AlleleMatchRange,
+    mutationModelType: Option[Long],
+    mutationModelData: Option[List[MutationModelData]],
+    n: Map[String, List[Double]]
+  ): RebuiltMarker =
+    buildGenotypification(profiles, genogram, frequencyTable, analysisType, Map.empty,
+      Some(Array(marker)), false, locusRangeMap, mutationModelType, mutationModelData, n)
+
   def calculateProbability(
     profiles: Array[Profile],
     genogram: Array[Individual],
@@ -177,8 +249,24 @@ object BayesianNetwork {
     mutationModelType: Option[Long] = None,
     mutationModelData: Option[List[MutationModelData]] = None,
     seenAlleles: Map[String, List[Double]] = Map.empty,
-    locusRangeMap:NewMatchingResult.AlleleMatchRange = Map.empty,
-    maxExclusionsAllowed: Int = 0
+    locusRangeMap:NewMatchingResult.AlleleMatchRange = Map.empty
+  ): (Double, Map[String, MarkerLRDetail]) =
+    // La familia y el candidato del escenario entran normalizados acá, sea quien
+    // sea el llamador (escenario de pedigrí, validación, pruebas).
+    calculateProbabilityNormalizada(profiles.map(normalizarParaParentesco(_, frequencyTable)), genogram, frequencyTable, analysisType,
+      linkage, verbose, mutationModelType, mutationModelData, seenAlleles, locusRangeMap)
+
+  private def calculateProbabilityNormalizada(
+    profiles: Array[Profile],
+    genogram: Array[Individual],
+    frequencyTable: FrequencyTable,
+    analysisType: AnalysisType,
+    linkage: Linkage,
+    verbose: Boolean,
+    mutationModelType: Option[Long],
+    mutationModelData: Option[List[MutationModelData]],
+    seenAlleles: Map[String, List[Double]],
+    locusRangeMap:NewMatchingResult.AlleleMatchRange
   ): (Double, Map[String, MarkerLRDetail]) = {
     val nBase = if(seenAlleles.isEmpty) {
       getNFromTable(frequencyTable)
@@ -197,7 +285,7 @@ object BayesianNetwork {
     val markers = queryProfiles.values.head.keys.toArray
     val linkageMarkers = linkage.keySet.union(linkage.values.map(_._1).toSet)
     val starNormalizedFrequencyTableTime = System.currentTimeMillis()
-    val normalizedFrequencyTable = getNormalizedFrequencyTable(frequencyTable)
+    val normalizedFrequencyTable = getNormalizedFrequencyTable(frequencyTable, n)
     val endNormalizedFrequencyTableTime = System.currentTimeMillis()
     val startGenotypificationTime = System.currentTimeMillis()
     val genotypification = getGenotypification(
@@ -258,7 +346,6 @@ object BayesianNetwork {
       mutationModelType,
       mutationModelData,
       n,
-      maxExclusionsAllowed,
       strictGenotypification,
       genotypificationH2,
       genotypificationWithMarkers
@@ -268,7 +355,20 @@ object BayesianNetwork {
       logger.info(s"--- GetLR: ${endLRTime-startLRTime} ---")
       logger.info(s"--- LR: ${lr._1} ---")
     }
-    (lr._1, lr._4)
+    // Señal de banda única: el candidato (LR 1, "singleBand") y los familiares
+    // (alias en el marcador). No cambia lr._1: esos marcadores no entraron.
+    val singleBandMarkers: Set[Profile.Marker] = genogram
+      .filter(_.unknown)
+      .flatMap(_.globalCode)
+      .flatMap(code => profiles.find(_.globalCode == code))
+      .flatMap(p => SingleBandExclusions.ofQueryProfile(p, analysisType, frequencyTable))
+      .toSet
+    val familySingleBand = SingleBandExclusions.byIndividual(profiles, genogram, frequencyTable)
+    val markerDetails = SingleBandExclusions.withFamily(
+      lr._3 ++ SingleBandExclusions.details(singleBandMarkers),
+      familySingleBand
+    )
+    (lr._1, markerDetails)
   }
   def getLR(
     unknowns: Array[String],
@@ -279,20 +379,20 @@ object BayesianNetwork {
     mutationModelType: Option[Long] = None,
     mutationModelData: Option[List[MutationModelData]] = None,
     n: Map[String,List[Double]] = Map.empty,
-    maxExclusionsAllowed: Int = 0,
     strictGenotypification: Array[PlainCPT] = Array.empty,
     genotypificationH2: Option[Array[(String, PlainCPT)]] = None,
     genotypificationWithMarkers: Array[(String, PlainCPT)] = Array.empty
-  ): (Double, String, List[String], Map[String, MarkerLRDetail]) = {
+  ): (Double, String, Map[String, MarkerLRDetail]) = {
     val linkeage:Linkage = Map.empty
     val unknownAlias = unknowns.head
+    val singleBandMarkers = SingleBandExclusions.ofQueryProfile(profile, analysisType, frequencyTable)
     val queryProfiles = Map(
       unknownAlias -> getQueryProfileAlleles(
         profile, analysisType, frequencyTable
       )
     )
     val markers = queryProfiles.values.head.keys.toArray
-    val normalizedFrequencyTable = getNormalizedFrequencyTable(frequencyTable)
+    val normalizedFrequencyTable = getNormalizedFrequencyTable(frequencyTable, n)
     val lr = calculateLR(
       queryProfiles,
       markers,
@@ -303,7 +403,6 @@ object BayesianNetwork {
       mutationModelType,
       mutationModelData,
       n,
-      maxExclusionsAllowed,
       strictGenotypification,
       genotypificationH2,
       genotypificationWithMarkers
@@ -316,7 +415,7 @@ object BayesianNetwork {
       }"
     )
     logger.info(s"--- LR: ${lr._1} ---")
-    lr
+    (lr._1, lr._2, lr._3 ++ SingleBandExclusions.details(singleBandMarkers))
   }
 
   private def calculateLR(
@@ -329,11 +428,10 @@ object BayesianNetwork {
     mutationModelType: Option[Long] = None,
     mutationModelData: Option[List[MutationModelData]] = None,
     n: Map[String, List[Double]] = Map.empty,
-    maxExclusionsAllowed: Int = 0,
     strictGenotypification: Array[PlainCPT] = Array.empty,
     genotypificationH2: Option[Array[(String, PlainCPT)]] = None,
     genotypificationWithMarkers: Array[(String, PlainCPT)] = Array.empty
-  ) : (Double, String, List[String], Map[String, MarkerLRDetail]) = {
+  ) : (Double, String, Map[String, MarkerLRDetail]) = {
     val unknown = queryProfiles.keys.head
     val markersToFilter = getMarkersToFilter(
       markers,
@@ -394,31 +492,25 @@ object BayesianNetwork {
       mutationModelType,
       mutationModelData,
       n,
-      maxExclusionsAllowed,
       strictGenotypification,
       genotypificationH2ForQuery,
       genotypificationWithMarkersForQuery
     )
-    val toleratedMarkers = queryProbabilityLog._3.toArray
     val genotypeProbabilityLog = getGenotypeProbabilityLog(
-      filterQueryProfile(queryProfilesFiltered, toleratedMarkers),
+      queryProfilesFiltered,
       normalizedFrequencyTable
     )
     val lr = if (linkage.nonEmpty) {
-      val evidenceGenotypification = filterGenotypification(
-        genotypificationFiltered,
-        toleratedMarkers
-      )
-      val evidenceProbabilityLogLinked = getEvidenceProbabilityLog(evidenceGenotypification)
+      val evidenceProbabilityLogLinked = getEvidenceProbabilityLog(genotypificationFiltered)
       if (evidenceProbabilityLogLinked.isEmpty || genotypeProbabilityLog.isEmpty || queryProbabilityLog._1.isEmpty) {
         0.0
       } else {
         math.exp(queryProbabilityLog._1.get - (evidenceProbabilityLogLinked.get + genotypeProbabilityLog.get))
       }
-    } else if (queryProbabilityLog._4.isEmpty) {
+    } else if (queryProbabilityLog._3.isEmpty) {
       0.0
     } else {
-      queryProbabilityLog._4.values.map(_.lr).product
+      queryProbabilityLog._3.values.map(_.lr).product
     }
 
     if (!messageMarkersFitered.isEmpty || !queryProbabilityLog._2.isEmpty) {
@@ -431,7 +523,7 @@ object BayesianNetwork {
         message = messageInit + queryProbabilityLog._2
       }
     }
-    (lr, message, queryProbabilityLog._3, queryProbabilityLog._4)
+    (lr, message, queryProbabilityLog._3)
   }
 
   private def getMarkersToFilter(
@@ -461,7 +553,68 @@ object BayesianNetwork {
     upper.contains("ACTBP2") || upper.contains("SE33")
   }
 
-  private def allelesInN(marker: String, n: Map[String, List[Double]]): List[Double] = {
+  /** ACTBP2 y ACTBP2(SE33) son el mismo locus -- distinto nombre segun el kit de origen: 14
+    * kits del catalogo (Globalfiler, Interpol, Investigator*, NGMSelect, PowerplexES*, SEfiler,
+    * 24plexQS) lo llaman "ACTBP2"; sólo PowerplexFusion6C usa el nombre "ACTBP2(SE33)". Cuál de
+    * los dos nombres es "el canónico" depende de la tabla de frecuencias con la que se cotejue:
+    * unas tablas lo guardan como "ACTBP2(SE33)" y otras como "ACTBP2" liso, así que se toma el
+    * nombre que use la tabla en curso. No hay un alias de locus que los unifique -- los alias
+    * sirven para normalizar encabezados de GeneMapper hacia un locus YA VALIDO del catalogo, y
+    * "ACTBP2" es en sí mismo un locus válido (de ahí que isActbp2Se33Alias exista aparte, sólo
+    * para el universo de alelos de arriba). Sin esto, un perfil con el nombre que la tabla en
+    * uso no reconoce no empataría por nombre con el header de la CPT familiar y el marcador
+    * quedaría afuera del cálculo. Normalizar ACÁ, al cargar el perfil para el motor de parentesco, en vez
+    * de migrar los perfiles en la base: no se sabe con qué kit real se tipificó cada uno (varios
+    * kits comparten el nombre "ACTBP2"), así que renombrar el dato sería inventar un kit. */
+  def actbp2CanonicalName(frequencyTable: FrequencyTable): Option[Profile.Marker] =
+    frequencyTable.keySet.find(isActbp2Se33Alias)
+
+  def canonicalizeActbp2(p: Profile, frequencyTable: FrequencyTable): Profile = {
+    actbp2CanonicalName(frequencyTable) match {
+      // La tabla en uso ni siquiera tiene este locus en el panel: nada para canonicalizar.
+      case None => p
+      case Some(canonico) =>
+        val renombrado = p.genotypification.map {
+          case (analysisTypeId, geno) =>
+            val viejoNombre = geno.keys.find(k => k != canonico && isActbp2Se33Alias(k))
+            // Si el perfil trae los dos nombres (dos kits fundidos en un perfil), manda el
+            // canónico: el viejo no lo pisa, pase en el orden que pase el Map.
+            val viejo = viejoNombre
+              .flatMap(geno.get)
+              .filterNot(_ => geno.contains(canonico))
+              .map(canonico -> _)
+            analysisTypeId -> (geno.filterNot(m => viejoNombre.contains(m._1)) ++ viejo)
+        }
+        p.copy(genotypification = renombrado)
+    }
+  }
+
+  /** CODIS/GeneMapper usa el alelo literal "0" como marca de locus sin tipificar (dropout), no
+    * como un alelo real -- p.ej. D22S1045=[0,0] significa "no hay dato acá", no "el alelo mide
+    * 0". Tampoco es un alelo fuera de panel: un marcador así no pasa por `rebuildMarker`, que
+    * es para alelos *genuinamente* fuera de la tabla de frecuencias. Un dropout
+    * parcial ([15,0]) tampoco es utilizable: no se sabe si el genotipo real es homocigota o
+    * heterocigota con el segundo alelo sin ver, así que se descarta el marcador entero, igual
+    * que si el perfil nunca lo hubiera tipificado -- ni entra al cálculo ni dispara el rebuild. */
+  def esNoCall(alelos: List[AlleleValue]): Boolean =
+    alelos.exists { case Allele(count) => count == zero; case _ => false }
+
+  def dropNoCallMarkers(p: Profile): Profile = {
+    val filtrado = p.genotypification.map {
+      case (analysisTypeId, geno) => analysisTypeId -> geno.filterNot { case (_, alelos) => esNoCall(alelos) }
+    }
+    p.copy(genotypification = filtrado)
+  }
+
+  /** Un perfil como lo tiene que ver el motor de parentesco, se lo lea de donde se lo lea:
+    * ACTBP2 con su nombre canónico y sin los marcadores en 0. findCompatibilityMatches y
+    * calculateProbability la aplican ellas mismas al candidato y a la familia, así el
+    * resultado no depende de que cada llamador (RDD de candidatos, familia del matcher,
+    * búsqueda por perfil nuevo, escenario) se acuerde de hacerlo. Idempotente. */
+  def normalizarParaParentesco(p: Profile, frequencyTable: FrequencyTable): Profile =
+    dropNoCallMarkers(canonicalizeActbp2(p, frequencyTable))
+
+  def allelesInN(marker: String, n: Map[String, List[Double]]): List[Double] = {
     n.get(marker).getOrElse(
       if (isActbp2Se33Alias(marker)) {
         n.collectFirst { case (k, v) if isActbp2Se33Alias(k) => v }.getOrElse(List.empty)
@@ -552,20 +705,61 @@ object BayesianNetwork {
     queryProfilesFilterer.updated(unknown, unknownMarkers)
   }
 
+  /** Tabla normalizada sobre el universo `n`. Todo alelo de `n` que la
+    * tabla del marcador no trae entra valiendo el piso (clave -1.0), y recien
+    * entonces se aplica la operacion de siempre: subir al piso lo que quede
+    * por debajo y dividir el panel ENTERO, alelo agregado incluido, por la
+    * suma. Es la normalizacion de siempre extendida al
+    * alelo observado. Un marcador al que `n` no le agrega nada sale identico,
+    * bit a bit, al de la version de un argumento. Sin piso declarado no hay
+    * con que agregar y el marcador queda como estaba; -1.0 nunca se agrega,
+    * porque donde hay piso ya es una clave de la tabla. */
+  def getNormalizedFrequencyTable(
+    frequencyTable: FrequencyTable,
+    n: Map[String, List[Double]]
+  ): FrequencyTable = {
+    val extended = frequencyTable.map {
+      case (marker, alleles) =>
+        val added = allelesInN(marker, n).filterNot(alleles.contains).distinct
+        alleles.get(-1.0) match {
+          case Some(minimumFrequency) if added.nonEmpty =>
+            (marker, alleles ++ added.map(_ -> minimumFrequency))
+          case _ =>
+            (marker, alleles)
+        }
+    }
+    getNormalizedFrequencyTable(extended)
+  }
+
   def getNormalizedFrequencyTable(frequencyTable: FrequencyTable):
     FrequencyTable = {
     frequencyTable.map {
       case (marker, alleles) => {
-        val sum = alleles.filterKeys(_ != -1.0).values.sum
+        val minimumFrequency = alleles.getOrElse(-1.0, 0.0)
+        val isBelowMinimum = (allele: Double, frequency: Double) =>
+          allele != -1.0 && frequency < minimumFrequency
+        val flooredAlleles = if (alleles.exists(a => isBelowMinimum(a._1, a._2))) {
+          alleles.map {
+            case (allele, frequency) =>
+              if (isBelowMinimum(allele, frequency)) {
+                (allele, minimumFrequency)
+              } else {
+                (allele, frequency)
+              }
+          }
+        } else {
+          alleles
+        }
+        val sum = flooredAlleles.filterKeys(_ != -1.0).values.sum
         if (sum != 1) {
           (
             marker,
-            alleles.map {
+            flooredAlleles.map {
               case (allele, frequency) => (allele, frequency / sum)
             }
           )
         } else {
-          (marker, alleles)
+          (marker, flooredAlleles)
         }
       }
     }
@@ -589,8 +783,10 @@ object BayesianNetwork {
       .genotypification
       .getOrElse(analysisType.id, Map.empty)
     val frequencyTableMarkers = frequencyTable.keySet
+    // Banda única: [a] no es un genotipo. Queda fuera antes del distinct, que
+    // es lo que lo fundiría con [a,a]. Ver SingleBandExclusions.ofQueryProfile.
     val strsFiltered = strs.filter(
-      str => frequencyTableMarkers.contains(str._1)
+      str => frequencyTableMarkers.contains(str._1) && !SingleBand.isSingleBand(str._2)
     )
     strsFiltered.map {
       case (marker, alleles) => {
@@ -613,6 +809,8 @@ object BayesianNetwork {
     n: Map[String,List[Double]] = Map.empty
   ):Array[PlainCPT] = {
     val markers = ukMarkers.fold(frequencyTable.keys.toArray)(identity)
+    val mutationModelDataOnN = mutationModelData.map(
+      MutationService.recalibrateKis(_, n))
     val startGeneratingGraphTime = System.currentTimeMillis()
     val (variablesMap, graph) = generateGraph(
       profiles
@@ -651,7 +849,7 @@ object BayesianNetwork {
             frequencyTable,
             linkage,
             mutationModelType,
-            mutationModelData,
+            mutationModelDataOnN,
             n,
             genogram
           )
@@ -693,6 +891,8 @@ object BayesianNetwork {
     n: Map[String,List[Double]] = Map.empty
   ): Array[(String, PlainCPT)] = {
     val markers = ukMarkers.fold(frequencyTable.keys.toArray)(identity)
+    val mutationModelDataOnN = mutationModelData.map(
+      MutationService.recalibrateKis(_, n))
     val (variablesMap, graph) = generateGraph(
       profiles
         .map(
@@ -718,7 +918,7 @@ object BayesianNetwork {
         val subgraphMarker = variables.values.headOption.map(_.marker)
         val cpts = generateCPTs(
           variables, subgraph, frequencyTable, linkage,
-          mutationModelType, mutationModelData, n, genogram
+          mutationModelType, mutationModelDataOnN, n, genogram
         )
         val prunnedCPTs = pruneCPTs(variables, subgraph, cpts)
         if (prunnedCPTs.nonEmpty && subgraphMarker.isDefined) {
@@ -742,11 +942,10 @@ object BayesianNetwork {
     linkage: Linkage, mutationModelType: Option[Long] = None,
     mutationModelData: Option[List[MutationModelData]] = None,
     n: Map[String, List[Double]] = Map.empty,
-    maxExclusionsAllowed: Int = 0,
     strictGenotypification: Array[PlainCPT] = Array.empty,
     genotypificationH2: Option[Array[(String, PlainCPT)]] = None,
     genotypificationWithMarkers: Array[(String, PlainCPT)] = Array.empty
-  ): (Option[Double], String, List[String], Map[String, MarkerLRDetail], Option[Double]) = {
+  ): (Option[Double], String, Map[String, MarkerLRDetail], Option[Double]) = {
     var cpts = genotypification
     var message = ""
     val unknown = queryProfiles.keys.head
@@ -793,65 +992,11 @@ object BayesianNetwork {
             dependentCPTs.zip(dependentCPTsSnapshot).foreach {
               case (cpt, arr) => cpt.matrix = arr.iterator
             }
-            extractMatrixFromPlainCPT(product).isEmpty
+            isImpossibleProduct(product)
           }
         }
     }.toSet
 
-    val unexplainableExclusions: Set[String] = exclusionMarkers.filter { marker =>
-      if (mutationModelType.isEmpty) {
-        true
-      } else {
-        val alleles = queryProfiles(unknown)(marker)
-        val pVariable = s"${unknown}_${marker}_p"
-        val mVariable = s"${unknown}_${marker}_m"
-        val dependentCPTs = genotypification.filter(
-          cpt => cpt.header.contains(pVariable) || cpt.header.contains(mVariable)
-        )
-        if (dependentCPTs.isEmpty) {
-          true
-        } else {
-          val header = Array(pVariable, mVariable) :+ "Probability"
-          val variable = Variable(
-            "",
-            marker,
-            if (alleles.length > 1) { VariableKind.Heterocygote }
-              else { VariableKind.Homocygote }
-          )
-          val matrix = generatePermutations(
-            Array(alleles, alleles),
-            header,
-            variable,
-            frequencyTable,
-            linkage,
-            mutationModelType,
-            mutationModelData,
-            n
-          )
-          val ukCPT = new PlainCPT(header, matrix.iterator, matrix.size)
-          val dependentCPTsSnapshot = dependentCPTs.map { cpt =>
-            val arr = cpt.matrix.toArray
-            cpt.matrix = arr.iterator
-            arr
-          }
-          val product = prodFactor(unknown, ukCPT +: dependentCPTs)
-          dependentCPTs.zip(dependentCPTsSnapshot).foreach {
-            case (cpt, arr) => cpt.matrix = arr.iterator
-          }
-          extractMatrixFromPlainCPT(product).isEmpty
-        }
-      }
-    }
-
-    val toleratedExclusions: Set[String] =
-      if (unexplainableExclusions.size <= maxExclusionsAllowed) unexplainableExclusions else Set.empty
-
-    logger.info(
-      s"--- Tolerancia exclusiones: unknown=$unknown maxExclusionsAllowed=$maxExclusionsAllowed " +
-      s"exclusionMarkers=${exclusionMarkers.mkString(",")} " +
-      s"noExplicablesPorModelo=${unexplainableExclusions.mkString(",")} " +
-      s"toleradas=${toleratedExclusions.mkString(",")} ---"
-    )
 
     val markerEvidenceLog: Map[String, Double] = markers.flatMap {
       marker =>
@@ -898,13 +1043,7 @@ object BayesianNetwork {
             .filter(_ > 0)
             .map(math.log)
             .sum
-          if (toleratedExclusions.contains(marker)) {
-            val dependentCPTs = cpts.filter(
-              cpt => cpt.header.contains(pVariable) ||
-                cpt.header.contains(mVariable)
-            )
-            cpts = cpts diff dependentCPTs
-          } else if (
+          if (
             mutationModelType.isEmpty ||
             isAllAlellesInGenotipeAndN(
               marker, alleles, pVariable, mVariable, genotypification, n
@@ -1001,8 +1140,6 @@ object BayesianNetwork {
       marker =>
         if (!queryProfiles(unknown).contains(marker)) {
           None
-        } else if (toleratedExclusions.contains(marker)) {
-          Some(marker -> MarkerLRDetail(1.0, "excluded"))
         } else {
           val alleles = queryProfiles(unknown)(marker)
           val genotypeProb = if (alleles.length == 1) {
@@ -1024,11 +1161,10 @@ object BayesianNetwork {
     }.toMap
 
     val evidenceProbabilityLogTotal: Option[Double] = {
-      val relevant = markerEvidenceLog.filterKeys(m => !toleratedExclusions.contains(m))
-      if (relevant.isEmpty) None else Some(relevant.values.sum)
+      if (markerEvidenceLog.isEmpty) None else Some(markerEvidenceLog.values.sum)
     }
 
-    (evidenceProbability, message, toleratedExclusions.toList, markerDetails, evidenceProbabilityLogTotal)
+    (evidenceProbability, message, markerDetails, evidenceProbabilityLogTotal)
   }
 
   private def getProbabilityOf(
@@ -1158,6 +1294,12 @@ object BayesianNetwork {
     cpt.matrix = matrix.iterator
     matrix
   }
+
+  // Incompatible = sin filas o con todas las filas en probabilidad 0:
+  // prodFactor conserva las filas en cero, así que un producto no vacío
+  // puede no tener ninguna combinación posible.
+  private def isImpossibleProduct(product: PlainCPT): Boolean =
+    extractMatrixFromPlainCPT(product).forall(_.last <= 0.0)
 
   private def extractMatrixFromPlainCPT(cpt: PlainCPT): Array[Array[Double]] = {
     val matrix = cpt.matrix.toArray
@@ -1479,7 +1621,9 @@ object BayesianNetwork {
       plain
     } else {
       val domain = n.getOrElse(variable.marker, Nil).filterNot(_.equals(-1.0))
-      val domainSize = n.getOrElse(variable.marker, Nil).size
+      // getProbabityOfNonDiagonal filtra -1.0 por su cuenta (piso, no alelo),
+      // asi que recibe el dominio tal cual sale de `n`.
+      val fullDomain = n.getOrElse(variable.marker, Nil)
       var acc = 0.0
       domain.foreach { a =>
         val pa = getFrequency(a, variable.marker, frequencyTable)
@@ -1489,7 +1633,7 @@ object BayesianNetwork {
           )
         } else {
           getProbabityOfNonDiagonal(
-            variable, mutationModelType, mutationModelData, domainSize, a, node, sex
+            variable, mutationModelType, mutationModelData, fullDomain, a, node, sex
           )
         }
         acc += pa * t
@@ -1558,7 +1702,7 @@ object BayesianNetwork {
             variable,
             mutationModelType,
             mutationModelData,
-            n.getOrElse(variable.marker, Nil).size,
+            n.getOrElse(variable.marker, Nil),
             allelei.get,
             node,
             sex
@@ -1622,7 +1766,12 @@ object BayesianNetwork {
     n: Map[String, List[Double]],
     sex:String = "I"
   ): Double = {
-    mutationModelType match {
+    // -1.0 es el piso de la tabla de frecuencias (y el valor al que
+    // transformAlleleValues lleva un alelo fuera de escalera), no un alelo: no
+    // transmite nada mas que a si mismo, con cualquier modelo.
+    if (node.equals(-1.0)) {
+      1.0
+    } else mutationModelType match {
       case None => 1.0
       case Some(mutationType) => {
         val mutationMarkerDataOpt = findMutationParam(mutationModelData, variable.marker, sex)
@@ -1635,12 +1784,17 @@ object BayesianNetwork {
             )
             .doubleValue()
           }
-          case (2,Some(mutationMarkerData)) => {
-            val domain = n.getOrElse(variable.marker, Nil)
+          case (t, Some(mutationMarkerData)) if t == 2 || t == 3 => {
+            // `n` sale de getNFromTable con TODAS las claves de la tabla,
+            // piso -1.0 incluido. Se lo saca de la suma: con el tipo 2 y un
+            // tope de pasos que alcance a -1.0 (CANT_SALTOS >= alelo + 1),
+            // stepDistance lo tomaria por un vecino a paso entero y le restaria
+            // a la diagonal masa hacia un alelo que no existe.
+            val domain = n.getOrElse(variable.marker, Nil).filterNot(_.equals(-1.0))
             val offDiagonalSum = domain
               .filterNot(_ == node)
               .map(other => getProbabityOfNonDiagonal(
-                variable, mutationModelType, mutationModelData, domain.size, node, other, sex
+                variable, mutationModelType, mutationModelData, domain, node, other, sex
               ))
               .sum
             1.0 - offDiagonalSum
@@ -1655,39 +1809,84 @@ object BayesianNetwork {
     variable: Variable,
     mutationModelType: Option[Long],
     mutationModelData: Option[List[MutationModelData]],
-    n: Int,
+    domain: List[Double],
     allelei: Double,
     allelej: Double,
     sex:String = "I"
   ) : Double= {
-    mutationModelType match {
+    // -1.0 (piso de la tabla / alelo fuera de escalera) no es un alelo: ni
+    // recibe ni transmite masa de mutacion, con cualquier modelo.
+    if (allelei.equals(-1.0) || allelej.equals(-1.0)) {
+      0.0
+    } else mutationModelType match {
       case None => 0.0
       case Some(mutationType) => {
         val mutationMarkerDataOpt = findMutationParam(mutationModelData, variable.marker, sex)
+        val realDomain = domain.filterNot(_.equals(-1.0))
         (mutationType, mutationMarkerDataOpt) match {
           case (1, Some(mutationMarkerData)) => {
-            (mutationMarkerData._1.mutationRate.get/(n-1)).doubleValue()
+            (mutationMarkerData._1.mutationRate.get/(realDomain.size-1)).doubleValue()
           }
           case (2, Some(mutationMarkerData)) => {
             val ki = mutationMarkerData._2
               .find(_.allele == allelei)
               .map(_.ki)
               .getOrElse(zero)
-            val alleleDiff = (allelei - allelej).abs
-            if (alleleDiff <= mutationMarkerData._3.cantSaltos.toDouble &&
-                MutationService.isWholeRepeatStep(allelei, allelej)) {
-              (
-                ki * Math.pow(
-                  mutationMarkerData._1
-                    .mutationRange
-                    .getOrElse(zero)
-                    .doubleValue(),
-                  alleleDiff
-                )
+            MutationService
+              .stepDistance(allelei, allelej, mutationMarkerData._3.cantSaltos)
+              .map(pasos =>
+                (
+                  ki * Math.pow(
+                    mutationMarkerData._1
+                      .mutationRange
+                      .getOrElse(zero)
+                      .doubleValue(),
+                    pasos
+                  )
+                ).doubleValue()
               )
-              .doubleValue()
+              .getOrElse(0.0)
+          }
+          case (3, Some(mutationMarkerData)) => {
+            // "Stepwise extended": ademas de los vecinos a paso entero de (2),
+            // reparte mutationRateMicrovariant entre los alelos de OTRA clase
+            // de microvariante (distinta parte fraccionaria): el Stepwise de
+            // (2) no tiene ninguna probabilidad para una
+            // mutacion que cruza, p.ej., de 31.2 a 30. Misma formula que
+            // pedmut::mutationMatrix(model="stepwise", rate2=...): un alelo
+            // de otra clase se reparte por igual entre TODOS los alelos de
+            // otras clases del dominio, sin pesar por frecuencia ni
+            // distancia. Los vecinos de la MISMA clase siguen usando (2) tal
+            // cual, cantSaltos incluido -- no se toca ese camino ya validado.
+            // El piso -1.0 queda afuera de las dos ramas por la guarda de
+            // arriba, y del conteo de otras clases por `realDomain`.
+            if (MutationService.isWholeRepeatStep(allelei, allelej)) {
+              val ki = mutationMarkerData._2
+                .find(_.allele == allelei)
+                .map(_.ki)
+                .getOrElse(zero)
+              MutationService
+                .stepDistance(allelei, allelej, mutationMarkerData._3.cantSaltos)
+                .map(pasos =>
+                  (
+                    ki * Math.pow(
+                      mutationMarkerData._1
+                        .mutationRange
+                        .getOrElse(zero)
+                        .doubleValue(),
+                      pasos
+                    )
+                  ).doubleValue()
+                )
+                .getOrElse(0.0)
             } else {
-              0.0
+              val crossClassCount = realDomain
+                .count(a => !MutationService.isWholeRepeatStep(allelei, a))
+              if (crossClassCount == 0) {
+                0.0
+              } else {
+                mutationMarkerData._1.mutationRateMicrovariant.getOrElse(zero).doubleValue() / crossClassCount
+              }
             }
           }
           case _ => 0.0
@@ -1830,24 +2029,29 @@ def generatePermutations(
                 .get(marker)
                 .flatMap {
                   alleles =>
-                    val strs = alleles
-                      .filter {
-                        case Allele(_) => true;
-                        case OutOfLadderAllele(_,_) => true;
-                        case MicroVariant(_) => true;
-                        case _ => false
-                      }
-                      .map(
-                        x => x match {
-                          case Allele(count) => count.toDouble;
-                          case _ => -1.0
-                        }
-                      )
-                      .distinct
-                    if (strs.size <= 2) {
-                      Some(strs.toArray)
-                    } else {
+                    // Banda única: el familiar no está tipificado en este locus.
+                    if (SingleBand.isSingleBand(alleles)) {
                       None
+                    } else {
+                      val strs = alleles
+                        .filter {
+                          case Allele(_) => true;
+                          case OutOfLadderAllele(_,_) => true;
+                          case MicroVariant(_) => true;
+                          case _ => false
+                        }
+                        .map(
+                          x => x match {
+                            case Allele(count) => count.toDouble;
+                            case _ => -1.0
+                          }
+                        )
+                        .distinct
+                      if (strs.size <= 2) {
+                        Some(strs.toArray)
+                      } else {
+                        None
+                      }
                     }
           }
       }

@@ -44,6 +44,15 @@ trait PedigreeSparkMatcher{
   def cancelMatching(idPedigree: Long): Boolean
 }
 
+object PedigreeSparkMatcher {
+  /** Un perfil de referencia nunca busca pedigríes de su propio tipo de caso: ya ocupa el
+    * lugar de referencia, no puede ser también el desconocido que se busca. Vale para
+    * "IR"/"MPI" y para "IR_DVI"/"DVI": sin esta regla, una referencia recién cargada se
+    * compararía contra los pedigríes activos de su propia familia. */
+  def isReferenceOfItsOwnCaseType(categoryId: String, matchType: String): Boolean =
+    (categoryId == "IR" && matchType == "MPI") || (categoryId == "IR_DVI" && matchType == "DVI")
+}
+
 @Singleton
 class PedigreeSparkMatcherImpl @Inject()(
   akkaSystem: ActorSystem,
@@ -65,7 +74,6 @@ class PedigreeSparkMatcherImpl @Inject()(
   matchingRepository:MatchingRepository = null,
   pedigreeDataRepo: PedigreeDataRepository= null,
   userService: UserService = null,
-  pedigreeMatchingParameterRepository: PedigreeMatchingParameterRepository = null,
   pedigreeGenotypificationRepository: PedigreeGenotypificationRepository = null,
   pedigreeProcessingLock: PedigreeProcessingLock = null) extends PedigreeSparkMatcher{
 
@@ -135,35 +143,7 @@ class PedigreeSparkMatcherImpl @Inject()(
     }
     (profile.categoryId, rules)
   }
-  private def getScreeningProfilesRDD(screeningProfiles:Set[SampleCode]): RDD[Profile] = {
-    val readConfig = ReadConfig(Map("uri" -> mongoUri, "collection" -> "profiles"), None)
-
-    var filter =
-      `match`(Filters.and(Filters.eq("deleted", false), Filters.in("globalCode", screeningProfiles.map(_.text).asJava)))
-
-    val projection = project(include("_id", "globalCode", "assignee", "categoryId", "deleted",
-      "genotypification", "labeledGenotypification", "contributors", "matchingRules", "internalSampleCode",
-      "matcheable", "isReference", "analyses"))
-
-    val docToProfile = (doc: Document) => {
-      val json = Json.parse(doc.toJson())
-      val result = Json.fromJson[Profile](json)
-      result.fold[Profile](err => {
-        throw new ParseException(s"Can't parse: ${doc.toJson()}, error is: $err", 1)
-      }, identity)
-    }
-
-    MongoSpark
-      .builder()
-      .sparkContext(Spark2.context)
-      .connector(Spark2.connector)
-      .readConfig(readConfig)
-      .pipeline(Seq(filter, projection))
-      .build()
-      .toRDD()
-      .map(docToProfile)
-  }
-  private def getProfilesRDD(input: Either[Profile, PedigreeGenogram]): RDD[Profile] = {
+  private def getProfilesRDD(input: Either[Profile, PedigreeGenogram], frequencyTable: BayesianNetwork.FrequencyTable): RDD[Profile] = {
     val readConfig = ReadConfig(Map("uri" -> mongoUri, "collection" -> "profiles"), None)
 
     val categoriesOrProfiles: Either[Seq[AlphanumericId], Seq[SampleCode]] = input match {
@@ -208,6 +188,9 @@ class PedigreeSparkMatcherImpl @Inject()(
       .build()
       .toRDD()
       .map(docToProfile)
+      // ACTBP2 canónico y sin marcadores en 0. findCompatibilityMatches lo vuelve a
+      // aplicar (es idempotente); acá se hace una vez por candidato y no una por pedigrí.
+      .map(BayesianNetwork.normalizarParaParentesco(_, frequencyTable))
   }
 
   private def classifyMatches(existingMatchesRDD: RDD[((String, String, String, Integer), String)],
@@ -295,12 +278,16 @@ $inputMsg has matched against ${matchesRDD.count()} $inputMatch candidates
       bson.put("kind", matchResult.kind.toString)
       matchResult match {
         case PedigreeDirectLinkMatch(_,_,_,_,_,result) => bson.put("result", JSON.parse(Json.toJson(result).toString))
-        case PedigreeCompatibilityMatch(_,_,_,_,_,compatibility,matchingId,mtProfile, message, mendelianExclusions) => {
+        case PedigreeCompatibilityMatch(_,_,_,_,_,compatibility,matchingId,mtProfile, message, singleBandMarkers, familySingleBand,
+                                        extendedMarkers, staleGenotypification) => {
           bson.put("compatibility", compatibility)
           bson.put("matchingId", matchingId)
           bson.put("mtProfile", mtProfile)
           bson.put("message", message)
-          bson.put("mendelianExclusions", mendelianExclusions.asJava)
+          bson.put("singleBandMarkers", singleBandMarkers.asJava)
+          bson.put("familySingleBand", familySingleBand.map { case (alias, markers) => alias -> markers.asJava }.asJava)
+          bson.put("extendedMarkers", extendedMarkers.map { case (marker, alleles) => marker -> alleles.map(Double.box).asJava }.asJava)
+          bson.put("staleGenotypification", staleGenotypification)
         }
         case _ => ()
       }
@@ -328,12 +315,16 @@ $inputMsg has matched against ${matchesRDD.count()} $inputMatch candidates
       bson.put("kind", matchResult.kind.toString)
       matchResult match {
         case PedigreeDirectLinkMatch(_,_,_,_,_,result) => bson.put("result", JSON.parse(Json.toJson(result).toString))
-        case PedigreeCompatibilityMatch(_,_,_,_,_,compatibility,matchingId,mtProfile, message, mendelianExclusions) => {
+        case PedigreeCompatibilityMatch(_,_,_,_,_,compatibility,matchingId,mtProfile, message, singleBandMarkers, familySingleBand,
+                                        extendedMarkers, staleGenotypification) => {
           bson.put("compatibility", compatibility)
           bson.put("matchingId", matchingId)
           bson.put("mtProfile", mtProfile)
           bson.put("message", message)
-          bson.put("mendelianExclusions", mendelianExclusions.asJava)
+          bson.put("singleBandMarkers", singleBandMarkers.asJava)
+          bson.put("familySingleBand", familySingleBand.map { case (alias, markers) => alias -> markers.asJava }.asJava)
+          bson.put("extendedMarkers", extendedMarkers.map { case (marker, alleles) => marker -> alleles.map(Double.box).asJava }.asJava)
+          bson.put("staleGenotypification", staleGenotypification)
         }
         case _ => ()
       }
@@ -402,9 +393,12 @@ $inputMsg has matched against ${matchesRDD.count()} $inputMatch candidates
       duration
     )
     val codes = pedigree.genogram.flatMap(_.globalCode).toList
+    // La familia normalizada, igual que al construir la CPT: los marcadores con que se
+    // piden los parámetros de mutación y la huella salen de los mismos perfiles.
     val pedigreeProfiles = Await.result(
       profileRepo
-        .findByCodes(codes),
+        .findByCodes(codes)
+        .map(_.map(BayesianNetwork.normalizarParaParentesco(_, frequencyTable._2))),
       duration
     )
     var mithocondrialMatches:(
@@ -455,11 +449,12 @@ $inputMsg has matched against ${matchesRDD.count()} $inputMatch candidates
 
     val mutationModelType: Option[Long] = if (mutationModel.nonEmpty) Some(mutationModel.get.mutationType) else None
     val mutationModelData = Await.result(mutationService.getMutationModelData(mutationModel,markers),duration)
-    val n = BayesianNetwork.getNFromTable(frequencyTable._2)
-    val maxExclusionsAllowed = pedigree.maxMendelianExclusions.getOrElse(
-      Await.result(pedigreeMatchingParameterRepository.getMaxMendelianExclusions, duration)
-    )
-    val profilesRDD = getProfilesRDD(Right(pedigree))
+    // Familia, genograma y memo para rehacer los marcadores con alelos
+    // del candidato que no están en el universo de la CPT.
+    val rebuildCache = PedigreeMatchingAlgorithm.newRebuildCache()
+    val familyProfiles = pedigreeProfiles.toArray
+    val genogram = pedigree.genogram.toArray
+    val profilesRDD = getProfilesRDD(Right(pedigree), frequencyTable._2)
     val matchesRDD: RDD[PedigreeMatchResult] = profilesRDD.map(p => {
       MatchingAlgorithm.convertProfileWithConvertedOutOfLadderAlleles(p,locusRangeMap)
     }).flatMap( p => {
@@ -468,8 +463,23 @@ $inputMsg has matched against ${matchesRDD.count()} $inputMatch candidates
       val mitoMatchesMap = mithocondrialMatches._2.map(t => t.globalCode -> t.matchId).toMap
       val mitoM = mitoMatchesMap.get(p.globalCode.text)
       if(executeScreeningMitochondrial && mitoM.isDefined){
-        findCompatibilityMatches(frequencyTable._2, p, pedigreeGenotypification, pedigreeId, assignee, analysisType, mutationModelType, mutationModelData,n, caseType, idCourtCase, maxExclusionsAllowed)
-          .map{
+        findCompatibilityMatches(
+          frequencyTable._2,
+          p,
+          pedigreeGenotypification,
+          pedigreeId,
+          assignee,
+          analysisType,
+          mutationModelType,
+          mutationModelData,
+          caseType,
+          idCourtCase,
+          familyProfiles,
+          genogram,
+          locusRangeMap,
+          Some(rebuildCache)
+        )
+        .map{
             case pedigreeMatchResult:PedigreeCompatibilityMatch =>{
               Some(pedigreeMatchResult.copy(matchingId = mitoM.get,mtProfile = mtProfileCode))
             }
@@ -479,7 +489,22 @@ $inputMsg has matched against ${matchesRDD.count()} $inputMatch candidates
         if(executeScreeningMitochondrial && isMt && mtProfileCode.nonEmpty){
           Nil
         }else{
-          findCompatibilityMatches(frequencyTable._2, p, pedigreeGenotypification, pedigreeId, assignee, analysisType, mutationModelType, mutationModelData,n, caseType,idCourtCase, maxExclusionsAllowed)
+          findCompatibilityMatches(
+            frequencyTable._2,
+            p,
+            pedigreeGenotypification,
+            pedigreeId,
+            assignee,
+            analysisType,
+            mutationModelType,
+            mutationModelData,
+            caseType,
+            idCourtCase,
+            familyProfiles,
+            genogram,
+            locusRangeMap,
+            Some(rebuildCache)
+          )
         }
       }
     }
@@ -519,9 +544,8 @@ $inputMsg has matched against ${matchesRDD.count()} $inputMatch candidates
     logger.debug(s"Start pedigree matching process for profile ${profile.globalCode.text}")
     matchStatusService.pushJobStatus(PedigreeMatchJobStarted)
     try {
-      val isReferenceProfileMatchingAnMpiCase = {
-        profile.categoryId.text == "IR" && matchType == "MPI"
-      }
+      val isReferenceProfileMatchingAnMpiCase =
+        PedigreeSparkMatcher.isReferenceOfItsOwnCaseType(profile.categoryId.text, matchType)
       val pedigrees = if (isReferenceProfileMatchingAnMpiCase) {
         Seq[PedigreeGenogram]()
       } else {
@@ -559,7 +583,10 @@ $inputMsg has matched against ${matchesRDD.count()} $inputMatch candidates
           val idCourtCase = pedigree.idCourtCase
           val completePedigree = Await.result(pedigreeRepo.get(pedigreeId), duration)
           val codes = completePedigree.get.genogram.flatMap(_.globalCode).toList
-          val pedigreeProfiles = Await.result(profileRepo.findByCodes(codes), duration)
+          val pedigreeFrequencyTable = frequencyTables(completePedigree.get.frequencyTable.get)
+          // Ver findMatchesByPedigreeFunc.
+          val pedigreeProfiles = Await.result(
+            profileRepo.findByCodes(codes).map(_.map(BayesianNetwork.normalizarParaParentesco(_, pedigreeFrequencyTable))), duration)
           val mutationModel: Option[MutationModel] = if(completePedigree.get.mutationModelId.isDefined) {
             Await.result(mutationRepository.getMutationModel(completePedigree.get.mutationModelId), duration)
           } else {
@@ -568,10 +595,11 @@ $inputMsg has matched against ${matchesRDD.count()} $inputMatch candidates
           val markers = profileRepo.getProfilesMarkers(pedigreeProfiles.toArray)
           val mutationModelType: Option[Long] = if (mutationModel.nonEmpty) Some(mutationModel.get.mutationType) else None
           val mutationModelData = Await.result(mutationService.getMutationModelData(mutationModel,markers),duration)
-          val n = BayesianNetwork.getNFromTable(frequencyTables(completePedigree.get.frequencyTable.get))
-          val maxExclusionsAllowed = completePedigree.get.maxMendelianExclusions.getOrElse(
-            Await.result(pedigreeMatchingParameterRepository.getMaxMendelianExclusions, duration)
-          )
+          // Familia, genograma y memo para rehacer los marcadores con
+          // alelos del candidato que no están en el universo de la CPT.
+          val rebuildCache = PedigreeMatchingAlgorithm.newRebuildCache()
+          val familyProfiles = pedigreeProfiles.toArray
+          val genogram = completePedigree.get.genogram.toArray
           val caseType = completePedigree.get.caseType
           val pedigreeGenotypificationRDD: RDD[PedigreeGenotypification] =
             Await.result(
@@ -649,10 +677,12 @@ $inputMsg has matched against ${matchesRDD.count()} $inputMatch candidates
                     analysisType,
                     mutationModelType,
                     mutationModelData,
-                    n,
                     caseType,
                     idCourtCase,
-                    maxExclusionsAllowed
+                    familyProfiles,
+                    genogram,
+                    locusRangeMap,
+                    Some(rebuildCache)
                   )
                   .map {
                     case pedigreeMatchResult:PedigreeCompatibilityMatch =>{
@@ -673,10 +703,12 @@ $inputMsg has matched against ${matchesRDD.count()} $inputMatch candidates
                         analysisType,
                         mutationModelType,
                         mutationModelData,
-                        n,
                         caseType,
                         idCourtCase,
-                        maxExclusionsAllowed
+                        familyProfiles,
+                        genogram,
+                        locusRangeMap,
+                        Some(rebuildCache)
                       )
                   }
               }
