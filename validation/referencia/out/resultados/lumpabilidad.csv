@@ -1,0 +1,17 @@
+"caso","locus","origen","alelos_observados","alelos_agrupables","lumpable"
+"MUT-01","L1","referencia",3,2,TRUE
+"MUT-01","L1","volcada",3,2,TRUE
+"MUT-02","L1","referencia",3,2,FALSE
+"MUT-02","L1","volcada",3,2,FALSE
+"MUT-03","L1","referencia",3,2,FALSE
+"MUT-03","L1","volcada",3,2,FALSE
+"MUT-04","L1","referencia",3,3,FALSE
+"MUT-04","L1","volcada",3,3,FALSE
+"MUT-05","L1","referencia",3,3,FALSE
+"MUT-05","L1","volcada",3,3,FALSE
+"MUT-06","L1","referencia",3,2,FALSE
+"MUT-06","L1","volcada",3,2,FALSE
+"MUT-07","L1","referencia",3,2,TRUE
+"MUT-07","L1","volcada",3,2,TRUE
+"MUT-10","L1","referencia",3,2,TRUE
+"MUT-10","L1","volcada",3,2,TRUE

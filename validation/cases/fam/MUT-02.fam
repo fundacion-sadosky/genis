@@ -1,0 +1,75 @@
+"Output from Familias, version 3.2.8"
+"(Actually produced by R/pedsuite, 24 nov 2026)"
+3.2.8
+""
+3
+"AF"
+#FALSE#
+-1
+#FALSE#
+#TRUE#
+1
+2
+2
+0
+"MO"
+#FALSE#
+-1
+#FALSE#
+#FALSE#
+0
+"CH"
+#FALSE#
+-1
+#FALSE#
+#TRUE#
+1
+3
+4
+0
+"Known relations"
+0
+0
+0
+2
+0
+"Ped 1"
+0
+0
+2
+0
+2
+1
+2
+1
+"Ped 2"
+0
+0
+0
+#FALSE# (#Databases: 1 ;Theta/Kinship/Fst: 0 )
+1
+#TRUE#
+"unknown"
+"L1"
+0.005
+0.005
+4
+4
+5
+0.1
+0.1
+1e-06
+1e-06
+#FALSE#
+0
+5	(DatabaseSize = 1000 , Dropout probability = 0 , Minor allele frequency = 0 )
+"8"
+0.1
+"9"
+0.2
+"10"
+0.3
+"11"
+0.25
+"12"
+0.15

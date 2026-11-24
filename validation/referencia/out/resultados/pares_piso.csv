@@ -1,0 +1,4 @@
+"caso_piso","caso_sin_piso","motor","piso","LR_piso","LR_sin_piso","gold_piso","diagnostico"
+"FRQ-02","FRQ-02S","pedsuite",0.001,250.24975,250000,250.24975,"PISO_OK"
+"FRQ-02","FRQ-02S","familias",0.001,250.24975,250000,250.24975,"PISO_OK"
+"FRQ-02","FRQ-02S","GENis",0.001,250.24975,250000,250.24975,"PISO_OK"

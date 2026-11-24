@@ -1,0 +1,6 @@
+commit = 6482f36
+fecha = 2026-11-24 18:02:13
+manifiesto = 15900ccf7ef35874d05e580a81281e2f79ad5b9d9f5567b034fb4b7618b075e8
+entrega = resultados_genis.csv
+entrega_version = 5.1.15-6482f36-motor-directo
+entrega_sha256 = 1b40a169b93be3c472c26a13520adf06790180c4674c9994bbeb269b912d828b

@@ -1,0 +1,26 @@
+VEREDICTO DE LA VALIDACIÓN DEL LR POR PEDIGRÍ DE GENis
+generado 2026-11-24 18:02:15 en el commit 6482f36 | tolerancia de aceptación: discrepancia relativa <= 1.00e-09
+
+PROCEDENCIA (la cadena se verifica por contenido: manifiestos y SHA-256, no por fechas)
+  bloque 1              paquete 2026-11-24 18:02:09 | entrega de GENis commit 6482f36 | veredicto de la referencia commit 6482f36, 2026-11-24 18:02:13
+                        cadena verificada: el veredicto es de esta entrega y la entrega es de este paquete
+  masiva sin_mutacion  sin corrida en disco
+  masiva con_mutacion  sin corrida en disco
+
+Bloque 1, el catálogo: 51 casos, GENis calculó 51 | PASA=49  CONVENCION=2  REVISAR=0  FALLA=0  SIN_DATO=0
+  diferencias de convención (2): SIL-01 PRU-02
+  FALLA no previstas (0): ninguna
+  contraste del arnés vs referencia: coinciden los 51 casos calculados
+  invariantes 3 PASA | grilla de matrices 165 PASA
+  => bloque 1: sin FALLA frente a la referencia; 2 diferencias de convención, explicadas en el informe
+
+Bloque 2, la búsqueda masiva:
+  sin_mutacion  sin entrega ni veredicto en disco: correr `validation/correr masiva`
+  con_mutacion  sin entrega ni veredicto en disco: correr `validation/correr masiva`
+  => bloque 2: sin veredicto
+
+ADVERTENCIAS
+  ninguna
+
+Detalle por caso y por tipo: validation/referencia/out/INFORME.pdf (fuente INFORME.tex; el mismo contenido en INFORME.md)
+Este texto: validation/referencia/out/VEREDICTO.txt

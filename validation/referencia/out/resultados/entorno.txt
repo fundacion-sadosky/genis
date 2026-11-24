@@ -1,0 +1,15 @@
+Fecha              : 2026-11-24 18:02:13 -03
+R                  : R version 4.5.2 (2025-10-31)
+Plataforma         : x86_64-pc-linux-gnu
+Sistema operativo  : Linux 5.15.0-139-generic
+
+Paquetes:
+  pedtools       2.11.0
+  pedprobr       1.1.0
+  pedmut         0.9.1
+  forrel         1.9.0
+  ribd           1.7.2
+  Familias       2.6.4
+  mispitools     1.4.0
+  verbalisr      0.7.2
+  pedFamilias    0.2.5
