@@ -33,7 +33,7 @@
 \pagestyle{fancy}
 \fancyhf{}
 \lhead{\small Informe de la validación forense de GENis}
-\rhead{\small commit 6482f36}
+\rhead{\small commit e8f4a8a}
 \cfoot{\small\thepage}
 \renewcommand{\headrulewidth}{0.4pt}
 
@@ -41,20 +41,22 @@
 \thispagestyle{fancy}
 {\LARGE\bfseries Informe de la validación del LR por pedigrí de GENis\par}
 \vspace{1.2em}
-Generado el 2026-11-24 18:02:15 en el commit 6482f36 por \texttt{validation/\allowbreak{}correr informe}. No recalcula nada: toda cifra sale de los archivos de la corrida que están en disco.
+Generado el 2026-11-26 17:55:10 en el commit e8f4a8a por \texttt{validation/\allowbreak{}correr informe}. No recalcula nada: toda cifra sale de los archivos de la corrida que están en disco.
 
 \tableofcontents
 
 \section{Veredicto}
 \begin{Verbatim}
 VEREDICTO DE LA VALIDACIÓN DEL LR POR PEDIGRÍ DE GENis
-generado 2026-11-24 18:02:15 en el commit 6482f36 | tolerancia de aceptación: discrepancia relativa <= 1.00e-09
+generado 2026-11-26 17:55:10 en el commit e8f4a8a | tolerancia de aceptación: discrepancia relativa <= 1.00e-09
 
 PROCEDENCIA (la cadena se verifica por contenido: manifiestos y SHA-256, no por fechas)
   bloque 1              paquete 2026-11-24 18:02:09 | entrega de GENis commit 6482f36 | veredicto de la referencia commit 6482f36, 2026-11-24 18:02:13
                         cadena verificada: el veredicto es de esta entrega y la entrega es de este paquete
-  masiva sin_mutacion  sin corrida en disco
-  masiva con_mutacion  sin corrida en disco
+  masiva sin_mutacion  paquete 2026-11-24 18:45:49 | entrega de GENis commit 9e8887a, arrancada 2026-11-24 19:35:58 en 9e8887a | comparación commit 9e8887a, 2026-11-26 17:48:18
+                        cadena verificada: el veredicto es de esta entrega y la entrega es de este paquete
+  masiva con_mutacion  paquete 2026-11-24 18:45:52 | entrega de GENis commit 9e8887a, arrancada 2026-11-24 20:19:51 en 9e8887a | comparación commit 9e8887a, 2026-11-26 17:48:46
+                        cadena verificada: el veredicto es de esta entrega y la entrega es de este paquete
 
 Bloque 1, el catálogo: 51 casos, GENis calculó 51 | PASA=49  CONVENCION=2  REVISAR=0  FALLA=0  SIN_DATO=0
   diferencias de convención (2): SIL-01 PRU-02
@@ -64,9 +66,13 @@ Bloque 1, el catálogo: 51 casos, GENis calculó 51 | PASA=49  CONVENCION=2  REV
   => bloque 1: sin FALLA frente a la referencia; 2 diferencias de convención, explicadas en el informe
 
 Bloque 2, la búsqueda masiva:
-  sin_mutacion  sin entrega ni veredicto en disco: correr `validation/correr masiva`
-  con_mutacion  sin entrega ni veredicto en disco: correr `validation/correr masiva`
-  => bloque 2: sin veredicto
+  sin_mutacion  1.000.000 celdas contra familias | PASA=1.000.000  REVISAR=0  FALLA=0  SIN_DATO=0
+                rel_max 2.46e-14 (tolerancia 1.00e-09) sobre 281.787 celdas con magnitud | exclusiones sólo GENis 0, sólo referencia 0
+                puente (los dos caminos de GENis): 384 celdas, diferencia máxima 2.00e-15
+  con_mutacion  900.000 celdas contra pedsuite | PASA=900.000  REVISAR=0  FALLA=0  SIN_DATO=0
+                rel_max 1.68e-10 (tolerancia 1.00e-09) sobre 724.466 celdas con magnitud | exclusiones sólo GENis 0, sólo referencia 0
+                puente (los dos caminos de GENis): 633 celdas, diferencia máxima 4.26e-14
+  => bloque 2: 1.900.000 celdas en 2 condiciones, todas PASA, cero desacuerdos categóricos
 
 ADVERTENCIAS
   ninguna
@@ -294,10 +300,245 @@ MUT-10 & volcada & indistinguible & -2.22e-16 & -2.22e-16 & 0 & 0 & \textcolor{p
 \endgroup
 \section{Bloque 2: la búsqueda masiva}
 \subsection{Condición sin\_mutacion}
-Sin entrega ni veredicto en disco: correr \texttt{validation/\allowbreak{}correr masiva}.
+\subsubsection{Procedencia y cadena}
+\begingroup
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{longtable}{@{}llll@{}}
+\toprule
+\textbf{pieza} & \textbf{commit} & \textbf{fecha} & \textbf{\makecell[l]{identidad\\(prefijo del hash)}} \\
+\midrule
+\endfirsthead
+\multicolumn{4}{@{}l}{\itshape (continuación)}\\
+\toprule
+\textbf{pieza} & \textbf{commit} & \textbf{fecha} & \textbf{\makecell[l]{identidad\\(prefijo del hash)}} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+paquete &  & 2026-11-24 18:45:49 & 2e9af994e0e7 \\
+entrega de GENis & 9e8887a & 2026-11-24 19:35:58 en 9e8887a & 56f84a95a3b1 \\
+comparación celda a celda & 9e8887a & 2026-11-26 17:48:18 & 56f84a95a3b1 \\
+\end{longtable}
+\endgroup
+\begingroup
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{longtable}{@{}llp{324pt}@{}}
+\toprule
+\textbf{eslabón} & \textbf{ok} & \textbf{detalle} \\
+\midrule
+\endfirsthead
+\multicolumn{3}{@{}l}{\itshape (continuación)}\\
+\toprule
+\textbf{eslabón} & \textbf{ok} & \textbf{detalle} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+paquete -> entrega & \textcolor{pasa}{\texttt{cierra}} & la entrega consumió el paquete actual (manifiesto por contenido) \\
+entrega -> veredicto & \textcolor{pasa}{\texttt{cierra}} & el veredicto se emitió sobre la entrega que está en disco (misma `arrancada`, mismo SHA-256) \\
+\end{longtable}
+\endgroup
+Condiciones de la corrida de GENis: artefacto = 5.1.15; commit = 9e8887a; arrancada = 2026-11-24 19:35:58 en 9e8887a; camino = busqueda (getGenotypification por familia + findCompatibilityMatches por POI); umbral de reporte = salteado (se entregan todas las celdas); familias = 200; poi = 5000; celdas = 1000000; hilos = 8; puente = 3; puente.semilla = 20260828; puente.tipos\_sin\_muestra = ninguno; mutacion = sin modelo.
+
+\subsubsection{Veredicto celda a celda}
+\begingroup
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{longtable}{@{}lrrrrrrrrrrr@{}}
+\toprule
+\textbf{motor} & \textbf{celdas} & \textbf{pasa} & \textbf{revisar} & \textbf{falla} & \textbf{sin\_dato} & \textbf{\makecell[r]{celdas\_\\magnitud}} & \textbf{rel\_max} & \textbf{\makecell[r]{rel\_\\mediana}} & \textbf{\makecell[r]{excl\_\\ambos}} & \textbf{\makecell[r]{excl\_\\solo\_obs}} & \textbf{\makecell[r]{excl\_\\solo\_ref}} \\
+\midrule
+\endfirsthead
+\multicolumn{12}{@{}l}{\itshape (continuación)}\\
+\toprule
+\textbf{motor} & \textbf{celdas} & \textbf{pasa} & \textbf{revisar} & \textbf{falla} & \textbf{sin\_dato} & \textbf{\makecell[r]{celdas\_\\magnitud}} & \textbf{rel\_max} & \textbf{\makecell[r]{rel\_\\mediana}} & \textbf{\makecell[r]{excl\_\\ambos}} & \textbf{\makecell[r]{excl\_\\solo\_obs}} & \textbf{\makecell[r]{excl\_\\solo\_ref}} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+familias & 1e+06 & 1e+06 & 0 & 0 & 0 & 2.82e+05 & 2.46e-14 & 2.12e-15 & 7.18e+05 & 0 & 0 \\
+\end{longtable}
+\endgroup
+\texttt{rel\_max} se calcula sobre las celdas con magnitud comparable (sin las que ambos lados excluyen); tolerancia 1.00e-09. \texttt{excl\_solo\_obs} y \texttt{excl\_solo\_ref} son desacuerdos categóricos: uno excluye y el otro no.
+
+Cobertura: 200 de 200 familias aceptadas, 1.000.000 celdas con dato; verificación del manifiesto independiente: sí.
+
+\subsubsection{Por tipo de pedigrí}
+\begingroup
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{longtable}{@{}llrrrrrrrrr@{}}
+\toprule
+\textbf{motor} & \textbf{tipo} & \textbf{\makecell[r]{n\_\\familias}} & \textbf{celdas} & \textbf{pasa} & \textbf{revisar} & \textbf{falla} & \textbf{sin\_dato} & \textbf{rel\_max} & \textbf{\makecell[r]{excl\_\\solo\_obs}} & \textbf{\makecell[r]{excl\_\\solo\_ref}} \\
+\midrule
+\endfirsthead
+\multicolumn{11}{@{}l}{\itshape (continuación)}\\
+\toprule
+\textbf{motor} & \textbf{tipo} & \textbf{\makecell[r]{n\_\\familias}} & \textbf{celdas} & \textbf{pasa} & \textbf{revisar} & \textbf{falla} & \textbf{sin\_dato} & \textbf{rel\_max} & \textbf{\makecell[r]{excl\_\\solo\_obs}} & \textbf{\makecell[r]{excl\_\\solo\_ref}} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+familias & abuelo\_1 & 5 & 2.5e+04 & 2.5e+04 & 0 & 0 & 0 & 1.13e-14 & 0 & 0 \\
+familias & abuelos\_2\_cruzados & 10 & 5e+04 & 5e+04 & 0 & 0 & 0 & 1.64e-14 & 0 & 0 \\
+familias & abuelos\_2\_mismo & 7 & 3.5e+04 & 3.5e+04 & 0 & 0 & 0 & 1.23e-14 & 0 & 0 \\
+familias & abuelos\_3 & 8 & 4e+04 & 4e+04 & 0 & 0 & 0 & 8.24e-15 & 0 & 0 \\
+familias & abuelos\_4 & 3 & 1.5e+04 & 1.5e+04 & 0 & 0 & 0 & 4.09e-15 & 0 & 0 \\
+familias & hermano\_1 & 9 & 4.5e+04 & 4.5e+04 & 0 & 0 & 0 & 1.64e-14 & 0 & 0 \\
+familias & hermanos\_2 & 10 & 5e+04 & 5e+04 & 0 & 0 & 0 & 4.21e-15 & 0 & 0 \\
+familias & hermanos\_3 & 12 & 6e+04 & 6e+04 & 0 & 0 & 0 & 8.26e-15 & 0 & 0 \\
+familias & madre & 11 & 5.5e+04 & 5.5e+04 & 0 & 0 & 0 & 4.11e-15 & 0 & 0 \\
+familias & madre\_hermano & 11 & 5.5e+04 & 5.5e+04 & 0 & 0 & 0 & 8.18e-15 & 0 & 0 \\
+familias & medio\_hermano\_1 & 9 & 4.5e+04 & 4.5e+04 & 0 & 0 & 0 & 1.13e-14 & 0 & 0 \\
+familias & medios\_hermanos\_2 & 6 & 3e+04 & 3e+04 & 0 & 0 & 0 & 1.23e-14 & 0 & 0 \\
+familias & padre & 10 & 5e+04 & 5e+04 & 0 & 0 & 0 & 4.07e-15 & 0 & 0 \\
+familias & padre\_hermano & 15 & 7.5e+04 & 7.5e+04 & 0 & 0 & 0 & 4.22e-15 & 0 & 0 \\
+familias & padres & 12 & 6e+04 & 6e+04 & 0 & 0 & 0 & 0 & 0 & 0 \\
+familias & padres\_hermano & 15 & 7.5e+04 & 7.5e+04 & 0 & 0 & 0 & 8.2e-15 & 0 & 0 \\
+familias & tio\_1 & 12 & 6e+04 & 6e+04 & 0 & 0 & 0 & 1.13e-14 & 0 & 0 \\
+familias & tios\_2\_cada\_lado & 16 & 8e+04 & 8e+04 & 0 & 0 & 0 & 2.46e-14 & 0 & 0 \\
+familias & tios\_2\_maternos & 5 & 2.5e+04 & 2.5e+04 & 0 & 0 & 0 & 1.23e-14 & 0 & 0 \\
+familias & tios\_2\_paternos & 14 & 7e+04 & 7e+04 & 0 & 0 & 0 & 1.64e-14 & 0 & 0 \\
+\end{longtable}
+\endgroup
+No hay celdas discrepantes: \texttt{celdas\_discrepantes.csv} no existe porque no hubo ninguna.
+
+\subsubsection{Puente: los dos caminos de cálculo de GENis}
+Muestra pedida (celdas por tipo de pedigrí y decil): 3. 384 celdas muestreadas, diferencia máxima en log10 2.00e-15. Los dos caminos tienen que coincidir a precisión de máquina.
+
+\subsubsection{Acuerdo entre los motores de referencia}
+\begingroup
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{longtable}{@{}llrrllll@{}}
+\toprule
+\textbf{motor\_a} & \textbf{motor\_b} & \textbf{n\_pares} & \textbf{max\_dif\_log10} & \textbf{veredicto} & \textbf{exigido} & \textbf{medido} & \textbf{commit} \\
+\midrule
+\endfirsthead
+\multicolumn{8}{@{}l}{\itshape (continuación)}\\
+\toprule
+\textbf{motor\_a} & \textbf{motor\_b} & \textbf{n\_pares} & \textbf{max\_dif\_log10} & \textbf{veredicto} & \textbf{exigido} & \textbf{medido} & \textbf{commit} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+familias & pedsuite & 1e+06 & 7.11e-15 & \textcolor{pasa}{\texttt{PASA}} & TRUE & 2026-11-24 & 9e8887a \\
+\end{longtable}
+\endgroup
+Una fila con \texttt{medido} vacío o con otra fecha es una medición preservada de otra corrida, no de esta.
 
 \subsection{Condición con\_mutacion}
-Sin entrega ni veredicto en disco: correr \texttt{validation/\allowbreak{}correr masiva}.
+\subsubsection{Procedencia y cadena}
+\begingroup
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{longtable}{@{}llll@{}}
+\toprule
+\textbf{pieza} & \textbf{commit} & \textbf{fecha} & \textbf{\makecell[l]{identidad\\(prefijo del hash)}} \\
+\midrule
+\endfirsthead
+\multicolumn{4}{@{}l}{\itshape (continuación)}\\
+\toprule
+\textbf{pieza} & \textbf{commit} & \textbf{fecha} & \textbf{\makecell[l]{identidad\\(prefijo del hash)}} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+paquete &  & 2026-11-24 18:45:52 & 63decb4fff0d \\
+entrega de GENis & 9e8887a & 2026-11-24 20:19:51 en 9e8887a & b1fee8f28f41 \\
+comparación celda a celda & 9e8887a & 2026-11-26 17:48:46 & b1fee8f28f41 \\
+\end{longtable}
+\endgroup
+\begingroup
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{longtable}{@{}llp{324pt}@{}}
+\toprule
+\textbf{eslabón} & \textbf{ok} & \textbf{detalle} \\
+\midrule
+\endfirsthead
+\multicolumn{3}{@{}l}{\itshape (continuación)}\\
+\toprule
+\textbf{eslabón} & \textbf{ok} & \textbf{detalle} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+paquete -> entrega & \textcolor{pasa}{\texttt{cierra}} & la entrega consumió el paquete actual (manifiesto por contenido) \\
+entrega -> veredicto & \textcolor{pasa}{\texttt{cierra}} & el veredicto se emitió sobre la entrega que está en disco (misma `arrancada`, mismo SHA-256) \\
+\end{longtable}
+\endgroup
+Condiciones de la corrida de GENis: artefacto = 5.1.15; commit = 9e8887a; arrancada = 2026-11-24 20:19:51 en 9e8887a; camino = busqueda (getGenotypification por familia + findCompatibilityMatches por POI); umbral de reporte = salteado (se entregan todas las celdas); familias = 180; poi = 5000; celdas = 900000; hilos = 1; puente = 3; puente.semilla = 20260828; puente.tipos\_sin\_muestra = ninguno; mutacion = stepwise; mutacion.rango = 0.5; mutacion.pasos = 22; mutacion.ki\_no\_nulos = 754.
+
+\subsubsection{Veredicto celda a celda}
+\begingroup
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{longtable}{@{}lrrrrrrrrrrr@{}}
+\toprule
+\textbf{motor} & \textbf{celdas} & \textbf{pasa} & \textbf{revisar} & \textbf{falla} & \textbf{sin\_dato} & \textbf{\makecell[r]{celdas\_\\magnitud}} & \textbf{rel\_max} & \textbf{\makecell[r]{rel\_\\mediana}} & \textbf{\makecell[r]{excl\_\\ambos}} & \textbf{\makecell[r]{excl\_\\solo\_obs}} & \textbf{\makecell[r]{excl\_\\solo\_ref}} \\
+\midrule
+\endfirsthead
+\multicolumn{12}{@{}l}{\itshape (continuación)}\\
+\toprule
+\textbf{motor} & \textbf{celdas} & \textbf{pasa} & \textbf{revisar} & \textbf{falla} & \textbf{sin\_dato} & \textbf{\makecell[r]{celdas\_\\magnitud}} & \textbf{rel\_max} & \textbf{\makecell[r]{rel\_\\mediana}} & \textbf{\makecell[r]{excl\_\\ambos}} & \textbf{\makecell[r]{excl\_\\solo\_obs}} & \textbf{\makecell[r]{excl\_\\solo\_ref}} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+pedsuite & 9e+05 & 9e+05 & 0 & 0 & 0 & 7.24e+05 & 1.68e-10 & 4.06e-15 & 1.76e+05 & 0 & 0 \\
+\end{longtable}
+\endgroup
+\texttt{rel\_max} se calcula sobre las celdas con magnitud comparable (sin las que ambos lados excluyen); tolerancia 1.00e-09. \texttt{excl\_solo\_obs} y \texttt{excl\_solo\_ref} son desacuerdos categóricos: uno excluye y el otro no.
+
+Cobertura: 180 de 180 familias aceptadas, 900.000 celdas con dato; verificación del manifiesto independiente: sí.
+
+\subsubsection{Por tipo de pedigrí}
+\begingroup
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{longtable}{@{}llrrrrrrrrr@{}}
+\toprule
+\textbf{motor} & \textbf{tipo} & \textbf{\makecell[r]{n\_\\familias}} & \textbf{celdas} & \textbf{pasa} & \textbf{revisar} & \textbf{falla} & \textbf{sin\_dato} & \textbf{rel\_max} & \textbf{\makecell[r]{excl\_\\solo\_obs}} & \textbf{\makecell[r]{excl\_\\solo\_ref}} \\
+\midrule
+\endfirsthead
+\multicolumn{11}{@{}l}{\itshape (continuación)}\\
+\toprule
+\textbf{motor} & \textbf{tipo} & \textbf{\makecell[r]{n\_\\familias}} & \textbf{celdas} & \textbf{pasa} & \textbf{revisar} & \textbf{falla} & \textbf{sin\_dato} & \textbf{rel\_max} & \textbf{\makecell[r]{excl\_\\solo\_obs}} & \textbf{\makecell[r]{excl\_\\solo\_ref}} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+pedsuite & abuelo\_1 & 10 & 5e+04 & 5e+04 & 0 & 0 & 0 & 1.43e-14 & 0 & 0 \\
+pedsuite & abuelos\_2\_cruzados & 10 & 5e+04 & 5e+04 & 0 & 0 & 0 & 1.65e-14 & 0 & 0 \\
+pedsuite & abuelos\_2\_mismo & 10 & 5e+04 & 5e+04 & 0 & 0 & 0 & 4.09e-14 & 0 & 0 \\
+pedsuite & abuelos\_3 & 10 & 5e+04 & 5e+04 & 0 & 0 & 0 & 4.11e-14 & 0 & 0 \\
+pedsuite & abuelos\_4 & 10 & 5e+04 & 5e+04 & 0 & 0 & 0 & 8.19e-14 & 0 & 0 \\
+pedsuite & hermano\_1 & 10 & 5e+04 & 5e+04 & 0 & 0 & 0 & 2.04e-14 & 0 & 0 \\
+pedsuite & hermanos\_2 & 10 & 5e+04 & 5e+04 & 0 & 0 & 0 & 1.68e-10 & 0 & 0 \\
+pedsuite & hermanos\_3 & 10 & 5e+04 & 5e+04 & 0 & 0 & 0 & 6.55e-14 & 0 & 0 \\
+pedsuite & madre & 10 & 5e+04 & 5e+04 & 0 & 0 & 0 & 6.55e-14 & 0 & 0 \\
+pedsuite & madre\_hermano & 10 & 5e+04 & 5e+04 & 0 & 0 & 0 & 8.19e-14 & 0 & 0 \\
+pedsuite & medio\_hermano\_1 & 10 & 5e+04 & 5e+04 & 0 & 0 & 0 & 1.23e-14 & 0 & 0 \\
+pedsuite & medios\_hermanos\_2 & 10 & 5e+04 & 5e+04 & 0 & 0 & 0 & 2.05e-14 & 0 & 0 \\
+pedsuite & padre & 10 & 5e+04 & 5e+04 & 0 & 0 & 0 & 6.55e-14 & 0 & 0 \\
+pedsuite & padre\_hermano & 10 & 5e+04 & 5e+04 & 0 & 0 & 0 & 4.92e-14 & 0 & 0 \\
+pedsuite & padres & 10 & 5e+04 & 5e+04 & 0 & 0 & 0 & 9.83e-14 & 0 & 0 \\
+pedsuite & padres\_hermano & 10 & 5e+04 & 5e+04 & 0 & 0 & 0 & 9.83e-14 & 0 & 0 \\
+pedsuite & tio\_1 & 5 & 2.5e+04 & 2.5e+04 & 0 & 0 & 0 & 1.59e-14 & 0 & 0 \\
+pedsuite & tios\_2\_cada\_lado & 5 & 2.5e+04 & 2.5e+04 & 0 & 0 & 0 & 3.28e-14 & 0 & 0 \\
+pedsuite & tios\_2\_maternos & 5 & 2.5e+04 & 2.5e+04 & 0 & 0 & 0 & 2.06e-14 & 0 & 0 \\
+pedsuite & tios\_2\_paternos & 5 & 2.5e+04 & 2.5e+04 & 0 & 0 & 0 & 2.05e-14 & 0 & 0 \\
+\end{longtable}
+\endgroup
+No hay celdas discrepantes: \texttt{celdas\_discrepantes.csv} no existe porque no hubo ninguna.
+
+\subsubsection{Puente: los dos caminos de cálculo de GENis}
+Muestra pedida (celdas por tipo de pedigrí y decil): 3. 633 celdas muestreadas, diferencia máxima en log10 4.26e-14. Los dos caminos tienen que coincidir a precisión de máquina.
+
+Con modelo de mutación el veredicto de GENis se emite contra pedsuite, porque Familias aplica otra convención para los fundadores no tipificados (los poda); es la misma diferencia de convención que muestran PRU-01 y PRU-02 en el catálogo.
 
 \section{Advertencias}
 Ninguna.

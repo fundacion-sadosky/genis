@@ -1,0 +1,3 @@
+"condicion","motor","celdas","pasa","revisar","falla","sin_dato","celdas_magnitud","rel_max","rel_mediana","excl_ambos","excl_solo_obs","excl_solo_ref"
+"sin_mutacion","familias",1000000,1000000,0,0,0,281787,2.45656812823994e-14,2.11696405255597e-15,718213,0,0
+"con_mutacion","pedsuite",900000,900000,0,0,0,724466,1.67518822633938e-10,4.05757254810398e-15,175534,0,0

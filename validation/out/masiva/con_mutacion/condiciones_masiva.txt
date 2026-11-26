@@ -1,0 +1,16 @@
+artefacto = 5.1.15
+commit = 9e8887a
+arrancada = 2026-11-24 20:19:51 en 9e8887a
+camino = busqueda (getGenotypification por familia + findCompatibilityMatches por POI)
+umbral de reporte = salteado (se entregan todas las celdas)
+familias = 180
+poi = 5000
+celdas = 900000
+hilos = 1
+puente = 3
+puente.semilla = 20260828
+puente.tipos_sin_muestra = ninguno
+mutacion = stepwise
+mutacion.rango = 0.5
+mutacion.pasos = 22
+mutacion.ki_no_nulos = 754

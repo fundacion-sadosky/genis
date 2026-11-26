@@ -1,11 +1,13 @@
 VEREDICTO DE LA VALIDACIÓN DEL LR POR PEDIGRÍ DE GENis
-generado 2026-11-24 18:02:15 en el commit 6482f36 | tolerancia de aceptación: discrepancia relativa <= 1.00e-09
+generado 2026-11-26 17:55:10 en el commit e8f4a8a | tolerancia de aceptación: discrepancia relativa <= 1.00e-09
 
 PROCEDENCIA (la cadena se verifica por contenido: manifiestos y SHA-256, no por fechas)
   bloque 1              paquete 2026-11-24 18:02:09 | entrega de GENis commit 6482f36 | veredicto de la referencia commit 6482f36, 2026-11-24 18:02:13
                         cadena verificada: el veredicto es de esta entrega y la entrega es de este paquete
-  masiva sin_mutacion  sin corrida en disco
-  masiva con_mutacion  sin corrida en disco
+  masiva sin_mutacion  paquete 2026-11-24 18:45:49 | entrega de GENis commit 9e8887a, arrancada 2026-11-24 19:35:58 en 9e8887a | comparación commit 9e8887a, 2026-11-26 17:48:18
+                        cadena verificada: el veredicto es de esta entrega y la entrega es de este paquete
+  masiva con_mutacion  paquete 2026-11-24 18:45:52 | entrega de GENis commit 9e8887a, arrancada 2026-11-24 20:19:51 en 9e8887a | comparación commit 9e8887a, 2026-11-26 17:48:46
+                        cadena verificada: el veredicto es de esta entrega y la entrega es de este paquete
 
 Bloque 1, el catálogo: 51 casos, GENis calculó 51 | PASA=49  CONVENCION=2  REVISAR=0  FALLA=0  SIN_DATO=0
   diferencias de convención (2): SIL-01 PRU-02
@@ -15,9 +17,13 @@ Bloque 1, el catálogo: 51 casos, GENis calculó 51 | PASA=49  CONVENCION=2  REV
   => bloque 1: sin FALLA frente a la referencia; 2 diferencias de convención, explicadas en el informe
 
 Bloque 2, la búsqueda masiva:
-  sin_mutacion  sin entrega ni veredicto en disco: correr `validation/correr masiva`
-  con_mutacion  sin entrega ni veredicto en disco: correr `validation/correr masiva`
-  => bloque 2: sin veredicto
+  sin_mutacion  1.000.000 celdas contra familias | PASA=1.000.000  REVISAR=0  FALLA=0  SIN_DATO=0
+                rel_max 2.46e-14 (tolerancia 1.00e-09) sobre 281.787 celdas con magnitud | exclusiones sólo GENis 0, sólo referencia 0
+                puente (los dos caminos de GENis): 384 celdas, diferencia máxima 2.00e-15
+  con_mutacion  900.000 celdas contra pedsuite | PASA=900.000  REVISAR=0  FALLA=0  SIN_DATO=0
+                rel_max 1.68e-10 (tolerancia 1.00e-09) sobre 724.466 celdas con magnitud | exclusiones sólo GENis 0, sólo referencia 0
+                puente (los dos caminos de GENis): 633 celdas, diferencia máxima 4.26e-14
+  => bloque 2: 1.900.000 celdas en 2 condiciones, todas PASA, cero desacuerdos categóricos
 
 ADVERTENCIAS
   ninguna

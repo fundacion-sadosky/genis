@@ -1,0 +1,9 @@
+commit = 9e8887a
+fecha = 2026-11-26 17:48:18
+condicion = sin_mutacion
+motores = familias
+manifiesto = 2e9af994e0e7649b2672d2366670d51751cc71a1244bc98d2dba30f8549ede5f
+entrega = resultados_genis_masiva.csv
+entrega_arrancada = 2026-11-24 19:35:58 en 9e8887a
+entrega_commit = 9e8887a
+entrega_sha256 = 56f84a95a3b18caf45e69895d6655c13f54f65292c7c5260bfec770fd4d42704

@@ -1,0 +1,9 @@
+commit = 9e8887a
+fecha = 2026-11-26 17:48:46
+condicion = con_mutacion
+motores = pedsuite
+manifiesto = 63decb4fff0ddf992eb2292b5aac1d262e5dd27861d04db06032e510b94cf622
+entrega = resultados_genis_masiva.csv
+entrega_arrancada = 2026-11-24 20:19:51 en 9e8887a
+entrega_commit = 9e8887a
+entrega_sha256 = b1fee8f28f41ef72db5401cc7d77d0d420851549956b4652f2f637927d41711f

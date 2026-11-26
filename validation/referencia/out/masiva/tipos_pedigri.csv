@@ -1,0 +1,21 @@
+"tipo","etiqueta","grado","n_tipificados","tipificados","n_individuos"
+"padres","Ambos progenitores","progenitores",2,"PAD MAD",3
+"padre","Solo el padre","progenitores",1,"PAD",3
+"madre","Solo la madre","progenitores",1,"MAD",3
+"padre_hermano","Un progenitor y un hermano","mixto",2,"PAD HNO1",4
+"madre_hermano","La madre y un hermano","mixto",2,"MAD HNO1",4
+"padres_hermano","Ambos progenitores y un hermano","mixto",3,"PAD MAD HNO1",4
+"abuelos_4","Los cuatro abuelos","abuelos",4,"ABP1 ABP2 ABM1 ABM2",7
+"abuelos_3","Tres abuelos (pareja paterna y uno materno)","abuelos",3,"ABP1 ABP2 ABM1",7
+"abuelos_2_mismo","Dos abuelos del mismo lado (pareja paterna)","abuelos",2,"ABP1 ABP2",7
+"abuelos_2_cruzados","Dos abuelos, uno de cada lado","abuelos",2,"ABP1 ABM2",7
+"abuelo_1","Un solo abuelo","abuelos",1,"ABP1",7
+"tios_2_cada_lado","Dos tios de cada lado (cuatro en total)","tios",4,"TP1 TP2 TM1 TM2",11
+"tios_2_paternos","Dos tios paternos","tios",2,"TP1 TP2",9
+"tios_2_maternos","Dos tios maternos","tios",2,"TM1 TM2",9
+"tio_1","Un solo tio","tios",1,"TP1",8
+"hermano_1","Un hermano completo","hermanos",1,"HNO1",4
+"hermanos_2","Dos hermanos completos","hermanos",2,"HNO1 HNO2",5
+"hermanos_3","Tres hermanos completos","hermanos",3,"HNO1 HNO2 HNO3",6
+"medio_hermano_1","Un medio hermano","medios_hermanos",1,"MH1",5
+"medios_hermanos_2","Dos medios hermanos del mismo lado","medios_hermanos",2,"MH1 MH2",7

@@ -1,0 +1,12 @@
+# Paquete de validacion lrval - 2026-11-24 18:45:52
+# R 4.5.2 | pedtools 2.11.0 | Familias 2.6.4
+
+e8db8dc80d2eff5ac8bfefd4fc7e5931bed21f54d9c9f83295a281c2c17291c8  familias.csv
+0f5080ea3d1db9b4d521411954654975d021c074483c3dd9969e9a72e00bb6c3  frecuencias.csv
+ab317eebe3dd1b650318d6fd63213503d5d99c00fbeefa8bc1e19d08f4b5ffca  LEEME.txt
+02b9997a0c37bebf9a1c25e7a53a8ae3d388926b04aba3bff7ed9eab5265775b  modelos.csv
+3b20abae7522511dcfd5087b376445c0682554069042b075c2fd8fee3a7079f4  pedigries.csv
+ad42b97c22d2e731452136d5e87899cb01fe7d8d90e4f44e9be56054137a6f55  perfiles.csv
+34c4b4b3a2ba474f534af38d721a162276ff55c6cb432f247314bef479317ff7  poi.csv
+fc467e621ac8eafb8b1da9b722b0de7edb0205caef2109fff09e5603c60733ea  resultados.csv
+3ff1be3c9f228ad631a14abd568b4cb01cf2f8472fc59ebec0aa4a71fdcff904  tipos.csv

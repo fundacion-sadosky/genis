@@ -1,0 +1,2 @@
+"escenario","motor_a","motor_b","n_pares","max_dif_log10","veredicto","exigido","medido","commit"
+"sin mutacion","familias","pedsuite",1000000,7.105427357601e-15,"PASA",TRUE,"2026-11-24","9e8887a"

@@ -1,18 +1,20 @@
 # Informe de la validación del LR por pedigrí de GENis
 
-Generado el 2026-11-24 18:02:15 en el commit 6482f36 por `validation/correr informe`. No recalcula nada: toda cifra sale de los archivos de la corrida que están en disco.
+Generado el 2026-11-26 17:55:10 en el commit e8f4a8a por `validation/correr informe`. No recalcula nada: toda cifra sale de los archivos de la corrida que están en disco.
 
 ## Veredicto
 
 ```
 VEREDICTO DE LA VALIDACIÓN DEL LR POR PEDIGRÍ DE GENis
-generado 2026-11-24 18:02:15 en el commit 6482f36 | tolerancia de aceptación: discrepancia relativa <= 1.00e-09
+generado 2026-11-26 17:55:10 en el commit e8f4a8a | tolerancia de aceptación: discrepancia relativa <= 1.00e-09
 
 PROCEDENCIA (la cadena se verifica por contenido: manifiestos y SHA-256, no por fechas)
   bloque 1              paquete 2026-11-24 18:02:09 | entrega de GENis commit 6482f36 | veredicto de la referencia commit 6482f36, 2026-11-24 18:02:13
                         cadena verificada: el veredicto es de esta entrega y la entrega es de este paquete
-  masiva sin_mutacion  sin corrida en disco
-  masiva con_mutacion  sin corrida en disco
+  masiva sin_mutacion  paquete 2026-11-24 18:45:49 | entrega de GENis commit 9e8887a, arrancada 2026-11-24 19:35:58 en 9e8887a | comparación commit 9e8887a, 2026-11-26 17:48:18
+                        cadena verificada: el veredicto es de esta entrega y la entrega es de este paquete
+  masiva con_mutacion  paquete 2026-11-24 18:45:52 | entrega de GENis commit 9e8887a, arrancada 2026-11-24 20:19:51 en 9e8887a | comparación commit 9e8887a, 2026-11-26 17:48:46
+                        cadena verificada: el veredicto es de esta entrega y la entrega es de este paquete
 
 Bloque 1, el catálogo: 51 casos, GENis calculó 51 | PASA=49  CONVENCION=2  REVISAR=0  FALLA=0  SIN_DATO=0
   diferencias de convención (2): SIL-01 PRU-02
@@ -22,9 +24,13 @@ Bloque 1, el catálogo: 51 casos, GENis calculó 51 | PASA=49  CONVENCION=2  REV
   => bloque 1: sin FALLA frente a la referencia; 2 diferencias de convención, explicadas en el informe
 
 Bloque 2, la búsqueda masiva:
-  sin_mutacion  sin entrega ni veredicto en disco: correr `validation/correr masiva`
-  con_mutacion  sin entrega ni veredicto en disco: correr `validation/correr masiva`
-  => bloque 2: sin veredicto
+  sin_mutacion  1.000.000 celdas contra familias | PASA=1.000.000  REVISAR=0  FALLA=0  SIN_DATO=0
+                rel_max 2.46e-14 (tolerancia 1.00e-09) sobre 281.787 celdas con magnitud | exclusiones sólo GENis 0, sólo referencia 0
+                puente (los dos caminos de GENis): 384 celdas, diferencia máxima 2.00e-15
+  con_mutacion  900.000 celdas contra pedsuite | PASA=900.000  REVISAR=0  FALLA=0  SIN_DATO=0
+                rel_max 1.68e-10 (tolerancia 1.00e-09) sobre 724.466 celdas con magnitud | exclusiones sólo GENis 0, sólo referencia 0
+                puente (los dos caminos de GENis): 633 celdas, diferencia máxima 4.26e-14
+  => bloque 2: 1.900.000 celdas en 2 condiciones, todas PASA, cero desacuerdos categóricos
 
 ADVERTENCIAS
   ninguna
@@ -171,11 +177,129 @@ Descomposición de la diferencia en los casos con mutación (d_algoritmo mide el
 
 ### Condición sin_mutacion
 
-Sin entrega ni veredicto en disco: correr `validation/correr masiva`.
+#### Procedencia y cadena
+
+| pieza | commit | fecha | identidad (prefijo del hash) |
+| --- | --- | --- | --- |
+| paquete |  | 2026-11-24 18:45:49 | 2e9af994e0e7 |
+| entrega de GENis | 9e8887a | 2026-11-24 19:35:58 en 9e8887a | 56f84a95a3b1 |
+| comparación celda a celda | 9e8887a | 2026-11-26 17:48:18 | 56f84a95a3b1 |
+
+| eslabón | ok | detalle |
+| --- | --- | --- |
+| paquete -> entrega | cierra | la entrega consumió el paquete actual (manifiesto por contenido) |
+| entrega -> veredicto | cierra | el veredicto se emitió sobre la entrega que está en disco (misma `arrancada`, mismo SHA-256) |
+
+Condiciones de la corrida de GENis: artefacto = 5.1.15; commit = 9e8887a; arrancada = 2026-11-24 19:35:58 en 9e8887a; camino = busqueda (getGenotypification por familia + findCompatibilityMatches por POI); umbral de reporte = salteado (se entregan todas las celdas); familias = 200; poi = 5000; celdas = 1000000; hilos = 8; puente = 3; puente.semilla = 20260828; puente.tipos_sin_muestra = ninguno; mutacion = sin modelo.
+
+#### Veredicto celda a celda
+
+| motor | celdas | pasa | revisar | falla | sin_dato | celdas_magnitud | rel_max | rel_mediana | excl_ambos | excl_solo_obs | excl_solo_ref |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| familias | 1e+06 | 1e+06 | 0 | 0 | 0 | 2.82e+05 | 2.46e-14 | 2.12e-15 | 7.18e+05 | 0 | 0 |
+
+`rel_max` se calcula sobre las celdas con magnitud comparable (sin las que ambos lados excluyen); tolerancia 1.00e-09. `excl_solo_obs` y `excl_solo_ref` son desacuerdos categóricos: uno excluye y el otro no.
+
+Cobertura: 200 de 200 familias aceptadas, 1.000.000 celdas con dato; verificación del manifiesto independiente: sí.
+
+#### Por tipo de pedigrí
+
+| motor | tipo | n_familias | celdas | pasa | revisar | falla | sin_dato | rel_max | excl_solo_obs | excl_solo_ref |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| familias | abuelo_1 | 5 | 2.5e+04 | 2.5e+04 | 0 | 0 | 0 | 1.13e-14 | 0 | 0 |
+| familias | abuelos_2_cruzados | 10 | 5e+04 | 5e+04 | 0 | 0 | 0 | 1.64e-14 | 0 | 0 |
+| familias | abuelos_2_mismo | 7 | 3.5e+04 | 3.5e+04 | 0 | 0 | 0 | 1.23e-14 | 0 | 0 |
+| familias | abuelos_3 | 8 | 4e+04 | 4e+04 | 0 | 0 | 0 | 8.24e-15 | 0 | 0 |
+| familias | abuelos_4 | 3 | 1.5e+04 | 1.5e+04 | 0 | 0 | 0 | 4.09e-15 | 0 | 0 |
+| familias | hermano_1 | 9 | 4.5e+04 | 4.5e+04 | 0 | 0 | 0 | 1.64e-14 | 0 | 0 |
+| familias | hermanos_2 | 10 | 5e+04 | 5e+04 | 0 | 0 | 0 | 4.21e-15 | 0 | 0 |
+| familias | hermanos_3 | 12 | 6e+04 | 6e+04 | 0 | 0 | 0 | 8.26e-15 | 0 | 0 |
+| familias | madre | 11 | 5.5e+04 | 5.5e+04 | 0 | 0 | 0 | 4.11e-15 | 0 | 0 |
+| familias | madre_hermano | 11 | 5.5e+04 | 5.5e+04 | 0 | 0 | 0 | 8.18e-15 | 0 | 0 |
+| familias | medio_hermano_1 | 9 | 4.5e+04 | 4.5e+04 | 0 | 0 | 0 | 1.13e-14 | 0 | 0 |
+| familias | medios_hermanos_2 | 6 | 3e+04 | 3e+04 | 0 | 0 | 0 | 1.23e-14 | 0 | 0 |
+| familias | padre | 10 | 5e+04 | 5e+04 | 0 | 0 | 0 | 4.07e-15 | 0 | 0 |
+| familias | padre_hermano | 15 | 7.5e+04 | 7.5e+04 | 0 | 0 | 0 | 4.22e-15 | 0 | 0 |
+| familias | padres | 12 | 6e+04 | 6e+04 | 0 | 0 | 0 | 0 | 0 | 0 |
+| familias | padres_hermano | 15 | 7.5e+04 | 7.5e+04 | 0 | 0 | 0 | 8.2e-15 | 0 | 0 |
+| familias | tio_1 | 12 | 6e+04 | 6e+04 | 0 | 0 | 0 | 1.13e-14 | 0 | 0 |
+| familias | tios_2_cada_lado | 16 | 8e+04 | 8e+04 | 0 | 0 | 0 | 2.46e-14 | 0 | 0 |
+| familias | tios_2_maternos | 5 | 2.5e+04 | 2.5e+04 | 0 | 0 | 0 | 1.23e-14 | 0 | 0 |
+| familias | tios_2_paternos | 14 | 7e+04 | 7e+04 | 0 | 0 | 0 | 1.64e-14 | 0 | 0 |
+
+No hay celdas discrepantes: `celdas_discrepantes.csv` no existe porque no hubo ninguna.
+
+#### Puente: los dos caminos de cálculo de GENis
+
+Muestra pedida (celdas por tipo de pedigrí y decil): 3. 384 celdas muestreadas, diferencia máxima en log10 2.00e-15. Los dos caminos tienen que coincidir a precisión de máquina.
+
+#### Acuerdo entre los motores de referencia
+
+| motor_a | motor_b | n_pares | max_dif_log10 | veredicto | exigido | medido | commit |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| familias | pedsuite | 1e+06 | 7.11e-15 | PASA | TRUE | 2026-11-24 | 9e8887a |
+
+Una fila con `medido` vacío o con otra fecha es una medición preservada de otra corrida, no de esta.
 
 ### Condición con_mutacion
 
-Sin entrega ni veredicto en disco: correr `validation/correr masiva`.
+#### Procedencia y cadena
+
+| pieza | commit | fecha | identidad (prefijo del hash) |
+| --- | --- | --- | --- |
+| paquete |  | 2026-11-24 18:45:52 | 63decb4fff0d |
+| entrega de GENis | 9e8887a | 2026-11-24 20:19:51 en 9e8887a | b1fee8f28f41 |
+| comparación celda a celda | 9e8887a | 2026-11-26 17:48:46 | b1fee8f28f41 |
+
+| eslabón | ok | detalle |
+| --- | --- | --- |
+| paquete -> entrega | cierra | la entrega consumió el paquete actual (manifiesto por contenido) |
+| entrega -> veredicto | cierra | el veredicto se emitió sobre la entrega que está en disco (misma `arrancada`, mismo SHA-256) |
+
+Condiciones de la corrida de GENis: artefacto = 5.1.15; commit = 9e8887a; arrancada = 2026-11-24 20:19:51 en 9e8887a; camino = busqueda (getGenotypification por familia + findCompatibilityMatches por POI); umbral de reporte = salteado (se entregan todas las celdas); familias = 180; poi = 5000; celdas = 900000; hilos = 1; puente = 3; puente.semilla = 20260828; puente.tipos_sin_muestra = ninguno; mutacion = stepwise; mutacion.rango = 0.5; mutacion.pasos = 22; mutacion.ki_no_nulos = 754.
+
+#### Veredicto celda a celda
+
+| motor | celdas | pasa | revisar | falla | sin_dato | celdas_magnitud | rel_max | rel_mediana | excl_ambos | excl_solo_obs | excl_solo_ref |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| pedsuite | 9e+05 | 9e+05 | 0 | 0 | 0 | 7.24e+05 | 1.68e-10 | 4.06e-15 | 1.76e+05 | 0 | 0 |
+
+`rel_max` se calcula sobre las celdas con magnitud comparable (sin las que ambos lados excluyen); tolerancia 1.00e-09. `excl_solo_obs` y `excl_solo_ref` son desacuerdos categóricos: uno excluye y el otro no.
+
+Cobertura: 180 de 180 familias aceptadas, 900.000 celdas con dato; verificación del manifiesto independiente: sí.
+
+#### Por tipo de pedigrí
+
+| motor | tipo | n_familias | celdas | pasa | revisar | falla | sin_dato | rel_max | excl_solo_obs | excl_solo_ref |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| pedsuite | abuelo_1 | 10 | 5e+04 | 5e+04 | 0 | 0 | 0 | 1.43e-14 | 0 | 0 |
+| pedsuite | abuelos_2_cruzados | 10 | 5e+04 | 5e+04 | 0 | 0 | 0 | 1.65e-14 | 0 | 0 |
+| pedsuite | abuelos_2_mismo | 10 | 5e+04 | 5e+04 | 0 | 0 | 0 | 4.09e-14 | 0 | 0 |
+| pedsuite | abuelos_3 | 10 | 5e+04 | 5e+04 | 0 | 0 | 0 | 4.11e-14 | 0 | 0 |
+| pedsuite | abuelos_4 | 10 | 5e+04 | 5e+04 | 0 | 0 | 0 | 8.19e-14 | 0 | 0 |
+| pedsuite | hermano_1 | 10 | 5e+04 | 5e+04 | 0 | 0 | 0 | 2.04e-14 | 0 | 0 |
+| pedsuite | hermanos_2 | 10 | 5e+04 | 5e+04 | 0 | 0 | 0 | 1.68e-10 | 0 | 0 |
+| pedsuite | hermanos_3 | 10 | 5e+04 | 5e+04 | 0 | 0 | 0 | 6.55e-14 | 0 | 0 |
+| pedsuite | madre | 10 | 5e+04 | 5e+04 | 0 | 0 | 0 | 6.55e-14 | 0 | 0 |
+| pedsuite | madre_hermano | 10 | 5e+04 | 5e+04 | 0 | 0 | 0 | 8.19e-14 | 0 | 0 |
+| pedsuite | medio_hermano_1 | 10 | 5e+04 | 5e+04 | 0 | 0 | 0 | 1.23e-14 | 0 | 0 |
+| pedsuite | medios_hermanos_2 | 10 | 5e+04 | 5e+04 | 0 | 0 | 0 | 2.05e-14 | 0 | 0 |
+| pedsuite | padre | 10 | 5e+04 | 5e+04 | 0 | 0 | 0 | 6.55e-14 | 0 | 0 |
+| pedsuite | padre_hermano | 10 | 5e+04 | 5e+04 | 0 | 0 | 0 | 4.92e-14 | 0 | 0 |
+| pedsuite | padres | 10 | 5e+04 | 5e+04 | 0 | 0 | 0 | 9.83e-14 | 0 | 0 |
+| pedsuite | padres_hermano | 10 | 5e+04 | 5e+04 | 0 | 0 | 0 | 9.83e-14 | 0 | 0 |
+| pedsuite | tio_1 | 5 | 2.5e+04 | 2.5e+04 | 0 | 0 | 0 | 1.59e-14 | 0 | 0 |
+| pedsuite | tios_2_cada_lado | 5 | 2.5e+04 | 2.5e+04 | 0 | 0 | 0 | 3.28e-14 | 0 | 0 |
+| pedsuite | tios_2_maternos | 5 | 2.5e+04 | 2.5e+04 | 0 | 0 | 0 | 2.06e-14 | 0 | 0 |
+| pedsuite | tios_2_paternos | 5 | 2.5e+04 | 2.5e+04 | 0 | 0 | 0 | 2.05e-14 | 0 | 0 |
+
+No hay celdas discrepantes: `celdas_discrepantes.csv` no existe porque no hubo ninguna.
+
+#### Puente: los dos caminos de cálculo de GENis
+
+Muestra pedida (celdas por tipo de pedigrí y decil): 3. 633 celdas muestreadas, diferencia máxima en log10 4.26e-14. Los dos caminos tienen que coincidir a precisión de máquina.
+
+Con modelo de mutación el veredicto de GENis se emite contra pedsuite, porque Familias aplica otra convención para los fundadores no tipificados (los poda); es la misma diferencia de convención que muestran PRU-01 y PRU-02 en el catálogo.
 
 ## Advertencias
 
