@@ -16,7 +16,7 @@ Y **dos bloques**, que se validan por separado:
 | bloque | qué mide | escala | tiempo |
 |---|---|---|---|
 | **1: catálogo** | caso por caso, contra valores en forma cerrada de la literatura | 51 casos | unos 6 minutos |
-| **2: búsqueda masiva** | familias contra una nómina de personas de interés, celda por celda, contra los motores de referencia | 1.900.000 celdas | alrededor de un día |
+| **2: búsqueda masiva** | familias contra una nómina de personas de interés, celda por celda, contra los motores de referencia | 1.900.000 celdas | alrededor de dos días |
 
 ---
 
@@ -133,18 +133,22 @@ mutación, y 180 familias contra las mismas 5.000 con modelo de mutación.
 
 ```bash
 validation/correr masiva --plan   # mirar primero
-validation/correr masiva          # alrededor de un día
+validation/correr masiva          # alrededor de dos días
 ```
 
 ### Los pasos y lo que cuestan
 
 | paso | lado | tiempo | qué hace |
 |---|---|---|---|
-| `masiva paquete` | R | ~35 min | respalda, arma el paquete y corre los motores de referencia |
-| `masiva sonda` | sbt | ~45 min | mide el costo por tipo de pedigrí antes de comprometer horas; no escribe entrega |
-| `masiva genis sin_mutacion` | sbt | ~20 min | GENis corre la condición sin mutación |
-| `masiva genis con_mutacion` | sbt | ~7 h, más el puente (varias horas) | GENis corre la condición con mutación |
-| `masiva comparar` | R | ~20 min | el anticipo (80 pares) y la comparación celda a celda |
+| `masiva paquete` | R | ~45 min | respalda, arma el paquete y corre los motores de referencia |
+| `masiva sonda` | sbt | ~50 min | mide el costo por tipo de pedigrí antes de comprometer horas; no escribe entrega |
+| `masiva genis sin_mutacion` | sbt | ~45 min | GENis corre la condición sin mutación, con su puente |
+| `masiva genis con_mutacion` | sbt | ~10 h, más el puente (~30 h) | GENis corre la condición con mutación |
+| `masiva comparar` | R | ~2 min | el anticipo (80 pares) y la comparación celda a celda |
+
+Los tiempos son los de la corrida publicada, en una notebook de 8 núcleos y 16 GB. El
+orquestador no impide que la máquina se suspenda: si se suspende, la corrida se detiene y
+retoma sola al volver.
 
 **Con mutación el veredicto va contra pedsuite.** Familias aplica otra convención para los
 fundadores no tipificados (los poda), así que con modelo de mutación sus números no son
@@ -169,7 +173,10 @@ de hermanos calculándose a la vez no entran en esa memoria, así que
 núcleos. `--hilos N` manda en las dos condiciones.
 
 **El puente** contrasta los dos caminos de cálculo de GENis (la búsqueda y el cálculo
-directo de un pedigrí) sobre una muestra de celdas. Con mutación es serial y lleva horas.
+directo de un pedigrí) sobre una muestra de celdas: `--puente K` pide K celdas por tipo de
+pedigrí y decil, y el valor por omisión es 3 (633 celdas con mutación). Con mutación es
+serial y es lo más largo de toda la validación, unas 30 horas: cada celda de un tipo con
+hermanos cuesta del orden de media hora. Con `--puente 1` lleva la tercera parte.
 El cierre de la corrida se escribe **antes** del puente: si se interrumpe, queda
 `puente = pendiente` en `condiciones_masiva.txt`, la entrega ya sirve para
 `masiva comparar`, y volver a lanzar `masiva genis con_mutacion` corre sólo el puente.

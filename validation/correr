@@ -119,27 +119,27 @@ p_ma_paquete() {
     cmd="$cmd --con-familias-mutacion"; est="~40 h"; caro=si
     nota='Familias con mutacion INCLUIDA: ~39,6 h de reloj, ~192 h de nucleo. Mide a escala la diferencia de convencion entre Familias y pedsuite; no emite veredicto.'
   else
-    est="~35 min"; caro=no
+    est="~45 min"; caro=no
     nota='Familias con mutacion OMITIDA: ahorra ~39,6 h. No emite veredicto (con mutacion el veredicto va contra pedsuite). Si hay filas de una corrida anterior, se PRESERVAN con su sello de procedencia. Para correrlo: --con-familias-mutacion'
   fi
   paso R "la referencia arma el paquete y corre el escenario" "$est" "$caro" "$REF" "$cmd" "$nota"
 }
 p_ma_sonda() {
-  paso sbt "sonda de costo por tipo de pedigri" "~45 min" no "$RAIZ" \
+  paso sbt "sonda de costo por tipo de pedigri" "~50 min" no "$RAIZ" \
     "sbt \"validacion:runMain validation.RunnerMasiva $(rel "$PAQUETE")/con_mutacion $(rel "$SALIDA") --sonda $SONDA_K\"" \
     'no escribe entrega. Sobre el paquete completo con mutacion tarda ~44 min. Sirve para planificar la corrida: si un tipo no cierra con el tiempo disponible, achicar por el eje de FAMILIAS y nunca por el de POI: el costo es por familia y bajar los POI destruye la cola del ruido, que es lo que el escenario mide.'
 }
 p_ma_genis() {  # $1 = sin_mutacion | con_mutacion
   local c="$1" est caro hilos nota_hilos
   if [ "$c" = con_mutacion ]; then
-    est="~7 h + puente"; caro=si
+    est="~10 h + puente (~30 h)"; caro=si
     # Sin --hilos, UN hilo: con mutacion, varias familias de hermanos en vuelo
     # a la vez agotan la memoria de la JVM del arnes (-Xmx6g) y la corrida deja
     # de avanzar. Con 1, cada familia sale a su costo nominal.
     hilos=" ${HILOS:-1}"
-    nota_hilos="Por omision corre con 1 hilo: con varios, las familias de hermanos con mutacion agotan la memoria de la JVM. El puente con mutacion es serial y son HORAS mas (una celda de hermanos cuesta media genotipificacion); si se interrumpe queda 'puente = pendiente' en condiciones_masiva.txt y la entrega ya sirve para 'masiva comparar'. "
+    nota_hilos="Por omision corre con 1 hilo: con varios, las familias de hermanos con mutacion agotan la memoria de la JVM. El puente con mutacion es serial y lleva mas que la corrida misma: con el --puente 3 por omision son unas 30 h (cada celda de un tipo con hermanos cuesta del orden de media hora) y con --puente 1, la tercera parte; si se interrumpe queda 'puente = pendiente' en condiciones_masiva.txt y la entrega ya sirve para 'masiva comparar'. "
   else
-    est="~20 min"; caro=no; hilos="${HILOS:+ $HILOS}"; nota_hilos=""
+    est="~45 min"; caro=no; hilos="${HILOS:+ $HILOS}"; nota_hilos=""
   fi
   ROTA="$c"
   paso sbt "GENis corre la condicion $c" "$est" "$caro" "$RAIZ" \
@@ -150,9 +150,9 @@ p_ma_genis() {  # $1 = sin_mutacion | con_mutacion
 p_ma_comparar() {
   paso R "anticipo: 80 pares, sin recomputar ninguna matriz" "~1 min" no "$REF" \
     'Rscript scripts/05_anticipo_via_larga.R'
-  paso R "comparacion celda a celda, sin_mutacion" "~10 min" no "$REF" \
+  paso R "comparacion celda a celda, sin_mutacion" "~1 min" no "$REF" \
     "Rscript scripts/04_comparacion_masiva.R --condicion sin_mutacion --motor ${MOTOR:-ambos}$SOLO_COMPARAR"
-  paso R "comparacion celda a celda, con_mutacion" "~10 min" no "$REF" \
+  paso R "comparacion celda a celda, con_mutacion" "~1 min" no "$REF" \
     "Rscript scripts/04_comparacion_masiva.R --condicion con_mutacion --motor ${MOTOR:-pedsuite}$SOLO_COMPARAR" \
     'con mutacion el veredicto va contra pedsuite y no contra Familias, que aplica otra convencion para los fundadores no tipificados.'
 }
@@ -215,7 +215,7 @@ cat <<'MENU'
   bloque1 veredicto               R     emite el veredicto
                                         (y cierra con el informe)
 
-  masiva                        busqueda masiva       R -> sbt -> R   (~1 dia)
+  masiva                        busqueda masiva       R -> sbt -> R   (~2 dias)
   masiva paquete                  R     arma el paquete y corre la referencia
   masiva sonda                    sbt   costo por tipo; no escribe entrega
   masiva genis                    sbt   las dos condiciones

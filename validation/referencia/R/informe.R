@@ -574,8 +574,8 @@ veredicto_masiva <- function(ms) {
   a <- do.call(rbind, lapply(con, `[[`, "acuerdo"))
   malas <- sum(a$falla) + sum(a$revisar) + sum(a$sin_dato)
   cat_ <- sum(a$excl_solo_obs) + sum(a$excl_solo_ref)
-  sprintf("  => bloque 2: %s celdas en %d condición%s, %s%s",
-          miles(sum(a$celdas)), length(con), if (length(con) > 1) "es" else "",
+  sprintf("  => bloque 2: %s celdas en %d %s, %s%s",
+          miles(sum(a$celdas)), length(con), if (length(con) > 1) "condiciones" else "condición",
           if (malas == 0) "todas PASA" else sprintf("%s que no son PASA", miles(malas)),
           if (cat_ == 0) ", cero desacuerdos categóricos" else sprintf(", %d DESACUERDOS CATEGÓRICOS (uno excluye y el otro no)", cat_))
 }
@@ -771,7 +771,7 @@ doc_condicion <- function(m, hz, tol) {
   p <- m$puente
   if (!is.null(p))
     out <- nodos(out, nodo_h(4, "Puente: los dos caminos de cálculo de GENis"),
-                 nodo_p(sprintf("Estado declarado: %s. %d celdas muestreadas, diferencia máxima en log10 %s%s. Los dos caminos tienen que coincidir a precisión de máquina.",
+                 nodo_p(sprintf("Muestra pedida (celdas por tipo de pedigrí y decil): %s. %d celdas muestreadas, diferencia máxima en log10 %s%s. Los dos caminos tienen que coincidir a precisión de máquina.",
                                 p$estado, p$n, cientifico(p$max_dif), if (p$errores) sprintf(", %d en error", p$errores) else "")))
   if (!is.null(m$acuerdo_motores))
     out <- nodos(out, nodo_h(4, "Acuerdo entre los motores de referencia"),
